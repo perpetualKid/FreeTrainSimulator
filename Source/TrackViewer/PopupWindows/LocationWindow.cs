@@ -1,14 +1,10 @@
 ﻿
 using System;
-using System.Linq;
-using System.Reflection.Metadata;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
-using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics;
 using Orts.Graphics.Track;
@@ -20,8 +16,6 @@ namespace Orts.TrackViewer.PopupWindows
 {
     public class LocationWindow : WindowBase
     {
-        private readonly MouseInputGameComponent input;
-        private MouseState lastMouseState;
         private const double piRad = 180 / Math.PI;
         private ContentArea contentArea;
         Label locationLabel;
@@ -29,7 +23,6 @@ namespace Orts.TrackViewer.PopupWindows
         public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
             base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 64))
         {
-            input = Owner.Game.Components.OfType<MouseInputGameComponent>().Single();
             this.contentArea = contentArea;
         }
 
@@ -51,12 +44,10 @@ namespace Orts.TrackViewer.PopupWindows
 
         protected override void Update(GameTime gameTime)
         {
-            ref readonly MouseState mouseState = ref input.MouseState;
-            if (contentArea != null && mouseState != lastMouseState)
+            if (contentArea != null)
             {
-                lastMouseState = mouseState;
-                Point worldPoint = contentArea.ScreenToWorldCoordinates(mouseState.Position);
-                WorldLocation location = new WorldLocation(0, 0, worldPoint.X, 0, worldPoint.Y, true);
+                ref readonly PointD worldPoint = ref contentArea.WorldPosition;
+                WorldLocation location = new WorldLocation(0, 0, (float)worldPoint.X, 0, (float)worldPoint.Y, true);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 
                 longitude *= piRad; // E/W

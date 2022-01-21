@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
@@ -29,6 +30,7 @@ namespace Orts.Graphics.Track
 
         private Tile bottomLeft;
         private Tile topRight;
+        private PointD worldPosition;
 
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
@@ -63,6 +65,8 @@ namespace Orts.Graphics.Track
         public bool SuppressDrawing { get; private set; }
 
         public Point WindowSize { get; private set; }
+
+        public ref readonly PointD WorldPosition => ref worldPosition;
 
         public string RouteName { get; }
 
@@ -102,7 +106,7 @@ namespace Orts.Graphics.Track
             DebugInfo["Road Segments"] = $"{trackContent.RoadSegments.Count}";
             DebugInfo["Road End Segments"] = $"{trackContent.RoadEndSegments.Count}";
             DebugInfo["Junction Segments"] = $"{trackContent.JunctionSegments.Count}";
-            DebugInfo["Tiles"] = $"{trackContent.Tiles.Count}";
+            DebugInfo["Tiles"] = $"{trackContent.Tiles.Count}";            
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -116,7 +120,7 @@ namespace Orts.Graphics.Track
             if (!Enabled)
                 return;
 
-            PointD worldPosition = ScreenToWorldCoordinates(position);
+            worldPosition = ScreenToWorldCoordinates(position);
             FindNearestItems(worldPosition);
         }
 
@@ -132,7 +136,7 @@ namespace Orts.Graphics.Track
             base.OnEnabledChanged(sender, args);
         }
 
-        private void FindNearestItems(PointD position)
+        private void FindNearestItems(in PointD position)
         {
             IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(position, bottomLeft, topRight);
             if (result.First() != nearestGridTile)
@@ -182,6 +186,7 @@ namespace Orts.Graphics.Track
             screenHeightDelta = screenDelta;
             ScaleToFit();
             CenterView();
+            worldPosition = ScreenToWorldCoordinates(Mouse.GetState().Position);
         }
 
         public void PresetPosition(string[] locationDetails)
