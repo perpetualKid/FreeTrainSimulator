@@ -5496,7 +5496,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
 
                 case CabViewControlType.Orts_Battery_Switch_Command_Button_Open:
-                    data = LocomotivePowerSupply.BatterySwitch.CommandButtonOn ? 1 : 0;
+                    data = LocomotivePowerSupply.BatterySwitch.CommandButtonOff ? 1 : 0;
                     break;
 
                 case CabViewControlType.Orts_Battery_Switch_On:
