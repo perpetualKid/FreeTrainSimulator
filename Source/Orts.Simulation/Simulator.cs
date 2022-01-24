@@ -1942,14 +1942,8 @@ namespace Orts.Simulation
                 setting.BreakCouplers = activitySettings.Options.BreakCouplers == 1;
                 Trace.Write($"\n{"Break Couplers",-40}={setting.BreakCouplers,6}");
 
-                setting.CurveResistanceDependent = activitySettings.Options.CurveResistanceDependent == 1;
-                Trace.Write($"\n{"Curve Resistance Dependent",-40}={setting.CurveResistanceDependent,6}");
-
                 setting.CurveSpeedDependent = activitySettings.Options.CurveSpeedDependent == 1;
                 Trace.Write($"\n{"Curve Speed Dependent",-40}={setting.CurveSpeedDependent,6}");
-
-                setting.TunnelResistanceDependent = activitySettings.Options.TunnelResistanceDependent == 1;
-                Trace.Write($"\n{"Tunnel Resistance Dependent",-40}={setting.TunnelResistanceDependent,6}");
 
                 setting.WindResistanceDependent = activitySettings.Options.WindResistanceDependent == 1;
                 Trace.Write($"\n{"Wind Resistance Dependent",-40}={setting.WindResistanceDependent,6}");

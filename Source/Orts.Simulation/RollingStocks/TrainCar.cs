@@ -426,7 +426,6 @@ namespace Orts.Simulation.RollingStocks
         private protected double wagonCouplerAngleDerail;
 
         private bool curveSpeedDependent;
-        private bool tunnelResistanceDependent;
 
         // temporary values used to compute coupler forces
         internal float CouplerForceA; // left hand side value below diagonal
@@ -517,7 +516,6 @@ namespace Orts.Simulation.RollingStocks
         public virtual void Initialize()
         {
             curveSpeedDependent = simulator.Settings.CurveSpeedDependent;
-            tunnelResistanceDependent = simulator.Settings.TunnelResistanceDependent;
         }
 
         // called when it's time to update the MotiveForce and FrictionForce
@@ -785,7 +783,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateTunnelForce()
         {
-            if (tunnelResistanceDependent && Train.IsPlayerDriven)   // Only calculate tunnel resistance when it is the player train.
+            if (Train.IsPlayerDriven)   // Only calculate tunnel resistance when it is the player train.
             {
                 if (TunnelFrontPositionBeyondStart.HasValue)
                 {

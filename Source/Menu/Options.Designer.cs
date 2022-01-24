@@ -101,7 +101,6 @@ namespace Orts.Menu
             this.checkHotStart = new System.Windows.Forms.CheckBox();
             this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
-            this.checkTunnelResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkWindResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkOverrideNonElectrifiedRoutes = new System.Windows.Forms.CheckBox();
             this.labelAdhesionMovingAverageFilterSize = new System.Windows.Forms.Label();
@@ -1276,7 +1275,6 @@ namespace Orts.Menu
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
             this.tabPageSimulation.Controls.Add(this.checkCurveSpeedDependent);
-            this.tabPageSimulation.Controls.Add(this.checkTunnelResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkWindResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkOverrideNonElectrifiedRoutes);
             this.tabPageSimulation.Controls.Add(this.labelAdhesionMovingAverageFilterSize);
@@ -1376,16 +1374,6 @@ namespace Orts.Menu
             this.checkCurveSpeedDependent.TabIndex = 5;
             this.checkCurveSpeedDependent.Text = "Curve dependent speed limit";
             this.checkCurveSpeedDependent.UseVisualStyleBackColor = true;
-            // 
-            // checkTunnelResistanceDependent
-            // 
-            this.checkTunnelResistanceDependent.AutoSize = true;
-            this.checkTunnelResistanceDependent.Location = new System.Drawing.Point(6, 121);
-            this.checkTunnelResistanceDependent.Name = "checkTunnelResistanceDependent";
-            this.checkTunnelResistanceDependent.Size = new System.Drawing.Size(177, 19);
-            this.checkTunnelResistanceDependent.TabIndex = 6;
-            this.checkTunnelResistanceDependent.Text = "Tunnel dependent resistance";
-            this.checkTunnelResistanceDependent.UseVisualStyleBackColor = true;
             // 
             // checkWindResistanceDependent
             // 
@@ -3075,7 +3063,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkDataLogTrainSpeed;
         private System.Windows.Forms.CheckBox checkUseMSTSEnv;
         private System.Windows.Forms.CheckBox checkPreferDDSTexture;
-        private System.Windows.Forms.CheckBox checkTunnelResistanceDependent;
         private System.Windows.Forms.CheckBox checkWindResistanceDependent;
         private System.Windows.Forms.Label labelLanguage;
         private System.Windows.Forms.ComboBox comboLanguage;
