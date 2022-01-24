@@ -1945,9 +1945,6 @@ namespace Orts.Simulation
                 setting.CurveSpeedDependent = activitySettings.Options.CurveSpeedDependent == 1;
                 Trace.Write($"\n{"Curve Speed Dependent",-40}={setting.CurveSpeedDependent,6}");
 
-                setting.WindResistanceDependent = activitySettings.Options.WindResistanceDependent == 1;
-                Trace.Write($"\n{"Wind Resistance Dependent",-40}={setting.WindResistanceDependent,6}");
-
                 setting.HotStart = activitySettings.Options.HotStart == 1;
                 Trace.Write($"\n{"Hot Start",-40}={setting.HotStart,6}");
 

@@ -189,8 +189,6 @@ namespace Orts.Simulation.Physics
         public float ResultantWindComponentDeg { get; private set; }
         public float WindResultantSpeedMpS { get; private set; }
 
-        public static bool TrainWindResistanceDependent => simulator.Settings.WindResistanceDependent;
-
         // Auxiliary Water Tenders
         public float MaxAuxTenderWaterMassKG { get; set; }
         public bool IsAuxTenderCoupled { get; set; }
@@ -1434,15 +1432,14 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerIdle()
         {
-            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+            if (!(LeadLocomotive is MSTSLocomotive mstsLocomotive) || mstsLocomotive.DistributedPowerDynamicBrakeController == null)
                 return;
             DistributedPowerMode = DistributedPowerMode.Idle;
             if (DPDynamicBrakePercent >= 0)
                 DPDynamicBrakePercent = 0;
             DPThrottlePercent = 0;
-            (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(0);
-            if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
-                (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(0);
+            mstsLocomotive.DistributedPowerThrottleController.SetValue(0);
+            mstsLocomotive.DistributedPowerDynamicBrakeController.SetValue(0);
         }
 
         /// <summary>
@@ -1520,7 +1517,7 @@ namespace Orts.Simulation.Physics
             if (percent <= 0)
             {
                 percent = 0;
-//                percent = DistributedPowerIncrease(controller, 0);
+                //                percent = DistributedPowerIncrease(controller, 0);
             }
             return percent;
         }
@@ -1922,45 +1919,38 @@ namespace Orts.Simulation.Physics
             //These will be representative of the train whilst it is on a straight track, but each wagon will vary when going around a curve.
             // Note both train and wind direction will be positive between 0 (north) and 180 (south) through east, and negative between 0 (north) and 180 (south) through west
             // Wind and train direction to be converted to an angle between 0 and 360 deg.
-            if (TrainWindResistanceDependent)
-            {
-                // Calculate Wind speed and direction, and train direction
-                // Update the value of the Wind Speed and Direction for the train
-                PhysicsWindDirectionDeg = MathHelper.ToDegrees(simulator.Weather.WindDirection);
-                PhysicsWindSpeedMpS = simulator.Weather.WindSpeed.Length();
-                float TrainSpeedMpS = Math.Abs(SpeedMpS);
 
-                // If a westerly direction (ie -ve) convert to an angle between 0 and 360
-                if (PhysicsWindDirectionDeg < 0)
-                    PhysicsWindDirectionDeg += 360;
+            // Calculate Wind speed and direction, and train direction
+            // Update the value of the Wind Speed and Direction for the train
+            PhysicsWindDirectionDeg = MathHelper.ToDegrees(simulator.Weather.WindDirection);
+            PhysicsWindSpeedMpS = simulator.Weather.WindSpeed.Length();
+            float TrainSpeedMpS = Math.Abs(SpeedMpS);
 
-                if (PhysicsTrainLocoDirectionDeg < 0)
-                    PhysicsTrainLocoDirectionDeg += 360;
+            // If a westerly direction (ie -ve) convert to an angle between 0 and 360
+            if (PhysicsWindDirectionDeg < 0)
+                PhysicsWindDirectionDeg += 360;
 
-                // calculate angle between train and eind direction
-                if (PhysicsWindDirectionDeg > PhysicsTrainLocoDirectionDeg)
-                    ResultantWindComponentDeg = PhysicsWindDirectionDeg - PhysicsTrainLocoDirectionDeg;
-                else if (PhysicsTrainLocoDirectionDeg > PhysicsWindDirectionDeg)
-                    ResultantWindComponentDeg = PhysicsTrainLocoDirectionDeg - PhysicsWindDirectionDeg;
-                else
-                    ResultantWindComponentDeg = 0.0f;
+            if (PhysicsTrainLocoDirectionDeg < 0)
+                PhysicsTrainLocoDirectionDeg += 360;
 
-                // Correct wind direction if it is greater then 360 deg, then correct to a value less then 360
-                ResultantWindComponentDeg %= 360.0f;
-
-                // Wind angle should be kept between 0 and 180 the formulas do not cope with angles > 180. If angle > 180, denotes wind of "other" side of train
-                if (ResultantWindComponentDeg > 180)
-                    ResultantWindComponentDeg = 360 - ResultantWindComponentDeg;
-
-                float WindAngleRad = MathHelper.ToRadians(ResultantWindComponentDeg);
-
-                WindResultantSpeedMpS = (float)Math.Sqrt(TrainSpeedMpS * TrainSpeedMpS + PhysicsWindSpeedMpS * PhysicsWindSpeedMpS + 2.0f * TrainSpeedMpS * PhysicsWindSpeedMpS * (float)Math.Cos(WindAngleRad));
-
-            }
+            // calculate angle between train and eind direction
+            if (PhysicsWindDirectionDeg > PhysicsTrainLocoDirectionDeg)
+                ResultantWindComponentDeg = PhysicsWindDirectionDeg - PhysicsTrainLocoDirectionDeg;
+            else if (PhysicsTrainLocoDirectionDeg > PhysicsWindDirectionDeg)
+                ResultantWindComponentDeg = PhysicsTrainLocoDirectionDeg - PhysicsWindDirectionDeg;
             else
-            {
-                WindResultantSpeedMpS = Math.Abs(SpeedMpS);
-            }
+                ResultantWindComponentDeg = 0.0f;
+
+            // Correct wind direction if it is greater then 360 deg, then correct to a value less then 360
+            ResultantWindComponentDeg %= 360.0f;
+
+            // Wind angle should be kept between 0 and 180 the formulas do not cope with angles > 180. If angle > 180, denotes wind of "other" side of train
+            if (ResultantWindComponentDeg > 180)
+                ResultantWindComponentDeg = 360 - ResultantWindComponentDeg;
+
+            float WindAngleRad = MathHelper.ToRadians(ResultantWindComponentDeg);
+
+            WindResultantSpeedMpS = (float)Math.Sqrt(TrainSpeedMpS * TrainSpeedMpS + PhysicsWindSpeedMpS * PhysicsWindSpeedMpS + 2.0f * TrainSpeedMpS * PhysicsWindSpeedMpS * (float)Math.Cos(WindAngleRad));
         }
 
         /// Update Auxiliary Tenders added to train

@@ -193,8 +193,6 @@ namespace Orts.Settings
         [Default(false)]
         public bool CurveSpeedDependent { get; set; }
         [Default(false)]
-        public bool WindResistanceDependent { get; set; }
-        [Default(false)]
         public bool OverrideNonElectrifiedRoutes { get; set; }
         [Default(true)]
         public bool HotStart { get; set; }

@@ -191,7 +191,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             page = inf.ReadInt32();
             if (page > 0 && page <= TextPages.Length)
                 LastTextPage = page;
-            else LastTextPage = LocomotivePage;
+            else
+                LastTextPage = LocomotivePage;
         }
 
         public override void Mark()
@@ -463,7 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("Speed"), FormatStrings.FormatSpeedDisplay(Viewer.PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", -Viewer.PlayerLocomotive.CurrentElevationPercent);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), Math.Abs(playerTrain.MUReverserPercent));
-            TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%", 
+            TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%",
                 Viewer.PlayerLocomotive.ThrottlePercent,
                 Viewer.PlayerLocomotive is MSTSDieselLocomotive && Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Viewer.PlayerLocomotive.Train.DPThrottlePercent}%)" : "");
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted)
@@ -534,8 +535,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 var text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
 
-                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}", 
-                    MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher ? Viewer.Catalog.GetString("Dispatcher") : 
+                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}",
+                    MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher ? Viewer.Catalog.GetString("Dispatcher") :
                     MultiPlayerManager.Instance().AmAider ? Viewer.Catalog.GetString("Helper") : Viewer.Catalog.GetString("Client"));
                 TableAddLine(table);
                 foreach (var t in text.Split('\t'))
@@ -665,7 +666,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             //HudScroll
             //Store status for each locomotive
             List<string> LocomotiveID = new List<string>();
-            List<string> LocomotiveName = new List<string>(); List<string> statusHeader = new List<string>();
+            List<string> LocomotiveName = new List<string>();
+            List<string> statusHeader = new List<string>();
             List<string> statusData = new List<string>();
             Dictionary<string, int> sectionsLocomotive = new Dictionary<string, int>();
             bool IsSteamLocomotive = false;
@@ -782,9 +784,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             foreach (var cell in line.Split('\t'))
                             {
                                 column++;
-                                if (cell.Contains(car.CarID)) LocomotiveName.Add(cell);
+                                if (cell.Contains(car.CarID))
+                                    LocomotiveName.Add(cell);
                             }
-                            if (column > maxColumns) maxColumns = column;
+                            if (column > maxColumns)
+                                maxColumns = column;
 
                             statusData.Add(line);
                         }
@@ -1534,30 +1538,27 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 TableAddLine(table);
 
-                if (Train.TrainWindResistanceDependent) // Only show this information if wind resistance is selected
+                var status = new StringBuilder();
+                if (hudWindowColumnsActualPage > 0)
                 {
-                    var status = new StringBuilder();
-                    if (hudWindowColumnsActualPage > 0)
-                    {
-                        status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t{3:N2} mph\n",
-                        Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                        Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS)));
-                    }
-                    else
-                    {
-                        status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t\t{3:N2} Deg\t{4}\t\t{5:N2} Deg\t{6}\t{7:N2} mph\t{8}\t{9:N2} mph\n",
-                        Viewer.Catalog.GetString("Wind Speed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.PhysicsWindSpeedMpS)),
-                        Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
-                        Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
-                        Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                        Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS))
-
-                        //Add new header + data here, if required.
-
-                        );
-                    }
-                    TableAddLines(table, status.ToString());
+                    status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t{3:N2} mph\n",
+                    Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                    Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS)));
                 }
+                else
+                {
+                    status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t\t{3:N2} Deg\t{4}\t\t{5:N2} Deg\t{6}\t{7:N2} mph\t{8}\t{9:N2} mph\n",
+                    Viewer.Catalog.GetString("Wind Speed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.PhysicsWindSpeedMpS)),
+                    Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
+                    Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
+                    Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                    Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS))
+
+                    //Add new header + data here, if required.
+
+                    );
+                }
+                TableAddLines(table, status.ToString());
             }
             //HudScroll
             if (hudWindowColumnsActualPage > 0)
@@ -1739,7 +1740,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     || thisTrain.IsActualPlayerTrain)
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                    if (thisTrain.TrainType == TrainType.AiPlayerHosting) status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
+                    if (thisTrain.TrainType == TrainType.AiPlayerHosting)
+                        status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
                     else if (thisTrain == Simulator.Instance.OriginalPlayerTrain && Simulator.Instance.ActivityFile != null)
                         thisTrain.AddRestartTime(status);
                     else if (thisTrain.IsActualPlayerTrain && Simulator.Instance.ActivityFile != null && thisTrain.ControlMode != TrainControlMode.Explorer && !thisTrain.IsPathless)
@@ -2001,7 +2003,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     //Search Path column position. Dispatcher Information
                     //Avoid conflict with human dispatcher
                     var dato = table.Cells[table.CurrentRow, i].ToString();
-                    if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == Viewer.Catalog.GetString("Path")) break;
+                    if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == Viewer.Catalog.GetString("Path"))
+                        break;
 
                     nColumnsCount++;
                 }
@@ -2019,7 +2022,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             //LinesPages
             nLinesShow = (Viewer.DisplaySize.Y / TextFont.Height) - CurrentRow - 1;
-            if (nLinesShow < 1) nLinesShow = 1;
+            if (nLinesShow < 1)
+                nLinesShow = 1;
             hudWindowLinesPagesCount = (nLinesShow >= CarsCount) ? 1 : (int)Math.Ceiling(Convert.ToDouble(CarsCount / nLinesShow) + 0.5);
 
             //Character per line
@@ -2239,7 +2243,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     else
                         stringStatus.Add(StringStatus.Substring(i, StringStatus.Length - i));
                     n++;
-                    if (n > hudWindowColumnsPagesCount) break;
+                    if (n > hudWindowColumnsPagesCount)
+                        break;
                 }
 
                 //Update 'page right' and 'page left' labels.
