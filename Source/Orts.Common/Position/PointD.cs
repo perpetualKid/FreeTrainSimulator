@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Position
@@ -156,6 +157,10 @@ namespace Orts.Common.Position
             return source.DistanceToLineSegmentSquared(start, end);
         }
 
+        public override string ToString()
+        {
+            return $"{{X:{X} Y:{Y}}}";
+        }
     }
 
 }

@@ -18,7 +18,8 @@ namespace Orts.TrackViewer.PopupWindows
     {
         private const double piRad = 180 / Math.PI;
         private ContentArea contentArea;
-        Label locationLabel;
+        private Label locationLabel;
+        private PointD previousWorldPoint;
 
         public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
             base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 64))
@@ -44,12 +45,15 @@ namespace Orts.TrackViewer.PopupWindows
 
         protected override void Update(GameTime gameTime)
         {
-            if (contentArea != null)
+            ref readonly PointD worldPoint = ref contentArea.WorldPosition;
+            if (contentArea != null && previousWorldPoint != worldPoint)
             {
-                ref readonly PointD worldPoint = ref contentArea.WorldPosition;
+                previousWorldPoint = worldPoint;
                 WorldLocation location = new WorldLocation(0, 0, (float)worldPoint.X, 0, (float)worldPoint.Y, true);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
+                EarthCoordinates.ConvertWTC(location.TileX, location.TileZ, location.Location, out double latitude2, out double longitude2);
 
+                System.Diagnostics.Debug.Assert(longitude == longitude2 && latitude == latitude2);
                 longitude *= piRad; // E/W
                 latitude *= piRad;  // N/S
                 char hemisphere = latitude >= 0 ? 'N' : 'S';
@@ -72,7 +76,7 @@ namespace Orts.TrackViewer.PopupWindows
                 int longitudeSecond = (int)Math.Truncate(longitude);
                 int latitudeSecond = (int)Math.Truncate(latitude);
 
-                string locationText = string.Format(System.Globalization.CultureInfo.CurrentCulture, $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}");
+                string locationText = $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}";
                 locationLabel.Text = locationText;
             }
             base.Update(gameTime);
