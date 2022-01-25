@@ -57,11 +57,14 @@ namespace Orts.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if (!inActive && (!Game.IsActive || (inputCapture?.InputCaptured ?? false)))
+            if (!Game.IsActive || (inputCapture?.InputCaptured ?? false))
             {
-                inActiveKeyboardState = currentKeyboardState;   // keep current keyboard state
-                currentKeyboardState = default;
-                inActive = true;
+                if (!inActive)
+                {
+                    inActiveKeyboardState = currentKeyboardState;   // keep current keyboard state
+                    currentKeyboardState = default;
+                    inActive = true;
+                }
                 return;
             }
 

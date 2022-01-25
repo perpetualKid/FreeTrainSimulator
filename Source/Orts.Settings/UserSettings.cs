@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+
 using Orts.Common;
 using Orts.Settings.Store;
 
@@ -116,7 +117,7 @@ namespace Orts.Settings
         [Default(MeasurementUnit.Route)]
         public MeasurementUnit MeasurementUnit { get; set; }
         [Default(false)]
-        public bool DisableTCSScripts { get; set; }        
+        public bool DisableTCSScripts { get; set; }
         [Default(true)]
         public bool StartGamePaused { get; set; }
 
@@ -381,6 +382,18 @@ namespace Orts.Settings
         [DoNotSave]
         public bool MultiplayerClient { get; set; }
 
+        #region Dispatcher View
+        [Default(new string[]
+        {
+            nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen
+            nameof(WindowSetting.Size) + "=75, 75"    // % of screen size
+        })]
+        public EnumArray<int[], WindowSetting> DispatcherWindowSettings { get; set; }
+
+        [Default(0)]
+        public int DispatcherScreen { get; set; }
+
+        #endregion
         #endregion
 
         public FolderSettings FolderSettings { get; private set; }
@@ -393,7 +406,7 @@ namespace Orts.Settings
             this(Array.Empty<string>())
         { }
 
-        public UserSettings(IEnumerable<string> options) : 
+        public UserSettings(IEnumerable<string> options) :
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
         }
@@ -417,10 +430,13 @@ namespace Orts.Settings
             if (customDefaultValues.ContainsKey(property.Name))
                 return customDefaultValues[property.Name];
 
-            if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
-                return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;
-
-            throw new InvalidDataException($"UserSetting {property.Name} has no default value.");
+            object defaultValue = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value;
+            Type propertyType = property.PropertyType;
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+            {
+                defaultValue = InitializeEnumArrayDefaults(propertyType, defaultValue);
+            }
+            return defaultValue ?? new InvalidDataException($"UserSetting {property.Name} has no default value.");
         }
 
         protected override PropertyInfo[] GetProperties()

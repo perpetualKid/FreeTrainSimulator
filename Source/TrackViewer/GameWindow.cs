@@ -244,6 +244,7 @@ namespace Orts.TrackViewer
             viewSettings = Settings.ViewSettings;
 
         }
+
         private void SaveSettings()
         {
 
