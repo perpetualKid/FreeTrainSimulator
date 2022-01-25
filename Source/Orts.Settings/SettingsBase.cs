@@ -294,6 +294,12 @@ namespace Orts.Settings
                 Type valueType = value.GetType();
                 if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
                 {
+                    dynamic enumArray = Activator.CreateInstance(valueType);
+                    foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
+                    {
+                        enumArray[enumName] = value[enumName];
+                    }
+                    value = enumArray;
                     foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
                     {
                         if (defaultValue[enumName] == null)

@@ -232,7 +232,6 @@ namespace Orts.Settings
         public bool UpdatePreReleases { get; set; }
         #endregion
 
-
         // Timetable settings:
         [Default(true)]
         public bool TTUseRestartDelays { get; set; }

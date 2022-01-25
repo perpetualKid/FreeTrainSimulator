@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-
-using GetText.WindowsForms;
+using System.Linq;
+using System.Reflection;
 
 using GetText;
+using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Common;
 using Orts.Common.Info;
 using Orts.Graphics;
-using Orts.Settings;
-using System.Reflection;
-using Orts.Common;
-using Orts.Graphics.Track;
 using Orts.Graphics.Xna;
-using System.Linq;
+using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -68,6 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
+            windowForm.FormClosing += WindowForm_FormClosing;
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
@@ -78,6 +77,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Window.Title = Catalog.GetString("Dispatcher View");
 
 
+        }
+
+        private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        {
+            SaveSettings();
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
