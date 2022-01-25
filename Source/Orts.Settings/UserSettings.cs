@@ -138,8 +138,6 @@ namespace Orts.Settings
         public bool DynamicShadows { get; set; }
         [Default(false)]
         public bool ShadowAllShapes { get; set; }
-        [Default(true)]
-        public bool FastFullScreenAltTab { get; set; }
         [Default(false)]
         public bool WindowGlass { get; set; }
         [Default(false)]
@@ -168,6 +166,18 @@ namespace Orts.Settings
         public string WindowSize { get; set; }
         [Default(20)]
         public int DayAmbientLight { get; set; }
+        #region Game Window Settings
+        [Default(new string[]
+        {
+            nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen, centered
+            nameof(WindowSetting.Size) + "=1024, 768"    // absolute pixels
+        })]
+        public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
+
+        [Default(-1)]
+        public int WindowScreen { get; set; }
+
+        #endregion
 
         // Simulation settings:
         [Default(true)]
@@ -381,7 +391,7 @@ namespace Orts.Settings
         [DoNotSave]
         public bool MultiplayerClient { get; set; }
 
-        #region Dispatcher View
+        #region Dispatcher Window Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen
@@ -390,8 +400,7 @@ namespace Orts.Settings
         public EnumArray<int[], WindowSetting> DispatcherWindowSettings { get; set; }
 
         [Default(0)]
-        public int DispatcherScreen { get; set; }
-
+        public int DispatcherWindowScreen { get; set; }
         #endregion
         #endregion
 

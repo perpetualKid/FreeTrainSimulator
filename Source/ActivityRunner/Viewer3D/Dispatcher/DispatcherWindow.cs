@@ -42,8 +42,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
 
-            if (settings.DispatcherScreen < System.Windows.Forms.Screen.AllScreens.Length)
-                currentScreen = System.Windows.Forms.Screen.AllScreens[settings.DispatcherScreen];
+            if (settings.DispatcherWindowScreen < System.Windows.Forms.Screen.AllScreens.Length)
+                currentScreen = System.Windows.Forms.Screen.AllScreens[settings.DispatcherWindowScreen];
             else
                 currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
@@ -75,8 +75,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             LoadLanguage();
             Window.Title = Catalog.GetString("Dispatcher View");
-
-
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -145,10 +143,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             settings.DispatcherWindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
             settings.DispatcherWindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
-            ;
+
             settings.DispatcherWindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             settings.DispatcherWindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            settings.DispatcherScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            settings.DispatcherWindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
             settings.Save();
         }

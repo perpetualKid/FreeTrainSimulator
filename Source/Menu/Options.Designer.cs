@@ -77,7 +77,6 @@ namespace Orts.Menu
             this.checkVerticalSync = new System.Windows.Forms.CheckBox();
             this.labelDistantMountainsViewingDistance = new System.Windows.Forms.Label();
             this.numericDistantMountainsViewingDistance = new System.Windows.Forms.NumericUpDown();
-            this.checkFastFullScreenAltTab = new System.Windows.Forms.CheckBox();
             this.checkDistantMountains = new System.Windows.Forms.CheckBox();
             this.label14 = new System.Windows.Forms.Label();
             this.numericViewingDistance = new System.Windows.Forms.NumericUpDown();
@@ -858,7 +857,6 @@ namespace Orts.Menu
             this.tabPageVideo.Controls.Add(this.checkVerticalSync);
             this.tabPageVideo.Controls.Add(this.labelDistantMountainsViewingDistance);
             this.tabPageVideo.Controls.Add(this.numericDistantMountainsViewingDistance);
-            this.tabPageVideo.Controls.Add(this.checkFastFullScreenAltTab);
             this.tabPageVideo.Controls.Add(this.checkDistantMountains);
             this.tabPageVideo.Controls.Add(this.label14);
             this.tabPageVideo.Controls.Add(this.numericViewingDistance);
@@ -1072,16 +1070,6 @@ namespace Orts.Menu
             0,
             0,
             0});
-            // 
-            // checkFastFullScreenAltTab
-            // 
-            this.checkFastFullScreenAltTab.AutoSize = true;
-            this.checkFastFullScreenAltTab.Location = new System.Drawing.Point(336, 118);
-            this.checkFastFullScreenAltTab.Name = "checkFastFullScreenAltTab";
-            this.checkFastFullScreenAltTab.Size = new System.Drawing.Size(144, 19);
-            this.checkFastFullScreenAltTab.TabIndex = 1;
-            this.checkFastFullScreenAltTab.Text = "Fast Fullscreen Alt-Tab";
-            this.checkFastFullScreenAltTab.UseVisualStyleBackColor = true;
             // 
             // checkDistantMountains
             // 
@@ -3111,7 +3099,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkCurveSpeedDependent;
         private System.Windows.Forms.CheckBox checkHotStart;
         private System.Windows.Forms.CheckBox checkSimpleControlPhysics;
-        private System.Windows.Forms.CheckBox checkFastFullScreenAltTab;
         private System.Windows.Forms.CheckBox checkVerticalSync;
         private System.Windows.Forms.ComboBox comboPressureUnit;
         private System.Windows.Forms.Label labelPressureUnit;

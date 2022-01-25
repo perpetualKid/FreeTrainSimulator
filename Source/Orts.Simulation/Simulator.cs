@@ -1919,10 +1919,6 @@ namespace Orts.Simulation
                 setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
                 Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
 
-                // Video TAB
-                setting.FastFullScreenAltTab = activitySettings.Options.FastFullScreenAltTab == 1;
-                Trace.Write($"\n{"Fast Full Screen Alt TAB",-40}={setting.FastFullScreenAltTab,6}");
-
                 // Simulation TAB
                 setting.NoForcedRedAtStationStops = activitySettings.Options.ForcedRedAtStationStops == 0; // Note this parameter is reversed in its logic to others.
                 Trace.Write($"\n{"Forced Red at Station Stops",-40}={setting.NoForcedRedAtStationStops,6}");
