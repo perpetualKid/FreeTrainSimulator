@@ -81,8 +81,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Viewer.EndRender(frame);
         }
 
-        internal override void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
+        internal override void Update(RenderFrame frame, GameTime gameTime)
         {
+            double totalRealSeconds = gameTime.TotalGameTime.TotalSeconds;
             // Every 250ms, check for new things to load and kick off the loader.
             if (lastLoadRealTime + 0.25 < totalRealSeconds && Game.LoaderProcess.Finished)
             {
@@ -120,8 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     elapsedRealTime += averageElapsedRealTime[i] / averageElapsedRealTime.Length;
             }
 
-            // TODO: ComputeFPS should be called in UpdaterProcess.Update() but needs delta time.
-            Game.RenderProcess.ComputeFPS(elapsedRealTime);
             Viewer.Update(frame, elapsedRealTime);
         }
 

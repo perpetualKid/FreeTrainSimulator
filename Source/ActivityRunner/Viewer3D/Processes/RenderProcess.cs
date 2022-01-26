@@ -143,7 +143,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (currentScreenMode == ScreenMode.Windowed)
                 windowPosition = game.Window.Position;
             // if (fullscreen) gameWindow is moved to different screen we may need to refit for different screen resolution
-            System.Windows.Forms.Screen newScreen = System.Windows.Forms.Screen.FromControl(windowForm);
+            Screen newScreen = Screen.FromControl(windowForm);
             (newScreen, currentScreen) = (currentScreen, newScreen);
             if (newScreen.DeviceName != currentScreen.DeviceName && currentScreenMode != ScreenMode.Windowed)
             {
@@ -264,7 +264,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 game.UpdaterProcess.WaitTillFinished();
 
                 // Swap frames and start the next update (non-threaded updater does the whole update).
-                SwapFrames(ref CurrentFrame, ref NextFrame);
+                (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);
                 game.UpdaterProcess.StartUpdate(NextFrame, gameTime);
             }
             else
@@ -279,8 +279,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             currentScreenMode = game.Settings.FullScreen ? game.Settings.NativeFullscreenResolution ? ScreenMode.BorderlessFullscreen : ScreenMode.WindowedFullscreen : ScreenMode.Windowed;
             currentScreen = (game.Settings.WindowScreen >= 0 && game.Settings.WindowScreen < Screen.AllScreens.Length) ? Screen.AllScreens[game.Settings.WindowScreen] : Screen.PrimaryScreen;
 
-            //windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(game.Settings.WindowSettings[WindowSetting.Size][0]) / 100.0);
-            //windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(game.Settings.WindowSettings[WindowSetting.Size][1]) / 100.0);
             windowSize.Width = game.Settings.WindowSettings[WindowSetting.Size][0];
             windowSize.Height = game.Settings.WindowSettings[WindowSetting.Size][1];
 
@@ -301,14 +299,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private void SaveSettings()
         {
-            game.Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            game.Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            game.Settings.WindowSettings[WindowSetting.Size][0] = windowSize.Width;
+            game.Settings.WindowSettings[WindowSetting.Size][1] = windowSize.Height;
 
             game.Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             game.Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            game.Settings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            game.Settings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
 
-            game.Settings.Save();
+            game.Settings.Save(nameof(game.Settings.WindowSettings));
+            game.Settings.Save(nameof(game.Settings.WindowScreen));
         }
 
 
@@ -399,32 +398,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             Array.Copy(PrimitiveCount, PrimitivePerFrame, (int)RenderPrimitiveSequence.Sentinel);
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
-            //for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
-            //{
-            //    PrimitivePerFrame[i] = PrimitiveCount[i];
-            //    PrimitiveCount[i] = 0;
-            //}
-            //for (var shadowMapIndex = 0; shadowMapIndex < ShadowMapCount; shadowMapIndex++)
-            //{
-            //    ShadowPrimitivePerFrame[shadowMapIndex] = ShadowPrimitiveCount[shadowMapIndex];
-            //    ShadowPrimitiveCount[shadowMapIndex] = 0;
-            //}
-
-            //// Sort-of hack to allow the NVIDIA PerfHud to display correctly.
-            //GraphicsDevice.DepthStencilState = DepthStencilState.None;
 
             Profiler.Stop();
         }
 
         internal void Stop()
         {
-        }
-
-        private static void SwapFrames(ref RenderFrame frame1, ref RenderFrame frame2)
-        {
-            RenderFrame temp = frame1;
-            frame1 = frame2;
-            frame2 = temp;
+            SaveSettings();
         }
 
         public void ToggleFullScreen()

@@ -1491,6 +1491,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void Terminate()
         {
+            dispatcherWindow?.Close();
             InfoDisplay.Terminate();
         }
 

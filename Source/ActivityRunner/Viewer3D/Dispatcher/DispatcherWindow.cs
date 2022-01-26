@@ -28,7 +28,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private readonly Point clientRectangleOffset;
-        private Vector2 centerPoint;
 
         private readonly UserSettings settings;
 
@@ -98,7 +97,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
-            centerPoint = new Vector2(Window.ClientBounds.Size.X / 2, Window.ClientBounds.Size.Y / 2);
             if (syncing)
                 return;
             if (currentScreenMode == ScreenMode.Windowed)
@@ -214,6 +212,20 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             currentScreenMode = targetMode;
             onClientSizeChanged?.Invoke();
             syncing = false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            graphicsDeviceManager?.Dispose();
+            base.Dispose(disposing);
+        }
+
+        public void Close()
+        {
+            if (windowForm.InvokeRequired)
+                windowForm.Invoke(new Action(() => Close()));
+            else
+                windowForm.Close();
         }
 
         public void BringToFront()
