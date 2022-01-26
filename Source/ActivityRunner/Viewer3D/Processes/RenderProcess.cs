@@ -110,7 +110,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 SynchronizeWithVerticalRetrace = game.Settings.VerticalSync,
                 PreferredBackBufferFormat = SurfaceFormat.Color,
                 PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8,
-                PreferMultiSampling = game.Settings.MultisamplingCount > 0
+                PreferMultiSampling = game.Settings.MultisamplingCount > 0,
+                IsFullScreen = game.Settings.FullScreen,
             };
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
 
