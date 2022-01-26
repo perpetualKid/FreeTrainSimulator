@@ -12,9 +12,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.Info;
+using Orts.Common.Input;
 using Orts.Graphics;
+using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.Track;
+using Orts.Graphics.Track.Shapes;
 using Orts.Graphics.Xna;
 using Orts.Settings;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -35,6 +40,9 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         private readonly Action onClientSizeChanged;
+
+        private SpriteBatch spriteBatch;
+        private ContentArea contentArea;
 
         public DispatcherWindow(UserSettings settings)
         {
@@ -87,14 +95,77 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = settings.MultisamplingCount;
+}
+
+        protected override void Initialize()
+{
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            TextShape.Initialize(this, spriteBatch);
+            BasicShapes.Initialize(spriteBatch);
+
+            UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
+
+            KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
+            Components.Add(keyboardInputGameComponent);
+            KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
+            keyboardInput.Initialize(settings.Input.UserCommands, keyboardInputGameComponent, userCommandController);
+
+            MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this);
+            Components.Add(mouseInputGameComponent);
+            MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
+            mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
+            base.Initialize();
         }
 
+        protected override async void LoadContent()
+        {
+            BasicShapes.LoadContent(GraphicsDevice);
+            EnumArray<string, ColorSetting> colorSettings = new EnumArray<string, ColorSetting>(new string[]
+            {
+                "DarkGray",
+                "Blue",
+                "BlueViolet",
+                "DarkMagenta",
+                "Firebrick",
+                "Crimson",
+                "Olive",
+                "ForestGreen",
+                "DeepPink",
+                "White",
+                "White",
+                "Navy",
+                "ForestGreen",
+                "RoyalBlue",
+                "White",
+                "White",
+                "White",
+                "White",
+            });
+
+            base.LoadContent();
+            bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
+                (settings.MeasurementUnit == MeasurementUnit.Route && Simulator.Instance.Route.MilepostUnitsMetric);
+
+            TrackContent content = new TrackContent(Simulator.Instance.TrackDatabase.TrackDB, Simulator.Instance.RoadDatabase.RoadTrackDB, Simulator.Instance.TSectionDat, Simulator.Instance.SignalConfig, useMetricUnits);
+            await content.Initialize().ConfigureAwait(true);
+            contentArea = new ContentArea(this, Simulator.Instance.RouteName, content, colorSettings, TrackViewerViewSettings.All);
+            contentArea.ResetSize(Window.ClientBounds.Size, 60);
+            Components.Add(contentArea);
+            contentArea.Enabled = true;
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.Beige);
+            base.Draw(gameTime);
+        }
+
+        #region window size/position handling
         private void WindowForm_LocationChanged(object sender, EventArgs e)
         {
             WindowForm_ClientSizeChanged(sender, e);
         }
 
-        #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
             if (syncing)
