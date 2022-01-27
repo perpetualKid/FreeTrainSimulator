@@ -2,7 +2,7 @@
 {
     internal class WindowControlLayout : ControlLayout
     {
-        private bool capturedForDragging;
+        //private bool capturedForDragging;
 
         public WindowControlLayout(WindowBase window, int width, int height)
             : base(window, 0, 0, width, height)

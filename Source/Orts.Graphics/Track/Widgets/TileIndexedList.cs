@@ -35,7 +35,7 @@ namespace Orts.Graphics.Track.Widgets
             }
             sortedIndexes = tiles.Keys.ToList();
 
-            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
+            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
             {
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);

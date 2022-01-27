@@ -30,9 +30,9 @@ namespace Orts.TrackViewer
                 ctsRouteLoading?.Dispose();
                 loadRoutesSemaphore.Dispose();
                 windowManager?.Dispose();
+                spriteBatch?.Dispose();
                 graphicsDeviceManager?.Dispose();
                 windowForm?.Dispose();
-                spriteBatch?.Dispose();
             }
             base.Dispose(disposing);
         }

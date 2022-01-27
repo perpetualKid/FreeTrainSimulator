@@ -62,20 +62,21 @@ namespace Orts.TrackViewer
             get => contentArea;
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
+                if (contentArea != null)
+                {
+                    contentArea.Enabled = false;
+                    Components.Remove(contentArea);
+                    Window.Title = windowTitle;
+                    contentArea.Dispose();
+                    contentArea = null;
+                }
                 if (value != null)
                 {
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
-                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.RouteName}");
+                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
                 }
-                else
-                {
-                    Components.Remove(contentArea);
-                    Window.Title = windowTitle;
-                }
-                if (contentArea != null)
-                    contentArea.Enabled = false;
                 contentArea = value;
                 OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
             });
@@ -201,7 +202,7 @@ namespace Orts.TrackViewer
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
             Settings.ColorSettings[setting] = colorName;
-            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
+            (contentArea?.Content as TrackContent).UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
                 BackgroundColor = ColorExtension.FromName(colorName);
@@ -212,7 +213,7 @@ namespace Orts.TrackViewer
         internal void UpdateItemVisibilityPreference(TrackViewerViewSettings setting, bool enabled)
         {
             viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
-            contentArea?.UpdateItemVisiblity(viewSettings);
+            (contentArea?.Content as TrackContent).UpdateItemVisiblity(viewSettings);
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -411,7 +412,7 @@ namespace Orts.TrackViewer
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
                 debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
                 debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
-                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
+                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea.Content;
                 return debugWindow;
             }));
 

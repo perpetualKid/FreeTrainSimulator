@@ -142,13 +142,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 "White",
             });
 
+            Simulator simulator = Simulator.Instance;
             base.LoadContent();
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
-                (settings.MeasurementUnit == MeasurementUnit.Route && Simulator.Instance.Route.MilepostUnitsMetric);
+                (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            TrackContent content = new TrackContent(Simulator.Instance.TrackDatabase.TrackDB, Simulator.Instance.RoadDatabase.RoadTrackDB, Simulator.Instance.TSectionDat, Simulator.Instance.SignalConfig, useMetricUnits);
+            TrackContent content = new TrackContent(this, simulator.RouteName, simulator.TrackDatabase.TrackDB, simulator.RoadDatabase.RoadTrackDB, simulator.TSectionDat, simulator.SignalConfig, useMetricUnits);
             await content.Initialize().ConfigureAwait(true);
-            contentArea = new ContentArea(this, Simulator.Instance.RouteName, content, colorSettings, TrackViewerViewSettings.All);
+            content.UpdateItemVisiblity(TrackViewerViewSettings.All);
+            content.UpdateWidgetColorSettings(colorSettings);
+            contentArea = new ContentArea(this, content);
             contentArea.ResetSize(Window.ClientBounds.Size, 60);
             Components.Add(contentArea);
             contentArea.Enabled = true;
@@ -287,6 +290,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override void Dispose(bool disposing)
         {
+            contentArea?.Dispose();
+            spriteBatch?.Dispose();
             graphicsDeviceManager?.Dispose();
             base.Dispose(disposing);
         }
