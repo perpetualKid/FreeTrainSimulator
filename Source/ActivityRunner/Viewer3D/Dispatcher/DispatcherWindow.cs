@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using GetText;
 using GetText.WindowsForms;
@@ -20,6 +21,8 @@ using Orts.Graphics.Track.Shapes;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
+
+using static Orts.Common.Position.TileHelper;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -43,6 +46,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private SpriteBatch spriteBatch;
         private ContentArea contentArea;
+
+        private UserCommandController<UserCommand> userCommandController;
 
         public DispatcherWindow(UserSettings settings)
         {
@@ -95,31 +100,35 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = settings.MultisamplingCount;
-}
+        }
 
         protected override void Initialize()
-{
+        {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             TextShape.Initialize(this, spriteBatch);
             BasicShapes.Initialize(spriteBatch);
 
-            UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
+            userCommandController = new UserCommandController<UserCommand>();
 
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
             Components.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
-            keyboardInput.Initialize(settings.Input.UserCommands, keyboardInputGameComponent, userCommandController);
+            keyboardInput.Initialize(InputSettings.UserCommands, keyboardInputGameComponent, userCommandController);
 
             MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this);
             Components.Add(mouseInputGameComponent);
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
+
             base.Initialize();
         }
 
         protected override async void LoadContent()
         {
             BasicShapes.LoadContent(GraphicsDevice);
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            Components.Add(scaleRuler);
+            Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
             EnumArray<string, ColorSetting> colorSettings = new EnumArray<string, ColorSetting>(new string[]
             {
                 "DarkGray",
@@ -147,14 +156,27 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            TrackContent content = new TrackContent(this, simulator.RouteName, simulator.TrackDatabase.TrackDB, simulator.RoadDatabase.RoadTrackDB, simulator.TSectionDat, simulator.SignalConfig, useMetricUnits);
+            DispatcherContent content = new DispatcherContent(this, simulator.RouteName, useMetricUnits, simulator.TrackDatabase.TrackDB, simulator.TSectionDat, simulator.SignalConfig);
             await content.Initialize().ConfigureAwait(true);
             content.UpdateItemVisiblity(TrackViewerViewSettings.All);
             content.UpdateWidgetColorSettings(colorSettings);
-            contentArea = new ContentArea(this, content);
+            contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);
             Components.Add(contentArea);
             contentArea.Enabled = true;
+
+            #region usercommandcontroller
+            userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, contentArea.MoveByKeyLeft);
+            userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, contentArea.MoveByKeyRight);
+            userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, contentArea.MoveByKeyUp);
+            userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, contentArea.MoveByKeyDown);
+            userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, contentArea.ZoomIn);
+            userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, contentArea.ZoomOut);
+            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, contentArea.MouseDragging);
+            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, contentArea.MouseWheel);
+            #endregion
+
         }
 
         protected override void Draw(GameTime gameTime)
@@ -290,6 +312,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override void Dispose(bool disposing)
         {
+            Components.Remove(contentArea);
             contentArea?.Dispose();
             spriteBatch?.Dispose();
             graphicsDeviceManager?.Dispose();

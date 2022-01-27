@@ -30,9 +30,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
-using Orts.ActivityRunner.Viewer3D.Dispatcher;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
@@ -87,7 +85,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public double RealTime { get; private set; }
 
         private Thread dispatcherThread;
-        private DispatcherWindow dispatcherWindow;
+        private Dispatcher.DispatcherWindow dispatcherWindow;
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
@@ -967,7 +965,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void StartDispatcherViewThread()
         {
-            using (DispatcherWindow dispatcherWindow = new DispatcherWindow(Settings))
+            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings))
             {
                 this.dispatcherWindow = dispatcherWindow;
                 dispatcherWindow.Run();

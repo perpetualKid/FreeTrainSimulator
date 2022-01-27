@@ -3,11 +3,9 @@ using System;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.Track.Shapes;
-using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Track.Widgets
 {

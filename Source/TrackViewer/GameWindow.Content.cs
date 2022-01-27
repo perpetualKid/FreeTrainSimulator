@@ -80,11 +80,11 @@ namespace Orts.TrackViewer
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(this, route.Name, trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
+            TrackContent content = new TrackContent(this, route.Name, trackData.UseMetricUnits, trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig);
             await content.Initialize().ConfigureAwait(false);
             content.UpdateItemVisiblity(viewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
-            ContentArea = new ContentArea(this, content);
+            ContentArea = content.ContentArea;
             windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
         }

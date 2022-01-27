@@ -17,9 +17,21 @@ namespace Orts.Graphics.Track
 {
     public class TrackContent: ContentBase
     {
+        private TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
+
+        #region nearest items
+        private GridTile nearestGridTile;
+        private TrackItemBase nearestTrackItem;
+        private TrackSegment nearestTrackSegment;
+        private RoadSegment nearesRoadSegment;
+        #endregion
+
         private TrackDB trackDB;
         private RoadTrackDB roadTrackDB;
-        private TrackSectionsFile trackSectionsFile;
+        private TrackSectionsFile trackSections;
+        private SignalConfigurationFile signalConfig;
+
+        private readonly InsetComponent insetComponent;
 
         internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
         internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
@@ -31,46 +43,29 @@ namespace Orts.Graphics.Track
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
-        internal SignalConfigurationFile SignalConfigFile { get; }
-
-        private TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
-
-        #region nearest items
-        private GridTile nearestGridTile;
-        private TrackItemBase nearestTrackItem;
-        private TrackSegment nearestTrackSegment;
-        private RoadSegment nearesRoadSegment;
-        #endregion
-
-        private readonly InsetComponent insetComponent;
-
-
-        public TrackContent(Game game, string routeName, TrackDB trackDB, RoadTrackDB roadTrackDB, TrackSectionsFile trackSections, SignalConfigurationFile signalConfig, bool metricUnits):
-            base(routeName, metricUnits)
+        public TrackContent(Game game, string routeName, bool metricUnits, TrackDB trackDB, RoadTrackDB roadTrackDB, TrackSectionsFile trackSections, SignalConfigurationFile signalConfig) :
+            base(game, routeName, metricUnits)
         {
-            if (game == null)
-                throw new ArgumentNullException(nameof(game));
+            DebugInfo["Route Name"] = routeName;
+            insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
 
             this.trackDB = trackDB;
             this.roadTrackDB = roadTrackDB;
-            trackSectionsFile = trackSections;
-            SignalConfigFile = signalConfig;
-
-            DebugInfo["Route Name"] = routeName;
-            insetComponent = game.Components.OfType<InsetComponent>().First();
+            this.signalConfig = signalConfig;
+            this.trackSections = trackSections;
         }
 
         public override async Task Initialize()
         {
-            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
-            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
+            await Task.Run(() => AddTrackSegments(trackDB, roadTrackDB, trackSections)).ConfigureAwait(false);
+            await Task.Run(() => AddTrackItems(trackDB, roadTrackDB, signalConfig)).ConfigureAwait(false);
 
-            var item = TrackSegments.ToList();
+            ContentArea.Initialize();
 
-            insetComponent?.SetTrackSegments(TrackSegments);
-            trackDB = null;
-            roadTrackDB = null;
-            trackSectionsFile = null;
+            this.trackDB = null;
+            this.roadTrackDB = null;
+            this.signalConfig = null;
+            this.trackSections = null;
 
             DebugInfo["Metric Scale"] = UseMetricUnits.ToString();
             DebugInfo["Track Segments"] = $"{TrackSegments.Count}";
@@ -139,7 +134,7 @@ namespace Orts.Graphics.Track
             }
         }
 
-        internal override void UpdateNearestItems(in PointD position, ITile bottomLeft, ITile topRight)
+        internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
             IEnumerable<ITileCoordinate<Tile>> result = Tiles.FindNearest(position, bottomLeft, topRight);
             if (result.First() != nearestGridTile)
@@ -184,76 +179,76 @@ namespace Orts.Graphics.Track
             {
                 foreach (GridTile tile in Tiles.BoundingBox(bottomLeft, topRight))
                 {
-                    tile.Draw(contentArea);
+                    tile.Draw(ContentArea);
                 }
-                nearestGridTile?.Draw(contentArea, ColorVariation.Complement);
+                nearestGridTile?.Draw(ContentArea, ColorVariation.Complement);
             }
             if ((viewSettings & TrackViewerViewSettings.Tracks) == TrackViewerViewSettings.Tracks)
             {
                 foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (contentArea.InsideScreenArea(segment))
-                        segment.Draw(contentArea);
+                    if (ContentArea.InsideScreenArea(segment))
+                        segment.Draw(ContentArea);
                 }
                 if (nearestTrackSegment != null)
                 {
                     foreach (TrackSegment segment in TrackNodeSegments[nearestTrackSegment.TrackNodeIndex])
                     {
-                        segment.Draw(contentArea, ColorVariation.ComplementHighlight);
+                        segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                     }
-                    nearestTrackSegment.Draw(contentArea, ColorVariation.Complement);
+                    nearestTrackSegment.Draw(ContentArea, ColorVariation.Complement);
                 }
             }
             if ((viewSettings & TrackViewerViewSettings.EndsNodes) == TrackViewerViewSettings.EndsNodes)
             {
                 foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (contentArea.InsideScreenArea(endNode))
-                        endNode.Draw(contentArea);
+                    if (ContentArea.InsideScreenArea(endNode))
+                        endNode.Draw(ContentArea);
                 }
             }
             if ((viewSettings & TrackViewerViewSettings.JunctionNodes) == TrackViewerViewSettings.JunctionNodes)
             {
                 foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (contentArea.InsideScreenArea(junctionNode))
-                        junctionNode.Draw(contentArea);
+                    if (ContentArea.InsideScreenArea(junctionNode))
+                        junctionNode.Draw(ContentArea);
                 }
             }
             if ((viewSettings & TrackViewerViewSettings.Roads) == TrackViewerViewSettings.Roads)
             {
                 foreach (RoadSegment segment in RoadSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (contentArea.InsideScreenArea(segment))
-                        segment.Draw(contentArea);
+                    if (ContentArea.InsideScreenArea(segment))
+                        segment.Draw(ContentArea);
                 }
                 if (nearesRoadSegment != null)
                 {
                     foreach (RoadSegment segment in RoadTrackNodeSegments[nearesRoadSegment.TrackNodeIndex])
                     {
-                        segment.Draw(contentArea, ColorVariation.ComplementHighlight);
+                        segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                     }
-                    nearesRoadSegment.Draw(contentArea, ColorVariation.Complement);
+                    nearesRoadSegment.Draw(ContentArea, ColorVariation.Complement);
                 }
             }
             if ((viewSettings & TrackViewerViewSettings.RoadEndNodes) == TrackViewerViewSettings.RoadEndNodes)
             {
                 foreach (RoadEndSegment endNode in RoadEndSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (contentArea.InsideScreenArea(endNode))
-                        endNode.Draw(contentArea);
+                    if (ContentArea.InsideScreenArea(endNode))
+                        endNode.Draw(ContentArea);
                 }
             }
             foreach (TrackItemBase trackItem in TrackItems.BoundingBox(bottomLeft, topRight))
             {
-                if (trackItem.ShouldDraw(viewSettings) && contentArea.InsideScreenArea(trackItem))
-                    trackItem.Draw(contentArea);
+                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem))
+                    trackItem.Draw(ContentArea);
             }
             if (nearestTrackItem?.ShouldDraw(viewSettings) ?? false)
-                nearestTrackItem.Draw(contentArea, ColorVariation.Highlight);
+                nearestTrackItem.Draw(ContentArea, ColorVariation.Highlight);
         }
 
-        private void AddTrackSegments()
+        private void AddTrackSegments(TrackDB trackDB, RoadTrackDB roadTrackDB, TrackSectionsFile trackSectionsFile)
         {
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
@@ -264,6 +259,9 @@ namespace Orts.Graphics.Track
             List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
             foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
+                if (null == trackSectionsFile)
+                    throw new ArgumentNullException(nameof(trackSectionsFile));
+
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
@@ -291,6 +289,8 @@ namespace Orts.Graphics.Track
                 }
             }
 
+            insetComponent?.SetTrackSegments(trackSegments);
+
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
@@ -298,6 +298,9 @@ namespace Orts.Graphics.Track
 
             foreach (TrackNode trackNode in roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
+                if (null == trackSectionsFile)
+                    throw new ArgumentNullException(nameof(trackSectionsFile));
+
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
@@ -353,9 +356,10 @@ namespace Orts.Graphics.Track
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
         }
 
-        private void AddTrackItems()
+        private void AddTrackItems(TrackDB trackDB, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfigFile)
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB?.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB?.TrItemTable)));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB?.TrackItems, signalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB?.TrItemTable)));
         }
+
     }
 }

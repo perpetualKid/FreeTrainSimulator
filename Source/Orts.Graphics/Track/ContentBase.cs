@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Graphics.Track
 {
-    public abstract class ContentBase: INameValueInformationProvider
+    public abstract class ContentBase : INameValueInformationProvider
     {
-        private protected ContentArea contentArea;
+        private protected readonly Game game;
+
+        public ContentArea ContentArea { get; }
 
         public string RouteName { get; }
 
@@ -25,19 +28,18 @@ namespace Orts.Graphics.Track
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        protected ContentBase(string routeName, bool metricUnits) 
-        { 
+        protected ContentBase(Game game, string routeName, bool metricUnits)
+        {
+            this.game = game ?? throw new ArgumentNullException(nameof(game));
             RouteName = routeName;
             UseMetricUnits = metricUnits;
+            ContentArea = new ContentArea(game, this);
         }
 
         public abstract Task Initialize();
 
-        internal void SetContentArea(ContentArea contentArea) { this.contentArea = contentArea; }
-
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
 
-        internal abstract void UpdateNearestItems(in PointD position, ITile bottomLeft, ITile topRight);
-
+        internal abstract void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight);
     }
 }

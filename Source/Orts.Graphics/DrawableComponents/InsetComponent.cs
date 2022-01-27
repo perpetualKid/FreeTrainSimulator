@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
@@ -19,7 +20,7 @@ namespace Orts.Graphics.DrawableComponents
         private const int borderSize = 2;
         private Color borderColor;
 
-        private TileIndexedList<TrackSegment, Tile> trackSegments;
+        private IEnumerable<TrackSegment> trackSegments;
 
         public InsetComponent(Game game, Color color, Vector2 position) :
             base(game, color, position)
@@ -45,7 +46,7 @@ namespace Orts.Graphics.DrawableComponents
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - size.X, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - size.Y);
         }
 
-        internal void SetTrackSegments(TileIndexedList<TrackSegment, Tile> trackSegments) { this.trackSegments = trackSegments; }
+        internal void SetTrackSegments(IEnumerable<TrackSegment> trackSegments) { this.trackSegments = trackSegments; }
 
         public override void UpdateColor(Color color)
         {

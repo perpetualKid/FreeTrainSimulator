@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -8,7 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics.Track.Widgets;
@@ -18,6 +15,13 @@ namespace Orts.Graphics.Track
 {
     public class ContentArea : DrawableGameComponent
     {
+        private static readonly Vector2 moveLeft = new Vector2(1, 0);
+        private static readonly Vector2 moveRight = new Vector2(-1, 0);
+        private static readonly Vector2 moveUp = new Vector2(0, 1);
+        private static readonly Vector2 moveDown = new Vector2(0, -1);
+
+        private const int zoomAmplifier = 3;
+
         private Rectangle bounds;
         private double maxScale;
         private static readonly Point PointOverTwo = new Point(2, 2);
@@ -58,22 +62,20 @@ namespace Orts.Graphics.Track
 
         public ref readonly PointD WorldPosition => ref worldPosition;
 
-        public ContentArea(Game game, ContentBase content) :
+        internal ContentArea(Game game, ContentBase content) :
             base(game)
         {
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
 
-            Enabled = false;
             Content = content ?? throw new ArgumentNullException(nameof(content));
-            bounds = content.Bounds;
+            Enabled = false;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-            Content.SetContentArea(this);
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -89,7 +91,7 @@ namespace Orts.Graphics.Track
 
             worldPosition = ScreenToWorldCoordinates(position);
             if (Scale > 0.5)
-                Content.UpdateNearestItems(worldPosition, bottomLeft, topRight);
+                Content.UpdatePointerLocation(worldPosition, bottomLeft, topRight);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -102,6 +104,12 @@ namespace Orts.Graphics.Track
                     component.Disable();
             }
             base.OnEnabledChanged(sender, args);
+        }
+
+        public override void Initialize()
+        {
+            bounds = Content.Bounds;
+            base.Initialize();
         }
 
         public void ResetSize(in Point windowSize, int screenDelta)
@@ -185,6 +193,97 @@ namespace Orts.Graphics.Track
             }
             base.Update(gameTime);
         }
+
+        #region public control commands
+        public void MouseDragging(UserCommandArgs userCommandArgs)
+        {
+            if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
+            {
+                UpdatePosition(mouseMoveCommandArgs.Delta);
+            }
+        }
+
+        public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
+            {
+                UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+            }
+        }
+
+        public void MoveByKeyLeft(UserCommandArgs commandArgs)
+        {
+            UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
+        }
+
+        public void MoveByKeyRight(UserCommandArgs commandArgs)
+        {
+            UpdatePosition(moveRight * MovementAmplifier(commandArgs));
+        }
+
+        public void MoveByKeyUp(UserCommandArgs commandArgs)
+        {
+            UpdatePosition(moveUp * MovementAmplifier(commandArgs));
+        }
+
+        public void MoveByKeyDown(UserCommandArgs commandArgs)
+        {
+            UpdatePosition(moveDown * MovementAmplifier(commandArgs));
+        }
+
+        private static int MovementAmplifier(UserCommandArgs commandArgs)
+        {
+            int amplifier = 5;
+            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
+            {
+                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                    amplifier = 1;
+                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    amplifier = 10;
+            }
+            return amplifier;
+        }
+
+        public static int ZoomAmplifier(KeyModifiers modifiers)
+        {
+            int amplifier = zoomAmplifier;
+            if ((modifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                amplifier = 1;
+            else if ((modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                amplifier = 5;
+            return amplifier;
+        }
+
+        public static int ZoomAmplifier(UserCommandArgs commandArgs)
+        {
+            return commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand ? ZoomAmplifier(modifiableKeyCommand.AdditionalModifiers) : zoomAmplifier;
+        }
+
+        public void ZoomIn(UserCommandArgs commandArgs)
+        {
+            Zoom(ZoomAmplifier(commandArgs));
+        }
+
+        public void ZoomOut(UserCommandArgs commandArgs)
+        {
+            Zoom(-ZoomAmplifier(commandArgs));
+        }
+
+        private DateTime nextUpdate;
+        private void Zoom(int steps)
+        {
+            if (DateTime.UtcNow > nextUpdate)
+            {
+                UpdateScale(steps);
+                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+            }
+        }
+
+        public void ResetZoomAndLocation(Point windowSize, int screenDelta)
+        {
+            ResetSize(windowSize, screenDelta);
+        }
+        #endregion
 
         private void SetBounds()
         {

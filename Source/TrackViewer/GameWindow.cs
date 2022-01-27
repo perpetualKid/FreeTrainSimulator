@@ -412,7 +412,7 @@ namespace Orts.TrackViewer
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
                 debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
                 debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
-                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea.Content;
+                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea?.Content;
                 return debugWindow;
             }));
 

@@ -9,7 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
-using Orts.TrackViewer.Control;
 using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
