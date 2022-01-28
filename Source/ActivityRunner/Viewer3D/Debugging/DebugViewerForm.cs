@@ -140,7 +140,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// </summary>
         private Timer UITimer;
         private bool loaded;
-        private TrackNode[] nodes;
 
         // Extents of the route in meters measured from the World origin
         private float minX = float.MaxValue;
@@ -161,8 +160,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             simulator = Simulator.Instance;
             this.Viewer = viewer;
 
-            nodes = simulator.TrackDatabase.TrackDB.TrackNodes;
-
             // initialise the timer used to handle user input
             UITimer = new Timer();
             UITimer.Interval = 100;
@@ -180,7 +177,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (MultiPlayerManager.IsMultiPlayer())
             { MultiPlayerManager.Instance().AllowedManualSwitch = false; }
 
-            InitData();
+            InitData(simulator.TrackDatabase.TrackDB.TrackNodes);
             InitImage();
 
             /*
@@ -243,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         #region initData
-        private void InitData()
+        private void InitData(TrackNode[] nodes)
         {
             if (!loaded)
             {
@@ -266,7 +263,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     if (trackVectorNode.TrackVectorSections.Length > 1)
                     {
-                        AddSegments(segments, trackVectorNode, trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
+                        AddSegments(trackVectorNode, trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
                     }
                     else
                     {
@@ -281,7 +278,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             //{
                             DebugVector A = new DebugVector(s.Location);
                             DebugVector B = new DebugVector(connectedNode.UiD.Location);
-                            segments.Add(new LineSegment(A, B, /*s.InterlockingTrack.IsOccupied*/ false, null));
+                            segments.Add(new LineSegment(A, B, null));
                             //}
                         }
 
@@ -309,7 +306,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         var x = DebugVector.DistanceSqr(A, B);
                         if (x < 0.1)
                             continue;
-                        segments.Add(new LineSegment(B, A, /*s.InterlockingTrack.IsOccupied*/ false, item));
+                        segments.Add(new LineSegment(B, A, item));
                     }
                     switches.Add(new SwitchWidget(trackJunctionNode));
                 }
@@ -813,7 +810,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     //variable for drawing train path
                     var mDist = 5000f;
-                    var pDist = 50; //segment length when draw path
 
                     selectedTrainList.Clear();
                     foreach (var t in simulator.Trains)
@@ -893,7 +889,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                                 else
                                     g.FillRectangle(Brushes.DarkGreen, GetRect(scaledItem, 15f));
                                 scaledItem.Y -= 25;
-                                DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
+                                DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, mDist);
                             }
                             g.DrawString(name, trainFont, trainBrush, scaledItem);
                             continue;
@@ -906,7 +902,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                         //train quit will not draw path, others will draw it
                         if (drawRed <= ValidTrain)
-                            DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
+                            DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, mDist);
 
                         trainPen.Color = Color.DarkGreen;
                         foreach (var car in t.Cars)
@@ -1055,9 +1051,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             return position * spacing;
         }
 
-        private const float SignalErrorDistance = 100;
         private const float SignalWarningDistance = 500;
-        private const float DisplayDistance = 1000;
         private const float DisplaySegmentLength = 10;
         private const float MaximumSectionDistance = 10000;
         private Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry>();
@@ -1096,7 +1090,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         //draw the train path if it is within the window
-        public void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB, float stepDist, float MaximumSectionDistance)
+        private void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB, float MaximumSectionDistance)
         {
             if (drawPath != true)
                 return;
@@ -1283,11 +1277,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             return new RectangleF(p.X - size / 2f, p.Y - size / 2f, size, size);
         }
 
-        private static PointF PointFromVector(in Vector2 vector)
-        {
-            return new PointF(vector.X, vector.Y);
-        }
-
         /// <summary>
         /// Generates line segments from an array of TrVectorSection. Also computes 
         /// the bounds of the entire route being drawn.
@@ -1299,11 +1288,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
         /// <param name="simulator"></param>
-        private static void AddSegments(List<LineSegment> segments, TrackNode node, TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
+        private void AddSegments(TrackNode node, TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
         {
-
-            bool occupied = false;
-
             double tempX1, tempX2, tempZ1, tempZ2;
 
             for (int i = 0; i < items.Length - 1; i++)
@@ -1325,7 +1311,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 CalcBounds(ref minX, tempX2, false);
                 CalcBounds(ref minY, tempZ2, false);
 
-                segments.Add(new LineSegment(A, B, occupied, items[i]));
+                segments.Add(new LineSegment(A, B, items[i]));
             }
         }
 
@@ -1379,34 +1365,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             GenerateView();
         }
 
-        private void ShiftViewUp()
-        {
-            viewWindow.Offset(0, -ScrollSpeedY);
-
-            GenerateView();
-        }
-        private void ShiftViewDown()
-        {
-            viewWindow.Offset(0, ScrollSpeedY);
-
-            GenerateView();
-        }
-
-        private void ShiftViewRight()
-        {
-            viewWindow.Offset(ScrollSpeedX, 0);
-
-            GenerateView();
-        }
-
-
-        private void ShiftViewLeft()
-        {
-            viewWindow.Offset(-ScrollSpeedX, 0);
-
-            GenerateView();
-        }
-
         private void rmvButton_Click(object sender, EventArgs e)
         {
             if (!MultiPlayerManager.IsServer())
@@ -1429,8 +1387,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
 
         }
-
-
 
         private void windowSizeUpDown_ValueChanged(object sender, EventArgs e)
         {
@@ -1716,35 +1672,35 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             if (tWindow.SelectedIndex == 1)
                 TimetableDrag(sender, e);
-            else
-            {
-                if (dragging && !Zooming)
-                {
-                    int diffX = LastCursorPosition.X - e.X;
-                    int diffY = LastCursorPosition.Y - e.Y;
+            //else
+            //{
+            //    if (dragging && !Zooming)
+            //    {
+            //        int diffX = LastCursorPosition.X - e.X;
+            //        int diffY = LastCursorPosition.Y - e.Y;
 
-                    viewWindow.Offset(diffX * ScrollSpeedX / 10, -diffY * ScrollSpeedX / 10);
-                    GenerateView();
-                }
-                else if (Zooming)
-                {
-                    decimal tempValue = windowSizeUpDown.Value;
-                    if (LastCursorPosition.Y - e.Y < 0)
-                        tempValue /= 0.95m;
-                    else if (LastCursorPosition.Y - e.Y > 0)
-                        tempValue *= 0.95m;
+            //        viewWindow.Offset(diffX * ScrollSpeedX / 10, -diffY * ScrollSpeedX / 10);
+            //        GenerateView();
+            //    }
+            //    else if (Zooming)
+            //    {
+            //        decimal tempValue = windowSizeUpDown.Value;
+            //        if (LastCursorPosition.Y - e.Y < 0)
+            //            tempValue /= 0.95m;
+            //        else if (LastCursorPosition.Y - e.Y > 0)
+            //            tempValue *= 0.95m;
 
-                    if (tempValue < windowSizeUpDown.Minimum)
-                        tempValue = windowSizeUpDown.Minimum;
-                    if (tempValue > windowSizeUpDown.Maximum)
-                        tempValue = windowSizeUpDown.Maximum;
-                    windowSizeUpDown.Value = tempValue;
-                    GenerateView();
+            //        if (tempValue < windowSizeUpDown.Minimum)
+            //            tempValue = windowSizeUpDown.Minimum;
+            //        if (tempValue > windowSizeUpDown.Maximum)
+            //            tempValue = windowSizeUpDown.Maximum;
+            //        windowSizeUpDown.Value = tempValue;
+            //        GenerateView();
 
-                }
-                LastCursorPosition.X = e.X;
-                LastCursorPosition.Y = e.Y;
-            }
+            //    }
+            //    LastCursorPosition.X = e.X;
+            //    LastCursorPosition.Y = e.Y;
+            //}
         }
 
         public bool AddNewMessage(double _, string msg)
@@ -2532,7 +2488,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         public float angle1, angle2;
         //public SectionCurve curve = null;
         //public TrVectorSection MySection;
-        public LineSegment(DebugVector A, DebugVector B, bool Occupied, TrackVectorSection Section)
+        public LineSegment(DebugVector A, DebugVector B, TrackVectorSection Section)
         {
             this.A = A;
             this.B = B;

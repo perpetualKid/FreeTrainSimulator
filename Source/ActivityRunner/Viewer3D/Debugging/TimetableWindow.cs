@@ -579,7 +579,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var margin2 = 5000 * xScale;
 
             //variable for drawing train path
-            var mDist = 5000f; var pDist = 50; //segment length when drawing path
+            var mDist = 5000f; 
 
             selectedTrainList.Clear();
 
@@ -634,7 +634,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     || y < -margin2)
                     continue;
 
-                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
+                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB, mDist);
 
                 // If zoomed out, so train occupies less than 2 * minTrainPx pixels, then 
                 // draw the train as 2 squares of combined length minTrainPx.
