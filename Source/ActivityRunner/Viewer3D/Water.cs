@@ -185,7 +185,6 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.ImageTexture = waterTexture;
             shader.ReferenceAlpha = 10;
 
-            graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
@@ -199,7 +198,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
+                    graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
                     item.RenderPrimitive.Draw();
+
                 }
             }
         }

@@ -528,7 +528,6 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.ImageTexture = patchTexture;
             shader.OverlayTexture = patchTextureOverlay;
             shader.OverlayScale = OverlayScale;
-            graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
@@ -542,7 +541,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
+                    graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
                     item.RenderPrimitive.Draw();
+
                 }
             }
         }
