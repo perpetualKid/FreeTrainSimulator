@@ -89,7 +89,6 @@ namespace Orts.Simulation.MultiPlayer
         public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
         public bool AllowNewPlayer = true;
-        public bool ComposingText;
         public string lastSender = ""; //who last sends me a message
         public bool AmAider; //am I aiding the dispatcher?
         public List<string> aiderList;

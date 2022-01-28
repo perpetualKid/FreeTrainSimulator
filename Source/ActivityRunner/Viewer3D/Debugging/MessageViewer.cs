@@ -38,7 +38,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void ComposeClick(object sender, EventArgs e)
         {
             MSG.Enabled = true;
-            MultiPlayerManager.Instance().ComposingText = true;
         }
         
         private void ReplySelectedClick(object sender, EventArgs e)
@@ -70,7 +69,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
                 MSG.Text = "";
                 //MSG.Enabled = false;
-                MultiPlayerManager.Instance().ComposingText = false;
             }
         }
         

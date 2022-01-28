@@ -223,8 +223,6 @@
             this.MSG.Size = new System.Drawing.Size(560, 30);
             this.MSG.TabIndex = 18;
             this.MSG.WordWrap = false;
-            this.MSG.Enter += new System.EventHandler(this.MSGEnter);
-            this.MSG.Leave += new System.EventHandler(this.MSGLeave);
             this.MSG.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.checkKeys);
             // 
             // msgSelected
@@ -851,7 +849,6 @@
             this.Name = "DispatchViewer";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Map Window";
-            this.Leave += new System.EventHandler(this.DispatcherLeave);
             ((System.ComponentModel.ISupportInitialize)(this.pbCanvas)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.windowSizeUpDown)).EndInit();
             this.gbTrainLabels.ResumeLayout(false);
