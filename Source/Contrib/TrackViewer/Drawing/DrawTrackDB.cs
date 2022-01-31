@@ -361,7 +361,7 @@ namespace ORTS.TrackViewer.Drawing
                         endnodeAngles[tn.Index] = tvs.Direction.Y;
                         try
                         { // try to get even better in case the last section is curved
-                            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+                            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
                             if (trackSection.Curved)
                             {
                                 endnodeAngles[tn.Index] += MathHelper.ToRadians(trackSection.Angle);
@@ -607,7 +607,7 @@ namespace ORTS.TrackViewer.Drawing
             TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
             if (tvs == null) return resultList;
 
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return resultList;
 
             float trackSectionLength = DrawTrackDB.GetLength(trackSection);
@@ -826,7 +826,7 @@ namespace ORTS.TrackViewer.Drawing
         private void DrawTrackSection(DrawArea drawArea, TrackVectorNode tn, TrackVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
         {
             if (tvs == null) return;
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;
@@ -1196,7 +1196,7 @@ namespace ORTS.TrackViewer.Drawing
                 
                 TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
 
-                TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+                TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
 
                 return FindLocationInSection(tvs, trackSection, distanceAlongSection);
             }

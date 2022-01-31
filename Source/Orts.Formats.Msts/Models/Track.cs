@@ -149,13 +149,11 @@ namespace Orts.Formats.Msts.Models
 
         public static int MissingTrackSectionWarnings { get; private set; }
 
-        public TrackSection Get(uint targetSectionIndex)
+        public TrackSection TryGet(uint targetSectionIndex)
         {
-            if (TryGetValue(targetSectionIndex, out TrackSection ts))
-                return ts;
-            if (MissingTrackSectionWarnings++ < 5)
+            if (!TryGetValue(targetSectionIndex, out TrackSection trackSection) && MissingTrackSectionWarnings++ < 5)
                 Trace.TraceWarning("Skipped track section {0} not in global or dynamic TSECTION.DAT", targetSectionIndex);
-            return null;
+            return trackSection;
         }
     }
 

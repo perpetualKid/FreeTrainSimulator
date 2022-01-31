@@ -481,7 +481,7 @@ namespace Orts.Simulation
         /// <returns>Details on where exactly the location is on the track.</returns>
         private static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackVectorSection trackVectorSection)
         {
-            TrackSection trackSection = TSectionDat.TrackSections.Get(tsi);
+            TrackSection trackSection = TSectionDat.TrackSections.TryGet(tsi);
             if (trackSection == null)
                 return null;
             TrackNodeCandidate candidate;
@@ -788,7 +788,7 @@ namespace Orts.Simulation
         {
             TrackVectorSectionIndex = trackVectorSectionIndex;
             trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-            trackSection = TSectionDat.TrackSections.Get(trackVectorSection.SectionIndex);
+            trackSection = TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
             if (trackSection == null)
                 return false;
             locationSet = lengthSet = false;
@@ -814,7 +814,7 @@ namespace Orts.Simulation
                     return;
                 TrackVectorNode tvn = TrackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];
-                ts = TSectionDat.TrackSections.Get(tvs.SectionIndex);
+                ts = TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (ts == null)
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
                 to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
@@ -865,7 +865,7 @@ namespace Orts.Simulation
             TrackVectorSection[] tvs = tvn.TrackVectorSections;
             for (int i = 0; i < tvs.Length; i++)
             {
-                TrackSection ts = TSectionDat.TrackSections.Get(tvs[i].SectionIndex);
+                TrackSection ts = TSectionDat.TrackSections.TryGet(tvs[i].SectionIndex);
                 if (ts == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
                 float length = GetLength(ts);

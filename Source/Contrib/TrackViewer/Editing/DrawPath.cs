@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing
         private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;

@@ -57,7 +57,7 @@ namespace Orts.Simulation
                 foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)//loop all curves
                 {
                     i++;
-                    TrackSection sec = simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+                    TrackSection sec = simulator.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (sec == null) 
                         continue;
                     if (Math.Abs(sec.Width - (simulator.Settings.SuperElevationGauge / 1000f)) > 0.2) 
@@ -112,7 +112,7 @@ namespace Orts.Simulation
             if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
                 return;//too short a curve or the list is empty
             TrackSections tSection = simulator.TSectionDat.TrackSections;
-            TrackSection sectionData = tSection.Get(SectionList[0].SectionIndex);
+            TrackSection sectionData = tSection.TryGet(SectionList[0].SectionIndex);
             if (sectionData == null) 
                 return;
             //loop all section to determine the max elevation for the whole track

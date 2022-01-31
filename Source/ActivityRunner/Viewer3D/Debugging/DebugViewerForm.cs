@@ -2498,7 +2498,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 return;
             //MySection = Section;
             uint k = Section.SectionIndex;
-            TrackSection ts = Simulator.Instance.TSectionDat.TrackSections.Get(k);
+            TrackSection ts = Simulator.Instance.TSectionDat.TrackSections.TryGet(k);
             if (ts != null)
             {
                 if (ts.Curved)

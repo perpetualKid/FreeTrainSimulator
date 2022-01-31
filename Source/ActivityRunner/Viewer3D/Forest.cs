@@ -281,7 +281,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, int tileX, int tileZ, float treeWidth)
         {
-            trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+            trackSection = Viewer.Simulator.TSectionDat.TrackSections.TryGet(section.SectionIndex);
             if (trackSection == null)
                 return false;
             if (trackSection.Curved)
@@ -307,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     sectPosition.Z *= -1;
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+                    trackSection = Viewer.Simulator.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (trackSection == null) continue;
                     var trackSectionLength = GetLength(trackSection);
                     if (Math.Abs(sectPosToForest.X) > trackSectionLength + toAddX) continue;

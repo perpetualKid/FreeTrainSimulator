@@ -184,7 +184,7 @@ namespace Orts.Graphics.Track
                     case TrackVectorNode trackVectorNode:
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
+                            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
                                 trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
                         }

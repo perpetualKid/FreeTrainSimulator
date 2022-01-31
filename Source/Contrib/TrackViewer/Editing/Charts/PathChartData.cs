@@ -338,7 +338,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
             TrackVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
 
             float curvature = 0;
             if (trackSection?.Curved ?? false) // if it is null, something is wrong but we do not want to crash
@@ -398,7 +398,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         {
             float fullSectionLength;
             TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null)
             {
                 return 100;  // need to return something. Not easy to recover
