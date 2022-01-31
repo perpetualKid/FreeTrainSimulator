@@ -110,7 +110,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             image.Source = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize);
 
-            var traveller = front ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+            var traveller = front ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
             TrackNode SwitchPreviousNode = traveller.TN;
             TrackJunctionNode SwitchNode = null;

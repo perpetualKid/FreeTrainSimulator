@@ -23,6 +23,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -331,10 +332,9 @@ namespace Orts.Simulation
 
 
         /// <summary>
-        /// Creates a copy of another traveller, starting in the same location and with the same direction.
+        /// Creates a copy of another traveller, starting in the same location and with the same direction or reversed direction.
         /// </summary>
-        /// <param name="source">The other traveller to copy.</param>
-        public Traveller(Traveller source)
+        public Traveller(Traveller source, bool reverseDirection = false)
         {
             if (source == null) 
                 throw new ArgumentNullException(nameof(source));
@@ -344,7 +344,7 @@ namespace Orts.Simulation
 
             locationSet = source.locationSet;
             location = source.location;
-            direction = source.direction;
+            direction = reverseDirection ? source.direction.Reverse() : source.direction;
             directionVector = source.directionVector;
             trackOffset = source.trackOffset;
             TrackNodeIndex = source.TrackNodeIndex;
@@ -355,18 +355,6 @@ namespace Orts.Simulation
             lengthSet = source.lengthSet;
             trackNodeLength = source.trackNodeLength;
             trackNodeOffset = source.trackNodeOffset;
-        }
-
-        /// <summary>
-        /// Creates a copy of another traveller, starting in the same location but with the specified change of direction.
-        /// </summary>
-        /// <param name="source">The other traveller to copy.</param>
-        /// <param name="reversed">Specifies whether to go the same direction as the <paramref name="source"/> (Forward) or flip direction (Backward).</param>
-        public Traveller(Traveller source, TravellerDirection reversed)
-            : this(source)
-        {
-            if (reversed == TravellerDirection.Backward)
-                Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
         }
 
         /// <summary>
@@ -980,33 +968,6 @@ namespace Orts.Simulation
             else 
                 desiredZ = 0f;
             return desiredZ;
-        }
-
-        /// <summary>
-        /// Finds the nearest junction node in the direction this traveller is facing.
-        /// </summary>
-        /// <returns>The <see cref="TrJunctionNode"/> of the found junction, or <c>null</c> if none was found.</returns>
-        public TrackJunctionNode JunctionNodeAhead()
-        {
-            return NextJunctionNode(TravellerDirection.Forward);
-        }
-
-        /// <summary>
-        /// Finds the nearest junction node in the opposite direction to this traveller.
-        /// </summary>
-        /// <returns>The <see cref="TrJunctionNode"/> of the found junction, or <c>null</c> if none was found.</returns>
-        public TrackJunctionNode JunctionNodeBehind()
-        {
-            return NextJunctionNode(TravellerDirection.Backward);
-        }
-
-        private TrackJunctionNode NextJunctionNode(TravellerDirection direction)
-        {
-            Traveller traveller = new Traveller(this, direction);
-            while (traveller.NextSection())
-                if (traveller.IsJunction)
-                    return traveller.trackNode as TrackJunctionNode;
-            return null;
         }
 
         /// <summary>

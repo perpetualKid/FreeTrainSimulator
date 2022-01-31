@@ -1110,7 +1110,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 return;
 
             var DisplayDistance = MaximumSectionDistance;
-            var position = train.MUDirection != MidpointDirection.Reverse ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+            var position = train.MUDirection != MidpointDirection.Reverse ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
             var caches = new List<SignallingDebugWindow.TrackSectionCacheEntry>();
             // Work backwards until we end up on a different track section.
             var cacheNode = new Traveller(position);

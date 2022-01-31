@@ -2731,7 +2731,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Switch to new position.
             if (!trainClose || (TrackCameraLocation == WorldLocation.None))
             {
-                var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
                 var newLocation = GoToNewLocation(ref tdb, train, trainForwards).Normalize();
 
                 var newLocationElevation = Viewer.Tiles.GetElevation(newLocation);
@@ -2907,9 +2907,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Traveller tdb;
                 // At first update loop camera location may be also behind train front (e.g. platform at start of activity)
                 if (FirstUpdateLoop)
-                    tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+                    tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, true);
                 else
-                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
                 int tcSectionIndex;
                 int routeIndex;
@@ -3080,7 +3080,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 if (!SpecialPointFound && !trainClose)
                 {
-                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward); // return to standard
+                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true); // return to standard
                     TrackCameraLocation = GoToNewLocation(ref tdb, train, trainForwards);
                 }
 

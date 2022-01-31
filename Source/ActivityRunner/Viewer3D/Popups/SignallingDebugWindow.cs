@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 foreach (var train in Owner.Viewer.Simulator.Trains)
                 {
-                    var position = train.MUDirection != MidpointDirection.Reverse ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                    var position = train.MUDirection != MidpointDirection.Reverse ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
                     var caches = new List<TrackSectionCacheEntry>();
                     // Work backwards until we end up on a different track section.
                     var cacheNode = new Traveller(position);

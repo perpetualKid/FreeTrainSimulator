@@ -151,7 +151,7 @@ namespace Orts.Simulation.World
                 float frontDist = crossing.DistanceTo(train.FrontTDBTraveller, reqDist);
                 if (frontDist < 0 && train.TrainType != TrainType.Static)
                 {
-                    frontDist = -crossing.DistanceTo(new Traveller(train.FrontTDBTraveller, Traveller.TravellerDirection.Backward), reqDist + train.Length);
+                    frontDist = -crossing.DistanceTo(new Traveller(train.FrontTDBTraveller, true), reqDist + train.Length);
                     if (frontDist > 0)
                     {
                         // Train cannot find crossing.
@@ -201,7 +201,7 @@ namespace Orts.Simulation.World
                     rearDist = crossing.DistanceTo(train.RearTDBTraveller, adjustDist);
                     // Static consist passed the crossing.
                     if (frontDist < 0 && rearDist < 0)
-                        rearDist = crossing.DistanceTo(new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward), adjustDist);
+                        rearDist = crossing.DistanceTo(new Traveller(train.RearTDBTraveller, true), adjustDist);
 
                     // Testing distance before crossing
                     if (frontDist > 0 && frontDist <= adjustDist)
@@ -271,7 +271,7 @@ namespace Orts.Simulation.World
             LevelCrossingItem roadItem = LevelCrossingItem.None;
             frontDist = -1;
             Traveller traveller = trainForwards ? train.FrontTDBTraveller :
-                new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                new Traveller(train.RearTDBTraveller, true);
             foreach (LevelCrossingItem crossing in TrackCrossingItems.Values.Where(ci => ci.CrossingGroup != null))
                 if (crossing.Trains.Contains(train))
                 {

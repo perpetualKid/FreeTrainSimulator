@@ -2400,7 +2400,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                traveller = new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                traveller = new Traveller(train.RearTDBTraveller, true);
             }
 
             TrackDB trackDB = Viewer.Simulator.TrackDatabase.TrackDB;
@@ -2454,7 +2454,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 else
                                 {
                                     // Not found forward, check backward
-                                    tmp = new Traveller(traveller, Traveller.TravellerDirection.Backward);
+                                    tmp = new Traveller(traveller, true);
 
                                     d = tmp.DistanceTo(trItems[trNode].Location, 8192);
                                     if (d != -1)
@@ -2634,14 +2634,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrackItem FindPrevItem<T>(out float distance)
             where T : TrackItem
         {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
             return FindItem<T>(traveller, GetPrevNode, out distance, null);
         }
 
         public TrackItem FindPrevItem<T>(out float distance, List<int> validitems)
             where T : TrackItem
         {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
             return FindItem<T>(traveller, GetPrevNode, out distance, validitems);
         }
 

@@ -180,7 +180,7 @@ namespace Orts.Simulation.MultiPlayer
         public void AddNewItem(string u, Train t)
         {
             if (items == null) items = new List<MSGMoveItem>();
-            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection) /*(int)t.MUDirection*/, (int)t.RearTDBTraveller.Direction, t.Length));
+            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction, t.Length));
             t.LastReportedSpeed = t.SpeedMpS;
         }
 
@@ -207,7 +207,7 @@ namespace Orts.Simulation.MultiPlayer
                     //if I am a remote controlled train now
                     if (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote)
                     {
-                        Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, m.direction, m.tdbDir, m.Length);
+                        Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length);
                     }
                     found = true;/*
                     try
@@ -243,7 +243,7 @@ namespace Orts.Simulation.MultiPlayer
                                 //                                {
                                 //                                    reverseTrav = true;
                                 //                                }
-                                t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, m.direction, m.tdbDir, m.Length, reverseTrav);
+                                t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length, reverseTrav);
                                 break;
                             }
                         }
@@ -259,7 +259,7 @@ namespace Orts.Simulation.MultiPlayer
                             Simulator.Instance.PlayerLocomotive == Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive &&
                             t.TrainType != TrainType.Remote && t.TrainType != TrainType.Static) continue;
                         found = true;
-                        t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, m.direction, m.tdbDir, m.Length);
+                        t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length);
                         // This is necessary as sometimes a train isn't in the Trains list
                         MultiPlayerManager.Instance().AddOrRemoveTrain(t, true);
                         //                       if (MPManager.IsServer()) MPManager.Instance().AddOrRemoveLocomotives(m.user, t, true);
@@ -3733,7 +3733,7 @@ namespace Orts.Simulation.MultiPlayer
                         realFlip = true;
                     }
                     if (realFlip)
-                        t.ToDoUpdate(tni, TileX, TileZ, X, Z, Travelled, speed, direction, tdir, len, true, reverseMU);
+                        t.ToDoUpdate(tni, TileX, TileZ, X, Z, Travelled, speed, TranslateMidpointDirection(direction), tdir, len, true, reverseMU);
                     return;
                 }
             }

@@ -3474,7 +3474,7 @@ namespace Orts.Simulation.AIs
 
             if (MUDirection == MidpointDirection.Reverse)
             {
-                usedTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward); // use in direction of movement
+                usedTraveller = new Traveller(RearTDBTraveller, true); // use in direction of movement
                 thisTrainFront = false;
                 direction = Direction.Backward;
             }

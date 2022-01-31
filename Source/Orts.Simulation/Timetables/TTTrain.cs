@@ -2318,8 +2318,8 @@ namespace Orts.Simulation.Timetables
             {
                 if (TCRoute.TCRouteSubpaths[0][usedPositionIndex].Direction != otherTrain.PresentPosition[direction].Direction)
                 {
-                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, Traveller.TravellerDirection.Backward);
-                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, true);
+                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, true);
                 }
                 else
                 {
@@ -5415,7 +5415,7 @@ namespace Orts.Simulation.Timetables
 
             if (MUDirection == MidpointDirection.Reverse)
             {
-                usedTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward); // use in direction of movement
+                usedTraveller = new Traveller(RearTDBTraveller, true); // use in direction of movement
                 thisTrainFront = false;
                 direction = Direction.Backward;
             }

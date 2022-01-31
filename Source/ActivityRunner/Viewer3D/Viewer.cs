@@ -1539,7 +1539,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Ray pickRay = new Ray(nearPoint, direction);
 
             // check each car
-            Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
             int carNo = 0;
             foreach (TrainCar car in PlayerTrain.Cars)
             {

@@ -1265,8 +1265,8 @@ namespace Orts.Simulation.Physics
             ReverseCars();
             // Flip the train's travellers.
             Traveller t = FrontTDBTraveller;
-            FrontTDBTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward);
-            RearTDBTraveller = new Traveller(t, Traveller.TravellerDirection.Backward);
+            FrontTDBTraveller = new Traveller(RearTDBTraveller, true);
+            RearTDBTraveller = new Traveller(t, true);
             // If we are updating the controls...
             if (setMUParameters)
             {
@@ -3437,7 +3437,7 @@ namespace Orts.Simulation.Physics
         /// Cars have been added to the rear of the train, recalc the rearTDBtraveller
         internal void RepositionRearTraveller()
         {
-            Traveller traveller = new Traveller(FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(FrontTDBTraveller, true);
             // The traveller location represents the front of the train.
             float length = 0f;
 
@@ -12224,7 +12224,8 @@ namespace Orts.Simulation.Physics
         }
 
         //used by remote train to update location based on message received
-        private int expectedTileX, expectedTileZ, expectedTracIndex, expectedDIr, expectedTDir;
+        private int expectedTileX, expectedTileZ, expectedTracIndex, expectedTDir;
+        MidpointDirection expectedDir;
         private float expectedX, expectedZ, expectedTravelled, expectedLength;
         internal bool UpdateMSGReceived { get; set; }
         public bool RequestJump { get; internal set; } // set when a train jump has been requested by the server (when player re-enters game in old position
@@ -12239,12 +12240,12 @@ namespace Orts.Simulation.Physics
             expectedX = location.Location.X;
             expectedZ = location.Location.Z;
             expectedTDir = direction;
-            expectedDIr = (int)MUDirection;
+            expectedDir = MUDirection;
             expectedTravelled = DistanceTravelledM = DistanceTravelled = distanceTravelled;
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, int dir, int tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
             int reverseMU = 0)
         {
             SpeedMpS = speed;
@@ -12254,7 +12255,7 @@ namespace Orts.Simulation.Physics
             expectedZ = z;
             expectedTravelled = eT;
             expectedTracIndex = tni;
-            expectedDIr = dir;
+            expectedDir = dir;
             expectedTDir = tDir;
             expectedLength = len;
             if (reverseTrav)
@@ -12300,7 +12301,7 @@ namespace Orts.Simulation.Physics
                     UpdateCarSlack(expectedLength);//update car slack first
                     CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
                     newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
-                    MUDirection = (MidpointDirection)expectedDIr;
+                    MUDirection = expectedDir;
                 }
                 else
                 {
@@ -12308,7 +12309,7 @@ namespace Orts.Simulation.Physics
 
                     double x = DistanceTravelled + previousSpeedMpS * elapsedClockSeconds + (SpeedMpS - previousSpeedMpS) / 2 * elapsedClockSeconds;
                     //                    xx = x;
-                    MUDirection = (MidpointDirection)expectedDIr;
+                    MUDirection = expectedDir;
 
                     if (Math.Abs(x - expectedTravelled) < 1 || Math.Abs(x - expectedTravelled) > 20)
                     {

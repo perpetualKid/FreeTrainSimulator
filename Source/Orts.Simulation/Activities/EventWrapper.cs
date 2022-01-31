@@ -152,7 +152,7 @@ namespace Orts.Simulation.Activities
             else
             {
                 // Go to opposite direction
-                poiTraveller = new Traveller(start, Traveller.TravellerDirection.Backward);
+                poiTraveller = new Traveller(start, true);
 
                 distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
                 // If valid, it is behind us
