@@ -209,7 +209,6 @@ namespace Orts.Menu
             this.labelPerformanceTunerTarget = new System.Windows.Forms.Label();
             this.numericPerformanceTunerTarget = new System.Windows.Forms.NumericUpDown();
             this.checkPerformanceTuner = new System.Windows.Forms.CheckBox();
-            this.checkLODViewingExtention = new System.Windows.Forms.CheckBox();
             this.label8 = new System.Windows.Forms.Label();
             this.numericSuperElevationGauge = new System.Windows.Forms.NumericUpDown();
             this.label7 = new System.Windows.Forms.Label();
@@ -2293,7 +2292,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.labelPerformanceTunerTarget);
             this.tabPageExperimental.Controls.Add(this.numericPerformanceTunerTarget);
             this.tabPageExperimental.Controls.Add(this.checkPerformanceTuner);
-            this.tabPageExperimental.Controls.Add(this.checkLODViewingExtention);
             this.tabPageExperimental.Controls.Add(this.label8);
             this.tabPageExperimental.Controls.Add(this.numericSuperElevationGauge);
             this.tabPageExperimental.Controls.Add(this.label7);
@@ -2731,16 +2729,6 @@ namespace Orts.Menu
             this.checkPerformanceTuner.UseVisualStyleBackColor = true;
             this.checkPerformanceTuner.Click += new System.EventHandler(this.CheckPerformanceTuner_Click);
             // 
-            // checkLODViewingExtention
-            // 
-            this.checkLODViewingExtention.AutoSize = true;
-            this.checkLODViewingExtention.Location = new System.Drawing.Point(324, 163);
-            this.checkLODViewingExtention.Name = "checkLODViewingExtention";
-            this.checkLODViewingExtention.Size = new System.Drawing.Size(304, 19);
-            this.checkLODViewingExtention.TabIndex = 22;
-            this.checkLODViewingExtention.Text = "Extend object maximum viewing distance to horizon";
-            this.checkLODViewingExtention.UseVisualStyleBackColor = true;
-            // 
             // label8
             // 
             this.label8.AutoSize = true;
@@ -3024,7 +3012,6 @@ namespace Orts.Menu
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.NumericUpDown numericViewingDistance;
-        private System.Windows.Forms.CheckBox checkLODViewingExtention;
         private System.Windows.Forms.TabPage tabPageDataLogger;
         private System.Windows.Forms.ComboBox comboDataLoggerSeparator;
         private System.Windows.Forms.Label label17;

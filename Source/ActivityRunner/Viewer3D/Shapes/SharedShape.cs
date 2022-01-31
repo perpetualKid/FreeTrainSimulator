@@ -92,7 +92,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
                 textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;
-                if (FilePath != null && FilePath.Contains("\\global\\", StringComparison.OrdinalIgnoreCase)) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
+                if (FilePath != null && FilePath.Contains("\\global\\", StringComparison.OrdinalIgnoreCase))
+                    textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
                 HasNightSubObj = sdFile.Shape.EsdSubObject;
                 if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\", StringComparison.OrdinalIgnoreCase))
                     textureFlags |= Helpers.TextureFlags.Underground;
@@ -577,9 +578,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     ? lodControl.DistanceLevels[lodControl.DistanceLevels.Length - 1]
                     : displayDetail;
 
-                // If set, extend the lowest LOD to the maximum viewing distance.
-                if (viewer.Settings.LODViewingExtention && displayDetailLevel == lodControl.DistanceLevels.Length - 1)
-                    distanceDetail.ViewingDistance = float.MaxValue;
+                distanceDetail.ViewingDistance = float.MaxValue;
 
                 for (var i = 0; i < displayDetail.SubObjects.Length; i++)
                 {

@@ -229,7 +229,6 @@ namespace Orts.Menu
             checkConditionalLoadOfNightTextures.Checked = this.settings.ConditionalLoadOfDayOrNightTextures;
             checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
             checkCircularSpeedGauge.Checked = this.settings.CircularSpeedGauge;
-            checkLODViewingExtention.Checked = this.settings.LODViewingExtention;
             checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
             checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
             checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
@@ -378,7 +377,6 @@ namespace Orts.Menu
             settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
             settings.SignalLightGlow = checkSignalLightGlow.Checked;
             settings.CircularSpeedGauge = checkCircularSpeedGauge.Checked;
-            settings.LODViewingExtention = checkLODViewingExtention.Checked;
             settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
             settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
             settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
