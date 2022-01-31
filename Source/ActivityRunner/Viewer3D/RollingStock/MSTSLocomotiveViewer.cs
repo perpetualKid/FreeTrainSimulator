@@ -2101,7 +2101,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Gauge is CabViewFireboxControl)
                     destH = Math.Min(destH, (int)(yratio * (Control.Bounds.Y + 0.5 * Gauge.Area.Height)) - destY);
             }
-            if (Control.ScaleRangeMin < 0 && Control.ControlType != CabViewControlType.Reverser_Plate && Gauge.ControlStyle != CabViewControlStyle.Pointer)
+            if (Control.ControlType != CabViewControlType.Reverser_Plate && Gauge.ControlStyle != CabViewControlStyle.Pointer)
             {
                 if (Num < 0 && Gauge.NegativeColors[0].A != 0)
                 {
