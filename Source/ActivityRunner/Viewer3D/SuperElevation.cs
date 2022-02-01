@@ -152,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
-                var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
+                var displacement = InterpolateHelper.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
                 WorldPosition nextRoot = root.SetTranslation(displacement);
 
@@ -280,7 +280,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     length = section.Length;
                     radius = -1;
                     localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else
@@ -293,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-section.Angle * 3.14f / 180); // Heading change (rotation about O)
 
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
@@ -372,7 +372,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + subsection.TrackSections[0].Length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
@@ -383,7 +383,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
