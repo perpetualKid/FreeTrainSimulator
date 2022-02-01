@@ -1141,13 +1141,13 @@ namespace Orts.Simulation.Signalling
             return returnItem;
         }
 
-        public (Signal Signal, float Distance) GetSignalItemInfo(TrackCircuitCrossReferences trackCircuitXRefList, float offset, int direction, float routeLength)
+        public (Signal Signal, float Distance) GetSignalItemInfo(TrackCircuitCrossReferences trackCircuitXRefList, float offset, TrackDirection direction, float routeLength)
         {
             if (null == trackCircuitXRefList)
                 throw new ArgumentNullException(nameof(trackCircuitXRefList));
 
             TrackCircuitPosition position = new TrackCircuitPosition();
-            position.SetPosition(trackCircuitXRefList, offset, (TrackDirection)direction);
+            position.SetPosition(trackCircuitXRefList, offset, direction);
             TrackCircuitPartialPathRoute route = BuildTempRoute(null, position.TrackCircuitSectionIndex, position.Offset, position.Direction, routeLength, true, false, false);
             SignalItemInfo signalInfo = GetNextObjectInRoute(null, route, 0, position.Offset, -1, SignalItemType.Signal, position);
 
@@ -1436,7 +1436,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split on Signals
         /// </summary>
-        private int SplitNodesSignals(int node, int nextNode)
+        private static int SplitNodesSignals(int node, int nextNode)
         {
             int index = node;
             List<int> addIndex = new List<int>();
@@ -1518,7 +1518,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split CrossOvers
         /// </summary>
-        private int SplitNodesCrossover(CrossOverInfo crossOver, TrackSectionsFile tsectiondat, int nextNode)
+        private static int SplitNodesCrossover(CrossOverInfo crossOver, TrackSectionsFile tsectiondat, int nextNode)
         {
             bool processCrossOver = true;
             int sectionIndex0 = 0;
@@ -1568,7 +1568,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Get cross-over section index
         /// </summary>
-        private int GetCrossOverSectionIndex(CrossOverInfo.Detail crossOver)
+        private static int GetCrossOverSectionIndex(CrossOverInfo.Detail crossOver)
         {
             int sectionIndex = crossOver.SectionIndex;
             float position = crossOver.Position;
@@ -1617,7 +1617,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Check pin links
         /// </summary>
-        private int PerformLinkTest(int node, int nextNode)
+        private static int PerformLinkTest(int node, int nextNode)
         {
 
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
@@ -1687,7 +1687,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set active pins for non-junction links
         /// </summary>
-        private void SetActivePins(int node)
+        private static void SetActivePins(int node)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
 
@@ -1745,7 +1745,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes
         /// </summary>
-        private void SetCrossReference(int node, TrackNode[] trackNodes)
+        private static void SetCrossReference(int node, TrackNode[] trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType != TrackCircuitType.Crossover)
@@ -1754,7 +1754,7 @@ namespace Orts.Simulation.Signalling
                 float offset0 = section.OffsetLength[Location.NearEnd];
                 float offset1 = section.OffsetLength[Location.FarEnd];
 
-                TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength.ToArray());
+                TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength[Location.NearEnd], section.OffsetLength[Location.FarEnd]);
 
                 bool inserted = false;
 
@@ -1785,7 +1785,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes for CrossOver items
         /// </summary>
-        private void SetCrossReferenceCrossOver(int node, TrackNode[] trackNodes)
+        private static void SetCrossReferenceCrossOver(int node, TrackNode[] trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType == TrackCircuitType.Crossover)
@@ -1795,7 +1795,7 @@ namespace Orts.Simulation.Signalling
                     int prevIndex = section.Pins[TrackDirection.Ahead, pinLocation].Link;
                     TrackCircuitSection prevSection = TrackCircuitSection.TrackCircuitList[prevIndex];
 
-                    TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength.ToArray());
+                    TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength[Location.NearEnd], section.OffsetLength[Location.FarEnd]);
                     TrackNode trackNode = trackNodes[prevSection.OriginalIndex];
                     TrackCircuitCrossReferences crossReference = trackNode.TrackCircuitCrossReferences;
 

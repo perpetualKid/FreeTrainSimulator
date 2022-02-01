@@ -462,12 +462,12 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="sectionIndex"></param>
         /// <param name="sectionLength"></param>
-        public TrackCircuitSectionCrossReference(int sectionIndex, float sectionLength, float[] sectionOffsetLength)
+        public TrackCircuitSectionCrossReference(int sectionIndex, float sectionLength, float sectionOffsetLengthAhead, float sectionOffsetLengthReverse)
         {
             Index = sectionIndex;
             Length = sectionLength;
-            OffsetLength[TrackDirection.Ahead] = sectionOffsetLength[0];
-            OffsetLength[TrackDirection.Reverse] = sectionOffsetLength[1];
+            OffsetLength[TrackDirection.Ahead] = sectionOffsetLengthAhead;
+            OffsetLength[TrackDirection.Reverse] = sectionOffsetLengthReverse;
         }
     }
 

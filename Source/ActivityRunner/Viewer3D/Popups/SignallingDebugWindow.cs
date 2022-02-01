@@ -291,7 +291,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 TrackNode tn = trackNode.TN;
                 float offset = trackNode.TrackNodeOffset;
-                int direction = (int)trackNode.Direction.Reverse();
+                TrackDirection direction = (TrackDirection)trackNode.Direction.Reverse();
 
                 var signalItemInfo = Simulator.Instance.SignalEnvironment.GetSignalItemInfo(tn.TrackCircuitCrossReferences, offset, direction, 5000f);
 
