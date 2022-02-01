@@ -39,7 +39,6 @@ namespace Orts.Simulation.AIs
     public class AIPath
     {
         public TrackDB TrackDB;
-        public TrackSectionsFile TSectionDat;
         public AIPathNode FirstNode;    // path starting node
         //public AIPathNode LastVisitedNode; not used anymore
         public List<AIPathNode> Nodes = new List<AIPathNode>();
@@ -50,12 +49,11 @@ namespace Orts.Simulation.AIs
         /// First creates all the nodes and then links them together into a main list
         /// with optional parallel siding list.
         /// </summary>
-        public AIPath(TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, string filePath, bool isTimetableMode)
+        public AIPath(TrackDatabaseFile TDB, string filePath, bool isTimetableMode)
         {
             PathFile patFile = new PathFile(filePath);
             pathName = patFile.Name;
             TrackDB = TDB.TrackDB;
-            TSectionDat = tsectiondat;
             bool fatalerror = false;
             if (patFile.PathNodes.Count <= 0)
             {
@@ -79,7 +77,7 @@ namespace Orts.Simulation.AIs
                 if (tpn.HasNextMainNode)
                 {
                     node.NextMainNode = Nodes[(int)tpn.NextMainNode];
-                    node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, TDB, tsectiondat, i == 0 ? -1 : Nodes[i-1].NextMainTVNIndex );
+                    node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, TDB, i == 0 ? -1 : Nodes[i-1].NextMainTVNIndex );
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextMainTVNIndex);
                     if (node.NextMainTVNIndex < 0)
@@ -94,7 +92,7 @@ namespace Orts.Simulation.AIs
                 if (tpn.HasNextSidingNode)
                 {
                     node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
-                    node.NextSidingTVNIndex = node.FindTVNIndex(node.NextSidingNode, TDB, tsectiondat, i == 0 ? -1 : Nodes[i - 1].NextMainTVNIndex);
+                    node.NextSidingTVNIndex = node.FindTVNIndex(node.NextSidingNode, TDB, i == 0 ? -1 : Nodes[i - 1].NextMainTVNIndex);
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextSidingTVNIndex);
                     if (node.NextSidingTVNIndex < 0)
@@ -121,8 +119,7 @@ namespace Orts.Simulation.AIs
 
         public AIPath(AIPath otherPath)
         {
-            TrackDB = otherPath.TrackDB; ;
-            TSectionDat = otherPath.TSectionDat;
+            TrackDB = otherPath.TrackDB;
             FirstNode = new AIPathNode(otherPath.FirstNode);
             foreach (AIPathNode otherNode in otherPath.Nodes)
             {
@@ -182,11 +179,10 @@ namespace Orts.Simulation.AIs
         }
 
         // restore game state
-        public AIPath(TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, BinaryReader inf)
+        public AIPath(TrackDatabaseFile TDB, BinaryReader inf)
         {
             pathName = inf.ReadString();
             TrackDB = TDB.TrackDB;
-            TSectionDat = tsectiondat;
 
             int n = inf.ReadInt32();
             for (int i = 0; i < n; i++)
@@ -410,7 +406,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Returns the index of the vector node connection this path node to the (given) nextNode.
         /// </summary>
-        public int FindTVNIndex(AIPathNode nextNode, TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, int previousNextMainTVNIndex)
+        public int FindTVNIndex(AIPathNode nextNode, TrackDatabaseFile TDB, int previousNextMainTVNIndex)
         {
             int junctionIndexThis = JunctionIndex;
             int junctionIndexNext = nextNode.JunctionIndex;
@@ -420,7 +416,7 @@ namespace Orts.Simulation.AIs
             {
                 try
                 {
-                    return findTrackNodeIndex(TDB, tsectiondat, this);
+                    return findTrackNodeIndex(TDB, this);
                 }
                 catch
                 {
@@ -433,7 +429,7 @@ namespace Orts.Simulation.AIs
             {
                 try
                 {
-                    return findTrackNodeIndex(TDB, tsectiondat, nextNode);
+                    return findTrackNodeIndex(TDB, nextNode);
                 }
                 catch
                 {
@@ -471,9 +467,9 @@ namespace Orts.Simulation.AIs
         /// <param name="tsectiondat"></param>
         /// <param name="node"></param>
         /// <returns>The track node index that has been found (or an exception)</returns>
-        private static int findTrackNodeIndex(TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, AIPathNode node)
+        private static int findTrackNodeIndex(TrackDatabaseFile TDB, AIPathNode node)
         {
-            Traveller traveller = new Traveller(tsectiondat, TDB.TrackDB.TrackNodes, node.Location);
+            Traveller traveller = new Traveller(TDB.TrackDB.TrackNodes, node.Location);
             return traveller.TrackNodeIndex;
         }
 

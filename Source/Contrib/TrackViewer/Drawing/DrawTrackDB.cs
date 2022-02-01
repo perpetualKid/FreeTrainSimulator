@@ -34,84 +34,71 @@ namespace ORTS.TrackViewer.Drawing
     /// Class to contain all information loaded for the route that is not Trackviewer specific. So basically loading all relevant route files,
     /// like TrackDB for rails and roads, TsectionDat, without further processing
     /// </summary>
-    internal class RouteData
+    internal class RouteData: RuntimeData
     {
-        /// <summary>Name of the route</summary>
-        public string RouteName { get; private set; }
-        /// <summary>Track Section Data, public such that other classes have access as well</summary>
-        public TrackSectionsFile TsectionDat { get; private set; }
-        /// <summary>Track database, public such that other classes have access as well</summary>
-        public TrackDB TrackDB { get; private set; }
-        /// <summary>Road track database</summary>
-        public RoadTrackDB RoadTrackDB { get; set; }
-        /// <summary>The signal config file containing, for instance, the information to distinguish normal and non-normal signals</summary>
-        public SignalConfigurationFile SigcfgFile { get; set; }
-
-        private readonly string storedRoutePath;
-        private Dictionary<uint, string> signalFileNames;
+        private static string storedRoutePath;
+        private static Dictionary<uint, string> signalFileNames;
 
         /// <summary>
         /// Constructor. Loads all the relevant files for the route
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public RouteData(string routePath, MessageDelegate messageDelegate)
+        public static void Load(string routePath, MessageDelegate messageDelegate)
         {
             storedRoutePath = routePath;
+            TrackSectionsFile tsectionDat;
+            RoadDatabaseFile RDB = null;
+            TrackDatabaseFile TDB = null;
+            SignalConfigurationFile sigcfgFile = null;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             RouteFile TRK = new RouteFile(FolderStructure.Route(routePath).TrackFileName);
-            RouteName = TRK.Route.Name;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TrackDatabaseFile TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
-            TrackDB = TDB.TrackDB;
+            TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
 
             messageDelegate(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
             string BasePath = Path.GetDirectoryName(Path.GetDirectoryName(routePath));
             if (Directory.Exists(routePath + @"\Openrails") && File.Exists(routePath + @"\Openrails\TSECTION.DAT"))
-                TsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
             else if (Directory.Exists(routePath + @"\GLOBAL") && File.Exists(routePath + @"\GLOBAL\TSECTION.DAT"))
-                TsectionDat = new TrackSectionsFile(routePath + @"\GLOBAL\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(routePath + @"\GLOBAL\TSECTION.DAT");
             else
-                TsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
             if (File.Exists(routePath + @"\TSECTION.DAT"))
-                TsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
+                tsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
 
             string roadTrackFileName = routePath + @"\" + TRK.Route.FileName + ".rdb";
-            try
+            if (File.Exists(roadTrackFileName))
             {
                 messageDelegate(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
 
-                RoadDatabaseFile RDB = new RoadDatabaseFile(roadTrackFileName);
-                RoadTrackDB = RDB.RoadTrackDB;
+                RDB = new RoadDatabaseFile(roadTrackFileName);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-            } 
 
             string ORfilepath = Path.Combine(routePath, "OpenRails");
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))
             {
-                SigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
+                sigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
             }
             else if (File.Exists(routePath + @"\sigcfg.dat"))
             {
-                SigcfgFile = new SignalConfigurationFile(routePath + @"\sigcfg.dat", false);
+                sigcfgFile = new SignalConfigurationFile(routePath + @"\sigcfg.dat", false);
             }
             else
             {
                 //sigcfgFile = null; // default initialization
             }
+
+            Initialize(TRK.Route.Name, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>
         /// Get the filename of the file where the signal shape is defined.
         /// </summary>
         /// <param name="signalIndex">The index (from the .tdb) of the signal</param>
-        public string GetSignalFilename(uint signalIndex)
+        public static string GetSignalFilename(uint signalIndex)
         {
             if (signalFileNames == null)
             {
@@ -263,12 +250,13 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routeData">information about the route</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public DrawTrackDB(RouteData routeData, MessageDelegate messageDelegate)
+        public DrawTrackDB(MessageDelegate messageDelegate)
         {
-            tsectionDat = routeData.TsectionDat;
+            RuntimeData routeData = RuntimeData.Instance;
+            tsectionDat = routeData.TSectionDat;
             trackDB = routeData.TrackDB;
             roadTrackDB = routeData.RoadTrackDB;
-            sigcfgFile = routeData.SigcfgFile;
+            sigcfgFile = routeData.SignalConfigFile;
 
             messageDelegate(TrackViewer.catalog.GetString("Finding the angles to draw signals, endnodes, ..."));
 
@@ -325,7 +313,7 @@ namespace ORTS.TrackViewer.Drawing
                     DrawableTrackItem trackItem = railTrackItemTable[trackItemIndex];
                     if (trackItem is DrawableSignalItem signalItem)
                     {
-                        signalItem.FindAngle(tsectionDat, trackDB, trackVectorNode);
+                        signalItem.FindAngle(trackDB, trackVectorNode);
                         signalItem.DetermineIfNormal(sigcfgFile);
                     }
                 }

@@ -72,7 +72,7 @@ namespace Orts.ActivityRunner.Viewer3D
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
-            Traveller = new Traveller(viewer.Simulator.TSectionDat, viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, startLocation);
+            Traveller = new Traveller(viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, startLocation);
             Length = Traveller.DistanceTo(endLocation);
             if (Length < 0)
             {

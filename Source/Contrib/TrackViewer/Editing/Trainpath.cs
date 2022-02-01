@@ -622,7 +622,7 @@ namespace ORTS.TrackViewer.Editing
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Direction.Forward);
+                    Traveller traveller = new Traveller(trackDB.TrackNodes, tvn, trItem.Location, Direction.Forward);
                     TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
                     if (platformNode.IsBetween(firstNode, secondNode))
                     {

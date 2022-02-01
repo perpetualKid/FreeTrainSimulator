@@ -762,7 +762,7 @@ namespace Orts.Simulation.Timetables
                 if (TrainRouteXRef.ContainsKey(reqTrain.Index) && Paths.ContainsKey(TrainRouteXRef[reqTrain.Index]))
                 {
                     AIPath usedPath = new AIPath(Paths[TrainRouteXRef[reqTrain.Index]]);
-                    reqTrain.TTTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, usedPath);
+                    reqTrain.TTTrain.RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, usedPath);
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
@@ -846,7 +846,7 @@ namespace Orts.Simulation.Timetables
 
             // create traveller
             AIPath usedPath = Paths[TrainRouteXRef[reqTrain.Index]];
-            playerTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, usedPath);
+            playerTrain.RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, usedPath);
 
             // extract train path
             playerTrain.SetRoutePath(usedPath, false);
@@ -1205,7 +1205,7 @@ namespace Orts.Simulation.Timetables
                         try
                         {
                             var infpath = new BinaryReader(new FileStream(formedpathFilefullBinary, FileMode.Open, FileAccess.Read));
-                            outPath = new AIPath(simulator.TrackDatabase, simulator.TSectionDat, infpath);
+                            outPath = new AIPath(simulator.TrackDatabase, infpath);
                             infpath.Close();
 
                             if (outPath.Nodes != null)
@@ -1225,7 +1225,7 @@ namespace Orts.Simulation.Timetables
                 {
                     try
                     {
-                        outPath = new AIPath(simulator.TrackDatabase, simulator.TSectionDat, formedpathFilefull, true);
+                        outPath = new AIPath(simulator.TrackDatabase, formedpathFilefull, true);
                         validPath = outPath.Nodes != null;
 
                         if (validPath)
@@ -2820,7 +2820,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        outTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, outPath);
+                        outTrain.RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, outPath);
                         outTrain.Path = outPath;
                         outTrain.CreateRoute(false);
                         outTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
@@ -2873,7 +2873,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            inTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, inPath);
+                            inTrain.RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, inPath);
                             inTrain.Path = inPath;
                             inTrain.CreateRoute(false);
                             inTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
@@ -3017,7 +3017,7 @@ namespace Orts.Simulation.Timetables
                 }
                 else
                 {
-                    formedTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, formedPath);
+                    formedTrain.RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, formedPath);
                     formedTrain.Path = formedPath;
                     formedTrain.CreateRoute(false);
                     formedTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);

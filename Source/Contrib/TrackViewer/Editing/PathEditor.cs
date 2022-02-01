@@ -135,11 +135,12 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
-        private PathEditor(RouteData routeData, DrawTrackDB drawTrackDB)
+        private PathEditor(DrawTrackDB drawTrackDB)
         {
+
             this.drawTrackDB = drawTrackDB;
-            trackDB = routeData.TrackDB;
-            tsectionDat = routeData.TsectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
 
             TrackExtensions.Initialize(trackDB.TrackNodes, tsectionDat); // we might be calling this more than once, but so be it.
 
@@ -164,8 +165,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>/// <param name="pathsDirectory">The directory where paths will be stored</param>
-        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, string pathsDirectory)
-            :this(routeData, drawTrackDB)
+        public PathEditor(DrawTrackDB drawTrackDB, string pathsDirectory)
+            :this(drawTrackDB)
         {
             CurrentTrainPath = new Trainpath(trackDB, tsectionDat);
             FileName = CurrentTrainPath.PathId + ".pat";
@@ -180,8 +181,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
         /// <param name="path">Path to the .pat file</param>
-        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, Path path)
-            :this(routeData, drawTrackDB)
+        public PathEditor(DrawTrackDB drawTrackDB, Path path)
+            :this(drawTrackDB)
         {
             FileName = path.FilePath.Split('\\').Last();
             CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.FilePath);

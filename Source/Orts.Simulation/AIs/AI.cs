@@ -850,7 +850,7 @@ namespace Orts.Simulation.AIs
 
             // Patch Placingproblem - JeroenP
             // 
-            AIPath aiPath = new AIPath(Simulator.TrackDatabase, Simulator.TSectionDat, pathFileName, isTimetableMode);
+            AIPath aiPath = new AIPath(Simulator.TrackDatabase, pathFileName, isTimetableMode);
             // End patch
 
             if (aiPath.Nodes == null)
@@ -949,7 +949,7 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = 2;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            train.RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TrackDatabase.TrackDB.TrackNodes, aiPath); // create traveller
+            train.RearTDBTraveller = new Traveller(Simulator.TrackDatabase.TrackDB.TrackNodes, aiPath); // create traveller
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "-----  New AI Train  -----\n");
 #endif

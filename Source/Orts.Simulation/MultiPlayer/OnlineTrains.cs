@@ -163,14 +163,14 @@ namespace Orts.Simulation.MultiPlayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, Simulator.Instance.TSectionDat, p.Path, Simulator.Instance.TimetableMode);
+                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, p.Path, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }
 
             try
             {
-                train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
+                train.RearTDBTraveller = new Traveller(Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
             catch (Exception e)
             {

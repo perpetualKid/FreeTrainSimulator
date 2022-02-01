@@ -70,17 +70,16 @@ namespace Orts.TrackViewer
             }
 
             CancellationToken token = ctsRouteLoading.Token;
-            TrackData trackData = new TrackData(route.Path);
 
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(this, route.Name, trackData.UseMetricUnits, trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig);
+            TrackContent content = new TrackContent(this, Formats.Msts.RuntimeData.Instance);
             await content.Initialize().ConfigureAwait(false);
             content.UpdateItemVisiblity(viewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);

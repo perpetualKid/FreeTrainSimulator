@@ -25,6 +25,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
 using Orts.Common.Position;
+using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.UserInterface
 {
@@ -188,7 +189,7 @@ namespace ORTS.TrackViewer.UserInterface
                 try
                 {
                     // Try to find a fixed track
-                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes[shapeIndex];
+                    TrackShape shape = RuntimeData.Instance.TSectionDat.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -198,7 +199,7 @@ namespace ORTS.TrackViewer.UserInterface
                     // try to find a dynamic track
                     try
                     {
-                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TrackSectionIndex[tvs.ShapeIndex];
+                        TrackPath trackPath = RuntimeData.Instance.TSectionDat.TrackSectionIndex[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
                         foreach (uint trackSection in trackPath.TrackSections)
                         {
@@ -326,7 +327,7 @@ namespace ORTS.TrackViewer.UserInterface
             if (!string.Equals(description, "signal", StringComparison.OrdinalIgnoreCase)) 
                 return;
             statusAdditional.Text += "signal shape = ";
-            statusAdditional.Text += trackViewer.RouteData.GetSignalFilename(index);
+            statusAdditional.Text += RouteData.GetSignalFilename(index);
         }
 
         /// <summary>
@@ -342,7 +343,7 @@ namespace ORTS.TrackViewer.UserInterface
             if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase)) 
                 return;
 
-            if (!(trackViewer.RouteData.TrackDB.TrackItems[index] is PlatformItem platform))
+            if (!(RuntimeData.Instance.TrackDB.TrackItems[index] is PlatformItem platform))
                 return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0} ({1})", platform.Station, platform.ItemName);

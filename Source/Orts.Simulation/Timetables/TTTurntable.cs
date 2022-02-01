@@ -202,7 +202,7 @@ namespace Orts.Simulation.Timetables
 
                                 AccessPathDetails thisAccess = new AccessPathDetails();
                                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(usedRoute);
-                                thisAccess.AccessTraveller = new Traveller(Simulatorref.TSectionDat, Simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
+                                thisAccess.AccessTraveller = new Traveller(Simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
                                 thisAccess.AccessPathName = accessPath;
                                 AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
                             }
@@ -405,7 +405,7 @@ namespace Orts.Simulation.Timetables
             {
                 AccessPathDetails thisAccess = new AccessPathDetails();
                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(inf);
-                thisAccess.AccessTraveller = new Traveller(Simulatorref.TSectionDat, Simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
+                thisAccess.AccessTraveller = new Traveller(Simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
                 thisAccess.AccessPathName = inf.ReadString();
                 thisAccess.TableExitIndex = inf.ReadInt32();
                 thisAccess.TableVectorIndex = inf.ReadInt32();
@@ -437,7 +437,7 @@ namespace Orts.Simulation.Timetables
 
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
-                newPool.StoragePathTraveller = new Traveller(Simulatorref.TSectionDat, Simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
+                newPool.StoragePathTraveller = new Traveller(Simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = null;
@@ -2357,7 +2357,7 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoute[0][0].TrackCircuitSection;
-            Traveller middlePosition = new Traveller(parentPool.Simulatorref.TSectionDat, parentPool.Simulatorref.TrackDatabase.TrackDB.TrackNodes, parentPool.Simulatorref.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
+            Traveller middlePosition = new Traveller(parentPool.Simulatorref.TrackDatabase.TrackDB.TrackNodes, parentPool.Simulatorref.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",

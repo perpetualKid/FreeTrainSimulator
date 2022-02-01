@@ -23,6 +23,7 @@ using Newtonsoft.Json;
 
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
@@ -84,14 +85,11 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// Constructor
         /// </summary>
         /// <param name="routeData">The data of the route (track database, track section information, ...)</param>
-        public PathChartData(Drawing.RouteData routeData)
+        public PathChartData()
         {
-            if (null == routeData)
-                throw new ArgumentNullException(nameof(routeData));
-
-            trackDB = routeData.TrackDB;
-            tsectionDat = routeData.TsectionDat;
-            trackItems = new TrackItemManager(routeData);
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
+            trackItems = new TrackItemManager();
         }
 
         #region Update the whole path
@@ -546,10 +544,10 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// Constructor
         /// </summary>
         /// <param name="routeData">The data needed for the route</param>
-        public TrackItemManager(ORTS.TrackViewer.Drawing.RouteData routeData)
+        public TrackItemManager()
         {
-            trackDB = routeData.TrackDB;
-            tsectionDat = routeData.TsectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
 
             cachedItems = new Dictionary<TrackNode, IEnumerable<ChartableTrackItem>>();
         }
@@ -575,7 +573,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
-                    Traveller travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, vectorNode, trItem.Location, Direction.Forward);
+                    Traveller travellerAtItem = new Traveller(trackDB.TrackNodes, vectorNode, trItem.Location, Direction.Forward);
 
                     tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
 

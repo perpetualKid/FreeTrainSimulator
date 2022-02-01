@@ -586,7 +586,7 @@ namespace Orts.Simulation.Physics
             LeadLocomotiveIndex = inf.ReadInt32();
             RetainerSetting = (RetainerSetting)inf.ReadInt32();
             RetainerPercent = inf.ReadInt32();
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, inf);
+            RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
             TrainMaxSpeedMpS = inf.ReadSingle();
@@ -10684,7 +10684,7 @@ namespace Orts.Simulation.Physics
                             {
                                 // diverging 
                                 diverging = true;
-                                float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
+                                float junctionAngle = junctionNode.GetAngle();
                                 if (junctionAngle < 0) rightSwitch = false;
                             }
                             if (diverging)
@@ -10700,7 +10700,7 @@ namespace Orts.Simulation.Physics
                                 (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
-                                float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
+                                float junctionAngle = junctionNode.GetAngle();
                                 if (junctionAngle < 0) rightSwitch = false; // FIXME: or the opposite? untested...
 
                                 trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);
@@ -12462,9 +12462,9 @@ namespace Orts.Simulation.Physics
         /// 
         internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Direction direction)
         {
-            FrontTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            FrontTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
                  Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
             if (direction == Direction.Backward)
             {

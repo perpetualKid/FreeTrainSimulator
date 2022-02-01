@@ -57,7 +57,6 @@ namespace Orts.Simulation.Signalling
         public List<Signal> Signals { get; private set; }
 
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectiondat;
 
         public int OrtsSignalTypeCount { get; private set; }
 
@@ -89,7 +88,6 @@ namespace Orts.Simulation.Signalling
             OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
 
             trackDB = Simulator.Instance.TrackDatabase.TrackDB;
-            tsectiondat = Simulator.Instance.TSectionDat;
 
             // read SIGSCR files
 
@@ -106,7 +104,7 @@ namespace Orts.Simulation.Signalling
             BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -129,7 +127,7 @@ namespace Orts.Simulation.Signalling
             //
             // Create trackcircuit database
             //
-            CreateTrackCircuits(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat);
+            CreateTrackCircuits(trackDB.TrackItems, trackDB.TrackNodes);
 
             //
             // Process platform information
@@ -413,8 +411,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat,
-                TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
+        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
             //  Determine the number of signals in the track Objects list
@@ -429,7 +426,7 @@ namespace Orts.Simulation.Signalling
 
             for (int i = 1; i < trackNodes.Length; i++)
             {
-                ScanSection(trackItems, trackNodes, i, tsectiondat, tdbfile, platformList, signalHeadList);
+                ScanSection(trackItems, trackNodes, i, tdbfile, platformList, signalHeadList);
             }
 
             //  Only continue if one or more signals in route.
@@ -586,7 +583,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
+        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -604,7 +601,7 @@ namespace Orts.Simulation.Signalling
                         // Track Item is signal
                         if (trackItems[tdbRef] is SignalItem sigItem)
                         {
-                            if (AddSignal(index, i, sigItem, tdbRef, tsectiondat, tdbfile, signalHeadList))
+                            if (AddSignal(index, i, sigItem, tdbRef, tdbfile, signalHeadList))
                             {
                                 sigItem.SignalObject = Signals.Count - 1;
                             }
@@ -618,7 +615,7 @@ namespace Orts.Simulation.Signalling
                         {
                             if (!speedItem.IsMilePost)
                             {
-                                AddSpeed(index, i, speedItem, tdbRef, tsectiondat, tdbfile);
+                                AddSpeed(index, i, speedItem, tdbRef, tdbfile);
                                 speedItem.SignalObject = Signals.Count - 1;
 
                             }
@@ -706,7 +703,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Signal to the list
         /// </summary>
-        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, Dictionary<uint, Signal> signalHeadList)
+        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, TrackDatabaseFile tdbfile, Dictionary<uint, Signal> signalHeadList)
         {
             if (!(tdbfile.TrackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
             {
@@ -714,7 +711,7 @@ namespace Orts.Simulation.Signalling
                 return false;
             }
 
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
+            Traveller traveller = new Traveller(tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -741,9 +738,9 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Speedpost to the list
         /// </summary>
-        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile)
+        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef, TrackDatabaseFile tdbfile)
         {
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
+            Traveller traveller = new Traveller(tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -1187,7 +1184,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Create Track Circuits
         /// <summary>
-        private void CreateTrackCircuits(TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
+        private void CreateTrackCircuits(TrackItem[] trackItems, TrackNode[] trackNodes)
         {
 
             // Create dummy element as first to keep indexes equal
@@ -1198,7 +1195,7 @@ namespace Orts.Simulation.Signalling
             {
                 TrackNode trackNode = trackNodes[i];
                 TrackCircuitSection defaultSection =
-                    new TrackCircuitSection(trackNode, i, tsectiondat);
+                    new TrackCircuitSection(trackNode, i);
                 TrackCircuitSection.TrackCircuitList.Add(defaultSection);
             }
 
@@ -1210,7 +1207,7 @@ namespace Orts.Simulation.Signalling
             int originalNodes = TrackCircuitSection.TrackCircuitList.Count;
             for (int i = 1; i < originalNodes; i++)
             {
-                ProcessNodes(i, trackItems, trackNodes, tsectiondat, crossoverList);
+                ProcessNodes(i, trackItems, trackNodes, crossoverList);
             }
 
             // Delete MilepostList as it is no more needed
@@ -1223,7 +1220,7 @@ namespace Orts.Simulation.Signalling
             int nextNode = originalNodes;
             foreach (KeyValuePair<int, CrossOverInfo> crossOver in crossoverList)
             {
-                nextNode = SplitNodesCrossover(crossOver.Value, tsectiondat, nextNode);
+                nextNode = SplitNodesCrossover(crossOver.Value, nextNode);
             }
 
             // loop through original default elements
@@ -1282,7 +1279,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ProcessNodes
         /// </summary>
-        private void ProcessNodes(int nodeIndex, TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat, Dictionary<int, CrossOverInfo> crossoverList)
+        private void ProcessNodes(int nodeIndex, TrackItem[] trackItems, TrackNode[] trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             // Check if original tracknode had trackitems
@@ -1292,7 +1289,7 @@ namespace Orts.Simulation.Signalling
             {
                 // Create TDBtraveller at start of section to calculate distances
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller traveller = new Traveller(tsectiondat, trackNodes, tvn, firstSection.Location, Direction.Forward);
+                Traveller traveller = new Traveller(trackNodes, tvn, firstSection.Location, Direction.Forward);
 
 
                 // Process all items (do not split yet)
@@ -1518,7 +1515,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split CrossOvers
         /// </summary>
-        private static int SplitNodesCrossover(CrossOverInfo crossOver, TrackSectionsFile tsectiondat, int nextNode)
+        private static int SplitNodesCrossover(CrossOverInfo crossOver, int nextNode)
         {
             bool processCrossOver = true;
             int sectionIndex0 = 0;
@@ -1558,7 +1555,7 @@ namespace Orts.Simulation.Signalling
                 TrackCircuitSection.SplitSection(sectionIndex0, newSection0, crossOver.Details[Location.NearEnd].Position);
                 TrackCircuitSection.SplitSection(sectionIndex1, newSection1, crossOver.Details[Location.FarEnd].Position);
 
-                TrackCircuitSection.AddCrossoverJunction(sectionIndex0, newSection0, sectionIndex1, newSection1, jnSection, crossOver, tsectiondat);
+                TrackCircuitSection.AddCrossoverJunction(sectionIndex0, newSection0, sectionIndex1, newSection1, jnSection, crossOver);
             }
 
             return nextNode;
@@ -3327,6 +3324,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTunnels()
         {
+            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackNode node in trackDB.TrackNodes)
             {
@@ -3473,6 +3471,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTroughs()
         {
+            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackNode node in trackDB.TrackNodes)
             {

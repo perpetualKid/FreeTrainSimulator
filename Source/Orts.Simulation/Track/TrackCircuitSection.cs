@@ -26,6 +26,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
@@ -96,12 +97,10 @@ namespace Orts.Simulation.Track
         /// <summary>
         /// Constructor
         /// </summary>
-        public TrackCircuitSection(TrackNode node, int nodeIndex, TrackSectionsFile tsectiondat)
+        public TrackCircuitSection(TrackNode node, int nodeIndex)
         {
             if (null == node)
                 throw new ArgumentNullException(nameof(node));
-            if (null == tsectiondat)
-                throw new ArgumentNullException(nameof(tsectiondat));
             //
             // Copy general info
             //
@@ -143,7 +142,7 @@ namespace Orts.Simulation.Track
             {
                 foreach (TrackVectorSection section in tvn.TrackVectorSections)
                 {
-                    if (tsectiondat.TrackSections.TryGetValue(section.SectionIndex, out TrackSection trackSection))
+                    if (RuntimeData.Instance.TSectionDat.TrackSections.TryGetValue(section.SectionIndex, out TrackSection trackSection))
                     {
                         Length += trackSection.Curved ? MathHelper.ToRadians(Math.Abs(trackSection.Angle)) * trackSection.Radius : trackSection.Length;
                     }
@@ -157,7 +156,7 @@ namespace Orts.Simulation.Track
             {
                 SignalsPassingRoutes = new List<int>();
                 uint trackShapeIndex = (node as TrackJunctionNode).ShapeIndex;
-                if (!tsectiondat.TrackShapes.TryGetValue(trackShapeIndex, out TrackShape trackShape))
+                if (!RuntimeData.Instance.TSectionDat.TrackShapes.TryGetValue(trackShapeIndex, out TrackShape trackShape))
                 {
                     Trace.TraceWarning("Missing TrackShape in tsection.dat : " + trackShapeIndex);
                 }
@@ -2094,13 +2093,10 @@ namespace Orts.Simulation.Track
         /// Add junction sections for Crossover
         /// </summary>
 
-        internal static void AddCrossoverJunction(int leadSectionIndex0, int trailSectionIndex0, int leadSectionIndex1, int trailSectionIndex1, int JnIndex,
-                        CrossOverInfo crossOver, TrackSectionsFile tsectiondat)
+        internal static void AddCrossoverJunction(int leadSectionIndex0, int trailSectionIndex0, int leadSectionIndex1, int trailSectionIndex1, int JnIndex, CrossOverInfo crossOver)
         {
             if (null == crossOver)
                 throw new ArgumentNullException(nameof(crossOver));
-            if (null == tsectiondat)
-                throw new ArgumentNullException(nameof(tsectiondat));
 
             TrackCircuitSection leadSection0 = TrackCircuitList[leadSectionIndex0];
             TrackCircuitSection leadSection1 = TrackCircuitList[leadSectionIndex1];
@@ -2123,13 +2119,10 @@ namespace Orts.Simulation.Track
             JnSection.Pins[TrackDirection.Reverse, Location.NearEnd] = new TrackPin(trailSectionIndex0, TrackDirection.Reverse);
             JnSection.Pins[TrackDirection.Reverse, Location.FarEnd] = new TrackPin(trailSectionIndex1, TrackDirection.Reverse);
 
-            if (tsectiondat.TrackShapes.ContainsKey(crossOver.TrackShape))
+            JnSection.Overlap = 0;
+            if (RuntimeData.Instance.TSectionDat.TrackShapes.TryGetValue(crossOver.TrackShape, out TrackShape overlapShape))
             {
-                JnSection.Overlap = tsectiondat.TrackShapes[crossOver.TrackShape].ClearanceDistance;
-            }
-            else
-            {
-                JnSection.Overlap = 0;
+                JnSection.Overlap = overlapShape.ClearanceDistance;
             }
 
             JnSection.SignalsPassingRoutes = new List<int>();

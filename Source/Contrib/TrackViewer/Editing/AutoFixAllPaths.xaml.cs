@@ -32,7 +32,6 @@ namespace ORTS.TrackViewer.Editing
     /// </summary>
     public partial class AutoFixAllPaths : Window
     {
-        private readonly RouteData routeData;
         private readonly DrawTrackDB drawTrackDB;
         private readonly Dictionary<string, List<string>> pathsThatAre = new Dictionary<string, List<string>>
             {
@@ -48,9 +47,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
-        internal AutoFixAllPaths(RouteData routeData, DrawTrackDB drawTrackDB)
+        internal AutoFixAllPaths(DrawTrackDB drawTrackDB)
         {
-            this.routeData = routeData;
             this.drawTrackDB = drawTrackDB;
         }
 
@@ -77,7 +75,7 @@ namespace ORTS.TrackViewer.Editing
             {
                 callback(TrackViewer.catalog.GetString("Processing .pat file ") + path.FilePath);
                 string pathName = UserInterface.MenuControl.MakePathMenyEntryName(path);
-                PathEditor pathFixer = new PathEditor(routeData, drawTrackDB, path);
+                PathEditor pathFixer = new PathEditor(drawTrackDB, path);
                 _ = pathFixer.AutoFixAllBrokenNodes();
                 if (pathFixer.HasModifiedPath)
                 {

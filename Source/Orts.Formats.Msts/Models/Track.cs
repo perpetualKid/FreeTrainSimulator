@@ -696,14 +696,14 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="tsectionDat">The datafile with all the track sections</param>
         /// <returns>The angle calculated</returns>
-        public float GetAngle(TrackSectionsFile tsectionDat)
+        public float GetAngle()
         {
             if (angle != float.MaxValue)
                 return angle;
 
             try //so many things can be in conflict for trackshapes, tracksections etc.
             {
-                TrackShape trackShape = tsectionDat.TrackShapes[ShapeIndex];
+                TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
                 SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
                 for (int index = 0; index < sectionIndices.Length; index++)
@@ -715,7 +715,7 @@ namespace Orts.Formats.Msts.Models
                     for (int i = 0; i < sections.Length; i++)
                     {
                         uint sid = sectionIndices[index].TrackSections[i];
-                        TrackSection section = tsectionDat.TrackSections[sid];
+                        TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
 
                         if (section.Curved)
                         {

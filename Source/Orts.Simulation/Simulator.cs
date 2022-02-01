@@ -289,6 +289,9 @@ namespace Orts.Simulation
             HazardManager = new HazardManager(this);
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
+
+            bool useMetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(Route.Name, TSectionDat, TrackDatabase?.TrackDB, RoadDatabase?.RoadTrackDB, SignalConfig, useMetricUnits);
         }
 
         public void SetActivity(string activityPath)
@@ -312,7 +315,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(Route, TSectionDat, TrackDatabase.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(Route, TrackDatabase.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -1012,7 +1015,7 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, PathFileName, TimetableMode);
+            AIPath aiPath = new AIPath(TrackDatabase, PathFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
@@ -1021,7 +1024,7 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, aiPath);
+            train.RearTDBTraveller = new Traveller(TrackDatabase.TrackDB.TrackNodes, aiPath);
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1202,7 +1205,7 @@ namespace Orts.Simulation
                         default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, activityObject.Location);
+                    train.RearTDBTraveller = new Traveller(TrackDatabase.TrackDB.TrackNodes, activityObject.Location);
                     if (consistDirection != 1)
                         train.RearTDBTraveller.ReverseDirection();
                     // add wagons in reverse order - ie first wagon is at back of train

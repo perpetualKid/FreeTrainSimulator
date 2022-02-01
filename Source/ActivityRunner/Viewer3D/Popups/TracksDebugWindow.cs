@@ -66,7 +66,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 var primitives = new List<DispatcherPrimitive>(Primitives.Count);
                 var camera = Owner.Viewer.Camera;
-                var tSectionDat = Owner.Viewer.Simulator.TSectionDat;
                 var tdb = Owner.Viewer.Simulator.TrackDatabase;
                 var rdb = Owner.Viewer.Simulator.RoadDatabase;
                 foreach (var trackNode in tdb.TrackDB.TrackNodes.Where(
@@ -74,7 +73,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                 {
-                    var currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
+                    var currentPosition = new Traveller(tdb.TrackDB.TrackNodes, trackNode);
                     while (true)
                     {
                         var previousLocation = currentPosition.WorldLocation;
@@ -86,7 +85,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     foreach (var trItemID in trackNode.TrackItemIndices)
                     {
                         var trItem = tdb.TrackDB.TrackItems[trItemID];
-                        currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
+                        currentPosition = new Traveller(tdb.TrackDB.TrackNodes, trackNode);
                         currentPosition.Move(trItem.SData1);
                         primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue,
                             $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
@@ -99,7 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1 
                         && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                     {
-                        var currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
+                        var currentPosition = new Traveller(rdb.RoadTrackDB.TrackNodes, trackNode);
                         while (true)
                         {
                             var previousLocation = currentPosition.WorldLocation;
@@ -113,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             foreach (var trItemID in trackNode.TrackItemIndices)
                             {
                                 var trItem = rdb.RoadTrackDB.TrItemTable[trItemID];
-                                currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
+                                currentPosition = new Traveller(rdb.RoadTrackDB.TrackNodes, trackNode);
                                 currentPosition.Move(trItem.SData1);
                                 primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
                             }

@@ -297,7 +297,7 @@ namespace Orts.Simulation.Timetables
 
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
+                newPool.StoragePathTraveller = new Traveller(simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = new List<TrackCircuitPartialPathRoute>();
@@ -528,7 +528,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
 
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
+                newPool.StoragePathTraveller = new Traveller(simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;

@@ -20,6 +20,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Simplified;
@@ -54,10 +55,10 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawMultiplePaths (RouteData routeData, Collection<Path> paths)
+        public DrawMultiplePaths (Collection<Path> paths)
         {
-            trackDB = routeData.TrackDB;
-            tsectionDat = routeData.TsectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
             fullPathNames = new Dictionary<string, string>();
             loadedPaths = new Dictionary<string, Trainpath>();
             selectedTrainpaths = new List<Trainpath>();

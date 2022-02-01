@@ -15,12 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common.Position;
 using System;
 
-using Orts.Formats.Msts.Models;
 using Microsoft.Xna.Framework;
+
+using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation
 {
@@ -60,19 +62,17 @@ namespace Orts.Simulation
         /// Try whether the given location is indeed on (or at least close to) the tracknode given by its index.
         /// If it is, we return a TrackNodeCandidate object. 
         /// </summary>
-        /// <param name="tni">The index of the tracknode we are testing</param>
+        /// <param name="trackNode">The tracknode we are testing</param>
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackSectionsFile">Database with track sections</param>
-        /// <param name="TrackNodes">List of available tracknodes</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackNode(TrackNode trackNode, in WorldLocation location, TrackSectionsFile trackSectionsFile)
+        internal static TrackNodeCandidate TryTrackNode(TrackNode trackNode, in WorldLocation location)
         {
             if (!(trackNode is TrackVectorNode trackVectorNode))
                 return null;
             // TODO, we could do an additional cull here by calculating a bounding sphere for each node as they are being read.
             for (int tvsi = 0; tvsi < trackVectorNode.TrackVectorSections.Length; tvsi++)
             {
-                TrackNodeCandidate candidate = TryTrackVectorSection(tvsi, location, trackSectionsFile, trackVectorNode);
+                TrackNodeCandidate candidate = TryTrackVectorSection(tvsi, location, trackVectorNode);
                 if (candidate != null)
                 {
                     candidate.TrackNode = trackVectorNode;
@@ -88,41 +88,19 @@ namespace Orts.Simulation
         /// </summary>
         /// <param name="tvsi">The index of the trackvectorsection</param>
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackSectionsFile">Database with track sections</param></param>
         /// <param name="trackNode">The parent trackNode of the vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackSectionsFile trackSectionsFile, TrackVectorNode trackNode)
+        internal static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackVectorNode trackNode)
         {
             TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
             if (trackVectorSection == null)
                 return null;
-            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, location, trackSectionsFile, trackVectorSection);
+            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, location, trackVectorSection);
             if (candidate == null)
                 return null;
 
             candidate.TrackVectorSectionIndex = tvsi;
             candidate.TrackVectorSection = trackVectorSection;
-            return candidate;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the trackvectorsection given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tvsi">The index of the trackvectorsection</param>
-        /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackSectionsFile">Database with track sections</param></param>
-        /// <param name="trackNode">The parent trackNode of the vector section</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackSectionsFile trackSectionsFile, TrackVectorSection trackVectorSection, TrackNode trackNode)
-        {
-            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, location, trackSectionsFile, trackVectorSection);
-            if (candidate == null)
-                return null;
-
-            candidate.TrackVectorSectionIndex = tvsi;
-            candidate.TrackVectorSection = trackVectorSection;
-            candidate.TrackNode = trackNode;
             return candidate;
         }
 
@@ -132,12 +110,11 @@ namespace Orts.Simulation
         /// </summary>
         /// <param name="tsi">The track section index</param>
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackSectionsFile">Database with track sections</param>
         /// <param name="trackVectorSection">The parent track vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation location, TrackSectionsFile trackSectionsFile, TrackVectorSection trackVectorSection)
+        internal static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation location, TrackVectorSection trackVectorSection)
         {
-            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(tsi);
+            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tsi);
             if (trackSection == null)
                 return null;
 

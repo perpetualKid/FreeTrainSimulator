@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
@@ -53,6 +54,18 @@ namespace Orts.Graphics.Track
             this.roadTrackDB = roadTrackDB;
             this.signalConfig = signalConfig;
             this.trackSections = trackSections;
+        }
+
+        public TrackContent(Game game, RuntimeData routeData) :
+            base(game, routeData?.RouteName ?? throw new ArgumentNullException(nameof(routeData)), routeData.UseMetricUnits)
+        {
+            DebugInfo["Route Name"] = routeData.RouteName;
+            insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
+
+            this.trackDB = routeData.TrackDB;
+            this.roadTrackDB = routeData.RoadTrackDB;
+            this.signalConfig = routeData.SignalConfigFile;
+            this.trackSections = routeData.TSectionDat;
         }
 
         public override async Task Initialize()
