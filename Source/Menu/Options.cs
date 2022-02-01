@@ -226,7 +226,6 @@ namespace Orts.Menu
             numericPerformanceTunerTarget.Value = this.settings.PerformanceTunerTarget;
             trackLODBias.Value = this.settings.LODBias;
             TrackLODBias_ValueChanged(null, null);
-            checkConditionalLoadOfNightTextures.Checked = this.settings.ConditionalLoadOfDayOrNightTextures;
             checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
             checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
             checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
@@ -373,7 +372,6 @@ namespace Orts.Menu
             settings.PerformanceTuner = checkPerformanceTuner.Checked;
             settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
             settings.LODBias = trackLODBias.Value;
-            settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
             settings.SignalLightGlow = checkSignalLightGlow.Checked;
             settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
             settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;

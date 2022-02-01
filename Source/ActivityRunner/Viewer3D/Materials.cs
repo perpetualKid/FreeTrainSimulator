@@ -747,7 +747,7 @@ namespace Orts.ActivityRunner.Viewer3D
             dayTexture = SharedMaterialManager.MissingTexture;
             nightTexture = SharedMaterialManager.MissingTexture;
             // <CSComment> if "trainset" is in the path (true for night textures for 3DCabs) deferred load of night textures is disabled 
-            if (!String.IsNullOrEmpty(texturePath) && (options & SceneryMaterialOptions.NightTexture) != 0 && ((!viewer.DontLoadNightTextures && !viewer.DontLoadDayTextures)
+            if (!String.IsNullOrEmpty(texturePath) && (options & SceneryMaterialOptions.NightTexture) != 0 && ((!viewer.Daytime && !viewer.Nighttime)
                 || texturePath.Contains(@"\trainset\")))
             {
                 var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
@@ -755,13 +755,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     nightTexture = Viewer.TextureManager.Get(nightTexturePath.ToLower());
                 dayTexture = Viewer.TextureManager.Get(texturePath, true);
             }
-            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.DontLoadNightTextures)
+            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Daytime)
             {
                 viewer.NightTexturesNotLoaded = true;
                 dayTexture = Viewer.TextureManager.Get(texturePath, true);
             }
 
-            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.DontLoadDayTextures)
+            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Nighttime)
             {
                 var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!String.IsNullOrEmpty(nightTexturePath))

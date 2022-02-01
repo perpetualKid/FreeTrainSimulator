@@ -285,8 +285,6 @@ namespace Orts.Settings
         public bool AdhesionProportionalToWeather { get; set; }
         [Default(false)]
         public bool NoForcedRedAtStationStops { get; set; }
-        [Default(false)]
-        public bool ConditionalLoadOfDayOrNightTextures { get; set; }
         [Default(100)]
         public int PrecipitationBoxHeight { get; set; }
         [Default(500)]

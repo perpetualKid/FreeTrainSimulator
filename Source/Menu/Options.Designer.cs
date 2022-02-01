@@ -197,7 +197,6 @@ namespace Orts.Menu
             this.labelLODBias = new System.Windows.Forms.Label();
             this.checkShapeWarnings = new System.Windows.Forms.CheckBox();
             this.trackLODBias = new System.Windows.Forms.TrackBar();
-            this.checkConditionalLoadOfNightTextures = new System.Windows.Forms.CheckBox();
             this.AdhesionLevelValue = new System.Windows.Forms.Label();
             this.AdhesionLevelLabel = new System.Windows.Forms.Label();
             this.trackAdhesionFactorChange = new System.Windows.Forms.TrackBar();
@@ -2279,7 +2278,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.labelLODBias);
             this.tabPageExperimental.Controls.Add(this.checkShapeWarnings);
             this.tabPageExperimental.Controls.Add(this.trackLODBias);
-            this.tabPageExperimental.Controls.Add(this.checkConditionalLoadOfNightTextures);
             this.tabPageExperimental.Controls.Add(this.AdhesionLevelValue);
             this.tabPageExperimental.Controls.Add(this.AdhesionLevelLabel);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactorChange);
@@ -2577,16 +2575,6 @@ namespace Orts.Menu
             this.trackLODBias.TickFrequency = 10;
             this.toolTip1.SetToolTip(this.trackLODBias, "Default is 0%");
             this.trackLODBias.ValueChanged += new System.EventHandler(this.TrackLODBias_ValueChanged);
-            // 
-            // checkConditionalLoadOfNightTextures
-            // 
-            this.checkConditionalLoadOfNightTextures.AutoSize = true;
-            this.checkConditionalLoadOfNightTextures.Location = new System.Drawing.Point(324, 27);
-            this.checkConditionalLoadOfNightTextures.Name = "checkConditionalLoadOfNightTextures";
-            this.checkConditionalLoadOfNightTextures.Size = new System.Drawing.Size(252, 19);
-            this.checkConditionalLoadOfNightTextures.TabIndex = 17;
-            this.checkConditionalLoadOfNightTextures.Text = "Load day/night textures only when needed";
-            this.checkConditionalLoadOfNightTextures.UseVisualStyleBackColor = true;
             // 
             // AdhesionLevelValue
             // 
@@ -3052,7 +3040,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkModelInstancing;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;
-        private System.Windows.Forms.CheckBox checkConditionalLoadOfNightTextures;
         private System.Windows.Forms.CheckBox checkRetainers;
         private System.Windows.Forms.Label labelLODBias;
         private System.Windows.Forms.Label label21;

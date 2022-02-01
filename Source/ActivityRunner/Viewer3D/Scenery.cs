@@ -84,12 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
-            Viewer.DontLoadNightTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y > 0.05f && Simulator.Instance.ClockTime % 86400 < 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Simulator.Instance.ClockTime % 86400 >= 43200)));
-            Viewer.DontLoadDayTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y < -0.05f && Simulator.Instance.ClockTime % 86400 >= 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Simulator.Instance.ClockTime % 86400 < 43200)));
+
             if (TileX != VisibleTileX || TileZ != VisibleTileZ)
             {
                 TileX = VisibleTileX;
@@ -120,7 +115,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Viewer.tryLoadingNightTextures = true; // when Tiles loaded change you can try
                 Viewer.tryLoadingDayTextures = true; // when Tiles loaded change you can try
             }
-            else if (Viewer.NightTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 >= 43200 && Viewer.tryLoadingNightTextures)
+            else if (Viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingNightTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
@@ -140,7 +135,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 else if (sunHeight <= 0.01)
                     Viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
             }
-            else if (Viewer.DayTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 < 43200 && Viewer.tryLoadingDayTextures)
+            else if (Viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingDayTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)

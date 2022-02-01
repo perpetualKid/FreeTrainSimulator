@@ -211,9 +211,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public float CabTextureInverseRatio = 0.75f; // default of inverse of cab texture ratio 
 
         public CommandLog Log { get { return Simulator.Log; } }
+        public static bool ClockTimeBeforeNoon => Simulator.Instance.ClockTime % 86400 < 43200;
+        
+        // After dawn and before dusk, so definitely daytime
+        public bool Daytime => (MaterialManager.sunDirection.Y > 0.05f && ClockTimeBeforeNoon) || (MaterialManager.sunDirection.Y > 0.15f && !ClockTimeBeforeNoon);
 
-        public bool DontLoadNightTextures; // Checkbox set and time of day allows not to load textures
-        public bool DontLoadDayTextures; // Checkbox set and time of day allows not to load textures
+        // Before dawn and after dusk, so definitely nighttime
+        public bool Nighttime => (MaterialManager.sunDirection.Y < -0.05f && !ClockTimeBeforeNoon) || (MaterialManager.sunDirection.Y < -0.15f && ClockTimeBeforeNoon);
+
         public bool NightTexturesNotLoaded; // At least one night texture hasn't been loaded
         public bool DayTexturesNotLoaded; // At least one day texture hasn't been loaded
         public long LoadMemoryThreshold; // Above this threshold loader doesn't bulk load day or night textures
@@ -504,11 +509,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // This ensures that a) we have all the required objects loaded when the 3D view first appears and b) that
             // all loading is performed on a single thread that we can handle in debugging and tracing.
             World.LoadPrep();
-            if (Simulator.Settings.ConditionalLoadOfDayOrNightTextures) // We need to compute sun height only in this case
-            {
                 MaterialManager.LoadPrep();
                 LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
-            }
             Load();
 
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
