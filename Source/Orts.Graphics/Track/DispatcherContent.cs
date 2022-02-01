@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
@@ -18,10 +19,6 @@ namespace Orts.Graphics.Track
     public class DispatcherContent : ContentBase
     {
         private TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
-
-        private TrackDB trackDB;
-        private TrackSectionsFile trackSections;
-        private SignalConfigurationFile signalConfig;
 
         private readonly InsetComponent insetComponent;
 
@@ -36,26 +33,17 @@ namespace Orts.Graphics.Track
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
 
-        public DispatcherContent(Game game, string routeName, bool metricUnits, TrackDB trackDB, TrackSectionsFile trackSections, SignalConfigurationFile signalConfig) :
-            base(game, routeName, metricUnits)
+        public DispatcherContent(Game game) :
+            base(game)
         {
-            this.trackDB = trackDB;
-            this.signalConfig = signalConfig;
-            this.trackSections = trackSections;
-
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
         public override async Task Initialize()
         {
-            await Task.Run(() => AddTrackSegments(trackDB, trackSections)).ConfigureAwait(false);
-            //await Task.Run(() => AddTrackItems(trackDB, roadTrackDB, signalConfig)).ConfigureAwait(false);
+            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
 
             ContentArea.Initialize();
-
-            this.trackDB = null;
-            this.signalConfig = null;
-            this.trackSections = null;
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
@@ -161,8 +149,11 @@ namespace Orts.Graphics.Track
             }
         }
 
-        private void AddTrackSegments(TrackDB trackDB, TrackSectionsFile trackSectionsFile)
+        private void AddTrackSegments()
         {
+            TrackDB trackDB = RuntimeData.Instance.TrackDB;
+            TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
+
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
             List<TrackSegment> trackSegments = new List<TrackSegment>();

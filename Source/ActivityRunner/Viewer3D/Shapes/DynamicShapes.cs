@@ -348,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
-            mainRoute = viewer.Simulator.TSectionDat.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
+            mainRoute = RuntimeData.Instance.TSectionDat.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -405,8 +405,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
                 //                SpeedPostItem item;
                 string speed = string.Empty;
-                if (!(viewer.Simulator.TrackDatabase.TrackDB.TrackItems[id] is SpeedPostItem item))
-                    throw new InvalidCastException(viewer.Simulator.TrackDatabase.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
+                if (!(RuntimeData.Instance.TrackDB.TrackItems[id] is SpeedPostItem item))
+                    throw new InvalidCastException(RuntimeData.Instance.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
 
                 //determine what to show: speed or number used in German routes
                 if (item.ShowNumber)

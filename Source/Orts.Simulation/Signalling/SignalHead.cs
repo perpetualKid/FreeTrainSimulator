@@ -474,10 +474,10 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MultiPlayerManager.IsMultiPlayer())
             {
-                TrackNode node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[MainSignal.TrackNode];
+                TrackNode node = RuntimeData.Instance.TrackDB.TrackNodes[MainSignal.TrackNode];
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
-                    node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
+                    node = RuntimeData.Instance.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {

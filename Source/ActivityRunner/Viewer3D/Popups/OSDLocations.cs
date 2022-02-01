@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
@@ -63,7 +64,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void UpdateLabelLists()
         {
-            var tdb = Owner.Viewer.Simulator.TrackDatabase.TrackDB;
+            var tdb = RuntimeData.Instance.TrackDB;
             var stationStops = Owner.Viewer.Simulator.PlayerLocomotive.Train.StationStops;
             var activity = Owner.Viewer.Simulator.ActivityRun;
 

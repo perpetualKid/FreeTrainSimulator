@@ -27,11 +27,6 @@ namespace Orts.Graphics.Track
         private RoadSegment nearesRoadSegment;
         #endregion
 
-        private TrackDB trackDB;
-        private RoadTrackDB roadTrackDB;
-        private TrackSectionsFile trackSections;
-        private SignalConfigurationFile signalConfig;
-
         private readonly InsetComponent insetComponent;
 
         internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
@@ -44,43 +39,21 @@ namespace Orts.Graphics.Track
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
-        public TrackContent(Game game, string routeName, bool metricUnits, TrackDB trackDB, RoadTrackDB roadTrackDB, TrackSectionsFile trackSections, SignalConfigurationFile signalConfig) :
-            base(game, routeName, metricUnits)
+        public TrackContent(Game game) :
+            base(game)
         {
-            DebugInfo["Route Name"] = routeName;
+            DebugInfo["Route Name"] = RuntimeData.Instance.RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
-
-            this.trackDB = trackDB;
-            this.roadTrackDB = roadTrackDB;
-            this.signalConfig = signalConfig;
-            this.trackSections = trackSections;
-        }
-
-        public TrackContent(Game game, RuntimeData routeData) :
-            base(game, routeData?.RouteName ?? throw new ArgumentNullException(nameof(routeData)), routeData.UseMetricUnits)
-        {
-            DebugInfo["Route Name"] = routeData.RouteName;
-            insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
-
-            this.trackDB = routeData.TrackDB;
-            this.roadTrackDB = routeData.RoadTrackDB;
-            this.signalConfig = routeData.SignalConfigFile;
-            this.trackSections = routeData.TSectionDat;
         }
 
         public override async Task Initialize()
         {
-            await Task.Run(() => AddTrackSegments(trackDB, roadTrackDB, trackSections)).ConfigureAwait(false);
-            await Task.Run(() => AddTrackItems(trackDB, roadTrackDB, signalConfig)).ConfigureAwait(false);
+            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
+            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
 
             ContentArea.Initialize();
 
-            this.trackDB = null;
-            this.roadTrackDB = null;
-            this.signalConfig = null;
-            this.trackSections = null;
-
-            DebugInfo["Metric Scale"] = UseMetricUnits.ToString();
+            DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
             DebugInfo["Track Segments"] = $"{TrackSegments.Count}";
             DebugInfo["Track Nodes"] = $"{TrackNodeSegments.Count}";
             DebugInfo["Track Items"] = $"{TrackItems.Count}";
@@ -261,8 +234,12 @@ namespace Orts.Graphics.Track
                 nearestTrackItem.Draw(ContentArea, ColorVariation.Highlight);
         }
 
-        private void AddTrackSegments(TrackDB trackDB, RoadTrackDB roadTrackDB, TrackSectionsFile trackSectionsFile)
+        private void AddTrackSegments()
         {
+            TrackDB trackDB = RuntimeData.Instance.TrackDB;
+            RoadTrackDB roadTrackDB = RuntimeData.Instance.RoadTrackDB;
+            TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
+
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
             List<TrackSegment> trackSegments = new List<TrackSegment>();
@@ -369,9 +346,9 @@ namespace Orts.Graphics.Track
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
         }
 
-        private void AddTrackItems(TrackDB trackDB, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfigFile)
+        private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB?.TrackItems, signalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB?.TrItemTable)));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB, TrackNodeSegments).Concat(TrackItemBase.Create(RuntimeData.Instance.RoadTrackDB?.TrItemTable)));
         }
 
     }

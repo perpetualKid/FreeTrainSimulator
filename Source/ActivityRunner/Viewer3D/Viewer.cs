@@ -41,6 +41,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
@@ -1570,9 +1571,9 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < Simulator.TrackDatabase.TrackDB.TrackNodes.Length; j++)
+            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Length; j++)
             {
-                TrackNode tn = Simulator.TrackDatabase.TrackDB.TrackNodes[j];
+                TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
                 if (tn is TrackJunctionNode)
                 {
 

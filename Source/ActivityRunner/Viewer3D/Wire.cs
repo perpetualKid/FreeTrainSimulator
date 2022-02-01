@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -64,13 +65,13 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
             try
             {
-                if (viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
+                if (RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
             }
             catch (Exception)
             {
                 return 0;
             }
-            SectionIndex[] SectionIdxs = viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
+            SectionIndex[] SectionIdxs = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
 
             foreach (SectionIndex id in SectionIdxs)
             {
@@ -92,7 +93,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     float length, radius;
                     uint sid = id.TrackSections[i];
-                    TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
+                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -156,7 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = viewer.Simulator.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
+                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -181,7 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 float length, radius;
                 uint sid = path.TrackSections[i];
-                TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
+                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 

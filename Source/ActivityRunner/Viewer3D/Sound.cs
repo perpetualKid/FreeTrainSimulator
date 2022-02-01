@@ -453,7 +453,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 if (thisSection.CircuitType == TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitType.Crossover)
                                 {
                                     // train is on a switch; let's see if car is on a switch too
-                                    WorldLocation switchLocation = Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
+                                    WorldLocation switchLocation = RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
                                     var distanceFromSwitch = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, switchLocation);
                                     if (distanceFromSwitch < Car.CarLengthM * Car.CarLengthM + Math.Min(Car.SpeedMpS * 3, 150))
                                     {
@@ -2403,7 +2403,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 traveller = new Traveller(train.RearTDBTraveller, true);
             }
 
-            TrackDB trackDB = Viewer.Simulator.TrackDatabase.TrackDB;
+            TrackDB trackDB = RuntimeData.Instance.TrackDB;
             TrackItem[] trItems = trackDB.TrackItems;
 
             WorldSoundRegion prevItem = null;
@@ -2529,7 +2529,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void AddByTile(int TileX, int TileZ)
         {
             string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
-            WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TrackDatabase.TrackDB.TrackItems);
+            WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems);
             if (wf.TrackItemSound != null)
             {
                 string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
@@ -2578,11 +2578,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private TrackNode[] trackNodes;
         private TrackItem[] trItems;
 
-        public TDBObjects(MSTSWagon Car, Viewer Viewer)
+        public TDBObjects(MSTSWagon Car)
         {
             _car = Car;
-            trackNodes = Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes;
-            trItems = Viewer.Simulator.TrackDatabase.TrackDB.TrackItems;
+            trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
+            trItems = RuntimeData.Instance.TrackDB.TrackItems;
         }
 
         private AIPathNode FindNode()

@@ -177,7 +177,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (MultiPlayerManager.IsMultiPlayer())
             { MultiPlayerManager.Instance().AllowedManualSwitch = false; }
 
-            InitData(simulator.TrackDatabase.TrackDB.TrackNodes);
+            InitData(RuntimeData.Instance.TrackDB.TrackNodes);
             InitImage();
 
             /*
@@ -318,7 +318,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             windowSizeUpDown.Maximum = (decimal)maxsize;
             Inited = true;
 
-            if (simulator.TrackDatabase == null || simulator.TrackDatabase.TrackDB == null || simulator.TrackDatabase.TrackDB.TrackItems == null)
+            if (RuntimeData.Instance.TrackDB?.TrackItems == null)
                 return;
 
             PopulateItemLists();
@@ -2353,7 +2353,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Location = VectorFromLocation(item.Location);
             try
             {
-                var node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[signal.TrackNode];
+                var node = RuntimeData.Instance.TrackDB.TrackNodes[signal.TrackNode];
                 Vector2 v2;
                 if (node is TrackVectorNode trackVectorNode)
                 {
@@ -2399,7 +2399,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         public SwitchWidget(TrackJunctionNode item)
         {
             Item = item;
-            var TS = Simulator.Instance.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
+            var TS = RuntimeData.Instance.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
 
             if (TS != null)
             { main = TS.MainRoute; }
@@ -2498,7 +2498,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 return;
             //MySection = Section;
             uint k = Section.SectionIndex;
-            TrackSection ts = Simulator.Instance.TSectionDat.TrackSections.TryGet(k);
+            TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(k);
             if (ts != null)
             {
                 if (ts.Curved)

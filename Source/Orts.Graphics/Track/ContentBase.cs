@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 
 namespace Orts.Graphics.Track
 {
@@ -14,11 +15,11 @@ namespace Orts.Graphics.Track
     {
         private protected readonly Game game;
 
+        public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
+
+        public string RouteName { get; } = RuntimeData.Instance.RouteName;
+
         public ContentArea ContentArea { get; }
-
-        public string RouteName { get; }
-
-        public bool UseMetricUnits { get; }
 
         public Rectangle Bounds { get; protected set; }
 
@@ -26,11 +27,11 @@ namespace Orts.Graphics.Track
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        protected ContentBase(Game game, string routeName, bool metricUnits)
+        protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            RouteName = routeName;
-            UseMetricUnits = metricUnits;
+            if (null == RuntimeData.Instance)
+                throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
         }
 

@@ -23,6 +23,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
@@ -176,7 +177,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void PopulateItemLists()
         {
-            foreach (var item in simulator.TrackDatabase.TrackDB.TrackItems)
+            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
             {
                 switch (item)
                 {

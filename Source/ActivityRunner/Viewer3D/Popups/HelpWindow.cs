@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
 using Orts.Settings.Util;
@@ -262,7 +263,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TrackDatabase.TrackDB.TrackItems)
+                                            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
                                                 var siding = item as SidingItem;
                                                 if (siding != null && siding.TrackItemId == sidingId)
@@ -476,7 +477,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TrackDatabase.TrackDB.TrackItems)
+                                            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
                                                 var siding = item as SidingItem;
                                                 if (siding != null && siding.TrackItemId == sidingId)

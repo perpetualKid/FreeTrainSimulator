@@ -156,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            DispatcherContent content = new DispatcherContent(this, simulator.RouteName, useMetricUnits, simulator.TrackDatabase.TrackDB, simulator.TSectionDat, simulator.SignalConfig);
+            DispatcherContent content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
             content.UpdateItemVisiblity(TrackViewerViewSettings.All);
             content.UpdateWidgetColorSettings(colorSettings);

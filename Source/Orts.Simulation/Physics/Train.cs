@@ -586,7 +586,7 @@ namespace Orts.Simulation.Physics
             LeadLocomotiveIndex = inf.ReadInt32();
             RetainerSetting = (RetainerSetting)inf.ReadInt32();
             RetainerPercent = inf.ReadInt32();
-            RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, inf);
+            RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
             TrainMaxSpeedMpS = inf.ReadSingle();
@@ -2305,12 +2305,12 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), simulator.MilepostUnitsMetric):0000.0}{Separator}");
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, simulator.MilepostUnitsMetric):0000.0}{Separator}");
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
@@ -10674,7 +10674,7 @@ namespace Orts.Simulation.Physics
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
-                        TrackJunctionNode junctionNode = simulator.TrackDatabase.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
+                        TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
                         if (section.Pins[sectionDirection, Location.FarEnd].Link != -1)
                         {
                             //facing
@@ -12462,9 +12462,9 @@ namespace Orts.Simulation.Physics
         /// 
         internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Direction direction)
         {
-            FrontTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            FrontTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
                  Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-            RearTDBTraveller = new Traveller(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
             if (direction == Direction.Backward)
             {

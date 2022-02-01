@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -50,7 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackShape shape;
             try
             {
-                shape = Simulator.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex];
+                shape = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex];
 
                 if (shape.RoadShape == true) return false;
             }
@@ -74,7 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count++;
                     uint sid = id.TrackSections[i];
-                    TrackSection section = Simulator.Instance.TSectionDat.TrackSections.TryGet(sid);
+                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(sid);
                     if (Math.Abs(section.Width - viewer.Settings.SuperElevationGauge / 1000f) > 0.2) continue;//the main route has a gauge different than mine
                     if (!section.Curved)
                     {
@@ -140,7 +141,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (TrackVectorSection ts in sections)
             {
-                TrackSection tss = Simulator.Instance.TSectionDat.TrackSections.TryGet(ts.SectionIndex);
+                TrackSection tss = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(ts.SectionIndex);
                 if (tss == null || !tss.Curved || ts.Location.TileX != TileX || ts.Location.TileZ != TileZ)
                     continue;
                 Vector3 trackLoc = ts.Location.Location;
@@ -185,7 +186,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //not found, will do again to find reversed
             foreach (var s in tileSections)
             {
-                var sec = Simulator.Instance.TSectionDat.TrackSections.TryGet(s.SectionIndex);
+                var sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(s.SectionIndex);
                 if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.Radius == sec.Radius
                     && section.Angle == -sec.Angle)
                 {
@@ -243,7 +244,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = Simulator.Instance.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
+                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -270,7 +271,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 count++;
                 float length, radius;
                 uint sid = path.TrackSections[i];
-                TrackSection section = Simulator.Instance.TSectionDat.TrackSections[sid];
+                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 

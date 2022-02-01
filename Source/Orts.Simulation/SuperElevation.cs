@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation
@@ -43,7 +44,7 @@ namespace Orts.Simulation
             MaximumAllowedM = 0.07f + simulator.Settings.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
 
             List<TrackVectorSection> SectionList = new List<TrackVectorSection>();
-            foreach (TrackNode node in simulator.TrackDatabase.TrackDB.TrackNodes)
+            foreach (TrackNode node in RuntimeData.Instance.TrackDB.TrackNodes)
             {
                 TrackVectorNode trackVectorNode = node as TrackVectorNode;
                 if (trackVectorNode == null)
@@ -57,7 +58,7 @@ namespace Orts.Simulation
                 foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)//loop all curves
                 {
                     i++;
-                    TrackSection sec = simulator.TSectionDat.TrackSections.TryGet(section.SectionIndex);
+                    TrackSection sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (sec == null) 
                         continue;
                     if (Math.Abs(sec.Width - (simulator.Settings.SuperElevationGauge / 1000f)) > 0.2) 
@@ -111,7 +112,7 @@ namespace Orts.Simulation
 
             if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
                 return;//too short a curve or the list is empty
-            TrackSections tSection = simulator.TSectionDat.TrackSections;
+            TrackSections tSection = RuntimeData.Instance.TSectionDat.TrackSections;
             TrackSection sectionData = tSection.TryGet(SectionList[0].SectionIndex);
             if (sectionData == null) 
                 return;

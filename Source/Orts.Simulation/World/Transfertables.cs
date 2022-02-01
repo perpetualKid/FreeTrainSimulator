@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
@@ -113,7 +114,7 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            TrackShape trackShape = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
             uint nSections = trackShape.SectionIndices[0].SectionsCount;
             trackNodesIndex = new int[trackShape.SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
@@ -126,7 +127,7 @@ namespace Orts.Simulation
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            TrackNode[] trackNodes = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes;
+            TrackNode[] trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
             for (int j = 1; j < trackNodes.Length; j++)
             {
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)

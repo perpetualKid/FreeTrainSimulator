@@ -27,6 +27,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
@@ -97,9 +98,9 @@ namespace Orts.Simulation.Activities
                     foreach (ServiceTrafficItem i in sd.PlayerTraffics)
                     {
                         PlatformItem Platform;
-                        if (i.PlatformStartID < this.simulator.TrackDatabase.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
-                            this.simulator.TrackDatabase.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
-                            Platform = this.simulator.TrackDatabase.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
+                        if (i.PlatformStartID < RuntimeData.Instance.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
+                            RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
+                            Platform = RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
                         else
                         {
                             Trace.TraceWarning("PlatformStartID {0} is not present in TDB file", i.PlatformStartID);
@@ -107,9 +108,9 @@ namespace Orts.Simulation.Activities
                         }
                         if (Platform != null)
                         {
-                            if (this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
+                            if (RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
-                                PlatformItem Platform2 = this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
+                                PlatformItem Platform2 = RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator, task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
                         }

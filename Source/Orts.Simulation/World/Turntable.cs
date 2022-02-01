@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
@@ -116,9 +117,9 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            TrackShape trackShape = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
-            uint nSections = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
-            trackNodesIndex = new int[Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            uint nSections = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
+            trackNodesIndex = new int[RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
@@ -129,7 +130,7 @@ namespace Orts.Simulation.World
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            TrackNode[] trackNodes = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes;
+            TrackNode[] trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
             for (int j = 1; j < trackNodes.Length; j++)
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {

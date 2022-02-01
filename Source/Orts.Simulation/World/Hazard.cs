@@ -23,6 +23,7 @@ using System.Linq;
 
 using Orts.Common.Calc;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -37,14 +38,11 @@ namespace Orts.Simulation.World
         private readonly Dictionary<int, Hazard> currentHazards;
         private readonly Dictionary<string, HazardFile> hazardFiles;
 
-        public HazardManager(Simulator simulator)
+        public HazardManager()
         {
-            if (null == simulator)
-                throw new ArgumentNullException(nameof(simulator));
-
             currentHazards = new Dictionary<int, Hazard>();
             hazardFiles = new Dictionary<string, HazardFile>();
-            hazards = simulator.TrackDatabase != null && simulator.TrackDatabase.TrackDB != null ? GetHazardsFromDB(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
+            hazards = RuntimeData.Instance.TrackDB != null ? GetHazardsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
         }
 
         private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)

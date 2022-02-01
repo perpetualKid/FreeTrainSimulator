@@ -35,6 +35,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -242,7 +243,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Construct and initialize the class.
         /// This constructor is for the labels of track items in TDB and W Files such as sidings and platforms.
         /// </summary>
-        public TrItemLabel(Viewer viewer, in WorldPosition position, StationObject trObj)
+        public TrItemLabel(in WorldPosition position, StationObject trObj)
         {
             Location = position;
             var i = 0;
@@ -251,7 +252,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
-                var trItem = viewer.Simulator.TrackDatabase.TrackDB.TrackItems[trID];
+                var trItem = RuntimeData.Instance.TrackDB.TrackItems[trID];
                 if (trItem == null)
                     continue;
                 ItemName = trItem.ItemName;

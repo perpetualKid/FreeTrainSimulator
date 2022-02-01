@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -163,14 +164,14 @@ namespace Orts.Simulation.MultiPlayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, p.Path, Simulator.Instance.TimetableMode);
+                    AIPath aiPath = new AIPath(p.Path, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }
 
             try
             {
-                train.RearTDBTraveller = new Traveller(Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
+                train.RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
             catch (Exception e)
             {

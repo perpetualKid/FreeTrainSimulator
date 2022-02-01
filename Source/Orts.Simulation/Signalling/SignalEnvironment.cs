@@ -87,7 +87,7 @@ namespace Orts.Simulation.Signalling
 
             OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
 
-            trackDB = Simulator.Instance.TrackDatabase.TrackDB;
+            trackDB = RuntimeData.Instance.TrackDB;
 
             // read SIGSCR files
 
@@ -104,7 +104,7 @@ namespace Orts.Simulation.Signalling
             BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -411,7 +411,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
+        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
             //  Determine the number of signals in the track Objects list
@@ -426,7 +426,7 @@ namespace Orts.Simulation.Signalling
 
             for (int i = 1; i < trackNodes.Length; i++)
             {
-                ScanSection(trackItems, trackNodes, i, tdbfile, platformList, signalHeadList);
+                ScanSection(trackItems, trackNodes, i, platformList, signalHeadList);
             }
 
             //  Only continue if one or more signals in route.
@@ -583,7 +583,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
+        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -601,7 +601,7 @@ namespace Orts.Simulation.Signalling
                         // Track Item is signal
                         if (trackItems[tdbRef] is SignalItem sigItem)
                         {
-                            if (AddSignal(index, i, sigItem, tdbRef, tdbfile, signalHeadList))
+                            if (AddSignal(index, i, sigItem, tdbRef, signalHeadList))
                             {
                                 sigItem.SignalObject = Signals.Count - 1;
                             }
@@ -615,7 +615,7 @@ namespace Orts.Simulation.Signalling
                         {
                             if (!speedItem.IsMilePost)
                             {
-                                AddSpeed(index, i, speedItem, tdbRef, tdbfile);
+                                AddSpeed(index, i, speedItem, tdbRef);
                                 speedItem.SignalObject = Signals.Count - 1;
 
                             }
@@ -703,15 +703,15 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Signal to the list
         /// </summary>
-        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, TrackDatabaseFile tdbfile, Dictionary<uint, Signal> signalHeadList)
+        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<uint, Signal> signalHeadList)
         {
-            if (!(tdbfile.TrackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
+            if (!(trackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
             {
                 Trace.TraceInformation("Reference to invalid track node {0} for Signal {1}\n", trackNode, tdbRef);
                 return false;
             }
 
-            Traveller traveller = new Traveller(tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
+            Traveller traveller = new Traveller(trackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -738,9 +738,9 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Speedpost to the list
         /// </summary>
-        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef, TrackDatabaseFile tdbfile)
+        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            Traveller traveller = new Traveller(tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
+            Traveller traveller = new Traveller(trackDB.TrackNodes, trackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -1397,7 +1397,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[milepost.TrackItemId];
+                        TrackItem milepostTrItem = trackDB.TrackItems[milepost.TrackItemId];
                         float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);

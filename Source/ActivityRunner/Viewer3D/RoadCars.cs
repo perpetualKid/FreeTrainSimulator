@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -63,16 +64,16 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
             CarSpawnerObj = carSpawnerObj;
 
-            if (viewer.Simulator.RoadDatabase == null || viewer.Simulator.CarSpawnerLists == null)
+            if (RuntimeData.Instance.RoadTrackDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
             var start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
             var end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
-            var trItems = viewer.Simulator.RoadDatabase.RoadTrackDB.TrItemTable;
+            var trItems = RuntimeData.Instance.RoadTrackDB.TrItemTable;
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
-            Traveller = new Traveller(viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, startLocation);
+            Traveller = new Traveller(RuntimeData.Instance.RoadTrackDB.TrackNodes, startLocation);
             Length = Traveller.DistanceTo(endLocation);
             if (Length < 0)
             {

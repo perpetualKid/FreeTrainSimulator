@@ -79,7 +79,7 @@ namespace Orts.TrackViewer
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(this, Formats.Msts.RuntimeData.Instance);
+            TrackContent content = new TrackContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.UpdateItemVisiblity(viewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
