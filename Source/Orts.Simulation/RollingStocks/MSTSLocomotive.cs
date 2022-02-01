@@ -4845,11 +4845,11 @@ namespace Orts.Simulation.RollingStocks
                                     MaxCurrentA = (float)cvc.ScaleRangeMax;
                                 if (DynamicBrakeMaxCurrentA == 0)
                                     DynamicBrakeMaxCurrentA = (float)cvc.ScaleRangeMin;
-                                if (ThrottlePercent > 0)
+                                if (ThrottlePercent >= 0 && DynamicBrakePercent == -1)
                                 {
                                     data = (data / MaxForceN) * MaxCurrentA;
                                 }
-                                if (DynamicBrakePercent > 0)
+                                if (ThrottlePercent == 0 && DynamicBrakePercent >= 0)
                                 {
                                     data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                                 }
