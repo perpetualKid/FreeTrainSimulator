@@ -402,8 +402,8 @@ namespace Orts.Simulation.World
         /// </summary>
         public void TargetExactlyReached()
         {
-            Traveller.TravellerDirection direction = ForwardConnected ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward;
-            direction = saveForwardConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : direction == Traveller.TravellerDirection.Forward ? Traveller.TravellerDirection.Backward : Traveller.TravellerDirection.Forward;
+            Direction direction = ForwardConnected ? Direction.Forward : Direction.Backward;
+            direction = saveForwardConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : direction.Reverse();
             GoToTarget = false;
             if (TrainsOnMovingTable.Count == 1)
             {

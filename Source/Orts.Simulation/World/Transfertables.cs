@@ -349,8 +349,7 @@ namespace Orts.Simulation
         /// </summary>
         public void TargetExactlyReached()
         {
-            Traveller.TravellerDirection direction = Traveller.TravellerDirection.Forward;
-            direction = saveConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : Traveller.TravellerDirection.Backward;
+            Direction direction = saveConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? Direction.Forward : Direction.Backward;
             GoToTarget = false;
             if (TrainsOnMovingTable.Count == 1)
             {

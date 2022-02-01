@@ -59,7 +59,7 @@ namespace Orts.Simulation.Track
 
             TrackNode tn = train.FrontTDBTraveller.TN;
             float offset = train.FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction.Reverse();
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
             tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
@@ -91,7 +91,7 @@ namespace Orts.Simulation.Track
 
             TrackNode tn = train.RearTDBTraveller.TN;
             float offset = train.RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction.Reverse();
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
             tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);

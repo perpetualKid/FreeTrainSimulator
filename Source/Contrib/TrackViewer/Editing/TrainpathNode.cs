@@ -39,6 +39,7 @@
 
 using System;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -511,7 +512,7 @@ namespace ORTS.TrackViewer.Editing
             try
             {   //for broken paths the tracknode doesn't exit or the traveller cannot be placed.
                 TrackVectorNode linkingTN = TrackDB.TrackNodes[linkingTvnIndex] as TrackVectorNode;
-                Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, linkingTN, Location, Traveller.TravellerDirection.Forward);
+                Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, linkingTN, Location, Direction.Forward);
                 if (linkingTN.JunctionIndexAtStart() != JunctionIndex)
                 {   // the tracknode is oriented in the other direction.
                     traveller.ReverseDirection();
@@ -702,7 +703,7 @@ namespace ORTS.TrackViewer.Editing
             ForwardOriented = true; // only initial setting
 
             TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
-            Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, tn, Location, Traveller.TravellerDirection.Forward);
+            Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, tn, Location, Direction.Forward);
             CopyDataFromTraveller(traveller);
             trackAngleForward = traveller.RotY; // traveller also has TvnIndex, tvs, offset, etc, but we are not using that (should be consistent though)
         }

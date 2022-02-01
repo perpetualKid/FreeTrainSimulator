@@ -1167,7 +1167,7 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction : -2);
+                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction.Reverse() : -2);
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 

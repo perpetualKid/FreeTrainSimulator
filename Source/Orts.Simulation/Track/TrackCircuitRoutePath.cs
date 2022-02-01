@@ -287,7 +287,7 @@ namespace Orts.Simulation.Track
                     {
                         TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                        Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode, firstSection.Location, Traveller.TravellerDirection.Forward);
+                        Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode, firstSection.Location, Direction.Forward);
                         offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
                         float reverseOffset = 0;
                         int sectionIndex = -1;
@@ -394,7 +394,7 @@ namespace Orts.Simulation.Track
 
             thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
             TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-            Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, Traveller.TravellerDirection.Forward);
+            Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, Direction.Forward);
             float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
 
             // Prepare info about route end point
@@ -964,46 +964,47 @@ namespace Orts.Simulation.Track
         //  SPA: Used with enhanced MSTS Mode, please don't change
         private static float GetOffsetToPathNode(AIPath aiPath, TrackDirection direction, AIPathNode pathNode)
         {
-            TrackVectorNode waitPointNode;
-            TrackVectorSection firstSection;
-            //int nextNodeIdx = 0;
-            TrackDirection nodeDirection = direction;
+            //TrackVectorNode waitPointNode;
+            //TrackVectorSection firstSection;
+            ////int nextNodeIdx = 0;
+            //TrackDirection nodeDirection = direction;
 
-            waitPointNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
-            int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat);
-            firstSection = waitPointNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
+            //waitPointNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
+            //int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat);
+            //firstSection = waitPointNode.TrackVectorSections[0];
+            //Traveller tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
 
-            float offset;
-            if (tdbTraveller.Direction == Traveller.TravellerDirection.Backward)
-            {
-                nodeDirection = 1 - direction;
-                tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
-                offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-                for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-                {
-                    if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-                    {
-                        float sectionOffset = offset - waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-                        offset = waitPointNode.TrackCircuitCrossReferences[i].Length - sectionOffset;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                //Trace.TraceInformation("no reverse");
-                offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-                for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-                {
-                    if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-                    {
-                        offset -= waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-                        break;
-                    }
-                }
-            }
-            return offset;
+            //float offset;
+            //if (tdbTraveller.Direction == Direction.Backward)
+            //{
+            //    nodeDirection = 1 - direction;
+            //    tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
+            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
+            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
+            //    {
+            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
+            //        {
+            //            float sectionOffset = offset - waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
+            //            offset = waitPointNode.TrackCircuitCrossReferences[i].Length - sectionOffset;
+            //            break;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    //Trace.TraceInformation("no reverse");
+            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
+            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
+            //    {
+            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
+            //        {
+            //            offset -= waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
+            //            break;
+            //        }
+            //    }
+            //}
+            //return offset;
+            return 0;
         }
 
         // process alternative paths - MSTS style Path definition
@@ -1646,7 +1647,7 @@ namespace Orts.Simulation.Track
         {
             TrackVectorNode waitingNode = trackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
             TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, waitingNode, firstSection.Location, Traveller.TravellerDirection.Forward);
+            Traveller tdbTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, waitingNode, firstSection.Location, Direction.Forward);
             float offset = tdbTraveller.DistanceTo(waitingNode, stopPathNode.Location);
 
             int sectionIndex = -1;

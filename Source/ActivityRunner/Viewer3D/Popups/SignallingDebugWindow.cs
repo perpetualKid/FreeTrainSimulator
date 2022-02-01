@@ -291,7 +291,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 TrackNode tn = trackNode.TN;
                 float offset = trackNode.TrackNodeOffset;
-                int direction = (int)trackNode.Direction;
+                int direction = (int)trackNode.Direction.Reverse();
 
                 var signalItemInfo = Simulator.Instance.SignalEnvironment.GetSignalItemInfo(tn.TrackCircuitCrossReferences, offset, direction, 5000f);
 
@@ -347,7 +347,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public class TrackSectionCacheEntry {
             public int Age;
-            public Traveller.TravellerDirection Direction;
+            public Direction Direction;
             public float Length;
             public List<TrackSectionObject> Objects;
         }

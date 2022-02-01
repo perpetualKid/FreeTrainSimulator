@@ -170,7 +170,7 @@ namespace Orts.Simulation.MultiPlayer
 
             try
             {
-                train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
             catch (Exception e)
             {

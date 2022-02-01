@@ -180,7 +180,7 @@ namespace Orts.Simulation.MultiPlayer
         public void AddNewItem(string u, Train t)
         {
             if (items == null) items = new List<MSGMoveItem>();
-            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction, t.Length));
+            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction.Reverse(), t.Length));
             t.LastReportedSpeed = t.SpeedMpS;
         }
 
@@ -414,7 +414,7 @@ namespace Orts.Simulation.MultiPlayer
             user = n; code = cd; con = c; path = p;
             if (t != null)
             {
-                dir = (int)t.RearTDBTraveller.Direction; num = tn;
+                dir = (int)t.RearTDBTraveller.Direction.Reverse(); num = tn;
                 location = t.RearTDBTraveller.WorldLocation;
                 Travelled = t.DistanceTravelledM;
                 trainmaxspeed = t.TrainMaxSpeedMpS;
@@ -1198,7 +1198,7 @@ namespace Orts.Simulation.MultiPlayer
                 else flipped[i] = 0;
             }
             TrainNum = n;
-            direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
+            direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
             location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.DistanceTravelled;
             mDirection = TranslateMidpointDirection(t.MUDirection); //(int)t.MUDirection;
@@ -1217,7 +1217,7 @@ namespace Orts.Simulation.MultiPlayer
             train.TrainType = TrainType.Remote;
             train.DistanceTravelled = Travelled;
             train.MUDirection = TranslateMidpointDirection(this.mDirection); // (MidpointDirection)this.mDirection;
-            train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Direction.Forward : Direction.Backward);
             //if (consistDirection != 1)
             //	train.RearTDBTraveller.ReverseDirection();
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
@@ -1382,7 +1382,7 @@ namespace Orts.Simulation.MultiPlayer
                 else flipped[i] = 0;
             }
             TrainNum = n;
-            direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
+            direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
             location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.DistanceTravelled;
             mDirection = TranslateMidpointDirection(t.MUDirection);// (int)t.MUDirection;
@@ -1422,7 +1422,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             if (found)
             {
-                Traveller traveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                Traveller traveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Direction.Forward : Direction.Backward);
                 List<TrainCar> tmpCars = new List<TrainCar>();
                 for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
                 {
@@ -1461,7 +1461,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             train1.TrainType = TrainType.Remote;
             train1.DistanceTravelled = Travelled;
-            train1.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train1.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Direction.Forward : Direction.Backward);
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
                 string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
@@ -1698,7 +1698,7 @@ namespace Orts.Simulation.MultiPlayer
         {
             TrainNumRetain = t1.Number;
             TrainNumRemoved = t2.Number;
-            direction = t1.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
+            direction = t1.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
             TileX = t1.RearTDBTraveller.TileX;
             TileZ = t1.RearTDBTraveller.TileZ;
             X = t1.RearTDBTraveller.X;
@@ -2312,11 +2312,11 @@ namespace Orts.Simulation.MultiPlayer
             user = u;
             //TileX1 = t.RearTDBTraveller.TileX; TileZ1 = t.RearTDBTraveller.TileZ; X1 = t.RearTDBTraveller.X; Z1 = t.RearTDBTraveller.Z;
             Travelled1 = t.DistanceTravelled; Speed1 = t.SpeedMpS;
-            trainDirection = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
+            trainDirection = t.RearTDBTraveller.Direction == Direction.Forward ? 0 : 1;//0 forward, 1 backward
             mDirection1 = TranslateMidpointDirection(t.MUDirection);// (int)t.MUDirection;
             //TileX2 = newT.RearTDBTraveller.TileX; TileZ2 = newT.RearTDBTraveller.TileZ; X2 = newT.RearTDBTraveller.X; Z2 = newT.RearTDBTraveller.Z;
             Travelled2 = newT.DistanceTravelled; Speed2 = newT.SpeedMpS;
-            train2Direction = newT.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
+            train2Direction = newT.RearTDBTraveller.Direction == Direction.Forward ? 0 : 1;//0 forward, 1 backward
             mDirection2 = TranslateMidpointDirection(newT.MUDirection); // (int)newT.MUDirection;
 
             if (MultiPlayerManager.IsServer()) newTrainNumber = newT.Number;//serer will use the correct number
@@ -2510,8 +2510,8 @@ namespace Orts.Simulation.MultiPlayer
                         if (MultiPlayerManager.IsServer()) MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, train, false);
                         t.Cars.Clear();
                         t.Cars.AddRange(tmpcars);
-                        Traveller.TravellerDirection d1 = Traveller.TravellerDirection.Forward;
-                        if (trainDirection == 1) d1 = Traveller.TravellerDirection.Backward;
+                        Direction d1 = Direction.Forward;
+                        if (trainDirection == 1) d1 = Direction.Backward;
                         t.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location1, d1);
                         t.DistanceTravelled = Travelled1;
                         t.SpeedMpS = Speed1;
@@ -2581,8 +2581,8 @@ namespace Orts.Simulation.MultiPlayer
                     }
                     if (gainControl == true) { train2.TrainType = Train.TRAINTYPE.PLAYER; train2.LeadLocomotive = MPManager.Simulator.PlayerLocomotive; }
                 }*/
-                Traveller.TravellerDirection d2 = Traveller.TravellerDirection.Forward;
-                if (train2Direction == 1) d2 = Traveller.TravellerDirection.Backward;
+                Direction d2 = Direction.Forward;
+                if (train2Direction == 1) d2 = Direction.Backward;
 
                 // and fix up the travellers
                 train2.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location2, d2);
@@ -2748,7 +2748,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             TrainNum = t.Number;
             RemovedTrainNum = oldT.Number;
-            direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;
+            direction = t.RearTDBTraveller.Direction == Direction.Forward ? 0 : 1;
             location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.DistanceTravelled;
             MultiPlayerManager.Instance().RemoveUncoupledTrains(t); //remove the trains from uncoupled train lists
@@ -2860,7 +2860,7 @@ namespace Orts.Simulation.MultiPlayer
 
             train.DistanceTravelled = Travelled;
             train.MUDirection = TranslateMidpointDirection(mDirection); // (MidpointDirection)mDirection;
-            train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 0 ? Direction.Forward : Direction.Backward);
             train.CheckFreight();
             train.CalculatePositionOfCars();
             train.LeadLocomotive = null; train2.LeadLocomotive = null;
@@ -3679,7 +3679,7 @@ namespace Orts.Simulation.MultiPlayer
                 else flipped[i] = 0;
             }
             TrainNum = n;
-            direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
+            direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
             TileX = t.RearTDBTraveller.TileX;
             TileZ = t.RearTDBTraveller.TileZ;
             X = t.RearTDBTraveller.X;
@@ -3689,7 +3689,7 @@ namespace Orts.Simulation.MultiPlayer
             speed = t.SpeedMpS;
             tni = t.RearTDBTraveller.TrackNodeIndex;
             count = t.Cars.Count;
-            tdir = (int)t.RearTDBTraveller.Direction;
+            tdir = (int)t.RearTDBTraveller.Direction.Reverse();
             len = t.Length;
             reverseMU = (setMUParameters ? 1 : 0);
         }

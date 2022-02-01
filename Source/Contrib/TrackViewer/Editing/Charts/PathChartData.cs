@@ -21,6 +21,7 @@ using System.Linq;
 
 using Newtonsoft.Json;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -574,7 +575,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
-                    Traveller travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, vectorNode, trItem.Location, Traveller.TravellerDirection.Forward);
+                    Traveller travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, vectorNode, trItem.Location, Direction.Forward);
 
                     tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
 

@@ -714,7 +714,7 @@ namespace Orts.Simulation.Signalling
                 return false;
             }
 
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Traveller.TravellerDirection)(1 - sigItem.Direction));
+            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -743,7 +743,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile)
         {
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -1292,7 +1292,7 @@ namespace Orts.Simulation.Signalling
             {
                 // Create TDBtraveller at start of section to calculate distances
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller traveller = new Traveller(tsectiondat, trackNodes, tvn, firstSection.Location, Traveller.TravellerDirection.Forward);
+                Traveller traveller = new Traveller(tsectiondat, trackNodes, tvn, firstSection.Location, Direction.Forward);
 
 
                 // Process all items (do not split yet)

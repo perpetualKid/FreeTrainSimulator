@@ -126,7 +126,7 @@ namespace ORTS.TrackViewer.Drawing
             angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Traveller.TravellerDirection)direction);
+                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Direction)direction);
                 angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing
