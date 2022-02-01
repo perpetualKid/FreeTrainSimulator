@@ -228,7 +228,6 @@ namespace Orts.Menu
             TrackLODBias_ValueChanged(null, null);
             checkConditionalLoadOfNightTextures.Checked = this.settings.ConditionalLoadOfDayOrNightTextures;
             checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
-            checkCircularSpeedGauge.Checked = this.settings.CircularSpeedGauge;
             checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
             checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
             checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
@@ -376,7 +375,6 @@ namespace Orts.Menu
             settings.LODBias = trackLODBias.Value;
             settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
             settings.SignalLightGlow = checkSignalLightGlow.Checked;
-            settings.CircularSpeedGauge = checkCircularSpeedGauge.Checked;
             settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
             settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
             settings.UseMSTSEnv = checkUseMSTSEnv.Checked;

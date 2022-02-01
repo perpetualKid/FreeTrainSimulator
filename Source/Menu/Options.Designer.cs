@@ -203,7 +203,6 @@ namespace Orts.Menu
             this.trackAdhesionFactorChange = new System.Windows.Forms.TrackBar();
             this.trackAdhesionFactor = new System.Windows.Forms.TrackBar();
             this.checkAdhesionPropToWeather = new System.Windows.Forms.CheckBox();
-            this.checkCircularSpeedGauge = new System.Windows.Forms.CheckBox();
             this.checkSignalLightGlow = new System.Windows.Forms.CheckBox();
             this.checkUseMSTSEnv = new System.Windows.Forms.CheckBox();
             this.labelPerformanceTunerTarget = new System.Windows.Forms.Label();
@@ -2286,7 +2285,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactorChange);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactor);
             this.tabPageExperimental.Controls.Add(this.checkAdhesionPropToWeather);
-            this.tabPageExperimental.Controls.Add(this.checkCircularSpeedGauge);
             this.tabPageExperimental.Controls.Add(this.checkSignalLightGlow);
             this.tabPageExperimental.Controls.Add(this.checkUseMSTSEnv);
             this.tabPageExperimental.Controls.Add(this.labelPerformanceTunerTarget);
@@ -2648,16 +2646,6 @@ namespace Orts.Menu
             this.checkAdhesionPropToWeather.Text = "Adhesion proportional to rain/snow/fog";
             this.checkAdhesionPropToWeather.UseVisualStyleBackColor = true;
             this.checkAdhesionPropToWeather.CheckedChanged += new System.EventHandler(this.AdhesionPropToWeatherCheckBox_CheckedChanged);
-            // 
-            // checkCircularSpeedGauge
-            // 
-            this.checkCircularSpeedGauge.AutoSize = true;
-            this.checkCircularSpeedGauge.Location = new System.Drawing.Point(6, 209);
-            this.checkCircularSpeedGauge.Name = "checkCircularSpeedGauge";
-            this.checkCircularSpeedGauge.Size = new System.Drawing.Size(163, 19);
-            this.checkCircularSpeedGauge.TabIndex = 21;
-            this.checkCircularSpeedGauge.Text = "ETCS circular speed gauge";
-            this.checkCircularSpeedGauge.UseVisualStyleBackColor = true;
             // 
             // checkSignalLightGlow
             // 
@@ -3050,7 +3038,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkVerticalSync;
         private System.Windows.Forms.ComboBox comboPressureUnit;
         private System.Windows.Forms.Label labelPressureUnit;
-        private System.Windows.Forms.CheckBox checkCircularSpeedGauge;
         private System.Windows.Forms.CheckBox checkSignalLightGlow;
         private System.Windows.Forms.TabPage tabPageUpdater;
         private System.Windows.Forms.Label AdhesionFactorChangeValueLabel;

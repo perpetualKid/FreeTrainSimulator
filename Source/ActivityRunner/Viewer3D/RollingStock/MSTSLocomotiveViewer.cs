@@ -1446,7 +1446,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (digital != null)
                         {
                             CabViewDigitalRenderer cvdr;
-                            if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
+                            if (digital.ControlStyle == CabViewControlStyle.Needle)
                                 cvdr = new CircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
@@ -1574,7 +1574,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (digital != null)
                 {
                     CabViewDigitalRenderer cvdr;
-                    if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
+                    if (digital.ControlStyle == CabViewControlStyle.Needle)
                         cvdr = new CircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
