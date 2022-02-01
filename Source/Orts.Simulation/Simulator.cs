@@ -1020,7 +1020,7 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, aiPath);
+            train.RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file

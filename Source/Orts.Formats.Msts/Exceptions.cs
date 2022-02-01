@@ -21,7 +21,7 @@ using Orts.Common.Position;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Simulation
+namespace Orts.Formats.Msts
 {
     public sealed class MissingTrackNodeException : Exception
     {

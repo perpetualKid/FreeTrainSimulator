@@ -20,10 +20,9 @@ using System;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Simulation
+namespace Orts.Formats.Msts
 {
     /// <summary>
     /// Helper class to store details of a possible candidate where we can place the traveller.

@@ -27,11 +27,9 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.AIs;
 
-namespace Orts.Simulation
+namespace Orts.Formats.Msts
 {
     /// <summary>
     /// A traveller that represents a specific location and direction on a track node database. 
@@ -149,31 +147,6 @@ namespace Orts.Simulation
             // reverse train, get distance backward
             ReverseDirection();
             float bwdist = DistanceTo(nextMainLocation);
-
-            // check which way exists or is shorter (in case of loop)
-            // remember : train is now facing backward !
-
-            if (bwdist < 0 || (fwdist > 0 && bwdist > fwdist)) // no path backward or backward path is longer
-                ReverseDirection();
-        }
-
-        /// <summary>
-        /// Creates a traveller on the starting point of a path, in the direction of the path
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="aiPath">The path used to determine travellers location and direction</param>
-        public Traveller(TrackNode[] trackNodes, AIPath aiPath)
-            : this(trackNodes, aiPath?.FirstNode.Location ?? throw new ArgumentNullException(nameof(aiPath)))
-        {
-            AIPathNode nextNode = aiPath.FirstNode.NextMainNode; // assumption is that all paths have at least two points.
-
-            // get distance forward
-            float fwdist = DistanceTo(nextNode.Location);
-
-            // reverse train, get distance backward
-            ReverseDirection();
-            float bwdist = DistanceTo(nextNode.Location);
 
             // check which way exists or is shorter (in case of loop)
             // remember : train is now facing backward !
@@ -371,9 +344,12 @@ namespace Orts.Simulation
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="inf">Reader to read persisted data from.</param>
-        internal Traveller(TrackNode[] trackNodes, BinaryReader inf)
+        public Traveller(TrackNode[] trackNodes, BinaryReader inf)
             : this(trackNodes)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             locationSet = lengthSet = false;
             direction = (Direction)inf.ReadByte();
             trackOffset = inf.ReadSingle();
@@ -391,8 +367,11 @@ namespace Orts.Simulation
         /// Saves a traveller to persisted data.
         /// </summary>
         /// <param name="outf">Writer to write persisted data to.</param>
-        internal void Save(BinaryWriter outf)
+        public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write((byte)direction);
             outf.Write(trackOffset);
             outf.Write(TrackNodeIndex);

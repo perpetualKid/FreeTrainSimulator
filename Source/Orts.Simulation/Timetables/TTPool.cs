@@ -529,7 +529,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
 
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, newPath);
+                newPool.StoragePathTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;
