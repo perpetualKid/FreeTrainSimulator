@@ -34,7 +34,7 @@ namespace ORTS.TrackViewer.Drawing
     /// Class to contain all information loaded for the route that is not Trackviewer specific. So basically loading all relevant route files,
     /// like TrackDB for rails and roads, TsectionDat, without further processing
     /// </summary>
-    internal class RouteData: RuntimeData
+    public class RouteData: RuntimeData
     {
         private static string storedRoutePath;
         private static Dictionary<uint, string> signalFileNames;
@@ -52,13 +52,13 @@ namespace ORTS.TrackViewer.Drawing
             TrackDatabaseFile TDB = null;
             SignalConfigurationFile sigcfgFile = null;
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             RouteFile TRK = new RouteFile(FolderStructure.Route(routePath).TrackFileName);
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
             TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
             string BasePath = Path.GetDirectoryName(Path.GetDirectoryName(routePath));
             if (Directory.Exists(routePath + @"\Openrails") && File.Exists(routePath + @"\Openrails\TSECTION.DAT"))
                 tsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
@@ -72,7 +72,7 @@ namespace ORTS.TrackViewer.Drawing
             string roadTrackFileName = routePath + @"\" + TRK.Route.FileName + ".rdb";
             if (File.Exists(roadTrackFileName))
             {
-                messageDelegate(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
+                messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
 
                 RDB = new RoadDatabaseFile(roadTrackFileName);
             }

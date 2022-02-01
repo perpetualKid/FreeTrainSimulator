@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

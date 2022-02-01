@@ -28,7 +28,6 @@ using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 
@@ -40,7 +39,7 @@ namespace Orts.Simulation
     /// </summary>
     public class Traveller
     {
-        private readonly TrackNode[] TrackNodes;
+        private readonly TrackNode[] trackNodes;
         private Direction direction = Direction.Forward;
         private float trackOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
@@ -132,7 +131,7 @@ namespace Orts.Simulation
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            TrackNodes = trackNodes ?? throw new ArgumentNullException(nameof(trackNodes));
+            this.trackNodes = trackNodes ?? throw new ArgumentNullException(nameof(trackNodes));
         }
 
         /// <summary>
@@ -194,7 +193,7 @@ namespace Orts.Simulation
         {
             List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
             //first find all tracknodes that are close enough
-            foreach (TrackNode node in TrackNodes)
+            foreach (TrackNode node in this.trackNodes)
             {
                 TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(node, location);
                 if (candidate != null)
@@ -349,7 +348,7 @@ namespace Orts.Simulation
             if (source == null) 
                 throw new ArgumentNullException(nameof(source));
 
-            TrackNodes = source.TrackNodes;
+            trackNodes = source.trackNodes;
 
             locationSet = source.locationSet;
             location = source.location;
@@ -379,7 +378,7 @@ namespace Orts.Simulation
             direction = (Direction)inf.ReadByte();
             trackOffset = inf.ReadSingle();
             TrackNodeIndex = inf.ReadInt32();
-            trackNode = TrackNodes[TrackNodeIndex];
+            trackNode = this.trackNodes[TrackNodeIndex];
             if (IsTrack)
             {
                 TrackVectorSectionIndex = inf.ReadInt32();
@@ -410,7 +409,7 @@ namespace Orts.Simulation
         /// <returns>boolean describing whether the location is indeed on the given tracknode and initialization is done</returns>
         private bool InitTrackNode(int tni, in WorldLocation location)
         {
-            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(TrackNodes[tni], location);
+            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(trackNodes[tni], location);
             if (candidate == null) return false;
 
             InitFromCandidate(candidate);
@@ -425,10 +424,6 @@ namespace Orts.Simulation
         /// <returns>boolean showing whether the traveller can be placed on the section at given location</returns>
         private static bool InitTrackSectionSucceeded(Traveller traveller, in WorldLocation location)
         {
-            //TrackNodeCandidate candidate = (traveller.IsTrackCurved)
-            //    ? TrackNodeCandidate.TryTrackSectionCurved(location, traveller.trackVectorSection, traveller.trackSection)
-            //    : TrackNodeCandidate.TryTrackSectionStraight(location, traveller.trackVectorSection, traveller.trackSection);
-
             TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackSection(location, traveller.trackVectorSection, traveller.trackSection);
 
             if (candidate == null) return false;
@@ -541,7 +536,7 @@ namespace Orts.Simulation
 
         public TrackVectorSection CurrentSection()
         {
-            if (TrackNodes[TrackNodeIndex] is TrackVectorNode trackVectorNode)
+            if (trackNodes[TrackNodeIndex] is TrackVectorNode trackVectorNode)
                 return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
             else return null;
         }
@@ -573,13 +568,13 @@ namespace Orts.Simulation
             if (pin < 0 || pin >= trackNode.TrackPins.Length)
                 return false;
             TrackPin trPin = trackNode.TrackPins[pin];
-            if (trPin.Link <= 0 || trPin.Link >= TrackNodes.Length)
+            if (trPin.Link <= 0 || trPin.Link >= trackNodes.Length)
                 return false;
 
             direction = trPin.Direction > 0 ? Direction.Forward : Direction.Backward;
             trackOffset = 0;
             TrackNodeIndex = trPin.Link;
-            trackNode = TrackNodes[TrackNodeIndex];
+            trackNode = trackNodes[TrackNodeIndex];
             TrackVectorSectionIndex = -1;
             trackVectorSection = null;
             trackSection = null;
@@ -637,9 +632,9 @@ namespace Orts.Simulation
             {
                 // We're on a junction or end node. Use one of the links to get location and direction information.
                 TrackPin pin = trackNode.TrackPins[0];
-                if (pin.Link <= 0 || pin.Link >= TrackNodes.Length)
+                if (pin.Link <= 0 || pin.Link >= trackNodes.Length)
                     return;
-                TrackVectorNode tvn = TrackNodes[pin.Link] as TrackVectorNode;
+                TrackVectorNode tvn = trackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];
                 ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (ts == null)
