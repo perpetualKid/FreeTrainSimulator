@@ -7,8 +7,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Graphics.Track
 {
