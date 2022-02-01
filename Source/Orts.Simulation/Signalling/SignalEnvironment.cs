@@ -1762,12 +1762,12 @@ namespace Orts.Simulation.Signalling
                 for (int i = 0; i < crossReference.Count && !inserted; i++)
                 {
                     TrackCircuitSectionCrossReference reference = crossReference[i];
-                    if (offset0 < reference.OffsetLength[0])
+                    if (offset0 < reference.OffsetLength[TrackDirection.Ahead])
                     {
                         crossReference.Insert(i, newReference);
                         inserted = true;
                     }
-                    else if (offset1 > reference.OffsetLength[1])
+                    else if (offset1 > reference.OffsetLength[TrackDirection.Reverse])
                     {
                         crossReference.Insert(i, newReference);
                         inserted = true;
@@ -1805,8 +1805,8 @@ namespace Orts.Simulation.Signalling
                         TrackCircuitSectionCrossReference reference = crossReference[i];
                         if (reference.Index == prevIndex)
                         {
-                            newReference.OffsetLength[0] = reference.OffsetLength[0];
-                            newReference.OffsetLength[1] = reference.OffsetLength[1] + reference.Length;
+                            newReference.OffsetLength[TrackDirection.Ahead] = reference.OffsetLength[TrackDirection.Ahead];
+                            newReference.OffsetLength[TrackDirection.Reverse] = reference.OffsetLength[TrackDirection.Reverse] + reference.Length;
                             crossReference.Insert(i, newReference);
                             inserted = true;
                         }
@@ -2805,7 +2805,7 @@ namespace Orts.Simulation.Signalling
                 for (int iXRef = trackNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && sectionIndex < 0; iXRef--)
                 {
                     if (platform.SData1 <
-                     (trackNode.TrackCircuitCrossReferences[iXRef].OffsetLength[1] + trackNode.TrackCircuitCrossReferences[iXRef].Length))
+                     (trackNode.TrackCircuitCrossReferences[iXRef].OffsetLength[TrackDirection.Reverse] + trackNode.TrackCircuitCrossReferences[iXRef].Length))
                     {
                         sectionIndex = trackNode.TrackCircuitCrossReferences[iXRef].Index;
                         crossrefIndex = iXRef;
@@ -3407,7 +3407,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSectionCrossReference crossRefSection = node.TrackCircuitCrossReferences[i];
                             // forward direction
-                            float sectionStartOffset = crossRefSection.OffsetLength[1];
+                            float sectionStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
                             float sectionLength = crossRefSection.Length;
                             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
                             float startOffset;
@@ -3557,7 +3557,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSectionCrossReference crossRefSection = node.TrackCircuitCrossReferences[i];
                             // forward direction
-                            float tcsStartOffset = crossRefSection.OffsetLength[1];
+                            float tcsStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
                             float tcsLength = crossRefSection.Length;
                             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
 

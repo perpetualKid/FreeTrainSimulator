@@ -433,7 +433,7 @@ namespace Orts.Simulation.Track
                 {
                     for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                     {
-                        if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
+                        if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
                         //                      if (thisNode.TCCrossReference[iTC].Position[0] < endOffset)
                         {
                             TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
@@ -449,7 +449,7 @@ namespace Orts.Simulation.Track
                 {
                     for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                     {
-                        if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] < endOffset)
+                        if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] < endOffset)
                         {
                             TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
                             if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != element.TrackCircuitSection.Index)
@@ -1654,7 +1654,7 @@ namespace Orts.Simulation.Track
 
             foreach (TrackCircuitSectionCrossReference crossReference in waitingNode.TrackCircuitCrossReferences)
             {
-                if (offset < (crossReference.OffsetLength[1] + crossReference.Length))
+                if (offset < (crossReference.OffsetLength[TrackDirection.Reverse] + crossReference.Length))
                 {
                     sectionIndex = crossReference.Index;
                     break;

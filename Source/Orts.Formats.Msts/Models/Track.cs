@@ -453,9 +453,7 @@ namespace Orts.Formats.Msts.Models
         public float Length { get; private set; }
         /// <summary>Offset length in orig track section, for either forward or backward direction</summary>
         /// Offset indicates length from end of original tracknode, Index 0 is forward, index 1 is backward wrt original tracknode direction.
-#pragma warning disable CA1819 // Properties should not return arrays
-        public float[] OffsetLength { get; } = new float[2];
-#pragma warning restore CA1819 // Properties should not return arrays
+        public EnumArray<float, TrackDirection> OffsetLength { get; } = new EnumArray<float, TrackDirection>();
         /// <summary>index of TrackCircuitSection</summary>
         public int Index { get; private set; }
 
@@ -468,8 +466,8 @@ namespace Orts.Formats.Msts.Models
         {
             Index = sectionIndex;
             Length = sectionLength;
-            OffsetLength[0] = sectionOffsetLength[0];
-            OffsetLength[1] = sectionOffsetLength[1];
+            OffsetLength[TrackDirection.Ahead] = sectionOffsetLength[0];
+            OffsetLength[TrackDirection.Reverse] = sectionOffsetLength[1];
         }
     }
 
@@ -486,9 +484,9 @@ namespace Orts.Formats.Msts.Models
         /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
         /// <param name="direction">Direction where we start measuring along the vector node</param>
         /// <returns>Index in the current list of crossreferences</returns>
-        public int GetCrossReferenceIndex(float offset, int direction)
+        public int GetCrossReferenceIndex(float offset, TrackDirection direction)
         {
-            if (direction == 0)
+            if (direction == TrackDirection.Ahead)
             {   // search forward, start at the second one (first one should have offsetlength zero
                 for (int trackCircuit = 1; trackCircuit < Count; trackCircuit++)
                 {
@@ -537,7 +535,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
         /// <param name="direction">Direction where we start measuring along the vector node</param>
         /// <returns>Index of the section that is at the wanted location</returns>
-        public int GetSectionIndex(float offset, int direction)
+        public int GetSectionIndex(float offset, TrackDirection direction)
         {
             int index = GetCrossReferenceIndex(offset, direction);
 

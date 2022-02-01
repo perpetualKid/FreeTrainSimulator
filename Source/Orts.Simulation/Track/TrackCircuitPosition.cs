@@ -224,7 +224,7 @@ namespace Orts.Simulation.Track
             if (null == trackCircuitCrossReferecenList)
                 throw new ArgumentNullException(nameof(trackCircuitCrossReferecenList));
 
-            int crossRefIndex = trackCircuitCrossReferecenList.GetCrossReferenceIndex(offset, (int)direction);
+            int crossRefIndex = trackCircuitCrossReferecenList.GetCrossReferenceIndex(offset, direction);
 
             if (crossRefIndex < 0)
                 return;
@@ -232,7 +232,7 @@ namespace Orts.Simulation.Track
             TrackCircuitSectionCrossReference crossReference = trackCircuitCrossReferecenList[crossRefIndex];
             TrackCircuitSectionIndex = crossReference.Index;
             Direction = direction;
-            Offset = offset - crossReference.OffsetLength[(int)direction];
+            Offset = offset - crossReference.OffsetLength[direction];
         }
     }
 
