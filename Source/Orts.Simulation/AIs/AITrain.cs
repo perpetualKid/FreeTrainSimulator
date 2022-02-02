@@ -3617,14 +3617,14 @@ namespace Orts.Simulation.AIs
                 }
 
                 // update positions train
-                TrackNode tn = attachTrain.FrontTDBTraveller.TN;
+                TrackNode tn = attachTrain.FrontTDBTraveller.TrackNode;
                 float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
                 TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction.Reverse();
 
                 attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-                tn = attachTrain.RearTDBTraveller.TN;
+                tn = attachTrain.RearTDBTraveller.TrackNode;
                 offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
                 direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction.Reverse();
 
@@ -3732,14 +3732,14 @@ namespace Orts.Simulation.AIs
             }
 
             // update positions train
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -3958,28 +3958,28 @@ namespace Orts.Simulation.AIs
 
 
             // update positions of coupling train
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // update positions of coupled train
-            tn = attachTrain.FrontTDBTraveller.TN;
+            tn = attachTrain.FrontTDBTraveller.TrackNode;
             offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction.Reverse();
 
             attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            tn = attachTrain.RearTDBTraveller.TN;
+            tn = attachTrain.RearTDBTraveller.TrackNode;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction.Reverse();
 

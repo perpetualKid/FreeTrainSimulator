@@ -5008,7 +5008,7 @@ namespace Orts.Simulation.Timetables
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TN;
+            TrackNode tn = RearTDBTraveller.TrackNode;
             float offset = RearTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -5101,7 +5101,7 @@ namespace Orts.Simulation.Timetables
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
@@ -5110,7 +5110,7 @@ namespace Orts.Simulation.Timetables
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -10449,14 +10449,14 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions train
-            TrackNode tn = attachTrain.FrontTDBTraveller.TN;
+            TrackNode tn = attachTrain.FrontTDBTraveller.TrackNode;
             float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction.Reverse();
 
             attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            tn = attachTrain.RearTDBTraveller.TN;
+            tn = attachTrain.RearTDBTraveller.TrackNode;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction.Reverse();
 
@@ -10892,7 +10892,7 @@ namespace Orts.Simulation.Timetables
             detachCar.SignalEvent(TrainEvent.Uncouple);
 
             // update positions train
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
@@ -10905,7 +10905,7 @@ namespace Orts.Simulation.Timetables
                 DistanceTravelledM -= newTrain.Length;
             }
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -10945,7 +10945,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions new train
-            tn = newTrain.FrontTDBTraveller.TN;
+            tn = newTrain.FrontTDBTraveller.TrackNode;
             offset = newTrain.FrontTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)newTrain.FrontTDBTraveller.Direction.Reverse();
 
@@ -10955,7 +10955,7 @@ namespace Orts.Simulation.Timetables
 
             newTrain.DistanceTravelledM = 0.0f;
 
-            tn = newTrain.RearTDBTraveller.TN;
+            tn = newTrain.RearTDBTraveller.TrackNode;
             offset = newTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)newTrain.RearTDBTraveller.Direction.Reverse();
 

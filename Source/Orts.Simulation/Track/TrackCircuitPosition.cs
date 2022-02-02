@@ -57,7 +57,7 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            TrackNode tn = train.FrontTDBTraveller.TN;
+            TrackNode tn = train.FrontTDBTraveller.TrackNode;
             float offset = train.FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction.Reverse();
 
@@ -89,7 +89,7 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            TrackNode tn = train.RearTDBTraveller.TN;
+            TrackNode tn = train.RearTDBTraveller.TrackNode;
             float offset = train.RearTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction.Reverse();
 

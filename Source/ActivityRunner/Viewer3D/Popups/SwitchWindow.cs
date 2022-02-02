@@ -113,16 +113,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             var traveller = front ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
-            TrackNode SwitchPreviousNode = traveller.TN;
+            TrackNode SwitchPreviousNode = traveller.TrackNode;
             TrackJunctionNode SwitchNode = null;
             while (traveller.NextSection())
             {
                 if (traveller.IsJunction)
                 {
-                    SwitchNode = traveller.TN as TrackJunctionNode;
+                    SwitchNode = traveller.TrackNode as TrackJunctionNode;
                     break;
                 }
-                SwitchPreviousNode = traveller.TN;
+                SwitchPreviousNode = traveller.TrackNode;
             }
             if (SwitchNode == null)
                 return;
@@ -135,7 +135,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var switchPreviousNodeID = SwitchPreviousNode.Index;
             var switchBranchesAwayFromUs = SwitchNode.TrackPins[0].Link == switchPreviousNodeID;
             var switchTrackSection = RuntimeData.Instance.TSectionDat.TrackShapes[SwitchNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
-            var switchMainRouteIsLeft = SwitchNode.GetAngle() > 0;  // align the switch
+            var switchMainRouteIsLeft = SwitchNode.Angle > 0;  // align the switch
 
             image.Source.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
             image.Source.Y = SwitchNode.SelectedRoute * SwitchImageSize;

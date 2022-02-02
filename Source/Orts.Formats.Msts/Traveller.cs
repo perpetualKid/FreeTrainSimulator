@@ -82,12 +82,8 @@ namespace Orts.Formats.Msts
             }
         }
         public float RotY { get { if (!locationSet) SetLocation(); return directionVector.Y; } }
-        public TrackNode TN => trackNode;
+        public TrackNode TrackNode => trackNode;
 
-        /// <summary>
-        /// Returns the index of the current track node in the database.
-        /// </summary>
-        public int TrackNodeIndex { get; private set; }
         /// <summary>
         /// Returns the index of the current track vector section (individual straight or curved section of track) in the current track node.
         /// </summary>
@@ -211,9 +207,6 @@ namespace Orts.Formats.Msts
         public Traveller(TrackNode[] trackNodes, TrackVectorNode startTrackNode)
             : this(trackNodes)
         {
-            int startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
-            if (startTrackNodeIndex == -1) 
-                throw new ArgumentException("Track node is not in track nodes array.", nameof(startTrackNode));
             if (startTrackNode == null) 
                 throw new ArgumentException("Track node is not a vector node.", nameof(startTrackNode));
             if (startTrackNode.TrackVectorSections == null) 
@@ -221,7 +214,7 @@ namespace Orts.Formats.Msts
             if (startTrackNode.TrackVectorSections.Length == 0) 
                 throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
             TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
-            if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
+            if (!InitTrackNode(startTrackNode, tvs.Location))
             {
                 if (TrackSections.MissingTrackSectionWarnings == 0)
                     throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
@@ -244,17 +237,14 @@ namespace Orts.Formats.Msts
         {
             if (startTrackNode == null) 
                 throw new ArgumentNullException(nameof(startTrackNode));
-            int startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
-            if (startTrackNodeIndex == -1) 
-                throw new ArgumentException("Track node is not in track nodes array.", nameof(startTrackNode));
-            if (!InitTrackNode(startTrackNodeIndex, location))
+            if (!InitTrackNode(startTrackNode, location))
             {
                 if (startTrackNode.TrackVectorSections == null) 
                     throw new ArgumentException("Track node has no vector section data.", nameof(startTrackNode));
                 if (startTrackNode.TrackVectorSections.Length == 0) 
                     throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
                 TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
-                if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
+                if (!InitTrackNode(startTrackNode, tvs.Location))
                 {
                     if (TrackSections.MissingTrackSectionWarnings == 0)
                         throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
@@ -328,7 +318,6 @@ namespace Orts.Formats.Msts
             direction = reverseDirection ? source.direction.Reverse() : source.direction;
             directionVector = source.directionVector;
             trackOffset = source.trackOffset;
-            TrackNodeIndex = source.TrackNodeIndex;
             trackNode = source.trackNode;
             TrackVectorSectionIndex = source.TrackVectorSectionIndex;
             trackVectorSection = source.trackVectorSection;
@@ -353,8 +342,8 @@ namespace Orts.Formats.Msts
             locationSet = lengthSet = false;
             direction = (Direction)inf.ReadByte();
             trackOffset = inf.ReadSingle();
-            TrackNodeIndex = inf.ReadInt32();
-            trackNode = this.trackNodes[TrackNodeIndex];
+            uint trackNodeIndex = inf.ReadUInt32();
+            trackNode = this.trackNodes[trackNodeIndex];
             if (IsTrack)
             {
                 TrackVectorSectionIndex = inf.ReadInt32();
@@ -374,7 +363,7 @@ namespace Orts.Formats.Msts
 
             outf.Write((byte)direction);
             outf.Write(trackOffset);
-            outf.Write(TrackNodeIndex);
+            outf.Write(TrackNode.Index);
             if (IsTrack)
                 outf.Write(TrackVectorSectionIndex);
         }
@@ -386,10 +375,11 @@ namespace Orts.Formats.Msts
         /// </summary>
         /// <param name="tni">The index of the trackNode for which we test the location</param>
         /// <returns>boolean describing whether the location is indeed on the given tracknode and initialization is done</returns>
-        private bool InitTrackNode(int tni, in WorldLocation location)
+        private bool InitTrackNode(TrackNode trackNode, in WorldLocation location)
         {
-            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(trackNodes[tni], location);
-            if (candidate == null) return false;
+            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(trackNode, location);
+            if (candidate == null) 
+                return false;
 
             InitFromCandidate(candidate);
             return true;
@@ -405,7 +395,8 @@ namespace Orts.Formats.Msts
         {
             TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackSection(location, traveller.trackVectorSection, traveller.trackSection);
 
-            if (candidate == null) return false;
+            if (candidate == null) 
+                return false;
 
             traveller.InitFromCandidate(candidate);
             return true;
@@ -478,7 +469,7 @@ namespace Orts.Formats.Msts
                 {
                     float initialOffset = traveller.trackOffset;
                     float radius = traveller.IsTrackCurved ? traveller.trackSection.Radius : 1;
-                    if (traveller.TN == trackNode || trackNode == null)
+                    if (traveller.TrackNode == trackNode || trackNode == null)
                     {
                         int direction = traveller.Direction == Direction.Forward ? 1 : -1;
                         if (InitTrackSectionSucceeded(traveller, location))
@@ -515,7 +506,7 @@ namespace Orts.Formats.Msts
 
         public TrackVectorSection CurrentSection()
         {
-            if (trackNodes[TrackNodeIndex] is TrackVectorNode trackVectorNode)
+            if (trackNodes[TrackNode.Index] is TrackVectorNode trackVectorNode)
                 return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
             else return null;
         }
@@ -540,7 +531,7 @@ namespace Orts.Formats.Msts
             else
                 Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 1);
 
-            int oldTrackNodeIndex = TrackNodeIndex;
+            uint oldTrackNodeIndex = TrackNode.Index;
             int pin = direction == Direction.Forward ? trackNode.InPins : 0;
             if (IsJunction && direction == Direction.Forward)
                 pin += (trackNode as TrackJunctionNode).SelectedRoute;
@@ -552,8 +543,7 @@ namespace Orts.Formats.Msts
 
             direction = trPin.Direction > 0 ? Direction.Forward : Direction.Backward;
             trackOffset = 0;
-            TrackNodeIndex = trPin.Link;
-            trackNode = trackNodes[TrackNodeIndex];
+            trackNode = trackNodes[trPin.Link];
             TrackVectorSectionIndex = -1;
             trackVectorSection = null;
             trackSection = null;
@@ -939,7 +929,7 @@ namespace Orts.Formats.Msts
 
         public override string ToString()
         {
-            return $"{{TrackNodeIndex={TrackNodeIndex} TrackVectorSectionIndex={TrackVectorSectionIndex} Offset={trackOffset:F6}}}";
+            return $"{{TrackNodeIndex={TrackNode.Index} TrackVectorSectionIndex={TrackVectorSectionIndex} Offset={trackOffset:F6}}}";
         }
 
         /// <summary>
@@ -953,10 +943,7 @@ namespace Orts.Formats.Msts
             // Some things only have to be set when defined. This prevents overwriting existing settings.
             // The order might be important.
             if (candidate.TrackNode != null)
-            {
                 trackNode = candidate.TrackNode;
-                TrackNodeIndex = Convert.ToInt32(trackNode.Index);
-            }
             if (candidate.TrackVectorSection != null) 
                 trackVectorSection = candidate.TrackVectorSection;
             if (candidate.TrackVectorSectionIndex >= 0) 

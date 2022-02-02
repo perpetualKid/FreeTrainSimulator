@@ -495,8 +495,7 @@ namespace Orts.Simulation.Activities
         {
             float? offset = 0.0f;
             traveller = new Traveller(trackDB.TrackNodes, location);
-            TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
-            if (trackNode is TrackVectorNode trackVectorNode)
+            if (traveller.TrackNode is TrackVectorNode trackVectorNode)
             {
                 offset = traveller.TrackNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);

@@ -368,7 +368,7 @@ namespace Orts.Simulation
             if (null == train)
                 throw new ArgumentNullException(nameof(train));
             return Connected && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
-                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index);
+                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TrackNode.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TrackNode.Index);
         }
 
         /// <summary>

@@ -2902,7 +2902,7 @@ namespace Orts.Simulation.RollingStocks
         private Vector3 VibrationRotationVelocityRadpS;
         private Vector2 VibrationTranslationM;
         private Vector2 VibrationTranslationVelocityMpS;
-        private int VibrationTrackNode;
+        private uint VibrationTrackNode;
         private int VibrationTrackVectorSection;
         private float VibrationTrackCurvaturepM;
         private float PrevTiltingZRot; // previous tilting angle
@@ -2929,7 +2929,7 @@ namespace Orts.Simulation.RollingStocks
                 if (VibrationTrackVectorSection == 0)
                     VibrationTrackVectorSection = traveler.TrackVectorSectionIndex;
                 if (VibrationTrackNode == 0)
-                    VibrationTrackNode = traveler.TrackNodeIndex;
+                    VibrationTrackNode = traveler.TrackNode.Index;
 
                 // Apply suspension/spring and damping.
                 // https://en.wikipedia.org/wiki/Simple_harmonic_motion
@@ -2977,10 +2977,10 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Add new vibrations every track node.
-                if (VibrationTrackNode != traveler.TrackNodeIndex)
+                if (VibrationTrackNode != traveler.TrackNode.Index)
                 {
                     AddVibrations(VibrationFactorTrackNode);
-                    VibrationTrackNode = traveler.TrackNodeIndex;
+                    VibrationTrackNode = traveler.TrackNode.Index;
                 }
             }
             if (Train != null && Train.IsTilting)

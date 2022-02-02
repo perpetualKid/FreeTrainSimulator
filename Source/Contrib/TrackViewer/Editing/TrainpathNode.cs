@@ -754,7 +754,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="traveller"></param>
         public void CopyDataFromTraveller(Traveller traveller)
         {
-            TvnIndex = traveller.TrackNodeIndex;
+            TvnIndex = Convert.ToInt32(traveller.TrackNode.Index);
             TrackVectorSectionIndex = traveller.TrackVectorSectionIndex;
             TrackSectionOffset = traveller.TrackNodeOffset - GetSectionStartDistance();
             trackAngleForward = traveller.RotY;

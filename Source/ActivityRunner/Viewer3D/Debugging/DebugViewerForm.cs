@@ -1054,20 +1054,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private const float SignalWarningDistance = 500;
         private const float DisplaySegmentLength = 10;
         private const float MaximumSectionDistance = 10000;
-        private Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry>();
+        private Dictionary<uint, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<uint, SignallingDebugWindow.TrackSectionCacheEntry>();
 
         private SignallingDebugWindow.TrackSectionCacheEntry GetCacheEntry(Traveller position)
         {
             SignallingDebugWindow.TrackSectionCacheEntry rv;
-            if (Cache.TryGetValue(position.TrackNodeIndex, out rv) && (rv.Direction == position.Direction))
+            if (Cache.TryGetValue(position.TrackNode.Index, out rv) && (rv.Direction == position.Direction))
                 return rv;
-            Cache[position.TrackNodeIndex] = rv = new SignallingDebugWindow.TrackSectionCacheEntry()
+            Cache[position.TrackNode.Index] = rv = new SignallingDebugWindow.TrackSectionCacheEntry()
             {
                 Direction = position.Direction,
                 Length = 0,
                 Objects = new List<SignallingDebugWindow.TrackSectionObject>(),
             };
-            var nodeIndex = position.TrackNodeIndex;
+            var nodeIndex = position.TrackNode.Index;
             var trackNode = new Traveller(position);
             while (true)
             {
@@ -1077,10 +1077,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (trackNode.IsEnd)
                     rv.Objects.Add(new SignallingDebugWindow.TrackSectionEndOfLine() { Distance = rv.Length });
                 else if (trackNode.IsJunction)
-                    rv.Objects.Add(new SignallingDebugWindow.TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TN as TrackJunctionNode, NodeIndex = nodeIndex });
+                    rv.Objects.Add(new SignallingDebugWindow.TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TrackNode as TrackJunctionNode, NodeIndex = nodeIndex });
                 else
                     rv.Objects.Add(new SignallingDebugWindow.TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
-                if (trackNode.TrackNodeIndex != nodeIndex)
+                if (trackNode.TrackNode.Index != nodeIndex)
                     break;
             }
             trackNode = new Traveller(position);
@@ -1116,7 +1116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var cacheNode = new Traveller(position);
             cacheNode.ReverseDirection();
             var initialNodeOffsetCount = 0;
-            while (cacheNode.TrackNodeIndex == position.TrackNodeIndex && cacheNode.NextSection())
+            while (cacheNode.TrackNode.Index == position.TrackNode.Index && cacheNode.NextSection())
                 initialNodeOffsetCount++;
             // Now do it again, but don't go the last track section (because it is from a different track node).
             cacheNode = new Traveller(position);
@@ -1139,8 +1139,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     caches.Add(cache);
                     totalDistance += cache.Length;
                 }
-                var nodeIndex = cacheNode.TrackNodeIndex;
-                while (cacheNode.TrackNodeIndex == nodeIndex && cacheNode.NextSection())
+                var nodeIndex = cacheNode.TrackNode.Index;
+                while (cacheNode.TrackNode.Index == nodeIndex && cacheNode.NextSection())
                     ;
             }
 

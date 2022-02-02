@@ -113,10 +113,11 @@ namespace Orts.Simulation.MultiPlayer
             public float speed;
             public float travelled;
             public int num, count;
-            public int TileX, TileZ, trackNodeIndex, direction, tdbDir;
+            public int TileX, TileZ, direction, tdbDir;
+            public uint trackNodeIndex;
             public float X, Z;
             public float Length;
-            public MSGMoveItem(string u, float s, float t, int n, int tX, int tZ, float x, float z, int tni, int cnt, int dir, int tDir, float len)
+            public MSGMoveItem(string u, float s, float t, int n, int tX, int tZ, float x, float z, uint tni, int cnt, int dir, int tDir, float len)
             {
                 user = u; speed = s; travelled = t; num = n; TileX = tX; TileZ = tZ; X = x; Z = z; trackNodeIndex = tni; count = cnt; direction = dir; tdbDir = tDir; Length = len;
             }
@@ -146,7 +147,7 @@ namespace Orts.Simulation.MultiPlayer
                     for (i = 0; i < areas.Length / 13; i++)
                         items.Add(new MSGMoveItem(areas[13 * i], float.Parse(areas[13 * i + 1], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 2], CultureInfo.InvariantCulture), int.Parse(areas[13 * i + 3]),
                             int.Parse(areas[13 * i + 4]), int.Parse(areas[13 * i + 5]), float.Parse(areas[13 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 7], CultureInfo.InvariantCulture),
-                            int.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
+                            uint.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
             }
             catch (Exception e)
             {
@@ -180,7 +181,7 @@ namespace Orts.Simulation.MultiPlayer
         public void AddNewItem(string u, Train t)
         {
             if (items == null) items = new List<MSGMoveItem>();
-            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction.Reverse(), t.Length));
+            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNode.Index, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction.Reverse(), t.Length));
             t.LastReportedSpeed = t.SpeedMpS;
         }
 
@@ -1077,14 +1078,14 @@ namespace Orts.Simulation.MultiPlayer
             if (Simulator.Instance.PlayerLocomotive == null) return false;
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (train == null) return false;
-            if (train.FrontTDBTraveller.TrackNodeIndex == train.RearTDBTraveller.TrackNodeIndex)
+            if (train.FrontTDBTraveller.TrackNode.Index == train.RearTDBTraveller.TrackNode.Index)
                 return false;
             Traveller traveller = new Traveller(train.RearTDBTraveller);
             while (traveller.NextSection())
             {
-                if (traveller.TrackNodeIndex == train.FrontTDBTraveller.TrackNodeIndex)
+                if (traveller.TrackNode.Index == train.FrontTDBTraveller.TrackNode.Index)
                     break;
-                if (traveller.TN == junctionNode)
+                if (traveller.TrackNode == junctionNode)
                     return true;
             }
             return false;
@@ -3597,7 +3598,7 @@ namespace Orts.Simulation.MultiPlayer
         private float X, Z, Travelled;
         private int mDirection;
         private float speed;
-        private int tni;
+        private uint tni;
         private int count;
         private int tdir;
         private float len;
@@ -3634,7 +3635,7 @@ namespace Orts.Simulation.MultiPlayer
             speed = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            tni = int.Parse(m.Substring(0, index + 1));
+            tni = uint.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
             count = int.Parse(m.Substring(0, index + 1));
@@ -3687,7 +3688,7 @@ namespace Orts.Simulation.MultiPlayer
             Travelled = t.DistanceTravelled;
             mDirection = TranslateMidpointDirection(t.MUDirection); // (int)t.MUDirection;
             speed = t.SpeedMpS;
-            tni = t.RearTDBTraveller.TrackNodeIndex;
+            tni = t.RearTDBTraveller.TrackNode.Index;
             count = t.Cars.Count;
             tdir = (int)t.RearTDBTraveller.Direction.Reverse();
             len = t.Length;

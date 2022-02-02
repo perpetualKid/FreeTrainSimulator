@@ -696,39 +696,42 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="tsectionDat">The datafile with all the track sections</param>
         /// <returns>The angle calculated</returns>
-        public float GetAngle()
+        public float Angle
         {
-            if (angle != float.MaxValue)
-                return angle;
-
-            try //so many things can be in conflict for trackshapes, tracksections etc.
+            get
             {
-                TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
-                SectionIndex[] sectionIndices = trackShape.SectionIndices;
+                if (angle != float.MaxValue)
+                    return angle;
 
-                for (int index = 0; index < sectionIndices.Length; index++)
+                try //so many things can be in conflict for trackshapes, tracksections etc.
                 {
-                    if (index == trackShape.MainRoute)
-                        continue;
-                    uint[] sections = sectionIndices[index].TrackSections;
+                    TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
+                    SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
-                    for (int i = 0; i < sections.Length; i++)
+                    for (int index = 0; index < sectionIndices.Length; index++)
                     {
-                        uint sid = sectionIndices[index].TrackSections[i];
-                        TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+                        if (index == trackShape.MainRoute)
+                            continue;
+                        uint[] sections = sectionIndices[index].TrackSections;
 
-                        if (section.Curved)
+                        for (int i = 0; i < sections.Length; i++)
                         {
-                            angle = section.Angle;
-                            break;
+                            uint sid = sectionIndices[index].TrackSections[i];
+                            TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+
+                            if (section.Curved)
+                            {
+                                angle = section.Angle;
+                                break;
+                            }
                         }
                     }
                 }
-            }
 #pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception) { }
+                catch (Exception) { }
 #pragma warning restore CA1031 // Do not catch general exception types
-            return angle;
+                return angle;
+            }
         }
     }
 

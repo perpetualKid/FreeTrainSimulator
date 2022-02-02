@@ -3792,7 +3792,7 @@ namespace Orts.Simulation.Physics
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TN;
+            TrackNode tn = RearTDBTraveller.TrackNode;
             float offset = RearTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -3899,7 +3899,7 @@ namespace Orts.Simulation.Physics
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
@@ -3908,7 +3908,7 @@ namespace Orts.Simulation.Physics
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -4132,7 +4132,7 @@ namespace Orts.Simulation.Physics
 
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
             int routeIndex;
@@ -4141,7 +4141,7 @@ namespace Orts.Simulation.Physics
             routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -8517,14 +8517,14 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -8832,14 +8832,14 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
@@ -10684,7 +10684,7 @@ namespace Orts.Simulation.Physics
                             {
                                 // diverging 
                                 diverging = true;
-                                float junctionAngle = junctionNode.GetAngle();
+                                float junctionAngle = junctionNode.Angle;
                                 if (junctionAngle < 0) rightSwitch = false;
                             }
                             if (diverging)
@@ -10700,7 +10700,7 @@ namespace Orts.Simulation.Physics
                                 (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
-                                float junctionAngle = junctionNode.GetAngle();
+                                float junctionAngle = junctionNode.Angle;
                                 if (junctionAngle < 0) rightSwitch = false; // FIXME: or the opposite? untested...
 
                                 trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);
@@ -12224,7 +12224,9 @@ namespace Orts.Simulation.Physics
         }
 
         //used by remote train to update location based on message received
-        private int expectedTileX, expectedTileZ, expectedTracIndex, expectedTDir;
+        private int expectedTileX, expectedTileZ;
+        private uint expectedTracIndex;
+        private Direction expectedTDir;
         MidpointDirection expectedDir;
         private float expectedX, expectedZ, expectedTravelled, expectedLength;
         internal bool UpdateMSGReceived { get; set; }
@@ -12239,13 +12241,13 @@ namespace Orts.Simulation.Physics
             expectedTileZ = location.TileZ;
             expectedX = location.Location.X;
             expectedZ = location.Location.Z;
-            expectedTDir = direction;
+            expectedTDir = ((Direction)direction).Reverse();
             expectedDir = MUDirection;
             expectedTravelled = DistanceTravelledM = DistanceTravelled = distanceTravelled;
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(uint tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
             int reverseMU = 0)
         {
             SpeedMpS = speed;
@@ -12256,7 +12258,7 @@ namespace Orts.Simulation.Physics
             expectedTravelled = eT;
             expectedTracIndex = tni;
             expectedDir = dir;
-            expectedTDir = tDir;
+            expectedTDir = ((Direction)tDir).Reverse();
             expectedLength = len;
             if (reverseTrav)
             {
@@ -12317,17 +12319,17 @@ namespace Orts.Simulation.Physics
                         newDistanceTravelledM = DistanceTravelledM + expectedTravelled - DistanceTravelled;
 
                         //if something wrong with the switch
-                        if (RearTDBTraveller.TrackNodeIndex != expectedTracIndex)
+                        if (RearTDBTraveller.TrackNode.Index != expectedTracIndex)
                         {
                             Traveller t = null;
-                            //if (expectedTracIndex <= 0)
-                            //{
-                            //    t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
-                            //}
-                            //else
-                            //{
-                            //    t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
-                            //}
+                            if (expectedTracIndex <= 0)
+                            {
+                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
+                            }
+                            else
+                            {
+                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
+                            }
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;
                             RearTDBTraveller = t;
@@ -12486,7 +12488,7 @@ namespace Orts.Simulation.Physics
 
             CalculatePositionOfCars();
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction1 = (TrackDirection)FrontTDBTraveller.Direction;
 

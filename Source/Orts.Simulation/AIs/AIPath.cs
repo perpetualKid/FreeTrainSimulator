@@ -412,7 +412,7 @@ namespace Orts.Simulation.AIs
             {
                 try
                 {
-                    return findTrackNodeIndex(this);
+                    return FindTrackNodeIndex(this);
                 }
                 catch
                 {
@@ -425,7 +425,7 @@ namespace Orts.Simulation.AIs
             {
                 try
                 {
-                    return findTrackNodeIndex(nextNode);
+                    return FindTrackNodeIndex(nextNode);
                 }
                 catch
                 {
@@ -463,10 +463,10 @@ namespace Orts.Simulation.AIs
         /// <param name="tsectiondat"></param>
         /// <param name="node"></param>
         /// <returns>The track node index that has been found (or an exception)</returns>
-        private static int findTrackNodeIndex(AIPathNode node)
+        private static int FindTrackNodeIndex(AIPathNode node)
         {
             Traveller traveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, node.Location);
-            return traveller.TrackNodeIndex;
+            return Convert.ToInt32(traveller.TrackNode.Index);
         }
 
         /// <summary>

@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const float DisplaySegmentLength = 10;
         private const float MaximumSectionDistance = 10000;
         private Viewport Viewport;
-        private Dictionary<int, TrackSectionCacheEntry> Cache = new Dictionary<int, TrackSectionCacheEntry>();
+        private Dictionary<uint, TrackSectionCacheEntry> Cache = new Dictionary<uint, TrackSectionCacheEntry>();
         private List<DispatcherPrimitive> Primitives = new List<DispatcherPrimitive>();
 
         public SignallingDebugWindow(WindowManager owner)
@@ -93,7 +93,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     var cacheNode = new Traveller(position);
                     cacheNode.ReverseDirection();
                     var initialNodeOffsetCount = 0;
-                    while (cacheNode.TrackNodeIndex == position.TrackNodeIndex && cacheNode.NextSection())
+                    while (cacheNode.TrackNode.Index == position.TrackNode.Index && cacheNode.NextSection())
                         initialNodeOffsetCount++;
                     // Now do it again, but don't go the last track section (because it is from a different track node).
                     cacheNode = new Traveller(position);
@@ -116,8 +116,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             caches.Add(cache);
                             totalDistance += cache.Length;
                         }
-                        var nodeIndex = cacheNode.TrackNodeIndex;
-                        while (cacheNode.TrackNodeIndex == nodeIndex && cacheNode.NextSection());
+                        var nodeIndex = cacheNode.TrackNode.Index;
+                        while (cacheNode.TrackNode.Index == nodeIndex && cacheNode.NextSection());
                     }
 
                     var switchErrorDistance = initialNodeOffset + DisplayDistance + SignalWarningDistance;
@@ -261,15 +261,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private TrackSectionCacheEntry GetCacheEntry(Traveller position)
         {
             TrackSectionCacheEntry rv;
-            if (Cache.TryGetValue(position.TrackNodeIndex, out rv) && (rv.Direction == position.Direction))
+            if (Cache.TryGetValue(position.TrackNode.Index, out rv) && (rv.Direction == position.Direction))
                 return rv;
-            Cache[position.TrackNodeIndex] = rv = new TrackSectionCacheEntry()
+            Cache[position.TrackNode.Index] = rv = new TrackSectionCacheEntry()
             {
                 Direction = position.Direction,
                 Length = 0,
                 Objects = new List<TrackSectionObject>(),
             };
-            var nodeIndex = position.TrackNodeIndex;
+            var nodeIndex = position.TrackNode.Index;
             var trackNode = new Traveller(position);
             while (true)
             {
@@ -279,17 +279,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (trackNode.IsEnd)
                     rv.Objects.Add(new TrackSectionEndOfLine() { Distance = rv.Length });
                 else if (trackNode.IsJunction)
-                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TN as TrackJunctionNode, NodeIndex = nodeIndex });
+                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TrackNode as TrackJunctionNode, NodeIndex = nodeIndex });
                 else
                     rv.Objects.Add(new TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
-                if (trackNode.TrackNodeIndex != nodeIndex)
+                if (trackNode.TrackNode.Index != nodeIndex)
                     break;
             }
             trackNode = new Traveller(position);
             var distance = 0f;
             while (true)
             {
-                TrackNode tn = trackNode.TN;
+                TrackNode tn = trackNode.TrackNode;
                 float offset = trackNode.TrackNodeOffset;
                 TrackDirection direction = (TrackDirection)trackNode.Direction.Reverse();
 
@@ -309,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     if (distance - oldDistance <= 0.001 || distance >= 10000)
                         break;
                     trackNode.Move(signalDistance);
-                    if (trackNode.TrackNodeIndex != nodeIndex)
+                    if (trackNode.TrackNode.Index != nodeIndex)
                         break;
                     rv.Objects.Add(new TrackSectionSignal() { Distance = distance, Signal = signal });
                 }
@@ -364,7 +364,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public class TrackSectionSwitch : TrackSectionObject
         {
             public TrackJunctionNode JunctionNode;
-            public int NodeIndex;
+            public uint NodeIndex;
         }
 
         public class TrackSectionSignal : TrackSectionObject
