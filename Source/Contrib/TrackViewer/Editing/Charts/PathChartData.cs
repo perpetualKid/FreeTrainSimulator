@@ -536,8 +536,6 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// </summary>
     internal class TrackItemManager
     {
-        private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectionDat;
         private readonly Dictionary<TrackNode, IEnumerable<ChartableTrackItem>> cachedItems;
 
         /// <summary>
@@ -546,9 +544,6 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="routeData">The data needed for the route</param>
         public TrackItemManager()
         {
-            trackDB = RuntimeData.Instance.TrackDB;
-            tsectionDat = RuntimeData.Instance.TSectionDat;
-
             cachedItems = new Dictionary<TrackNode, IEnumerable<ChartableTrackItem>>();
         }
 
@@ -570,10 +565,10 @@ namespace ORTS.TrackViewer.Editing.Charts
 
             foreach (int trackItemIndex in vectorNode.TrackItemIndices)
             {
-                TrackItem trItem = trackDB.TrackItems[trackItemIndex];
+                TrackItem trItem = RuntimeData.Instance.TrackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
-                    Traveller travellerAtItem = new Traveller(trackDB.TrackNodes, vectorNode, trItem.Location, Direction.Forward);
+                    Traveller travellerAtItem = new Traveller(vectorNode, trItem.Location, Direction.Forward);
 
                     tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
 

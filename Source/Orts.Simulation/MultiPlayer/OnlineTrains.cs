@@ -171,7 +171,7 @@ namespace Orts.Simulation.MultiPlayer
 
             try
             {
-                train.RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
+                train.RearTDBTraveller = new Traveller(player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
             catch (Exception e)
             {

@@ -121,11 +121,11 @@ namespace Orts.Formats.Msts
         /// </summary>
         public int JunctionEntryPinIndex { get; private set; }
 
-        private Traveller(TrackNode[] trackNodes)
+        private Traveller(bool roadTrackTraveller)
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            this.trackNodes = trackNodes ?? throw new ArgumentNullException(nameof(trackNodes));
+            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes;
         }
 
         /// <summary>
@@ -134,8 +134,8 @@ namespace Orts.Formats.Msts
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="aiPath">The path used to determine travellers location and direction</param>
-        public Traveller(TrackNode[] trackNodes, in WorldLocation firstNodeLocation, in WorldLocation nextMainLocation)
-            : this(trackNodes, firstNodeLocation)
+        public Traveller(in WorldLocation firstNodeLocation, in WorldLocation nextMainLocation, bool roadTraveller = false)
+            : this(firstNodeLocation, roadTraveller)
         {
             // get distance forward
             float fwdist = DistanceTo(nextMainLocation);
@@ -157,8 +157,8 @@ namespace Orts.Formats.Msts
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="loc">Starting world location</param>
-        public Traveller(TrackNode[] trackNodes, WorldLocation location)
-            : this(trackNodes)
+        public Traveller(WorldLocation location, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
             //first find all tracknodes that are close enough
@@ -192,8 +192,8 @@ namespace Orts.Formats.Msts
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackNode[] trackNodes, in WorldLocation location, Direction direction)
-            : this(trackNodes, location)
+        public Traveller(in WorldLocation location, Direction direction, bool roadTraveller = false)
+            : this(location, roadTraveller)
         {
             Direction = direction;
         }
@@ -204,8 +204,8 @@ namespace Orts.Formats.Msts
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="startTrackNode">Starting track node.</param>
-        public Traveller(TrackNode[] trackNodes, TrackVectorNode startTrackNode)
-            : this(trackNodes)
+        public Traveller(TrackVectorNode startTrackNode, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             if (startTrackNode == null) 
                 throw new ArgumentException("Track node is not a vector node.", nameof(startTrackNode));
@@ -232,8 +232,8 @@ namespace Orts.Formats.Msts
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="startTrackNode">Starting track node.</param>
         /// <param name="location">Starting coordinate.</param>
-        private Traveller(TrackNode[] trackNodes, TrackVectorNode startTrackNode, in WorldLocation location)
-            : this(trackNodes)
+        private Traveller(TrackVectorNode startTrackNode, in WorldLocation location, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             if (startTrackNode == null) 
                 throw new ArgumentNullException(nameof(startTrackNode));
@@ -279,8 +279,8 @@ namespace Orts.Formats.Msts
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackNode[] trackNodes, TrackNode startTrackNode, int tileX, int tileZ, float x, float z, Direction direction)
-            : this(trackNodes, startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z))
+        public Traveller(TrackNode startTrackNode, int tileX, int tileZ, float x, float z, Direction direction, bool roadTraveller = false)
+            : this(startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z), roadTraveller)
         {
             Direction = direction;
         }
@@ -296,8 +296,8 @@ namespace Orts.Formats.Msts
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackNode[] trackNodes, TrackVectorNode startTrackNode, in WorldLocation location, Direction direction)
-            : this(trackNodes, startTrackNode, location)
+        public Traveller(TrackVectorNode startTrackNode, in WorldLocation location, Direction direction, bool roadTraveller = false)
+            : this(startTrackNode, location, roadTraveller)
         {
             Direction = direction;
         }
@@ -333,8 +333,8 @@ namespace Orts.Formats.Msts
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="inf">Reader to read persisted data from.</param>
-        public Traveller(TrackNode[] trackNodes, BinaryReader inf)
-            : this(trackNodes)
+        public Traveller(BinaryReader inf, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));

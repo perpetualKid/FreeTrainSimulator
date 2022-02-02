@@ -711,7 +711,7 @@ namespace Orts.Simulation.Signalling
                 return false;
             }
 
-            Traveller traveller = new Traveller(trackDB.TrackNodes, tvn, sigItem.Location, (Direction)sigItem.Direction);
+            Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -740,7 +740,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            Traveller traveller = new Traveller(trackDB.TrackNodes, trackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
+            Traveller traveller = new Traveller(trackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -1285,11 +1285,12 @@ namespace Orts.Simulation.Signalling
             // Check if original tracknode had trackitems
             TrackCircuitSection circuit = TrackCircuitSection.TrackCircuitList[nodeIndex];
 
-            if (trackNodes[circuit.OriginalIndex] is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0)
+            TrackVectorNode tvn = trackNodes[circuit.OriginalIndex] as TrackVectorNode;
+            if (tvn != null && tvn.TrackItemIndices.Length > 0)
             {
                 // Create TDBtraveller at start of section to calculate distances
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller traveller = new Traveller(trackNodes, tvn, firstSection.Location, Direction.Forward);
+                Traveller traveller = new Traveller(tvn, firstSection.Location, Direction.Forward);
 
 
                 // Process all items (do not split yet)
@@ -1299,7 +1300,7 @@ namespace Orts.Simulation.Signalling
                     int tdbRef = tvn.TrackItemIndices[i];
                     if (trackItems[tdbRef] != null)
                     {
-                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller, trackNodes, lastDistance, crossoverList);
+                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller, tvn, lastDistance, crossoverList);
                     }
                 }
             }
@@ -1309,7 +1310,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// InsertNode
         /// </summary>
-        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, Traveller traveller, TrackNode[] trackNodes, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
+        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, Traveller traveller, TrackNode circuitNode, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             float[] newLastDistance = new float[2] { lastDistance[0], lastDistance[1] };
@@ -1409,7 +1410,7 @@ namespace Orts.Simulation.Signalling
             // Insert crossover in special crossover list
             else if (trackItem is CrossoverItem crossOver)
             {
-                float cdist = traveller.DistanceTo(trackNodes[circuit.OriginalIndex], crossOver.Location);
+                float cdist = traveller.DistanceTo(circuitNode, crossOver.Location);
 
                 int crossOverId = (int)crossOver.TrackItemId;
                 int crossId = (int)crossOver.TrackNode;

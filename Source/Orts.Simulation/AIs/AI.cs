@@ -950,7 +950,7 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = 2;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            train.RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
+            train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "-----  New AI Train  -----\n");
 #endif

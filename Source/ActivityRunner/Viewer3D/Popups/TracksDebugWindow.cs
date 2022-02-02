@@ -74,7 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                 {
-                    var currentPosition = new Traveller(tdb.TrackNodes, trackNode);
+                    var currentPosition = new Traveller(trackNode);
                     while (true)
                     {
                         var previousLocation = currentPosition.WorldLocation;
@@ -86,7 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     foreach (var trItemID in trackNode.TrackItemIndices)
                     {
                         var trItem = tdb.TrackItems[trItemID];
-                        currentPosition = new Traveller(tdb.TrackNodes, trackNode);
+                        currentPosition = new Traveller(trackNode);
                         currentPosition.Move(trItem.SData1);
                         primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue,
                             $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1 
                         && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                     {
-                        var currentPosition = new Traveller(rdb.TrackNodes, trackNode);
+                        var currentPosition = new Traveller(trackNode, true);
                         while (true)
                         {
                             var previousLocation = currentPosition.WorldLocation;
@@ -113,7 +113,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             foreach (var trItemID in trackNode.TrackItemIndices)
                             {
                                 var trItem = rdb.TrItemTable[trItemID];
-                                currentPosition = new Traveller(rdb.TrackNodes, trackNode);
+                                currentPosition = new Traveller(trackNode, true);
                                 currentPosition.Move(trItem.SData1);
                                 primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
                             }

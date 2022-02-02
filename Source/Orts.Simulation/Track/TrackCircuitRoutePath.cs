@@ -282,7 +282,7 @@ namespace Orts.Simulation.Track
                     {
                         TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                        Traveller TDBTrav = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, reversalNode, firstSection.Location, Direction.Forward);
+                        Traveller TDBTrav = new Traveller(reversalNode, firstSection.Location, Direction.Forward);
                         offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
                         float reverseOffset = 0;
                         int sectionIndex = -1;
@@ -323,7 +323,7 @@ namespace Orts.Simulation.Track
                         offset = GetOffsetToPathNode(aiPath, validDir, nextPathNode);
                         int[] waitingPoint = new int[6];
                         waitingPoint[0] = sublist + reversal;
-                        waitingPoint[1] = ConvertWaitingPoint(nextPathNode, RuntimeData.Instance.TrackDB);
+                        waitingPoint[1] = ConvertWaitingPoint(nextPathNode);
 
                         waitingPoint[2] = nextPathNode.WaitTimeS;
                         waitingPoint[3] = nextPathNode.WaitUntil;
@@ -389,7 +389,7 @@ namespace Orts.Simulation.Track
 
             thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
             TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-            Traveller TDBEndTrav = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, Direction.Forward);
+            Traveller TDBEndTrav = new Traveller(thisNode as TrackVectorNode, endFirstSection.Location, Direction.Forward);
             float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
 
             // Prepare info about route end point
@@ -1638,11 +1638,11 @@ namespace Orts.Simulation.Track
         }
 
         // Convert waiting point to section no.
-        private static int ConvertWaitingPoint(AIPathNode stopPathNode, TrackDB trackDB)
+        private static int ConvertWaitingPoint(AIPathNode stopPathNode)
         {
-            TrackVectorNode waitingNode = trackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
+            TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
             TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(trackDB.TrackNodes, waitingNode, firstSection.Location, Direction.Forward);
+            Traveller tdbTraveller = new Traveller(waitingNode, firstSection.Location, Direction.Forward);
             float offset = tdbTraveller.DistanceTo(waitingNode, stopPathNode.Location);
 
             int sectionIndex = -1;

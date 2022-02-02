@@ -465,7 +465,7 @@ namespace Orts.Simulation.AIs
         /// <returns>The track node index that has been found (or an exception)</returns>
         private static int FindTrackNodeIndex(AIPathNode node)
         {
-            Traveller traveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, node.Location);
+            Traveller traveller = new Traveller(node.Location);
             return Convert.ToInt32(traveller.TrackNode.Index);
         }
 

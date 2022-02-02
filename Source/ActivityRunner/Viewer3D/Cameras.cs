@@ -2968,7 +2968,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     Traveller shortTrav;
                                     if (!(RuntimeData.Instance.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem))
                                         continue;
-                                    shortTrav = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes, platformItem.Location, Direction.Forward);
+                                    shortTrav = new Traveller(platformItem.Location, Direction.Forward);
                                     var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
                                     if (distanceToViewingPoint1 == -1) //try other direction
                                     {
@@ -3071,8 +3071,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         TrackCameraLocation = newLevelCrossingItem.Location;
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
-                        roadTraveller = new Traveller(RuntimeData.Instance.RoadTrackDB.TrackNodes, RuntimeData.Instance.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
-                            TrackCameraLocation, StaticRandom.Next(2) == 0 ? Direction.Forward : Direction.Backward);
+                        roadTraveller = new Traveller(RuntimeData.Instance.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
+                            TrackCameraLocation, StaticRandom.Next(2) == 0 ? Direction.Forward : Direction.Backward, true);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);
                         TrackCameraLocation = roadTraveller.WorldLocation;
