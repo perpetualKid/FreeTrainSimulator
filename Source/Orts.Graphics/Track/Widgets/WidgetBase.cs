@@ -8,12 +8,12 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Track.Widgets
 {
-    internal abstract class WidgetBase
+    public abstract class WidgetBase
     {
         internal float Size;
     }
 
-    internal abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
+    public abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
     {
         private protected PointD location;
 

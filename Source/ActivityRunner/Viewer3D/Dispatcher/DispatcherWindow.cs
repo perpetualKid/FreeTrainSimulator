@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 using GetText;
 using GetText.WindowsForms;
@@ -18,11 +18,12 @@ using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.Track;
 using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.Track.Widgets;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
-
-using static Orts.Common.Position.TileHelper;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -46,6 +47,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private SpriteBatch spriteBatch;
         private ContentArea contentArea;
+        private DispatcherContent content;
 
         private UserCommandController<UserCommand> userCommandController;
 
@@ -156,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            DispatcherContent content = new DispatcherContent(this);
+            content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
             content.UpdateItemVisiblity(TrackViewerViewSettings.All);
             content.UpdateWidgetColorSettings(colorSettings);
@@ -183,6 +185,20 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             GraphicsDevice.Clear(Color.Beige);
             base.Draw(gameTime);
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            List<TrainCarWidget> trainCars = new List<TrainCarWidget>();
+            foreach (Train train in Simulator.Instance.Trains)
+            {
+                foreach (TrainCar car in train.Cars)
+                {
+                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.Flipped));
+                }
+            }
+            content.UpdateTrainPositions(trainCars);
+            base.Update(gameTime);
         }
 
         #region window size/position handling

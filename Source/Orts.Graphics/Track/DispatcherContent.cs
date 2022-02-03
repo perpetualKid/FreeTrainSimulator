@@ -33,6 +33,8 @@ namespace Orts.Graphics.Track
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
 
+        internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
+
         public DispatcherContent(Game game) :
             base(game)
         {
@@ -72,6 +74,11 @@ namespace Orts.Graphics.Track
                         junctionNode.Draw(ContentArea);
                 }
             }
+            if (null != Trains)
+            { 
+                foreach(TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
+                    trainCar.Draw(ContentArea);
+            }
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -91,6 +98,11 @@ namespace Orts.Graphics.Track
                     distance = itemDistance;
                 }
             }
+        }
+
+        public void UpdateTrainPositions(List<TrainCarWidget> trainCars)
+        {
+            Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
         public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
