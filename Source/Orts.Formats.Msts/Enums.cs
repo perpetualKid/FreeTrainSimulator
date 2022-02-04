@@ -602,16 +602,13 @@ namespace Orts.Formats.Msts
         Control,
     }
 
-#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     public enum WagonType
-#pragma warning restore CA1027 // Mark enums with FlagsAttribute
     {
         Unknown,
         Engine,
         Tender,
         Passenger,
         Freight,
-        Carriage = Passenger,//Only used for parsing from files
     }
 
     public enum SteamEngineType

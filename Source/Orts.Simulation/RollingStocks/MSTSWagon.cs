@@ -967,7 +967,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(type":
                     stf.MustMatch("(");
                     string wagonType = stf.ReadString();
-                    if (EnumExtension.GetValue(wagonType, out WagonType wagonTypeResult))
+                    if (EnumExtension.GetValue(wagonType.Replace("Carriage", "Passenger", StringComparison.InvariantCultureIgnoreCase), out WagonType wagonTypeResult))
                         WagonType = wagonTypeResult;
                     else
                         STFException.TraceWarning(stf, "Skipped unknown wagon type " + wagonType);
