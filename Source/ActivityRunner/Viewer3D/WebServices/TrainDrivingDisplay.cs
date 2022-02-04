@@ -22,6 +22,7 @@ using System.Linq;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
@@ -296,7 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             {
                 string reverserKey = string.Empty;
                 bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
-                bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
+                bool nonSteamEnd = trainCar.EngineType != EngineType.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
                 if (reverserForwardDown)
                 {
@@ -320,7 +321,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 string reverserIndicator = showMUReverser ? $"{Round(Math.Abs(train.MUReverserPercent))}% " : "";
                 AddLabel(new ListLabel
                 {
-                    FirstCol = Viewer.Catalog.GetString(locomotive.EngineType == TrainCar.EngineTypes.Steam ? "Reverser" : "Direction"),
+                    FirstCol = Viewer.Catalog.GetString(locomotive.EngineType == EngineType.Steam ? "Reverser" : "Direction"),
                     LastCol = $"{reverserIndicator}{locomotive.Direction.GetLocalizedDescription()}",
                     KeyPressed = reverserKey,
                     SymbolCol = reverserKey,

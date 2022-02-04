@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
@@ -186,7 +187,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override float GetCylPressurePSI()
         {
-            if (LocomotiveSteamBrakeFitted && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
+            if (LocomotiveSteamBrakeFitted && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
             {
                 return SteamBrakeCylinderPressurePSI;
             }
@@ -321,7 +322,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     EngineBrake = true;  // set to overcome potential null errors with lead var.
                 }
 
-                if (lead.SteamEngineBrakeFitted && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
+                if (lead.SteamEngineBrakeFitted && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
                 {
                     // The steam brake uses the existing code for the train brake and engine brake. It models a Gresham and Craven MkIV steam brake valve.
                     // Engine brake moves in association with Engine Brake Controller, and uses the apply and release delays for steam brake force movement
@@ -443,7 +444,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             // Brake information is updated for each vehicle
 
-            if (EngineBrake && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender)) // Only apples when an engine brake is in place, otherwise processed to next loop
+            if (EngineBrake && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender)) // Only apples when an engine brake is in place, otherwise processed to next loop
             {
                 // The engine brake can only be applied when the train brake is released or partially released. It cannot be released whilever the train brake is applied.
                 if (lead.TrainBrakeController.CurrentValue == 0 && lead.EngineBrakeController.CurrentValue > 0) // If train brake is completely released & Engine brake is applied
@@ -534,7 +535,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
 
             // Record HUD display values for brake cylidners depending upon whether they are wagons or locomotives/tenders (which are subject to their own engine brakes)   
-            if (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender)
+            if (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender)
             {
                 Car.Train.HUDLocomotiveBrakeCylinderPSI = CylPressurePSIA;
                 Car.Train.HUDWagonBrakeCylinderPSI = Car.Train.HUDLocomotiveBrakeCylinderPSI;  // Initially set Wagon value same as locomotive, will be overwritten if a wagon is attached
@@ -551,7 +552,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
 
             // If wagons are not attached to the locomotive, then set wagon BC pressure to same as locomotive in the Train brake line
-            if (!Car.Train.WagonsAttached && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
+            if (!Car.Train.WagonsAttached && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
             {
                 Car.Train.HUDWagonBrakeCylinderPSI = CylPressurePSIA;
             }
@@ -561,7 +562,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             if (!Car.BrakesStuck)
             {
                 // depending upon whether steam brake fitted or not, calculate brake force to be applied
-                if (LocomotiveSteamBrakeFitted && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
+                if (LocomotiveSteamBrakeFitted && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
                 {
                     var leadLocomotiveMaxBoilerPressurePSI = lead == null ? 200.0f : (lead.MaxBoilerPressurePSI);
                     f = Car.MaxBrakeForceN * Math.Min(SteamBrakeCylinderPressurePSI / leadLocomotiveMaxBoilerPressurePSI, 1);
@@ -772,7 +773,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 // This section determines whether small ejector or vacuum pump is going to counteract brake pipe leakage - only applies to steam locomotives
 
-                if (lead.EngineType == TrainCar.EngineTypes.Steam)
+                if (lead.EngineType == EngineType.Steam)
                 {
                     if (!lead.SmallEjectorControllerFitted)
                     {
@@ -958,7 +959,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     else  // No equalising reservoir fitted
                     {
 
-                        if (lead.EngineType == TrainCar.EngineTypes.Steam && lead.TrainBrakePipeLeakPSIorInHgpS != 0 && (lead.BrakeSystem.BrakeLine1PressurePSI + (TrainPipeTimeVariationS * RunningNetBPLossGainPSI)) < OneAtmospherePSI && lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.Running)
+                        if (lead.EngineType == EngineType.Steam && lead.TrainBrakePipeLeakPSIorInHgpS != 0 && (lead.BrakeSystem.BrakeLine1PressurePSI + (TrainPipeTimeVariationS * RunningNetBPLossGainPSI)) < OneAtmospherePSI && lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.Running)
                         {
                             // Allow for leaking train brakepipe (value is determined for lead locomotive) 
                             // For diesel and electric locomotives assume that the Vacuum pump is automatic, and therefore bp leakage has no discernable impact.
@@ -995,7 +996,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         else if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.Release)
                         {
                             float TrainPipePressureDiffPSI = 0;
-                            if (lead.EngineType == TrainCar.EngineTypes.Diesel || lead.EngineType == TrainCar.EngineTypes.Electric)
+                            if (lead.EngineType == EngineType.Diesel || lead.EngineType == EngineType.Electric)
                             {
                                 // diesel and electric locomotives use vacuum exhauster
                                 TrainPipePressureDiffPSI = TrainPipeTimeVariationS * EQReleaseNetBPLossGainPSI;

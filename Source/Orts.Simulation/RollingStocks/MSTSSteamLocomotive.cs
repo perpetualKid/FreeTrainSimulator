@@ -851,7 +851,7 @@ namespace Orts.Simulation.RollingStocks
                     var steamengineType = stf.ReadString();
                     try
                     {
-                        SteamEngineType = (SteamEngineTypes)Enum.Parse(typeof(SteamEngineTypes), steamengineType);
+                        SteamEngineType = (SteamEngineType)Enum.Parse(typeof(SteamEngineType), steamengineType);
                     }
                     catch
                     {
@@ -1222,7 +1222,7 @@ namespace Orts.Simulation.RollingStocks
             bool IsGearAssumed = false;
             if (IsFixGeared || IsSelectGeared) // If a gear type has been selected, but gear type not set in steamenginetype, then set assumption
             {
-                if (SteamEngineType != SteamEngineTypes.Geared)
+                if (SteamEngineType != SteamEngineType.Geared)
                 {
                     IsGearAssumed = true;
                     Trace.TraceWarning("Geared locomotive parameter not defined. Geared locomotive has been assumed");
@@ -1261,7 +1261,7 @@ namespace Orts.Simulation.RollingStocks
 
             // ******************  Test Locomotive and Gearing type *********************** 
 
-            if (SteamEngineType == SteamEngineTypes.Compound)
+            if (SteamEngineType == SteamEngineType.Compound)
             {
                 //  Initialise Compound locomotive
                 SteamLocoType = "Compound locomotive";
@@ -1276,7 +1276,7 @@ namespace Orts.Simulation.RollingStocks
                 LogIsCompoundLoco = true;  // Set logging to true for compound locomotive
 
             }
-            else if (SteamEngineType == SteamEngineTypes.Geared)
+            else if (SteamEngineType == SteamEngineType.Geared)
             {
                 if (IsFixGeared)
                 {
@@ -1372,7 +1372,7 @@ namespace Orts.Simulation.RollingStocks
                     DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
             }
-            else if (SteamEngineType == SteamEngineTypes.Simple)    // Simple locomotive
+            else if (SteamEngineType == SteamEngineType.Simple)    // Simple locomotive
             {
                 SteamLocoType = "Simple locomotive";
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
@@ -1556,7 +1556,7 @@ namespace Orts.Simulation.RollingStocks
                 MaxSpeedFactor = (float)SuperheatedSpeedFactorSpeedDropFtpMintoX[MaxPistonSpeedFtpM];
                 DisplaySpeedFactor = MaxSpeedFactor;
             }
-            else if (SteamEngineType == SteamEngineTypes.Geared)
+            else if (SteamEngineType == SteamEngineType.Geared)
             {
                 MaxPistonSpeedFtpM = MaxSteamGearPistonRateFtpM;  // if geared locomotive
                 MaxSpeedFactor = (float)SaturatedSpeedFactorSpeedDropFtpMintoX[MaxPistonSpeedFtpM];   // Assume the same as saturated locomotive for time being.
@@ -1570,7 +1570,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate max velocity of the locomotive based upon above piston speed
-            if (SteamEngineType != SteamEngineTypes.Geared)
+            if (SteamEngineType != SteamEngineType.Geared)
             {
                 MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(Size.Length.FromFt(Frequency.Periodic.FromMinutes(MaxPistonSpeedFtpM / SteamGearRatio))) * 2.0f * MathHelper.Pi * DriverWheelRadiusM / (2.0f * CylinderStrokeM);
                 DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
@@ -3410,7 +3410,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Prinipal reference for compound locomotives: Compound Locomotives by Arthur Tannatt Woods - https://archive.org/stream/compoundlocomoti00woodrich#page/n5/mode/2up
 
-            if (SteamEngineType == SteamEngineTypes.Compound)
+            if (SteamEngineType == SteamEngineType.Compound)
             {
 
                 CylinderCompressionCloseFactor = (float)(1.0 - CylinderExhausttoCutoff[cutoff]);  // In case of Vuclain locomotive Compression in each of the cylinders is inverse of release (cylinders aligned)
@@ -4063,7 +4063,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Principle source of reference for this section is - LOCOMOTIVE OPERATION - A TECHNICAL AND PRACTICAL ANALYSIS BY G. R. HENDERSON  - pg 128
 
-            if (SteamEngineType != SteamEngineTypes.Compound)
+            if (SteamEngineType != SteamEngineType.Compound)
             {
 
                 // Calculate apparent volumes at various points in cylinder
@@ -4315,7 +4315,7 @@ namespace Orts.Simulation.RollingStocks
                     CylCockPressReduceFactor = (CylinderSteamUsageLBpS / (CylinderSteamUsageLBpS + CylCockSteamUsageLBpS)); // Saturated steam locomotive
                 }
 
-                if (SteamEngineType == SteamEngineTypes.Compound)
+                if (SteamEngineType == SteamEngineType.Compound)
                 {
                     if (CylinderCompoundOn)  // Compound bypass valve open - simple mode for compound locomotive 
                     {
@@ -4333,7 +4333,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else // Cylinder cocks closed, put back to normal
             {
-                if (SteamEngineType == SteamEngineTypes.Compound)
+                if (SteamEngineType == SteamEngineType.Compound)
                 {
                     if (CylinderCompoundOn)  // simple mode for compound locomotive 
                     {
@@ -4358,7 +4358,7 @@ namespace Orts.Simulation.RollingStocks
             // Cylinder steam usage = steam volume (and weight) at start of release stage - steam remaining in cylinder after compression (when admission valve opens)
             // This amount then should be corrected to allow for cylinder condensation in saturated locomotives or not in superheated locomotives
 
-            if (SteamEngineType == SteamEngineTypes.Compound)
+            if (SteamEngineType == SteamEngineType.Compound)
             {
 
                 if (!CylinderCompoundOn) // cylinder bypass value closed - in compound mode
@@ -4459,7 +4459,7 @@ namespace Orts.Simulation.RollingStocks
             // Piston Speed (Ft p Min) = (Stroke length x 2) x (Ft in Mile x Train Speed (mph) / ( Circum of Drv Wheel x 60))
             PistonSpeedFtpMin = (float)Size.Length.ToFt(Frequency.Periodic.ToMinutes(CylinderStrokeM * 2.0f * DrvWheelRevRpS)) * SteamGearRatio;
 
-            if (SteamEngineType == SteamEngineTypes.Compound)
+            if (SteamEngineType == SteamEngineType.Compound)
             {
                 // Calculate tractive effort if set for compounding - tractive effort in each cylinder will need to be calculated
 
@@ -4487,7 +4487,7 @@ namespace Orts.Simulation.RollingStocks
             else // if simple or geared locomotive calculate tractive effort
             {
                 // If the steam piston is exceeding the maximum design piston rate then decrease efficiency of mep
-                if (SteamEngineType == SteamEngineTypes.Geared && PistonSpeedFtpMin > MaxSteamGearPistonRateFtpM)
+                if (SteamEngineType == SteamEngineType.Geared && PistonSpeedFtpMin > MaxSteamGearPistonRateFtpM)
                 {
                     // use straight line curve to decay mep to zero by 2 x piston speed
                     float pistonforcedecay = 1.0f - (1.0f / MaxSteamGearPistonRateFtpM) * (PistonSpeedFtpMin - MaxSteamGearPistonRateFtpM);
@@ -4499,7 +4499,7 @@ namespace Orts.Simulation.RollingStocks
                 TractiveEffortLbsF = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * (MeanEffectivePressurePSI * CylinderEfficiencyRate) * MotiveForceGearRatio);
 
                 // Force tractive effort to zero if throttle is closed, or if a geared steam locomotive in neutral gear. MEP calculation is not allowing it to go to zero
-                if (throttle < 0.001 || (SteamEngineType == SteamEngineTypes.Geared && SteamGearPosition == 0))
+                if (throttle < 0.001 || (SteamEngineType == SteamEngineType.Geared && SteamGearPosition == 0))
                 {
                     TractiveEffortLbsF = 0.0f;
                 }
@@ -4533,12 +4533,12 @@ namespace Orts.Simulation.RollingStocks
             for (int i = 0; i < Train.Cars.Count; i++)  // Doesn't included the locomotive or tender
                 if (Train.Cars[i].SpeedMpS > 0)
                 {
-                    if (Train.Cars[i].WagonType != WagonTypes.Engine && Train.Cars[i].WagonType != WagonTypes.Tender)
+                    if (Train.Cars[i].WagonType != WagonType.Engine && Train.Cars[i].WagonType != WagonType.Tender)
                     {
                         TotalFrictionForceN += Train.Cars[i].FrictionForceN;
                         TrainLoadKg += Train.Cars[i].MassKG;
                     }
-                    if ((Train.Cars[i].WagonType == WagonTypes.Engine || Train.Cars[i].WagonType == WagonTypes.Tender) && i < 2)
+                    if ((Train.Cars[i].WagonType == WagonType.Engine || Train.Cars[i].WagonType == WagonType.Tender) && i < 2)
                     {
                         LocomotiveCouplerForceN = -1.0f * Train.Cars[i].CouplerForceU;
                     }
@@ -4668,7 +4668,7 @@ namespace Orts.Simulation.RollingStocks
 
 
                 // Starting tangential force - at starting piston force is based upon cutoff pressure  & interia = 0
-                if (SteamEngineType == SteamEngineTypes.Compound)
+                if (SteamEngineType == SteamEngineType.Compound)
                 {
                     if (!CylinderCompoundOn) // Bypass Valve closed - in Compound Mode
                     {
@@ -6137,7 +6137,7 @@ namespace Orts.Simulation.RollingStocks
             CylinderAdmissionOpenFactor * 100
                              );
 
-            if (SteamEngineType == SteamEngineTypes.Compound)  // Display Steam Indicator Information for compound locomotive
+            if (SteamEngineType == SteamEngineType.Compound)  // Display Steam Indicator Information for compound locomotive
             {
 
                 // Display steam indicator pressures in HP cylinder
@@ -6390,7 +6390,7 @@ namespace Orts.Simulation.RollingStocks
                 AIFireOverride ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
                 );
 
-            if (SteamEngineType == SteamEngineTypes.Geared)
+            if (SteamEngineType == SteamEngineType.Geared)
             {
                 status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Performance"));
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
@@ -6481,7 +6481,7 @@ namespace Orts.Simulation.RollingStocks
                     );
             }
 
-            if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineTypes.Geared) 
+            if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared) 
                 // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
             {
                 status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Slip Monitor"));
@@ -7570,7 +7570,7 @@ namespace Orts.Simulation.RollingStocks
         public void ToggleCylinderCompound()
         {
 
-            if (SteamEngineType == SteamEngineTypes.Compound)  // only use this control if a compound locomotive
+            if (SteamEngineType == SteamEngineType.Compound)  // only use this control if a compound locomotive
             {
                 CylinderCompoundOn = !CylinderCompoundOn;
                 SignalEvent(TrainEvent.CylinderCompoundToggle);

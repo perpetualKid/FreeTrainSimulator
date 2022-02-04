@@ -644,7 +644,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                 if ((wagon.FreightAnimations != null && (wagon.FreightAnimations.FreightType == pickup.PickupType ||
                                     wagon.FreightAnimations.FreightType == PickupType.None) &&
                                     intake.Type == pickup.PickupType)
-                                 || (intake.Type == pickup.PickupType && intake.Type > PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
+                                 || (intake.Type == pickup.PickupType && intake.Type > PickupType.FreightSand && (wagon.WagonType == WagonType.Tender || wagon is MSTSLocomotive)))
                                 {
                                     VectorExtension.Transform(new Vector3(0, 0, -intake.OffsetM), car.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
@@ -659,7 +659,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                         nearestPickup = new WagonAndMatchingPickup();
                                         nearestPickup.Pickup = pickup;
                                         nearestPickup.Wagon = wagon;
-                                        if (wagon.WagonType == TrainCar.WagonTypes.Tender)
+                                        if (wagon.WagonType == WagonType.Tender)
                                         {
                                             // Normal arrangement would be steam locomotive followed by the tender car.
                                             if (index > 0 && train.Cars[index - 1] is MSTSSteamLocomotive && !wagon.Flipped && !train.Cars[index - 1].Flipped)
@@ -772,7 +772,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.UpperLimit, Viewer.MilepostUnitsMetric)));
                 return;
             }
-            if (match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || match.Wagon is MSTSElectricLocomotive || (match.Wagon.WagonType == TrainCar.WagonTypes.Tender && match.SteamLocomotiveWithTender != null))
+            if (match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || match.Wagon is MSTSElectricLocomotive || (match.Wagon.WagonType == WagonType.Tender && match.SteamLocomotiveWithTender != null))
             {
                 // Note: The tender contains the intake information, but the steam locomotive includes the controller information that is needed for the refueling process.
 
@@ -903,7 +903,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
             var match = MatchedWagonAndPickup;
             var controller = new MSTSNotchController();
-            if (match.Wagon is MSTSElectricLocomotive || match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || (match.Wagon.WagonType == TrainCar.WagonTypes.Tender && match.SteamLocomotiveWithTender != null))
+            if (match.Wagon is MSTSElectricLocomotive || match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || (match.Wagon.WagonType == WagonType.Tender && match.SteamLocomotiveWithTender != null))
             {
                 if (match.SteamLocomotiveWithTender != null)
                     controller = match.SteamLocomotiveWithTender.GetRefillController(MatchedWagonAndPickup.Pickup.PickupType);

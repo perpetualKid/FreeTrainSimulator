@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
@@ -275,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             bool showMUReverser = Math.Abs(playerTrain.MUReverserPercent) != 100;
             AddLabel(new ListLabel
             {
-                FirstCol = viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
+                FirstCol = viewer.PlayerLocomotive.EngineType == EngineType.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
                 TrackCol = (showMUReverser ? $"{Math.Abs(playerTrain.MUReverserPercent):0}% " : "") + viewer.PlayerLocomotive.Direction.GetLocalizedDescription(),
             });
 

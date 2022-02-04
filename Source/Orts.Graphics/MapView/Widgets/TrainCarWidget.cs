@@ -7,6 +7,10 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
+    public enum TrainCarType
+    { 
+    }
+
     public class TrainCarWidget : PointWidget
     {
         private readonly float angle;

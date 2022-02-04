@@ -418,11 +418,11 @@ namespace Orts.Simulation.RollingStocks
             // If trailing loco resistance constant has not been  defined in WAG/ENG file then assign default value based upon orig Davis values
             if (TrailLocoResistanceFactor == 0)
             {
-                if (WagonType == WagonTypes.Engine)
+                if (WagonType == WagonType.Engine)
                 {
                     TrailLocoResistanceFactor = 0.2083f;  // engine drag value
                 }
-                else if (WagonType == WagonTypes.Tender)
+                else if (WagonType == WagonType.Tender)
                 {
                     TrailLocoResistanceFactor = 1.0f;  // assume that tenders have been set with a value of 0.0005 as per freight wagons
                 }
@@ -462,7 +462,7 @@ namespace Orts.Simulation.RollingStocks
             }
             
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
-            if (WagonNumAxles == 0 && WagonType != WagonTypes.Engine)
+            if (WagonNumAxles == 0 && WagonType != WagonType.Engine)
             {
                 if (MSTSWagonNumWheels != 0 && MSTSWagonNumWheels < 6)
                 {
@@ -521,19 +521,19 @@ namespace Orts.Simulation.RollingStocks
             // If Drag constant not defined in WAG/ENG file then assign default value based upon orig Davis values
             if (DavisDragConstant == 0)
             {
-                if (WagonType == WagonTypes.Engine)
+                if (WagonType == WagonType.Engine)
                 {
                     DavisDragConstant = 0.0024f;
                 }
-                else if (WagonType == WagonTypes.Freight)
+                else if (WagonType == WagonType.Freight)
                 {
                     DavisDragConstant = 0.0005f;
                 }
-                else if (WagonType == WagonTypes.Passenger)
+                else if (WagonType == WagonType.Passenger)
                 {
                     DavisDragConstant = 0.00034f;
                 }
-                else if (WagonType == WagonTypes.Tender)
+                else if (WagonType == WagonType.Tender)
                 {
                     DavisDragConstant = 0.0005f;
                 }
@@ -928,16 +928,16 @@ namespace Orts.Simulation.RollingStocks
             {
                 switch (WagonType)
                 {
-                    case WagonTypes.Freight:
+                    case WagonType.Freight:
                         UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
-                    case WagonTypes.Passenger:
+                    case WagonType.Passenger:
                         UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
-                    case WagonTypes.Engine:
+                    case WagonType.Engine:
                         UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
-                    case WagonTypes.Tender:
+                    case WagonType.Tender:
                         UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     default:
@@ -969,7 +969,7 @@ namespace Orts.Simulation.RollingStocks
                     var wagonType = stf.ReadString();
                     try
                     {
-                        WagonType = (WagonTypes)Enum.Parse(typeof(WagonTypes), wagonType.Replace("Carriage", "Passenger"));
+                        WagonType = (WagonType)Enum.Parse(typeof(WagonType), wagonType.Replace("Carriage", "Passenger"));
                     }
                     catch
                     {
@@ -981,7 +981,7 @@ namespace Orts.Simulation.RollingStocks
                     var wagonspecialType = stf.ReadString();
                     try
                     {
-                        WagonSpecialType = (WagonSpecialTypes)Enum.Parse(typeof(WagonSpecialTypes), wagonspecialType);
+                        WagonSpecialType = (WagonSpecialType)Enum.Parse(typeof(WagonSpecialType), wagonspecialType);
                     }
                     catch
                     {
@@ -1775,7 +1775,7 @@ namespace Orts.Simulation.RollingStocks
             ConfirmSteamLocomotiveTender(); // Confirms that a tender is connected to the steam locomotive
 
             // Adjusts water and coal mass based upon values assigned to the tender found in the WAG file rather then those defined in ENG file.
-            if (WagonType == WagonTypes.Tender && TenderWeightInitialize && TenderWagonMaxCoalMassKG != 0 && TenderWagonMaxWaterMassKG != 0)
+            if (WagonType == WagonType.Tender && TenderWeightInitialize && TenderWagonMaxCoalMassKG != 0 && TenderWagonMaxWaterMassKG != 0)
             {
 
                 // Find the associated steam locomotive for this tender
@@ -1896,7 +1896,7 @@ namespace Orts.Simulation.RollingStocks
             MSTSBrakeSystem.Update(elapsedClockSeconds);
 
             // Updates freight load animations when defined in WAG file - Locomotive and Tender load animation are done independently in UpdateTenderLoad() & UpdateLocomotiveLoadPhysics()
-            if (WeightLoadController != null && WagonType != WagonTypes.Tender && AuxWagonType != AuxWagonType.AuxiliaryTender && WagonType != WagonTypes.Engine)
+            if (WeightLoadController != null && WagonType != WagonType.Tender && AuxWagonType != AuxWagonType.AuxiliaryTender && WagonType != WagonType.Engine)
             {
                 WeightLoadController.Update(elapsedClockSeconds);
                 if (FreightAnimations.LoadedOne != null)
@@ -2160,12 +2160,12 @@ namespace Orts.Simulation.RollingStocks
 
                 // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
                 // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
-                if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
+                if (WagonType == WagonType.Engine && Train.LeadLocomotive != this)
                     FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
 
                 // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
                 bool IsLeadTender = false;
-                if (WagonType == WagonTypes.Tender)
+                if (WagonType == WagonType.Tender)
                 {
                     bool PrevCarLead = false;
                     foreach (var car in Train.Cars)
@@ -2286,9 +2286,9 @@ namespace Orts.Simulation.RollingStocks
             float wheelvariationfactor = 1;
 
             // Find the variation in journal resistance due to wheel size. Steam locomotive don't have any variation at this time.
-            if (WagonType == WagonTypes.Engine)
+            if (WagonType == WagonType.Engine)
             {
-                if (EngineType != EngineTypes.Steam)
+                if (EngineType != EngineType.Steam)
                 {
                     float wheeldiamM = 2.0f * DriverWheelRadiusM;
                     wheelvariationfactor = (float)(Size.Length.ToIn(wheeldiamM) / ReferenceWheelDiameterIn);
@@ -2432,7 +2432,7 @@ namespace Orts.Simulation.RollingStocks
             float TrackIntersect = LowLoadGrade - (TrackGrad * LowLoadKg);
 
             // Determine Axle loading of Car
-            if (WagonType == WagonTypes.Engine && IsPlayerTrain && Simulator.PlayerLocomotive is MSTSLocomotive locoParameters)
+            if (WagonType == WagonType.Engine && IsPlayerTrain && Simulator.PlayerLocomotive is MSTSLocomotive locoParameters)
             {
                 // This only takes into account the driven axles for 100% accuracy the non driven axles should also be considered
                 AxleLoadKg = locoParameters.DrvWheelWeightKg / locoParameters.LocoNumDrvAxles;
@@ -2578,14 +2578,14 @@ namespace Orts.Simulation.RollingStocks
 
             // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
             // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
-            if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
+            if (WagonType == WagonType.Engine && Train.LeadLocomotive != this)
             {
                 FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
             }
 
             // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
             bool IsLeadTender = false;
-            if (WagonType == WagonTypes.Tender)
+            if (WagonType == WagonType.Tender)
             {
                 bool PrevCarLead = false;
                 foreach (var car in Train.Cars)
@@ -2644,7 +2644,7 @@ namespace Orts.Simulation.RollingStocks
                  if (!HotBoxHasBeenInitialized) // If already initialised then skip
                  {
                     // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
-                    if (Simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonTypes.Engine && WagonType != WagonTypes.Tender)
+                    if (Simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
                      {
                          var HotboxRandom = StaticRandom.Next(100) / Simulator.Settings.ActRandomizationLevel;
                          float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
@@ -2903,14 +2903,14 @@ namespace Orts.Simulation.RollingStocks
                 float LateralWindResistanceForceN = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction));
 
                 // if this car is a locomotive, but not the lead one then recalculate the resistance with lower C value as drag will not be as high on trailing locomotives
-                if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
+                if (WagonType == WagonType.Engine && Train.LeadLocomotive != this)
                 {
                     LateralWindResistanceForceN *= TrailLocoResistanceFactor;
                 }
 
                 // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
                 bool IsLeadTender = false;
-                if (WagonType == WagonTypes.Tender)
+                if (WagonType == WagonType.Tender)
                 {
                     bool PrevCarLead = false;
                     foreach (var car in Train.Cars)
@@ -2958,7 +2958,7 @@ namespace Orts.Simulation.RollingStocks
             if (FreightAnimations != null && FreightAnimations.ContinuousFreightAnimationsPresent) // make sure that a freight animation INCLUDE File has been defined, and it contains "continuous" animation data.
             {
 
-                if (WagonType == WagonTypes.Tender)
+                if (WagonType == WagonType.Tender)
                 {
                     // Find the associated steam locomotive for this tender
                     if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
@@ -3042,13 +3042,13 @@ namespace Orts.Simulation.RollingStocks
 
             // if this is a heating steam boiler car then adjust steam pressure
             // Don't turn steam heat on until pressure valve has been opened, water and fuel capacity also needs to be present, steam heating shouldn't already be present on diesel or steam locomotive
-            if (IsPlayerTrain && WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler && !LocomotiveParameters.IsSteamHeatFitted && LocomotiveParameters.SteamHeatController.CurrentValue > 0.05 && CurrentCarSteamHeatBoilerWaterCapacityL > 0 && CurrentSteamHeatBoilerFuelCapacityL > 0 && !IsSteamHeatBoilerLockedOut)
+            if (IsPlayerTrain && WagonSpecialType == WagonSpecialType.HeatingBoiler && !LocomotiveParameters.IsSteamHeatFitted && LocomotiveParameters.SteamHeatController.CurrentValue > 0.05 && CurrentCarSteamHeatBoilerWaterCapacityL > 0 && CurrentSteamHeatBoilerFuelCapacityL > 0 && !IsSteamHeatBoilerLockedOut)
             {
                 //   LocomotiveParameters.CurrentSteamHeatPressurePSI = LocomotiveParameters.SteamHeatController.CurrentValue * 100;
                 LocomotiveParameters.CurrentSteamHeatPressurePSI = 60.0f;
                 Train.CarSteamHeatOn = true; // turn on steam effects on wagons
             }
-            else if (IsPlayerTrain && WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler)
+            else if (IsPlayerTrain && WagonSpecialType == WagonSpecialType.HeatingBoiler)
             {
                 LocomotiveParameters.CurrentSteamHeatPressurePSI = 0.0f;
                 Train.CarSteamHeatOn = false; // turn off steam effects on wagons
@@ -3121,10 +3121,10 @@ namespace Orts.Simulation.RollingStocks
                 bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
                 var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
 
-                if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
+                if (WagonType == WagonType.Tender || WagonType == WagonType.Engine)
                 {
 
-                    if (WagonType == WagonTypes.Tender)
+                    if (WagonType == WagonType.Tender)
                     {
                         // Find the associated steam locomotive for this tender
                         if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
@@ -3216,7 +3216,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Update Steam Brake leaks Information
-                if (LocomotiveIdentification.EngineBrakeFitted && LocomotiveIdentification.SteamEngineBrakeFitted && (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine))
+                if (LocomotiveIdentification.EngineBrakeFitted && LocomotiveIdentification.SteamEngineBrakeFitted && (WagonType == WagonType.Tender || WagonType == WagonType.Engine))
                 {
                     // Find the steam leakage rate based upon valve opening and current boiler pressure
                     float SteamBrakeLeakRate = LocomotiveIdentification.EngineBrakeController.CurrentValue * (LocomotiveIdentification.BoilerPressurePSI / LocomotiveIdentification.MaxBoilerPressurePSI);
@@ -3236,7 +3236,7 @@ namespace Orts.Simulation.RollingStocks
                         SteamBrakeLeaksVolumeM3pS = 0.0f;
                     }
 
-                    if (WagonType == WagonTypes.Tender)
+                    if (WagonType == WagonType.Tender)
                     {
                         // Find the associated steam locomotive for this tender
                         if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
@@ -3440,13 +3440,13 @@ namespace Orts.Simulation.RollingStocks
             for (var i = 0; i < Train.Cars.Count; i++)
             {
 
-                if (activeIndex == 0 && Train.Cars[i].EngineType == TrainCar.EngineTypes.Diesel)
+                if (activeIndex == 0 && Train.Cars[i].EngineType == EngineType.Diesel)
                 {
                     activeIndex = i;
                     activeLocomotive = true;
                 }
 
-                if (controlIndex == 0 && Train.Cars[i].EngineType == TrainCar.EngineTypes.Control)
+                if (controlIndex == 0 && Train.Cars[i].EngineType == EngineType.Control)
                 {
                     controlIndex = i;
                     controlCar = true;
@@ -3476,7 +3476,7 @@ namespace Orts.Simulation.RollingStocks
             // Check to see if this car is defined as a tender, if so then set linkage to relevant steam locomotive. If no tender, then set linkage to null
             for (var i = 0; i < Train.Cars.Count; i++)
             {
-                if (Train.Cars[i] == this && Train.Cars[i].WagonType == TrainCar.WagonTypes.Tender)
+                if (Train.Cars[i] == this && Train.Cars[i].WagonType == WagonType.Tender)
                 {
                     tenderIndex = i;
                     HasTender = true;
@@ -3518,13 +3518,13 @@ namespace Orts.Simulation.RollingStocks
                         tenderIndex = i;
                 }
 
-                if (tenderIndex < Train.Cars.Count - 1 && Train.Cars[tenderIndex + 1].WagonType == WagonTypes.Tender) // Assuming the tender is behind the locomotive
+                if (tenderIndex < Train.Cars.Count - 1 && Train.Cars[tenderIndex + 1].WagonType == WagonType.Tender) // Assuming the tender is behind the locomotive
                 {
                     SteamLocomotiveTender = Train.Cars[tenderIndex] as MSTSSteamLocomotive;
                     SteamLocomotiveTender.HasTenderCoupled = true;
                 }
 
-                else if (tenderIndex > 0 && Train.Cars[tenderIndex - 1].WagonType == WagonTypes.Tender) // Assuming the tender is "in front" of the locomotive, ie it is running in reverse
+                else if (tenderIndex > 0 && Train.Cars[tenderIndex - 1].WagonType == WagonType.Tender) // Assuming the tender is "in front" of the locomotive, ie it is running in reverse
                 {
                     // TO BE CHECKED - What happens if multiple locomotives are coupled together in reverse?
                     SteamLocomotiveTender = Train.Cars[tenderIndex] as MSTSSteamLocomotive;

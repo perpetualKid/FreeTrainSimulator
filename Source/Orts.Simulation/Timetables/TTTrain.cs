@@ -8289,7 +8289,7 @@ namespace Orts.Simulation.Timetables
                         {
                             foreach (TrainCar car in formedTrain.Cars)
                             {
-                                if (car.WagonType == TrainCar.WagonTypes.Engine)
+                                if (car.WagonType == WagonType.Engine)
                                 {
                                     MSTSLocomotive loco = car as MSTSLocomotive;
                                     loco.AntiSlip = formedTrain.leadLocoAntiSlip;
@@ -10127,12 +10127,12 @@ namespace Orts.Simulation.Timetables
 
                     // check first unit
                     thisCar = Cars[0];
-                    if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                    if (thisCar.WagonType == WagonType.Engine)
                     {
                         iunits++;
                         checktender = true;
                     }
-                    else if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (thisCar.WagonType == WagonType.Tender)
                     {
                         iunits++;
                         checkengine = true;
@@ -10142,7 +10142,7 @@ namespace Orts.Simulation.Timetables
                     while (checktender && nextunit < Cars.Count)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit++;
@@ -10156,12 +10156,12 @@ namespace Orts.Simulation.Timetables
                     while (checkengine && nextunit < Cars.Count)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit++;
                         }
-                        else if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                        else if (thisCar.WagonType == WagonType.Engine)
                         {
                             iunits++;
                             checkengine = false;
@@ -10177,7 +10177,7 @@ namespace Orts.Simulation.Timetables
                     for (int iCar = 0; iCar < Cars.Count; iCar++)
                     {
                         thisCar = Cars[iCar];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                         }
@@ -10195,12 +10195,12 @@ namespace Orts.Simulation.Timetables
 
                     // check first unit
                     thisCar = Cars[Cars.Count - 1];
-                    if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                    if (thisCar.WagonType == WagonType.Engine)
                     {
                         iunits++;
                         checktender = true;
                     }
-                    else if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (thisCar.WagonType == WagonType.Tender)
                     {
                         iunits++;
                         checkengine = true;
@@ -10210,7 +10210,7 @@ namespace Orts.Simulation.Timetables
                     while (checktender && nextunit >= 0)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit--;
@@ -10224,12 +10224,12 @@ namespace Orts.Simulation.Timetables
                     while (checkengine && nextunit >= 0)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit--;
                         }
-                        else if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                        else if (thisCar.WagonType == WagonType.Engine)
                         {
                             iunits++;
                             checkengine = false;
@@ -10247,7 +10247,7 @@ namespace Orts.Simulation.Timetables
                     for (int iCar = Cars.Count - 1; iCar >= 0; iCar--)
                     {
                         thisCar = Cars[iCar];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                         }
@@ -10262,13 +10262,13 @@ namespace Orts.Simulation.Timetables
 
                     int frontunits = 0;
                     // power is at front
-                    if (Cars[0].WagonType == TrainCar.WagonTypes.Engine || Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                    if (Cars[0].WagonType == WagonType.Engine || Cars[0].WagonType == WagonType.Tender)
                     {
                         frontpos = false;
                         nextunit = 0;
                         thisCar = Cars[nextunit];
 
-                        while ((thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender) && nextunit < Cars.Count)
+                        while ((thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender) && nextunit < Cars.Count)
                         {
                             frontunits++;
                             nextunit++;
@@ -10286,7 +10286,7 @@ namespace Orts.Simulation.Timetables
                         nextunit = Cars.Count - 1;
                         thisCar = Cars[nextunit];
 
-                        while ((thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender) && nextunit >= 0)
+                        while ((thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender) && nextunit >= 0)
                         {
                             frontunits++;
                             nextunit--;
@@ -10693,7 +10693,7 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (TrainCar car in attachTrain.Cars)
                 {
-                    if (car.WagonType == TrainCar.WagonTypes.Engine)
+                    if (car.WagonType == WagonType.Engine)
                     {
                         MSTSLocomotive loco = car as MSTSLocomotive;
                         loco.AntiSlip = attachTrain.leadLocoAntiSlip;
@@ -12354,7 +12354,7 @@ namespace Orts.Simulation.Timetables
             if (DetachUnits == DetachUnitsInfo.onlyPower)
             {
                 DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == TrainCar.WagonTypes.Engine || train.Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
                 {
                     DetachUnits = DetachUnitsInfo.allLeadingPower;
                 }
@@ -12599,7 +12599,7 @@ namespace Orts.Simulation.Timetables
             if (DetachUnits == DetachUnitsInfo.onlyPower)
             {
                 DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == TrainCar.WagonTypes.Engine || train.Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
                 {
                     DetachUnits = DetachUnitsInfo.allLeadingPower;
                 }

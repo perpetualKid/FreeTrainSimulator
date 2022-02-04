@@ -423,7 +423,7 @@ namespace Orts.Simulation.Physics
             FirstCarUiD = 0; // Initialise at zero every time routine runs
             foreach (TrainCar car in Cars)
             {
-                if (car.WagonType != TrainCar.WagonTypes.Engine && car.WagonType != TrainCar.WagonTypes.Tender) // If car is not a locomotive or tender, then set UiD
+                if (car.WagonType != WagonType.Engine && car.WagonType != WagonType.Tender) // If car is not a locomotive or tender, then set UiD
                 {
                     FirstCarUiD = car.UiD;
                 }
@@ -442,7 +442,7 @@ namespace Orts.Simulation.Physics
             foreach (TrainCar car in Cars)
             {
                 // Test to see if freight or passenger wagons attached (used to set BC pressure in locomotive or wagons)
-                if (car.WagonType == TrainCar.WagonTypes.Freight || car.WagonType == TrainCar.WagonTypes.Passenger)
+                if (car.WagonType == WagonType.Freight || car.WagonType == WagonType.Passenger)
                 {
                     WagonsAttached = true;
                     break;
@@ -1821,10 +1821,10 @@ namespace Orts.Simulation.Physics
                 {
                     switch (car.WagonSpecialType)
                     {
-                        case TrainCar.WagonSpecialTypes.HeatingBoiler:
+                        case WagonSpecialType.HeatingBoiler:
                             heatingBoilerCarAttached = true; // A steam heating boiler is fitted in a wagon
                             break;
-                        case TrainCar.WagonSpecialTypes.Heated:
+                        case WagonSpecialType.Heated:
                             heatedCarAttached = true; // A steam heating boiler is fitted in a wagon
                             break;
                     }
@@ -1849,7 +1849,7 @@ namespace Orts.Simulation.Physics
                         car.InitializeCarHeatingVariables();
                     }
 
-                    if (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
+                    if (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
                     {
                         car.UpdateHeatLoss();
 
@@ -1926,7 +1926,7 @@ namespace Orts.Simulation.Physics
 
                     // Calculate total steam loss along main pipe, by calculating heat into steam pipe at locomotive, deduct heat loss for each car, 
                     // note if pipe pressure drops, then compartment heating will stop
-                    if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == TrainCar.WagonSpecialTypes.Heated))
+                    if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated))
                     {
                         // If main pipe pressure is > 0 then heating will start to occur in comparment, so include compartment heat exchanger value
                         progressiveHeatAlongTrainBTU += (float)((car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU) + Frequency.Periodic.ToHours(Dynamics.Power.ToBTUpS(car.CarHeatCompartmentSteamPipeHeatW)));
@@ -1969,7 +1969,7 @@ namespace Orts.Simulation.Physics
                         {
                             lowSteamHeat = true;
                             // Provide warning message if temperature is too hot
-                            if (car.WagonType == TrainCar.WagonTypes.Passenger)
+                            if (car.WagonType == WagonType.Passenger)
                             {
                                 simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
                             }
@@ -2010,7 +2010,7 @@ namespace Orts.Simulation.Physics
                     car.CarSteamHeatMainPipeSteamPressurePSI = ProgressivePressureAlongTrainPSI;
 
                     // For the boiler heating car adjust mass based upon fuel and water usage
-                    if (car.WagonSpecialType == TrainCar.WagonSpecialTypes.HeatingBoiler)
+                    if (car.WagonSpecialType == WagonSpecialType.HeatingBoiler)
                     {
 
                         // Don't process if water or fule capacities are low
@@ -3383,7 +3383,7 @@ namespace Orts.Simulation.Physics
                     {
                         if (last < Cars.Count - 1)  // Check that there are cars after the locomotive, if not skip extending brake to tender
                         {
-                            if (last == first && Cars[first] is MSTSSteamLocomotive && Cars[first + 1].WagonType == TrainCar.WagonTypes.Tender)
+                            if (last == first && Cars[first] is MSTSSteamLocomotive && Cars[first + 1].WagonType == WagonType.Tender)
                             {
                                 last += 1;      // If a "standard" single steam locomotive with a tender then for the purposes of braking increment last above first by one
                             }
@@ -3423,9 +3423,9 @@ namespace Orts.Simulation.Physics
 
             foreach (TrainCar car in Cars)
             {
-                if (car.WagonType == TrainCar.WagonTypes.Freight)
+                if (car.WagonType == WagonType.Freight)
                     IsFreight = true;
-                if ((car.WagonType == TrainCar.WagonTypes.Passenger) || (car.IsDriveable && car.HasPassengerCapacity))
+                if ((car.WagonType == WagonType.Passenger) || (car.IsDriveable && car.HasPassengerCapacity))
                     PassengerCarsNumber++;
                 if (car.IsDriveable && (car as MSTSLocomotive).CabViewList.Count > 0)
                     IsPlayable = true;

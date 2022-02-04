@@ -469,9 +469,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     var carPreviouslyOnCurve = CarOnCurve;
                     CarOnCurve = false;
                     if ((Car.CurrentCurveRadius > 0 && (Car.CurrentCurveRadius < 301
-                         || (Car.CurrentCurveRadius < 350 && Car.WagonType == TrainCar.WagonTypes.Freight))) ||
+                         || (Car.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))) ||
                         (CarBehind.CurrentCurveRadius > 0 && (CarBehind.CurrentCurveRadius < 301
-                         || (CarBehind.CurrentCurveRadius < 350 && Car.WagonType == TrainCar.WagonTypes.Freight))))
+                         || (CarBehind.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))))
                     {
                         CarOnCurve = true;
                     }
