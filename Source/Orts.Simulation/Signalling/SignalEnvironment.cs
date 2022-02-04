@@ -352,10 +352,9 @@ namespace Orts.Simulation.Signalling
                             {
                                 int index = Interlocked.Increment(ref speedPostIndex);
                                 speedpostWorldList.TryAdd(index, new SpeedPostWorldObject(speedPostObj));
-                                int thisSpeedPostId = speedpostWorldList.Count - 1;
                                 foreach (int trItemId in speedPostObj.TrackItemIds.TrackDbItems)
                                 {
-                                    speedpostLookup.TryAdd(trItemId, thisSpeedPostId);
+                                    speedpostLookup.TryAdd(trItemId, index);
                                 }
                             }
                             else if (worldObject is PlatformObject platformObject)
@@ -718,7 +717,11 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = true, IsSpeedSignal = false, TrackDirection = sigItem.Direction, TrackNode = trackNode, TrackItemRefIndex = nodeIndex
+                IsSignal = true,
+                IsSpeedSignal = false,
+                TrackDirection = sigItem.Direction,
+                TrackNode = trackNode,
+                TrackItemRefIndex = nodeIndex
 
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
@@ -747,7 +750,11 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = false, IsSpeedSignal = false, TrackDirection = TrackDirection.Ahead, TrackNode = trackNode, TrackItemRefIndex = nodeIndex,
+                IsSignal = false,
+                IsSpeedSignal = false,
+                TrackDirection = TrackDirection.Ahead,
+                TrackNode = trackNode,
+                TrackItemRefIndex = nodeIndex,
             };
             signal.AddHead(nodeIndex, tdbRef, speedItem);
 
@@ -2953,7 +2960,8 @@ namespace Orts.Simulation.Signalling
                                 {
                                     foreach (SignalHead signalHead in section.EndSignals[TrackDirection.Ahead].SignalHeads)
                                     {
-                                        if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
+                                        if (signalHead.ApproachControlLimitPositionM != null)
+                                            approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
                                 if (!section.EndSignals[TrackDirection.Ahead].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
@@ -3004,7 +3012,8 @@ namespace Orts.Simulation.Signalling
                                 {
                                     foreach (SignalHead signalHead in section.EndSignals[TrackDirection.Reverse].SignalHeads)
                                     {
-                                        if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
+                                        if (signalHead.ApproachControlLimitPositionM != null)
+                                            approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
                                 if (!section.EndSignals[TrackDirection.Reverse].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
