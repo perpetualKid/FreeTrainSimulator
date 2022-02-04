@@ -133,6 +133,11 @@ namespace Orts.Graphics.MapView
             SuppressDrawing = false;
         }
 
+        public void SetTrackingPosition(in WorldLocation location)
+        {
+            CenterAround(PointD.FromWorldLocation(location));
+        }
+
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
@@ -203,11 +208,19 @@ namespace Orts.Graphics.MapView
             }
         }
 
-        public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
             {
                 UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+            }
+        }
+
+        public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
+            {
+                UpdateScale(Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
             }
         }
 

@@ -24,6 +24,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, moveFast, moveSlow);
+            UserCommands[UserCommand.FollowTrain] = new UserCommandKeyInput(Keys.F);
         }
     }
 }

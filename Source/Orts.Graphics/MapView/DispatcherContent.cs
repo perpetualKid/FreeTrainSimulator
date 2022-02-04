@@ -100,6 +100,11 @@ namespace Orts.Graphics.MapView
             }
         }
 
+        public void UpdateTrainTrackingPoint(in WorldLocation location)
+        { 
+            ContentArea.SetTrackingPosition(location);
+        }
+
         public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
         {
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);

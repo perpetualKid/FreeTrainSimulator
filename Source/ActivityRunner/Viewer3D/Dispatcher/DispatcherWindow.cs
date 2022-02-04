@@ -15,7 +15,6 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
@@ -26,8 +25,6 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -54,6 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private DispatcherContent content;
 
         private UserCommandController<UserCommand> userCommandController;
+        private bool followTrain;
 
         public DispatcherWindow(UserSettings settings)
         {
@@ -113,7 +111,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             spriteBatch = new SpriteBatch(GraphicsDevice);
             TextShape.Initialize(this, spriteBatch);
             BasicShapes.Initialize(spriteBatch);
-
+            InputSettings.Initialize();
             userCommandController = new UserCommandController<UserCommand>();
 
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
@@ -179,8 +177,9 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, contentArea.ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, contentArea.ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, contentArea.MouseDragging);
-            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, contentArea.MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
+            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => followTrain = !followTrain);
             #endregion
 
         }
@@ -202,6 +201,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 }
             }
             content.UpdateTrainPositions(trainCars);
+            if (followTrain)
+                content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             base.Update(gameTime);
         }
 
@@ -357,6 +358,22 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 windowForm.Show();
                 windowForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
             }
+        }
+        #endregion
+
+        #region Content area user interaction
+        public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (followTrain)
+                contentArea.MouseWheel(userCommandArgs, modifiers);
+            else
+                contentArea.MouseWheelAt(userCommandArgs, modifiers);
+        }
+
+        public void MouseDragging(UserCommandArgs userCommandArgs)
+        {
+            followTrain = false;
+            contentArea.MouseDragging(userCommandArgs);
         }
         #endregion
     }

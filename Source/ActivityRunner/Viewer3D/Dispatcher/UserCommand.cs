@@ -12,5 +12,6 @@
         ResetZoomAndLocation,
         SetZoom,
         SetLocation,
+        FollowTrain,
     }
 }
