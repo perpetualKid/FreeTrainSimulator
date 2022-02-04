@@ -194,7 +194,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 foreach (TrainCar car in train.Cars)
                 {
-                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.Flipped));
+                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM));
                 }
             }
             content.UpdateTrainPositions(trainCars);

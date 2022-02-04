@@ -47,7 +47,7 @@ namespace Orts.Models.Simplified
             if (string.IsNullOrEmpty(consist.Name))
                 Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>";
             else
-                Name = consist.Name?.Trim();
+                Name = consist.Name.Trim();
             FilePath = fileName;
         }
 

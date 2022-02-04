@@ -139,10 +139,7 @@ namespace Orts.Models.Simplified
             return (fileDetails.Name);
         }
 
-        public string GetFullName()
-        {
-            return (fileDetails.FullName);
-        }
+        public string FullName => fileDetails.FullName;
 
         // get weatherfiles
         public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Route route, CancellationToken token)

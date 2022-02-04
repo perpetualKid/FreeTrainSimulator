@@ -100,7 +100,7 @@ namespace Orts.Graphics.Track
             }
         }
 
-        public void UpdateTrainPositions(List<TrainCarWidget> trainCars)
+        public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
         {
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }

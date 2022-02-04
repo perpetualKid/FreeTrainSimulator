@@ -13,7 +13,9 @@ namespace Orts.Graphics.Track.Widgets
         internal float Size;
     }
 
+#pragma warning disable CA1708 // Identifiers should differ by more than case
     public abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
+#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
         private protected PointD location;
 
