@@ -595,6 +595,7 @@ namespace Orts.Formats.Msts
 
     public enum EngineType
     {
+        Unknown,
         Steam,
         Diesel,
         Electric,

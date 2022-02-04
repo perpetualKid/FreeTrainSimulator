@@ -14,6 +14,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
@@ -24,6 +26,8 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
@@ -133,25 +137,25 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
             EnumArray<string, ColorSetting> colorSettings = new EnumArray<string, ColorSetting>(new string[]
             {
-                "DarkGray",
-                "Blue",
-                "BlueViolet",
-                "DarkMagenta",
-                "Firebrick",
-                "Crimson",
-                "Olive",
-                "ForestGreen",
-                "DeepPink",
-                "White",
-                "White",
-                "Navy",
-                "ForestGreen",
-                "RoyalBlue",
-                "White",
-                "White",
-                "White",
-                "White",
-            });
+                "CornSilk",     // Background
+                "DimGray",      // RailTrack
+                "BlueViolet",   // RailTrackEnd
+                "DarkMagenta",  // RailTrackJunction
+                "Firebrick",    // RailTrackCrossing
+                "Crimson",      // RailLevelCrossing
+                "Olive",        // RoadTrack
+                "ForestGreen",  // RoadTrackEnd
+                "DeepPink",     // RoadLevelCrossing
+                "White",        // RoadCarSpawner
+                "White",        // SignalItem
+                "Navy",         // PlatformItem
+                "ForestGreen",  // SidingItem
+                "RoyalBlue",    // SpeedPostItem
+                "White",        // HazardItem
+                "White",        // PickupItem
+                "White",        // SoundRegionItem
+                "White",        // LevelCrossingItem
+            }); 
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
@@ -194,7 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 foreach (TrainCar car in train.Cars)
                 {
-                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM));
+                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                 }
             }
             content.UpdateTrainPositions(trainCars);
