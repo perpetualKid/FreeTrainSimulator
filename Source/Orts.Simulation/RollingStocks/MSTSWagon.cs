@@ -966,27 +966,19 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(wagonshape": MainShapeFileName = stf.ReadStringBlock(null); break;
                 case "wagon(type":
                     stf.MustMatch("(");
-                    var wagonType = stf.ReadString();
-                    try
-                    {
-                        WagonType = (WagonType)Enum.Parse(typeof(WagonType), wagonType.Replace("Carriage", "Passenger"));
-                    }
-                    catch
-                    {
+                    string wagonType = stf.ReadString();
+                    if (EnumExtension.GetValue(wagonType, out WagonType wagonTypeResult))
+                        WagonType = wagonTypeResult;
+                    else
                         STFException.TraceWarning(stf, "Skipped unknown wagon type " + wagonType);
-                    }
                     break;
                 case "wagon(ortswagonspecialtype":
                     stf.MustMatch("(");
-                    var wagonspecialType = stf.ReadString();
-                    try
-                    {
-                        WagonSpecialType = (WagonSpecialType)Enum.Parse(typeof(WagonSpecialType), wagonspecialType);
-                    }
-                    catch
-                    {
+                    string wagonspecialType = stf.ReadString();
+                    if (EnumExtension.GetValue(wagonspecialType, out WagonSpecialType wagonSpecialTypeResult))
+                        WagonSpecialType = wagonSpecialTypeResult;
+                    else
                         STFException.TraceWarning(stf, "Assumed unknown engine type " + wagonspecialType);
-                    }
                     break;
                 case "wagon(freightanim":
                     stf.MustMatch("(");

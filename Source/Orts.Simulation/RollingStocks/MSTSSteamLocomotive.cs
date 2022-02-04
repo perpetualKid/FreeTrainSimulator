@@ -848,15 +848,11 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsgearedtractiveeffortfactor": GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
-                    var steamengineType = stf.ReadString();
-                    try
-                    {
-                        SteamEngineType = (SteamEngineType)Enum.Parse(typeof(SteamEngineType), steamengineType);
-                    }
-                    catch
-                    {
+                    string steamengineType = stf.ReadString();
+                    if (EnumExtension.GetValue(steamengineType, out SteamEngineType steamEngineTypeResult))
+                        SteamEngineType = steamEngineTypeResult;
+                    else
                         STFException.TraceWarning(stf, "Assumed unknown engine type " + steamengineType);
-                    }
                     break;
                 case "engine(ortssteamboilertype":
                     stf.MustMatch("(");

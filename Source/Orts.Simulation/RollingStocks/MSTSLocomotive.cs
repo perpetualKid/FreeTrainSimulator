@@ -790,17 +790,12 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsunloadingspeed": UnloadingSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
                 case "engine(type":
                     stf.MustMatch("(");
-                    var engineType = stf.ReadString();
-                    try
-                    {
-                        EngineType = (EngineType)Enum.Parse(typeof(EngineType), engineType.First().ToString().ToUpper() + engineType.Substring(1));
-                    }
-                    catch
-                    {
+                    string engineType = stf.ReadString();
+                    if (EnumExtension.GetValue(engineType, out EngineType engineTypeResult))
+                        EngineType = engineTypeResult;
+                    else
                         STFException.TraceWarning(stf, "Skipped unknown engine type " + engineType);
-                    }
                     break;
-
                 case "engine(enginecontrollers(throttle": ThrottleController = new MSTSNotchController(stf); break;
                 case "engine(enginecontrollers(regulator": ThrottleController = new MSTSNotchController(stf); break;
                 case "engine(enginecontrollers(brake_dynamic": DynamicBrakeController.Parse(stf); break;
