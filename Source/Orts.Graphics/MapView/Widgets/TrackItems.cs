@@ -14,9 +14,9 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     #region TrackItemBase
     internal abstract class TrackItemBase : PointWidget

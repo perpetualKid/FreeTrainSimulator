@@ -6,7 +6,7 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Graphics.Xna;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     public abstract class WidgetBase
     {

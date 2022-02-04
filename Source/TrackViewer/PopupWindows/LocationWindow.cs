@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Graphics;
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;

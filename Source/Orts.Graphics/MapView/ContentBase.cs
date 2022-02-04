@@ -9,7 +9,7 @@ using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 
-namespace Orts.Graphics.Track
+namespace Orts.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {

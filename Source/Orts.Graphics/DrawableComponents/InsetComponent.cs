@@ -6,8 +6,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Graphics.Track.Shapes;
-using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.MapView.Shapes;
+using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents

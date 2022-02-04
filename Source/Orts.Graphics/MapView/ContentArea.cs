@@ -8,10 +8,10 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
-namespace Orts.Graphics.Track
+namespace Orts.Graphics.MapView
 {
     public class ContentArea : DrawableGameComponent
     {

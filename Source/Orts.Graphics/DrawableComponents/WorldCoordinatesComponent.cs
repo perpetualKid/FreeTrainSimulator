@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents

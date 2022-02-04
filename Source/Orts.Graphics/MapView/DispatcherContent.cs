@@ -11,10 +11,10 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
-namespace Orts.Graphics.Track
+namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {

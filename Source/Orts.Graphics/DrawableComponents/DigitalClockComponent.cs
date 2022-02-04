@@ -4,7 +4,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents

@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Models.Simplified;
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer

@@ -4,7 +4,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 
 namespace Orts.Graphics.Xna
 {
