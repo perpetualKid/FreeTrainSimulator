@@ -459,14 +459,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         // preTestShape for lookup if it is an animated clock shape with subobjects named as clock hands 
                         StaticShape preTestShape = (new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
-                        var isAnimatedClock = false;
-                        if (preTestShape.SharedShape.Animations != null
-                            && preTestShape.SharedShape.Animations.Count > 0) // Since animations( 0 ) is a valid entry in *.s files
-                                                                              // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
-                        {
-                            IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?[0]?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
-                            isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
-                        }
+
+                        // FirstOrDefault() checks for "animations( 0 )" as this is a valid entry in *.s files
+                        // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
+                        IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?.FirstOrDefault()?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
+                        bool isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
+
                         if (isAnimatedClock)
                         {
                             sceneryObjects.Add(new AnalogClockShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
