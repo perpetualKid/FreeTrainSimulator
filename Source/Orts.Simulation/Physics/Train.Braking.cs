@@ -157,9 +157,8 @@ namespace Orts.Simulation.Physics
         /// Propagate brake pressure
         protected void PropagateBrakePressure(double elapsedClockSeconds)
         {
-            if (LeadLocomotiveIndex >= 0)
+            if (LeadLocomotive is MSTSLocomotive lead)
             {
-                MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead.TrainBrakeController != null)
                 {
                     (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, elapsedClockSeconds);

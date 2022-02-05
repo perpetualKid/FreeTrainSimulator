@@ -827,7 +827,11 @@ namespace Orts.Simulation.Physics
             if (count > 0)
             {
                 for (int i = 0; i < count; ++i)
-                    Cars.Add(RollingStock.Restore(inf, this));
+                {
+                    TrainCar car = RollingStock.Load(this, inf.ReadString(), false);
+                    car.Restore(inf);
+                    car.Initialize();
+                }
             }
             SetDistributedPowerUnitIds(true);
         }
@@ -1059,8 +1063,11 @@ namespace Orts.Simulation.Physics
         private void SaveCars(BinaryWriter outf)
         {
             outf.Write(Cars.Count);
-            foreach (TrainCar car in Cars)
-                RollingStock.Save(outf, car);
+            foreach (MSTSWagon wagon in Cars.OfType<MSTSWagon>())
+            {
+                outf.Write(wagon.WagFilePath);
+                wagon.Save(outf);
+            }
         }
 
         private static void SaveTrafficSDefinition(BinaryWriter outf, ServiceTraffics trafficServices)
