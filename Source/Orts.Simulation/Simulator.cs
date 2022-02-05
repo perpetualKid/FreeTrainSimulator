@@ -1921,9 +1921,6 @@ namespace Orts.Simulation
                 setting.GraduatedRelease = activitySettings.Options.GraduatedBrakeRelease == 1;
                 Trace.Write($"\n{"Graduated Brake Release",-40}={setting.GraduatedRelease,6}");
 
-                setting.ViewDispatcher = activitySettings.Options.ViewDispatcherWindow == 1;
-                Trace.Write($"\n{"View Dispatch Window",-40}={setting.ViewDispatcher,6}");
-
                 setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
                 Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
 

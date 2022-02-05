@@ -101,7 +101,6 @@ namespace Orts.Menu
             checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
             checkSpeedMonitor.Checked = this.settings.SpeedControl;
             checkConfirmations.Checked = !this.settings.SuppressConfirmations;
-            checkViewMapWindow.Checked = this.settings.ViewDispatcher;
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
@@ -282,7 +281,6 @@ namespace Orts.Menu
             settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
             settings.SpeedControl = checkSpeedMonitor.Checked;
             settings.SuppressConfirmations = !checkConfirmations.Checked;
-            settings.ViewDispatcher = checkViewMapWindow.Checked;
             settings.RetainersOnAllCars = checkRetainers.Checked;
             settings.GraduatedRelease = checkGraduatedRelease.Checked;
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
@@ -689,7 +687,6 @@ namespace Orts.Menu
             {
                 (pbAlerter, new[] { checkAlerter }, "/options.html#alerter-in-cab"),
                 (pbControlConfirmations, new[] { checkConfirmations }, "/options.html#control-confirmations"),
-                (pbMapWindow, new[] { checkViewMapWindow }, "/options.html#dispatcher-window"),
                 (pbRetainers, new[] { checkRetainers }, "/options.html#retainer-valve-on-all-cars"),
                 (pbGraduatedRelease, new[] { checkGraduatedRelease }, "/options.html#graduated-release-air-brakes"),
                 (pbBrakePipeChargingRate, new[] { numericBrakePipeChargingRate }, "/options.html#brake-pipe-charging-rate"),
