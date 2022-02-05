@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
 using Orts.Settings.Util;
@@ -262,7 +263,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TrackDatabase.TrackDB.TrackItems)
+                                            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
                                                 var siding = item as SidingItem;
                                                 if (siding != null && siding.TrackItemId == sidingId)
@@ -476,7 +477,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TrackDatabase.TrackDB.TrackItems)
+                                            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
                                                 var siding = item as SidingItem;
                                                 if (siding != null && siding.TrackItemId == sidingId)
@@ -728,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             List<string> cEnginetype = new List<string>();
                             foreach (var item in cars)//Consist engines
                             {
-                                if (item.EngineType == TrainCar.EngineTypes.Diesel)
+                                if (item.EngineType == EngineType.Diesel)
                                 {//Fuel Diesel
                                     nDieselvolume = nDieselvolume + (item as MSTSDieselLocomotive).MaxDieselLevelL;
                                     nDiesellevel = nDiesellevel + (item as MSTSDieselLocomotive).DieselLevelL;
@@ -737,7 +738,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     FuelType = FuelTypes.DieselOil;
                                 }
 
-                                if (item.EngineType == TrainCar.EngineTypes.Steam && item.AuxWagonType == AuxWagonType.Engine)
+                                if (item.EngineType == EngineType.Steam && item.AuxWagonType == AuxWagonType.Engine)
                                 {//Fuel Steam
                                     nCoalvolume = nCoalvolume + (item as MSTSSteamLocomotive).MaxTenderCoalMassKG;
                                     nCoallevel = nCoallevel + (item as MSTSSteamLocomotive).TenderCoalMassKG;
@@ -748,7 +749,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     nWaterBurnedPerc = 1 - ((item as MSTSSteamLocomotive).CombinedTenderWaterVolumeUKG / (item as MSTSSteamLocomotive).MaxTotalCombinedWaterVolumeUKG);
                                     FuelType = FuelTypes.Coal;
                                 }
-                                if (item.EngineType == TrainCar.EngineTypes.Electric)
+                                if (item.EngineType == EngineType.Electric)
                                 {
                                     cEnginetype.Add("Electric");
                                     FuelType = FuelTypes.Kwhr;

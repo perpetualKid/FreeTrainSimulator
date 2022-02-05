@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents
@@ -35,7 +35,7 @@ namespace Orts.Graphics.DrawableComponents
             {
                 lastMouseState = mouseState;
                 Point worldPoint = content.ScreenToWorldCoordinates(mouseState.Position);
-                WorldLocation location = new WorldLocation(0, 0, worldPoint.X, 0, worldPoint.Y, true);
+                WorldLocation location = PointD.ToWorldLocation(worldPoint);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 
                 longitude *= piRad; // E/W

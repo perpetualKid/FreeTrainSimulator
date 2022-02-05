@@ -423,7 +423,7 @@ namespace Orts.Simulation.Physics
             FirstCarUiD = 0; // Initialise at zero every time routine runs
             foreach (TrainCar car in Cars)
             {
-                if (car.WagonType != TrainCar.WagonTypes.Engine && car.WagonType != TrainCar.WagonTypes.Tender) // If car is not a locomotive or tender, then set UiD
+                if (car.WagonType != WagonType.Engine && car.WagonType != WagonType.Tender) // If car is not a locomotive or tender, then set UiD
                 {
                     FirstCarUiD = car.UiD;
                 }
@@ -442,7 +442,7 @@ namespace Orts.Simulation.Physics
             foreach (TrainCar car in Cars)
             {
                 // Test to see if freight or passenger wagons attached (used to set BC pressure in locomotive or wagons)
-                if (car.WagonType == TrainCar.WagonTypes.Freight || car.WagonType == TrainCar.WagonTypes.Passenger)
+                if (car.WagonType == WagonType.Freight || car.WagonType == WagonType.Passenger)
                 {
                     WagonsAttached = true;
                     break;
@@ -586,7 +586,7 @@ namespace Orts.Simulation.Physics
             LeadLocomotiveIndex = inf.ReadInt32();
             RetainerSetting = (RetainerSetting)inf.ReadInt32();
             RetainerPercent = inf.ReadInt32();
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, inf);
+            RearTDBTraveller = new Traveller(inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
             TrainMaxSpeedMpS = inf.ReadSingle();
@@ -1265,8 +1265,8 @@ namespace Orts.Simulation.Physics
             ReverseCars();
             // Flip the train's travellers.
             Traveller t = FrontTDBTraveller;
-            FrontTDBTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward);
-            RearTDBTraveller = new Traveller(t, Traveller.TravellerDirection.Backward);
+            FrontTDBTraveller = new Traveller(RearTDBTraveller, true);
+            RearTDBTraveller = new Traveller(t, true);
             // If we are updating the controls...
             if (setMUParameters)
             {
@@ -1821,10 +1821,10 @@ namespace Orts.Simulation.Physics
                 {
                     switch (car.WagonSpecialType)
                     {
-                        case TrainCar.WagonSpecialTypes.HeatingBoiler:
+                        case WagonSpecialType.HeatingBoiler:
                             heatingBoilerCarAttached = true; // A steam heating boiler is fitted in a wagon
                             break;
-                        case TrainCar.WagonSpecialTypes.Heated:
+                        case WagonSpecialType.Heated:
                             heatedCarAttached = true; // A steam heating boiler is fitted in a wagon
                             break;
                     }
@@ -1849,7 +1849,7 @@ namespace Orts.Simulation.Physics
                         car.InitializeCarHeatingVariables();
                     }
 
-                    if (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
+                    if (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
                     {
                         car.UpdateHeatLoss();
 
@@ -1926,7 +1926,7 @@ namespace Orts.Simulation.Physics
 
                     // Calculate total steam loss along main pipe, by calculating heat into steam pipe at locomotive, deduct heat loss for each car, 
                     // note if pipe pressure drops, then compartment heating will stop
-                    if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == TrainCar.WagonSpecialTypes.Heated))
+                    if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated))
                     {
                         // If main pipe pressure is > 0 then heating will start to occur in comparment, so include compartment heat exchanger value
                         progressiveHeatAlongTrainBTU += (float)((car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU) + Frequency.Periodic.ToHours(Dynamics.Power.ToBTUpS(car.CarHeatCompartmentSteamPipeHeatW)));
@@ -1969,7 +1969,7 @@ namespace Orts.Simulation.Physics
                         {
                             lowSteamHeat = true;
                             // Provide warning message if temperature is too hot
-                            if (car.WagonType == TrainCar.WagonTypes.Passenger)
+                            if (car.WagonType == WagonType.Passenger)
                             {
                                 simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
                             }
@@ -2010,7 +2010,7 @@ namespace Orts.Simulation.Physics
                     car.CarSteamHeatMainPipeSteamPressurePSI = ProgressivePressureAlongTrainPSI;
 
                     // For the boiler heating car adjust mass based upon fuel and water usage
-                    if (car.WagonSpecialType == TrainCar.WagonSpecialTypes.HeatingBoiler)
+                    if (car.WagonSpecialType == WagonSpecialType.HeatingBoiler)
                     {
 
                         // Don't process if water or fule capacities are low
@@ -2305,12 +2305,12 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), simulator.MilepostUnitsMetric):0000.0}{Separator}");
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, simulator.MilepostUnitsMetric):0000.0}{Separator}");
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
@@ -3383,7 +3383,7 @@ namespace Orts.Simulation.Physics
                     {
                         if (last < Cars.Count - 1)  // Check that there are cars after the locomotive, if not skip extending brake to tender
                         {
-                            if (last == first && Cars[first] is MSTSSteamLocomotive && Cars[first + 1].WagonType == TrainCar.WagonTypes.Tender)
+                            if (last == first && Cars[first] is MSTSSteamLocomotive && Cars[first + 1].WagonType == WagonType.Tender)
                             {
                                 last += 1;      // If a "standard" single steam locomotive with a tender then for the purposes of braking increment last above first by one
                             }
@@ -3423,9 +3423,9 @@ namespace Orts.Simulation.Physics
 
             foreach (TrainCar car in Cars)
             {
-                if (car.WagonType == TrainCar.WagonTypes.Freight)
+                if (car.WagonType == WagonType.Freight)
                     IsFreight = true;
-                if ((car.WagonType == TrainCar.WagonTypes.Passenger) || (car.IsDriveable && car.HasPassengerCapacity))
+                if ((car.WagonType == WagonType.Passenger) || (car.IsDriveable && car.HasPassengerCapacity))
                     PassengerCarsNumber++;
                 if (car.IsDriveable && (car as MSTSLocomotive).CabViewList.Count > 0)
                     IsPlayable = true;
@@ -3437,7 +3437,7 @@ namespace Orts.Simulation.Physics
         /// Cars have been added to the rear of the train, recalc the rearTDBtraveller
         internal void RepositionRearTraveller()
         {
-            Traveller traveller = new Traveller(FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(FrontTDBTraveller, true);
             // The traveller location represents the front of the train.
             float length = 0f;
 
@@ -3792,9 +3792,9 @@ namespace Orts.Simulation.Physics
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TN;
+            TrackNode tn = RearTDBTraveller.TrackNode;
             float offset = RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
@@ -3899,18 +3899,18 @@ namespace Orts.Simulation.Physics
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
@@ -4132,18 +4132,18 @@ namespace Orts.Simulation.Physics
 
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
             int routeIndex;
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
@@ -8517,16 +8517,16 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
@@ -8832,16 +8832,16 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
@@ -10674,7 +10674,7 @@ namespace Orts.Simulation.Physics
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
-                        TrackJunctionNode junctionNode = simulator.TrackDatabase.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
+                        TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
                         if (section.Pins[sectionDirection, Location.FarEnd].Link != -1)
                         {
                             //facing
@@ -10684,7 +10684,7 @@ namespace Orts.Simulation.Physics
                             {
                                 // diverging 
                                 diverging = true;
-                                float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
+                                float junctionAngle = junctionNode.Angle;
                                 if (junctionAngle < 0) rightSwitch = false;
                             }
                             if (diverging)
@@ -10700,7 +10700,7 @@ namespace Orts.Simulation.Physics
                                 (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
-                                float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
+                                float junctionAngle = junctionNode.Angle;
                                 if (junctionAngle < 0) rightSwitch = false; // FIXME: or the opposite? untested...
 
                                 trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);
@@ -11063,7 +11063,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal void SetRoutePath(AIPath aiPath, bool usePosition)
         {
-            TrackDirection direction = (TrackDirection)(usePosition ? (int)FrontTDBTraveller.Direction : (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction : -2);
+            TrackDirection direction = (TrackDirection)(usePosition ? (int)FrontTDBTraveller.Direction.Reverse() : (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction.Reverse() : -2);
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, Length, Number);
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
@@ -11073,7 +11073,7 @@ namespace Orts.Simulation.Physics
         //
         internal void PresetExplorerPath(AIPath aiPath)
         {
-            TrackDirection direction = (TrackDirection)(RearTDBTraveller != null ? (int)RearTDBTraveller.Direction : -2);
+            TrackDirection direction = (TrackDirection)(RearTDBTraveller != null ? (int)RearTDBTraveller.Direction.Reverse() : -2);
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, 0, Number);
 
             // loop through all sections in first subroute except first and last (neither can be junction)
@@ -12224,7 +12224,10 @@ namespace Orts.Simulation.Physics
         }
 
         //used by remote train to update location based on message received
-        private int expectedTileX, expectedTileZ, expectedTracIndex, expectedDIr, expectedTDir;
+        private int expectedTileX, expectedTileZ;
+        private uint expectedTracIndex;
+        private Direction expectedTDir;
+        MidpointDirection expectedDir;
         private float expectedX, expectedZ, expectedTravelled, expectedLength;
         internal bool UpdateMSGReceived { get; set; }
         public bool RequestJump { get; internal set; } // set when a train jump has been requested by the server (when player re-enters game in old position
@@ -12238,13 +12241,13 @@ namespace Orts.Simulation.Physics
             expectedTileZ = location.TileZ;
             expectedX = location.Location.X;
             expectedZ = location.Location.Z;
-            expectedTDir = direction;
-            expectedDIr = (int)MUDirection;
+            expectedTDir = ((Direction)direction).Reverse();
+            expectedDir = MUDirection;
             expectedTravelled = DistanceTravelledM = DistanceTravelled = distanceTravelled;
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, int dir, int tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(uint tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
             int reverseMU = 0)
         {
             SpeedMpS = speed;
@@ -12254,8 +12257,8 @@ namespace Orts.Simulation.Physics
             expectedZ = z;
             expectedTravelled = eT;
             expectedTracIndex = tni;
-            expectedDIr = dir;
-            expectedTDir = tDir;
+            expectedDir = dir;
+            expectedTDir = ((Direction)tDir).Reverse();
             expectedLength = len;
             if (reverseTrav)
             {
@@ -12300,7 +12303,7 @@ namespace Orts.Simulation.Physics
                     UpdateCarSlack(expectedLength);//update car slack first
                     CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
                     newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
-                    MUDirection = (MidpointDirection)expectedDIr;
+                    MUDirection = expectedDir;
                 }
                 else
                 {
@@ -12308,7 +12311,7 @@ namespace Orts.Simulation.Physics
 
                     double x = DistanceTravelled + previousSpeedMpS * elapsedClockSeconds + (SpeedMpS - previousSpeedMpS) / 2 * elapsedClockSeconds;
                     //                    xx = x;
-                    MUDirection = (MidpointDirection)expectedDIr;
+                    MUDirection = expectedDir;
 
                     if (Math.Abs(x - expectedTravelled) < 1 || Math.Abs(x - expectedTravelled) > 20)
                     {
@@ -12316,16 +12319,16 @@ namespace Orts.Simulation.Physics
                         newDistanceTravelledM = DistanceTravelledM + expectedTravelled - DistanceTravelled;
 
                         //if something wrong with the switch
-                        if (RearTDBTraveller.TrackNodeIndex != expectedTracIndex)
+                        if (RearTDBTraveller.TrackNode.Index != expectedTracIndex)
                         {
                             Traveller t = null;
                             if (expectedTracIndex <= 0)
                             {
-                                t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                                t = new Traveller(new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
                             }
                             else
                             {
-                                t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
                             }
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;
@@ -12459,13 +12462,13 @@ namespace Orts.Simulation.Physics
         /// After turntable rotation, must find where it is
         /// </summary>
         /// 
-        internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Traveller.TravellerDirection direction)
+        internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Direction direction)
         {
-            FrontTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            FrontTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
                  Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
+            RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
-            if (direction == Traveller.TravellerDirection.Backward)
+            if (direction == Direction.Backward)
             {
                 FrontTDBTraveller.ReverseDirection();
                 RearTDBTraveller.ReverseDirection();
@@ -12485,7 +12488,7 @@ namespace Orts.Simulation.Physics
 
             CalculatePositionOfCars();
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction1 = (TrackDirection)FrontTDBTraveller.Direction;
 

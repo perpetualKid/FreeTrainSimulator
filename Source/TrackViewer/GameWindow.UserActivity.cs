@@ -9,7 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
-using Orts.TrackViewer.Control;
 using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
@@ -31,22 +30,6 @@ namespace Orts.TrackViewer
         public void CloseWindow()
         {
             PrepareExitApplication();
-        }
-
-        private void BindWindowEventHandlersActions()
-        {
-            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
-            {
-                switch (windowType)
-                {
-                    case WindowType.QuitWindow:
-                        QuitWindow quitWindow = windowManager[WindowType.QuitWindow] as QuitWindow;
-                        quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
-                        quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
-                        quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
-                        break;
-                }
-            }
         }
 
         internal void PrepareExitApplication()

@@ -592,5 +592,40 @@ namespace Orts.Formats.Msts
     #region TrackItem
 
     #endregion
+
+    public enum EngineType
+    {
+        Unknown,
+        Steam,
+        Diesel,
+        Electric,
+        Control,
+    }
+
+    public enum WagonType
+    {
+        Unknown,
+        Engine,
+        Tender,
+        Passenger,
+        Freight,
+    }
+
+    public enum SteamEngineType
+    {
+        Unknown,
+        Simple,
+        Geared,
+        Compound,
+    }
+
+    public enum WagonSpecialType
+    {
+        Unknown,
+        HeatingBoiler,
+        Heated,
+        PowerVan,
+    }
+
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

@@ -30,7 +30,7 @@ namespace Orts.Graphics.Window
 
         public ref readonly Point RelativeLocation => ref location;
 
-        public string Caption { get; }
+        public string Caption { get; protected set; }
 
         public event EventHandler OnWindowClosed;
 
@@ -108,6 +108,14 @@ namespace Orts.Graphics.Window
             Resize();
         }
 
+        protected void Resize(Point size)
+        {
+            borderRect.Size = new Point((int)(size.X * Owner.DpiScaling), (int)(size.Y * Owner.DpiScaling));
+            UpdateLocation();
+            Resize();
+        }
+
+
         private void Resize()
         {
             VertexBuffer tempVertex = windowVertexBuffer;
@@ -181,8 +189,8 @@ namespace Orts.Graphics.Window
         {
             if (windowVertexBuffer == null)
             {
-                // Edges/corners are 32px (1/4th texture image size).
-                int gp = 32;
+                // Edges/corners size. 32px is 1/4th texture image size
+                int gp = Math.Min(24, borderRect.Height / 2);
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2.001f, 0.00f / 1.001f)),

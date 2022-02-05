@@ -790,17 +790,12 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsunloadingspeed": UnloadingSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
                 case "engine(type":
                     stf.MustMatch("(");
-                    var engineType = stf.ReadString();
-                    try
-                    {
-                        EngineType = (EngineTypes)Enum.Parse(typeof(EngineTypes), engineType.First().ToString().ToUpper() + engineType.Substring(1));
-                    }
-                    catch
-                    {
+                    string engineType = stf.ReadString();
+                    if (EnumExtension.GetValue(engineType, out EngineType engineTypeResult))
+                        EngineType = engineTypeResult;
+                    else
                         STFException.TraceWarning(stf, "Skipped unknown engine type " + engineType);
-                    }
                     break;
-
                 case "engine(enginecontrollers(throttle": ThrottleController = new MSTSNotchController(stf); break;
                 case "engine(enginecontrollers(regulator": ThrottleController = new MSTSNotchController(stf); break;
                 case "engine(enginecontrollers(brake_dynamic": DynamicBrakeController.Parse(stf); break;
@@ -909,7 +904,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(brakesenginecontrollers":
                     foreach (var brakesenginecontrollers in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
                     {
-                        if (EngineType == EngineTypes.Electric || EngineType == EngineTypes.Diesel)
+                        if (EngineType == EngineType.Electric || EngineType == EngineType.Diesel)
                         {
                             switch (brakesenginecontrollers)
                             {
@@ -1658,7 +1653,7 @@ namespace Orts.Simulation.RollingStocks
             // Hence whilst users are encouraged to leave these parameters out of the ENG file, they need to be setup for OR to work correctly.
             // Some parameters need to be split across the unpowered and powered car for correct timing and volume calculations.
             // This setup loop is only processed the first time that update is run.
-            if (EngineType == EngineTypes.Control && !controlTrailerBrakeSystemSet)
+            if (EngineType == EngineType.Control && !controlTrailerBrakeSystemSet)
             {
                 FindControlActiveLocomotive();
 
@@ -1800,7 +1795,7 @@ namespace Orts.Simulation.RollingStocks
 
 
                     // SimpleControlPhysics and if locomotive is a control car advanced adhesion will be "disabled".
-                    if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && EngineType != EngineTypes.Control) 
+                    if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control) 
                     {
                         AdvancedAdhesion(elapsedClockSeconds); // Use advanced adhesion model
                         AdvancedAdhesionModel = true;  // Set flag to advise advanced adhesion model is in use
@@ -2349,11 +2344,11 @@ namespace Orts.Simulation.RollingStocks
             // This needs to be corrected in a future implementation.
 
             // If mechanical compressor then calculate charging rate based upon engine rpm
-            if (CompressorIsMechanical && (EngineType == EngineTypes.Control || EngineType == EngineTypes.Diesel))
+            if (CompressorIsMechanical && (EngineType == EngineType.Control || EngineType == EngineType.Diesel))
             {
 
                 // Control car uses the attached active locomotive to set the charging rate
-                if (EngineType == EngineTypes.Control)
+                if (EngineType == EngineType.Control)
                 {
                     FindControlActiveLocomotive();
 
@@ -2465,7 +2460,7 @@ namespace Orts.Simulation.RollingStocks
             //Curtius-Kniffler computation for the basic model
             //        float max0 = 1.0f;  //Adhesion conditions [N]
 
-            if (EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared)
+            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)
             {
                 // Steam locomotive details updated in UpdateTractiveForce method, and inserted into adhesion module
                 // ****************  NB WheelSpeed updated within Steam Locomotive module at the moment - to be fixed to prevent discrepancies ******************
@@ -2724,7 +2719,7 @@ namespace Orts.Simulation.RollingStocks
                 // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
                 // If filling from water trough this will be done with force
                 // The water controller can only be used by one stock item at a time.
-                if (EngineType == EngineTypes.Steam)
+                if (EngineType == EngineType.Steam)
                 {
                     const float NominalExtraWaterVolumeFactor = 1.0001f;
                     CombinedTenderWaterVolumeUKG += (float)Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amount of water added by scoop
@@ -2908,7 +2903,7 @@ namespace Orts.Simulation.RollingStocks
             Train.WagonCoefficientFriction = WagonBaseuMax * BaseFrictionCoefficientFactor;  // Find friction coefficient factor for wagons based upon environmental conditions
             WagonCoefficientFrictionHUD = Train.WagonCoefficientFriction; // Save value for HUD display
 
-            if (EngineType == EngineTypes.Steam && SteamDrvWheelWeightLbs < 10000 && Simulator.WeatherType == WeatherType.Clear)
+            if (EngineType == EngineType.Steam && SteamDrvWheelWeightLbs < 10000 && Simulator.WeatherType == WeatherType.Clear)
             {
                 BaseFrictionCoefficientFactor *= 0.75f;  // Dry track - static friction for vehicles with wheel weights less then 10,000lbs - u = 0.25
 
@@ -2938,7 +2933,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set adhesion conditions for other steam locomotives
-            if (EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared)  // ToDo explore adhesion factors
+            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
             {
                 LocomotiveCoefficientFrictionHUD = Train.LocomotiveCoefficientFriction; // Set display value for HUD - steam
             }
@@ -4621,7 +4616,7 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Rpm:
                     {
 
-                        if (EngineType == EngineTypes.Control)
+                        if (EngineType == EngineType.Control)
                         {
                             FindControlActiveLocomotive();
 
@@ -4652,13 +4647,13 @@ namespace Orts.Simulation.RollingStocks
                             var activeloco = ControlActiveLocomotive as MSTSDieselLocomotive;
                             var mstsDieselLocomotive = this as MSTSDieselLocomotive;
 
-                            if (EngineType == EngineTypes.Control && activeloco.DieselEngines.NumOfActiveEngines > 1)
+                            if (EngineType == EngineType.Control && activeloco.DieselEngines.NumOfActiveEngines > 1)
                             {
                              
                                 if (activeloco.DieselEngines[1] != null)
                                     data = activeloco.DieselEngines[1].RealRPM;
                             }
-                            else if (EngineType == EngineTypes.Diesel && mstsDieselLocomotive.DieselEngines.NumOfActiveEngines > 1)
+                            else if (EngineType == EngineType.Diesel && mstsDieselLocomotive.DieselEngines.NumOfActiveEngines > 1)
                             {                      
                                 if (mstsDieselLocomotive.DieselEngines[1] != null)
                                     data = mstsDieselLocomotive.DieselEngines[1].RealRPM;
@@ -4669,7 +4664,7 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Orts_Diesel_Temperature:
                     {
 
-                        if (EngineType == EngineTypes.Control)
+                        if (EngineType == EngineType.Control)
                         {
                             FindControlActiveLocomotive();
 
@@ -4691,7 +4686,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Orts_Oil_Pressure:
                     {
-                        if (EngineType == EngineTypes.Control)
+                        if (EngineType == EngineType.Control)
                         {
                             FindControlActiveLocomotive();
 
@@ -4850,7 +4845,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.WheelSlip:
                     {
-                        if (EngineType == EngineTypes.Control)
+                        if (EngineType == EngineType.Control)
                         {
                             FindControlActiveLocomotive();
 

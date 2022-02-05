@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
@@ -8,14 +6,16 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Graphics.Xna;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
-    internal abstract class WidgetBase
+    public abstract class WidgetBase
     {
         internal float Size;
     }
 
-    internal abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
+#pragma warning disable CA1708 // Identifiers should differ by more than case
+    public abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
+#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
         private protected PointD location;
 

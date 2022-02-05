@@ -1218,7 +1218,7 @@ namespace Orts.Menu
 
         private void UpdateTimetableWeatherSet()
         {
-            SelectedTimetableSet.WeatherFile = SelectedWeatherFile.GetFullName();
+            SelectedTimetableSet.WeatherFile = SelectedWeatherFile.FullName;
         }
 
         #endregion

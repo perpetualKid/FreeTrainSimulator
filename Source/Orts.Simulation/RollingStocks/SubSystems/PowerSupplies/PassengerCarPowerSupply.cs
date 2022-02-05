@@ -15,15 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Formats.Msts.Parsers;
-using Orts.Scripting.Api;
-using Orts.Scripting.Api.PowerSupply;
-using Orts.Simulation.Physics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Parsers;
+using Orts.Scripting.Api;
+using Orts.Scripting.Api.PowerSupply;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
@@ -213,8 +215,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 // Connect the power supply cable if the previous car is a locomotive or another passenger car
                 if (previousCar != null
                     && (previousCar is MSTSLocomotive locomotive && locomotive.LocomotivePowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable
-                        || previousCar.WagonSpecialType == TrainCar.WagonSpecialTypes.PowerVan
-                        || previousCar.WagonType == TrainCar.WagonTypes.Passenger && previousCar.PowerSupply is ScriptedPassengerCarPowerSupply)
+                        || previousCar.WagonSpecialType == WagonSpecialType.PowerVan
+                        || previousCar.WagonType == WagonType.Passenger && previousCar.PowerSupply is ScriptedPassengerCarPowerSupply)
                     )
                 {
                     FrontElectricTrainSupplyCableConnected = true;

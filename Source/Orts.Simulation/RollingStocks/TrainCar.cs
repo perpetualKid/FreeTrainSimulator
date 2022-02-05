@@ -606,45 +606,15 @@ namespace Orts.Simulation.RollingStocks
         protected float MSTSLocoNumDrvWheels; // Number of drive axles on locomotive - used to read MSTS value as default
         public float DriverWheelRadiusM = (float)Size.Length.FromIn(30.0f); // Drive wheel radius of locomotive wheels - Wheel radius of loco drive wheels can be anywhere from about 10" to 40".
 
-        public enum SteamEngineTypes
-        {
-            Unknown,
-            Simple,
-            Geared,
-            Compound,
-        }
+        public SteamEngineType SteamEngineType { get; private protected set; }
 
-        public SteamEngineTypes SteamEngineType;
+        public WagonType WagonType { get; private protected set; }
 
-        public enum WagonTypes
-        {
-            Unknown,
-            Engine,
-            Tender,
-            Passenger,
-            Freight,
-        }
-        public WagonTypes WagonType;
+        public EngineType EngineType { get; private protected set; }
 
-        public enum EngineTypes
-        {
-            Steam,
-            Diesel,
-            Electric,
-            Control,
-        }
-        public EngineTypes EngineType;
+        public WagonSpecialType WagonSpecialType { get; private protected set; }
 
-        public enum WagonSpecialTypes
-        {
-            Unknown,
-            HeatingBoiler,
-            Heated,
-            PowerVan,
-        }
-        public WagonSpecialTypes WagonSpecialType;
-
-    protected float CurveResistanceZeroSpeedFactor = 0.5f; // Based upon research (Russian experiments - 1960) the older formula might be about 2x actual value
+        protected float CurveResistanceZeroSpeedFactor = 0.5f; // Based upon research (Russian experiments - 1960) the older formula might be about 2x actual value
         protected float RigidWheelBaseM;   // Vehicle rigid wheelbase, read from MSTS Wagon file
         protected float TrainCrossSectionAreaM2; // Cross sectional area of the train
         protected float DoubleTunnelCrossSectAreaM2;
@@ -2005,7 +1975,7 @@ namespace Orts.Simulation.RollingStocks
 
                         // Calculate the number of axles in a car
 
-                        if (WagonType != WagonTypes.Engine)   // if car is not a locomotive then determine wheelbase
+                        if (WagonType != WagonType.Engine)   // if car is not a locomotive then determine wheelbase
                         {
 
                             if (Bogies < 2)  // if less then two bogies assume that it is a fixed wheelbase wagon
@@ -2023,7 +1993,7 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 if (Axles == 2)
                                 {
-                                    if (WagonType == WagonTypes.Passenger)
+                                    if (WagonType == WagonType.Passenger)
                                     {
 
                                         RigidWheelBaseM = 2.4384f;       // Assume a standard 4 wheel passenger bogie (2 axle) wagon - wheel base - 8' (2.4384m)
@@ -2040,9 +2010,9 @@ namespace Orts.Simulation.RollingStocks
                             }
 
                         }
-                        if (WagonType == WagonTypes.Engine)   // if car is a locomotive and either a diesel or electric then determine wheelbase
+                        if (WagonType == WagonType.Engine)   // if car is a locomotive and either a diesel or electric then determine wheelbase
                         {
-                            if (EngineType != EngineTypes.Steam)  // Assume that it is a diesel or electric locomotive
+                            if (EngineType != EngineType.Steam)  // Assume that it is a diesel or electric locomotive
                             {
                                 if (Axles == 2)
                                 {
@@ -2106,7 +2076,7 @@ namespace Orts.Simulation.RollingStocks
         public virtual string GetDebugStatus()
         {
             string locomotivetypetext = "";
-            if (EngineType == EngineTypes.Control)
+            if (EngineType == EngineType.Control)
             {
                 locomotivetypetext = "Unpowered Control Trailer Car";
             }
@@ -2674,7 +2644,7 @@ namespace Orts.Simulation.RollingStocks
             bool articulatedRear = !WheelAxles.Any(a => a.OffsetM > 0);
             var carIndex = Train.Cars.IndexOf(this);
             //Certain locomotives are testing as articulated wagons for some reason.
-            if (WagonType != WagonTypes.Engine)
+            if (WagonType != WagonType.Engine)
                 if (WheelAxles.Count >= 2)
                     if (articulatedFront || articulatedRear)
                     {
@@ -2902,7 +2872,7 @@ namespace Orts.Simulation.RollingStocks
         private Vector3 VibrationRotationVelocityRadpS;
         private Vector2 VibrationTranslationM;
         private Vector2 VibrationTranslationVelocityMpS;
-        private int VibrationTrackNode;
+        private uint VibrationTrackNode;
         private int VibrationTrackVectorSection;
         private float VibrationTrackCurvaturepM;
         private float PrevTiltingZRot; // previous tilting angle
@@ -2929,7 +2899,7 @@ namespace Orts.Simulation.RollingStocks
                 if (VibrationTrackVectorSection == 0)
                     VibrationTrackVectorSection = traveler.TrackVectorSectionIndex;
                 if (VibrationTrackNode == 0)
-                    VibrationTrackNode = traveler.TrackNodeIndex;
+                    VibrationTrackNode = traveler.TrackNode.Index;
 
                 // Apply suspension/spring and damping.
                 // https://en.wikipedia.org/wiki/Simple_harmonic_motion
@@ -2977,10 +2947,10 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Add new vibrations every track node.
-                if (VibrationTrackNode != traveler.TrackNodeIndex)
+                if (VibrationTrackNode != traveler.TrackNode.Index)
                 {
                     AddVibrations(VibrationFactorTrackNode);
-                    VibrationTrackNode = traveler.TrackNodeIndex;
+                    VibrationTrackNode = traveler.TrackNode.Index;
                 }
             }
             if (Train != null && Train.IsTilting)
@@ -3132,7 +3102,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                             // train is on a switch; let's see if car is on a switch too
-                            ref readonly WorldLocation switchLocation = ref Simulator.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
+                            ref readonly WorldLocation switchLocation = ref RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
                             var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
                             if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {
@@ -3192,7 +3162,7 @@ namespace Orts.Simulation.RollingStocks
             // Only initialise these values the first time around the loop
             if (!IsCarHeatingInitialized)
             {
-                if (mstsLocomotive.EngineType == EngineTypes.Steam && Simulator.Settings.HotStart || mstsLocomotive.EngineType == EngineTypes.Diesel || mstsLocomotive.EngineType == EngineTypes.Electric)
+                if (mstsLocomotive.EngineType == EngineType.Steam && Simulator.Settings.HotStart || mstsLocomotive.EngineType == EngineType.Diesel || mstsLocomotive.EngineType == EngineType.Electric)
                 {
                     if (CarOutsideTempC < DesiredCompartmentTempSetpointC)
                     {

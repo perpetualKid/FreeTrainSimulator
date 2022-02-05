@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
@@ -217,8 +218,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                 // Connect the power supply cable if the previous car is a locomotive or another passenger car
                 if (previousCar != null
-                    && (previousCar.WagonType == TrainCar.WagonTypes.Engine
-                        || previousCar.WagonType == TrainCar.WagonTypes.Passenger)
+                    && (previousCar.WagonType == WagonType.Engine
+                        || previousCar.WagonType == WagonType.Passenger)
                     )
                 {
                     FrontElectricTrainSupplyCableConnected = true;

@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
@@ -292,12 +293,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void DirectionCommand(Direction direction)
         {
-            if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
+            if ((Owner.Viewer.PlayerLocomotive.EngineType != EngineType.Steam &&
                 (Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Forward
                 || Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Reverse)
                 && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
                 || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
-                || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam &&
+                || (Owner.Viewer.PlayerLocomotive.EngineType == EngineType.Steam &&
                 Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive && mstsSteamLocomotive.CutoffController.MaximumValue == Math.Abs(Owner.Viewer.PlayerLocomotive.Train.MUReverserPercent / 100))
                 )
             {
@@ -814,7 +815,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // Direction
             if (string.Equals(directionKeyInput, arrowUp, StringComparison.OrdinalIgnoreCase) || string.Equals(directionKeyInput, arrowDown, StringComparison.OrdinalIgnoreCase))
             {
-                InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
+                InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == EngineType.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
                     (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + Owner.Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), "", false);
             }
             // Throttle

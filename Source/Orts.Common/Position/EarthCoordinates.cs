@@ -91,7 +91,7 @@ namespace Orts.Common.Position
             // Decimal degrees is assumed
             int gsamp = (location.TileX - wt_ew_offset);  // Gsamp is Goode world tile x
             int gline = (wt_ns_offset - location.TileZ);  // Gline is Goode world tile Y
-            int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)location.Location.X);   // Actual Goode X
+            int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)location.Location.Z);   // Actual Goode X
             int x = (ul_x + ((gsamp - 1) * (int)WorldPosition.TileSize) + (int)location.Location.X);   // Actual Goode Y
 
             // Return error code: 1 = success; -1 = math error; -2 = XY is in interrupted area of projection

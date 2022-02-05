@@ -29,6 +29,7 @@ using System.Threading;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -297,7 +298,7 @@ namespace Orts.Simulation.Timetables
 
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
+                newPool.StoragePathTraveller = new Traveller(inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = new List<TrackCircuitPartialPathRoute>();
@@ -528,7 +529,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
 
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
+                newPool.StoragePathTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;
@@ -1366,7 +1367,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (TrainCar car in train.Cars)
                         {
-                            if (car.WagonType == TrainCar.WagonTypes.Engine)
+                            if (car.WagonType == WagonType.Engine)
                             {
                                 MSTSLocomotive loco = car as MSTSLocomotive;
                                 loco.AntiSlip = train.leadLocoAntiSlip;

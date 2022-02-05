@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Graphics.Xna;
 
-namespace Orts.Graphics.Track.Shapes
+namespace Orts.Graphics.MapView.Shapes
 {
     public class BasicShapes
     {

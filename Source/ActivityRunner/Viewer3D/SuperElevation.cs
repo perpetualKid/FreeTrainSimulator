@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -50,7 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackShape shape;
             try
             {
-                shape = Simulator.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex];
+                shape = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex];
 
                 if (shape.RoadShape == true) return false;
             }
@@ -74,7 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count++;
                     uint sid = id.TrackSections[i];
-                    TrackSection section = Simulator.Instance.TSectionDat.TrackSections.Get(sid);
+                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(sid);
                     if (Math.Abs(section.Width - viewer.Settings.SuperElevationGauge / 1000f) > 0.2) continue;//the main route has a gauge different than mine
                     if (!section.Curved)
                     {
@@ -140,7 +141,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (TrackVectorSection ts in sections)
             {
-                TrackSection tss = Simulator.Instance.TSectionDat.TrackSections.Get(ts.SectionIndex);
+                TrackSection tss = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(ts.SectionIndex);
                 if (tss == null || !tss.Curved || ts.Location.TileX != TileX || ts.Location.TileZ != TileZ)
                     continue;
                 Vector3 trackLoc = ts.Location.Location;
@@ -151,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
-                var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
+                var displacement = InterpolateHelper.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
                 WorldPosition nextRoot = root.SetTranslation(displacement);
 
@@ -185,7 +186,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //not found, will do again to find reversed
             foreach (var s in tileSections)
             {
-                var sec = Simulator.Instance.TSectionDat.TrackSections.Get(s.SectionIndex);
+                var sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(s.SectionIndex);
                 if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.Radius == sec.Radius
                     && section.Angle == -sec.Angle)
                 {
@@ -243,7 +244,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = Simulator.Instance.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
+                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -270,7 +271,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 count++;
                 float length, radius;
                 uint sid = path.TrackSections[i];
-                TrackSection section = Simulator.Instance.TSectionDat.TrackSections[sid];
+                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -279,7 +280,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     length = section.Length;
                     radius = -1;
                     localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else
@@ -292,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-section.Angle * 3.14f / 180); // Heading change (rotation about O)
 
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
@@ -371,7 +372,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + subsection.TrackSections[0].Length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
@@ -382,7 +383,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change

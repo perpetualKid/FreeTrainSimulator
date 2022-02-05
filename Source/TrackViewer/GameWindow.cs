@@ -22,8 +22,8 @@ using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.Track;
-using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.MapView;
+using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.TrackViewer.Control;
@@ -62,20 +62,21 @@ namespace Orts.TrackViewer
             get => contentArea;
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
+                if (contentArea != null)
+                {
+                    contentArea.Enabled = false;
+                    Components.Remove(contentArea);
+                    Window.Title = windowTitle;
+                    contentArea.Dispose();
+                    contentArea = null;
+                }
                 if (value != null)
                 {
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
-                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.RouteName}");
+                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
                 }
-                else
-                {
-                    Components.Remove(contentArea);
-                    Window.Title = windowTitle;
-                }
-                if (contentArea != null)
-                    contentArea.Enabled = false;
                 contentArea = value;
                 OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
             });
@@ -201,7 +202,7 @@ namespace Orts.TrackViewer
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
             Settings.ColorSettings[setting] = colorName;
-            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
+            (contentArea?.Content as TrackContent).UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
                 BackgroundColor = ColorExtension.FromName(colorName);
@@ -212,7 +213,7 @@ namespace Orts.TrackViewer
         internal void UpdateItemVisibilityPreference(TrackViewerViewSettings setting, bool enabled)
         {
             viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
-            contentArea?.UpdateItemVisiblity(viewSettings);
+            (contentArea?.Content as TrackContent).UpdateItemVisiblity(viewSettings);
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -244,12 +245,13 @@ namespace Orts.TrackViewer
             viewSettings = Settings.ViewSettings;
 
         }
+
         private void SaveSettings()
         {
 
             Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
             Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
-            ;
+
             Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
@@ -410,7 +412,7 @@ namespace Orts.TrackViewer
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
                 debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
                 debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
-                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
+                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea?.Content;
                 return debugWindow;
             }));
 
@@ -423,7 +425,6 @@ namespace Orts.TrackViewer
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
-            //BindWindowEventHandlersActions();
             Components.Add(windowManager);
             base.Initialize();
 

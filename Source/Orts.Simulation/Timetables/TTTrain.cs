@@ -2318,8 +2318,8 @@ namespace Orts.Simulation.Timetables
             {
                 if (TCRoute.TCRouteSubpaths[0][usedPositionIndex].Direction != otherTrain.PresentPosition[direction].Direction)
                 {
-                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, Traveller.TravellerDirection.Backward);
-                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, true);
+                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, true);
                 }
                 else
                 {
@@ -5008,9 +5008,9 @@ namespace Orts.Simulation.Timetables
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TN;
+            TrackNode tn = RearTDBTraveller.TrackNode;
             float offset = RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
@@ -5101,18 +5101,18 @@ namespace Orts.Simulation.Timetables
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
@@ -5415,7 +5415,7 @@ namespace Orts.Simulation.Timetables
 
             if (MUDirection == MidpointDirection.Reverse)
             {
-                usedTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward); // use in direction of movement
+                usedTraveller = new Traveller(RearTDBTraveller, true); // use in direction of movement
                 thisTrainFront = false;
                 direction = Direction.Backward;
             }
@@ -8289,7 +8289,7 @@ namespace Orts.Simulation.Timetables
                         {
                             foreach (TrainCar car in formedTrain.Cars)
                             {
-                                if (car.WagonType == TrainCar.WagonTypes.Engine)
+                                if (car.WagonType == WagonType.Engine)
                                 {
                                     MSTSLocomotive loco = car as MSTSLocomotive;
                                     loco.AntiSlip = formedTrain.leadLocoAntiSlip;
@@ -10127,12 +10127,12 @@ namespace Orts.Simulation.Timetables
 
                     // check first unit
                     thisCar = Cars[0];
-                    if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                    if (thisCar.WagonType == WagonType.Engine)
                     {
                         iunits++;
                         checktender = true;
                     }
-                    else if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (thisCar.WagonType == WagonType.Tender)
                     {
                         iunits++;
                         checkengine = true;
@@ -10142,7 +10142,7 @@ namespace Orts.Simulation.Timetables
                     while (checktender && nextunit < Cars.Count)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit++;
@@ -10156,12 +10156,12 @@ namespace Orts.Simulation.Timetables
                     while (checkengine && nextunit < Cars.Count)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit++;
                         }
-                        else if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                        else if (thisCar.WagonType == WagonType.Engine)
                         {
                             iunits++;
                             checkengine = false;
@@ -10177,7 +10177,7 @@ namespace Orts.Simulation.Timetables
                     for (int iCar = 0; iCar < Cars.Count; iCar++)
                     {
                         thisCar = Cars[iCar];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                         }
@@ -10195,12 +10195,12 @@ namespace Orts.Simulation.Timetables
 
                     // check first unit
                     thisCar = Cars[Cars.Count - 1];
-                    if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                    if (thisCar.WagonType == WagonType.Engine)
                     {
                         iunits++;
                         checktender = true;
                     }
-                    else if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (thisCar.WagonType == WagonType.Tender)
                     {
                         iunits++;
                         checkengine = true;
@@ -10210,7 +10210,7 @@ namespace Orts.Simulation.Timetables
                     while (checktender && nextunit >= 0)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit--;
@@ -10224,12 +10224,12 @@ namespace Orts.Simulation.Timetables
                     while (checkengine && nextunit >= 0)
                     {
                         thisCar = Cars[nextunit];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                             nextunit--;
                         }
-                        else if (thisCar.WagonType == TrainCar.WagonTypes.Engine)
+                        else if (thisCar.WagonType == WagonType.Engine)
                         {
                             iunits++;
                             checkengine = false;
@@ -10247,7 +10247,7 @@ namespace Orts.Simulation.Timetables
                     for (int iCar = Cars.Count - 1; iCar >= 0; iCar--)
                     {
                         thisCar = Cars[iCar];
-                        if (thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender)
+                        if (thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender)
                         {
                             iunits++;
                         }
@@ -10262,13 +10262,13 @@ namespace Orts.Simulation.Timetables
 
                     int frontunits = 0;
                     // power is at front
-                    if (Cars[0].WagonType == TrainCar.WagonTypes.Engine || Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                    if (Cars[0].WagonType == WagonType.Engine || Cars[0].WagonType == WagonType.Tender)
                     {
                         frontpos = false;
                         nextunit = 0;
                         thisCar = Cars[nextunit];
 
-                        while ((thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender) && nextunit < Cars.Count)
+                        while ((thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender) && nextunit < Cars.Count)
                         {
                             frontunits++;
                             nextunit++;
@@ -10286,7 +10286,7 @@ namespace Orts.Simulation.Timetables
                         nextunit = Cars.Count - 1;
                         thisCar = Cars[nextunit];
 
-                        while ((thisCar.WagonType == TrainCar.WagonTypes.Engine || thisCar.WagonType == TrainCar.WagonTypes.Tender) && nextunit >= 0)
+                        while ((thisCar.WagonType == WagonType.Engine || thisCar.WagonType == WagonType.Tender) && nextunit >= 0)
                         {
                             frontunits++;
                             nextunit--;
@@ -10449,16 +10449,16 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions train
-            TrackNode tn = attachTrain.FrontTDBTraveller.TN;
+            TrackNode tn = attachTrain.FrontTDBTraveller.TrackNode;
             float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction.Reverse();
 
             attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            tn = attachTrain.RearTDBTraveller.TN;
+            tn = attachTrain.RearTDBTraveller.TrackNode;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction;
+            direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction.Reverse();
 
             attachTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
@@ -10693,7 +10693,7 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (TrainCar car in attachTrain.Cars)
                 {
-                    if (car.WagonType == TrainCar.WagonTypes.Engine)
+                    if (car.WagonType == WagonType.Engine)
                     {
                         MSTSLocomotive loco = car as MSTSLocomotive;
                         loco.AntiSlip = attachTrain.leadLocoAntiSlip;
@@ -10892,9 +10892,9 @@ namespace Orts.Simulation.Timetables
             detachCar.SignalEvent(TrainEvent.Uncouple);
 
             // update positions train
-            TrackNode tn = FrontTDBTraveller.TN;
+            TrackNode tn = FrontTDBTraveller.TrackNode;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
@@ -10905,9 +10905,9 @@ namespace Orts.Simulation.Timetables
                 DistanceTravelledM -= newTrain.Length;
             }
 
-            tn = RearTDBTraveller.TN;
+            tn = RearTDBTraveller.TrackNode;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
@@ -10945,9 +10945,9 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions new train
-            tn = newTrain.FrontTDBTraveller.TN;
+            tn = newTrain.FrontTDBTraveller.TrackNode;
             offset = newTrain.FrontTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)newTrain.FrontTDBTraveller.Direction;
+            direction = (TrackDirection)newTrain.FrontTDBTraveller.Direction.Reverse();
 
             newTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             newTrain.PresentPosition[Direction.Forward].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
@@ -10955,9 +10955,9 @@ namespace Orts.Simulation.Timetables
 
             newTrain.DistanceTravelledM = 0.0f;
 
-            tn = newTrain.RearTDBTraveller.TN;
+            tn = newTrain.RearTDBTraveller.TrackNode;
             offset = newTrain.RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)newTrain.RearTDBTraveller.Direction;
+            direction = (TrackDirection)newTrain.RearTDBTraveller.Direction.Reverse();
 
             newTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             newTrain.PresentPosition[Direction.Backward].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
@@ -11337,9 +11337,9 @@ namespace Orts.Simulation.Timetables
             {
                 DetachSection = TrackCircuitSection.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link];
             }
-            TrackVectorNode detachNode = simulator.TrackDatabase.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, detachNode);
+            formedTrain.RearTDBTraveller = new Traveller(detachNode);
 
             trainlist.Add(formedTrain);
 
@@ -11359,9 +11359,9 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train);
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
-            TrackVectorNode DetachNode = simulator.TrackDatabase.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, DetachNode);
+            formedTrain.RearTDBTraveller = new Traveller(DetachNode);
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);
@@ -12354,7 +12354,7 @@ namespace Orts.Simulation.Timetables
             if (DetachUnits == DetachUnitsInfo.onlyPower)
             {
                 DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == TrainCar.WagonTypes.Engine || train.Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
                 {
                     DetachUnits = DetachUnitsInfo.allLeadingPower;
                 }
@@ -12599,7 +12599,7 @@ namespace Orts.Simulation.Timetables
             if (DetachUnits == DetachUnitsInfo.onlyPower)
             {
                 DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == TrainCar.WagonTypes.Engine || train.Cars[0].WagonType == TrainCar.WagonTypes.Tender)
+                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
                 {
                     DetachUnits = DetachUnitsInfo.allLeadingPower;
                 }

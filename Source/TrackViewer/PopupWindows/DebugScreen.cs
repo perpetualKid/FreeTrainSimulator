@@ -33,10 +33,10 @@ namespace Orts.TrackViewer.PopupWindows
 
 
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), caption, Point.Zero, Point.Zero)
+            base(owner, caption, Point.Zero, Point.Zero)
         {
             ZOrder = 0;
-            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling))
             {
                 TextColor = backgroundColor.ComplementColor(),

@@ -453,7 +453,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 if (thisSection.CircuitType == TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitType.Crossover)
                                 {
                                     // train is on a switch; let's see if car is on a switch too
-                                    WorldLocation switchLocation = Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
+                                    WorldLocation switchLocation = RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
                                     var distanceFromSwitch = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, switchLocation);
                                     if (distanceFromSwitch < Car.CarLengthM * Car.CarLengthM + Math.Min(Car.SpeedMpS * 3, 150))
                                     {
@@ -469,9 +469,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     var carPreviouslyOnCurve = CarOnCurve;
                     CarOnCurve = false;
                     if ((Car.CurrentCurveRadius > 0 && (Car.CurrentCurveRadius < 301
-                         || (Car.CurrentCurveRadius < 350 && Car.WagonType == TrainCar.WagonTypes.Freight))) ||
+                         || (Car.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))) ||
                         (CarBehind.CurrentCurveRadius > 0 && (CarBehind.CurrentCurveRadius < 301
-                         || (CarBehind.CurrentCurveRadius < 350 && Car.WagonType == TrainCar.WagonTypes.Freight))))
+                         || (CarBehind.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))))
                     {
                         CarOnCurve = true;
                     }
@@ -2400,10 +2400,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                traveller = new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                traveller = new Traveller(train.RearTDBTraveller, true);
             }
 
-            TrackDB trackDB = Viewer.Simulator.TrackDatabase.TrackDB;
+            TrackDB trackDB = RuntimeData.Instance.TrackDB;
             TrackItem[] trItems = trackDB.TrackItems;
 
             WorldSoundRegion prevItem = null;
@@ -2454,7 +2454,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 else
                                 {
                                     // Not found forward, check backward
-                                    tmp = new Traveller(traveller, Traveller.TravellerDirection.Backward);
+                                    tmp = new Traveller(traveller, true);
 
                                     d = tmp.DistanceTo(trItems[trNode].Location, 8192);
                                     if (d != -1)
@@ -2529,7 +2529,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void AddByTile(int TileX, int TileZ)
         {
             string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
-            WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TrackDatabase.TrackDB.TrackItems);
+            WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems);
             if (wf.TrackItemSound != null)
             {
                 string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
@@ -2578,11 +2578,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private TrackNode[] trackNodes;
         private TrackItem[] trItems;
 
-        public TDBObjects(MSTSWagon Car, Viewer Viewer)
+        public TDBObjects(MSTSWagon Car)
         {
             _car = Car;
-            trackNodes = Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes;
-            trItems = Viewer.Simulator.TrackDatabase.TrackDB.TrackItems;
+            trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
+            trItems = RuntimeData.Instance.TrackDB.TrackItems;
         }
 
         private AIPathNode FindNode()
@@ -2634,14 +2634,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrackItem FindPrevItem<T>(out float distance)
             where T : TrackItem
         {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
             return FindItem<T>(traveller, GetPrevNode, out distance, null);
         }
 
         public TrackItem FindPrevItem<T>(out float distance, List<int> validitems)
             where T : TrackItem
         {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
             return FindItem<T>(traveller, GetPrevNode, out distance, validitems);
         }
 

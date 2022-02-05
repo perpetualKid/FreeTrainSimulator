@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Models.Simplified;
-using Orts.Graphics.Track;
+using Orts.Graphics.MapView;
 using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
@@ -70,19 +70,20 @@ namespace Orts.TrackViewer
             }
 
             CancellationToken token = ctsRouteLoading.Token;
-            TrackData trackData = new TrackData(route.Path);
 
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
+            TrackContent content = new TrackContent(this);
             await content.Initialize().ConfigureAwait(false);
-            ContentArea = new ContentArea(this, route.Name, content, Settings.ColorSettings, viewSettings);
+            content.UpdateItemVisiblity(viewSettings);
+            content.UpdateWidgetColorSettings(Settings.ColorSettings);
+            ContentArea = content.ContentArea;
             windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
         }

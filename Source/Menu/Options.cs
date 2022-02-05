@@ -120,7 +120,6 @@ namespace Orts.Menu
             // Video tab
             checkDynamicShadows.Checked = this.settings.DynamicShadows;
             checkShadowAllShapes.Checked = this.settings.ShadowAllShapes;
-            checkFastFullScreenAltTab.Checked = this.settings.FastFullScreenAltTab;
             checkWindowGlass.Checked = this.settings.WindowGlass;
             checkModelInstancing.Checked = this.settings.ModelInstancing;
             checkWire.Checked = this.settings.Wire;
@@ -307,7 +306,6 @@ namespace Orts.Menu
             // Video tab
             settings.DynamicShadows = checkDynamicShadows.Checked;
             settings.ShadowAllShapes = checkShadowAllShapes.Checked;
-            settings.FastFullScreenAltTab = checkFastFullScreenAltTab.Checked;
             settings.WindowGlass = checkWindowGlass.Checked;
             settings.ModelInstancing = checkModelInstancing.Checked;
             settings.Wire = checkWire.Checked;

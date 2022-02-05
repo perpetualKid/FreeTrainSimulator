@@ -65,7 +65,6 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         public static void Update()
         {
-            //if (MultiPlayer.MPManager.IsMultiPlayer() && MultiPlayer.MPManager.Instance().ComposingText) return;
             LastKeyboardState = KeyboardState;
             LastMouseState = MouseState;
             // Make sure we have an "idle" (everything released) keyboard and mouse state if the window isn't active.

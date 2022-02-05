@@ -10,35 +10,18 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.TrackViewer
 {
-    public class TrackData
+    public class TrackData: RuntimeData
     {
-        private readonly string routePath;
-
-        public string RouteName { get; private set; }
-
-        public TrackDB TrackDB { get; private set; }
-
-        public RoadTrackDB RoadTrackDB { get; private set; }
-
-        public TrackSectionsFile TrackSections { get; private set; }
-
-        public SignalConfigurationFile SignalConfig { get; private set; }
-
-        public bool UseMetricUnits { get; private set; }
-
-        public TrackData(string routePath)
-        {
-            this.routePath = routePath;
-        }
-
-        internal async Task LoadTrackData(bool? useMetricUnits, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
+            TrackSectionsFile trackSections = null;
+            TrackDB trackDB = null;
+            RoadTrackDB roadTrackDB = null;
+            SignalConfigurationFile signalConfig = null;
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
             RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
-            RouteName = routeFile.Route.Name;
-            UseMetricUnits = useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric);
 
             loadTasks.Add(Task.Run(() =>
             {
@@ -48,13 +31,13 @@ namespace Orts.TrackViewer
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
                     return;
                 }
-                TrackDB = new TrackDatabaseFile(tdbFile).TrackDB;
+                trackDB = new TrackDatabaseFile(tdbFile).TrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
-                TrackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
+                trackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
                 if (File.Exists(routeFolder.RouteTrackSectionFile))
-                    TrackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
+                    trackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
@@ -64,11 +47,12 @@ namespace Orts.TrackViewer
                     Trace.TraceError($"Road Database File not found in {rdbFile}");
                     return;
                 }
-                RoadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
+                roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
-            loadTasks.Add(Task.Run(() => SignalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
+            loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
+            Initialize(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric));
         }
     }
 }

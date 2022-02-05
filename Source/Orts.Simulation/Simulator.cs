@@ -135,10 +135,7 @@ namespace Orts.Simulation
         public bool PreUpdate { get; internal set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
-        public TrackDatabaseFile TrackDatabase { get; private set; }
-        public RoadDatabaseFile RoadDatabase { get; private set; }
         public Route Route { get; private set; }
-        public TrackSectionsFile TSectionDat { get; private set; }
         public TrainList Trains { get; private set; }
         public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
@@ -192,7 +189,6 @@ namespace Orts.Simulation
         public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
-        public bool MilepostUnitsMetric { get; private set; }
         public bool OpenDoorsInAITrains { get; private set; }
 
         public MovingTable ActiveMovingTable { get; set; }
@@ -237,29 +233,32 @@ namespace Orts.Simulation
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
             RouteName = Route.Name;
-            MilepostUnitsMetric = Route.MilepostUnitsMetric;
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
-            TrackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName));
+            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName)).TrackDB;
 
             Trace.Write(" SIGCFG");
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
 
             Trace.Write(" DAT");
-            TSectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
+            TrackSectionsFile tsectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
             if (File.Exists(RouteFolder.RouteTrackSectionFile))
-                TSectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
+                tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
+
+            RoadTrackDB roadDatabase = null;
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
+            {
+                Trace.Write(" RDB");
+                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
+            }
+
+            bool useMetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, useMetricUnits);
 
             SuperElevation = new SuperElevation(this);
 
             Trace.Write(" ACT");
-
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
-            {
-                Trace.Write(" RDB");
-                RoadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName));
-            }
 
             string carSpawnFile = RouteFolder.CarSpawnerFile;
             if (File.Exists(carSpawnFile))
@@ -286,7 +285,7 @@ namespace Orts.Simulation
             }
 
             Confirmer = new Confirmer(this, 1.5);
-            HazardManager = new HazardManager(this);
+            HazardManager = new HazardManager();
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
         }
@@ -312,7 +311,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(Route, TSectionDat, TrackDatabase.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(Route, ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -354,7 +353,7 @@ namespace Orts.Simulation
         {
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
 
@@ -378,7 +377,7 @@ namespace Orts.Simulation
             TimetableMode = true;
             SignalEnvironment = new SignalEnvironment(SignalConfig, true, cancellationToken);
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
 
@@ -424,7 +423,7 @@ namespace Orts.Simulation
             SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             AI = new AI(this, inf);
             // Find original player train
             OriginalPlayerTrain = Trains.Find(item => item.Number == 0);
@@ -1012,7 +1011,7 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, PathFileName, TimetableMode);
+            AIPath aiPath = new AIPath(PathFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
@@ -1021,7 +1020,7 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, aiPath);
+            train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1167,7 +1166,7 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction : -2);
+                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction.Reverse() : -2);
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
@@ -1202,7 +1201,7 @@ namespace Orts.Simulation
                         default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, activityObject.Location);
+                    train.RearTDBTraveller = new Traveller(activityObject.Location);
                     if (consistDirection != 1)
                         train.RearTDBTraveller.ReverseDirection();
                     // add wagons in reverse order - ie first wagon is at back of train
@@ -1918,10 +1917,6 @@ namespace Orts.Simulation
 
                 setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
                 Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
-
-                // Video TAB
-                setting.FastFullScreenAltTab = activitySettings.Options.FastFullScreenAltTab == 1;
-                Trace.Write($"\n{"Fast Full Screen Alt TAB",-40}={setting.FastFullScreenAltTab,6}");
 
                 // Simulation TAB
                 setting.NoForcedRedAtStationStops = activitySettings.Options.ForcedRedAtStationStops == 0; // Note this parameter is reversed in its logic to others.

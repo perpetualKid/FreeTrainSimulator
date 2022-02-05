@@ -339,7 +339,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 TrackCandidate trackCandidate = sortedTrackCandidates[distanceKey];
                 if (trackCandidate.trackNode == null) continue;
-                TrackSection trackSection = tsectionDat.TrackSections.Get(trackCandidate.vectorSection.SectionIndex);
+                TrackSection trackSection = tsectionDat.TrackSections.TryGet(trackCandidate.vectorSection.SectionIndex);
                 DistanceLon distanceLon = CalcRealDistanceSquared(trackCandidate.vectorSection, trackSection);
                 double realDistanceSquared = (double)distanceLon.distanceSquared;
                 

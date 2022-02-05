@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,7 +30,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Processes;
@@ -41,6 +41,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
@@ -83,6 +84,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Monotonically increasing time value (in seconds) for the game/viewer. Starts at 0 and only ever increases, at real-time.
         /// </summary>
         public double RealTime { get; private set; }
+
+        private Thread dispatcherThread;
+        private Dispatcher.DispatcherWindow dispatcherWindow;
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
@@ -403,7 +407,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             DefaultViewport = Game.GraphicsDevice.Viewport;
 
-            if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
+            if (PlayerLocomotive == null)
+                PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
             PlayerTrain.InitializePlayerTrainData();
             if (PlayerTrain.TrainType == TrainType.AiPlayerHosting)
@@ -470,8 +475,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 ThreeDimCabCamera.Enabled = true;
                 ThreeDimCabCamera.Activate();
             }
-            else if (Simulator.PlayerLocomotive.HasFrontCab || Simulator.PlayerLocomotive.HasRearCab) CabCamera.Activate();
-            else CameraActivate();
+            else if (Simulator.PlayerLocomotive.HasFrontCab || Simulator.PlayerLocomotive.HasRearCab)
+                CabCamera.Activate();
+            else
+                CameraActivate();
 
             // Prepare the world to be loaded and then load it from the correct thread for debugging/tracing purposes.
             // This ensures that a) we have all the required objects loaded when the 3D view first appears and b) that
@@ -798,7 +805,7 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.GameSwitchManualMode, KeyEventType.KeyPressed, PlayerTrain.RequestToggleManualMode);
             UserCommandController.AddEvent(UserCommand.GameResetOutOfControlMode, KeyEventType.KeyPressed, () => _ = new ResetOutOfControlModeCommand(Log));
 
-            UserCommandController.AddEvent(UserCommand.GameMultiPlayerDispatcher, KeyEventType.KeyPressed, () => DebugViewerEnabled = !DebugViewerEnabled);
+            UserCommandController.AddEvent(UserCommand.GameMultiPlayerDispatcher, KeyEventType.KeyPressed, ToggleDispatcherView);
             UserCommandController.AddEvent(UserCommand.DebugSoundForm, KeyEventType.KeyPressed, () => SoundDebugFormEnabled = !SoundDebugFormEnabled);
             UserCommandController.AddEvent(UserCommand.CameraJumpSeeSwitch, KeyEventType.KeyPressed, () =>
             {
@@ -941,6 +948,31 @@ namespace Orts.ActivityRunner.Viewer3D
             UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
             UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
             UpdaterProcess.GameComponents.Add(railDriverInputGameComponent);
+        }
+
+        private void ToggleDispatcherView()
+        {
+            DebugViewerEnabled = !DebugViewerEnabled;
+            if (null == dispatcherThread)
+            {
+                dispatcherThread = new Thread(StartDispatcherViewThread);
+                dispatcherThread.Start();
+            }
+            else
+            { 
+                dispatcherWindow?.BringToFront();
+            }
+        }
+
+        private void StartDispatcherViewThread()
+        {
+            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings))
+            {
+                this.dispatcherWindow = dispatcherWindow;
+                dispatcherWindow.Run();
+            }
+            dispatcherThread = null;
+            dispatcherWindow = null;
         }
 
         /// <summary>
@@ -1087,7 +1119,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 var i = ((PlayerLocomotive as MSTSLocomotive).UsingRearCab) ? 1 : 0;
                 var cabTextureFileName = (PlayerLocomotive as MSTSLocomotive).CabViewList[i].CVFFile.Views2D[0];
                 var cabTextureInverseRatio = ComputeCabTextureInverseRatio(cabTextureFileName);
-                if (cabTextureInverseRatio != -1) CabTextureInverseRatio = cabTextureInverseRatio;
+                if (cabTextureInverseRatio != -1)
+                    CabTextureInverseRatio = cabTextureInverseRatio;
             }
             int unstretchedCabHeightPixels = (int)(CabTextureInverseRatio * windowWidth);
             int unstretchedCabWidthPixels = (int)(windowHeight / CabTextureInverseRatio);
@@ -1126,7 +1159,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 CabXOffsetPixels = CabExceedsDisplayHorizontally / 2;
                 CabXLetterboxPixels = CabYLetterboxPixels = 0;
             }
-            if (CabCamera.IsAvailable) CabCamera.Initialize();
+            if (CabCamera.IsAvailable)
+                CabCamera.Initialize();
         }
 
         public float ComputeCabTextureInverseRatio(string cabTextureFileName)
@@ -1138,7 +1172,8 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 cabTextureInverseRatio = (float)cabTexture.Height / cabTexture.Width;
                 // if square cab texture files with dimension of at least 1024 pixels are used, they are considered as stretched 4 : 3 ones
-                if (cabTextureInverseRatio == 1 && cabTexture.Width >= 1024) cabTextureInverseRatio = 0.75f;
+                if (cabTextureInverseRatio == 1 && cabTexture.Width >= 1024)
+                    cabTextureInverseRatio = 0.75f;
             }
             return cabTextureInverseRatio;
         }
@@ -1225,7 +1260,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 AbovegroundCamera = Camera;
                 bool ViewingPlayer = true;
 
-                if (Camera.AttachedCar != null) ViewingPlayer = Camera.AttachedCar.Train == Simulator.PlayerLocomotive.Train;
+                if (Camera.AttachedCar != null)
+                    ViewingPlayer = Camera.AttachedCar.Train == Simulator.PlayerLocomotive.Train;
 
                 if ((Simulator.PlayerLocomotive.HasFront3DCab || Simulator.PlayerLocomotive.HasRear3DCab && ViewingPlayer) && !(Camera is CabCamera))
                 {
@@ -1265,7 +1301,8 @@ namespace Orts.ActivityRunner.Viewer3D
             World.PrepareFrame(frame, elapsedTime);
             InfoDisplay.PrepareFrame(frame, elapsedTime);
             // TODO: This is not correct. The ActivityWindow's PrepareFrame is already called by the WindowManager!
-            if (Simulator.ActivityRun != null) ActivityWindow.PrepareFrame(elapsedTime, true);
+            if (Simulator.ActivityRun != null)
+                ActivityWindow.PrepareFrame(elapsedTime, true);
 
             WindowManager.PrepareFrame(frame, elapsedTime);
             logRenderFrame = false;
@@ -1313,7 +1350,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     SelectedTrain = Program.DebugViewer.PickedTrain;
                     Simulator.AI.aiListChanged = true;
 
-                    if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0) SelectedTrain = PlayerTrain;
+                    if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
+                        SelectedTrain = PlayerTrain;
 
                     CameraActivate();
                 }
@@ -1377,7 +1415,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void ChangeCab()
         {
-            if (!Simulator.PlayerLocomotive.Train.IsChangeCabAvailable()) return;
+            if (!Simulator.PlayerLocomotive.Train.IsChangeCabAvailable())
+                return;
 
             Simulator.PlayerLocomotive = Simulator.PlayerLocomotive.Train.GetNextCab();
             PlayerLocomotiveViewer = World.Trains.GetViewer(Simulator.PlayerLocomotive);
@@ -1385,7 +1424,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 AdjustCabHeight(DisplaySize.X, DisplaySize.Y);
             if (!Simulator.PlayerLocomotive.HasFront3DCab && !Simulator.PlayerLocomotive.HasRear3DCab)
                 CabCamera.Activate(); // If you need anything else here the cameras should check for it.
-            else ThreeDimCabCamera.Activate();
+            else
+                ThreeDimCabCamera.Activate();
             SetCommandReceivers();
             ThreeDimCabCamera.ChangeCab(Simulator.PlayerLocomotive);
             HeadOutForwardCamera.ChangeCab(Simulator.PlayerLocomotive);
@@ -1450,6 +1490,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void Terminate()
         {
+            dispatcherWindow?.Close();
             InfoDisplay.Terminate();
         }
 
@@ -1462,15 +1503,18 @@ namespace Orts.ActivityRunner.Viewer3D
                 SortedList<double, Train> users = new SortedList<double, Train>();
                 foreach (var t in Simulator.Trains)
                 {
-                    if (t == null || t.Cars == null || t.Cars.Count == 0) continue;
+                    if (t == null || t.Cars == null || t.Cars.Count == 0)
+                        continue;
                     var d = WorldLocation.GetDistanceSquared(t.RearTDBTraveller.WorldLocation, PlayerTrain.RearTDBTraveller.WorldLocation);
                     users.Add(d + StaticRandom.NextDouble(), t);
                 }
                 trainCount++;
-                if (trainCount >= users.Count) trainCount = 0;
+                if (trainCount >= users.Count)
+                    trainCount = 0;
 
                 SelectedTrain = users.ElementAt(trainCount).Value;
-                if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0) SelectedTrain = PlayerTrain;
+                if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
+                    SelectedTrain = PlayerTrain;
 
                 //if (SelectedTrain.LeadLocomotive == null) SelectedTrain.LeadNextLocomotive();
                 //if (SelectedTrain.LeadLocomotive != null) { PlayerLocomotive = SelectedTrain.LeadLocomotive; PlayerLocomotiveViewer = World.Trains.GetViewer(Simulator.PlayerLocomotive); }
@@ -1496,7 +1540,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Ray pickRay = new Ray(nearPoint, direction);
 
             // check each car
-            Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
             int carNo = 0;
             foreach (TrainCar car in PlayerTrain.Cars)
             {
@@ -1527,9 +1571,9 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < Simulator.TrackDatabase.TrackDB.TrackNodes.Length; j++)
+            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Length; j++)
             {
-                TrackNode tn = Simulator.TrackDatabase.TrackDB.TrackNodes[j];
+                TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
                 if (tn is TrackJunctionNode)
                 {
 
@@ -1584,7 +1628,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Simulator.UncoupleBehind(carPosition);
             //make the camera train to be the player train
-            if (PlayerLocomotive != null && PlayerLocomotive.Train != null) this.SelectedTrain = PlayerLocomotive.Train;
+            if (PlayerLocomotive != null && PlayerLocomotive.Train != null)
+                this.SelectedTrain = PlayerLocomotive.Train;
             CameraActivate();
         }
 

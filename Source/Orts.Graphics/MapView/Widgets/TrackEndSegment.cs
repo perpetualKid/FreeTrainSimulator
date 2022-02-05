@@ -4,9 +4,9 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackEndSegment: PointWidget
     {
@@ -36,7 +36,7 @@ namespace Orts.Graphics.Track.Widgets
                 TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
                 Direction = tvs.Direction.Y;
                 // try to get even better in case the last section is curved
-                TrackSection section = sections.Get(tvs.SectionIndex);
+                TrackSection section = sections.TryGet(tvs.SectionIndex);
                 if (section != null && section.Curved)
                 {
                     Direction += MathHelper.ToRadians(section.Angle);

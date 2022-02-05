@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -78,7 +79,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     bool skiploop;
 
                     // In hardy brake system, BC on tender and locomotive is not changed in the StrBrkApply brake position
-                    if ((Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender) && (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightLap))
+                    if ((Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender) && (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightLap))
                     {
                         skiploop = true;
                     }
@@ -110,7 +111,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
 
                     // Record HUD display values for brake cylidners depending upon whether they are wagons or locomotives/tenders (which are subject to their own engine brakes)   
-                    if (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender)
+                    if (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender)
                     {
                         Car.Train.HUDLocomotiveBrakeCylinderPSI = CylPressurePSIA;
                         Car.Train.HUDWagonBrakeCylinderPSI = Car.Train.HUDLocomotiveBrakeCylinderPSI;  // Initially set Wagon value same as locomotive, will be overwritten if a wagon is attached
@@ -153,7 +154,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
 
                     // If wagons are not attached to the locomotive, then set wagon BC pressure to same as locomotive in the Train brake line
-                    if (!Car.Train.WagonsAttached && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
+                    if (!Car.Train.WagonsAttached && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
                     {
                         Car.Train.HUDWagonBrakeCylinderPSI = CylPressurePSIA;
                     }

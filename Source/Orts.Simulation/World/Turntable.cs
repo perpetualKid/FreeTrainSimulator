@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
@@ -116,9 +117,9 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            TrackShape trackShape = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
-            uint nSections = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
-            trackNodesIndex = new int[Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            uint nSections = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
+            trackNodesIndex = new int[RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
@@ -129,7 +130,7 @@ namespace Orts.Simulation.World
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            TrackNode[] trackNodes = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes;
+            TrackNode[] trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
             for (int j = 1; j < trackNodes.Length; j++)
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
@@ -402,8 +403,8 @@ namespace Orts.Simulation.World
         /// </summary>
         public void TargetExactlyReached()
         {
-            Traveller.TravellerDirection direction = ForwardConnected ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward;
-            direction = saveForwardConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : direction == Traveller.TravellerDirection.Forward ? Traveller.TravellerDirection.Backward : Traveller.TravellerDirection.Forward;
+            Direction direction = ForwardConnected ? Direction.Forward : Direction.Backward;
+            direction = saveForwardConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : direction.Reverse();
             GoToTarget = false;
             if (TrainsOnMovingTable.Count == 1)
             {
@@ -434,7 +435,7 @@ namespace Orts.Simulation.World
                 throw new ArgumentNullException(nameof(train));
 
             return (ForwardConnected || RearConnected) && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
-                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index);
+                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TrackNode.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TrackNode.Index);
         }
 
         /// <summary>

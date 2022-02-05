@@ -23,37 +23,22 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.AIs;
 
-namespace Orts.Simulation
+namespace Orts.Formats.Msts
 {
     /// <summary>
-    /// A traveller that represents a specific location and direction on a track node databse. Think of it like a virtual truck or bogie that can travel along the track or a virtual car that can travel along the road.
+    /// A traveller that represents a specific location and direction on a track node database. 
+    /// Think of it like a virtual truck or bogie that can travel along the track or a virtual car that can travel along the road.
     /// </summary>
-    public partial class Traveller
+    public class Traveller
     {
-        public enum TravellerDirection// : byte
-        {
-            Backward = 0,
-            Forward = 1,
-        }
-
-        // Maximum distance beyond the ends of the track we'll allow for initialization.
-        private const float InitErrorMargin = 0.5f;
-
-        // If a car has some overhang, than it will be offset toward the center of curvature
-        // and won't be right along the center line.  I'll have to add some allowance for this
-        // and accept a hit if it is within 2.5 meters of the center line - this was determined
-        // experimentally to match MSTS's 'capture range'.
-        private const float MaximumCenterlineOffset = 2.5f;
-        private readonly TrackSectionsFile TSectionDat;
-        private readonly TrackNode[] TrackNodes;
-        private TravellerDirection direction = TravellerDirection.Forward;
+        private readonly TrackNode[] trackNodes;
+        private Direction direction = Direction.Forward;
         private float trackOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
         private TrackVectorSection trackVectorSection;
@@ -76,7 +61,7 @@ namespace Orts.Simulation
         public float X { get { if (!locationSet) SetLocation(); return location.Location.X; } }
         public float Y { get { if (!locationSet) SetLocation(); return location.Location.Y; } }
         public float Z { get { if (!locationSet) SetLocation(); return location.Location.Z; } }
-        public TravellerDirection Direction
+        public Direction Direction
         {
             get => direction;
             set
@@ -97,12 +82,8 @@ namespace Orts.Simulation
             }
         }
         public float RotY { get { if (!locationSet) SetLocation(); return directionVector.Y; } }
-        public TrackNode TN => trackNode;
+        public TrackNode TrackNode => trackNode;
 
-        /// <summary>
-        /// Returns the index of the current track node in the database.
-        /// </summary>
-        public int TrackNodeIndex { get; private set; }
         /// <summary>
         /// Returns the index of the current track vector section (individual straight or curved section of track) in the current track node.
         /// </summary>
@@ -140,28 +121,28 @@ namespace Orts.Simulation
         /// </summary>
         public int JunctionEntryPinIndex { get; private set; }
 
-        private Traveller(TrackSectionsFile trackSectionDat, TrackNode[] trackNodes)
+        private Traveller(bool roadTrackTraveller)
         {
-            TSectionDat = trackSectionDat ?? throw new ArgumentNullException(nameof(trackSectionDat));
-            TrackNodes = trackNodes ?? throw new ArgumentNullException(nameof(trackNodes));
+            if (null == RuntimeData.Instance)
+                throw new InvalidOperationException("RuntimeData not initialized!");
+            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes;
         }
+
         /// <summary>
         /// Creates a traveller on the starting point of a path, in the direction of the path
         /// </summary>
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="aiPath">The path used to determine travellers location and direction</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, AIPath aiPath)
-            : this(tSectionDat, trackNodes, aiPath?.FirstNode.Location ?? throw new ArgumentNullException(nameof(aiPath)))
+        public Traveller(in WorldLocation firstNodeLocation, in WorldLocation nextMainLocation, bool roadTraveller = false)
+            : this(firstNodeLocation, roadTraveller)
         {
-            AIPathNode nextNode = aiPath.FirstNode.NextMainNode; // assumption is that all paths have at least two points.
-
             // get distance forward
-            float fwdist = DistanceTo(nextNode.Location);
+            float fwdist = DistanceTo(nextMainLocation);
 
             // reverse train, get distance backward
             ReverseDirection();
-            float bwdist = DistanceTo(nextNode.Location);
+            float bwdist = DistanceTo(nextMainLocation);
 
             // check which way exists or is shorter (in case of loop)
             // remember : train is now facing backward !
@@ -176,27 +157,26 @@ namespace Orts.Simulation
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="loc">Starting world location</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, in WorldLocation location)
-            : this(tSectionDat, trackNodes)
+        public Traveller(WorldLocation location, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
-            // first find all tracknodes that are close enough
-            for (int tni = 0; tni < TrackNodes.Length; tni++)
+            //first find all tracknodes that are close enough
+            foreach (TrackNode node in this.trackNodes)
             {
-                TrackNodeCandidate candidate = TryTrackNode(tni, location, TSectionDat, TrackNodes);
+                TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(node, location);
                 if (candidate != null)
                 {
                     candidates.Add(candidate);
                 }
             }
-
             if (candidates.Count == 0)
             {
                 throw new InvalidDataException($"{location} could not be found in the track database.");
             }
 
             // find the best one.
-            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.distanceToTrack).First();
+            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.DistanceToTrack).First();
 
             InitFromCandidate(bestCandidate);
 
@@ -212,8 +192,8 @@ namespace Orts.Simulation
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, in WorldLocation location, TravellerDirection direction)
-            : this(tSectionDat, trackNodes, location)
+        public Traveller(in WorldLocation location, Direction direction, bool roadTraveller = false)
+            : this(location, roadTraveller)
         {
             Direction = direction;
         }
@@ -224,12 +204,9 @@ namespace Orts.Simulation
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="startTrackNode">Starting track node.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackVectorNode startTrackNode)
-            : this(tSectionDat, trackNodes)
+        public Traveller(TrackVectorNode startTrackNode, bool roadTraveller = false)
+            : this(roadTraveller)
         {
-            int startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
-            if (startTrackNodeIndex == -1) 
-                throw new ArgumentException("Track node is not in track nodes array.", nameof(startTrackNode));
             if (startTrackNode == null) 
                 throw new ArgumentException("Track node is not a vector node.", nameof(startTrackNode));
             if (startTrackNode.TrackVectorSections == null) 
@@ -237,7 +214,7 @@ namespace Orts.Simulation
             if (startTrackNode.TrackVectorSections.Length == 0) 
                 throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
             TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
-            if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
+            if (!InitTrackNode(startTrackNode, tvs.Location))
             {
                 if (TrackSections.MissingTrackSectionWarnings == 0)
                     throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
@@ -245,7 +222,6 @@ namespace Orts.Simulation
                 {
                     throw new MissingTrackNodeException();
                 }
-
             }
         }
 
@@ -256,22 +232,19 @@ namespace Orts.Simulation
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="startTrackNode">Starting track node.</param>
         /// <param name="location">Starting coordinate.</param>
-        private Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackVectorNode startTrackNode, in WorldLocation location)
-            : this(tSectionDat, trackNodes)
+        private Traveller(TrackVectorNode startTrackNode, in WorldLocation location, bool roadTraveller = false)
+            : this(roadTraveller)
         {
             if (startTrackNode == null) 
                 throw new ArgumentNullException(nameof(startTrackNode));
-            int startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
-            if (startTrackNodeIndex == -1) 
-                throw new ArgumentException("Track node is not in track nodes array.", nameof(startTrackNode));
-            if (!InitTrackNode(startTrackNodeIndex, location))
+            if (!InitTrackNode(startTrackNode, location))
             {
                 if (startTrackNode.TrackVectorSections == null) 
                     throw new ArgumentException("Track node has no vector section data.", nameof(startTrackNode));
                 if (startTrackNode.TrackVectorSections.Length == 0) 
                     throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
                 TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
-                if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
+                if (!InitTrackNode(startTrackNode, tvs.Location))
                 {
                     if (TrackSections.MissingTrackSectionWarnings == 0)
                         throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
@@ -284,12 +257,12 @@ namespace Orts.Simulation
 
                 // Figure out which end of the track node is closest and use that.
                 float startDistance = WorldLocation.GetDistance2D(WorldLocation, location).Length();
-                Direction = TravellerDirection.Backward;
+                Direction = Direction.Backward;
                 NextTrackVectorSection(startTrackNode.TrackVectorSections.Length - 1);
                 float endDistance = WorldLocation.GetDistance2D(WorldLocation, location).Length();
                 if (startDistance < endDistance)
                 {
-                    Direction = TravellerDirection.Forward;
+                    Direction = Direction.Forward;
                     NextTrackVectorSection(0);
                 }
             }
@@ -306,8 +279,8 @@ namespace Orts.Simulation
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackNode startTrackNode, int tileX, int tileZ, float x, float z, TravellerDirection direction)
-            : this(tSectionDat, trackNodes, startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z))
+        public Traveller(TrackNode startTrackNode, int tileX, int tileZ, float x, float z, Direction direction, bool roadTraveller = false)
+            : this(startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z), roadTraveller)
         {
             Direction = direction;
         }
@@ -323,31 +296,28 @@ namespace Orts.Simulation
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackVectorNode startTrackNode, in WorldLocation location, TravellerDirection direction)
-            : this(tSectionDat, trackNodes, startTrackNode, location)
+        public Traveller(TrackVectorNode startTrackNode, in WorldLocation location, Direction direction, bool roadTraveller = false)
+            : this(startTrackNode, location, roadTraveller)
         {
             Direction = direction;
         }
 
 
         /// <summary>
-        /// Creates a copy of another traveller, starting in the same location and with the same direction.
+        /// Creates a copy of another traveller, starting in the same location and with the same direction or reversed direction.
         /// </summary>
-        /// <param name="source">The other traveller to copy.</param>
-        public Traveller(Traveller source)
+        public Traveller(Traveller source, bool reverseDirection = false)
         {
             if (source == null) 
                 throw new ArgumentNullException(nameof(source));
 
-            TSectionDat = source.TSectionDat;
-            TrackNodes = source.TrackNodes;
+            trackNodes = source.trackNodes;
 
             locationSet = source.locationSet;
             location = source.location;
-            direction = source.direction;
+            direction = reverseDirection ? source.direction.Reverse() : source.direction;
             directionVector = source.directionVector;
             trackOffset = source.trackOffset;
-            TrackNodeIndex = source.TrackNodeIndex;
             trackNode = source.trackNode;
             TrackVectorSectionIndex = source.TrackVectorSectionIndex;
             trackVectorSection = source.trackVectorSection;
@@ -358,36 +328,27 @@ namespace Orts.Simulation
         }
 
         /// <summary>
-        /// Creates a copy of another traveller, starting in the same location but with the specified change of direction.
-        /// </summary>
-        /// <param name="source">The other traveller to copy.</param>
-        /// <param name="reversed">Specifies whether to go the same direction as the <paramref name="source"/> (Forward) or flip direction (Backward).</param>
-        public Traveller(Traveller source, TravellerDirection reversed)
-            : this(source)
-        {
-            if (reversed == TravellerDirection.Backward)
-                Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
-        }
-
-        /// <summary>
         /// Creates a traveller from persisted data.
         /// </summary>
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="inf">Reader to read persisted data from.</param>
-        internal Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, BinaryReader inf)
-            : this(tSectionDat, trackNodes)
+        public Traveller(BinaryReader inf, bool roadTraveller = false)
+            : this(roadTraveller)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             locationSet = lengthSet = false;
-            direction = (TravellerDirection)inf.ReadByte();
+            direction = (Direction)inf.ReadByte();
             trackOffset = inf.ReadSingle();
-            TrackNodeIndex = inf.ReadInt32();
-            trackNode = TrackNodes[TrackNodeIndex];
+            uint trackNodeIndex = inf.ReadUInt32();
+            trackNode = this.trackNodes[trackNodeIndex];
             if (IsTrack)
             {
                 TrackVectorSectionIndex = inf.ReadInt32();
                 trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-                trackSection = TSectionDat.TrackSections[trackVectorSection.SectionIndex];
+                trackSection = RuntimeData.Instance.TSectionDat.TrackSections[trackVectorSection.SectionIndex];
             }
         }
 
@@ -395,11 +356,14 @@ namespace Orts.Simulation
         /// Saves a traveller to persisted data.
         /// </summary>
         /// <param name="outf">Writer to write persisted data to.</param>
-        internal void Save(BinaryWriter outf)
+        public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write((byte)direction);
             outf.Write(trackOffset);
-            outf.Write(TrackNodeIndex);
+            outf.Write(TrackNode.Index);
             if (IsTrack)
                 outf.Write(TrackVectorSectionIndex);
         }
@@ -411,186 +375,14 @@ namespace Orts.Simulation
         /// </summary>
         /// <param name="tni">The index of the trackNode for which we test the location</param>
         /// <returns>boolean describing whether the location is indeed on the given tracknode and initialization is done</returns>
-        private bool InitTrackNode(int tni, in WorldLocation location)
+        private bool InitTrackNode(TrackNode trackNode, in WorldLocation location)
         {
-            TrackNodeCandidate candidate = TryTrackNode(tni, location, TSectionDat, TrackNodes);
-            if (candidate == null) return false;
+            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(trackNode, location);
+            if (candidate == null) 
+                return false;
 
             InitFromCandidate(candidate);
             return true;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the tracknode given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tni">The index of the tracknode we are testing</param>
-        /// <param name="loc">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="TSectionDat">Database with track sections</param>
-        /// <param name="TrackNodes">List of available tracknodes</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackNode(int tni, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode[] TrackNodes)
-        {
-            if (!(TrackNodes[tni] is TrackVectorNode trackVectorNode))
-                return null;
-            // TODO, we could do an additional cull here by calculating a bounding sphere for each node as they are being read.
-            for (int tvsi = 0; tvsi < trackVectorNode.TrackVectorSections.Length; tvsi++)
-            {
-                TrackNodeCandidate candidate = TryTrackVectorSection(tvsi, loc, TSectionDat, trackVectorNode);
-                if (candidate != null)
-                {
-                    candidate.TrackNodeIndex = tni;
-                    candidate.trackNode = trackVectorNode;
-                    return candidate;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the trackvectorsection given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tvsi">The index of the trackvectorsection</param>
-        /// <param name="loc">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="TSectionDat">Database with track sections</param></param>
-        /// <param name="trackNode">The parent trackNode of the vector section</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackVectorNode trackNode)
-        {
-            TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
-            if (trackVectorSection == null)
-                return null;
-            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, loc, TSectionDat, trackVectorSection);
-            if (candidate == null) 
-                return null;
-
-            candidate.TrackVectorSectionIndex = tvsi;
-            candidate.trackVectorSection = trackVectorSection;
-            return candidate;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the tracksection given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tsi">The track section index</param>
-        /// <param name="loc">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="TSectionDat">Database with track sections</param>
-        /// <param name="trackVectorSection">The parent track vector section</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackVectorSection trackVectorSection)
-        {
-            TrackSection trackSection = TSectionDat.TrackSections.Get(tsi);
-            if (trackSection == null)
-                return null;
-            TrackNodeCandidate candidate;
-            if (!trackSection.Curved)
-            {
-                candidate = TryTrackSectionStraight(loc, trackVectorSection, trackSection);
-            }
-            else
-            {
-                candidate = TryTrackSectionCurved(loc, trackVectorSection, trackSection);
-            }
-            if (candidate == null) return null;
-
-            candidate.trackSection = trackSection;
-            return candidate;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the given curved tracksection.
-        /// If it is, we return a TrackNodeCandidate object 
-        /// </summary>
-        /// <param name="loc">The location we are looking for</param>
-        /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
-        /// <param name="trackSection">the specific tracksection we want to try</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation loc, TrackVectorSection trackVectorSection, TrackSection trackSection)
-        {// TODO: Add y component.
-            Vector3 l = loc.Location;
-            // We're working relative to the track section, so offset as needed.
-            l.X += (loc.TileX - trackVectorSection.Location.TileX) * 2048;
-            l.Z += (loc.TileZ - trackVectorSection.Location.TileZ) * 2048;
-            float sx = trackVectorSection.Location.Location.X;
-            float sz = trackVectorSection.Location.Location.Z;
-
-            // Do a preliminary cull based on a bounding square around the track section.
-            // Bounding distance is (radius * angle + error) by (radius * angle + error) around starting coordinates but no more than 2 for angle.
-            float boundingDistance = trackSection.Radius * Math.Min(Math.Abs(MathHelper.ToRadians(trackSection.Angle)), 2) + MaximumCenterlineOffset;
-            float dx = Math.Abs(l.X - sx);
-            float dz = Math.Abs(l.Z - sz);
-            if (dx > boundingDistance || dz > boundingDistance)
-                return null;
-
-            // To simplify the math, center around the start of the track section, rotate such that the track section starts out pointing north (+z) and flip so the track curves to the right.
-            l.X -= sx;
-            l.Z -= sz;
-            l = Vector3.Transform(l, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
-            if (trackSection.Angle < 0)
-                l.X *= -1;
-
-            // Compute distance to curve's center at (radius,0) then adjust to get distance from centerline.
-            dx = l.X - trackSection.Radius;
-            float lat = (float)Math.Sqrt(dx * dx + l.Z * l.Z) - trackSection.Radius;
-            if (Math.Abs(lat) > MaximumCenterlineOffset)
-                return null;
-
-            // Compute distance along curve (ensure we are in the top right quadrant, otherwise our math goes wrong).
-            if (l.Z < -InitErrorMargin || l.X > trackSection.Radius + InitErrorMargin || l.Z > trackSection.Radius + InitErrorMargin)
-                return null;
-            float radiansAlongCurve;
-            if (l.Z > trackSection.Radius)
-                radiansAlongCurve = MathHelper.PiOver2;
-            else
-                radiansAlongCurve = (float)Math.Asin(l.Z / trackSection.Radius);
-            float lon = radiansAlongCurve * trackSection.Radius;
-            float trackSectionLength = GetLength(trackSection);
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
-                return null;
-
-            return new TrackNodeCandidate(Math.Abs(lat), lon, true);
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the given straight tracksection.
-        /// If it is, we return a TrackNodeCandidate object 
-        /// </summary>
-        /// <param name="loc">The location we are looking for</param>
-        /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
-        /// <param name="trackSection">the specific tracksection we want to try</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation loc, TrackVectorSection trackVectorSection, TrackSection trackSection)
-        { // TODO: Add y component.
-            float x = loc.Location.X;
-            float z = loc.Location.Z;
-            // We're working relative to the track section, so offset as needed.
-            x += (loc.TileX - trackVectorSection.Location.TileX) * 2048;
-            z += (loc.TileZ - trackVectorSection.Location.TileZ) * 2048;
-            float sx = trackVectorSection.Location.Location.X;
-            float sz = trackVectorSection.Location.Location.Z;
-
-            // Do a preliminary cull based on a bounding square around the track section.
-            // Bounding distance is (length + error) by (length + error) around starting coordinates.
-            if (trackSection != null)
-            {
-                float boundingDistance = trackSection.Length + MaximumCenterlineOffset;
-                float dx = Math.Abs(x - sx);
-                float dz = Math.Abs(z - sz);
-                if (dx > boundingDistance || dz > boundingDistance)
-                    return null;
-            }
-
-            // Calculate distance along and away from the track centerline.
-            float lat, lon;
-            (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
-            if (Math.Abs(lat) > MaximumCenterlineOffset)
-                return null;
-            if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)
-                return null;
-
-            return new TrackNodeCandidate(Math.Abs(lat), lon, false);
         }
 
         /// <summary>
@@ -601,11 +393,10 @@ namespace Orts.Simulation
         /// <returns>boolean showing whether the traveller can be placed on the section at given location</returns>
         private static bool InitTrackSectionSucceeded(Traveller traveller, in WorldLocation location)
         {
-            TrackNodeCandidate candidate = (traveller.IsTrackCurved)
-                ? TryTrackSectionCurved(location, traveller.trackVectorSection, traveller.trackSection)
-                : TryTrackSectionStraight(location, traveller.trackVectorSection, traveller.trackSection);
+            TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackSection(location, traveller.trackVectorSection, traveller.trackSection);
 
-            if (candidate == null) return false;
+            if (candidate == null) 
+                return false;
 
             traveller.InitFromCandidate(candidate);
             return true;
@@ -619,8 +410,9 @@ namespace Orts.Simulation
         /// </remarks>
         public void ReverseDirection()
         {
-            Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
+            Direction = Direction.Reverse();
         }
+
         /// <summary>
         /// Returns the distance from the traveller's current lcation, in its current direction, to the location specified
         /// </summary>
@@ -677,9 +469,9 @@ namespace Orts.Simulation
                 {
                     float initialOffset = traveller.trackOffset;
                     float radius = traveller.IsTrackCurved ? traveller.trackSection.Radius : 1;
-                    if (traveller.TN == trackNode || trackNode == null)
+                    if (traveller.TrackNode == trackNode || trackNode == null)
                     {
-                        int direction = traveller.Direction == TravellerDirection.Forward ? 1 : -1;
+                        int direction = traveller.Direction == Direction.Forward ? 1 : -1;
                         if (InitTrackSectionSucceeded(traveller, location))
                         {
                             // If the new offset is EARLIER, the target is behind us!
@@ -692,7 +484,7 @@ namespace Orts.Simulation
                     }
                     // No sign of the target location in this track section, accumulate remaining track section length and continue.
                     float length = traveller.trackSection != null ? traveller.IsTrackCurved ? Math.Abs(MathHelper.ToRadians(traveller.trackSection.Angle)) : traveller.trackSection.Length : 0;
-                    accumulatedDistance += (traveller.Direction == TravellerDirection.Forward ? length - initialOffset : initialOffset) * radius;
+                    accumulatedDistance += (traveller.Direction == Direction.Forward ? length - initialOffset : initialOffset) * radius;
                 }
                 // No sign of the target location yet, let's move on to the next track section.
                 if (!traveller.NextSection())
@@ -714,7 +506,7 @@ namespace Orts.Simulation
 
         public TrackVectorSection CurrentSection()
         {
-            if (TrackNodes[TrackNodeIndex] is TrackVectorNode trackVectorNode)
+            if (trackNodes[TrackNode.Index] is TrackVectorNode trackVectorNode)
                 return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
             else return null;
         }
@@ -739,26 +531,25 @@ namespace Orts.Simulation
             else
                 Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 1);
 
-            int oldTrackNodeIndex = TrackNodeIndex;
-            int pin = direction == TravellerDirection.Forward ? trackNode.InPins : 0;
-            if (IsJunction && direction == TravellerDirection.Forward)
+            uint oldTrackNodeIndex = TrackNode.Index;
+            int pin = direction == Direction.Forward ? trackNode.InPins : 0;
+            if (IsJunction && direction == Direction.Forward)
                 pin += (trackNode as TrackJunctionNode).SelectedRoute;
             if (pin < 0 || pin >= trackNode.TrackPins.Length)
                 return false;
             TrackPin trPin = trackNode.TrackPins[pin];
-            if (trPin.Link <= 0 || trPin.Link >= TrackNodes.Length)
+            if (trPin.Link <= 0 || trPin.Link >= trackNodes.Length)
                 return false;
 
-            direction = trPin.Direction > 0 ? TravellerDirection.Forward : TravellerDirection.Backward;
+            direction = trPin.Direction > 0 ? Direction.Forward : Direction.Backward;
             trackOffset = 0;
-            TrackNodeIndex = trPin.Link;
-            trackNode = TrackNodes[TrackNodeIndex];
+            trackNode = trackNodes[trPin.Link];
             TrackVectorSectionIndex = -1;
             trackVectorSection = null;
             trackSection = null;
             if (IsTrack)
             {
-                if (direction == TravellerDirection.Forward)
+                if (direction == Direction.Forward)
                     NextTrackVectorSection(0);
                 else
                     NextTrackVectorSection((trackNode as TrackVectorNode).TrackVectorSections.Length - 1);
@@ -777,22 +568,22 @@ namespace Orts.Simulation
         public bool NextVectorSection()
         {
             TrackVectorNode tvn = trackNode as TrackVectorNode;
-            if ((direction == TravellerDirection.Forward && 
+            if ((direction == Direction.Forward && 
                 trackVectorSection == tvn.TrackVectorSections[^1]) || 
-                (direction == TravellerDirection.Backward && trackVectorSection == tvn.TrackVectorSections[0]))
+                (direction == Direction.Backward && trackVectorSection == tvn.TrackVectorSections[0]))
                 return false;
-            return NextTrackVectorSection(TrackVectorSectionIndex + (direction == TravellerDirection.Forward ? 1 : -1));
+            return NextTrackVectorSection(TrackVectorSectionIndex + (direction == Direction.Forward ? 1 : -1));
         }
 
         private bool NextTrackVectorSection(int trackVectorSectionIndex)
         {
             TrackVectorSectionIndex = trackVectorSectionIndex;
             trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-            trackSection = TSectionDat.TrackSections.Get(trackVectorSection.SectionIndex);
+            trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
             if (trackSection == null)
                 return false;
             locationSet = lengthSet = false;
-            trackOffset = direction == TravellerDirection.Forward ? 0 : IsTrackCurved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
+            trackOffset = direction == Direction.Forward ? 0 : IsTrackCurved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
             return true;
         }
 
@@ -810,11 +601,11 @@ namespace Orts.Simulation
             {
                 // We're on a junction or end node. Use one of the links to get location and direction information.
                 TrackPin pin = trackNode.TrackPins[0];
-                if (pin.Link <= 0 || pin.Link >= TrackNodes.Length)
+                if (pin.Link <= 0 || pin.Link >= trackNodes.Length)
                     return;
-                TrackVectorNode tvn = TrackNodes[pin.Link] as TrackVectorNode;
+                TrackVectorNode tvn = trackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];
-                ts = TSectionDat.TrackSections.Get(tvs.SectionIndex);
+                ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (ts == null)
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
                 to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
@@ -830,18 +621,18 @@ namespace Orts.Simulation
                 int sign = -Math.Sign(ts.Angle);
                 Vector3 vectorCurveStartToCenter = Vector3.Left * ts.Radius * sign;
                 Matrix curveRotation = Matrix.CreateRotationY(to * sign);
-                InterpolateAlongCurveLine(Vector3.Zero, vectorCurveStartToCenter, curveRotation, tvs.Direction, out _, out Vector3 displacement);
+                InterpolateHelper.InterpolateAlongCurveLine(Vector3.Zero, vectorCurveStartToCenter, curveRotation, tvs.Direction, out _, out Vector3 displacement);
                 displacement.Z *= -1;
                 location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
                 directionVector.Y -= to * sign;
             }
             else
             {
-                InterpolateAlongStraightLine(Vector3.Zero, Vector3.UnitZ, to, tvs.Direction, out _, out Vector3 displacement);
+                InterpolateHelper.InterpolateAlongStraightLine(Vector3.Zero, Vector3.UnitZ, to, tvs.Direction, out _, out Vector3 displacement);
                 location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
             }
 
-            if (direction == TravellerDirection.Backward)
+            if (direction == Direction.Backward)
             {
                 directionVector.X *= -1;
                 directionVector.Y += MathHelper.Pi;
@@ -865,17 +656,17 @@ namespace Orts.Simulation
             TrackVectorSection[] tvs = tvn.TrackVectorSections;
             for (int i = 0; i < tvs.Length; i++)
             {
-                TrackSection ts = TSectionDat.TrackSections.Get(tvs[i].SectionIndex);
+                TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs[i].SectionIndex);
                 if (ts == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
                 float length = GetLength(ts);
                 trackNodeLength += length;
                 if (i < TrackVectorSectionIndex)
                     trackNodeOffset += length;
-                if (i == TrackVectorSectionIndex)
+                else if (i == TrackVectorSectionIndex)
                     trackNodeOffset += trackOffset * (ts.Curved ? ts.Radius : 1);
             }
-            if (Direction == TravellerDirection.Backward)
+            if (Direction == Direction.Backward)
                 trackNodeOffset = trackNodeLength - trackNodeOffset;
         }
 
@@ -919,7 +710,7 @@ namespace Orts.Simulation
                 return 0;
 
             float trackLength = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
-            int sign = Math.Sign(trackSection.Angle) > 0 ^ direction == TravellerDirection.Backward ? -1 : 1;
+            int sign = Math.Sign(trackSection.Angle) > 0 ^ direction == Direction.Backward ? -1 : 1;
             float trackOffsetReverse = trackLength - trackOffset;
 
             float startingElevation = trackVectorSection.StartElev;
@@ -971,7 +762,7 @@ namespace Orts.Simulation
                 //maxv *= speed / 40f;
                 //if (maxv.AlmostEqual(0f, 0.001f)) maxv = 0.02f; //short curve, add some effect anyway
                 int sign = -Math.Sign(ts.Angle);
-                if ((direction == TravellerDirection.Forward ? 1 : -1) * sign > 0) 
+                if ((direction == Direction.Forward ? 1 : -1) * sign > 0) 
                     desiredZ = 1f;
                 else 
                     desiredZ = -1f;
@@ -980,33 +771,6 @@ namespace Orts.Simulation
             else 
                 desiredZ = 0f;
             return desiredZ;
-        }
-
-        /// <summary>
-        /// Finds the nearest junction node in the direction this traveller is facing.
-        /// </summary>
-        /// <returns>The <see cref="TrJunctionNode"/> of the found junction, or <c>null</c> if none was found.</returns>
-        public TrackJunctionNode JunctionNodeAhead()
-        {
-            return NextJunctionNode(TravellerDirection.Forward);
-        }
-
-        /// <summary>
-        /// Finds the nearest junction node in the opposite direction to this traveller.
-        /// </summary>
-        /// <returns>The <see cref="TrJunctionNode"/> of the found junction, or <c>null</c> if none was found.</returns>
-        public TrackJunctionNode JunctionNodeBehind()
-        {
-            return NextJunctionNode(TravellerDirection.Backward);
-        }
-
-        private TrackJunctionNode NextJunctionNode(TravellerDirection direction)
-        {
-            Traveller traveller = new Traveller(this, direction);
-            while (traveller.NextSection())
-                if (traveller.IsJunction)
-                    return traveller.trackNode as TrackJunctionNode;
-            return null;
         }
 
         /// <summary>
@@ -1065,9 +829,9 @@ namespace Orts.Simulation
 
         private float MoveInTrackSectionInfinite(float distanceToGo)
         {
-            int scale = Direction == TravellerDirection.Forward ? 1 : -1;
+            int scale = Direction == Direction.Forward ? 1 : -1;
             float distance = distanceToGo;
-            if (Direction == TravellerDirection.Backward && distance > trackOffset)
+            if (Direction == Direction.Backward && distance > trackOffset)
                 distance = trackOffset;
             trackOffset += scale * distance;
             trackNodeOffset += distance;
@@ -1077,10 +841,10 @@ namespace Orts.Simulation
 
         private float MoveInTrackSectionCurved(float distanceToGo)
         {
-            int scale = Direction == TravellerDirection.Forward ? 1 : -1;
+            int scale = Direction == Direction.Forward ? 1 : -1;
             float desiredTurnRadians = distanceToGo / trackSection.Radius;
             float sectionTurnRadians = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
-            if (direction == TravellerDirection.Forward)
+            if (direction == Direction.Forward)
             {
                 if (desiredTurnRadians > sectionTurnRadians - trackOffset)
                     desiredTurnRadians = sectionTurnRadians - trackOffset;
@@ -1098,9 +862,9 @@ namespace Orts.Simulation
 
         private float MoveInTrackSectionStraight(float distanceToGo)
         {
-            int scale = Direction == TravellerDirection.Forward ? 1 : -1;
+            int scale = Direction == Direction.Forward ? 1 : -1;
             float desiredDistance = distanceToGo;
-            if (direction == TravellerDirection.Forward)
+            if (direction == Direction.Forward)
             {
                 if (desiredDistance > trackSection.Length - trackOffset)
                     desiredDistance = trackSection.Length - trackOffset;
@@ -1114,77 +878,6 @@ namespace Orts.Simulation
             trackNodeOffset += desiredDistance;
             locationSet = false;
             return distanceToGo - desiredDistance;
-        }
-
-        /// <summary>
-        /// InterpolateAlongCurve interpolates position along a circular arc.
-        /// (Uses MSTS rigid-body rotation method for curve on a grade.)
-        /// </summary>
-        /// <param name="vPC">Local position vector for Point-of-Curve (PC) in x-z plane.</param>
-        /// <param name="vPCO">Units vector in direction from PC to arc center (O).</param>
-        /// <param name="rotation">Rotation matrix that deflects arc from PC to a point on curve (P).</param>
-        /// <param name="pitchYawRoll">>Vector3 containing Yaw, Pitch, and Roll components.</param>
-        /// <param name="position">Position vector for desired point on curve (P), returned by reference.</param>
-        /// <param name="displacement">Displacement vector from PC to P in world coordinates, returned by reference.</param>
-        public static void InterpolateAlongCurveLine(in Vector3 vPC, in Vector3 vPCO, Matrix rotation, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
-        {
-            Matrix matrix = MatrixExtension.CreateFromYawPitchRoll(pitchYawRoll);
-            // Shared method returns displacement from present world position and, by reference,
-            // local position in x-z plane of end of this section
-            position = Vector3.Transform(-vPCO, rotation); // Rotate O_PC to O_P
-            position = vPC + vPCO + position; // Position of P relative to PC
-            Vector3.Transform(ref position, ref matrix, out displacement); // Transform to world coordinates and return as displacement.
-        }
-
-        /// <summary>
-        /// InterpolateAlongStraight interpolates position along a straight stretch.
-        /// </summary>
-        /// <param name="vP0">Local position vector for starting point P0 in x-z plane.</param>
-        /// <param name="startToEnd">Units vector in direction from starting point P0 to target point P.</param>
-        /// <param name="offset">Distance from start to P.</param>
-        /// <param name="pitchYawRoll">Vector3 containing Yaw, Pitch, and Roll components.</param>
-        /// <param name="vP">Position vector for desired point(P), returned by reference.</param>
-        /// <returns>Displacement vector from P0 to P in world coordinates.</returns>
-        public static void InterpolateAlongStraightLine(in Vector3 vP0, Vector3 vP0P, float offset, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
-        {
-            Quaternion.CreateFromYawPitchRoll(pitchYawRoll.Y, pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
-            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
-            position = vP0 + offset * vP0P; // Position of desired point in local coordinates.
-            Vector3.Transform(ref position, ref matrix, out displacement);
-        }
-
-        /// <summary>
-        /// MSTSInterpolateAlongCurve interpolates position along a circular arc.
-        /// (Uses MSTS rigid-body rotation method for curve on a grade.)
-        /// </summary>
-        /// <param name="vPC">Local position vector for Point-of-Curve (PC) in x-z plane.</param>
-        /// <param name="vPCO">Units vector in direction from PC to arc center (O).</param>
-        /// <param name="mRotY">Rotation matrix that deflects arc from PC to a point on curve (P).</param>
-        /// <param name="mWorld">Transformation from local to world coordinates.</param>
-        /// <param name="vP">Position vector for desired point on curve (P), returned by reference.</param>
-        /// <returns>Displacement vector from PC to P in world coordinates.</returns>
-        public static Vector3 MSTSInterpolateAlongCurve(Vector3 vPC, Vector3 vPCO, Matrix mRotY, Matrix mWorld, out Vector3 vP)
-        {
-            // Shared method returns displacement from present world position and, by reference,
-            // local position in x-z plane of end of this section
-            Vector3 vO_P = Vector3.Transform(-vPCO, mRotY); // Rotate O_PC to O_P
-            vP = vPC + vPCO + vO_P; // Position of P relative to PC
-            return Vector3.Transform(vP, mWorld); // Transform to world coordinates and return as displacement.
-        }
-
-        /// <summary>
-        /// MSTSInterpolateAlongStraight interpolates position along a straight stretch.
-        /// </summary>
-        /// <param name="vP0">Local position vector for starting point P0 in x-z plane.</param>
-        /// <param name="vP0P">Units vector in direction from P0 to P.</param>
-        /// <param name="offset">Distance from P0 to P.</param>
-        /// <param name="mWorld">Transformation from local to world coordinates.</param>
-        /// <param name="vP">Position vector for desired point(P), returned by reference.</param>
-        /// <returns>Displacement vector from P0 to P in world coordinates.</returns>
-        public static Vector3 MSTSInterpolateAlongStraight(Vector3 vP0, Vector3 vP0P, float offset, Matrix mWorld, out Vector3 vP)
-        {
-            vP = vP0 + offset * vP0P; // Position of desired point in local coordinates.
-            return Vector3.Transform(vP, mWorld);
         }
 
         // TODO: This is a bit of a strange method that probably should be cleaned up.
@@ -1236,7 +929,7 @@ namespace Orts.Simulation
 
         public override string ToString()
         {
-            return $"{{TN={TrackNodeIndex} TS={TrackVectorSectionIndex} O={trackOffset:F6}}}";
+            return $"{{TrackNodeIndex={TrackNode.Index} TrackVectorSectionIndex={TrackVectorSectionIndex} Offset={trackOffset:F6}}}";
         }
 
         /// <summary>
@@ -1249,55 +942,26 @@ namespace Orts.Simulation
         {
             // Some things only have to be set when defined. This prevents overwriting existing settings.
             // The order might be important.
-            if (candidate.trackNode != null) 
-                trackNode = candidate.trackNode;
-            if (candidate.TrackNodeIndex >= 0) 
-                TrackNodeIndex = candidate.TrackNodeIndex;
-            if (candidate.trackVectorSection != null) 
-                trackVectorSection = candidate.trackVectorSection;
+            if (candidate.TrackNode != null)
+                trackNode = candidate.TrackNode;
+            if (candidate.TrackVectorSection != null) 
+                trackVectorSection = candidate.TrackVectorSection;
             if (candidate.TrackVectorSectionIndex >= 0) 
                 TrackVectorSectionIndex = candidate.TrackVectorSectionIndex;
-            if (candidate.trackSection != null) 
-                trackSection = candidate.trackSection;
 
             // these are always set:
-            direction = TravellerDirection.Forward;
+            direction = Direction.Forward;
             trackOffset = 0;
             locationSet = lengthSet = false;
-            if (candidate.isCurved)
+            trackSection = candidate.TrackSection;
+            if (trackSection.Curved)
             {
-                MoveInTrackSectionCurved(candidate.lon);
+                MoveInTrackSectionCurved(candidate.Longitude);
             }
             else
             {
-                MoveInTrackSectionStraight(candidate.lon);
+                MoveInTrackSectionStraight(candidate.Longitude);
             }
-        }
-    }
-
-    /// <summary>
-    /// Helper class to store details of a possible candidate where we can place the traveller.
-    /// Used during initialization as part of constructer(s)
-    /// </summary>
-    internal class TrackNodeCandidate
-    {
-        public float lon;               // longitude along the section
-        public float distanceToTrack;   // lateral distance to the track
-        public bool isCurved;           // Whether the tracksection is curved or not.  
-        public TrackNode trackNode;     // the trackNode object
-        public int TrackNodeIndex = -1; // the index of the tracknode
-        public TrackVectorSection trackVectorSection; // the trackvectorSection within the tracknode
-        public int TrackVectorSectionIndex = -1;   // the corresponding index of the trackvectorsection
-        public TrackSection trackSection;          // the tracksection within the trackvectorsection
-
-        /// <summary>
-        /// Constructor will only be called deep into a section, where the actual lon(gitude) and lat(ttide) are being calculated.
-        /// </summary>
-        public TrackNodeCandidate(float distanceToTrack, float lon, bool isCurved)
-        {
-            this.lon = lon;
-            this.distanceToTrack = distanceToTrack;
-            this.isCurved = isCurved;
         }
     }
 }

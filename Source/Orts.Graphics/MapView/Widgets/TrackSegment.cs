@@ -3,13 +3,11 @@ using System;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.Track.Shapes;
-using Orts.Graphics.Xna;
+using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackSegment: VectorWidget
     {

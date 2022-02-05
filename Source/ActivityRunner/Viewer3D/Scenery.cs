@@ -344,7 +344,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TrackDatabase.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
+                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? RuntimeData.Instance.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
@@ -449,11 +449,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(SidingObject))
                     {
-                        sidings.Add(new TrItemLabel(viewer, worldMatrix, (SidingObject)worldObject));
+                        sidings.Add(new TrItemLabel(worldMatrix, (SidingObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(PlatformObject))
                     {
-                        platforms.Add(new TrItemLabel(viewer, worldMatrix, (PlatformObject)worldObject));
+                        platforms.Add(new TrItemLabel(worldMatrix, (PlatformObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(StaticObject))
                     {

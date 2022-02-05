@@ -27,6 +27,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
@@ -97,9 +98,9 @@ namespace Orts.Simulation.Activities
                     foreach (ServiceTrafficItem i in sd.PlayerTraffics)
                     {
                         PlatformItem Platform;
-                        if (i.PlatformStartID < this.simulator.TrackDatabase.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
-                            this.simulator.TrackDatabase.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
-                            Platform = this.simulator.TrackDatabase.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
+                        if (i.PlatformStartID < RuntimeData.Instance.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
+                            RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
+                            Platform = RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
                         else
                         {
                             Trace.TraceWarning("PlatformStartID {0} is not present in TDB file", i.PlatformStartID);
@@ -107,9 +108,9 @@ namespace Orts.Simulation.Activities
                         }
                         if (Platform != null)
                         {
-                            if (this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
+                            if (RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
-                                PlatformItem Platform2 = this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
+                                PlatformItem Platform2 = RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator, task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
                         }
@@ -428,10 +429,8 @@ namespace Orts.Simulation.Activities
         /// Add speedposts to the track database for each Temporary Speed Restriction zone
         /// </summary>
         /// <param name="routeFile"></param>
-        /// <param name="tsectionDat">track sections containing the details of the various sections</param>
-        /// <param name="trackDB">The track Database that needs to be updated</param>
         /// <param name="zones">List of speed restriction zones</param>
-        internal void AddRestrictZones(Route routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, RestrictedSpeedZones zones)
+        internal void AddRestrictZones(Route routeFile, RestrictedSpeedZones zones)
         {
             if (zones == null)
                 throw new ArgumentNullException(nameof(zones));
@@ -453,12 +452,11 @@ namespace Orts.Simulation.Activities
                     zones[idxZone].EndPosition, false, WorldPosition.None, false);
 
                 // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
-                trackDB.AddTrackItems(newSpeedPostItems);
+                RuntimeData.Instance.TrackDB.AddTrackItems(newSpeedPostItems);
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
-                float? endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition, tsectionDat, trackDB, newSpeedPostItems[1], out _);
-                float? startOffset = AddItemIdToTrackNode(zones[idxZone].StartPosition,
-                    tsectionDat, trackDB, newSpeedPostItems[0], out Traveller traveller);
+                float? endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition, newSpeedPostItems[1], out _);
+                float? startOffset = AddItemIdToTrackNode(zones[idxZone].StartPosition, newSpeedPostItems[0], out Traveller traveller);
                 float distanceOfWarningPost = 0;
 
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
@@ -488,20 +486,17 @@ namespace Orts.Simulation.Activities
         /// Add a reference to a new TrItemId to the correct trackNode (which needs to be determined from the position)
         /// </summary>
         /// <param name="location">Position of the new </param>
-        /// <param name="tsectionDat">track sections containing the details of the various sections</param>
-        /// <param name="trackDB">track database to be modified</param>
-        /// <param name="newTrItemRef">The Id of the new TrItem to add to the tracknode</param>
+        /// <param name="newTrItem">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
+        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
-            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location);
-            TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
-            if (trackNode is TrackVectorNode trackVectorNode)
+            traveller = new Traveller(location);
+            if (traveller.TrackNode is TrackVectorNode trackVectorNode)
             {
                 offset = traveller.TrackNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);
-                InsertTrackItemRef(tsectionDat, trackDB, trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
+                InsertTrackItemRef(trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
             }
             return offset;
         }
@@ -521,15 +516,15 @@ namespace Orts.Simulation.Activities
         /// Insert a reference to a new TrItem to the already existing TrItemRefs basing on its offset within the track node.
         /// </summary>
         /// 
-        private static void InsertTrackItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
+        private static void InsertTrackItemRef(TrackVectorNode thisVectorNode, int newTrItemId, float offset)
         {
             int index = 0;
             // insert the new TrItemRef accordingly to its offset
             for (int iTrItems = thisVectorNode.TrackItemIndices.Length - 1; iTrItems >= 0; iTrItems--)
             {
                 int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
-                TrackItem currTrItem = trackDB.TrackItems[currTrItemID];
-                Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.Location);
+                TrackItem currTrItem = RuntimeData.Instance.TrackDB.TrackItems[currTrItemID];
+                Traveller traveller = new Traveller(currTrItem.Location);
                 if (offset >= traveller.TrackNodeOffset)
                 {
                     index = iTrItems + 1;

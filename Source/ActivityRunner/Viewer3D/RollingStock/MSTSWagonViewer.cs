@@ -35,6 +35,7 @@ using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -252,12 +253,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
                 // Applies to both a standard tender locomotive or a tank locomotive (where coal load is on same "wagon" as the locomotive -  for the coal load on a tender or tank locomotive - in operation it will raise or lower with caol usage
 
-                if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSSteamLocomotive)
+                if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSSteamLocomotive)
                 {
 
                     var NonTenderSteamLocomotive = MSTSWagon as MSTSSteamLocomotive;
 
-                    if ((MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == TrainCar.EngineTypes.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0)) && MSTSWagon.FreightAnimMaxLevelM != 0 && MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM)
+                    if ((MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == EngineType.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0)) && MSTSWagon.FreightAnimMaxLevelM != 0 && MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM)
                     {
                         // Force allowing animation:
                         if (FreightShape.SharedShape.LodControls.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy.Length > 0)
@@ -725,7 +726,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                                distanceTravelledM = MSTSWagon.WheelSpeedMpS * elapsedTime.ClockSeconds;
 
-                if (Car.EngineType == Orts.Simulation.RollingStocks.TrainCar.EngineTypes.Steam) // Steam locomotive so set up different speeds for different driver and non-driver wheels
+                if (Car.EngineType == EngineType.Steam) // Steam locomotive so set up different speeds for different driver and non-driver wheels
                 {
                     distanceTravelledM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
                     distanceTravelledDrivenM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedSlipMpS * (float)elapsedTime.ClockSeconds;
@@ -748,7 +749,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 distanceTravelledM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 distanceTravelledDrivenM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 // Set values of wheel radius - assume that drive wheel and non driven wheel are same sizes
-                if (Car.EngineType == Orts.Simulation.RollingStocks.TrainCar.EngineTypes.Steam) // set values for steam stock
+                if (Car.EngineType == EngineType.Steam) // set values for steam stock
                 {
                     AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
                     AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM;
@@ -829,12 +830,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 float FuelControllerLevel = 0.0f;
 
                 // For coal load variation on locomotives determine the current fuel level - and whether locomotive is a tender or tank type locomotive.
-                if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSSteamLocomotive)
+                if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSSteamLocomotive)
                 {
 
                     var NonTenderSteamLocomotive = MSTSWagon as MSTSSteamLocomotive;
 
-                    if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == TrainCar.EngineTypes.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0))
+                    if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == EngineType.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0))
                     {
 
                         if (MSTSWagon.TendersSteamLocomotive == null)
@@ -862,7 +863,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         FreightShape.XNAMatrices[0].M42 = MSTSWagon.FreightAnimMinLevelM + FuelControllerLevel * (MSTSWagon.FreightAnimMaxLevelM - MSTSWagon.FreightAnimMinLevelM);
                     }
                     // reproducing MSTS strange behavior; used to display loco crew when attached to tender
-                    else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (MSTSWagon.WagonType == WagonType.Tender)
                     {
                         //freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
                         freightLocation = Car.WorldPosition.ChangeTranslation(0, MSTSWagon.FreightAnimMaxLevelM, 0);

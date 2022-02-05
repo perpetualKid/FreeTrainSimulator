@@ -27,6 +27,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
@@ -495,7 +496,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 BrakeLine2PressurePSI -= dp * AuxBrakeLineVolumeRatio;
             }
 
-            if (Car is MSTSLocomotive loco && loco.EngineType != TrainCar.EngineTypes.Control)  // TODO - Control cars ned to be linked to power suppy requirements.
+            if (Car is MSTSLocomotive loco && loco.EngineType != EngineType.Control)  // TODO - Control cars ned to be linked to power suppy requirements.
             {
                 //    if (Car is MSTSLocomotive loco && loco.LocomotivePowerSupply.MainPowerSupplyOn)
                 if (loco.LocomotivePowerSupply.MainPowerSupplyOn)
@@ -561,7 +562,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
                        
             // Record HUD display values for brake cylinders depending upon whether they are wagons or locomotives/tenders (which are subject to their own engine brakes)   
-            if (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender)
+            if (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender)
             {
                 Car.Train.HUDLocomotiveBrakeCylinderPSI = CylPressurePSI;
                 Car.Train.HUDWagonBrakeCylinderPSI = Car.Train.HUDLocomotiveBrakeCylinderPSI;  // Initially set Wagon value same as locomotive, will be overwritten if a wagon is attached
@@ -578,7 +579,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
 
             // If wagons are not attached to the locomotive, then set wagon BC pressure to same as locomotive in the Train brake line
-            if (!Car.Train.WagonsAttached &&  (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender) ) 
+            if (!Car.Train.WagonsAttached &&  (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender) ) 
             {
                 Car.Train.HUDWagonBrakeCylinderPSI = CylPressurePSI;
             }
@@ -645,7 +646,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 var lead = Car as MSTSLocomotive;
 
-                if (lead != null && Car.WagonType == MSTSWagon.WagonTypes.Engine)
+                if (lead != null && Car.WagonType == WagonType.Engine)
                 {
                     if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.Overcharge && !lead.BrakeOverchargeSoundOn)
                     {

@@ -6,6 +6,7 @@ using System.Linq;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
@@ -446,7 +447,7 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformForward && passengerCarsWithinPlatform > 0 && trainCarIndex < train.Cars.Count - 1)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
                                (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
                             {
                                 if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
@@ -463,7 +464,7 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformBackward && passengerCarsWithinPlatform > 0 && trainCarIndex >= 0)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
                                (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
                             {
                                 if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 

@@ -32,6 +32,7 @@ using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
@@ -2731,7 +2732,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Switch to new position.
             if (!trainClose || (TrackCameraLocation == WorldLocation.None))
             {
-                var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
                 var newLocation = GoToNewLocation(ref tdb, train, trainForwards).Normalize();
 
                 var newLocationElevation = Viewer.Tiles.GetElevation(newLocation);
@@ -2907,9 +2908,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Traveller tdb;
                 // At first update loop camera location may be also behind train front (e.g. platform at start of activity)
                 if (FirstUpdateLoop)
-                    tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
+                    tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, true);
                 else
-                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
                 int tcSectionIndex;
                 int routeIndex;
@@ -2965,9 +2966,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
                                     Traveller shortTrav;
-                                    if (!(Viewer.Simulator.TrackDatabase.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem))
+                                    if (!(RuntimeData.Instance.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem))
                                         continue;
-                                    shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes, platformItem.Location, Traveller.TravellerDirection.Forward);
+                                    shortTrav = new Traveller(platformItem.Location, Direction.Forward);
                                     var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
                                     if (distanceToViewingPoint1 == -1) //try other direction
                                     {
@@ -3070,8 +3071,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         TrackCameraLocation = newLevelCrossingItem.Location;
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
-                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
-                            TrackCameraLocation, StaticRandom.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                        roadTraveller = new Traveller(RuntimeData.Instance.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
+                            TrackCameraLocation, StaticRandom.Next(2) == 0 ? Direction.Forward : Direction.Backward, true);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);
                         TrackCameraLocation = roadTraveller.WorldLocation;
@@ -3080,7 +3081,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 if (!SpecialPointFound && !trainClose)
                 {
-                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward); // return to standard
+                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true); // return to standard
                     TrackCameraLocation = GoToNewLocation(ref tdb, train, trainForwards);
                 }
 

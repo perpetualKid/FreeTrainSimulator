@@ -34,6 +34,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Native;
+using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.AIs;
 using Orts.Simulation.MultiPlayer;
@@ -545,7 +546,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             float tonnage = 0f;
             foreach (var car in train.Cars)
             {
-                if (car.WagonType == TrainCar.WagonTypes.Freight || car.WagonType == TrainCar.WagonTypes.Passenger)
+                if (car.WagonType == WagonType.Freight || car.WagonType == WagonType.Passenger)
                     tonnage += car.MassKG;
             }
 
@@ -613,7 +614,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     FormatStrings.FormatLargeMass(car.MassKG, locomotive.IsMetric, locomotive.IsUK) + "\t" +
                     (car.IsDriveable ? Viewer.Catalog.GetParticularString("Cab", "D") : "") + (car.HasFrontCab || car.HasFront3DCab ? Viewer.Catalog.GetParticularString("Cab", "F") : "") + (car.HasRearCab || car.HasRear3DCab ? Viewer.Catalog.GetParticularString("Cab", "R") : "") + "\t" +
                     GetCarWhyteLikeNotation(car) + "\t" +
-                    (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == TrainCar.WagonSpecialTypes.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, locomotive.IsMetric) : string.Empty));
+                    (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, locomotive.IsMetric) : string.Empty));
 
                 //Add new data here, if adding additional column.
 
@@ -671,7 +672,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     LocomotiveID.Add(car.CarID);
                     hudWindowLocoPagesCount++;
-                    IsSteamLocomotive = !IsSteamLocomotive && car.EngineType == TrainCar.EngineTypes.Steam;
+                    IsSteamLocomotive = !IsSteamLocomotive && car.EngineType == EngineType.Steam;
                 }
             }
 
@@ -1089,7 +1090,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 else  // Default to air or electronically braked, use this display
                 {
-                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineType == TrainCar.EngineTypes.Control)
+                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineType == EngineType.Control)
                     {
                         // Control cars typically don't have reservoirs
                         TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}",
@@ -1114,7 +1115,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     var car = train.Cars[i];
                     if (car is MSTSLocomotive && car != Viewer.PlayerLocomotive)
                     {
-                        if ((car as MSTSLocomotive).EngineType == TrainCar.EngineTypes.Control)
+                        if ((car as MSTSLocomotive).EngineType == EngineType.Control)
                         {
                             // Control cars typically don't have reservoirs
                             TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}",
@@ -1440,11 +1441,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
                 var HUDEngineType = mstsLocomotive.EngineType;
-                if (HUDEngineType != TrainCar.EngineTypes.Control) // Don't display adhesion information if it is an unpowered control car.
+                if (HUDEngineType != EngineType.Control) // Don't display adhesion information if it is an unpowered control car.
                 {
                     if (mstsLocomotive.AdvancedAdhesionModel)
                     {
-                        if (HUDEngineType == TrainCar.EngineTypes.Steam && (HUDSteamEngineType == TrainCar.SteamEngineTypes.Compound || HUDSteamEngineType == TrainCar.SteamEngineTypes.Simple || HUDSteamEngineType == TrainCar.SteamEngineTypes.Unknown)) // For display of steam locomotive adhesion info
+                        if (HUDEngineType == EngineType.Steam && (HUDSteamEngineType == SteamEngineType.Compound || HUDSteamEngineType == SteamEngineType.Simple || HUDSteamEngineType == SteamEngineType.Unknown)) // For display of steam locomotive adhesion info
                         {
                             TableAddLine(table, Viewer.Catalog.GetString("(Advanced adhesion model)"));
                             TableAddLabelValue(table, Viewer.Catalog.GetString("Loco Adhesion"), "{0:F0}%", mstsLocomotive.LocomotiveCoefficientFrictionHUD * 100.0f);

@@ -2066,7 +2066,7 @@ namespace Orts.Simulation.Signalling
             if (train.Train is AITrain aitrain && Math.Abs(train.Train.SpeedMpS) <= Simulator.MaxStoppedMpS)
             {
                 ref readonly WorldLocation location = ref TdbTraveller.WorldLocation;
-                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNodeIndex);
+                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNode.Index);
             }
 
             return SignalMR(SignalFunction.Normal) != SignalAspectState.Stop;

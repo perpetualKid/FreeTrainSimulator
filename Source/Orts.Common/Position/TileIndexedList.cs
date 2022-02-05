@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Orts.Common.Position;
-
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Common.Position
 {
-    internal class TileIndexedList<ITileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T : struct, ITile
+    public class TileIndexedList<TTileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T : struct, ITile
     {
         private readonly SortedList<ITile, List<ITileCoordinate<T>>> tiles;
         private readonly List<ITile> sortedIndexes;
@@ -35,7 +33,7 @@ namespace Orts.Graphics.Track.Widgets
             }
             sortedIndexes = tiles.Keys.ToList();
 
-            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
+            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
             {
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
@@ -51,7 +49,9 @@ namespace Orts.Graphics.Track.Widgets
             }
         }
 
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public IEnumerable<ITileCoordinate<T>> this[ITile tile]
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             get
             {
@@ -64,6 +64,10 @@ namespace Orts.Graphics.Track.Widgets
 
         public IEnumerable<ITileCoordinate<T>> BoundingBox(ITile bottomLeft, ITile topRight)
         {
+            if (bottomLeft == null)
+                throw new ArgumentNullException(nameof(bottomLeft));
+            if (topRight == null)
+                throw new ArgumentNullException(nameof(topRight));
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException(nameof(bottomLeft), $"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 
@@ -105,11 +109,35 @@ namespace Orts.Graphics.Track.Widgets
             }
         }
 
+        public IEnumerable<ITileCoordinate<T>> FindNearest(PointD position)
+        {
+            Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
+            ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
+            double minDistance = double.MaxValue;
+            if (current != key)
+            {
+                int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
+                ITile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
+                ITile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
+                int tileMaxIndex = FindNearestIndexCeiling(tileMax);
+                for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
+                {
+                    double currentDistance;
+                    if ((currentDistance = position.DistanceSquared(PointD.TileCenter(sortedIndexes[i]))) < minDistance)
+                    {
+                        minDistance = currentDistance;
+                        key = sortedIndexes[i];
+                    }
+                }
+            }
+            return tiles[key];
+        }
+
         public IEnumerable<ITileCoordinate<T>> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
         {
             Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
             ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
-            double minDistance = double.MaxValue; ;
+            double minDistance = double.MaxValue;
             if (current != key)
             {
                 int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
@@ -130,7 +158,6 @@ namespace Orts.Graphics.Track.Widgets
                     }
                 }
             }
-
             return tiles[key];
         }
 

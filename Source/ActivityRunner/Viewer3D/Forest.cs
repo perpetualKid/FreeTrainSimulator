@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -196,7 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                var trackShape = Viewer.Simulator.TSectionDat.TrackShapes[section.ShapeIndex];
+                                var trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[section.ShapeIndex];
                                 if (trackShape != null && trackShape.TunnelShape)
                                 {
                                     xnaTreePosition.Y = tiles.LoadAndGetElevation(position.TileX, position.TileZ, xnaTreePosition.X, -xnaTreePosition.Z, false);
@@ -241,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SectionMap = new Dictionary<string, List<TrackVectorSection>>();
                 if (MaximumCenterlineOffset > 0)
                 {
-                    foreach (var node in Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes)
+                    foreach (var node in RuntimeData.Instance.TrackDB.TrackNodes)
                     {
                         if (!(node is TrackVectorNode trackVectorNode))
                             continue;
@@ -255,9 +256,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (CheckRoadsToo)
                 {
-                    if (Viewer.Simulator.RoadDatabase != null && Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes != null)
+                    if (RuntimeData.Instance.RoadTrackDB?.TrackNodes != null)
                     {
-                        foreach (var node in Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes)
+                        foreach (var node in RuntimeData.Instance.RoadTrackDB.TrackNodes)
                         {
                             if (!(node is TrackVectorNode trackVectorNode))
                                 continue;
@@ -281,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, int tileX, int tileZ, float treeWidth)
         {
-            trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+            trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
             if (trackSection == null)
                 return false;
             if (trackSection.Curved)
@@ -307,7 +308,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     sectPosition.Z *= -1;
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+                    trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (trackSection == null) continue;
                     var trackSectionLength = GetLength(trackSection);
                     if (Math.Abs(sectPosToForest.X) > trackSectionLength + toAddX) continue;

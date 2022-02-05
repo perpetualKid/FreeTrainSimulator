@@ -1,4 +1,4 @@
-﻿namespace Orts.Graphics.Track.Shapes
+﻿namespace Orts.Graphics.MapView.Shapes
 {
     public enum BasicTextureType
     { 

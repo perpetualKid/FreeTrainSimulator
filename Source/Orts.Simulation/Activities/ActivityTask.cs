@@ -399,8 +399,8 @@ namespace Orts.Simulation.Activities
             ActualArrival = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
             rdval = inf.ReadInt64();
             ActualDeparture = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
-            PlatformEnd1 = simulator.TrackDatabase.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
-            PlatformEnd2 = simulator.TrackDatabase.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd1 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd2 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             BoardingEndS = inf.ReadDouble();
             BoardingS = inf.ReadDouble();
             timerChk = inf.ReadInt32();

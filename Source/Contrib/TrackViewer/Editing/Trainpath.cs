@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Forms;
 
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -621,7 +622,7 @@ namespace ORTS.TrackViewer.Editing
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Traveller.TravellerDirection.Forward);
+                    Traveller traveller = new Traveller(tvn, trItem.Location, Direction.Forward);
                     TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
                     if (platformNode.IsBetween(firstNode, secondNode))
                     {

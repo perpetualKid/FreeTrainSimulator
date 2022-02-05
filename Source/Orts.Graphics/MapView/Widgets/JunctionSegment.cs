@@ -3,9 +3,9 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     internal class JunctionSegment: PointWidget
     {

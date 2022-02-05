@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Orts.Common;
-using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-
-using static Orts.Simulation.Physics.Train;
 
 namespace Orts.Simulation.Track
 {
@@ -80,7 +75,7 @@ namespace Orts.Simulation.Track
                     AIPathNode pNode = aiPath.Nodes[i];
                     if (pNode.JunctionIndex > 0)
                     {
-                        TrackNode jn = aiPath.TrackDB.TrackNodes[pNode.JunctionIndex];
+                        TrackNode jn = RuntimeData.Instance.TrackDB.TrackNodes[pNode.JunctionIndex];
                         firstSwitch = true;
                         for (int iPin = 0; iPin < jn.TrackPins.Length; iPin++)
                         {
@@ -122,7 +117,7 @@ namespace Orts.Simulation.Track
 
                 if (currentPathNode.Type == AIPathNodeType.SidingStart)
                 {
-                    TrackNode sidingNode = aiPath.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                    TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                     int startTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
                     int[] altRouteReference = new int[3];
                     altRouteReference[0] = sublist;
@@ -135,7 +130,7 @@ namespace Orts.Simulation.Track
                 }
                 else if (currentPathNode.Type == AIPathNodeType.SidingEnd)
                 {
-                    TrackNode sidingNode = aiPath.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                    TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                     int endTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
 
                     int refStartIndex = ActiveAlternativeRoutes.Dequeue();
@@ -151,7 +146,7 @@ namespace Orts.Simulation.Track
 
                 if (currentPathNode.Type == AIPathNodeType.Other)
                 {
-                    thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                    thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
                     //  SPA:    Subpath:    Add TCRouteElement for each TrackCircuitsection in node
                     if (currentDir == 0)
@@ -237,7 +232,7 @@ namespace Orts.Simulation.Track
 
                     if (currentPathNode.JunctionIndex > 0)
                     {
-                        TrackNode junctionNode = aiPath.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                        TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                         TrackCircuitRouteElement thisElement =
                             new TrackCircuitRouteElement(junctionNode, 0, newDir);
                         thisSubpath.Add(thisElement);
@@ -285,9 +280,9 @@ namespace Orts.Simulation.Track
 
                     if (nextPathNode.Type == AIPathNodeType.Reverse)
                     {
-                        TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
+                        TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                        Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode, firstSection.Location, (Traveller.TravellerDirection)1);
+                        Traveller TDBTrav = new Traveller(reversalNode, firstSection.Location, Direction.Forward);
                         offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
                         float reverseOffset = 0;
                         int sectionIndex = -1;
@@ -328,7 +323,7 @@ namespace Orts.Simulation.Track
                         offset = GetOffsetToPathNode(aiPath, validDir, nextPathNode);
                         int[] waitingPoint = new int[6];
                         waitingPoint[0] = sublist + reversal;
-                        waitingPoint[1] = ConvertWaitingPoint(nextPathNode, aiPath.TrackDB, aiPath.TSectionDat);
+                        waitingPoint[1] = ConvertWaitingPoint(nextPathNode);
 
                         waitingPoint[2] = nextPathNode.WaitTimeS;
                         waitingPoint[3] = nextPathNode.WaitUntil;
@@ -350,7 +345,7 @@ namespace Orts.Simulation.Track
                 // insert reversals when they are in last section
                 while (reversal > 0)
                 {
-                    thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                    thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
                     if (currentDir == 0)
                     {
                         for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
@@ -392,9 +387,9 @@ namespace Orts.Simulation.Track
             // add last section
             //
 
-            thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+            thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
             TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-            Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, (Traveller.TravellerDirection)1);
+            Traveller TDBEndTrav = new Traveller(thisNode as TrackVectorNode, endFirstSection.Location, Direction.Forward);
             float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
 
             // Prepare info about route end point
@@ -433,7 +428,7 @@ namespace Orts.Simulation.Track
                 {
                     for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                     {
-                        if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
+                        if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
                         //                      if (thisNode.TCCrossReference[iTC].Position[0] < endOffset)
                         {
                             TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
@@ -449,7 +444,7 @@ namespace Orts.Simulation.Track
                 {
                     for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                     {
-                        if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] < endOffset)
+                        if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] < endOffset)
                         {
                             TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
                             if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != element.TrackCircuitSection.Index)
@@ -964,46 +959,47 @@ namespace Orts.Simulation.Track
         //  SPA: Used with enhanced MSTS Mode, please don't change
         private static float GetOffsetToPathNode(AIPath aiPath, TrackDirection direction, AIPathNode pathNode)
         {
-            TrackVectorNode waitPointNode;
-            TrackVectorSection firstSection;
-            //int nextNodeIdx = 0;
-            TrackDirection nodeDirection = direction;
+            //TrackVectorNode waitPointNode;
+            //TrackVectorSection firstSection;
+            ////int nextNodeIdx = 0;
+            //TrackDirection nodeDirection = direction;
 
-            waitPointNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
-            int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat);
-            firstSection = waitPointNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
+            //waitPointNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
+            //int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat);
+            //firstSection = waitPointNode.TrackVectorSections[0];
+            //Traveller tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
 
-            float offset;
-            if (tdbTraveller.Direction == Traveller.TravellerDirection.Backward)
-            {
-                nodeDirection = 1 - direction;
-                tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
-                offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-                for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-                {
-                    if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-                    {
-                        float sectionOffset = offset - waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-                        offset = waitPointNode.TrackCircuitCrossReferences[i].Length - sectionOffset;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                //Trace.TraceInformation("no reverse");
-                offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-                for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-                {
-                    if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-                    {
-                        offset -= waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-                        break;
-                    }
-                }
-            }
-            return offset;
+            //float offset;
+            //if (tdbTraveller.Direction == Direction.Backward)
+            //{
+            //    nodeDirection = 1 - direction;
+            //    tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
+            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
+            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
+            //    {
+            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
+            //        {
+            //            float sectionOffset = offset - waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
+            //            offset = waitPointNode.TrackCircuitCrossReferences[i].Length - sectionOffset;
+            //            break;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    //Trace.TraceInformation("no reverse");
+            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
+            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
+            //    {
+            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
+            //        {
+            //            offset -= waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
+            //            break;
+            //        }
+            //    }
+            //}
+            //return offset;
+            return 0;
         }
 
         // process alternative paths - MSTS style Path definition
@@ -1057,7 +1053,7 @@ namespace Orts.Simulation.Track
 
                     // process junction node
 
-                    TrackNode firstJunctionNode = aiPath.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                    TrackNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                     TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
@@ -1087,7 +1083,7 @@ namespace Orts.Simulation.Track
                         {
                             if (trackNodeIndex > 0)
                             {
-                                node = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                                node = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
                                 if (currentDir == TrackDirection.Ahead)
                                 {
@@ -1117,7 +1113,7 @@ namespace Orts.Simulation.Track
 
                             if (currentPathNode.JunctionIndex > 0)
                             {
-                                TrackNode junctionNode = aiPath.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                                TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                                 TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
                                 alternativePathRoute.Add(element);
 
@@ -1166,7 +1162,7 @@ namespace Orts.Simulation.Track
                     // add last section
                     if (trackNodeIndex > 0)
                     {
-                        node = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                        node = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
                         if (currentDir == TrackDirection.Ahead)
                         {
@@ -1230,7 +1226,7 @@ namespace Orts.Simulation.Track
                     AIPathNode pathNode = aiPath.Nodes[pathDetails[1]];
 
                     // process junction node
-                    TrackNode firstJunctionNode = aiPath.TrackDB.TrackNodes[pathNode.JunctionIndex];
+                    TrackNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes[pathNode.JunctionIndex];
                     TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
@@ -1262,7 +1258,7 @@ namespace Orts.Simulation.Track
                         {
                             if (trackNodeIndex > 0)
                             {
-                                trackNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                                trackNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
                                 if (currentDir == TrackDirection.Ahead)
                                 {
@@ -1289,7 +1285,7 @@ namespace Orts.Simulation.Track
                             // process junction section
                             if (pathNode.JunctionIndex > 0)
                             {
-                                TrackNode junctionNode = aiPath.TrackDB.TrackNodes[pathNode.JunctionIndex];
+                                TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[pathNode.JunctionIndex];
                                 TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
                                 alternativePathRoute.Add(element);
 
@@ -1338,7 +1334,7 @@ namespace Orts.Simulation.Track
                     // add last section
                     if (trackNodeIndex > 0)
                     {
-                        trackNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
+                        trackNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
                         if (currentDir == TrackDirection.Ahead)
                         {
@@ -1642,18 +1638,18 @@ namespace Orts.Simulation.Track
         }
 
         // Convert waiting point to section no.
-        private static int ConvertWaitingPoint(AIPathNode stopPathNode, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        private static int ConvertWaitingPoint(AIPathNode stopPathNode)
         {
-            TrackVectorNode waitingNode = trackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
+            TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
             TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, waitingNode, firstSection.Location, (Traveller.TravellerDirection)1);
+            Traveller tdbTraveller = new Traveller(waitingNode, firstSection.Location, Direction.Forward);
             float offset = tdbTraveller.DistanceTo(waitingNode, stopPathNode.Location);
 
             int sectionIndex = -1;
 
             foreach (TrackCircuitSectionCrossReference crossReference in waitingNode.TrackCircuitCrossReferences)
             {
-                if (offset < (crossReference.OffsetLength[1] + crossReference.Length))
+                if (offset < (crossReference.OffsetLength[TrackDirection.Reverse] + crossReference.Length))
                 {
                     sectionIndex = crossReference.Index;
                     break;

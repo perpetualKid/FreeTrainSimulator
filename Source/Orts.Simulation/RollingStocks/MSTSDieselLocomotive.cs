@@ -426,7 +426,7 @@ namespace Orts.Simulation.RollingStocks
                     CurrentLocomotiveSteamHeatBoilerWaterCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f);
                 }
                 // Check force assumptions set for diesel
-                if (EngineType == EngineTypes.Diesel && SpeedOfMaxContinuousForceMpS != 0)
+                if (EngineType == EngineType.Diesel && SpeedOfMaxContinuousForceMpS != 0)
                 {
 
                     float ThrottleSetting = 1.0f; // Must be at full throttle for these calculations

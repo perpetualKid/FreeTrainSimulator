@@ -104,7 +104,7 @@ namespace Orts.Graphics.DrawableComponents
             MetricRuler metricRuler = MetricRuler.m100_000;
             ImperialRuler imperialRuler = ImperialRuler.i50_000;
             int rulerLength;
-            if (content.TrackContent.UseMetricUnits)
+            if (content.Content.UseMetricUnits)
             {
                 while ((int)metricRuler * content.Scale > maxLength && metricRuler != MetricRuler.m0_0)
                 {

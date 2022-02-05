@@ -14,9 +14,9 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Track.Widgets
+namespace Orts.Graphics.MapView.Widgets
 {
     #region TrackItemBase
     internal abstract class TrackItemBase : PointWidget
@@ -88,6 +88,9 @@ namespace Orts.Graphics.Track.Widgets
             }
             foreach (TrackItem trackItem in trackItems)
             {
+                if (trackItem.Location == WorldLocation.None)
+                    continue;
+
                 switch (trackItem)
                 {
                     case SidingItem sidingItem:
@@ -398,7 +401,7 @@ namespace Orts.Graphics.Track.Widgets
     internal class LevelCrossingTrackItem : TrackItemBase
     {
         private readonly bool roadLevelCrossing;
-         
+
         public LevelCrossingTrackItem(LevelCrossingItem source) : base(source)
         {
             Size = 5f;
@@ -458,26 +461,8 @@ namespace Orts.Graphics.Track.Widgets
                 normal = signalConfig.SignalTypes[source.SignalType].FunctionType == SignalFunction.Normal;
             }
 
-            PointD sourcelocation = PointD.FromWorldLocation(source.Location);
-            double closest = double.MaxValue;
-            TrackSegment closestSegment = null;
-
             TrackVectorNode vectorNode = trackItemNodes[source.TrackItemId];
-            if (vectorNode != null)
-            {
-                foreach (TrackSegment segment in trackNodeSegments[vectorNode.Index])
-                {
-                    double currentDistance = sourcelocation.DistanceToLineSegmentSquared(segment.Location, segment.Vector);
-                    if (currentDistance < closest)
-                    {
-                        closest = currentDistance;
-                        closestSegment = segment;
-                    }
-
-                }
-            }
-
-            angle = MathHelper.WrapAngle((closestSegment?.Direction ?? 0) + MathHelper.PiOver2 + (source.Direction == Common.TrackDirection.Reverse ? MathHelper.TwoPi : MathHelper.Pi));
+            angle = new Traveller(vectorNode, source.Location, (Direction)source.Direction).RotY;
 
             Vector3 shiftedLocation = source.Location.Location +
                     0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
