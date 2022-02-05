@@ -425,7 +425,6 @@ namespace Orts.TrackViewer
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
-            //BindWindowEventHandlersActions();
             Components.Add(windowManager);
             base.Initialize();
 

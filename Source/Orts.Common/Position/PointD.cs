@@ -26,6 +26,15 @@ namespace Orts.Common.Position
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
         }
 
+        public static WorldLocation ToWorldLocation(in PointD location)
+        {
+            int xTileDistance = (int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int zTileDistance = (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero);
+
+            return new WorldLocation(xTileDistance, zTileDistance, 
+                new Vector3((float)(location.X - (xTileDistance * WorldLocation.TileSize)), 0, (float)(location.Y - (zTileDistance * WorldLocation.TileSize))));
+        }
+
         public static PointD TileCenter(in ITile tile)
         {
             if (tile == null)

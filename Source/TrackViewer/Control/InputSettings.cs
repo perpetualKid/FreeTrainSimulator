@@ -31,6 +31,7 @@ namespace Orts.TrackViewer.Control
             UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5);
             UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
             UserCommands[UserCommand.LocationWindow] = new UserCommandKeyInput(Keys.F12);
+            UserCommands[UserCommand.LocationWindowTab] = new UserCommandKeyInput(Keys.F12, KeyModifiers.Shift);
         }
     }
 }

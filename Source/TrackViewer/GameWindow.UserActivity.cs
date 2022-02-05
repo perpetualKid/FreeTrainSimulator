@@ -32,22 +32,6 @@ namespace Orts.TrackViewer
             PrepareExitApplication();
         }
 
-        private void BindWindowEventHandlersActions()
-        {
-            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
-            {
-                switch (windowType)
-                {
-                    case WindowType.QuitWindow:
-                        QuitWindow quitWindow = windowManager[WindowType.QuitWindow] as QuitWindow;
-                        quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
-                        quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
-                        quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
-                        break;
-                }
-            }
-        }
-
         internal void PrepareExitApplication()
         {
             windowManager[WindowType.QuitWindow].Open();

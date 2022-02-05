@@ -5,12 +5,16 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
+using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics;
 using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+
+using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer.PopupWindows
 {
@@ -19,12 +23,18 @@ namespace Orts.TrackViewer.PopupWindows
         private const double piRad = 180 / Math.PI;
         private ContentArea contentArea;
         private Label locationLabel;
+        private Label tileLabel;
         private PointD previousWorldPoint;
+        private bool useWorldCoordinates = true;
+        private bool updateRequired;
+
+        private readonly UserCommandController<UserCommand> userCommandController;
 
         public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
-            base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 64))
+            base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 48))
         {
             this.contentArea = contentArea;
+            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
@@ -36,6 +46,12 @@ namespace Orts.TrackViewer.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
 
+            if (!useWorldCoordinates)
+            {
+                ControlLayoutHorizontal tileTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.0));
+                tileLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+                tileTextLine.Add(tileLabel);
+            }
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             locationLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
             statusTextLine.Add(locationLabel);
@@ -43,41 +59,69 @@ namespace Orts.TrackViewer.PopupWindows
             return layout;
         }
 
+        public override void TabAction(UserCommandArgs args)
+        {
+            useWorldCoordinates = !useWorldCoordinates;
+            updateRequired = true;
+            Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+            Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
+            base.TabAction(args);
+        }
+
+        public override bool Open()
+        {
+            userCommandController.AddEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction, true);
+            updateRequired = true;
+            return base.Open();
+        }
+
+        public override bool Close()
+        {
+            userCommandController.RemoveEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction);
+            return base.Close();
+        }
+
         protected override void Update(GameTime gameTime)
         {
-            ref readonly PointD worldPoint = ref contentArea.WorldPosition;
-            if (contentArea != null && previousWorldPoint != worldPoint)
+            ref readonly PointD worldPoint = ref (contentArea == null ? ref PointD.None : ref contentArea.WorldPosition);
+            if (previousWorldPoint != worldPoint || updateRequired)
             {
+                updateRequired = false;
                 previousWorldPoint = worldPoint;
-                WorldLocation location = new WorldLocation(0, 0, (float)worldPoint.X, 0, (float)worldPoint.Y, true);
-                (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
-                EarthCoordinates.ConvertWTC(location.TileX, location.TileZ, location.Location, out double latitude2, out double longitude2);
+                WorldLocation location = PointD.ToWorldLocation(worldPoint);
+                if (useWorldCoordinates)
+                {
+                    (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 
-                System.Diagnostics.Debug.Assert(longitude == longitude2 && latitude == latitude2);
-                longitude *= piRad; // E/W
-                latitude *= piRad;  // N/S
-                char hemisphere = latitude >= 0 ? 'N' : 'S';
-                char direction = longitude >= 0 ? 'E' : 'W';
-                longitude = Math.Abs(longitude);
-                latitude = Math.Abs(latitude);
-                int longitudeDegree = (int)Math.Truncate(longitude);
-                int latitudeDegree = (int)Math.Truncate(latitude);
+                    longitude *= piRad; // E/W
+                    latitude *= piRad;  // N/S
+                    char hemisphere = latitude >= 0 ? 'N' : 'S';
+                    char direction = longitude >= 0 ? 'E' : 'W';
+                    longitude = Math.Abs(longitude);
+                    latitude = Math.Abs(latitude);
+                    int longitudeDegree = (int)Math.Truncate(longitude);
+                    int latitudeDegree = (int)Math.Truncate(latitude);
 
-                longitude -= longitudeDegree;
-                latitude -= latitudeDegree;
-                longitude *= 60;
-                latitude *= 60;
-                int longitudeMinute = (int)Math.Truncate(longitude);
-                int latitudeMinute = (int)Math.Truncate(latitude);
-                longitude -= longitudeMinute;
-                latitude -= latitudeMinute;
-                longitude *= 60;
-                latitude *= 60;
-                int longitudeSecond = (int)Math.Truncate(longitude);
-                int latitudeSecond = (int)Math.Truncate(latitude);
+                    longitude -= longitudeDegree;
+                    latitude -= latitudeDegree;
+                    longitude *= 60;
+                    latitude *= 60;
+                    int longitudeMinute = (int)Math.Truncate(longitude);
+                    int latitudeMinute = (int)Math.Truncate(latitude);
+                    longitude -= longitudeMinute;
+                    latitude -= latitudeMinute;
+                    longitude *= 60;
+                    latitude *= 60;
+                    int longitudeSecond = (int)Math.Truncate(longitude);
+                    int latitudeSecond = (int)Math.Truncate(latitude);
 
-                string locationText = $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}";
-                locationLabel.Text = locationText;
+                    locationLabel.Text = $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}";
+                }
+                else
+                {
+                    tileLabel.Text = $"Tile (X:Z) {location.TileX}:{location.TileZ}";
+                    locationLabel.Text = $"Location (x, z) {location.Location.X,4:00.##} {location.Location.Z,4:00.##}";
+                }
             }
             base.Update(gameTime);
         }

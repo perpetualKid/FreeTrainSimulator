@@ -19,5 +19,6 @@
         DebugScreen,
         DebugScreenTab,
         LocationWindow,
+        LocationWindowTab,
     }
 }
