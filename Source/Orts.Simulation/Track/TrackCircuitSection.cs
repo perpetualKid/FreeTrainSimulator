@@ -2030,9 +2030,9 @@ namespace Orts.Simulation.Track
 
             // copy speedpost information
 
-            TrackCircuitSignalList orgSpeedList = sourceSection.CircuitItems.TrackCircuitSpeedPosts[0];
-            TrackCircuitSignalList replSpeedList = replacementSection.CircuitItems.TrackCircuitSpeedPosts[0];
-            TrackCircuitSignalList newSpeedList = targetSection.CircuitItems.TrackCircuitSpeedPosts[0];
+            TrackCircuitSignalList orgSpeedList = sourceSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Ahead];
+            TrackCircuitSignalList replSpeedList = replacementSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Ahead];
+            TrackCircuitSignalList newSpeedList = targetSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Ahead];
 
             foreach (TrackCircuitSignalItem thisSpeedpost in orgSpeedList)
             {

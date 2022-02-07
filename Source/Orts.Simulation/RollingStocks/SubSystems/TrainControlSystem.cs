@@ -614,7 +614,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return SignalFeatures.None;
-            int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
+            int fn_type = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, signalTypeName));
             if (fn_type == -1) // check for not existing signal type
                 return SignalFeatures.None;
 
@@ -627,7 +627,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 // All OK, we can retrieve the data for the required signal;
                 distanceM = trainpathItem.DistanceToTrainM;
                 mainHeadSignalTypeName = trainpathItem.Signal.SignalHeads[0].SignalType.Name;
-                if (signalTypeName == "NORMAL")
+                if (signalTypeName.Equals("Normal", StringComparison.OrdinalIgnoreCase))
                 {
                     aspect = trainpathItem.SignalState;
                     speedLimitMpS = trainpathItem.AllowedSpeedMpS;

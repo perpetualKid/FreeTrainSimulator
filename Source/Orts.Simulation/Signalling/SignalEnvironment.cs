@@ -759,11 +759,11 @@ namespace Orts.Simulation.Signalling
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
             if (Math.Abs(delta_float) < (Math.PI / 2))
             {
-                signal.TrackDirection = ((TrackDirection)(int)signal.TdbTraveller.Direction).Reverse();
+                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction;
             }
             else
             {
-                signal.TrackDirection = (TrackDirection)(int)signal.TdbTraveller.Direction;
+                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction.Reverse();
                 signal.TdbTraveller.ReverseDirection();
             }
             Signals.Add(signal);

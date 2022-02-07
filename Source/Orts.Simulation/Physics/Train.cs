@@ -10625,7 +10625,7 @@ namespace Orts.Simulation.Physics
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[routeElement.TrackCircuitSection.Index];
                     for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
                     {
-                        if (OrSignalTypes.Instance.FunctionTypes[fn_type] == "NORMAL" && (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer))
+                        if (OrSignalTypes.Instance.FunctionTypes[fn_type].Equals("Normal", StringComparison.OrdinalIgnoreCase) && (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer))
                         {
                             if (section.EndSignals[sectionDirection] != null)
                             {
@@ -10637,7 +10637,7 @@ namespace Orts.Simulation.Physics
                                 PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
                             }
                         }
-                        else if (OrSignalTypes.Instance.FunctionTypes[fn_type] != "NORMAL" && sectionDistanceToTrainM < maxDistanceM)
+                        else if (!OrSignalTypes.Instance.FunctionTypes[fn_type].Equals("Normal", StringComparison.OrdinalIgnoreCase) && sectionDistanceToTrainM < maxDistanceM)
                         {
                             TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[sectionDirection][fn_type];
                             foreach (TrackCircuitSignalItem signal in signalList)

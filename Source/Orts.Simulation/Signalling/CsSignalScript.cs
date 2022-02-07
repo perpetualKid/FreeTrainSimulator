@@ -18,7 +18,7 @@ namespace Orts.Simulation.Signalling
 
         private static int SigFnIndex(string sigFn)
         {
-            return OrSignalTypes.Instance.FunctionTypes.IndexOf(sigFn);
+            return OrSignalTypes.Instance.FunctionTypes.FindIndex(functionType => StringComparer.OrdinalIgnoreCase.Equals(functionType, sigFn));
         }
 
         // Public interface
