@@ -30,6 +30,7 @@ namespace Orts.Graphics.MapView
         internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
         internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
         internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
+        internal TileIndexedList<TrackItemBase, Tile> SignalItems { get; private set; }
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
 
@@ -44,6 +45,7 @@ namespace Orts.Graphics.MapView
         public override async Task Initialize()
         {
             await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
+            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
 
             ContentArea.Initialize();
         }
@@ -73,6 +75,11 @@ namespace Orts.Graphics.MapView
                     if (ContentArea.InsideScreenArea(junctionNode))
                         junctionNode.Draw(ContentArea);
                 }
+            }
+            foreach (TrackItemBase trackItem in SignalItems.BoundingBox(bottomLeft, topRight))
+            {
+                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem))
+                    trackItem.Draw(ContentArea);
             }
             if (null != Trains)
             { 
@@ -248,6 +255,11 @@ namespace Orts.Graphics.MapView
                 maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
             }
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+        }
+
+        private void AddTrackItems()
+        {
+            SignalItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB, true));
         }
 
     }

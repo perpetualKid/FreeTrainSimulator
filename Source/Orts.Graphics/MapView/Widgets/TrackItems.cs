@@ -67,7 +67,7 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<uint, List<TrackSegment>> trackNodeSegments)
+        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
@@ -86,7 +86,7 @@ namespace Orts.Graphics.MapView.Widgets
                     }
                 }
             }
-            foreach (TrackItem trackItem in trackItems)
+            foreach (TrackItem trackItem in signalsOnly ? trackItems.Where(t => t is SignalItem) : trackItems)
             {
                 if (trackItem.Location == WorldLocation.None)
                     continue;
@@ -119,7 +119,7 @@ namespace Orts.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case SignalItem signalItem:
-                        result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes, trackNodeSegments));
+                        result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes));
                         break;
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
@@ -453,7 +453,7 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly float angle;
         private readonly bool normal = true;
 
-        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes, Dictionary<uint, List<TrackSegment>> trackNodeSegments) : base(source)
+        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes) : base(source)
         {
             Size = 7f;
             if (signalConfig.SignalTypes.ContainsKey(source.SignalType))
