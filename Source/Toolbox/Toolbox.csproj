@@ -23,4 +23,7 @@
   <ItemGroup>
     <Folder Include="Path\" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Temp-devstuff\" />
+  </ItemGroup>
 </Project>
