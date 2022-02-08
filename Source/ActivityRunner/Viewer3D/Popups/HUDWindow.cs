@@ -233,8 +233,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (Visible && TextPages[TextPage] == TextPageForceInfo)
             {
                 var loco = Viewer.PlayerLocomotive as MSTSLocomotive;
-                ForceGraphMotiveForce.AddSample(loco.MotiveForceN / loco.MaxForceN);
-                ForceGraphDynamicForce.AddSample(-loco.MotiveForceN / loco.MaxForceN);
+                var locoD = Viewer.PlayerLocomotive as MSTSDieselLocomotive;
+
+                // For geared locomotives the Max Force base value needs to change for each gear.
+                if (locoD != null && locoD.DieselEngines.HasGearBox && locoD.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                {
+                    ForceGraphMotiveForce.AddSample(loco.MotiveForceN / loco.HuDGearMaximumTractiveForce);
+                }
+                else
+                {
+                    ForceGraphMotiveForce.AddSample(loco.MotiveForceN / loco.MaxForceN);
+                }
                 ForceGraphNumOfSubsteps.AddSample((float)loco.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)loco.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
 
                 ForceGraphs.PrepareFrame(frame);

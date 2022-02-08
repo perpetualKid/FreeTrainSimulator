@@ -1726,8 +1726,26 @@ namespace Orts.Simulation.RollingStocks
             {
                 locomotivetypetext = "Unpowered Control Trailer Car";
             }
+            if (this is MSTSDieselLocomotive loco && loco.DieselEngines.HasGearBox)
+            {
+                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4:F0}%\t{5} - {6:F0} rpm\t\t{7}\t{8}\t{9}\t",
+                CarID,
+                Direction.GetLocalizedDescription(),
+                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
+                RemoteControlGroup == RemoteControlGroup.FrontGroupSync ? Simulator.Catalog.GetString("Sync") : RemoteControlGroup == RemoteControlGroup.RearGroupAsync ? Simulator.Catalog.GetString("Async") : "----",
+                ThrottlePercent,
+                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
+                loco.DieselEngines[0].GearBox.HuDShaftRPM,
+                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
+                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
+                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
+                Simulator.Catalog.GetString(locomotivetypetext)
+                );
+            }
+            else
+            {
 
-            return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
+                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
                 CarID,
                 Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 Direction.GetLocalizedDescription(),
@@ -1738,6 +1756,7 @@ namespace Orts.Simulation.RollingStocks
                 FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
                 $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
                 Simulator.Catalog.GetString(locomotivetypetext));
+            }
         }
 
         public virtual string GetTrainBrakeStatus() { return null; }

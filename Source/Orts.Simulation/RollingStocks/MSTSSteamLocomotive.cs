@@ -6809,7 +6809,7 @@ namespace Orts.Simulation.RollingStocks
                     if (SteamGearPosition > 0.0f) // Gear number can't go below zero
                     {
                         SteamGearPosition -= 1.0f;
-                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, SteamGearPosition);
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, SteamGearPosition);
                         if (SteamGearPosition == 1.0)
                         {
 

@@ -526,6 +526,7 @@ namespace Orts.Common
         ServiceRetentionCancellationButtonReleased,
         SwitchOnElectricTrainSupply,
         SwitchOffElectricTrainSupply,
+        StallEngine,
     }
 
     [Description("PowerSupply")]
@@ -592,6 +593,16 @@ namespace Orts.Common
         Diesel,
         Pantograph,
     }
+
+    public enum DieselTransmissionType
+    {
+        Legacy,
+        Electric,
+        Hydraulic,
+        Mechanic,
+        Hydromechanic,
+    }
+
     public enum BrakeControllerEvent
     {
         /// <summary>
