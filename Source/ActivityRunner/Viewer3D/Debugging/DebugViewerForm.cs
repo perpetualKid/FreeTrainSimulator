@@ -1672,35 +1672,35 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             if (tWindow.SelectedIndex == 1)
                 TimetableDrag(sender, e);
-            //else
-            //{
-            //    if (dragging && !Zooming)
-            //    {
-            //        int diffX = LastCursorPosition.X - e.X;
-            //        int diffY = LastCursorPosition.Y - e.Y;
+            else
+            {
+                if (dragging && !Zooming)
+                {
+                    int diffX = LastCursorPosition.X - e.X;
+                    int diffY = LastCursorPosition.Y - e.Y;
 
-            //        viewWindow.Offset(diffX * ScrollSpeedX / 10, -diffY * ScrollSpeedX / 10);
-            //        GenerateView();
-            //    }
-            //    else if (Zooming)
-            //    {
-            //        decimal tempValue = windowSizeUpDown.Value;
-            //        if (LastCursorPosition.Y - e.Y < 0)
-            //            tempValue /= 0.95m;
-            //        else if (LastCursorPosition.Y - e.Y > 0)
-            //            tempValue *= 0.95m;
+                    viewWindow.Offset(diffX * ScrollSpeedX / 10, -diffY * ScrollSpeedX / 10);
+                    GenerateView();
+                }
+                else if (Zooming)
+                {
+                    decimal tempValue = windowSizeUpDown.Value;
+                    if (LastCursorPosition.Y - e.Y < 0)
+                        tempValue /= 0.95m;
+                    else if (LastCursorPosition.Y - e.Y > 0)
+                        tempValue *= 0.95m;
 
-            //        if (tempValue < windowSizeUpDown.Minimum)
-            //            tempValue = windowSizeUpDown.Minimum;
-            //        if (tempValue > windowSizeUpDown.Maximum)
-            //            tempValue = windowSizeUpDown.Maximum;
-            //        windowSizeUpDown.Value = tempValue;
-            //        GenerateView();
+                    if (tempValue < windowSizeUpDown.Minimum)
+                        tempValue = windowSizeUpDown.Minimum;
+                    if (tempValue > windowSizeUpDown.Maximum)
+                        tempValue = windowSizeUpDown.Maximum;
+                    windowSizeUpDown.Value = tempValue;
+                    GenerateView();
 
-            //    }
-            //    LastCursorPosition.X = e.X;
-            //    LastCursorPosition.Y = e.Y;
-            //}
+                }
+                LastCursorPosition.X = e.X;
+                LastCursorPosition.Y = e.Y;
+            }
         }
 
         public bool AddNewMessage(double _, string msg)

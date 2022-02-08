@@ -31,18 +31,15 @@ namespace Orts.TrackViewer.PopupWindows
 
         public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
 
-
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
             ZOrder = 0;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
-            currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling))
-            {
-                TextColor = backgroundColor.ComplementColor(),
-            };
+            currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
+            UpdateBackgroundColor(backgroundColor);
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -65,8 +62,8 @@ namespace Orts.TrackViewer.PopupWindows
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
-            //TODO 2021-12-12 consider TextColor for all text pages
-            currentProvider[DebugScreenInformation.Common].TextColor = backgroundColor.ComplementColor();
+            foreach(NameValueTextGrid item in currentProvider)
+                item.TextColor = backgroundColor.ComplementColor();
         }
 
         public override bool Open()
