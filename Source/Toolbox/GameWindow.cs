@@ -34,13 +34,12 @@ using UserCommand = Orts.Toolbox.Control.UserCommand;
 
 namespace Orts.Toolbox
 {
-    public partial class GameWindow : Game, IInputCapture, IDebugInformationProvider
+    public partial class GameWindow : Game, IInputCapture
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
-        private readonly SmoothedData frameRate;
-        private readonly NameValueCollection debugInfo = new NameValueCollection();
-        private readonly Dictionary<string, FormatOption> formatOptions = new Dictionary<string,FormatOption>();
+        private readonly CommonDebugInfo debugInfo;
+        private readonly GraphicsDebugInfo graphicsDebugInfo = new GraphicsDebugInfo();
 
         private SpriteBatch spriteBatch;
 
@@ -61,13 +60,14 @@ namespace Orts.Toolbox
         internal ContentArea ContentArea
         {
             get => contentArea;
-            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            {
                 if (value != null)
                 {
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
-                    Window.Title = windowTitle + " TOOLBOX" + Catalog.GetString($" Route: {value.RouteName}");
+                    Window.Title = windowTitle + $" Toolbox" + Catalog.GetString($" Route: {value.RouteName}");
                 }
                 else
                 {
@@ -77,8 +77,11 @@ namespace Orts.Toolbox
                 if (contentArea != null)
                     contentArea.Enabled = false;
                 contentArea = value;
+                OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
             });
         }
+
+        internal event EventHandler<ContentAreaChangedEventArgs> OnContentAreaChanged;
 
         internal string StatusMessage { get; set; }
 
@@ -87,7 +90,6 @@ namespace Orts.Toolbox
         internal string LogFileName { get; }
 
         private Color BackgroundColor;
-        internal string backgroundColor;
 
         #region preferences
         private TrackViewerViewSettings viewSettings;
@@ -113,8 +115,6 @@ namespace Orts.Toolbox
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
 
-            frameRate = new SmoothedData();
-            frameRate.Preset(60);
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             if (Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length)
                 currentScreen = System.Windows.Forms.Screen.AllScreens[Settings.Screen];
@@ -160,6 +160,7 @@ namespace Orts.Toolbox
             windowForm.FormClosing += WindowForm_FormClosing;
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+            debugInfo = new CommonDebugInfo(this);
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -203,8 +204,8 @@ namespace Orts.Toolbox
             contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
-                backgroundColor = colorName;
                 BackgroundColor = ColorExtension.FromName(colorName);
+                (windowManager[WindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
             }
         }
 
@@ -247,7 +248,8 @@ namespace Orts.Toolbox
         {
 
             Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height); ;
+            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            ;
             Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
@@ -310,7 +312,8 @@ namespace Orts.Toolbox
         private void SetScreenMode(ScreenMode targetMode)
         {
             syncing = true;
-            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            {
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
                 switch (targetMode)
@@ -371,9 +374,10 @@ namespace Orts.Toolbox
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
+            #region usercommandcontroller
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
-            userCommandController.AddEvent(UserCommand.QuitGame, KeyEventType.KeyPressed, CloseWindow);
+            userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, CloseWindow);
             userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, MoveByKeyLeft);
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
@@ -382,19 +386,44 @@ namespace Orts.Toolbox
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, ShowDebugScreen);
+            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, ToggleDebugScreen);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(UserCommand.LocationWindow, KeyEventType.KeyPressed, ToggleLocationWindow);
+            #endregion
 
+            #region popup windows
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
-            windowManager[WindowType.PauseWindow] = new PauseWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug");
-            (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;
+            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
+            {
+                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
+                quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
+                quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
+                quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
+                return quitWindow;
+            }));
+
+            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            {
+                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
+                debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
+                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
+                return debugWindow;
+            }));
+
+            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
+            {
+                LocationWindow locationWindow = new LocationWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
+                return locationWindow;
+            }));
+            #endregion
+
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
-            BindWindowEventHandlersActions();
+            //BindWindowEventHandlersActions();
             Components.Add(windowManager);
             base.Initialize();
 
@@ -414,26 +443,25 @@ namespace Orts.Toolbox
         private static void GameWindowThread(object data)
         {
             using (GameWindow game = new GameWindow())
+            {
                 game.Run();
+            }
         }
 
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice);
-            DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
-            Components.Add(clock);
+            //DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
+            //Components.Add(clock);
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
-            Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
+            //Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
         }
 
         protected override void Update(GameTime gameTime)
         {
-            debugInfo["Version"] = VersionInfo.FullVersion;
-            debugInfo["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
-            debugInfo["Scale"] = contentArea?.Scale.ToString(CultureInfo.CurrentCulture);
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
                 SuppressDraw();
@@ -447,22 +475,79 @@ namespace Orts.Toolbox
 
         public bool InputCaptured { get; internal set; }
 
-        public NameValueCollection DebugInfo => debugInfo;
-
-        public Dictionary<string, FormatOption> FormattingOptions => formatOptions;
-
         protected override void Draw(GameTime gameTime)
         {
-            double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
-            frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
-            debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-            if (frameRate.SmoothedValue < 50f)
-                formatOptions["FPS"] = FormatOption.BoldOrangeRed;
-            else
-                formatOptions["FPS"] = null;
-
+            debugInfo.Update(gameTime);
             GraphicsDevice.Clear(BackgroundColor);
             base.Draw(gameTime);
+
+            graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
+        }
+
+        private class CommonDebugInfo : DebugInfoBase
+        {
+            private readonly SmoothedData frameRate = new SmoothedData();
+            private ContentArea contentArea;
+
+            public CommonDebugInfo(GameWindow gameWindow)
+            {
+                frameRate.Preset(60);
+                FormattingOptions = new Dictionary<string, FormatOption>();
+                this["Version"] = VersionInfo.FullVersion;
+                gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+            }
+
+            private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+            {
+                contentArea = e.ContentArea;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                this["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
+                this["Scale"] = $"{contentArea?.Scale,12:F3}";
+                this["Other"] = $"{DateTime.Now} {contentArea?.CenterX} {contentArea?.CenterY}";
+                double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
+                frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
+                this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
+                if (frameRate.SmoothedValue < 50)
+                    FormattingOptions["FPS"] = FormatOption.RegularRed;
+                else
+                    FormattingOptions["FPS"] = null;
+            }
+        }
+
+        private class GraphicsDebugInfo : DebugInfoBase
+        {
+            public override string Get(string name)
+            {
+                return name switch
+                {
+                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
+                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
+                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
+                    "Textures" => $"{CurrentMetrics.TextureCount}",
+                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
+                    "Targets" => $"{CurrentMetrics.TargetCount}",
+                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
+                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
+                    _ => base.Get(name),
+                };
+            }
+
+            public GraphicsMetrics CurrentMetrics;
+
+            public GraphicsDebugInfo()
+            {
+                DebugInfo.Add("Clear Calls", null);
+                DebugInfo.Add("Draw Calls", null);
+                DebugInfo.Add("Primitives", null);
+                DebugInfo.Add("Textures", null);
+                DebugInfo.Add("Sprites", null);
+                DebugInfo.Add("Targets", null);
+                DebugInfo.Add("PixelShaders", null);
+                DebugInfo.Add("VertexShaders", null);
+            }
         }
     }
 }

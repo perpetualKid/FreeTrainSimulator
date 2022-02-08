@@ -70,6 +70,16 @@ namespace Orts.Toolbox
             Exit();
         }
 
+        private void ToggleDebugScreen(UserCommandArgs args)
+        {
+            windowManager[WindowType.DebugScreen].ToggleVisibility();
+        }
+
+        private void ToggleLocationWindow(UserCommandArgs args)
+        {
+            windowManager[WindowType.LocationWindow].ToggleVisibility();
+        }
+
         private void ShowDebugScreen()
         {
             windowManager[WindowType.DebugScreen].ToggleVisibility();

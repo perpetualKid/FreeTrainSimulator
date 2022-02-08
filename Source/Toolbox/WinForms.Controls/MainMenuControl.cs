@@ -413,5 +413,10 @@ namespace Orts.Toolbox.WinForms.Controls
         {
 
         }
+
+        private void ConsistEditortoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

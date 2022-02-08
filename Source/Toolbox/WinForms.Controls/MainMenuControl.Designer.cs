@@ -97,10 +97,12 @@ namespace Orts.Toolbox.WinForms.Controls
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.PathedittoolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ActivitytoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.activityWizardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CrazyIdeastoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CrazyIdeastoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -652,6 +654,26 @@ namespace Orts.Toolbox.WinForms.Controls
             this.loadPathToolStripMenuItem.Text = "Load Path";
             this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.loadPathToolStripMenuItem_Click);
             // 
+            // ActivitytoolStripMenuItem
+            // 
+            this.ActivitytoolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.activityWizardToolStripMenuItem});
+            this.ActivitytoolStripMenuItem.Name = "ActivitytoolStripMenuItem";
+            this.ActivitytoolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.ActivitytoolStripMenuItem.Text = "Activity";
+            // 
+            // activityWizardToolStripMenuItem
+            // 
+            this.activityWizardToolStripMenuItem.Name = "activityWizardToolStripMenuItem";
+            this.activityWizardToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.activityWizardToolStripMenuItem.Text = "Activity Wizard";
+            // 
+            // CrazyIdeastoolStripMenuItem
+            // 
+            this.CrazyIdeastoolStripMenuItem.Name = "CrazyIdeastoolStripMenuItem";
+            this.CrazyIdeastoolStripMenuItem.Size = new System.Drawing.Size(78, 20);
+            this.CrazyIdeastoolStripMenuItem.Text = "Crazy Ideas";
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -674,12 +696,6 @@ namespace Orts.Toolbox.WinForms.Controls
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
-            // 
-            // CrazyIdeastoolStripMenuItem
-            // 
-            this.CrazyIdeastoolStripMenuItem.Name = "CrazyIdeastoolStripMenuItem";
-            this.CrazyIdeastoolStripMenuItem.Size = new System.Drawing.Size(78, 20);
-            this.CrazyIdeastoolStripMenuItem.Text = "Crazy Ideas";
             // 
             // MainMenuControl
             // 

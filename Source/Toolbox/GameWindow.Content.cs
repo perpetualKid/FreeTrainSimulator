@@ -15,6 +15,16 @@ using Orts.Formats.Msts.Files;
 
 namespace Orts.Toolbox
 {
+    public class ContentAreaChangedEventArgs : EventArgs
+    {
+        public ContentArea ContentArea { get; }
+
+        public ContentAreaChangedEventArgs(ContentArea contentArea)
+        {
+            ContentArea = contentArea;
+        }
+    }
+
     public partial class GameWindow : Game
     {
         private Folder selectedFolder;
@@ -140,8 +150,15 @@ namespace Orts.Toolbox
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
                if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                    useMetricUnits = null;
-            //
-            //   await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
+           
+ 
+            
+            //(windowManager[WindowType.PauseWindow] as PauseWindow).pauseText = $"pathID: {pathData.PathID} " +
+           //                       $"  PathName: {pathData.Name} "+
+            //                      $"  Starting Point:  {pathData.Start} " +
+            //                      $"  Ending Point: {pathData.End} ";
+            //windowManager[WindowType.PauseWindow].Open();
+
             //   if (token.IsCancellationRequested)
             //       return;
             //

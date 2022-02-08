@@ -15,18 +15,22 @@ namespace Orts.Toolbox.Control
             UserCommandModifierInput moveSlow = new UserCommandModifierInput(KeyModifiers.Control);
             UserCommandModifierInput moveFast = new UserCommandModifierInput(KeyModifiers.Shift);
 
-            UserCommands[UserCommand.PrintScreen] = new UserCommandKeyInput(Keys.PrintScreen, KeyModifiers.None);
-            UserCommands[UserCommand.NewInstance] = new UserCommandKeyInput(Keys.F, KeyModifiers.None);
-            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter, KeyModifiers.Alt);
-            UserCommands[UserCommand.QuitGame] = new UserCommandKeyInput(Keys.Q, KeyModifiers.None);
-            UserCommands[UserCommand.ResetZoomAndLocation] = new UserCommandKeyInput(Keys.R, KeyModifiers.None);
-            UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveRight] = new UserCommandModifiableKeyInput(Keys.Right, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveUp] = new UserCommandModifiableKeyInput(Keys.Up, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, KeyModifiers.None, moveFast, moveSlow);
-            UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5, KeyModifiers.None);
+            // All UserCommandModifierInput commands go here.
+            UserCommands[UserCommand.Cancel] = new UserCommandKeyInput(Keys.Escape);
+            UserCommands[UserCommand.PrintScreen] = new UserCommandKeyInput(Keys.PrintScreen);
+            UserCommands[UserCommand.NewInstance] = new UserCommandKeyInput(Keys.F);
+            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter);
+            UserCommands[UserCommand.QuitWindow] = new UserCommandKeyInput(Keys.Q);
+            UserCommands[UserCommand.ResetZoomAndLocation] = new UserCommandKeyInput(Keys.R);
+            UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveRight] = new UserCommandModifiableKeyInput(Keys.Right, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveUp] = new UserCommandModifiableKeyInput(Keys.Up, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, moveFast, moveSlow);
+            UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, moveFast, moveSlow);
+            UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, moveFast, moveSlow);
+            UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5);
+            UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
+            UserCommands[UserCommand.LocationWindow] = new UserCommandKeyInput(Keys.F12);
         }
     }
 }

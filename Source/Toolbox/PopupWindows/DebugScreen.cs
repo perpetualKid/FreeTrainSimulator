@@ -1,76 +1,92 @@
 ﻿
 using System;
-using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
-using Orts.Graphics;
+using Orts.Common.Input;
 using Orts.Graphics.Window;
+using Orts.Graphics.Window.Controls;
+using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
+
+using UserCommand = Orts.Toolbox.Control.UserCommand;
 
 namespace Orts.Toolbox.PopupWindows
 {
     public enum DebugScreenInformation
     {
         Common,
+        Graphics,
+        Route,
     }
 
     public class DebugScreen : OverlayWindowBase
     {
-        private readonly List<ValueTuple<Vector2, Texture2D, Color>> drawItems = new List<(Vector2, Texture2D, Color)>();
-        private readonly Color color = Color.White;
-        private readonly System.Drawing.Font font;
+        private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
+        private readonly UserCommandController<UserCommand> userCommandController;
 
-        private readonly TextTextureResourceHolder textureHolder;
+        private DebugScreenInformation currentDebugScreen;
 
-        public EnumArray<IDebugInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<IDebugInformationProvider, DebugScreenInformation>();
+        public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
 
-        public DebugScreen(WindowManager owner, string caption) :
-            base(owner, caption, Point.Zero, Point.Zero)
+
+        public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), caption, Point.Zero, Point.Zero)
         {
-            font = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[13];
-            textureHolder = new TextTextureResourceHolder(Owner.Game);
             ZOrder = 0;
+            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+            currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling))
+            {
+                TextColor = backgroundColor.ComplementColor(),
+            };
+            currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
+            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
-            int lineOffset = 30;
-            drawItems.Clear();
-            base.Update(gameTime);
-            foreach (IDebugInformationProvider provider in DebugScreens)
+            foreach (NameValueTextGrid item in currentProvider)
             {
-                int hashCode;
-                foreach (string identifier in provider.DebugInfo)
-                {
-                    System.Drawing.Font currentFont = font;
-                    if (provider.FormattingOptions.TryGetValue(identifier, out FormatOption formatOption) && formatOption != null)
-                    {
-                        currentFont = FontManager.Scaled("Segoe UI", formatOption.FontStyle)[13];
-                    }
-                    hashCode = HashCode.Combine(identifier, formatOption);
-                    Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
-                    drawItems.Add((new Vector2(10, lineOffset), texture, formatOption?.TextColor ?? color));
-                    texture = textureHolder.PrepareResource(provider.DebugInfo[identifier], currentFont);
-                    drawItems.Add((new Vector2(100, lineOffset), texture, formatOption?.TextColor ?? color));
-                    lineOffset += 20;
-                }
-                //
+                layout?.Add(item);
             }
+            return base.Layout(layout, headerScaling);
         }
 
-        protected override void Draw(SpriteBatch spriteBatch)
+        protected override void Initialize()
         {
-            if (null == spriteBatch)
-                return;
-            foreach ((Vector2 position, Texture2D texture, Color color) item in drawItems)
+            foreach (DebugScreenInformation item in EnumExtension.GetValues<DebugScreenInformation>())
             {
-                spriteBatch.Draw(item.texture, item.position, null, item.color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+                currentProvider[item].DebugInformationProvider = DebugScreens[item];
             }
-            base.Draw(spriteBatch);
+            base.Initialize();
+        }
+
+        public void UpdateBackgroundColor(Color backgroundColor)
+        {
+            //TODO 2021-12-12 consider TextColor for all text pages
+            currentProvider[DebugScreenInformation.Common].TextColor = backgroundColor.ComplementColor();
+        }
+
+        public override bool Open()
+        {
+            userCommandController.AddEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction, true);
+            return base.Open();
+        }
+
+        public override bool Close()
+        {
+            userCommandController.RemoveEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction);
+            return base.Close();
+        }
+
+        public override void TabAction(UserCommandArgs args)
+        {
+            if (currentDebugScreen != DebugScreenInformation.Common)
+                currentProvider[currentDebugScreen].Visible = false;
+            currentDebugScreen = currentDebugScreen.Next();
+            currentProvider[currentDebugScreen].Visible = true;
         }
     }
 }
