@@ -1015,11 +1015,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Initialize()
         {
-            if (Simulator.Instance.Settings.DieselEngineStart)
+            if (Simulator.Instance.Settings.DieselEngineStart && !Locomotive.gearSaved)
             {
                 RealRPM = IdleRPM;
                 State = DieselEngineState.Running;
             }
+            else if (Locomotive.gearSaved)
+            {
+                State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
+            }
+
             RPMRange = MaxRPM - IdleRPM;
             MagnitudeRange = MaxMagnitude - InitialMagnitude;
             ExhaustRange = MaxExhaust - InitialExhaust;
@@ -1035,8 +1040,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void InitializeMoving()
         {
-            RealRPM = IdleRPM;
-            State = DieselEngineState.Running;
+            if (Simulator.Instance.Settings.DieselEngineStart && !Locomotive.gearSaved)
+            {
+                RealRPM = IdleRPM;
+                State = DieselEngineState.Running;
+            }
+            else if (Locomotive.gearSaved)
+            {
+                State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
+            }
 
             GearBox?.InitializeMoving();
         }
@@ -1585,7 +1597,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Restore(BinaryReader inf)
         {
-            State = (DieselEngineState)inf.ReadInt32();
+            Locomotive.dieselEngineRestoreState = inf.ReadInt32();
+            State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
             RealRPM = inf.ReadSingle();
             OutputPowerW = inf.ReadSingle();
             DieselTemperatureDeg = inf.ReadSingle();

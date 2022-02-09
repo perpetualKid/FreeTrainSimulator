@@ -95,6 +95,7 @@ namespace Orts.Simulation.RollingStocks
         internal int currentGearIndexRestore = -1;
         internal int currentnextGearRestore = -1;
         internal bool gearSaved;
+        public int dieselEngineRestoreState;
 
         public float EngineRPM;
         public SmoothedData ExhaustParticles = new SmoothedData(1);
