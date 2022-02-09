@@ -29,8 +29,8 @@ namespace Orts.Common.Position
 
         public Tile(int x, int z)
         {
-            X = (short)x;
-            Z = (short)z;
+            X = Convert.ToInt16(x);
+            Z = Convert.ToInt16(z);
         }
 
         public int CompareTo(ITile other)
@@ -55,7 +55,7 @@ namespace Orts.Common.Position
 
         public override int GetHashCode()
         {
-            return (X, Z).GetHashCode();
+            return HashCode.Combine(X, Z);
         }
 
         public bool Equals(Tile other)
@@ -78,7 +78,7 @@ namespace Orts.Common.Position
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short TileFromAbs(double value)
         {
-            return (short)Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            return Convert.ToInt16(Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
     }
 }
