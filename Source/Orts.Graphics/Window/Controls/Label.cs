@@ -14,6 +14,7 @@ namespace Orts.Graphics.Window.Controls
         }
         public HorizontalAlignment Alignment { get; }
         private Point alignmentOffset;
+        private Rectangle? clippingRectangle;
 
         public Label(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
@@ -44,23 +45,28 @@ namespace Orts.Graphics.Window.Controls
             base.Initialize();
             InitializeText(Text);
             RenderText(Text);
+            clippingRectangle = null;
             switch (Alignment)
             {
                 case HorizontalAlignment.Left:
                     alignmentOffset = Point.Zero;
                     break;
                 case HorizontalAlignment.Center:
-                    alignmentOffset = new Point((Bounds.Width - texture.Width) / 2, 0);
+                    alignmentOffset = new Point((Bounds.Width - System.Math.Min(texture.Width, Bounds.Width)) / 2, 0);
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(new Point((texture.Width - Bounds.Width) / 2, 0), Bounds.Size);
                     break;
                 case HorizontalAlignment.Right:
-                    alignmentOffset = new Point((Bounds.Width - texture.Width), 0);
+                    alignmentOffset = new Point(Bounds.Width - System.Math.Min(texture.Width, Bounds.Width), 0);
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(new Point(texture.Width - Bounds.Width, 0), Bounds.Size);
                     break;
             }
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), null, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
         }
 
         protected override void Dispose(bool disposing)
