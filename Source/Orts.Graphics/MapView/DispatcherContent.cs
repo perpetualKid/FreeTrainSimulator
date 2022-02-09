@@ -18,8 +18,6 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
-
         private readonly InsetComponent insetComponent;
 
         #region nearest items
@@ -115,11 +113,6 @@ namespace Orts.Graphics.MapView
         public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
         {
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
-        }
-
-        public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
-        {
-            this.viewSettings = viewSettings;
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)

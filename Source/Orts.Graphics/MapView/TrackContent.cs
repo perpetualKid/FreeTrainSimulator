@@ -18,8 +18,6 @@ namespace Orts.Graphics.MapView
 {
     public class TrackContent: ContentBase
     {
-        private TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
-
         #region nearest items
         private GridTile nearestGridTile;
         private TrackItemBase nearestTrackItem;
@@ -62,11 +60,6 @@ namespace Orts.Graphics.MapView
             DebugInfo["Road End Segments"] = $"{RoadEndSegments.Count}";
             DebugInfo["Junction Segments"] = $"{JunctionSegments.Count}";
             DebugInfo["Tiles"] = $"{Tiles.Count}";
-        }
-
-        public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
-        {
-            this.viewSettings = viewSettings;
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)

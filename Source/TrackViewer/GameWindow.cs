@@ -213,7 +213,7 @@ namespace Orts.TrackViewer
         internal void UpdateItemVisibilityPreference(TrackViewerViewSettings setting, bool enabled)
         {
             viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
-            (contentArea?.Content as TrackContent)?.UpdateItemVisiblity(viewSettings);
+            contentArea?.Content.UpdateItemVisiblity(viewSettings);
         }
 
         internal void UpdateLanguagePreference(string language)

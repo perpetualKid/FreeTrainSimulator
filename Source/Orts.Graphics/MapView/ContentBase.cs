@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
@@ -14,6 +15,7 @@ namespace Orts.Graphics.MapView
     public abstract class ContentBase : INameValueInformationProvider
     {
         private protected readonly Game game;
+        private protected TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
 
         public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
 
@@ -36,6 +38,11 @@ namespace Orts.Graphics.MapView
         }
 
         public abstract Task Initialize();
+
+        public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
+        {
+            this.viewSettings = viewSettings;
+        }
 
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
 
