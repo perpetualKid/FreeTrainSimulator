@@ -496,6 +496,7 @@ namespace Orts.Graphics.MapView.Widgets
                 };
             Size = contentArea.Scale switch
             {
+                double i when i < 0.75 => 15,
                 double i when i < 1 => 10,
                 double i when i < 3 => 7,
                 double i when i < 5 => 5,
