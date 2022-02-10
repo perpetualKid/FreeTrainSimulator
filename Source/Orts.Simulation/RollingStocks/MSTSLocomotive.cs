@@ -1833,6 +1833,7 @@ namespace Orts.Simulation.RollingStocks
                 TrainControlSystem.InitializeMoving();
                 TrainBrakeController.InitializeMoving();
                 BrakeSystem.LocoInitializeMoving();
+                EngineBrakeController?.SetPercent(0);
             }
         }
 
