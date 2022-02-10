@@ -1726,7 +1726,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 locomotivetypetext = "Unpowered Control Trailer Car";
             }
-            if (this is MSTSDieselLocomotive loco && loco.DieselEngines.HasGearBox)
+            if (this is MSTSDieselLocomotive loco && loco.DieselEngines.HasGearBox && loco.DieselTransmissionType == DieselTransmissionType.Mechanic)
             {
                 return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4:F0}%\t{5} - {6:F0} rpm\t\t{7}\t{8}\t{9}\t",
                 CarID,

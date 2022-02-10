@@ -32,13 +32,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public int GearBoxNumberOfGears = 1;
         public int GearBoxDirectDriveGear = 1;
         public bool FreeWheelFitted = false;
-        public GearBoxType GearBoxType = GearBoxType.A;
+        public GearBoxType GearBoxType = GearBoxType.Unknown;
         // GearboxType ( A ) - power is continuous during gear changes (and throttle does not need to be adjusted)
         // GearboxType ( B ) - power is interrupted during gear changes - but the throttle does not need to be adjusted when changing gear
         // GearboxType ( C ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear
         // GearboxType ( D ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear, clutch will remain engaged, and can stall engine
 
-        public ClutchType ClutchType = ClutchType.Friction;
+        public ClutchType ClutchType = ClutchType.Unknown;
 
 
         public GearBoxOperation GearBoxOperation = GearBoxOperation.Manual;
@@ -51,7 +51,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public float GearBoxOverspeedPercentageForFailure = 150f;
         public float GearBoxBackLoadForceN = 1000;
         public float GearBoxCoastingForceN = 500;
-        public float GearBoxUpGearProportion = 1.0f;
+        public float GearBoxUpGearProportion = 0.85f;
         public float GearBoxDownGearProportion = 0.35f;
         private int initLevel;
 
@@ -475,7 +475,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     }
 
                 }
-                else
+                else // Legacy operation
                 {
 
                     if (CurrentGear == null)
@@ -517,8 +517,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public bool AutoClutch = true;
 
-        public ClutchType ClutchType = ClutchType.Friction;
-        public GearBoxType GearBoxType = GearBoxType.A;
+        public ClutchType ClutchType = ClutchType.Unknown;
+        public GearBoxType GearBoxType = GearBoxType.Unknown;
         public GearBoxOperation GearBoxOperation = GearBoxOperation.Manual;
         public GearBoxOperation OriginalGearBoxOperation = GearBoxOperation.Manual;
 
@@ -868,7 +868,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 }
 
             }
-            else
+            else // Legacy operation
             {
                 if ((clutch <= 0.05) || (clutch >= 1f))
                 {
@@ -968,6 +968,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
     public enum ClutchType
     {
+        Unknown,
         Friction,
         Fluid,
         Scoop
@@ -975,6 +976,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
     public enum GearBoxType
     {
+        Unknown,
         A,
         B,
         C,

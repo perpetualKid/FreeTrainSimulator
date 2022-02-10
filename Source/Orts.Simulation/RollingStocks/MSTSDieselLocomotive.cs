@@ -836,7 +836,7 @@ namespace Orts.Simulation.RollingStocks
         {
             if (DieselEngines[0].GearBox != null)
             {
-                if (DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Semiautomatic || DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Automatic)
+                if (DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Semiautomatic)
                 {
                     DieselEngines[0].GearBox.AutoGearUp();
                     GearBoxController.SetValue((float)DieselEngines[0].GearBox.NextGearIndex);
@@ -853,7 +853,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (DieselEngines[0].GearBox != null)
             {
-                if (DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Semiautomatic || DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Automatic)
+                if (DieselEngines[0].GearBox.GearBoxOperation == GearBoxOperation.Semiautomatic)
                 {
                     DieselEngines[0].GearBox.AutoGearDown();
                     GearBoxController.SetValue((float)DieselEngines[0].GearBox.NextGearIndex);
@@ -972,12 +972,12 @@ namespace Orts.Simulation.RollingStocks
             StringBuilder status = new StringBuilder(base.GetDebugStatus());
             bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
 
-            if (DieselEngines.HasGearBox)
+            if (DieselEngines.HasGearBox && DieselTransmissionType == DieselTransmissionType.Mechanic)
             {
                 status.AppendFormat("\t{0} {1}-{2}", Simulator.Catalog.GetString("Gear"), DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetString("N") : (DieselEngines[0].GearBox.CurrentGearIndex + 1).ToString(), DieselEngines[0].GearBox.GearBoxType);
-                status.Append($"\t{Simulator.Catalog.GetString("Gear")} {DieselEngines[0].GearBox.CurrentGearIndex}");
-            status.Append($"\t{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, isUK)}\t{DieselEngines.GetStatus()}\t\n");
             }
+            status.Append($"\t{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, isUK)}\t{DieselEngines.GetStatus()}\t\n");
+
 
             if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && IsLeadLocomotive() && Train.CarSteamHeatOn)
             {
