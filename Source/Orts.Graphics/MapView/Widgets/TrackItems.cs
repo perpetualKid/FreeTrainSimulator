@@ -452,10 +452,16 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private readonly float angle;
         private readonly bool normal = true;
+        public ISignal Signal { get; }
 
         public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes) : base(source)
         {
-            Size = 7f;
+            if (source.SignalObject > -1)
+            {
+                Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
+            }
+
+            Size = 2f;
             if (signalConfig.SignalTypes.ContainsKey(source.SignalType))
             {
                 normal = signalConfig.SignalTypes[source.SignalType].FunctionType == SignalFunction.Normal;
@@ -468,12 +474,35 @@ namespace Orts.Graphics.MapView.Widgets
                     0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
             WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);
             base.location = PointD.FromWorldLocation(location);
-
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicTextureType signalState =
+                contentArea.Scale < 10 ?
+                Signal?.State switch
+                {
+                    SignalState.Clear => BasicTextureType.SignalSmallGreen,
+                    SignalState.Approach => BasicTextureType.SignalSmallYellow,
+                    SignalState.Lock => BasicTextureType.SignalSmallRed,
+                    _ => BasicTextureType.SignalSmall
+                } :
+                Signal?.State switch
+                {
+                    SignalState.Clear => BasicTextureType.SignalGreen,
+                    SignalState.Approach => BasicTextureType.SignalYellow,
+                    SignalState.Lock => BasicTextureType.SignalRed,
+                    _ => BasicTextureType.Signal
+                };
+            Size = contentArea.Scale switch
+            {
+                double i when i < 1 => 10,
+                double i when i < 3 => 7,
+                double i when i < 5 => 5,
+                double i when i < 8 => 4,
+                _ => 3,
+            };
+            BasicShapes.DrawTexture(signalState, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
 
         internal override bool ShouldDraw(TrackViewerViewSettings setting)

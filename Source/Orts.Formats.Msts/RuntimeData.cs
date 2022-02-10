@@ -1,4 +1,5 @@
 ﻿
+using Orts.Common;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -17,15 +18,16 @@ namespace Orts.Formats.Msts
         /// <summary>The signal config file containing, for instance, the information to distinguish normal and non-normal signals</summary>
         public SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
+        public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
 
         public static RuntimeData Instance { get; private set; }
 
-        public static void Initialize(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits)
+        public static void Initialize(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            Instance = new RuntimeData(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits);
+            Instance = new RuntimeData(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, runtimeReferenceResolver);
         }
 
-        private RuntimeData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits)
+        private RuntimeData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         { 
             RouteName = routeName;
             TSectionDat = trackSections;
@@ -33,6 +35,7 @@ namespace Orts.Formats.Msts
             RoadTrackDB = roadTrackDB;
             SignalConfigFile = signalConfig;
             UseMetricUnits = useMetricUnits;
+            RuntimeReferenceResolver = runtimeReferenceResolver;
         }
 
         protected RuntimeData()

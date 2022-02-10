@@ -254,7 +254,7 @@ namespace Orts.Simulation
             }
 
             bool useMetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, useMetricUnits);
+            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, useMetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 

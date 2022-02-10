@@ -59,10 +59,14 @@ namespace Orts.Graphics.MapView.Shapes
             // textures modified from http://www.iconsdb.com
             instance.LoadTexturesFromResources(graphicsDevice);
             //correct center point offsets for non-centered images
-            instance.textureOffsets[BasicTextureType.Signal] = new Vector2(20, 24);
-            instance.textureOffsets[BasicTextureType.SignalGreen] = new Vector2(20, 0);
-            instance.textureOffsets[BasicTextureType.SignalRed] = new Vector2(20, 0);
-            instance.textureOffsets[BasicTextureType.SignalYellow] = new Vector2(20, 0);
+            instance.textureOffsets[BasicTextureType.Signal] = new Vector2(-24, 128);
+            instance.textureOffsets[BasicTextureType.SignalGreen] = new Vector2(-24, 128);
+            instance.textureOffsets[BasicTextureType.SignalRed] = new Vector2(-24, 128);
+            instance.textureOffsets[BasicTextureType.SignalYellow] = new Vector2(-24, 128);
+            instance.textureOffsets[BasicTextureType.SignalSmall] = new Vector2(0, 48);
+            instance.textureOffsets[BasicTextureType.SignalSmallGreen] = new Vector2(0, 48);
+            instance.textureOffsets[BasicTextureType.SignalSmallRed] = new Vector2(0, 48);
+            instance.textureOffsets[BasicTextureType.SignalSmallYellow] = new Vector2(0, 48);
             instance.textureOffsets[BasicTextureType.Sound] = new Vector2(5, 5);
             instance.textureOffsets[BasicTextureType.Platform] = new Vector2(31, 37);
             instance.textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;

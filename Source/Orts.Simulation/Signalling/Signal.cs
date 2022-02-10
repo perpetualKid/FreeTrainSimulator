@@ -43,7 +43,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    public class Signal
+    public class Signal : ISignal
     {
         private static TrackNode[] trackNodes;
         private static TrackItem[] trackItems;
@@ -423,6 +423,34 @@ namespace Orts.Simulation.Signalling
         }
 
         public int TrackItemIndex => (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
+
+        SignalState ISignal.State
+        {
+            get => State;
+            set => throw new NotImplementedException();
+        }
+
+        protected SignalState State
+        {
+            get
+            {
+                SignalState result = SignalState.Lock;
+                foreach (var head in SignalHeads)
+                {
+                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
+                        head.SignalIndicationState == SignalAspectState.Clear_2)
+                    {
+                        result = SignalState.Clear;
+                    }
+                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
+                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
+                    {
+                        result = SignalState.Approach;
+                    }
+                }
+                return result;
+            }
+        }
 
         //================================================================================================//
         /// <summary>
@@ -3580,7 +3608,8 @@ namespace Orts.Simulation.Signalling
             if (EnabledTrain == null || EnabledTrain.Train == null)
             {
                 HoldState = SignalHoldState.ManualLock;
-                if (thisAspect > SignalAspectState.Stop) ResetSignal(true);
+                if (thisAspect > SignalAspectState.Stop)
+                    ResetSignal(true);
                 returnValue[0] = true;
             }
             // if enabled, cleared and reset not requested : no action
