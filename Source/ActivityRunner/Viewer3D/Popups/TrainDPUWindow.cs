@@ -191,8 +191,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         protected internal override void Initialize()
         {
             base.Initialize();
-            // Reset window size
-            UpdateWindowSize();
+            if (Visible)
+            {   // Reset window size
+                UpdateWindowSize();
+            }
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -537,7 +539,7 @@ else
             }
             else
             {
-                if (this.Visible)
+                if (Visible)
                 {
                     // Detect Autopilot is on to avoid flickering when slim window is displayed
                     bool AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting;
