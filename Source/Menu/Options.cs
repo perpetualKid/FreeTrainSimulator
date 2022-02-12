@@ -148,7 +148,6 @@ namespace Orts.Menu
             numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
             checkBreakCouplers.Checked = this.settings.BreakCouplers;
             checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
-            checkOverrideNonElectrifiedRoutes.Checked = this.settings.OverrideNonElectrifiedRoutes;
             checkHotStart.Checked = this.settings.HotStart;
             checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
             checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
@@ -321,7 +320,6 @@ namespace Orts.Menu
             settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
             settings.BreakCouplers = checkBreakCouplers.Checked;
             settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
-            settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
             settings.HotStart = checkHotStart.Checked;
             settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;

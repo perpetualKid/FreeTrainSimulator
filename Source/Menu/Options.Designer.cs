@@ -100,7 +100,6 @@ namespace Orts.Menu
             this.checkHotStart = new System.Windows.Forms.CheckBox();
             this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
-            this.checkOverrideNonElectrifiedRoutes = new System.Windows.Forms.CheckBox();
             this.labelAdhesionMovingAverageFilterSize = new System.Windows.Forms.Label();
             this.numericAdhesionMovingAverageFilterSize = new System.Windows.Forms.NumericUpDown();
             this.checkBreakCouplers = new System.Windows.Forms.CheckBox();
@@ -1259,7 +1258,6 @@ namespace Orts.Menu
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
             this.tabPageSimulation.Controls.Add(this.checkCurveSpeedDependent);
-            this.tabPageSimulation.Controls.Add(this.checkOverrideNonElectrifiedRoutes);
             this.tabPageSimulation.Controls.Add(this.labelAdhesionMovingAverageFilterSize);
             this.tabPageSimulation.Controls.Add(this.numericAdhesionMovingAverageFilterSize);
             this.tabPageSimulation.Controls.Add(this.checkBreakCouplers);
@@ -1357,16 +1355,6 @@ namespace Orts.Menu
             this.checkCurveSpeedDependent.TabIndex = 5;
             this.checkCurveSpeedDependent.Text = "Curve dependent speed limit";
             this.checkCurveSpeedDependent.UseVisualStyleBackColor = true;
-            // 
-            // checkOverrideNonElectrifiedRoutes
-            // 
-            this.checkOverrideNonElectrifiedRoutes.AutoSize = true;
-            this.checkOverrideNonElectrifiedRoutes.Location = new System.Drawing.Point(6, 166);
-            this.checkOverrideNonElectrifiedRoutes.Name = "checkOverrideNonElectrifiedRoutes";
-            this.checkOverrideNonElectrifiedRoutes.Size = new System.Drawing.Size(249, 19);
-            this.checkOverrideNonElectrifiedRoutes.TabIndex = 7;
-            this.checkOverrideNonElectrifiedRoutes.Text = "Override non-electrified route line-voltage";
-            this.checkOverrideNonElectrifiedRoutes.UseVisualStyleBackColor = true;
             // 
             // labelAdhesionMovingAverageFilterSize
             // 
@@ -2992,7 +2980,6 @@ namespace Orts.Menu
         private System.Windows.Forms.Label labelPerformanceTunerTarget;
         private System.Windows.Forms.NumericUpDown numericPerformanceTunerTarget;
         private System.Windows.Forms.CheckBox checkPerformanceTuner;
-        private System.Windows.Forms.CheckBox checkOverrideNonElectrifiedRoutes;
         private System.Windows.Forms.TabPage tabPageEvaluate;
         private System.Windows.Forms.CheckedListBox checkListDataLogTSContents;
         private System.Windows.Forms.Label labelDataLogTSInterval;

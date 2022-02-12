@@ -37,7 +37,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool Activated;
         private DualModePowerSupply Script => AbstractScript as DualModePowerSupply;
 
-        public bool RouteElectrified => Simulator.Route.Electrified || Simulator.Settings.OverrideNonElectrifiedRoutes;
         public float LineVoltageV => (float)Simulator.Route.MaxLineVoltage;
         public float PantographVoltageV { get; set; }
         public float FilterVoltageV { get; set; }

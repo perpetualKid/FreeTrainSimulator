@@ -190,8 +190,6 @@ namespace Orts.Settings
         public bool BreakCouplers { get; set; }
         [Default(false)]
         public bool CurveSpeedDependent { get; set; }
-        [Default(false)]
-        public bool OverrideNonElectrifiedRoutes { get; set; }
         [Default(true)]
         public bool HotStart { get; set; }
         [Default(true)]
