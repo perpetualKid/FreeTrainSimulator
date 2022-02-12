@@ -83,26 +83,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     stf.MustMatch("(");
                     var gearType = stf.ReadString();
                     if (!EnumExtension.GetValue(gearType, out GearBoxType))
-                        STFException.TraceWarning(stf, "Assumed unknown gear type " + gearType);
+                        STFException.TraceWarning(stf, "Assumed unknown gear box type " + gearType);
                     break;
                 case "engine(ortsmainclutchtype":
                     stf.MustMatch("(");
                     var clutchType = stf.ReadString();
                     if (!EnumExtension.GetValue(clutchType, out ClutchType))
-                        STFException.TraceWarning(stf, "Assumed unknown gear type " + clutchType);
+                        STFException.TraceWarning(stf, "Assumed unknown main clutch type " + clutchType);
                     break;
                 case "engine(gearboxoperation":
                     stf.MustMatch("(");
                     var gearOperation = stf.ReadString();
                     if (!EnumExtension.GetValue(gearOperation, out GearBoxOperation))
-                        STFException.TraceWarning(stf, "Assumed unknown gear operation type " + gearOperation);
+                        STFException.TraceWarning(stf, "Assumed unknown gear box operation type " + gearOperation);
                     initLevel++;
                     break;
                 case "engine(gearboxenginebraking":
                     stf.MustMatch("(");
                     var engineBraking = stf.ReadString();
                     if (!EnumExtension.GetValue(engineBraking, out GearBoxEngineBraking))
-                        STFException.TraceWarning(stf, "Assumed unknown gear operation type " + engineBraking);
+                        STFException.TraceWarning(stf, "Assumed unknown gear box engine braking type " + engineBraking);
                     break;
                 case "engine(gearboxmaxspeedforgears":
                     temp = stf.ReadItem();
