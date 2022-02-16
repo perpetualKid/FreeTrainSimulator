@@ -38,7 +38,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Short description, name of the type of item</summary>
         public string Description { get; set; }
         /// <summary>Index of the original item (TrItemId)</summary>
-        public uint Index { get; private set; }
+        public int Index { get; private set; }
 
         /// <summary>
         /// Default constructor

@@ -155,12 +155,12 @@ namespace Orts.Simulation.Track
             if (CircuitType == TrackCircuitType.Junction)
             {
                 SignalsPassingRoutes = new List<int>();
-                uint trackShapeIndex = (node as TrackJunctionNode).ShapeIndex;
+                int trackShapeIndex = (node as TrackJunctionNode).ShapeIndex;
                 if (!RuntimeData.Instance.TSectionDat.TrackShapes.TryGetValue(trackShapeIndex, out TrackShape trackShape))
                 {
                     Trace.TraceWarning("Missing TrackShape in tsection.dat : " + trackShapeIndex);
                 }
-                JunctionDefaultRoute = (int)trackShape.MainRoute;
+                JunctionDefaultRoute = trackShape.MainRoute;
                 Overlap = trackShape.ClearanceDistance;
 
                 JunctionLastRoute = JunctionDefaultRoute;

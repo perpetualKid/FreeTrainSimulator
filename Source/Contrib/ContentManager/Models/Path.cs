@@ -52,10 +52,10 @@ namespace Orts.ContentManager.Models
                 }
                 for (int i = 0; i < file.PathNodes.Count; i++)
                 {
-                    if (file.PathNodes[i].HasNextMainNode)
-                        nodeNexts[i].Add(nodes[(int)file.PathNodes[i].NextMainNode]);
-                    if (file.PathNodes[i].HasNextSidingNode)
-                        nodeNexts[i].Add(nodes[(int)file.PathNodes[i].NextSidingNode]);
+                    if (file.PathNodes[i].NextMainNode > -1)
+                        nodeNexts[i].Add(nodes[file.PathNodes[i].NextMainNode]);
+                    if (file.PathNodes[i].NextSidingNode > -1)
+                        nodeNexts[i].Add(nodes[file.PathNodes[i].NextSidingNode]);
                 }
                 Nodes = nodes;
             }

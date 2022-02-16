@@ -250,17 +250,17 @@ namespace ORTS.TrackViewer.Editing
                 PathNode tpn = patFile.PathNodes[i];
 
                 // find TvnIndex to next main node.
-                if (tpn.HasNextMainNode)
+                if (tpn.NextMainNode > -1)
                 {
-                    node.NextMainNode = Nodes[(int)tpn.NextMainNode];
+                    node.NextMainNode = Nodes[tpn.NextMainNode];
                     node.NextMainNode.PrevNode = node;
                     node.NextMainTvnIndex = node.FindTvnIndex(node.NextMainNode);
                 }
 
                 // find TvnIndex to next siding node
-                if (tpn.HasNextSidingNode)
+                if (tpn.NextSidingNode > -1)
                 {
-                    node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
+                    node.NextSidingNode = Nodes[tpn.NextSidingNode];
                     if (node.NextSidingNode.PrevNode == null)
                     {
                         node.NextSidingNode.PrevNode = node;

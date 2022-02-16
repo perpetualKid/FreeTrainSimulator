@@ -41,7 +41,7 @@ namespace Orts.Graphics.MapView.Widgets
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
+            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
 
             foreach (TrackItem trackItem in trackItems)
             {
@@ -67,12 +67,12 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<uint, List<TrackSegment>> trackNodeSegments)
+        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<int, List<TrackSegment>> trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
+            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
 
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Length];
 
@@ -219,15 +219,15 @@ namespace Orts.Graphics.MapView.Widgets
     internal class SidingTrackItem : TrackItemBase
     {
         private readonly string sidingName;
-        internal readonly uint Id;
-        private readonly uint linkedId;
+        internal readonly int Id;
+        private readonly int linkedId;
         private bool drawName;
         private bool shouldDrawName;
 
         public SidingTrackItem(SidingItem source) : base(source)
         {
             sidingName = source.ItemName;
-            Id = source.TrackItemId;
+            Id = (int)source.TrackItemId;
             linkedId = source.LinkedSidingId;
             Size = 5f;
         }
@@ -250,13 +250,13 @@ namespace Orts.Graphics.MapView.Widgets
         /// <summary>
         /// Link siding items which belong together pairwise so text only appears once (otherwise text is mostly overlapping since siding items are too close to each other
         /// </summary>
-        internal static List<SidingTrackItem> LinkSidingItems(Dictionary<uint, SidingTrackItem> sidingItems)
+        internal static List<SidingTrackItem> LinkSidingItems(Dictionary<int, SidingTrackItem> sidingItems)
         {
             List<SidingTrackItem> result = new List<SidingTrackItem>();
 
             while (sidingItems.Count > 0)
             {
-                uint sourceId = sidingItems.Keys.First();
+                int sourceId = sidingItems.Keys.First();
                 SidingTrackItem source = sidingItems[sourceId];
                 sidingItems.Remove(sourceId);
                 if (sidingItems.TryGetValue(source.linkedId, out SidingTrackItem target))
@@ -453,7 +453,7 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly float angle;
         private readonly bool normal = true;
 
-        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes, Dictionary<uint, List<TrackSegment>> trackNodeSegments) : base(source)
+        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes, Dictionary<int, List<TrackSegment>> trackNodeSegments) : base(source)
         {
             Size = 7f;
             if (signalConfig.SignalTypes.ContainsKey(source.SignalType))

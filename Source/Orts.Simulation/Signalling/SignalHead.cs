@@ -34,8 +34,8 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState SignalIndicationState { get; set; } = SignalAspectState.Stop;
         public int DrawState { get; set; }
         public int TrackItemIndex { get; private set; }
-        public uint TrackJunctionNode { get; private set; }
-        public uint JunctionPath { get; private set; }
+        public int TrackJunctionNode { get; private set; }
+        public int JunctionPath { get; private set; }
         public int JunctionMainNode { get; internal set; }
         public float? ApproachControlLimitPositionM { get; private set; }
         public float? ApproachControlLimitSpeedMpS { get; private set; }

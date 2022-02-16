@@ -2872,7 +2872,7 @@ namespace Orts.Simulation.RollingStocks
         private Vector3 VibrationRotationVelocityRadpS;
         private Vector2 VibrationTranslationM;
         private Vector2 VibrationTranslationVelocityMpS;
-        private uint VibrationTrackNode;
+        private int VibrationTrackNode;
         private int VibrationTrackVectorSection;
         private float VibrationTrackCurvaturepM;
         private float PrevTiltingZRot; // previous tilting angle

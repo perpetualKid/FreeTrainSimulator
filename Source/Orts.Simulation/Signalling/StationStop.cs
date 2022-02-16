@@ -429,11 +429,11 @@ namespace Orts.Simulation.Signalling
             float distancePlatformHeadtoTrainHead = -train.StationStops[0].StopOffset + PlatformItem.TrackCircuitOffset[Location.FarEnd, train.StationStops[0].Direction] + train.StationStops[0].DistanceToTrainM;
             float trainPartOutsidePlatformForward = distancePlatformHeadtoTrainHead < 0 ? -distancePlatformHeadtoTrainHead : 0;
             if (trainPartOutsidePlatformForward >= train.Length) 
-                return (int)PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
+                return PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
             float distancePlatformTailtoTrainTail = distancePlatformHeadtoTrainHead - PlatformItem.Length + train.Length;
             float trainPartOutsidePlatformBackward = distancePlatformTailtoTrainTail > 0 ? distancePlatformTailtoTrainTail : 0;
             if (trainPartOutsidePlatformBackward >= train.Length) 
-                return (int)PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
+                return PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
             if (train == Simulator.Instance.OriginalPlayerTrain)
             {
                 if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0) 

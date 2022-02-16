@@ -36,8 +36,8 @@ namespace Orts.Graphics.MapView
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal TileIndexedList<RoadSegment, Tile> RoadSegments { get; private set; }
         internal TileIndexedList<RoadEndSegment, Tile> RoadEndSegments { get; private set; }
-        internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
-        internal Dictionary<uint, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
         public TrackContent(Game game) :
             base(game)
