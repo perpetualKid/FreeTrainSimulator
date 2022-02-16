@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.1" />
+    <PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -19,6 +19,6 @@
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <PackageReference Include="GetText.NET" Version="0.12.11" />
+    <PackageReference Include="GetText.NET" Version="1.0.5" />
   </ItemGroup>
 </Project>

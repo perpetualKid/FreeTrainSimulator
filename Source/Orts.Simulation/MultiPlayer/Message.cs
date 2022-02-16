@@ -114,10 +114,10 @@ namespace Orts.Simulation.MultiPlayer
             public float travelled;
             public int num, count;
             public int TileX, TileZ, direction, tdbDir;
-            public uint trackNodeIndex;
+            public int trackNodeIndex;
             public float X, Z;
             public float Length;
-            public MSGMoveItem(string u, float s, float t, int n, int tX, int tZ, float x, float z, uint tni, int cnt, int dir, int tDir, float len)
+            public MSGMoveItem(string u, float s, float t, int n, int tX, int tZ, float x, float z, int tni, int cnt, int dir, int tDir, float len)
             {
                 user = u; speed = s; travelled = t; num = n; TileX = tX; TileZ = tZ; X = x; Z = z; trackNodeIndex = tni; count = cnt; direction = dir; tdbDir = tDir; Length = len;
             }
@@ -147,7 +147,7 @@ namespace Orts.Simulation.MultiPlayer
                     for (i = 0; i < areas.Length / 13; i++)
                         items.Add(new MSGMoveItem(areas[13 * i], float.Parse(areas[13 * i + 1], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 2], CultureInfo.InvariantCulture), int.Parse(areas[13 * i + 3]),
                             int.Parse(areas[13 * i + 4]), int.Parse(areas[13 * i + 5]), float.Parse(areas[13 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 7], CultureInfo.InvariantCulture),
-                            uint.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
+                            int.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
             }
             catch (Exception e)
             {
@@ -871,7 +871,7 @@ namespace Orts.Simulation.MultiPlayer
     #region MSGOrgSwitch
     public class MSGOrgSwitch : MSGRequired
     {
-        private SortedList<uint, TrackJunctionNode> SwitchState;
+        private SortedList<int, TrackJunctionNode> SwitchState;
         public string msgx = "";
         private string user = "";
         private byte[] switchStatesArray;
@@ -903,8 +903,8 @@ namespace Orts.Simulation.MultiPlayer
         public override void HandleMsg() //only client will get message, thus will set states
         {
             if (MultiPlayerManager.IsServer() || user != MultiPlayerManager.GetUserName()) return; //server will ignore it
-            uint key = 0;
-            SwitchState = new SortedList<uint, TrackJunctionNode>();
+            int key = 0;
+            SwitchState = new SortedList<int, TrackJunctionNode>();
             try
             {
                 foreach (TrackNode t in RuntimeData.Instance.TrackDB.TrackNodes)
@@ -919,7 +919,7 @@ namespace Orts.Simulation.MultiPlayer
             catch (Exception e) { SwitchState = null; throw e; } //if error, clean the list and wait for the next signal
 
             int i = 0, state = 0;
-            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
             {
                 state = (int)switchStatesArray[i];
                 if (t.Value.SelectedRoute != state)
@@ -957,7 +957,7 @@ namespace Orts.Simulation.MultiPlayer
     public class MSGSwitchStatus : Message
     {
         private static byte[] preState;
-        private static SortedList<uint, TrackJunctionNode> SwitchState;
+        private static SortedList<int, TrackJunctionNode> SwitchState;
         public bool OKtoSend;
         private static byte[] switchStatesArray;
         public MSGSwitchStatus()
@@ -965,8 +965,8 @@ namespace Orts.Simulation.MultiPlayer
             var i = 0;
             if (SwitchState == null)
             {
-                SwitchState = new SortedList<uint, TrackJunctionNode>();
-                uint key = 0;
+                SwitchState = new SortedList<int, TrackJunctionNode>();
+                int key = 0;
                 foreach (TrackNode t in RuntimeData.Instance.TrackDB.TrackNodes)
                 {
                     if (t is TrackJunctionNode trackJunctionNode)
@@ -983,7 +983,7 @@ namespace Orts.Simulation.MultiPlayer
                 for (i = 0; i < preState.Length; i++) preState[i] = 0;
             }
             i = 0;
-            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
             {
                 switchStatesArray[i] = (byte)t.Value.SelectedRoute;
                 i++;
@@ -1005,8 +1005,8 @@ namespace Orts.Simulation.MultiPlayer
         {
             if (SwitchState == null)
             {
-                uint key = 0;
-                SwitchState = new SortedList<uint, TrackJunctionNode>();
+                int key = 0;
+                SwitchState = new SortedList<int, TrackJunctionNode>();
                 try
                 {
                     foreach (TrackNode t in RuntimeData.Instance.TrackDB.TrackNodes)
@@ -1043,7 +1043,7 @@ namespace Orts.Simulation.MultiPlayer
 
 
             int i = 0, state = 0;
-            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
             {
                 state = (int)switchStatesArray[i];
                 if (t.Value.SelectedRoute != state)
@@ -3598,7 +3598,7 @@ namespace Orts.Simulation.MultiPlayer
         private float X, Z, Travelled;
         private int mDirection;
         private float speed;
-        private uint tni;
+        private int tni;
         private int count;
         private int tdir;
         private float len;
@@ -3635,7 +3635,7 @@ namespace Orts.Simulation.MultiPlayer
             speed = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            tni = uint.Parse(m.Substring(0, index + 1));
+            tni = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
             count = int.Parse(m.Substring(0, index + 1));

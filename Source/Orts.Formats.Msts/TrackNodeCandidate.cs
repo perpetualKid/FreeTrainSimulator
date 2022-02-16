@@ -110,7 +110,7 @@ namespace Orts.Formats.Msts
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
         /// <param name="trackVectorSection">The parent track vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation location, TrackVectorSection trackVectorSection)
+        internal static TrackNodeCandidate TryTrackSection(int tsi, in WorldLocation location, TrackVectorSection trackVectorSection)
         {
             TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tsi);
             if (trackSection == null)

@@ -299,7 +299,7 @@ namespace Orts.Simulation.World
         internal List<Train> StaticConsists = new List<Train>();
         public ref readonly WorldLocation Location => ref trackItem.Location;
         public LevelCrossing CrossingGroup { get; internal set; }
-        public uint TrackIndex => TrackNode.Index;
+        public int TrackIndex => TrackNode.Index;
         private readonly TrackItem trackItem;
 
         public static LevelCrossingItem None { get; } = new LevelCrossingItem();

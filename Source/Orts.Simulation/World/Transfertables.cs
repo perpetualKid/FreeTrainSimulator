@@ -114,7 +114,7 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex];
             uint nSections = trackShape.SectionIndices[0].SectionsCount;
             trackNodesIndex = new int[trackShape.SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];

@@ -599,10 +599,9 @@ namespace ORTS.TrackViewer.Editing
                 return;
             }
 
-            uint tni = drawTrackDB.ClosestTrack.TrackNode.Index;
-            int tni_int = (int)tni;
+            int tni = drawTrackDB.ClosestTrack.TrackNode.Index;
 
-            if (!drawnPathData.TrackHasBeenDrawn(tni_int) && CurrentTrainPath.FirstNode != null && activeMouseDragAction == null)
+            if (!drawnPathData.TrackHasBeenDrawn(tni) && CurrentTrainPath.FirstNode != null && activeMouseDragAction == null)
             {
                 activeTrackLocation.Location = WorldLocation.None;
                 return;
@@ -615,14 +614,14 @@ namespace ORTS.TrackViewer.Editing
             WorldLocation location = drawTrackDB.FindLocation(tni, tvsi, distance, true);
 
             // fill the properties of the activeTrackLocation 
-            activeTrackLocation.TvnIndex = tni_int;
+            activeTrackLocation.TvnIndex = tni;
             activeTrackLocation.TrackVectorSectionIndex = tvsi;
             activeTrackLocation.TrackSectionOffset = distance;
             activeTrackLocation.Location = location;
 
             if ( (CurrentTrainPath.FirstNode != null) && (activeMouseDragAction == null) ) 
             {   //Only in case this is not the first path.
-                TrainpathNode prevNode = FindPrevNodeOfActiveTrack(drawnPathData, tni_int);
+                TrainpathNode prevNode = FindPrevNodeOfActiveTrack(drawnPathData, tni);
                 if (prevNode == null || prevNode.HasSidingPath)
                 {
                     activeTrackLocation.Location = WorldLocation.None;

@@ -77,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
                 if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || trackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || trackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);
@@ -975,11 +975,11 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public DtrackData DTrackData;      // Was: DtrackData[] dtrackData;
+        public DtrackData DTrackData { get; set; }      // Was: DtrackData[] dtrackData;
 
-        public uint UiD; // Used for debugging only
+        public int UiD { get; } // Used for debugging only
 
-        public TrProfile TrProfile;
+        public TrProfile TrProfile { get; set; }
 
         /// <summary>
         /// Default constructor

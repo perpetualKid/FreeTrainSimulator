@@ -16,11 +16,11 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly float Direction;
         internal readonly float Length;
 
-        internal readonly uint TrackNodeIndex;
+        internal readonly int TrackNodeIndex;
 
         internal readonly float Angle;
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, uint trackNodeIndex)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -71,7 +71,7 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadSegment : TrackSegment
     {
-        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, uint trackNodeIndex) : base(trackVectorSection, trackSection, trackNodeIndex)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex) : base(trackVectorSection, trackSection, trackNodeIndex)
         {
         }
 

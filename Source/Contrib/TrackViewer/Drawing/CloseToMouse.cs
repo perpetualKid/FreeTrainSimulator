@@ -72,7 +72,7 @@ namespace ORTS.TrackViewer.Drawing
     internal abstract class CloseToMousePoint : CloseToMouse
     {
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public abstract uint Index { get; }
+        public abstract int Index { get; }
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
         public abstract float X { get; }
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
@@ -87,7 +87,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Tracknode of the closest junction or end node</summary>
         public TrackNode JunctionOrEndNode { get; private set; }
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public override uint Index => JunctionOrEndNode.Index;
+        public override int Index => JunctionOrEndNode.Index;
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
         public override float X => JunctionOrEndNode.UiD.Location.Location.X;
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
@@ -150,7 +150,7 @@ namespace ORTS.TrackViewer.Drawing
         public DrawableTrackItem DrawableTrackItem { get; protected set; }
 
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public override uint Index => DrawableTrackItem.Index;
+        public override int Index => DrawableTrackItem.Index;
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
         public override float X => worldLocation.Location.X;
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>

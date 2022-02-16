@@ -37,7 +37,7 @@ namespace ORTS.TrackViewer.Drawing
     public class RouteData: RuntimeData
     {
         private static string storedRoutePath;
-        private static Dictionary<uint, string> signalFileNames;
+        private static Dictionary<int, string> signalFileNames;
 
         /// <summary>
         /// Constructor. Loads all the relevant files for the route
@@ -98,11 +98,11 @@ namespace ORTS.TrackViewer.Drawing
         /// Get the filename of the file where the signal shape is defined.
         /// </summary>
         /// <param name="signalIndex">The index (from the .tdb) of the signal</param>
-        public static string GetSignalFilename(uint signalIndex)
+        public static string GetSignalFilename(int signalIndex)
         {
             if (signalFileNames == null)
             {
-                signalFileNames = new Dictionary<uint, string>();
+                signalFileNames = new Dictionary<int, string>();
                 string WFilePath = storedRoutePath + @"\WORLD\";
 
                 List<TokenID> Tokens = new List<TokenID>
@@ -148,8 +148,7 @@ namespace ORTS.TrackViewer.Drawing
 
                         foreach (SignalUnit si in thisWorldObject.SignalUnits)
                         {
-                            uint trItemId = si.TrackItem;
-                            signalFileNames[trItemId] = thisWorldObject.FileName;
+                            signalFileNames[si.TrackItem] = thisWorldObject.FileName;
                         }
                     }
                 }
@@ -235,7 +234,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Table of road-track-items. Basically a copy of roadTrackDB.TrItemTable, but then using drawable track items </summary>
         private DrawableTrackItem[] roadTrackItemTable;
         /// <summary>Direction-angle of track indexed by tracknode index (of the endnode)</summary>
-        private readonly Dictionary<uint, float> endnodeAngles = new Dictionary<uint, float>();
+        private readonly Dictionary<int, float> endnodeAngles = new Dictionary<int, float>();
 
         // various fields to optimize drawing efficiency
         private int tileXIndexStart;
@@ -447,7 +446,7 @@ namespace ORTS.TrackViewer.Drawing
             InitIndexedLists(availableRoadItemIndexes);
 
             // find rail track tracknodes
-            for (uint tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
             {
                 TrackVectorNode tn = trackDB.TrackNodes[tni] as TrackVectorNode;
 
@@ -473,7 +472,7 @@ namespace ORTS.TrackViewer.Drawing
 
             if (roadTrackDB != null && roadTrackDB.TrackNodes != null)
             {
-                for (uint tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
+                for (int tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
                 {
                     if (!(roadTrackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
@@ -585,7 +584,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="trackVectorSectionIndex">Index of the vector section in the tracknode</param>
         /// <param name="useRailTracks">Must we use rail or road tracks</param>
         /// <returns>A list of world locations on the vector section</returns>
-        private List<WorldLocation> FindLocationList(uint trackNodeIndex, int trackVectorSectionIndex, bool useRailTracks)
+        private List<WorldLocation> FindLocationList(int trackNodeIndex, int trackVectorSectionIndex, bool useRailTracks)
         {
             List<WorldLocation> resultList = new List<WorldLocation>();
 
@@ -1175,7 +1174,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="trackVectorSectionIndex"></param>
         /// <param name="distanceAlongSection"></param>
         /// <param name="useRailTracks">Must we use rail or road tracks</param>
-        public WorldLocation FindLocation(uint trackNodeIndex, int trackVectorSectionIndex, float distanceAlongSection, bool useRailTracks)
+        public WorldLocation FindLocation(int trackNodeIndex, int trackVectorSectionIndex, float distanceAlongSection, bool useRailTracks)
         {
             try
             {

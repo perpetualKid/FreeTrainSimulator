@@ -72,9 +72,9 @@ namespace Orts.Simulation.AIs
                 PathNode tpn = patFile.PathNodes[i];
 
                 // find TVNindex to next main node.
-                if (tpn.HasNextMainNode)
+                if (tpn.NextMainNode > -1)
                 {
-                    node.NextMainNode = Nodes[(int)tpn.NextMainNode];
+                    node.NextMainNode = Nodes[tpn.NextMainNode];
                     node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, i == 0 ? -1 : Nodes[i-1].NextMainTVNIndex );
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextMainTVNIndex);
@@ -87,9 +87,9 @@ namespace Orts.Simulation.AIs
                 }
 
                 // find TVNindex to next siding node
-                if (tpn.HasNextSidingNode)
+                if (tpn.NextSidingNode > -1)
                 {
-                    node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
+                    node.NextSidingNode = Nodes[tpn.NextSidingNode];
                     node.NextSidingTVNIndex = node.FindTVNIndex(node.NextSidingNode, i == 0 ? -1 : Nodes[i - 1].NextMainTVNIndex);
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextSidingTVNIndex);

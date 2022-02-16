@@ -176,9 +176,9 @@ namespace Orts.Simulation.Activities
         public EventCategoryActionWrapper(ActivityEvent activityEvent)
             : base(activityEvent)
         {
-            if (ActivityEvent is ActionActivityEvent actionActivityEvent && actionActivityEvent.SidingId != null)
+            if (ActivityEvent is ActionActivityEvent actionActivityEvent && actionActivityEvent.SidingId > -1)
             {
-                uint i = actionActivityEvent.SidingId.Value;
+                int i = actionActivityEvent.SidingId;
                 try
                 {
                     sidingEnd1 = RuntimeData.Instance.TrackDB.TrackItems[i] as SidingItem;

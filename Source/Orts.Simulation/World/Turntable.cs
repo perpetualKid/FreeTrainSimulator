@@ -117,9 +117,9 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
-            uint nSections = RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
-            trackNodesIndex = new int[RuntimeData.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex];
+            uint nSections = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex].SectionIndices[0].SectionsCount;
+            trackNodesIndex = new int[RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex].SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;

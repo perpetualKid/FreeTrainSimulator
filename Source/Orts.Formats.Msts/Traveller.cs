@@ -342,8 +342,8 @@ namespace Orts.Formats.Msts
             locationSet = lengthSet = false;
             direction = (Direction)inf.ReadByte();
             trackOffset = inf.ReadSingle();
-            uint trackNodeIndex = inf.ReadUInt32();
-            trackNode = this.trackNodes[trackNodeIndex];
+            int trackNodeIndex = inf.ReadInt32();
+            trackNode = trackNodes[trackNodeIndex];
             if (IsTrack)
             {
                 TrackVectorSectionIndex = inf.ReadInt32();
@@ -531,7 +531,7 @@ namespace Orts.Formats.Msts
             else
                 Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 1);
 
-            uint oldTrackNodeIndex = TrackNode.Index;
+            int oldTrackNodeIndex = TrackNode.Index;
             int pin = direction == Direction.Forward ? trackNode.InPins : 0;
             if (IsJunction && direction == Direction.Forward)
                 pin += (trackNode as TrackJunctionNode).SelectedRoute;

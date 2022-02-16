@@ -69,12 +69,12 @@ namespace Orts.ActivityRunner.Viewer3D
             //List<DynamicTrackViewer> tmpTrackList = new List<DynamicTrackViewer>();
             foreach (SectionIndex id in SectionIdxs)
             {
-                uint[] sections = id.TrackSections;
+                int[] sections = id.TrackSections;
 
                 for (int i = 0; i < sections.Length; i++)
                 {
                     count++;
-                    uint sid = id.TrackSections[i];
+                    int sid = id.TrackSections[i];
                     TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(sid);
                     if (Math.Abs(section.Width - viewer.Settings.SuperElevationGauge / 1000f) > 0.2) continue;//the main route has a gauge different than mine
                     if (!section.Curved)
@@ -263,14 +263,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-            uint[] sections = path.TrackSections;
+            int[] sections = path.TrackSections;
 
             int count = -1;
             for (int i = 0; i < sections.Length; i++)
             {
                 count++;
                 float length, radius;
-                uint sid = path.TrackSections[i];
+                int sid = path.TrackSections[i];
                 TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
@@ -351,7 +351,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 count++;
 
                 if ((dTrackObj.TrackSections[iTkSection].Length ==0f && dTrackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || dTrackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || dTrackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(dTrackObj, iTkSection);
@@ -407,7 +407,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             for (int iTkSection = 0; iTkSection < dTrackObj.TrackSections.Count; iTkSection++)
             {
-                if ((dTrackObj.TrackSections[iTkSection].Length == 0f && dTrackObj.TrackSections[iTkSection].Radius == 0f) || dTrackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                if ((dTrackObj.TrackSections[iTkSection].Length == 0f && dTrackObj.TrackSections[iTkSection].Radius == 0f) || dTrackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 if (dTrackObj.TrackSections[iTkSection].Curved)
                     return true;

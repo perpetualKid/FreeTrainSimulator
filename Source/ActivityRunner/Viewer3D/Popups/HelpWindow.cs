@@ -260,13 +260,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                         }
                                         else
                                         {
-                                            var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
-                                                || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
-                                                ? (uint)eventAction.SidingId : wagonItem.SidingId;
+                                            int sidingId = eventAction.Type == EventType.AssembleTrainAtLocation || eventAction.Type == EventType.DropOffWagonsAtLocation
+                                                ? eventAction.SidingId : wagonItem.SidingId;
                                             foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
-                                                var siding = item as SidingItem;
-                                                if (siding != null && siding.TrackItemId == sidingId)
+                                                if (item is SidingItem siding && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;
@@ -474,13 +472,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                         var locationFirst = "";
                                         foreach (WorkOrderWagon wagonItem in eventAction.WorkOrderWagons)
                                         {
-                                            var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
-                                                || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
-                                                ? (uint)eventAction.SidingId : wagonItem.SidingId;
+                                            int sidingId = eventAction.Type == EventType.AssembleTrainAtLocation || eventAction.Type == EventType.DropOffWagonsAtLocation
+                                                ? eventAction.SidingId : wagonItem.SidingId;
                                             foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
                                             {
-                                                var siding = item as SidingItem;
-                                                if (siding != null && siding.TrackItemId == sidingId)
+                                                if (item is SidingItem siding && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;

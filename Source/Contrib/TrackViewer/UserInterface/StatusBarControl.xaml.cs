@@ -184,7 +184,7 @@ namespace ORTS.TrackViewer.UserInterface
             {
                 TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
                 if (tvs == null) return;
-                uint shapeIndex = tvs.ShapeIndex;
+                int shapeIndex = tvs.ShapeIndex;
                 string shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 try
                 {
@@ -201,7 +201,7 @@ namespace ORTS.TrackViewer.UserInterface
                     {
                         TrackPath trackPath = RuntimeData.Instance.TSectionDat.TrackSectionIndex[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
-                        foreach (uint trackSection in trackPath.TrackSections)
+                        foreach (int trackSection in trackPath.TrackSections)
                         {
                             if (trackSection == tvs.SectionIndex)
                             {
@@ -257,14 +257,13 @@ namespace ORTS.TrackViewer.UserInterface
                         statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                             " Broken: {0} ", curNode.BrokenStatusString());
                     }
-                    TrainpathVectorNode curVectorNode = curNode as TrainpathVectorNode;
-                    if (curVectorNode != null && curNode.NodeType == TrainpathNodeType.Stop)
+                    if (curNode is TrainpathVectorNode curVectorNode && curNode.NodeType == TrainpathNodeType.Stop)
                     {
                         statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                             " (wait-time={0}s)",
                             curVectorNode.WaitTimeS);
                     }
-            
+
                 }
                 else
                 {
@@ -320,7 +319,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddSignalStatus(TrackViewer trackViewer, string description, uint index)
+        private void AddSignalStatus(TrackViewer trackViewer, string description, int index)
         {
             if (!Properties.Settings.Default.statusShowSignal) 
                 return;
@@ -336,7 +335,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddNamesStatus(TrackViewer trackViewer, string description, uint index)
+        private void AddNamesStatus(TrackViewer trackViewer, string description, int index)
         {
             if (!Properties.Settings.Default.statusShowNames) 
                 return;

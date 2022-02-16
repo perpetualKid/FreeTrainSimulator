@@ -9,7 +9,7 @@
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
     <PackageReference Include="RailDriver" Version="1.1.4" />
     <PackageReference Include="System.Management" Version="6.0.0" />
-    <PackageReference Include="GetText.NET" Version="0.12.11" />
+    <PackageReference Include="GetText.NET" Version="1.0.5" />
     <PackageReference Include="NuGet.Versioning" Version="6.0.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
