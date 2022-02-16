@@ -30,7 +30,7 @@ namespace Orts.Graphics.MapView
         internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
         internal TileIndexedList<TrackItemBase, Tile> SignalItems { get; private set; }
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
-        internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
 

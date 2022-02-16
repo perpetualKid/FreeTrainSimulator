@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const float DisplaySegmentLength = 10;
         private const float MaximumSectionDistance = 10000;
         private Viewport Viewport;
-        private Dictionary<uint, TrackSectionCacheEntry> Cache = new Dictionary<uint, TrackSectionCacheEntry>();
+        private Dictionary<int, TrackSectionCacheEntry> Cache = new Dictionary<int, TrackSectionCacheEntry>();
         private List<DispatcherPrimitive> Primitives = new List<DispatcherPrimitive>();
 
         public SignallingDebugWindow(WindowManager owner)
@@ -364,7 +364,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public class TrackSectionSwitch : TrackSectionObject
         {
             public TrackJunctionNode JunctionNode;
-            public uint NodeIndex;
+            public int NodeIndex;
         }
 
         public class TrackSectionSignal : TrackSectionObject

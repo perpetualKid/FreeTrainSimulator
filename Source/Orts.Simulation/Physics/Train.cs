@@ -9741,7 +9741,7 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Clear station from list, clear exit signal if required
         /// <\summary>
-        internal virtual void ClearStation(uint id1, uint id2, bool removeStation)
+        internal virtual void ClearStation(int id1, int id2, bool removeStation)
         {
             int foundStation = -1;
             StationStop station;
@@ -12225,7 +12225,7 @@ namespace Orts.Simulation.Physics
 
         //used by remote train to update location based on message received
         private int expectedTileX, expectedTileZ;
-        private uint expectedTracIndex;
+        private int expectedTracIndex;
         private Direction expectedTDir;
         MidpointDirection expectedDir;
         private float expectedX, expectedZ, expectedTravelled, expectedLength;
@@ -12247,7 +12247,7 @@ namespace Orts.Simulation.Physics
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(uint tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
             int reverseMU = 0)
         {
             SpeedMpS = speed;

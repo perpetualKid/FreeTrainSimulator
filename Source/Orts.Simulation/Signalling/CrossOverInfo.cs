@@ -35,11 +35,11 @@ namespace Orts.Simulation.Signalling
             public int ItemIndex { get; internal set; }  // TDB item indices               //
         }
 
-        public uint TrackShape { get; }
+        public int TrackShape { get; }
 
         public EnumArray<Detail, Location> Details { get; } = new EnumArray<Detail, Location>();
 
-        public CrossOverInfo(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, uint trackShape)
+        public CrossOverInfo(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, int trackShape)
         {
             Details[Location.NearEnd] = new Detail()
             {

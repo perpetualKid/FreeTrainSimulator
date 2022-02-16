@@ -95,7 +95,7 @@ namespace Orts.Simulation.Signalling
             SignalScriptProcessing.Initialize(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
 
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
-            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<uint, SignalWorldInfo>();
+            ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<int, SignalWorldInfo>();
             ConcurrentDictionary<int, uint> platformSidesList = new ConcurrentDictionary<int, uint>();
             ConcurrentDictionary<int, int> speedPostWorldLookup = new ConcurrentDictionary<int, int>();
             ConcurrentDictionary<int, SpeedPostWorldObject> speedPostWorldList = new ConcurrentDictionary<int, SpeedPostWorldObject>();
@@ -298,7 +298,7 @@ namespace Orts.Simulation.Signalling
         /// Read all world files to get signal flags
         /// </summary>
         private void BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
-            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
+            ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
         {
             List<TokenID> Tokens = new List<TokenID>
             {
@@ -340,7 +340,7 @@ namespace Orts.Simulation.Signalling
                                 // if valid, add signal
                                 SignalWorldInfo signalWorldInfo = new SignalWorldInfo(signalObject, sigcfg);
                                 signalWorldList.Add(signalWorldInfo);
-                                foreach (KeyValuePair<uint, uint> reference in signalWorldInfo.HeadReference)
+                                foreach (KeyValuePair<int, int> reference in signalWorldInfo.HeadReference)
                                 {
                                     if (!signalWorldLookup.TryAdd(reference.Key, signalWorldInfo))
                                         Trace.TraceWarning($"Key {reference.Key} already exists for SignalWorldInfo");
@@ -421,7 +421,7 @@ namespace Orts.Simulation.Signalling
 
             Signal.Initialize(this, trackNodes, trackItems);
 
-            Dictionary<uint, Signal> signalHeadList = new Dictionary<uint, Signal>();
+            Dictionary<int, Signal> signalHeadList = new Dictionary<int, Signal>();
 
             for (int i = 1; i < trackNodes.Length; i++)
             {
@@ -476,7 +476,7 @@ namespace Orts.Simulation.Signalling
                     // use the TDBreference to find the actual head
                     bool backfacingHeads = false;
 
-                    foreach (KeyValuePair<uint, uint> headRef in signal.WorldObject.HeadReference)
+                    foreach (KeyValuePair<int, int> headRef in signal.WorldObject.HeadReference)
                     {
                         foreach (int headIndex in signal.WorldObject.Backfacing)
                         {
@@ -540,7 +540,7 @@ namespace Orts.Simulation.Signalling
                                         newSignal.TrackItemRefIndex = i;
 
                                         // remove this key from the original signal //
-                                        signal.WorldObject.HeadReference.Remove((uint)tdbRef);
+                                        signal.WorldObject.HeadReference.Remove(tdbRef);
                                     }
                                 }
                             }
@@ -562,7 +562,7 @@ namespace Orts.Simulation.Signalling
                                         signal.TrackItemRefIndex = i;
 
                                         // remove this key from the new signal //
-                                        newSignal.WorldObject.HeadReference.Remove((uint)tdbRef);
+                                        newSignal.WorldObject.HeadReference.Remove(tdbRef);
                                     }
                                 }
                             }
@@ -582,7 +582,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
+        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -655,7 +655,7 @@ namespace Orts.Simulation.Signalling
         /// Merge Heads
         /// </summary>
 
-        private void MergeHeads(ConcurrentBag<SignalWorldInfo> signalWorldList, Dictionary<uint, Signal> signalHeadList)
+        private void MergeHeads(ConcurrentBag<SignalWorldInfo> signalWorldList, Dictionary<int, Signal> signalHeadList)
         {
             foreach (SignalWorldInfo signalWorldInfo in signalWorldList)
             {
@@ -664,7 +664,7 @@ namespace Orts.Simulation.Signalling
                 if (signalWorldInfo.HeadReference.Count > 1)
                 {
 
-                    foreach (KeyValuePair<uint, uint> thisReference in signalWorldInfo.HeadReference)
+                    foreach (KeyValuePair<int, int> thisReference in signalWorldInfo.HeadReference)
                     {
                         if (signalHeadList.ContainsKey(thisReference.Key))
                         {
@@ -702,7 +702,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Signal to the list
         /// </summary>
-        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<uint, Signal> signalHeadList)
+        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<int, Signal> signalHeadList)
         {
             if (!(trackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
             {
@@ -723,7 +723,7 @@ namespace Orts.Simulation.Signalling
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
 
-            if (signalHeadList.ContainsKey((uint)tdbRef))
+            if (signalHeadList.ContainsKey(tdbRef))
             {
                 Trace.TraceInformation("Invalid double TDBRef {0} in node {1}\n", tdbRef, trackNode);
                 return false;
@@ -731,7 +731,7 @@ namespace Orts.Simulation.Signalling
             else
             {
                 Signals.Add(signal);
-                signalHeadList.Add((uint)tdbRef, signal);
+                signalHeadList.Add(tdbRef, signal);
             }
             return true;
         } // AddSignal
@@ -802,7 +802,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Add info from signal world objects to signal
         /// </summary>
-        private void AddWorldInfo(ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, int> speedpostWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList)
+        private void AddWorldInfo(ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, int> speedpostWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList)
         {
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
@@ -812,7 +812,7 @@ namespace Orts.Simulation.Signalling
                     foreach (SignalHead head in signal.SignalHeads)
                     {
                         // get reference using TDB index from head
-                        if (signalWorldLookup.TryGetValue(Convert.ToUInt32(head.TDBIndex), out SignalWorldInfo result))
+                        if (signalWorldLookup.TryGetValue(head.TDBIndex, out SignalWorldInfo result))
                             signal.WorldObject = result;
                     }
                 }
@@ -835,11 +835,11 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// FindByTrackItem : find required signalObj + signalHead
         /// </summary>
-        public KeyValuePair<Signal, SignalHead>? FindByTrackItem(uint trackItem)
+        public KeyValuePair<Signal, SignalHead>? FindByTrackItem(int trackItem)
         {
             foreach (Signal signal in Signals)
                 foreach (SignalHead head in signal.SignalHeads)
-                    if ((trackDB.TrackNodes[signal.TrackNode] as TrackVectorNode).TrackItemIndices[head.TrackItemIndex] == (int)trackItem)
+                    if ((trackDB.TrackNodes[signal.TrackNode] as TrackVectorNode).TrackItemIndices[head.TrackItemIndex] == trackItem)
                         return new KeyValuePair<Signal, SignalHead>(signal, head);
             return null;
         }//FindByTrItem
@@ -1419,8 +1419,8 @@ namespace Orts.Simulation.Signalling
             {
                 float cdist = traveller.DistanceTo(circuitNode, crossOver.Location);
 
-                int crossOverId = (int)crossOver.TrackItemId;
-                int crossId = (int)crossOver.TrackNode;
+                int crossOverId = crossOver.TrackItemId;
+                int crossId = crossOver.TrackNode;
 
                 // search in Dictionary for combined item //
 
@@ -2763,7 +2763,7 @@ namespace Orts.Simulation.Signalling
                 TrackNode trackNode = trackNodes[platformIndex.Value];
 
                 // check if entry already created for related entry
-                int relatedIndex = (int)platform.LinkedPlatformItemId;
+                int relatedIndex = platform.LinkedPlatformItemId;
 
                 PlatformDetails platformDetails;
                 Location refIndex;
@@ -2886,7 +2886,7 @@ namespace Orts.Simulation.Signalling
                 {
                     platformDetails.Name = platform.Station;
                     platformDetails.MinWaitingTime = platform.PlatformMinWaitingTime;
-                    platformDetails.NumPassengersWaiting = (int)platform.PlatformNumPassengersWaiting;
+                    platformDetails.NumPassengersWaiting = platform.PlatformNumPassengersWaiting;
                 }
                 else if (!splitPlatform)
                 {
@@ -3369,7 +3369,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
                             tunnelShape = shape.TunnelShape;
-                            shapePaths = Convert.ToInt32(shape.PathsNumber);
+                            shapePaths = shape.PathsNumber;
                         }
 
                         if (tunnelShape)
@@ -3518,7 +3518,7 @@ namespace Orts.Simulation.Signalling
                             if (shape.FileName != null)
                             {
                                 troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                                shapePaths = Convert.ToInt32(shape.PathsNumber);
+                                shapePaths = shape.PathsNumber;
                             }
                         }
 

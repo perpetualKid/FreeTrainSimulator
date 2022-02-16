@@ -9068,11 +9068,11 @@ namespace Orts.Simulation.Timetables
             }
             else if (stopTime <= 0)
             {
-                stopTime = (int)thisStop.PlatformItem.MinWaitingTime;
+                stopTime = thisStop.PlatformItem.MinWaitingTime;
             }
             else if (thisStop.ActualArrival > thisStop.ArrivalTime && stopTime > thisStop.PlatformItem.MinWaitingTime)
             {
-                stopTime = (int)thisStop.PlatformItem.MinWaitingTime;
+                stopTime = thisStop.PlatformItem.MinWaitingTime;
             }
 
             return (true, stopTime);
@@ -9643,7 +9643,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// <\summary>
 
-        internal override void ClearStation(uint id1, uint id2, bool removeStation)
+        internal override void ClearStation(int id1, int id2, bool removeStation)
         {
             int foundStation = -1;
             StationStop thisStation = null;

@@ -63,7 +63,6 @@ namespace Orts.Formats.Msts.Models
         public uint UiD { get; protected set; }
         public int DetailLevel { get; protected set; }
         public uint StaticFlags { get; protected set; }
-        public uint ViewDbId { get; protected set; }
 
         public ref readonly WorldPosition WorldPosition => ref worldPosition;
 
@@ -99,7 +98,8 @@ namespace Orts.Formats.Msts.Models
                     ReadPosition(subBlock, holder);
                     break;
                 case TokenID.VDbId:
-                    ViewDbId = subBlock.ReadUInt(); break;
+                    //ViewDbId =
+                    subBlock.ReadUInt(); break;
                 case TokenID.StaticFlags:
                     StaticFlags = subBlock.ReadFlags(); break;
                 default:
@@ -380,7 +380,7 @@ namespace Orts.Formats.Msts.Models
     public class SignalUnit
     {
         public int SubObject { get; private set; }
-        public uint TrackItem { get; private set; }
+        public int TrackItem { get; private set; }
 
         internal SignalUnit(SBR block)
         {
@@ -390,7 +390,7 @@ namespace Orts.Formats.Msts.Models
             {
                 subBlock.VerifyID(TokenID.TrItemId);
                 subBlock.ReadUInt(); // Unk?
-                TrackItem = subBlock.ReadUInt();
+                TrackItem = subBlock.ReadInt();
                 subBlock.VerifyEndOfBlock();
             }
             block.VerifyEndOfBlock();
@@ -504,7 +504,7 @@ namespace Orts.Formats.Msts.Models
     public class TrackObject : WorldObject
     {
         private WorldLocation location;
-        public uint SectionIndex { get; private set; }
+        public int SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
         public ref readonly WorldLocation WorldLocation => ref location;
@@ -520,7 +520,7 @@ namespace Orts.Formats.Msts.Models
         {
             switch (subBlock.ID)
             {
-                case TokenID.SectionIdx: SectionIndex = subBlock.ReadUInt(); break;
+                case TokenID.SectionIdx: SectionIndex = subBlock.ReadInt(); break;
                 case TokenID.Elevation: Elevation = subBlock.ReadFloat(); break;
                 case TokenID.CollideFlags: CollideFlags = subBlock.ReadUInt(); break;
                 case TokenID.JNodePosn: ReadLocation(subBlock); break;
@@ -569,7 +569,6 @@ namespace Orts.Formats.Msts.Models
             Elevation = source.Elevation;
             CollideFlags = source.CollideFlags;
             StaticFlags = source.StaticFlags;
-            ViewDbId = source.ViewDbId;
             FileName = source.FileName;
             DetailLevel = source.DetailLevel;
             UiD = source.UiD;

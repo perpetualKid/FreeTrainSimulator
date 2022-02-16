@@ -57,10 +57,10 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public class RoadLevelCrossingItem : TrackItem
     {
-        /// <summary>Direction along track: 0 or 1 depending on which way signal is facing</summary>
-        public uint Direction { get; private set; }
-        /// <summary>index to Signal Object Table</summary>
-        public int SignalObject { get; private set; }
+        ///// <summary>Direction along track: 0 or 1 depending on which way signal is facing</summary>
+        //public uint Direction { get; private set; }
+        ///// <summary>index to Signal Object Table</summary>
+        //public int SignalObject { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -69,7 +69,6 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         internal RoadLevelCrossingItem(STFReader stf, int idx)
         {
-            SignalObject = -1;
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),

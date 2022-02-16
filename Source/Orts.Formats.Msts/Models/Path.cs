@@ -32,31 +32,31 @@ namespace Orts.Formats.Msts.Models
     public class PathNode
     {
         public PathFlags PathFlags { get; private set; }
-        public uint NextMainNode { get; private set; }
-        public uint NextSidingNode { get; private set; }
-        public uint PathDataPoint { get; private set; }
+        public int NextMainNode { get; private set; }
+        public int NextSidingNode { get; private set; }
+        public int PathDataPoint { get; private set; }
 
-        public bool HasNextMainNode => (NextMainNode != 0xffffffff);
-        public bool HasNextSidingNode => (NextSidingNode != 0xffffffff);
-
-        public int WaitTime => (int)(((uint)PathFlags >> 16) & 0xFFFF);
+        public int WaitTime { get; }
 
         internal PathNode(STFReader stf)
         {
+            // Possible interpretation (as found on internet, by krausyao)
+            // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
+            // AAAA wait time seconds in hexidecimal
+            // BBBB (Also hexidecimal, so 16 bits)
+            // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
+            // Bit 1 - waiting point (2/x2)
+            // Bit 2 - intermediate point between switches (4/x4)
+            // Bit 3 - 'other exit' is used (8/x8)
+            // Bit 4 - 'optional Route' active (16/x10)
             stf.MustMatchBlockStart();
-            PathFlags = (PathFlags)stf.ReadHex(0);
-            NextMainNode = stf.ReadUInt(null);
-            NextSidingNode = stf.ReadUInt(null);
-            PathDataPoint = stf.ReadUInt(null);
+            uint pathFlags = stf.ReadHex(0);
+            WaitTime = (int)(pathFlags >> 16);
+            PathFlags = (PathFlags)(pathFlags & 0xFFFF);
+            NextMainNode = (int)stf.ReadUInt(null);
+            NextSidingNode = (int)stf.ReadUInt(null);
+            PathDataPoint = (int)stf.ReadUInt(null);
             stf.SkipRestOfBlock();
-        }
-
-        internal PathNode(uint flags, uint nextNode, uint nextSiding, uint pathDataPoint)
-        {
-            PathFlags = (PathFlags)flags;
-            NextMainNode = nextNode;
-            NextSidingNode = nextSiding;
-            PathDataPoint = pathDataPoint;
         }
     }
 }

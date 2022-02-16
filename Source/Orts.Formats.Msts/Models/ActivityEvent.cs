@@ -186,7 +186,7 @@ namespace Orts.Formats.Msts.Models
     {
         public EventType Type { get; private set; }
         public WorkOrderWagons WorkOrderWagons { get; private set; }
-        public uint? SidingId { get; private set; }  // May be specified inside the Wagon_List instead. Nullable as can't use -1 to indicate not set.
+        public int SidingId { get; private set; } = -1;// May be specified inside the Wagon_List instead.
         public float SpeedMpS { get; private set; }
 
         internal ActionActivityEvent(STFReader stf)
@@ -217,7 +217,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf); }),
-                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
+                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatchBlockEnd(); Reversible = true; }),
                 // Also support the correct spelling !

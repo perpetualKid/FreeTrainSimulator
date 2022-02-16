@@ -1054,7 +1054,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private const float SignalWarningDistance = 500;
         private const float DisplaySegmentLength = 10;
         private const float MaximumSectionDistance = 10000;
-        private Dictionary<uint, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<uint, SignallingDebugWindow.TrackSectionCacheEntry>();
+        private Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry>();
 
         private SignallingDebugWindow.TrackSectionCacheEntry GetCacheEntry(Traveller position)
         {
@@ -2029,10 +2029,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 switch (type)
                 {
                     case 0:
-                        Selected = (int)switchPickedItem.main;
+                        Selected = switchPickedItem.main;
                         break;
                     case 1:
-                        Selected = 1 - (int)switchPickedItem.main;
+                        Selected = 1 - switchPickedItem.main;
                         break;
                 }
                 //aider selects and throws the switch, but need to confirm by the dispatcher
@@ -2047,11 +2047,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 switch (type)
                 {
                     case 0:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, (int)switchPickedItem.main);
+                        simulator.SignalEnvironment.RequestSetSwitch(sw, switchPickedItem.main);
                         //sw.SelectedRoute = (int)switchPickedItem.main;
                         break;
                     case 1:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, 1 - (int)switchPickedItem.main);
+                        simulator.SignalEnvironment.RequestSetSwitch(sw, 1 - switchPickedItem.main);
                         //sw.SelectedRoute = 1 - (int)switchPickedItem.main;
                         break;
                 }
@@ -2390,7 +2390,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
     public class SwitchWidget : ItemWidget
     {
         public TrackJunctionNode Item;
-        public uint main;
+        public int main;
         /// <summary>
         /// 
         /// </summary>
@@ -2497,7 +2497,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (Section == null)
                 return;
             //MySection = Section;
-            uint k = Section.SectionIndex;
+            int k = Section.SectionIndex;
             TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(k);
             if (ts != null)
             {
@@ -2536,10 +2536,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
     /// </summary>
     public struct SidingWidget
     {
-        public uint Id;
+        public int Id;
         public PointF Location;
         public string Name;
-        public uint LinkId;
+        public int LinkId;
 
         /// <summary>
         /// The underlying track item.
@@ -2563,12 +2563,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
     public struct PlatformWidget
     {
-        public uint Id;
+        public int Id;
         public PointF Location;
         public string Name;
         public PointF Extent1;
         public PointF Extent2;
-        public uint LinkId;
+        public int LinkId;
         public string Station;
 
         /// <summary>

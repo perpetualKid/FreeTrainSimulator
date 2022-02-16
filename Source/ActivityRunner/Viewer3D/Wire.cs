@@ -87,12 +87,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
                 nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-                uint[] sections = id.TrackSections;
+                int[] sections = id.TrackSections;
 
                 for (int i = 0; i < sections.Length; i++)
                 {
                     float length, radius;
-                    uint sid = id.TrackSections[i];
+                    int sid = id.TrackSections[i];
                     TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
@@ -176,12 +176,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-            uint[] sections = path.TrackSections;
+            int[] sections = path.TrackSections;
 
             for (int i = 0; i < sections.Length; i++)
             {
                 float length, radius;
-                uint sid = path.TrackSections[i];
+                int sid = path.TrackSections[i];
                 TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
@@ -255,7 +255,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
                 if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || trackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || trackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);

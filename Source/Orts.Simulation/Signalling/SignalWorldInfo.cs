@@ -39,7 +39,7 @@ namespace Orts.Simulation.Signalling
     //================================================================================================//
     internal class SignalWorldInfo
     {
-        public Dictionary<uint, uint> HeadReference { get; }     // key=TDBIndex, value=headindex
+        public Dictionary<int, int> HeadReference { get; }     // key=TDBIndex, value=headindex
         public BitArray HeadsSet { get; }                          // Flags heads which are set
         public BitArray FlagsSet { get; private set; }                          // Flags signal-flags which are set
         public BitArray FlagsSetBackfacing { get; }                // Flags signal-flags which are set
@@ -53,7 +53,7 @@ namespace Orts.Simulation.Signalling
             if (null == signalWorldItem)
                 throw new ArgumentNullException(nameof(signalWorldItem));
 
-            HeadReference = new Dictionary<uint, uint>();
+            HeadReference = new Dictionary<int, int>();
 
             // set flags with length to number of possible SubObjects type
 
@@ -99,7 +99,7 @@ namespace Orts.Simulation.Signalling
                 // get TDB and head reference from World file
                 foreach (SignalUnit signalUnitInfo in signalWorldItem.SignalUnits)
                 {
-                    HeadReference.Add(signalUnitInfo.TrackItem, (uint)signalUnitInfo.SubObject);
+                    HeadReference.Add(signalUnitInfo.TrackItem, signalUnitInfo.SubObject);
                 }
             }
             else
@@ -128,10 +128,10 @@ namespace Orts.Simulation.Signalling
             FlagsSetBackfacing = new BitArray(source.FlagsSetBackfacing);
             HeadsSet = new BitArray(source.HeadsSet);
 
-            HeadReference = new Dictionary<uint, uint>();
-            foreach (KeyValuePair<uint, uint> thisRef in source.HeadReference)
+            HeadReference = new Dictionary<int, int>();
+            foreach (KeyValuePair<int, int> sourceRef in source.HeadReference)
             {
-                HeadReference.Add(thisRef.Key, thisRef.Value);
+                HeadReference.Add(sourceRef.Key, sourceRef.Value);
             }
         }
 

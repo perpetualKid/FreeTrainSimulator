@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -52,16 +51,16 @@ namespace ORTS.TrackViewer.Editing
             sidingRouteIndex = new int[trackNodes.Length];
             for (int tni = 0; tni < trackNodes.Length; tni++)
             {
-                TrackJunctionNode tn = trackNodes[tni] as TrackJunctionNode;
-                if (tn == null) continue;
+                if (!(trackNodes[tni] is TrackJunctionNode tn))
+                    continue;
 
                 int mainRoute = 0;
 
-                uint trackShapeIndex = tn.ShapeIndex;
+                int trackShapeIndex = tn.ShapeIndex;
                 try
                 {
                     TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
-                    mainRoute = (int)trackShape.MainRoute;
+                    mainRoute = trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)
                 {

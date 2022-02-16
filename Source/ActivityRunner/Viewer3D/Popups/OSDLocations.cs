@@ -94,10 +94,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             var eventAction = @event.ActivityEvent as ActionActivityEvent;
                             if (eventAction != null)
                             {
-                                var sidingId1 = eventAction.SidingId;
-                                var sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : default(uint?);
-                                var sidingId = sidingId1.HasValue ? sidingId1.Value : sidingId2.HasValue ? sidingId2.Value : uint.MaxValue;
-                                if (0 <= sidingId && sidingId < tdb.TrackItems.Length && tdb.TrackItems[sidingId] is SidingItem)
+                                int sidingId1 = eventAction.SidingId;
+                                int sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : -1;
+                                int sidingId = sidingId1 > -1 ? sidingId1 : sidingId2;
+                                if (sidingId > -1 && sidingId < tdb.TrackItems.Length && tdb.TrackItems[sidingId] is SidingItem)
                                 {
                                     sidings[tdb.TrackItems[sidingId].ItemName] = true;
                                 }

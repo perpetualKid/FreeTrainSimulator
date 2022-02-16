@@ -1088,7 +1088,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// check if required route is set
         /// </summary>
-        public bool CheckRouteSet(int mainNode, uint junctionNode)
+        public bool CheckRouteSet(int mainNode, int junctionNode)
         {
             bool routeset = false;
             bool retry = false;
@@ -1158,7 +1158,7 @@ namespace Orts.Simulation.Signalling
                     if (sectionIndex < 0 && section.CircuitType == TrackCircuitType.Junction)
                     {
                         // check if this is required junction
-                        if (Convert.ToUInt32(section.Index) == junctionNode)
+                        if (section.Index == junctionNode)
                         {
                             passedTrackJn = true;
                         }

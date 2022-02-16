@@ -50,7 +50,7 @@ namespace Orts.Simulation.Signalling
         public EnumArray<int, TrackDirection> EndSignals { get; } = new EnumArray<int, TrackDirection>(-1);
         public EnumArray<float, TrackDirection> DistanceToSignals { get; } = new EnumArray<float, TrackDirection>();
         public string Name { get; internal set; }
-        public uint MinWaitingTime { get; internal set; }
+        public int MinWaitingTime { get; internal set; }
         public int NumPassengersWaiting { get; internal set; }
         public PlatformSides PlatformSide { get; internal set; }
         public int PlatformFrontUiD { get; internal set; } = -1;
