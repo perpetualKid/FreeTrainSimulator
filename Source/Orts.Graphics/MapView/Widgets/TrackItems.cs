@@ -480,24 +480,34 @@ namespace Orts.Graphics.MapView.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             BasicTextureType signalState =
-                contentArea.Scale < 10 ?
-                Signal?.State switch
+                contentArea.Scale switch
                 {
-                    SignalState.Clear => BasicTextureType.SignalSmallGreen,
-                    SignalState.Approach => BasicTextureType.SignalSmallYellow,
-                    SignalState.Lock => BasicTextureType.SignalSmallRed,
-                    _ => BasicTextureType.SignalSmall
-                } :
-                Signal?.State switch
-                {
-                    SignalState.Clear => BasicTextureType.SignalGreen,
-                    SignalState.Approach => BasicTextureType.SignalYellow,
-                    SignalState.Lock => BasicTextureType.SignalRed,
-                    _ => BasicTextureType.Signal
+                    double scale when scale < 3 => Signal?.State switch
+                    {
+                        SignalState.Clear => BasicTextureType.SignalDotGreen,
+                        SignalState.Approach => BasicTextureType.SignalDotYellow,
+                        SignalState.Lock => BasicTextureType.SignalDotRed,
+                        _ => BasicTextureType.SignalSmall
+                    },
+                    double scale when scale < 10 => Signal?.State switch
+                    {
+                        SignalState.Clear => BasicTextureType.SignalSmallGreen,
+                        SignalState.Approach => BasicTextureType.SignalSmallYellow,
+                        SignalState.Lock => BasicTextureType.SignalSmallRed,
+                        _ => BasicTextureType.SignalSmall
+                    },
+                    _ => Signal?.State switch
+                    {
+                        SignalState.Clear => BasicTextureType.SignalGreen,
+                        SignalState.Approach => BasicTextureType.SignalYellow,
+                        SignalState.Lock => BasicTextureType.SignalRed,
+                        _ => BasicTextureType.Signal
+                    },
                 };
 
             Size = contentArea.Scale switch
             {
+                double i when i < 0.5 => 30,
                 double i when i < 0.75 => 15,
                 double i when i < 1 => 10,
                 double i when i < 3 => 7,

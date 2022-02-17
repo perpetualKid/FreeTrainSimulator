@@ -8,57 +8,28 @@
 		<RootNamespace>Orts.Graphics</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
-		<None Remove="Resources\ActiveBrokenNode.png" />
-		<None Remove="Resources\activeNode.png" />
-		<None Remove="Resources\ActiveNormalNode.png" />
-		<None Remove="Resources\ActiveTrackNode.png" />
-		<None Remove="Resources\CarSpawner.png" />
-		<None Remove="Resources\Circle.png" />
-		<None Remove="Resources\Disc.png" />
-		<None Remove="Resources\Hazard.png" />
-		<None Remove="Resources\LevelCrossing.png" />
-		<None Remove="Resources\pathEnd.png" />
-		<None Remove="Resources\pathNormal.png" />
-		<None Remove="Resources\pathReverse.png" />
-		<None Remove="Resources\pathStart.png" />
-		<None Remove="Resources\pathWait.png" />
-		<None Remove="Resources\Pickup.png" />
-		<None Remove="Resources\Platform.png" />
-		<None Remove="Resources\Playertrain.png" />
-		<None Remove="Resources\Ring.png" />
-		<None Remove="Resources\RingCrossed.png" />
-		<None Remove="Resources\Signal.png" />
-		<None Remove="Resources\SignalGreen.png" />
-		<None Remove="Resources\SignalNone.png" />
-		<None Remove="Resources\SignalRed.png" />
-		<None Remove="Resources\SignalSmall.png" />
-		<None Remove="Resources\SignalSmallGreen.png" />
-		<None Remove="Resources\SignalSmallNone.png" />
-		<None Remove="Resources\SignalSmallRed.png" />
-		<None Remove="Resources\SignalSmallYellow.png" />
-		<None Remove="Resources\SignalYellow.png" />
-		<None Remove="Resources\Sound.png" />
-	</ItemGroup>
-	<ItemGroup>
-		<EmbeddedResource Include="Resources\ActiveBrokenNode.png"/>
-		<EmbeddedResource Include="Resources\ActiveNode.png"/>
-		<EmbeddedResource Include="Resources\ActiveNormalNode.png"/>
-		<EmbeddedResource Include="Resources\ActiveTrackNode.png"/>
-		<EmbeddedResource Include="Resources\CarSpawner.png"/>
+		<EmbeddedResource Include="Resources\ActiveBrokenNode.png" />
+		<EmbeddedResource Include="Resources\ActiveNode.png" />
+		<EmbeddedResource Include="Resources\ActiveNormalNode.png" />
+		<EmbeddedResource Include="Resources\ActiveTrackNode.png" />
+		<EmbeddedResource Include="Resources\CarSpawner.png" />
 		<EmbeddedResource Include="Resources\Circle.png" />
 		<EmbeddedResource Include="Resources\Disc.png" />
-		<EmbeddedResource Include="Resources\Hazard.png"/>
+		<EmbeddedResource Include="Resources\Hazard.png" />
 		<EmbeddedResource Include="Resources\LevelCrossing.png" />
-		<EmbeddedResource Include="Resources\PathEnd.png"/>
-		<EmbeddedResource Include="Resources\PathNormal.png"/>
-		<EmbeddedResource Include="Resources\PathReverse.png"/>
-		<EmbeddedResource Include="Resources\PathStart.png"/>
-		<EmbeddedResource Include="Resources\PathWait.png"/>
-		<EmbeddedResource Include="Resources\Pickup.png"/>
-		<EmbeddedResource Include="Resources\Platform.png"/>
+		<EmbeddedResource Include="Resources\PathEnd.png" />
+		<EmbeddedResource Include="Resources\PathNormal.png" />
+		<EmbeddedResource Include="Resources\PathReverse.png" />
+		<EmbeddedResource Include="Resources\PathStart.png" />
+		<EmbeddedResource Include="Resources\PathWait.png" />
+		<EmbeddedResource Include="Resources\Pickup.png" />
+		<EmbeddedResource Include="Resources\Platform.png" />
 		<EmbeddedResource Include="Resources\Ring.png" />
 		<EmbeddedResource Include="Resources\RingCrossed.png" />
-		<EmbeddedResource Include="Resources\Signal.png"/>
+		<EmbeddedResource Include="Resources\Signal.png" />
+		<EmbeddedResource Include="Resources\SignalDotGreen.png" />
+		<EmbeddedResource Include="Resources\SignalDotRed.png" />
+		<EmbeddedResource Include="Resources\SignalDotYellow.png" />
 		<EmbeddedResource Include="Resources\SignalGreen.png" />
 		<EmbeddedResource Include="Resources\SignalNone.png" />
 		<EmbeddedResource Include="Resources\SignalRed.png" />
@@ -68,8 +39,8 @@
 		<EmbeddedResource Include="Resources\SignalSmallRed.png" />
 		<EmbeddedResource Include="Resources\SignalSmallYellow.png" />
 		<EmbeddedResource Include="Resources\SignalYellow.png" />
-		<EmbeddedResource Include="Resources\Sound.png"/>
-		<EmbeddedResource Include="Resources\PlayerTrain.png"/>
+		<EmbeddedResource Include="Resources\Sound.png" />
+		<EmbeddedResource Include="Resources\PlayerTrain.png" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
