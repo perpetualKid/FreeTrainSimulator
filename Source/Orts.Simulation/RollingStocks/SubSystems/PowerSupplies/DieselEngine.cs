@@ -380,10 +380,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return new DieselEnum(DEList.ToArray());
         }
 
-        public static string SetDebugLabels(int numberOfEngines)
+        public static string SetDebugLabels()
         {
             StringBuilder labels = new StringBuilder();
-            string tabs = new string('\t', numberOfEngines - 1);
+            string tabs = "\t";
             labels.Append($"{Simulator.Catalog.GetString("Status")}{tabs}");
             labels.Append($"{Simulator.Catalog.GetParticularString("HUD", "Power")}{tabs}");
             labels.Append($"{Simulator.Catalog.GetString("Load")}{tabs}");

@@ -945,9 +945,9 @@ namespace Orts.Simulation.RollingStocks
 
             StringBuilder status = new StringBuilder();
             status.Append($"{CarID}({DistributedPowerUnitId})\t");
+            status.Append($"{throttle}\t");
             status.Append($"{Direction.GetDescription()} {(Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}\t");
             status.Append($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}\t");
-            status.Append($"{throttle}\t");
             status.Append($"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}\t");
             status.Append($"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(CouplerOverloaded ? "???" : "")}");
             status.Append(DieselEngines.GetDistributedPowerStatus());
@@ -1120,9 +1120,8 @@ namespace Orts.Simulation.RollingStocks
         private static string[] DpuLabels;
         private static string[] DPULabels;
 
-        private static void SetDebugLabels(int numberOfEngines)
+        private static void SetDebugLabels()
         {
-            MaxNumberOfEngines = numberOfEngines;
             StringBuilder labels = new StringBuilder();
             labels.Append($"{Simulator.Catalog.GetString("ID")}\t");
             labels.Append($"{Simulator.Catalog.GetString("Throttle")}\t");
@@ -1130,7 +1129,7 @@ namespace Orts.Simulation.RollingStocks
             labels.Append($"{Simulator.Catalog.GetString("Remote")}\t");
             labels.Append($"{Simulator.Catalog.GetString("Fuel")}\t");
             labels.Append($"{Simulator.Catalog.GetString("Tractive Effort")}\t");
-            labels.Append(DieselEngines.SetDebugLabels(numberOfEngines));
+            labels.Append(DieselEngines.SetDebugLabels());
             DebugLabels = labels.ToString().Split('\t');
         }
 
@@ -1157,10 +1156,11 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public static string GetDebugTableBase(int locomotivesInTrain, int maxNumberOfEngines)
+        public static string GetDebugTableBase(int locomotivesInTrain)
         {
-            if (MaxNumberOfEngines != maxNumberOfEngines || DebugLabels == null)
-                SetDebugLabels(maxNumberOfEngines);
+            if (DebugLabels == null)
+                SetDebugLabels();
+
             string table = "";
             for (var i = 0; i < DebugLabels.Length; i++)
             {
