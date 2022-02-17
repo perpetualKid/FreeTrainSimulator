@@ -119,7 +119,9 @@ namespace Orts.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case SignalItem signalItem:
-                        result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes));
+                        bool normalSignal = (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal);
+                        if (!signalsOnly || (signalsOnly && normalSignal))
+                            result.Add(new SignalTrackItem(signalItem, trackItemNodes, normalSignal));
                         break;
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
@@ -455,19 +457,15 @@ namespace Orts.Graphics.MapView.Widgets
 
         public ISignal Signal { get; }
 
-        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackVectorNode[] trackItemNodes) : base(source)
+        public SignalTrackItem(SignalItem source, TrackVectorNode[] trackItemNodes, bool normalSignal) : base(source)
         {
-
             if (source.SignalObject > -1)
             {
                 Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
             }
             Size = 2f;
-            if (signalConfig.SignalTypes.ContainsKey(source.SignalType))
-            {
-                normal = signalConfig.SignalTypes[source.SignalType].FunctionType == SignalFunction.Normal;
-            }
 
+            normal = normalSignal;
             TrackVectorNode vectorNode = trackItemNodes[source.TrackItemId];
             angle = new Traveller(vectorNode, source.Location, (Direction)source.Direction).RotY;
 

@@ -3,7 +3,7 @@
     public interface IRuntimeReferenceResolver
     {
         ISignal SignalById(int signalId);
-        ISwitch SwitchByUId(uint switchId);
+        ISwitch SwitchById(int switchId);
     }
 
     public enum SignalState

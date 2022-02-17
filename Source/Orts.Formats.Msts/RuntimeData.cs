@@ -15,7 +15,7 @@ namespace Orts.Formats.Msts
         public TrackDB TrackDB { get; }
         /// <summary>Road track database</summary>
         public RoadTrackDB RoadTrackDB { get; }
-        /// <summary>The signal config file containing, for instance, the information to distinguish normal and non-normal signals</summary>
+        /// <summary>The signal config file containing i.e. the information to distinguish normal and non-normal signals</summary>
         public SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }

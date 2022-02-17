@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation
 {
@@ -14,12 +11,12 @@ namespace Orts.Simulation
 
         public ISignal SignalById(int signalId)
         {
-            return simulator.SignalEnvironment.Signals[Convert.ToInt32(signalId)] as ISignal;
+            return simulator.SignalEnvironment.Signals[signalId];
         }
 
-        public ISwitch SwitchByUId(uint switchId)
+        public ISwitch SwitchById(int switchId)
 {
-            return RuntimeData.Instance.TrackDB.TrackNodes[Convert.ToInt32(switchId)] as ISwitch;
+            return RuntimeData.Instance.TrackDB.TrackNodes[switchId] as ISwitch;
         }
     }
 }

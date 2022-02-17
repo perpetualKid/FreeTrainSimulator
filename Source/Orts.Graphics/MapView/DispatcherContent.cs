@@ -217,7 +217,6 @@ namespace Orts.Graphics.MapView
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
             TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
-
             Tiles = new TileIndexedList<GridTile, Tile>(
                 TrackSegments.Select(d => d.Tile as ITile).Distinct()
                 .Union(TrackEndSegments.Select(d => d.Tile as ITile).Distinct())
