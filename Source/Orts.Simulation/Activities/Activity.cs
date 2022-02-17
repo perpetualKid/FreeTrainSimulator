@@ -98,7 +98,7 @@ namespace Orts.Simulation.Activities
                     foreach (ServiceTrafficItem i in sd.PlayerTraffics)
                     {
                         PlatformItem Platform;
-                        if (i.PlatformStartID < RuntimeData.Instance.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
+                        if (i.PlatformStartID < RuntimeData.Instance.TrackDB.TrackItems.Count && i.PlatformStartID >= 0 &&
                             RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
                             Platform = RuntimeData.Instance.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
                         else

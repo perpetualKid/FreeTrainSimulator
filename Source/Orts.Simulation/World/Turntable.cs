@@ -130,8 +130,8 @@ namespace Orts.Simulation.World
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            TrackNode[] trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
-            for (int j = 1; j < trackNodes.Length; j++)
+            List<TrackNode> trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
+            for (int j = 1; j < trackNodes.Count; j++)
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
                     int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>

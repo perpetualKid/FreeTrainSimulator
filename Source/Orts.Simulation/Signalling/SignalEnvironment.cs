@@ -325,7 +325,7 @@ namespace Orts.Simulation.Signalling
                                 bool invalid = false;
                                 foreach (SignalUnit signalUnit in signalObject.SignalUnits)
                                 {
-                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Length ||
+                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Count ||
                                         Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileX - worldObject.WorldPosition.TileX) > 1 ||
                                         Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
                                     {
@@ -410,7 +410,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
+        private void BuildSignalList(List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
             //  Determine the number of signals in the track Objects list
@@ -423,7 +423,7 @@ namespace Orts.Simulation.Signalling
 
             Dictionary<int, Signal> signalHeadList = new Dictionary<int, Signal>();
 
-            for (int i = 1; i < trackNodes.Length; i++)
+            for (int i = 1; i < trackNodes.Count; i++)
             {
                 ScanSection(trackItems, trackNodes, i, platformList, signalHeadList);
             }
@@ -454,7 +454,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split backfacing signals
         /// </summary>
-        private void SplitBackfacing(TrackItem[] trackItems, TrackNode[] trackNodes)
+        private void SplitBackfacing(List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
             List<Signal> backfacingSignals = new List<Signal>();
             // Loop through all signals to check on Backfacing heads
@@ -582,7 +582,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
+        private void ScanSection(List<TrackItem> trackItems, List<TrackNode> trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -776,7 +776,7 @@ namespace Orts.Simulation.Signalling
 
         private int AddMilepost(SpeedPostItem speedItem, int tdbRef)
         {
-            Milepost milepost = new Milepost((uint)tdbRef, speedItem.Distance);
+            Milepost milepost = new Milepost(tdbRef, speedItem.Distance);
             milepostList.Add(milepost);
 
             foundMileposts = milepostList.Count;
@@ -1191,14 +1191,14 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Create Track Circuits
         /// <summary>
-        private void CreateTrackCircuits(TrackItem[] trackItems, TrackNode[] trackNodes)
+        private void CreateTrackCircuits(List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
 
             // Create dummy element as first to keep indexes equal
             TrackCircuitSection.TrackCircuitList.Add(new TrackCircuitSection(this));
 
             // Create new default elements from existing base
-            for (int i = 1; i < trackNodes.Length; i++)
+            for (int i = 1; i < trackNodes.Count; i++)
             {
                 TrackNode trackNode = trackNodes[i];
                 TrackCircuitSection defaultSection =
@@ -1286,7 +1286,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ProcessNodes
         /// </summary>
-        private void ProcessNodes(int nodeIndex, TrackItem[] trackItems, TrackNode[] trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
+        private void ProcessNodes(int nodeIndex, List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             // Check if original tracknode had trackitems
@@ -1750,7 +1750,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes
         /// </summary>
-        private static void SetCrossReference(int node, TrackNode[] trackNodes)
+        private static void SetCrossReference(int node, List<TrackNode> trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType != TrackCircuitType.Crossover)
@@ -1790,7 +1790,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes for CrossOver items
         /// </summary>
-        private static void SetCrossReferenceCrossOver(int node, TrackNode[] trackNodes)
+        private static void SetCrossReferenceCrossOver(int node, List<TrackNode> trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType == TrackCircuitType.Crossover)
@@ -2748,7 +2748,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Process Platforms
         /// </summary>
-        private void ProcessPlatforms(Dictionary<int, int> platformList, TrackItem[] trackItems, TrackNode[] trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
+        private void ProcessPlatforms(Dictionary<int, int> platformList, List<TrackItem> trackItems, List<TrackNode> trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
         {
             foreach (KeyValuePair<int, int> platformIndex in platformList)
             {
@@ -3054,7 +3054,7 @@ namespace Orts.Simulation.Signalling
         /// Resolve split platforms
         /// </summary>
         private static void ResolveSplitPlatform(PlatformDetails platformDetails, int secondSectionIndex, PlatformItem secondPlatform, TrackVectorNode secondNode,
-                    TrackItem[] trackItems, TrackNode[] trackNodes)
+                    List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
             // get all positions related to tile of first platform item
 

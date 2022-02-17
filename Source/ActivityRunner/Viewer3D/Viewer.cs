@@ -1571,7 +1571,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Length; j++)
+            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Count; j++)
             {
                 TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
                 if (tn is TrackJunctionNode)

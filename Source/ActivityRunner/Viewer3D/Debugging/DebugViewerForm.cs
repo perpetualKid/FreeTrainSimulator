@@ -240,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         #region initData
-        private void InitData(TrackNode[] nodes)
+        private void InitData(List<TrackNode> nodes)
         {
             if (!loaded)
             {
@@ -252,7 +252,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             switchItemsDrawn = new List<SwitchWidget>();
             signalItemsDrawn = new List<SignalWidget>();
             switches = new List<SwitchWidget>();
-            for (int i = 0; i < nodes.Length; i++)
+            for (int i = 0; i < nodes.Count; i++)
             {
                 if (nodes[i] is TrackEndNode)
                 {

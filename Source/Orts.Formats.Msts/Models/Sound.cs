@@ -14,12 +14,12 @@ namespace Orts.Formats.Msts.Models
         public IList<WorldSoundSource> SoundSources { get; private set; } = new List<WorldSoundSource>();
         public IList<WorldSoundRegion> SoundRegions { get; private set; } = new List<WorldSoundRegion>();
 
-        internal TrackItemSound(STFReader stf, TrackItem[] trItems)
+        internal TrackItemSound(STFReader stf, int trackItemsCount)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("soundsource", ()=>{ SoundSources.Add(new WorldSoundSource(stf)); }),
-                new STFReader.TokenProcessor("soundregion", ()=>{ SoundRegions.Add(new WorldSoundRegion(stf, trItems)); }),
+                new STFReader.TokenProcessor("soundregion", ()=>{ SoundRegions.Add(new WorldSoundRegion(stf, trackItemsCount)); }),
             });
         }
     }
@@ -51,7 +51,7 @@ namespace Orts.Formats.Msts.Models
         public float RotY { get; private set; }
         public IList<int> TrackNodes { get; private set; }
 
-        internal WorldSoundRegion(STFReader stf, TrackItem[] trItems)
+        internal WorldSoundRegion(STFReader stf, int trackItemsCount)
         {
             TrackNodes = new List<int>();
             stf.MustMatchBlockStart();
@@ -63,7 +63,7 @@ namespace Orts.Formats.Msts.Models
                     stf.ReadInt(0);//dummy read
                     int trItemId = stf.ReadInt(-1);
                     if (trItemId != -1) {
-                        if (trItemId >= trItems.Length) {
+                        if (trItemId >= trackItemsCount) {
                             STFException.TraceWarning(stf, $"Ignored invalid TrItemId {trItemId}");
                         } else {
                             TrackNodes.Add(trItemId);

@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -54,22 +55,7 @@ namespace Orts.ContentChecker
         /// <param name="file">The file that needs to be loaded</param>
         public override void TryLoading(string file)
         {
-            TrackItem[] items;
-            if (trackDB == null)
-            {
-                //It is not clear that 10000 items is enough, which would give wrong warnings
-                Console.WriteLine("");
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-                Console.Write("  Not using the proper .tdb, but just an empty array of TrItems for loading the .ws file: ");
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
-                items = new TrackItem[100000];
-            }
-            else
-            {
-                items = trackDB.TrackItems;
-            }
-
-            _ = new WorldSoundFile(file, items);
+            _ = new WorldSoundFile(file, trackDB?.TrackItems.Count ?? 100000);
         }
     }
 }

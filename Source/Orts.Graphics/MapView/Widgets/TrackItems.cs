@@ -36,7 +36,7 @@ namespace Orts.Graphics.MapView.Widgets
             TrackItemBase.font = font;
         }
 
-        public static List<TrackItemBase> Create(TrackItem[] trackItems)
+        public static List<TrackItemBase> Create(IList<TrackItem> trackItems)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
@@ -67,14 +67,14 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
+        public static List<TrackItemBase> Create(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
             Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
 
-            TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Length];
+            TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
             foreach (TrackNode node in trackDb.TrackNodes)
             {

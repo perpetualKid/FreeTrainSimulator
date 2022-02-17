@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -33,7 +35,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>The TrPin index of the siding route of a junction node</summary>
         private static int[] sidingRouteIndex;
 
-        private static TrackNode[] trackNodes;
+        private static List<TrackNode> trackNodes;
         private static TrackSectionsFile tsectionDat;
 
         /// <summary>
@@ -42,14 +44,14 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackNodesIn">The tracknodes</param>
         /// <param name="tsectionDatIn">Track section Data</param>
-        public static void Initialize(TrackNode[] trackNodesIn, TrackSectionsFile tsectionDatIn)
+        public static void Initialize(List<TrackNode> trackNodesIn, TrackSectionsFile tsectionDatIn)
         {
             trackNodes = trackNodesIn;
             tsectionDat = tsectionDatIn;
             
-            mainRouteIndex = new int[trackNodes.Length];
-            sidingRouteIndex = new int[trackNodes.Length];
-            for (int tni = 0; tni < trackNodes.Length; tni++)
+            mainRouteIndex = new int[trackNodes.Count];
+            sidingRouteIndex = new int[trackNodes.Count];
+            for (int tni = 0; tni < trackNodes.Count; tni++)
             {
                 if (!(trackNodes[tni] is TrackJunctionNode tn))
                     continue;

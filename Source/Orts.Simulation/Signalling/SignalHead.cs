@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using Orts.Common;
@@ -96,7 +97,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Set the signal type object from the SIGCFG file
         /// </summary>
-        internal void SetSignalType(TrackItem[] trackItems, SignalConfigurationFile signalConfig)
+        internal void SetSignalType(List<TrackItem> trackItems, SignalConfigurationFile signalConfig)
         {
             SignalItem signalItem = (SignalItem)trackItems[TDBIndex];
 

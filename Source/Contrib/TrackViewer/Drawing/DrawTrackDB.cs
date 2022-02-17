@@ -281,7 +281,7 @@ namespace ORTS.TrackViewer.Drawing
             MinTileZ = +1000000;
             MaxTileX = -1000000;
             MaxTileZ = -1000000;
-            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
@@ -324,7 +324,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         private void FindEndnodeOrientations()
         {
-            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 TrackNode tn = trackDB.TrackNodes[tni];
                 if (tn == null) continue;
@@ -446,7 +446,7 @@ namespace ORTS.TrackViewer.Drawing
             InitIndexedLists(availableRoadItemIndexes);
 
             // find rail track tracknodes
-            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 TrackVectorNode tn = trackDB.TrackNodes[tni] as TrackVectorNode;
 
@@ -472,7 +472,7 @@ namespace ORTS.TrackViewer.Drawing
 
             if (roadTrackDB != null && roadTrackDB.TrackNodes != null)
             {
-                for (int tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
+                for (int tni = 0; tni < roadTrackDB.TrackNodes.Count; tni++)
                 {
                     if (!(roadTrackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
@@ -496,8 +496,8 @@ namespace ORTS.TrackViewer.Drawing
             trackDB.AddTrackItems(Array.Empty<TrackItem>());
 
             // find rail track items
-            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Length];
-            for (int i = 0; i < trackDB.TrackItems.Length; i++)
+            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Count];
+            for (int i = 0; i < trackDB.TrackItems.Count; i++)
             {
                 TrackItem trackItem = trackDB.TrackItems[i];
                 DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
@@ -506,12 +506,12 @@ namespace ORTS.TrackViewer.Drawing
             }
 
             // find road track items
-            if (roadTrackDB != null && roadTrackDB.TrItemTable != null)
+            if (roadTrackDB != null && roadTrackDB.TrackItems != null)
             {
-                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrItemTable.Length];
-                for (int i = 0; i < roadTrackDB.TrItemTable.Length; i++)
+                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrackItems.Count];
+                for (int i = 0; i < roadTrackDB.TrackItems.Count; i++)
                 {
-                    TrackItem trackItem = roadTrackDB.TrItemTable[i];
+                    TrackItem trackItem = roadTrackDB.TrackItems[i];
                     DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
                     roadTrackItemTable[i] = drawableTrackItem;
                     AddLocationToAvailableList(drawableTrackItem.WorldLocation, availableRoadItemIndexes, drawableTrackItem);
@@ -666,7 +666,7 @@ namespace ORTS.TrackViewer.Drawing
             PrepareDrawing(drawArea);
             closestRailTrack.Reset();
 
-            bool[] hasBeenDrawn = new bool[trackDB.TrackNodes.Length];
+            bool[] hasBeenDrawn = new bool[trackDB.TrackNodes.Count];
             for (int xindex = tileXIndexStart; xindex <= tileXIndexStop; xindex++)
             {
                 for (int zindex = tileZIndexStart; zindex <= tileZIndexStop; zindex++)
@@ -941,7 +941,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The eturn the (center) location of a tracknode or WorldLocation.None if no tracknode could be identified</returns>
         public WorldLocation TrackNodeHighlightOverride(int tni)
         {
-            if ((tni < 0) || (tni >= trackDB.TrackNodes.Length)) return WorldLocation.None;
+            if ((tni < 0) || (tni >= trackDB.TrackNodes.Count)) return WorldLocation.None;
             TrackNode tn = trackDB.TrackNodes[tni];
             if (tn == null)
                 return WorldLocation.None;
@@ -975,7 +975,7 @@ namespace ORTS.TrackViewer.Drawing
         public WorldLocation TrackNodeHighlightOverrideRoad(int tni)
         {
             if (roadTrackDB == null) return WorldLocation.None;
-            if ((tni < 0) || (tni >= roadTrackDB.TrackNodes.Length)) return WorldLocation.None;
+            if ((tni < 0) || (tni >= roadTrackDB.TrackNodes.Count)) return WorldLocation.None;
             TrackNode tn = roadTrackDB.TrackNodes[tni];
             if (tn == null) return WorldLocation.None;
 

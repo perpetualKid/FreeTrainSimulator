@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             var start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
             var end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
-            var trItems = RuntimeData.Instance.RoadTrackDB.TrItemTable;
+            var trItems = RuntimeData.Instance.RoadTrackDB.TrackItems;
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 

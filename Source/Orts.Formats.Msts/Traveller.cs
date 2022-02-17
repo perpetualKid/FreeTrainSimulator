@@ -37,7 +37,7 @@ namespace Orts.Formats.Msts
     /// </summary>
     public class Traveller
     {
-        private readonly TrackNode[] trackNodes;
+        private readonly List<TrackNode> trackNodes;
         private Direction direction = Direction.Forward;
         private float trackOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
@@ -125,7 +125,7 @@ namespace Orts.Formats.Msts
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes;
+            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes.ToList();
         }
 
         /// <summary>
@@ -538,7 +538,7 @@ namespace Orts.Formats.Msts
             if (pin < 0 || pin >= trackNode.TrackPins.Length)
                 return false;
             TrackPin trPin = trackNode.TrackPins[pin];
-            if (trPin.Link <= 0 || trPin.Link >= trackNodes.Length)
+            if (trPin.Link <= 0 || trPin.Link >= trackNodes.Count)
                 return false;
 
             direction = trPin.Direction > 0 ? Direction.Forward : Direction.Backward;
@@ -601,7 +601,7 @@ namespace Orts.Formats.Msts
             {
                 // We're on a junction or end node. Use one of the links to get location and direction information.
                 TrackPin pin = trackNode.TrackPins[0];
-                if (pin.Link <= 0 || pin.Link >= trackNodes.Length)
+                if (pin.Link <= 0 || pin.Link >= trackNodes.Count)
                     return;
                 TrackVectorNode tvn = trackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];

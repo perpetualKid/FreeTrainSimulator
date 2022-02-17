@@ -339,14 +339,14 @@ namespace Orts.Formats.Msts.Models
         /// Array of all TrackNodes in the track database
         /// Warning, the first TrackNode is always null.
         /// </summary>
-#pragma warning disable CA1819 // Properties should not return arrays
-        public TrackNode[] TrackNodes { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackNode> TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the track database
         /// </summary>
-        public TrackItem[] TrackItems { get; private set; }
-#pragma warning restore CA1819 // Properties should not return arrays
+        public List<TrackItem> TrackItems { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -359,38 +359,35 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrackNodes = stf.ReadInt(null);
-                    TrackNodes = new TrackNode[numberOfTrackNodes + 1];
-                    int idx = 1;
+                    TrackNodes = new List<TrackNode>(numberOfTrackNodes + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tracknode", ()=>{
-                            TrackNodes[idx] = TrackNode.ReadTrackNode(stf, idx, numberOfTrackNodes);
-                            if (TrackNodes[idx] is TrackJunctionNode junctionNode)
+                            TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, numberOfTrackNodes));
+                            if (TrackNodes[^1] is TrackJunctionNode junctionNode)
                             {
                                 string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
                                 if (!junctionNodes.ContainsKey(key))
                                     junctionNodes.Add(key, junctionNode);
                                 // only need any (first) junction node with that key here to relate back to ShapeIndex
                             }
-                            ++idx;
                         }),
                     });
                 }),
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrItems = stf.ReadInt(null);
-                    TrackItems = new TrackItem[numberOfTrItems];
-                    int idx = -1;
-                    stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems[idx] = new CrossoverItem(stf,idx); }),
-                        new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems[idx] = new SignalItem(stf,idx); }),
-                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrackItems[idx] = new SpeedPostItem(stf,idx); }),
-                        new STFReader.TokenProcessor("platformitem", ()=>{ TrackItems[idx] = new PlatformItem(stf,idx); }),
-                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrackItems[idx] = new SoundRegionItem(stf,idx); }),
-                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems[idx] = new EmptyItem(stf,idx); }),
-                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems[idx] = new LevelCrossingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrackItems[idx] = new SidingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrackItems[idx] = new HazardItem(stf,idx); }),
-                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrackItems[idx] = new PickupItem(stf,idx); }),
+                    TrackItems = new List<TrackItem>(numberOfTrItems);
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems.Add(new CrossoverItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems.Add(new SignalItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrackItems.Add(new SpeedPostItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("platformitem", ()=>{ TrackItems.Add(new PlatformItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrackItems.Add(new SoundRegionItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems.Add(new EmptyItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems.Add(new LevelCrossingItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrackItems.Add(new SidingItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrackItems.Add(new HazardItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrackItems.Add(new PickupItem(stf, TrackItems.Count)); }),
                     });
                 }),
             });
@@ -406,26 +403,20 @@ namespace Orts.Formats.Msts.Models
             if (null == trackItems)
                 throw new ArgumentNullException(nameof(trackItems));
 
-            TrackItem[] tempTrackItems;
+            int i = TrackItems?.Count ?? 0;
+            foreach (TrackItem item in trackItems)
+            { 
+                item.TrackItemId = i++;
+            }
 
             if (TrackItems == null)
             {
-                tempTrackItems = new TrackItem[trackItems.Length];
+                TrackItems = new List<TrackItem>(trackItems);
             }
             else
             {
-                tempTrackItems = new TrackItem[TrackItems.Length + trackItems.Length];
-                TrackItems.CopyTo(tempTrackItems, 0);
+                TrackItems.AddRange(trackItems);
             }
-
-            for (int i = 0; i < trackItems.Length; i++)
-            {
-                int newId = i + TrackItems.Length;
-                trackItems[i].TrackItemId = newId;
-                tempTrackItems[newId] = trackItems[i];
-            }
-
-            TrackItems = tempTrackItems;
         }
 
         /// <summary>
@@ -919,17 +910,17 @@ namespace Orts.Formats.Msts.Models
         public ref readonly WorldLocation Location => ref location;
         public ref readonly Vector3 Direction => ref direction;
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
-        public int Flag1 { get; set; }
+        public int Flag1 { get; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>
-        public int Flag2 { get; set; }
+        public int Flag2 { get; }
         /// <summary>Index of the track section in Tsection.dat</summary>
-        public int SectionIndex { get; set; }
+        public int SectionIndex { get; }
         /// <summary>Index to the shape from Tsection.dat</summary>
-        public int ShapeIndex { get; set; }
+        public int ShapeIndex { get; }
 
         //The following items are related to super elevation
         /// <summary>Cross-reference to worldFile: World ID</summary>
-        public uint WorldFileUiD { get; set; }
+        public uint WorldFileUiD { get; }
         /// <summary>The (super)elevation at the start</summary>
         public float StartElev { get; set; }
         /// <summary>The (super)elevation at the end</summary>

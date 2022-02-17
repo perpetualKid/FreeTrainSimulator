@@ -2404,7 +2404,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             TrackDB trackDB = RuntimeData.Instance.TrackDB;
-            TrackItem[] trItems = trackDB.TrackItems;
+            List<TrackItem> trItems = trackDB.TrackItems;
 
             WorldSoundRegion prevItem = null;
             WorldSoundRegion nextItem = null;
@@ -2529,7 +2529,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void AddByTile(int TileX, int TileZ)
         {
             string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
-            WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems);
+            WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems.Count);
             if (wf.TrackItemSound != null)
             {
                 string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
@@ -2575,8 +2575,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TDBObjects
     {
         private MSTSWagon _car;
-        private TrackNode[] trackNodes;
-        private TrackItem[] trItems;
+        private List<TrackNode> trackNodes;
+        private List<TrackItem> trItems;
 
         public TDBObjects(MSTSWagon Car)
         {

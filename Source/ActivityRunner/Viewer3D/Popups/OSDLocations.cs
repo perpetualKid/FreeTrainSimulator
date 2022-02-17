@@ -81,7 +81,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     foreach (var stop in stationStops)
                     {
                         var platformId = stop.PlatformReference;
-                        if (0 <= platformId && platformId < tdb.TrackItems.Length && tdb.TrackItems[platformId] is PlatformItem)
+                        if (0 <= platformId && platformId < tdb.TrackItems.Count && tdb.TrackItems[platformId] is PlatformItem)
                         {
                             platforms[tdb.TrackItems[platformId].ItemName] = true;
                         }
@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 int sidingId1 = eventAction.SidingId;
                                 int sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : -1;
                                 int sidingId = sidingId1 > -1 ? sidingId1 : sidingId2;
-                                if (sidingId > -1 && sidingId < tdb.TrackItems.Length && tdb.TrackItems[sidingId] is SidingItem)
+                                if (sidingId > -1 && sidingId < tdb.TrackItems.Count && tdb.TrackItems[sidingId] is SidingItem)
                                 {
                                     sidings[tdb.TrackItems[sidingId].ItemName] = true;
                                 }

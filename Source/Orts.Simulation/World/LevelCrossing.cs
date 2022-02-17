@@ -41,8 +41,8 @@ namespace Orts.Simulation.World
         {
             TrackCrossingItems = RuntimeData.Instance.TrackDB?.TrackNodes != null && RuntimeData.Instance.TrackDB.TrackItems != null
                 ? GetLevelCrossingsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
-            RoadCrossingItems = RuntimeData.Instance.RoadTrackDB?.TrackNodes != null && RuntimeData.Instance.RoadTrackDB.TrItemTable != null
-                ? GetLevelCrossingsFromDB(RuntimeData.Instance.RoadTrackDB.TrackNodes, RuntimeData.Instance.RoadTrackDB.TrItemTable) : new Dictionary<int, LevelCrossingItem>();
+            RoadCrossingItems = RuntimeData.Instance.RoadTrackDB?.TrackNodes != null && RuntimeData.Instance.RoadTrackDB.TrackItems != null
+                ? GetLevelCrossingsFromDB(RuntimeData.Instance.RoadTrackDB.TrackNodes, RuntimeData.Instance.RoadTrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
         }
 
         private static Dictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(IEnumerable<TrackNode> trackNodes, IList<TrackItem> trItemTable)

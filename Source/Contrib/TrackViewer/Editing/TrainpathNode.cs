@@ -360,7 +360,7 @@ namespace ORTS.TrackViewer.Editing
         {
             int bestIndex = -1;
             double bestDistance2 = 1e10f;
-            for (int j = 0; j < TrackDB.TrackNodes.Length; j++)
+            for (int j = 0; j < TrackDB.TrackNodes.Count; j++)
             {
                 TrackNode tn = TrackDB.TrackNodes[j];
                 if (tn == null) continue;
@@ -437,7 +437,7 @@ namespace ORTS.TrackViewer.Editing
             //Probably this can be faster, by just finding the TrPins from this and next junction and find the common one.
             int nextJunctionIndex = (nextNode as TrainpathJunctionNode).JunctionIndex;
 
-            for (int i = 0; i < TrackDB.TrackNodes.Length; i++)
+            for (int i = 0; i < TrackDB.TrackNodes.Count; i++)
             {
                 if (!(TrackDB.TrackNodes[i] is TrackVectorNode tn))
                     continue;

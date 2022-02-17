@@ -112,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         {
                             foreach (var trItemID in trackNode.TrackItemIndices)
                             {
-                                var trItem = rdb.TrItemTable[trItemID];
+                                var trItem = rdb.TrackItems[trItemID];
                                 currentPosition = new Traveller(trackNode, true);
                                 currentPosition.Move(trItem.SData1);
                                 primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
