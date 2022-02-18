@@ -36,9 +36,9 @@ namespace Orts.Graphics.MapView.Widgets
             };
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), color, contentArea.WorldToScreenCoordinates(in location),
+            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in location),
                 contentArea.WorldToScreenSize(length), angle, contentArea.SpriteBatch);
         }
     }

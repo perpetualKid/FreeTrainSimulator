@@ -65,6 +65,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
             LoadSettings();
 
+            TargetElapsedTime = TimeSpan.FromMilliseconds(1000 / 15);
+            IsFixedTimeStep = true;
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
             graphicsDeviceManager.PreferMultiSampling = settings.MultisamplingCount > 0;
@@ -179,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
-            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => followTrain = !followTrain);
+            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(5); });
             #endregion
 
         }

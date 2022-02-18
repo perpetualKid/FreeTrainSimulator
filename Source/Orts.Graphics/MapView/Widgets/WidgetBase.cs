@@ -25,7 +25,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal ref readonly PointD Location => ref location;
 
-        internal abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None);
+        internal abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
         private static class WidgetCache<T>
         {

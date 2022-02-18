@@ -21,9 +21,10 @@ namespace Orts.Graphics.MapView
         private static readonly Vector2 moveDown = new Vector2(0, -1);
 
         private const int zoomAmplifier = 3;
+        private const int scaleMax = 200;
 
         private Rectangle bounds;
-        private double maxScale;
+        private double scaleMin;
         private static readonly Point PointOverTwo = new Point(2, 2);
 
         private double offsetX, offsetY;
@@ -141,7 +142,7 @@ namespace Orts.Graphics.MapView
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
-            if ((scale < maxScale && steps < 0) || (scale > 200 && steps > 0))
+            if ((scale < scaleMin && steps < 0) || (scale > scaleMax && steps > 0))
                 return;
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
             offsetY += (WindowSize.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
@@ -153,6 +154,15 @@ namespace Orts.Graphics.MapView
         public void UpdateScale(int steps)
         {
             UpdateScaleAt(WindowSize / PointOverTwo, steps);
+        }
+
+        public void UpdateScaleAbsolut(double scale)
+        {
+            if (scale < scaleMin)
+                scale = scaleMin;
+            else if (scale > scaleMax)
+                scale = scaleMax;
+            Scale = scale;
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -326,7 +336,7 @@ namespace Orts.Graphics.MapView
             double xScale = (double)WindowSize.X / bounds.Width;
             double yScale = (double)(WindowSize.Y - screenHeightDelta) / bounds.Height;
             Scale = Math.Min(xScale, yScale);
-            maxScale = Scale * 0.75;
+            scaleMin = Scale * 0.75;
         }
 
         public override void Draw(GameTime gameTime)

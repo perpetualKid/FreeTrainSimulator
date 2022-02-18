@@ -22,7 +22,7 @@ namespace Orts.Graphics.MapView
 
         #region nearest items
         private GridTile nearestGridTile;
-        private TrackSegment nearestTrackSegment;
+        private PointWidget nearestDispatchItem;
         #endregion
 
         internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
@@ -70,20 +70,22 @@ namespace Orts.Graphics.MapView
             {
                 foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
                 {
-                    if (ContentArea.InsideScreenArea(junctionNode))
+                    if (ContentArea.InsideScreenArea(junctionNode) && junctionNode != nearestDispatchItem)
                         junctionNode.Draw(ContentArea);
                 }
             }
             foreach (TrackItemBase trackItem in SignalItems.BoundingBox(bottomLeft, topRight))
             {
-                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem))
+                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
                     trackItem.Draw(ContentArea);
             }
             if (null != Trains)
-            { 
-                foreach(TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
+            {
+                foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
                     trainCar.Draw(ContentArea);
             }
+            nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -94,19 +96,29 @@ namespace Orts.Graphics.MapView
                 nearestGridTile = result.First() as GridTile;
             }
             double distance = double.MaxValue;
-            foreach (TrackSegment trackSegment in TrackSegments[nearestGridTile.Tile])
+            nearestDispatchItem = null;
+            foreach (JunctionSegment junction in JunctionSegments[nearestGridTile.Tile])
             {
-                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
                 {
-                    nearestTrackSegment = trackSegment;
+                    nearestDispatchItem = junction;
+                    distance = itemDistance;
+                }
+            }
+            foreach (SignalTrackItem signal in SignalItems[nearestGridTile.Tile])
+            {
+                double itemDistance = signal.Location.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    nearestDispatchItem = signal;
                     distance = itemDistance;
                 }
             }
         }
 
         public void UpdateTrainTrackingPoint(in WorldLocation location)
-        { 
+        {
             ContentArea.SetTrackingPosition(location);
         }
 
@@ -223,7 +235,7 @@ namespace Orts.Graphics.MapView
                 .Select(t => new GridTile(t)));
 
             if (Tiles.Count == 1)
-{
+            {
                 foreach (TrackEndSegment trackEndSegment in TrackEndSegments)
                 {
                     minX = Math.Min(minX, trackEndSegment.Location.X);
