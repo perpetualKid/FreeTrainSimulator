@@ -258,7 +258,8 @@ namespace Orts.TrackViewer
 
             foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
             {
-                Settings.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                if (windowManager.WindowInitialized(windowType))
+                    Settings.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
             }
 
             Settings.ViewSettings = viewSettings;
@@ -410,9 +411,10 @@ namespace Orts.TrackViewer
             windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
-                debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
-                debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
-                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea?.Content;
+                debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
+                debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
+                debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
+                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
                 return debugWindow;
             }));
 
@@ -431,6 +433,11 @@ namespace Orts.TrackViewer
             await Task.WhenAll(initTasks).ConfigureAwait(false);
             await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
+        }
+
+        private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
         }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
@@ -506,8 +513,7 @@ namespace Orts.TrackViewer
             public override void Update(GameTime gameTime)
             {
                 this["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
-                this["Scale"] = $"{contentArea?.Scale,12:F3}";
-                this["Other"] = $"{DateTime.Now} {contentArea?.CenterX} {contentArea?.CenterY}";
+                this["Scale"] = contentArea == null ? null : $"{contentArea.Scale:F3} (pixel/meter)";
                 double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
                 frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
                 this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";

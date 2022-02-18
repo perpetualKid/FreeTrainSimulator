@@ -95,7 +95,7 @@ namespace Orts.Graphics.MapView
             {
                 nearestGridTile = result.First() as GridTile;
             }
-            double distance = double.MaxValue;
+            double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;
             foreach (JunctionSegment junction in JunctionSegments[nearestGridTile.Tile])
             {

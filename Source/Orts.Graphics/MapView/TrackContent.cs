@@ -52,13 +52,14 @@ namespace Orts.Graphics.MapView
             ContentArea.Initialize();
 
             DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
-            DebugInfo["Track Segments"] = $"{TrackSegments.Count}";
             DebugInfo["Track Nodes"] = $"{TrackNodeSegments.Count}";
-            DebugInfo["Track Items"] = $"{TrackItems.Count}";
-            DebugInfo["Track End Segments"] = $"{TrackEndSegments.Count}";
-            DebugInfo["Road Segments"] = $"{RoadSegments.Count}";
-            DebugInfo["Road End Segments"] = $"{RoadEndSegments.Count}";
-            DebugInfo["Junction Segments"] = $"{JunctionSegments.Count}";
+            DebugInfo["Track Segments"] = $"{TrackSegments.ItemCount}";
+            DebugInfo["Track End Segments"] = $"{TrackEndSegments.ItemCount}";
+            DebugInfo["Junction Segments"] = $"{JunctionSegments.ItemCount}";
+            DebugInfo["Track Items"] = $"{TrackItems.ItemCount}";
+            DebugInfo["Road Nodes"] = $"{RoadTrackNodeSegments.Count}";
+            DebugInfo["Road Segments"] = $"{RoadSegments.ItemCount}";
+            DebugInfo["Road End Segments"] = $"{RoadEndSegments.ItemCount}";
             DebugInfo["Tiles"] = $"{Tiles.Count}";
         }
 

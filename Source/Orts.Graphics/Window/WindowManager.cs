@@ -365,6 +365,8 @@ namespace Orts.Graphics.Window
             set => windows[window] = value;
         }
 
+        public bool WindowInitialized(TWindowType window) => lazyWindows[window]?.IsValueCreated ?? true;
+
         public void SetLazyWindows(TWindowType window, Lazy<WindowBase> lazyWindow)
         {
             lazyWindows[window] = lazyWindow;

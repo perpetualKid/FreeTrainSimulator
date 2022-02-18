@@ -29,8 +29,6 @@ namespace Orts.TrackViewer.PopupWindows
 
         private DebugScreenInformation currentDebugScreen;
 
-        public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
-
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
@@ -51,13 +49,9 @@ namespace Orts.TrackViewer.PopupWindows
             return base.Layout(layout, headerScaling);
         }
 
-        protected override void Initialize()
+        public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
         {
-            foreach (DebugScreenInformation item in EnumExtension.GetValues<DebugScreenInformation>())
-            {
-                currentProvider[item].DebugInformationProvider = DebugScreens[item];
-            }
-            base.Initialize();
+            currentProvider[informationType].DebugInformationProvider = provider;
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)

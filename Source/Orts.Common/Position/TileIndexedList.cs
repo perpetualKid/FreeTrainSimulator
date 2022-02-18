@@ -12,6 +12,8 @@ namespace Orts.Common.Position
 
         public int Count => sortedIndexes.Count;
 
+        public int ItemCount { get; }
+
         public IList<ITileCoordinate<T>> this[int index] { get => tiles[sortedIndexes[index]]; set => throw new InvalidOperationException(); }
 
         public TileIndexedList(IEnumerable<ITileCoordinate<T>> data)
@@ -38,6 +40,7 @@ namespace Orts.Common.Position
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
             }
+            ItemCount = data.Count();
         }
 
         public IEnumerator<ITileCoordinate<T>> GetEnumerator()
