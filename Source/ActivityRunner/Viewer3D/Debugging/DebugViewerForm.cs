@@ -60,11 +60,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
     public partial class DispatchViewer : Form
     {
 
-
-        #region Data Viewers
-        //public MessageViewer MessageViewer;
-        #endregion
-
         /// <summary>
         /// Reference to the main simulator object.
         /// </summary>
@@ -180,13 +175,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             InitData(RuntimeData.Instance.TrackDB.TrackNodes);
             InitImage();
 
-            /*
-          if (MultiPlayer.MPManager.IsMultiPlayer())
-          {
-              MessageViewer = new MessageViewer();
-              MessageViewer.Show();
-              MessageViewer.Visible = false;
-          }*/
             MultiPlayerManager.Instance().ServerChanged += (sender, e) =>
             {
                 firstShow = true;
@@ -274,12 +262,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                             TrackNode connectedNode = nodes[pin.Link];
 
-                            //if (currNode.UiD == null)
-                            //{
                             DebugVector A = new DebugVector(s.Location);
                             DebugVector B = new DebugVector(connectedNode.UiD.Location);
                             segments.Add(new LineSegment(A, B, null));
-                            //}
                         }
 
 
@@ -1350,14 +1335,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
         }
 
-        private float ScrollSpeedY
-        {
-            get
-            {
-                return viewWindow.Width * 0.10f;
-            }
-        }
-
         private void refreshButton_Click(object sender, EventArgs e)
         {
             followTrain = false;
@@ -1489,7 +1466,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var temp = findItemFromMouse(e.X, e.Y, range);
                     if (temp != null)
                     {
-                        //GenerateView();
                         if (temp is SwitchWidget)
                         { switchPickedItem = (SwitchWidget)temp; signalPickedItem = null; HandlePickedSwitch(); }
                         if (temp is SignalWidget)
@@ -1663,7 +1639,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (PickedTrain != null)
             {
                 AvatarView.SelectedItems.Clear();
-                return new TrainWidget(PickedTrain);
             }
             return null;
         }
@@ -2411,24 +2386,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
     #endregion
 
-    #region BufferWidget
-    public class BufferWidget : ItemWidget
-    {
-        public TrackNode Item;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public BufferWidget(TrackNode item)
-        {
-            Item = item;
-            Location = VectorFromLocation(Item.UiD.Location);
-        }
-    }
-    #endregion
-
     #region ItemWidget
     public abstract class ItemWidget
     {
@@ -2457,22 +2414,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
     }
     #endregion
 
-    #region TrainWidget
-    public class TrainWidget : ItemWidget
-    {
-        public Train Train;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        public TrainWidget(Train t)
-        {
-            Train = t;
-        }
-
-    }
-    #endregion
     #region LineSegment
     /// <summary>
     /// Defines a geometric line segment.

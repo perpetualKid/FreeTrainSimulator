@@ -614,7 +614,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     trainName = Train.GetTrainName(train.Cars[0].CarID);
                     if (train.TrainType == TrainType.Ai)
-                        trainName = train.Number.ToString() + ":" + train.Name;
+                        trainName = $"{train.Number}:{train.Name}";
 
                     locoCar = train.Cars.Where(r => r is MSTSLocomotive).FirstOrDefault();
 
@@ -637,10 +637,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                 DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB, mDist);
 
-                // If zoomed out, so train occupies less than 2 * minTrainPx pixels, then 
-                // draw the train as 2 squares of combined length minTrainPx.
-                const int minTrainPx = 24;
-
                 // pen | train | Values for a good presentation
                 //  1		10
                 //  2       12
@@ -648,28 +644,22 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 //  4		16
                 trainPen.Width = grayPen.Width * 6;
 
-                var minTrainLengthM = minTrainPx / xScale; // Calculate length equivalent to a set number of pixels
-                bool drawEveryCar = IsDrawEveryCar(train, minTrainLengthM);
-
                 foreach (var car in train.Cars)
-                    DrawCar(g, train, car, locoCar, margin, minTrainPx, drawEveryCar);
+                    DrawCar(g, train, car, locoCar, margin);
 
                 worldPos = locoCar.WorldPosition;
-                var scaledTrain = new PointF();
-                scaledTrain.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                scaledTrain.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
+                PointF scaledTrain = new PointF
+                {
+                    X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale,
+                    Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale
+                };
                 if (cbShowTrainLabels.Checked)
                     DrawTrainLabels(g, train, trainName, locoCar, scaledTrain);
             }
         }
 
-        private void DrawCar(System.Drawing.Graphics g, Train train, TrainCar car, TrainCar locoCar, float margin, int minTrainPx, bool drawEveryCar)
+        private void DrawCar(System.Drawing.Graphics g, Train train, TrainCar car, TrainCar locoCar, float margin)
         {
-            if (drawEveryCar == false)
-                // Skip the intermediate cars
-                if (car != train.Cars.First() && car != train.Cars.Last())
-                    return;
-
             var t = new Traveller(train.RearTDBTraveller);
             var worldPos = car.WorldPosition;
             var dist = t.DistanceTo(worldPos.WorldLocation);
@@ -678,8 +668,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 var scaledTrain = new PointF();
                 float x;
                 float y;
-                if (drawEveryCar)
-                {
                     t.Move(dist + car.CarLengthM / 2); // Move along from centre of car to front of car
                     x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
                     y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
@@ -690,37 +678,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     t.Move(-car.CarLengthM + (1 / xScale)); // Move from front of car to rear less 1 pixel to create a visible gap
                     scaledTrain.X = x; scaledTrain.Y = y;
-                }
-                else    // Draw the train as 2 boxes of fixed size
-                {
-                    trainPen.Width = minTrainPx / 2;
-                    if (car == train.Cars.First())
-                    {
-                        // Draw first half a train back from the front of the first car as abox
-                        t.Move(dist + car.CarLengthM / 2);
-                        x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
-                        y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
-
-                        // If car out of view then skip it.
-                        if (x < -margin || y < -margin)
-                            return;
-
-                        t.Move(-(minTrainPx - 2) / xScale / 2); // Move from front of car to rear less 1 pixel to create a visible gap
-                    }
-                    else // car == t.Cars.Last()
-                    {
-                        // Draw half a train back from the rear of the first box
-                        worldPos = train.Cars.First().WorldPosition;
-                        dist = t.DistanceTo(worldPos.WorldLocation);
-                        t.Move(dist + train.Cars.First().CarLengthM / 2 - minTrainPx / xScale / 2);
-                        x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
-                        y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
-                        if (x < -margin || y < -margin)
-                            return;
-                        t.Move(-minTrainPx / xScale / 2);
-                    }
-                    scaledTrain.X = x; scaledTrain.Y = y;
-                }
                 x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
                 y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
 
@@ -759,26 +716,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // Draw player train with loco in red
             if (t.TrainType == TrainType.Player && car == locoCar)
                 trainPen.Color = Color.Red;
-        }
-
-        /// <summary>
-        /// If the train is long enough then draw every car else just draw it as one or two blocks
-        /// </summary>
-        /// <param name="train"></param>
-        /// <param name="minTrainLengthM"></param>
-        /// <returns></returns>
-        private bool IsDrawEveryCar(Train train, float minTrainLengthM)
-        {
-            float trainLengthM = 0f;
-            foreach (var car in train.Cars)
-            {
-                trainLengthM += car.CarLengthM;
-                if (trainLengthM > minTrainLengthM)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void DrawTrainLabels(System.Drawing.Graphics g, Train t, string trainName, TrainCar firstCar, PointF scaledTrain)
