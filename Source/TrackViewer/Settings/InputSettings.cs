@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common;
 using Orts.Common.Input;
 
-namespace Orts.TrackViewer.Control
+namespace Orts.TrackViewer.Settings
 {
     public static class InputSettings
     {
@@ -32,6 +32,8 @@ namespace Orts.TrackViewer.Control
             UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
             UserCommands[UserCommand.LocationWindow] = new UserCommandKeyInput(Keys.F12);
             UserCommands[UserCommand.LocationWindowTab] = new UserCommandKeyInput(Keys.F12, KeyModifiers.Shift);
+            UserCommands[UserCommand.HelpWindow] = new UserCommandKeyInput(Keys.F1);
+            UserCommands[UserCommand.HelpWindowTab] = new UserCommandKeyInput(Keys.F1, KeyModifiers.Shift);
         }
     }
 }

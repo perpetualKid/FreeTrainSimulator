@@ -1,6 +1,4 @@
 ﻿
-using System;
-
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -10,8 +8,6 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
-
-using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer.PopupWindows
 {

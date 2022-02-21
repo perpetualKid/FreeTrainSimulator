@@ -305,7 +305,7 @@ namespace Orts.Settings
                         if (defaultValue[enumName] == null)
                         {
                             value[enumName] = null;
-                            Debug.WriteLine($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable storing of custom values.");
+                            Debug.WriteLine($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable persistance of user preferences.");
                         }
                         else if (valueType.GetGenericArguments()[0].IsArray)
                         {

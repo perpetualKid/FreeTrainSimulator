@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -113,6 +112,7 @@ namespace Orts.TrackViewer.Settings
             nameof(WindowType.StatusWindow) + "=50,50",
             nameof(WindowType.DebugScreen) + "=0,0",
             nameof(WindowType.LocationWindow) + "=100,100",
+            nameof(WindowType.HelpWindow) + "=10,90",
         })]
         public EnumArray<int[], WindowType> WindowLocations { get; set; }
 

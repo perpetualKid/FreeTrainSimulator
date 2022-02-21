@@ -13,8 +13,6 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
-using UserCommand = Orts.TrackViewer.Control.UserCommand;
-
 namespace Orts.TrackViewer.PopupWindows
 {
     public class LocationWindow : WindowBase

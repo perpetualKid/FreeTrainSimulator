@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -26,11 +25,8 @@ using Orts.Graphics.MapView;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
-using Orts.TrackViewer.Control;
 using Orts.TrackViewer.PopupWindows;
 using Orts.TrackViewer.Settings;
-
-using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer
 {
@@ -389,10 +385,11 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, ToggleDebugScreen);
+            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
-            userCommandController.AddEvent(UserCommand.LocationWindow, KeyEventType.KeyPressed, ToggleLocationWindow);
+            userCommandController.AddEvent(UserCommand.LocationWindow, KeyEventType.KeyPressed, () => windowManager[WindowType.LocationWindow].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.HelpWindow, KeyEventType.KeyPressed, () => windowManager[WindowType.HelpWindow].ToggleVisibility());
             #endregion
 
             #region popup windows
@@ -423,6 +420,11 @@ namespace Orts.TrackViewer
                 LocationWindow locationWindow = new LocationWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            {
+                HelpWindow helpWindow = new HelpWindow(windowManager, Settings.WindowLocations[WindowType.HelpWindow].ToPoint());
+                return helpWindow;
             }));
             #endregion
 
@@ -497,9 +499,13 @@ namespace Orts.TrackViewer
             private readonly SmoothedData frameRate = new SmoothedData();
             private ContentArea contentArea;
 
+            private readonly int slowFps;
+
             public CommonDebugInfo(GameWindow gameWindow)
             {
-                frameRate.Preset(60);
+                int targetFps = (int)Math.Round(1000 / gameWindow.TargetElapsedTime.TotalMilliseconds);
+                slowFps = targetFps - targetFps / 6;
+                frameRate.Preset(targetFps);
                 FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
                 gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;
@@ -517,7 +523,7 @@ namespace Orts.TrackViewer
                 double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
                 frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
                 this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-                if (frameRate.SmoothedValue < 50)
+                if (frameRate.SmoothedValue < slowFps)
                     FormattingOptions["FPS"] = FormatOption.RegularRed;
                 else
                     FormattingOptions["FPS"] = null;

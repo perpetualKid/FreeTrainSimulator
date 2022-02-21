@@ -1,4 +1,4 @@
-﻿namespace Orts.TrackViewer.Control
+﻿namespace Orts.TrackViewer
 {
     public enum UserCommand
     {
@@ -20,5 +20,7 @@
         DebugScreenTab,
         LocationWindow,
         LocationWindowTab,
+        HelpWindow,
+        HelpWindowTab,
     }
 }

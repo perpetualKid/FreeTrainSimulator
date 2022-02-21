@@ -12,9 +12,7 @@ using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.TrackViewer.Control;
-
-using UserCommand = Orts.TrackViewer.Control.UserCommand;
+using Orts.TrackViewer.Settings;
 
 namespace Orts.TrackViewer.PopupWindows
 {

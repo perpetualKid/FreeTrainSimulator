@@ -6,5 +6,6 @@
         StatusWindow,
         DebugScreen,
         LocationWindow,
+        HelpWindow,
     }
 }
