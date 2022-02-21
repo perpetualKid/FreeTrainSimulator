@@ -202,7 +202,7 @@ namespace Orts.TrackViewer
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
             Settings.ColorSettings[setting] = colorName;
-            (contentArea?.Content as TrackContent).UpdateColor(setting, ColorExtension.FromName(colorName));
+            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
                 BackgroundColor = ColorExtension.FromName(colorName);

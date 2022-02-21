@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
 using Orts.Common.Position;
+using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
@@ -48,6 +49,7 @@ namespace Orts.Graphics.MapView
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private MouseInputGameComponent inputComponent;
+        private readonly InsetComponent insetComponent;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         public ContentBase Content { get; }
@@ -75,6 +77,7 @@ namespace Orts.Graphics.MapView
             fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
+            insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
@@ -83,6 +86,46 @@ namespace Orts.Graphics.MapView
         {
             WindowSize = Game.Window.ClientBounds.Size;
             CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
+        }
+
+        public void UpdateColor(ColorSetting setting, Color color)
+        {
+            switch (setting)
+            {
+                case ColorSetting.Background:
+                    insetComponent?.UpdateColor(color);
+                    break;
+                case ColorSetting.RailTrack:
+                    PointWidget.UpdateColor<TrackSegment>(color);
+                    break;
+                case ColorSetting.RailTrackEnd:
+                    PointWidget.UpdateColor<TrackEndSegment>(color);
+                    break;
+                case ColorSetting.RailTrackJunction:
+                    PointWidget.UpdateColor<JunctionSegment>(color);
+                    break;
+                case ColorSetting.RailTrackCrossing:
+                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
+                    break;
+                case ColorSetting.RailLevelCrossing:
+                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                    break;
+                case ColorSetting.RoadTrack:
+                    PointWidget.UpdateColor<RoadSegment>(color);
+                    break;
+                case ColorSetting.RoadTrackEnd:
+                    PointWidget.UpdateColor<RoadEndSegment>(color);
+                    break;
+                case ColorSetting.PlatformItem:
+                    PointWidget.UpdateColor<PlatformTrackItem>(color);
+                    break;
+                case ColorSetting.SidingItem:
+                    PointWidget.UpdateColor<SidingTrackItem>(color);
+                    break;
+                case ColorSetting.SpeedPostItem:
+                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
+                    break;
+            }
         }
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
