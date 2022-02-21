@@ -13,5 +13,7 @@
         SetZoom,
         SetLocation,
         FollowTrain,
+        DebugScreen,
+        DebugScreenTab,
     }
 }

@@ -16,7 +16,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             UserCommandModifierInput moveFast = new UserCommandModifierInput(KeyModifiers.Shift);
 
             // All UserCommandModifierInput commands go here.
-            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter);
+            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter, KeyModifiers.Alt);
             UserCommands[UserCommand.ResetZoomAndLocation] = new UserCommandKeyInput(Keys.R);
             UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, moveFast, moveSlow);
             UserCommands[UserCommand.MoveRight] = new UserCommandModifiableKeyInput(Keys.Right, moveFast, moveSlow);
@@ -25,6 +25,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, moveFast, moveSlow);
             UserCommands[UserCommand.FollowTrain] = new UserCommandKeyInput(Keys.F);
+            UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5);
+            UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
         }
     }
 }

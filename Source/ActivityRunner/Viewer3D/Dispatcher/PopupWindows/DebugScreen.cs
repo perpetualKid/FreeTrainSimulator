@@ -1,42 +1,29 @@
 ﻿
-using System;
-
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
-using Orts.Common.Input;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
 
-using UserCommand = Orts.TrackViewer.Control.UserCommand;
-
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
     public enum DebugScreenInformation
     {
         Common,
-        Graphics,
-        Route,
     }
 
     public class DebugScreen : OverlayWindowBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
-        private readonly UserCommandController<UserCommand> userCommandController;
-
-        private DebugScreenInformation currentDebugScreen;
 
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
             ZOrder = 0;
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
-            currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
-            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
             UpdateBackgroundColor(backgroundColor);
         }
 
@@ -52,7 +39,6 @@ namespace Orts.TrackViewer.PopupWindows
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
         {
             currentProvider[informationType].DebugInformationProvider = provider;
-//            currentProvider[informationType] = new NameValueTextGrid(this, (int)(provider.DebugInfo.Count * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)
@@ -63,22 +49,12 @@ namespace Orts.TrackViewer.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction, true);
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction);
             return base.Close();
-        }
-
-        public override void TabAction(UserCommandArgs args)
-        {
-            if (currentDebugScreen != DebugScreenInformation.Common)
-                currentProvider[currentDebugScreen].Visible = false;
-            currentDebugScreen = currentDebugScreen.Next();
-            currentProvider[currentDebugScreen].Visible = true;
         }
     }
 }

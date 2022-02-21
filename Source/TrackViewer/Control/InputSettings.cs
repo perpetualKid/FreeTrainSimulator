@@ -19,7 +19,7 @@ namespace Orts.TrackViewer.Control
             UserCommands[UserCommand.Cancel] = new UserCommandKeyInput(Keys.Escape);
             UserCommands[UserCommand.PrintScreen] = new UserCommandKeyInput(Keys.PrintScreen);
             UserCommands[UserCommand.NewInstance] = new UserCommandKeyInput(Keys.F);
-            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter);
+            UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter, KeyModifiers.Alt);
             UserCommands[UserCommand.QuitWindow] = new UserCommandKeyInput(Keys.Q);
             UserCommands[UserCommand.ResetZoomAndLocation] = new UserCommandKeyInput(Keys.R);
             UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, moveFast, moveSlow);

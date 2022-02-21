@@ -11,7 +11,10 @@ using GetText.WindowsForms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows;
 using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
@@ -20,6 +23,7 @@ using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
+using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
@@ -30,6 +34,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {
     public class DispatcherWindow : Game
     {
+        private const int targetFps = 15;
+
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
         private bool syncing;
@@ -40,6 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private readonly Point clientRectangleOffset;
 
         private readonly UserSettings settings;
+        private Color BackgroundColor;
 
         private Catalog Catalog;
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
@@ -49,9 +56,34 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private SpriteBatch spriteBatch;
         private ContentArea contentArea;
         private DispatcherContent content;
+        private CommonDebugInfo debugInfo;
 
         private UserCommandController<UserCommand> userCommandController;
+        private WindowManager<WindowType> windowManager;
+
         private bool followTrain;
+
+        private readonly EnumArray<string, ColorSetting> colorSettings = new EnumArray<string, ColorSetting>(new string[]
+        {
+            "CornSilk",     // Background
+            "DimGray",      // RailTrack
+            "BlueViolet",   // RailTrackEnd
+            "DarkMagenta",  // RailTrackJunction
+            "Firebrick",    // RailTrackCrossing
+            "Crimson",      // RailLevelCrossing
+            "Olive",        // RoadTrack
+            "ForestGreen",  // RoadTrackEnd
+            "DeepPink",     // RoadLevelCrossing
+            "White",        // RoadCarSpawner
+            "White",        // SignalItem
+            "Navy",         // PlatformItem
+            "ForestGreen",  // SidingItem
+            "RoyalBlue",    // SpeedPostItem
+            "White",        // HazardItem
+            "White",        // PickupItem
+            "White",        // SoundRegionItem
+            "White",        // LevelCrossingItem
+        });
 
         public DispatcherWindow(UserSettings settings)
         {
@@ -65,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
             LoadSettings();
 
-            TargetElapsedTime = TimeSpan.FromMilliseconds(1000 / 15);
+            TargetElapsedTime = TimeSpan.FromMilliseconds(1000 / targetFps);
             IsFixedTimeStep = true;
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
@@ -135,27 +167,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
-            EnumArray<string, ColorSetting> colorSettings = new EnumArray<string, ColorSetting>(new string[]
-            {
-                "CornSilk",     // Background
-                "DimGray",      // RailTrack
-                "BlueViolet",   // RailTrackEnd
-                "DarkMagenta",  // RailTrackJunction
-                "Firebrick",    // RailTrackCrossing
-                "Crimson",      // RailLevelCrossing
-                "Olive",        // RoadTrack
-                "ForestGreen",  // RoadTrackEnd
-                "DeepPink",     // RoadLevelCrossing
-                "White",        // RoadCarSpawner
-                "White",        // SignalItem
-                "Navy",         // PlatformItem
-                "ForestGreen",  // SidingItem
-                "RoyalBlue",    // SpeedPostItem
-                "White",        // HazardItem
-                "White",        // PickupItem
-                "White",        // SoundRegionItem
-                "White",        // LevelCrossingItem
-            }); 
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
@@ -183,13 +194,28 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
+            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
             #endregion
 
+            #region popup windows
+            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
+            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            {
+                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
+                return debugWindow;
+            }));
+            Components.Add(windowManager);
+
+            #endregion
+            debugInfo = new CommonDebugInfo(contentArea);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Beige);
+            debugInfo?.Update(gameTime);
+            GraphicsDevice.Clear(BackgroundColor);
             base.Draw(gameTime);
         }
 
@@ -255,6 +281,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                     currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
                     currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
             }
+            BackgroundColor = ColorExtension.FromName(colorSettings[ColorSetting.Background]);
         }
 
         private void SaveSettings()
@@ -336,6 +363,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override void Dispose(bool disposing)
         {
+            Components.Remove(windowManager);
+            windowManager.Dispose();
             Components.Remove(contentArea);
             contentArea?.Dispose();
             spriteBatch?.Dispose();
@@ -379,5 +408,35 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             contentArea.MouseDragging(userCommandArgs);
         }
         #endregion
+
+        private class CommonDebugInfo : DebugInfoBase
+        {
+            private readonly SmoothedData frameRate = new SmoothedData();
+            private readonly ContentArea contentArea;
+
+            private const double fpsLow = targetFps - targetFps / 5.0
+                ;
+            public CommonDebugInfo(ContentArea contentArea)
+            {
+                this.contentArea = contentArea;
+                frameRate.Preset(targetFps);
+                FormattingOptions = new Dictionary<string, FormatOption>();
+                this["Version"] = VersionInfo.FullVersion;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                this["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
+                this["Scale"] = contentArea == null ? null : $"{contentArea.Scale:F3} (pixel/meter)";
+                double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
+                frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
+                this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
+                if (frameRate.SmoothedValue < fpsLow)
+                    FormattingOptions["FPS"] = FormatOption.RegularRed;
+                else
+                    FormattingOptions["FPS"] = null;
+            }
+        }
+
     }
 }
