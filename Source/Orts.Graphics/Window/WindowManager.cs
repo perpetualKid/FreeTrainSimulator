@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -31,7 +32,9 @@ namespace Orts.Graphics.Window
         private List<WindowBase> windows = new List<WindowBase>();
         private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
 
-        internal Texture2D windowTexture;
+        private readonly Texture2D windowTexture;
+        internal Texture2D scrollbarTexture;
+
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
 
@@ -61,7 +64,7 @@ namespace Orts.Graphics.Window
         private protected WindowManager(Game game) :
             base(game)
         {
-            DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
+            DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
             ControlLayout.ScaleFactor = DpiScaling;
             clientBounds = Game.Window.ClientBounds;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
@@ -76,6 +79,10 @@ namespace Orts.Graphics.Window
             using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png")))
             {
                 windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
+            }
+            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png")))
+            {
+                scrollbarTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }
 
             WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
@@ -167,6 +174,7 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 window.UpdateLocation();
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
+                mouseActiveWindow = window;
                 if (window.Modal)
                 {
                     UserCommandController.SuppressDownLevelEventHandling = true;
@@ -221,6 +229,10 @@ namespace Orts.Graphics.Window
             {
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
+            }
+            else if (mouseActiveWindow != null && userCommandArgs is ScrollCommandArgs scrollCommandArgs)
+            {
+                mouseActiveWindow.HandleMouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
             }
         }
 

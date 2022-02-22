@@ -166,6 +166,11 @@ namespace Orts.Graphics.Window
             Dragged = false;
         }
 
+        internal void HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
+        {
+            windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
+        }
+
         internal protected void Layout()
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);

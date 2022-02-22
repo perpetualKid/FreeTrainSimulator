@@ -50,6 +50,8 @@ namespace Orts.Graphics.Window.Controls
             {
                 case HorizontalAlignment.Left:
                     alignmentOffset = Point.Zero;
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(Point.Zero, Bounds.Size);
                     break;
                 case HorizontalAlignment.Center:
                     alignmentOffset = new Point((Bounds.Width - System.Math.Min(texture.Width, Bounds.Width)) / 2, 0);

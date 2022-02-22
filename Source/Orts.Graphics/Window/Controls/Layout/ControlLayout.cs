@@ -14,7 +14,6 @@ namespace Orts.Graphics.Window.Controls.Layout
         internal protected static double ScaleFactor { get; set; }
 
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
-        public int TextHeight { get; internal set; }
 
         protected ControlLayout(WindowBase window, int x, int y, int width, int height)
             : base(window, x, y, width, height)
@@ -38,10 +37,6 @@ namespace Orts.Graphics.Window.Controls.Layout
             if (null == control)
                 throw new ArgumentNullException(nameof(control));
 
-            if (control is ControlLayout controlLayout)
-            {
-                controlLayout.TextHeight = TextHeight;
-            }
             // Offset control by our position and current values. Don't touch its size, also consider alignment
             control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
@@ -85,8 +80,8 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
-        {
-            return AddLayoutHorizontal(TextHeight);
+{
+            return AddLayoutHorizontal((int)(Window.Owner.DefaultFontSize * 1.25));
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontal(int height)
@@ -111,12 +106,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         //    return sb.Client;
         //}
 
-        //public ControlLayout AddLayoutScrollboxVertical(int width)
-        //{
-        //    var sb = InternalAdd(new ControlLayoutScrollboxVertical(width, RemainingHeight));
-        //    sb.Initialize();
-        //    return sb.Client;
-        //}
+        public ControlLayout AddLayoutScrollboxVertical(int width)
+        {
+            return InternalAdd(new VerticalScrollboxControlLayout(Window, width, RemainingHeight)).Client;
+        }
+
         internal override void Initialize()
         {
             base.Initialize();
