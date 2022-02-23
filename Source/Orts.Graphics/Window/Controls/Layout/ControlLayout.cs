@@ -53,7 +53,6 @@ namespace Orts.Graphics.Window.Controls.Layout
             Add(new Spacer(Window, width, height));
         }
 
-
         public void AddHorizontalSeparator(bool padding = true)
         {
             Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
@@ -155,6 +154,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
+            Window.CapturedControl = null;
             foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseReleased(e))
                     return true;
@@ -175,6 +175,19 @@ namespace Orts.Graphics.Window.Controls.Layout
                 if (control.HandleMouseScroll(e))
                     return true;
             return base.HandleMouseScroll(e);
+        }
+
+        internal override bool HandleMouseDrag(WindowMouseEvent e)
+        {
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || c is ControlLayout controlLayout && TestForDragging(controlLayout)))
+                if (control.HandleMouseDrag(e))
+                    return true;
+            return base.HandleMouseDrag(e);
+        }
+
+        private bool TestForDragging(ControlLayout controlLayout)
+        {
+            return controlLayout == Window.CapturedControl || controlLayout.Controls.Where((c) => c is ControlLayout controlLayout && TestForDragging(controlLayout)).Any();
         }
 
         internal override void MoveBy(int x, int y)

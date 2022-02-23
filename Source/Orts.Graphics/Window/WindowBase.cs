@@ -24,7 +24,7 @@ namespace Orts.Graphics.Window
 
         public WindowManager Owner { get; }
 
-        protected bool Dragged { get; private set; }
+        protected bool CapturedForDragging { get; private set; }
 
         public ref readonly Rectangle Borders => ref borderRect;
 
@@ -39,6 +39,8 @@ namespace Orts.Graphics.Window
         public bool Interactive { get; protected set; } = true;
 
         public int ZOrder { get; protected set; }
+
+        internal ControlLayout CapturedControl { get; set; }
 
         protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
         {
@@ -146,29 +148,39 @@ namespace Orts.Graphics.Window
 
         internal void HandleMouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)
         {
-            _ = position;
-            _ = keyModifiers;
-
-            borderRect.Offset(delta.ToPoint());
-            location = new Point(
-                (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
-                (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
-            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
-            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
-            xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
-            Dragged = true;
+            if (CapturedForDragging || !windowLayout.HandleMouseDrag(new WindowMouseEvent(this, position, delta, keyModifiers)))
+            {
+                borderRect.Offset(delta.ToPoint());
+                location = new Point(
+                    (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
+                    (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+                borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
+                borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
+                xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
+                CapturedForDragging = true;
+            }
         }
 
         internal void HandleMouseReleased(Point position, KeyModifiers keyModifiers)
         {
-            if (!Dragged)
-                windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
-            Dragged = false;
+            if (!CapturedForDragging)
+                windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+            CapturedForDragging = false;
         }
 
         internal void HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
         {
             windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
+        }
+
+        internal void HandleMouseClicked(Point position, KeyModifiers keyModifiers)
+        { 
+            windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+        }
+
+        internal void HandleMouseDown(Point position, KeyModifiers keyModifiers)
+        {
+            windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         internal protected void Layout()

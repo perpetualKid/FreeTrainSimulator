@@ -247,11 +247,9 @@ namespace Orts.Graphics.Window
                 }
                 else if (mouseActiveWindow != null)
                 {
-                    userCommandArgs.Handled = true;
                     mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
-                }
-                else if (windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position)) != null)
                     userCommandArgs.Handled = true;
+                }
             }
         }
 
@@ -274,18 +272,13 @@ namespace Orts.Graphics.Window
 
         private void MouseDownEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-        }
-
-        private void MousePressedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                Point mouseDownPosition = pointerCommandArgs.Position;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
                 {
                     userCommandArgs.Handled = true;
+                    modalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
                 else if (mouseActiveWindow != null)
                 {
@@ -299,6 +292,35 @@ namespace Orts.Graphics.Window
                             windows = updatedWindowList;
                         }
                     }
+                    mouseActiveWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
+                }
+            }
+        }
+
+        private void MousePressedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                SuppressDrawing = false;
+                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
+                if (modalWindow != null && mouseActiveWindow != modalWindow)
+                {
+                    userCommandArgs.Handled = true;
+                    modalWindow.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
+                }
+                else if (mouseActiveWindow != null)
+                {
+                    userCommandArgs.Handled = true;
+                    if (mouseActiveWindow != windows.Last())
+                    {
+                        List<WindowBase> updatedWindowList = windows.ToList();
+                        if (updatedWindowList.Remove(mouseActiveWindow))
+                        {
+                            updatedWindowList.Add(mouseActiveWindow);
+                            windows = updatedWindowList;
+                        }
+                    }
+                    mouseActiveWindow.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
                 }
             }
         }

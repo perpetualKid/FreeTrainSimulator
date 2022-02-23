@@ -36,12 +36,12 @@ namespace Orts.Graphics.Window.Controls
 
         internal virtual bool HandleMouseClicked(WindowMouseEvent e)
         {
-            MouseClick(e);
             return false;
         }
 
         internal virtual bool HandleMouseReleased(WindowMouseEvent e)
         {
+            MouseClick(e);
             return false;
         }
 
@@ -56,6 +56,11 @@ namespace Orts.Graphics.Window.Controls
         }
 
         internal virtual bool HandleMouseScroll(WindowMouseEvent e)
+        {
+            return false;
+        }
+
+        internal virtual bool HandleMouseDrag(WindowMouseEvent e)
         {
             return false;
         }

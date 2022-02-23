@@ -24,6 +24,7 @@ namespace Orts.TrackViewer.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
             layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
+
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
                 ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
