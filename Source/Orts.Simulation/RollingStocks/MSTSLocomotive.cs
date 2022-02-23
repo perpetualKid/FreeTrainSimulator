@@ -1252,6 +1252,7 @@ namespace Orts.Simulation.RollingStocks
             ContinuousForceTimeFactor = locoCopy.ContinuousForceTimeFactor;
             DynamicBrakeForceCurves = locoCopy.DynamicBrakeForceCurves;
             DynamicBrakeAutoBailOff = locoCopy.DynamicBrakeAutoBailOff;
+            DynamicBrakeMaxCurrentA = locoCopy.DynamicBrakeMaxCurrentA;
             CombinedControlType = locoCopy.CombinedControlType;
             CombinedControlSplitPosition = locoCopy.CombinedControlSplitPosition;
             DynamicBrakeDelayS = locoCopy.DynamicBrakeDelayS;
