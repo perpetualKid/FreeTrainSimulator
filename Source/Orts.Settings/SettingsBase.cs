@@ -325,7 +325,7 @@ namespace Orts.Settings
                             }
                         }
                         else if (value[enumName] == defaultValue[enumName])
-                            value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? Activator.CreateInstance(valueType.GetGenericArguments()[0]) : null);
+                            value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? defaultValue[enumName] : null);
                     }
                 }
                 SettingStore.SetSettingValue(name, value);

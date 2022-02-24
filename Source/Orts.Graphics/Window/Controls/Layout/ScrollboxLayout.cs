@@ -71,7 +71,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDown(WindowMouseEvent e)
         {
-            return (HandleMouseButton(e)) || base.HandleMouseDown(e);
+            return HandleMouseButton(e) || base.HandleMouseDown(e);
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)

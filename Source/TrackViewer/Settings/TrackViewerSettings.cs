@@ -116,6 +116,16 @@ namespace Orts.TrackViewer.Settings
         })]
         public EnumArray<int[], WindowType> WindowLocations { get; set; }
 
+        [Default(new string[]
+        {
+            nameof(WindowType.QuitWindow) + "=False",
+            nameof(WindowType.StatusWindow) + "=False",
+            nameof(WindowType.DebugScreen) + "=False",
+            nameof(WindowType.LocationWindow) + "=False",
+            nameof(WindowType.HelpWindow) + "=True",
+        })]
+        public EnumArray<bool, WindowType> WindowStatus { get; set; }
+
         [Default("Segoe UI")]
         public string TextFont { get; set; }
 

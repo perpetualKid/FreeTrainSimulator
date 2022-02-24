@@ -176,7 +176,7 @@ namespace Orts.Settings.Store
             StringBuilder builder = new StringBuilder();
             foreach (TEnum item in EnumExtension.GetValues<TEnum>())
             {
-                if ((dynamic)value[item] != default(T))
+                if ((dynamic)value[item] != default(T) || typeof(T).IsValueType)
                 {
                     if (typeof(T).IsArray)
                     {

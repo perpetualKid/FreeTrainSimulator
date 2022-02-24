@@ -13,6 +13,8 @@ using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 using Orts.Graphics.Window.Controls.Layout;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Orts.Graphics.Window
 {
     public class ModalWindowEventArgs : EventArgs
@@ -401,10 +403,11 @@ namespace Orts.Graphics.Window
 
         public bool WindowInitialized(TWindowType window) => lazyWindows[window]?.IsValueCreated ?? true;
 
+        public bool WindowOpened(TWindowType window) => (lazyWindows[window]?.IsValueCreated ?? false) && WindowOpen(windows[window]);
+
         public void SetLazyWindows(TWindowType window, Lazy<WindowBase> lazyWindow)
         {
             lazyWindows[window] = lazyWindow;
         }
-
     }
 }

@@ -254,7 +254,11 @@ namespace Orts.TrackViewer
             foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
+                {
                     Settings.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                }
+                if (windowType != WindowType.QuitWindow)
+                    Settings.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
             Settings.ViewSettings = viewSettings;
@@ -434,6 +438,11 @@ namespace Orts.TrackViewer
             await Task.WhenAll(initTasks).ConfigureAwait(false);
             await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
+            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+            {
+                if (Settings.WindowStatus[windowType])
+                    windowManager[windowType].Open();
+            }
         }
 
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
