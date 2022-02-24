@@ -16,11 +16,8 @@ namespace Orts.TrackViewer
         [Description("Zoom Out")] ZoomOut,
         [Description("Reset Zoom and Center Location")] ResetZoomAndLocation,
         [Description("Screenshot")] PrintScreen,
-        [Description("Debug Information")] DebugScreen,
-        [Description("Debug Information Tab")] DebugScreenTab,
-        [Description("Location Window")] LocationWindow,
-        [Description("Location Window Tab")] LocationWindowTab,
-        [Description("Help Window")] HelpWindow,
-        [Description("Help Window Tab")] HelpWindowTab,
+        [Description("Debug Information (Tab)")] DisplayDebugScreen,
+        [Description("Location Window (Tab)")] DisplayLocationWindow,
+        [Description("Help Window (Tab)")] DisplayHelpWindow,
     }
 }

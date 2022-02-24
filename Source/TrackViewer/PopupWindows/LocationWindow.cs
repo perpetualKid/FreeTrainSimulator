@@ -58,23 +58,26 @@ namespace Orts.TrackViewer.PopupWindows
 
         public override void TabAction(UserCommandArgs args)
         {
-            useWorldCoordinates = !useWorldCoordinates;
-            updateRequired = true;
-            Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
-            Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
-            base.TabAction(args);
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            {
+                useWorldCoordinates = !useWorldCoordinates;
+                updateRequired = true;
+                Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+                Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
+                base.TabAction(args);
+            }
         }
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction, true);
             updateRequired = true;
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction);
             return base.Close();
         }
 
