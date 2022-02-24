@@ -52,7 +52,6 @@ namespace Orts.TrackViewer.PopupWindows
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             locationLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
             statusTextLine.Add(locationLabel);
-
             return layout;
         }
 

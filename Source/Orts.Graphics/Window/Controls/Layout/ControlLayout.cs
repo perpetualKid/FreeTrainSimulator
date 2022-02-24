@@ -80,7 +80,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
 {
-            return AddLayoutHorizontal((int)(Window.Owner.DefaultFontSize * 1.25));
+            return AddLayoutHorizontal((int)(Window.Owner.DefaultFontSize * 1.25 * Window.Owner.DpiScaling));
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontal(int height)

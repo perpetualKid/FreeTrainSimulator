@@ -48,7 +48,6 @@ namespace Orts.TrackViewer.PopupWindows
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
         {
             currentProvider[informationType].DebugInformationProvider = provider;
-//            currentProvider[informationType] = new NameValueTextGrid(this, (int)(provider.DebugInfo.Count * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)
