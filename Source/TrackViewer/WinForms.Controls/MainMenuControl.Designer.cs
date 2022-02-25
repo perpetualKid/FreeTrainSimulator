@@ -96,6 +96,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.patheditortoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -628,9 +629,17 @@ namespace Orts.TrackViewer.WinForms.Controls
             // 
             // patheditortoolStripMenuItem
             // 
+            this.patheditortoolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.loadPathToolStripMenuItem});
             this.patheditortoolStripMenuItem.Name = "patheditortoolStripMenuItem";
             this.patheditortoolStripMenuItem.Size = new System.Drawing.Size(79, 20);
             this.patheditortoolStripMenuItem.Text = "Path-Editor";
+            // 
+            // loadPathToolStripMenuItem
+            // 
+            this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadPathToolStripMenuItem.Text = "Load Path";
             // 
             // MainMenuControl
             // 
@@ -718,5 +727,6 @@ namespace Orts.TrackViewer.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem patheditortoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
     }
 }
