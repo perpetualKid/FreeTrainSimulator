@@ -423,7 +423,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (content.SignalSelected != null)
                 {
                     SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
-                    signalstateWindow.OpenAt(pointerCommandArgs.Position);
+                    signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
                 }
             }
         }
