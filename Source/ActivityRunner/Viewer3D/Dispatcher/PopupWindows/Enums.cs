@@ -3,5 +3,6 @@
     public enum WindowType
     {
         DebugScreen,
+        SignalState,
     }
 }

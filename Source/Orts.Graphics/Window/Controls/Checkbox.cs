@@ -12,8 +12,6 @@ namespace Orts.Graphics.Window.Controls
         private bool? state;
         private readonly bool tristate;
 
-        public Color BorderColor { get; set; } = Color.White;
-
         public bool? State
         {
             get => state;
@@ -32,15 +30,6 @@ namespace Orts.Graphics.Window.Controls
         {
             tristate = threeStates;
             State = null;
-        }
-
-        internal override void Draw(SpriteBatch spriteBatch, Point offset)
-        {
-            BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), spriteBatch);
-            BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, Bounds.Height)).ToVector2(), spriteBatch);
-            BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
-            BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
-            base.Draw(spriteBatch, offset);
         }
 
         internal override void MouseClick(WindowMouseEvent e)

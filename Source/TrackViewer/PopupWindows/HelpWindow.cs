@@ -10,6 +10,8 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.TrackViewer.Settings;
 
+using SharpDX.Direct3D9;
+
 namespace Orts.TrackViewer.PopupWindows
 {
     public class HelpWindow : WindowBase

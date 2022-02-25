@@ -3,6 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Graphics.Window.Controls
@@ -17,6 +18,8 @@ namespace Orts.Graphics.Window.Controls
         public WindowBase Window { get; }
 
         public ControlLayout Container { get; internal set; }
+
+        public Color BorderColor { get; set; } = Color.Transparent;
 
         public object Tag { get; set; }
 
@@ -36,7 +39,16 @@ namespace Orts.Graphics.Window.Controls
         internal virtual void Update(GameTime gameTime)
         { }
 
-        internal abstract void Draw(SpriteBatch spriteBatch, Point offset);
+        internal virtual void Draw(SpriteBatch spriteBatch, Point offset)
+        {
+            if (BorderColor != Color.Transparent)
+            {
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, Bounds.Height)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
+            }
+        }
 
         internal virtual bool HandleMouseClicked(WindowMouseEvent e)
         {

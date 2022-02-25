@@ -66,7 +66,6 @@ namespace Orts.Graphics.Window
             base(game)
         {
             DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-            ControlLayout.ScaleFactor = DpiScaling;
             clientBounds = Game.Window.ClientBounds;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
@@ -175,6 +174,12 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 window.UpdateLocation();
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
+                if (window != mouseActiveWindow)
+                {
+                    mouseActiveWindow?.FocusLost();
+                    mouseActiveWindow = window;
+                    window?.FocusSet();
+                }
                 mouseActiveWindow = window;
                 if (window.Modal)
                 {
@@ -304,7 +309,13 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
+                WindowBase activeWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
+                if (activeWindow != mouseActiveWindow)
+                {
+                    mouseActiveWindow?.FocusLost();
+                    mouseActiveWindow = activeWindow;
+                    activeWindow?.FocusSet();
+                }
                 if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
@@ -319,6 +330,7 @@ namespace Orts.Graphics.Window
                     }
                     else if (modalWindow != null &&  mouseActiveWindow != modalWindow)
                     {
+                        mouseActiveWindow.FocusLost();
                         mouseActiveWindow = null;
                     }
                     mouseActiveWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);

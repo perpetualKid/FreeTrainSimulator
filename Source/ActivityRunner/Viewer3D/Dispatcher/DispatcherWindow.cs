@@ -158,15 +158,30 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
+            #region popup windows
+            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
+            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            {
+                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
+                return debugWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.SignalState, new Lazy<WindowBase>(() =>
+            {
+                SignalStateWindow signalWindow = new SignalStateWindow(windowManager, new Point(50, 50));
+                return signalWindow;
+            }));
+            Components.Add(windowManager);
+
+            #endregion
+
             base.Initialize();
         }
 
         protected override async void LoadContent()
         {
             BasicShapes.LoadContent(GraphicsDevice);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
-            Components.Add(scaleRuler);
-            Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
@@ -193,22 +208,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
             userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
             #endregion
 
-            #region popup windows
-            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
-            {
-                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
-                debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
-                return debugWindow;
-            }));
-            Components.Add(windowManager);
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            Components.Add(scaleRuler);
+            Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
-            #endregion
             debugInfo = new CommonDebugInfo(contentArea);
         }
 
@@ -406,6 +414,18 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             followTrain = false;
             contentArea.MouseDragging(userCommandArgs);
+        }
+
+        public void MouseRightClick(UserCommandArgs userCommandArgs)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                if (content.SignalSelected != null)
+                {
+                    SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
+                    signalstateWindow.OpenAt(pointerCommandArgs.Position);
+                }
+            }
         }
         #endregion
 

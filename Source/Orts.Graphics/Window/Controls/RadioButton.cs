@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -8,11 +9,12 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.Window.Controls
 {
-    public class RadioButton : Label
+    public class RadioButton: WindowTextureControl
     {
-        private const float fontOversize = 1.5f;
-        private static Point oversizeOffset;
         private bool state;
+        private readonly int size;
+        private readonly Point centerOffset;
+        private readonly RadioButtonGroup group;
 
         public bool State 
         {
@@ -20,10 +22,9 @@ namespace Orts.Graphics.Window.Controls
             set
             { 
                 state = value;
-                Text = state ? "⚫" : "⚪";
                 if (value)
                 {
-                    foreach (RadioButton button in Container?.Controls.OfType<RadioButton>() ?? Enumerable.Empty<RadioButton>())
+                    foreach (RadioButton button in group.Group)
                     {
                         if (button != this)
                             button.State = false;
@@ -32,28 +33,20 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public Color BorderColor { get; set; } = Color.White;
-
-        public RadioButton(WindowBase window) :
-            base(window ?? throw new ArgumentNullException(nameof(window)), 0, 0,
-            (int)(window.Owner.DefaultFontSize * 1.30 * window.Owner.DpiScaling), (int)(window.Owner.DefaultFontSize * 1.30 * window.Owner.DpiScaling),
-            "⚪", HorizontalAlignment.Center, FontManager.Scaled(window.Owner.DefaultFont, System.Drawing.FontStyle.Regular)[(int)(window.Owner.DefaultFontSize * fontOversize)], Color.White)
+        public RadioButton(WindowBase window, RadioButtonGroup group) :
+            base(window ?? throw new ArgumentNullException(nameof(window)), 0, 0, 
+                window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height)
         {
-            oversizeOffset = new Point((int)(3 * window.Owner.DpiScaling), (int)(5 * window.Owner.DpiScaling));
+            size = window.Owner.TextFontDefault.Height * 3 / 4;
+            centerOffset = new Point(window.Owner.TextFontDefault.Height / 2);
+            this.group = group ?? throw new ArgumentNullException(nameof(group));
+            group.Group.Add(this);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            if (BorderColor != Color.Transparent)
-            {
-                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), spriteBatch);
-                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, Bounds.Height)).ToVector2(), spriteBatch);
-                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
-                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
-            }
-            offset -= oversizeOffset;
-            //base.Draw(spriteBatch, offset); // custom drawing to adjust for oversize
-            spriteBatch.Draw(texture, (Bounds.Location + offset).ToVector2(), null, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            BasicShapes.DrawTexture(state ? BasicTextureType.Disc : BasicTextureType.Ring, (Bounds.Location + offset + centerOffset).ToVector2(), 0, size, TextColor, spriteBatch);
+            base.Draw(spriteBatch, offset);
         }
 
         internal override void MouseClick(WindowMouseEvent e)
@@ -61,6 +54,10 @@ namespace Orts.Graphics.Window.Controls
             State = true;
             base.MouseClick(e);
         }
+    }
 
+    public class RadioButtonGroup
+    {
+        internal List<RadioButton> Group {get; } = new List<RadioButton>();
     }
 }

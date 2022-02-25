@@ -11,8 +11,6 @@ namespace Orts.Graphics.Window.Controls.Layout
     {
         public const int SeparatorPadding = 2;
 
-        internal protected static double ScaleFactor { get; set; }
-
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
 
         protected ControlLayout(WindowBase window, int x, int y, int width, int height)
@@ -56,12 +54,12 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public void AddHorizontalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public void AddVerticalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), RemainingHeight, padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)

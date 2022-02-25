@@ -46,11 +46,11 @@ namespace Orts.TrackViewer.PopupWindows
             if (!useWorldCoordinates)
             {
                 ControlLayoutHorizontal tileTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.0));
-                tileLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+                tileLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Color.Orange);
                 tileTextLine.Add(tileLabel);
             }
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
-            locationLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+            locationLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Color.Orange);
             statusTextLine.Add(locationLabel);
             return layout;
         }

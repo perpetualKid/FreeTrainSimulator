@@ -65,6 +65,7 @@ namespace Orts.Graphics.Window.Controls
             {
                 spriteBatch.Draw(texture, position + locationVector, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             }
+            base.Draw(spriteBatch, offset);
         }
 
         protected override void Dispose(bool disposing)

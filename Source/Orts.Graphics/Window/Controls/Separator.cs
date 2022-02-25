@@ -22,6 +22,7 @@ namespace Orts.Graphics.Window.Controls
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             spriteBatch.Draw(Window.Owner.WhiteTexture, new Rectangle(offset.X + Bounds.X + Padding, offset.Y + Bounds.Y + Padding, Bounds.Width - 2 * Padding, Bounds.Height - 2 * Padding), Color.White);
+            base.Draw(spriteBatch, offset);
         }
     }
 }
