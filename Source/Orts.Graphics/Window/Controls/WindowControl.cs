@@ -3,6 +3,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Graphics.Window.Controls.Layout;
+
 namespace Orts.Graphics.Window.Controls
 {
     public abstract class WindowControl: IDisposable
@@ -13,6 +15,8 @@ namespace Orts.Graphics.Window.Controls
         public ref readonly Rectangle Bounds => ref bounds;
 
         public WindowBase Window { get; }
+
+        public ControlLayout Container { get; internal set; }
 
         public object Tag { get; set; }
 
