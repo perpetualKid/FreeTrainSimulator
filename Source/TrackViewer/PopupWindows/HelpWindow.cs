@@ -17,8 +17,7 @@ namespace Orts.TrackViewer.PopupWindows
     public class HelpWindow : WindowBase
     {
         public HelpWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Help"),
-                relativeLocation, new Point(owner.DefaultFontSize * 30, (int)(owner.DefaultFontSize * 8.5f + 20)))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Help"), relativeLocation, new Point(360, 125))
         {
         }
 

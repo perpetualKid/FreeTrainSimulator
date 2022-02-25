@@ -127,13 +127,13 @@ namespace Orts.Graphics.Window.Controls.Layout
                 // Mouse down occured within the scrollbar.
                 if (e.MousePosition.Y < Bounds.Top + size)
                     // Mouse down occured on top button.
-                    SetScrollPosition(scrollPosition - (int)(Window.Owner.DefaultFontSize * 1.25 * Window.Owner.DpiScaling));
+                    SetScrollPosition(scrollPosition - Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.Y < Bounds.Top + size + ScrollbarScrollLength * scrollPosition / ContentScrollLength)
                     // Mouse down occured on top gutter.
                     SetScrollPosition(scrollPosition - Client.Bounds.Height);
                 else if (e.MousePosition.Y > Bounds.Bottom - size)
                     // Mouse down occured on bottom button.
-                    SetScrollPosition(scrollPosition + (int)(Window.Owner.DefaultFontSize * 1.25 * Window.Owner.DpiScaling));
+                    SetScrollPosition(scrollPosition + Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.Y > Bounds.Top + 2 * size + ScrollbarScrollLength * scrollPosition / ContentScrollLength)
                     // Mouse down occured on bottom gutter.
                     SetScrollPosition(scrollPosition + Client.Bounds.Height);

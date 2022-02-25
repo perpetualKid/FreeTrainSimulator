@@ -22,8 +22,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private RadioButton rbtnCallon;
 
         public SignalStateWindow(WindowManager owner, Point relativeLocation) : 
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), 
-                CatalogManager.Catalog.GetString("Signal State"), relativeLocation, new Point(owner.DefaultFontSize * 12, (int)(owner.DefaultFontSize * 7 + 20)))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Signal State"), relativeLocation, new Point(140, 105))
         {
             Modal = true;
             offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));

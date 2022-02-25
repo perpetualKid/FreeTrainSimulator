@@ -24,9 +24,7 @@ namespace Orts.Graphics.Window.Controls
         }
 
         public Checkbox(WindowBase window, bool threeStates = false) :
-            base(window ?? throw new ArgumentNullException(nameof(window)),
-            (int)(window.Owner.DefaultFontSize * 1.35 * window.Owner.DpiScaling), (int)(window.Owner.DefaultFontSize * 1.35 * window.Owner.DpiScaling),
-            "✔", HorizontalAlignment.Center)
+            base(window ?? throw new ArgumentNullException(nameof(window)), window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height, "✔", HorizontalAlignment.Center)
         {
             tristate = threeStates;
             State = null;
@@ -34,7 +32,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void MouseClick(WindowMouseEvent e)
         {
-            State = (tristate) ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
+            State = tristate ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
             base.MouseClick(e);
         }
     }
