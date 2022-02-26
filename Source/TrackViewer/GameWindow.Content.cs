@@ -30,6 +30,8 @@ namespace Orts.TrackViewer
         private IEnumerable<Route> routes;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
+        //  ****
+        private IEnumerable<Path> paths;
 
         internal async Task LoadFolders()
         {
@@ -100,6 +102,8 @@ namespace Orts.TrackViewer
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                         await LoadRoute(route).ConfigureAwait(false);
+                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                        mainmenu.PopulatePaths(paths);
                 }
             }
         }

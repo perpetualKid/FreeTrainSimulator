@@ -11,6 +11,8 @@ using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Graphics;
 
+using Path = Orts.Models.Simplified.Path ;
+
 namespace Orts.TrackViewer.WinForms.Controls
 {
     public partial class MainMenuControl : UserControl
@@ -198,6 +200,8 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
                 await parent.LoadRoute(route).ConfigureAwait(false);
+                paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                PopulatePaths(paths);
             }
         }
 
@@ -218,6 +222,10 @@ namespace Orts.TrackViewer.WinForms.Controls
         }
 
         private bool closingCancelled;
+
+        //  ****
+        private IEnumerable<Path> paths;
+
         private void FolderDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
             //if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked)
@@ -321,5 +329,33 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (e.KeyCode == Keys.Menu)
                 MainMenuStrip.Enabled = true;
         }
+
+        #region Path Methods
+
+        internal void PopulatePaths(IEnumerable<Path> paths)
+        {
+
+            Invoke((MethodInvoker)delegate {
+                SuspendLayout();
+                loadPathToolStripMenuItem.DropDownItems.Clear();
+                foreach (Path path in paths)
+                {
+                    ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
+                    {
+                        Tag = path,
+                    };
+                    pathItem.Click += loadPathToolStripMenuItem_Click;
+                    loadPathToolStripMenuItem.DropDownItems.Add(pathItem);
+                }
+                ResumeLayout();
+            });
+        }
+
+        private void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Path Selected ", $"{RuntimeInfo.ApplicationName}");
+        }
+
+        #endregion
     }
 }
