@@ -201,6 +201,8 @@ namespace Orts.Graphics.Window
                 modalWindow = null;
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
+            if (mouseActiveWindow == window)
+                mouseActiveWindow = null;
             List<WindowBase> updatedWindowList = windows.ToList();
             if (updatedWindowList.Remove(window))
             {

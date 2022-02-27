@@ -15,13 +15,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
     {
         private readonly Point offset;
         private ISignal signal;
-        private RadioButton rbtnApproach;
-        private RadioButton rbtnProceed;
-        private RadioButton rbtnStop;
         private RadioButton rbtnSystem;
-        private RadioButton rbtnCallon;
+        private ControlLayout callonLine;
 
-        public SignalStateWindow(WindowManager owner, Point relativeLocation) : 
+
+        public SignalStateWindow(WindowManager owner, Point relativeLocation) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Signal State"), relativeLocation, new Point(140, 105))
         {
             Modal = true;
@@ -29,36 +27,62 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         }
 
         public void OpenAt(Point point, ISignal signal)
-        { 
+        {
             this.signal = signal;
+            rbtnSystem.State = true;
+            callonLine.Visible = signal?.CallOnEnabled ?? false;
             Relocate(point + offset);
             Open();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
+            Label label;
+            RadioButton radioButton;
             layout = base.Layout(layout, headerScaling);
             ControlLayout rbLayout = layout.AddLayoutVertical();
-            ControlLayoutHorizontal line = rbLayout.AddLayoutHorizontalLineOfText();
-            RadioButtonGroup group  = new RadioButtonGroup();
+            RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            line.Add(rbtnSystem = new RadioButton(this, group) { TextColor = Color.White, State = true });
-            line.Add(new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("System Controlled")));
-            line = rbLayout.AddLayoutHorizontalLineOfText();
-            line.Add(rbtnStop = new RadioButton(this, group) { TextColor = Color.Red });
-            line.Add(new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Stop")));
-            line = rbLayout.AddLayoutHorizontalLineOfText();
-            line.Add(rbtnApproach = new RadioButton(this, group) { TextColor = Color.Yellow });
-            line.Add(new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Approach")));
-            line = rbLayout.AddLayoutHorizontalLineOfText();
-            line.Add(rbtnProceed = new RadioButton(this, group) { TextColor = Color.LimeGreen });
-            line.Add(new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Proceed")));
-            line = rbLayout.AddLayoutHorizontalLineOfText();
-            line.Add(rbtnCallon = new RadioButton(this, group) { TextColor = Color.White });
-            line.Add(new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Call On")));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
+            callonLine.Add(rbtnSystem = new RadioButton(this, radioButtonGroup) { TextColor = Color.White, State = true, Tag = SignalState.Clear });
+            rbtnSystem.OnClick += Button_OnClick;
+            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("System Controlled")) { Tag = SignalState.Clear });
+            label.OnClick += Button_OnClick;
 
+            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
+            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.Red, Tag = SignalState.Lock });
+            radioButton.OnClick += Button_OnClick;
+            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Stop")) { Tag = SignalState.Lock });
+            label.OnClick += Button_OnClick;
+
+            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
+            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.Yellow, Tag = SignalState.Approach });
+            radioButton.OnClick += Button_OnClick;
+            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Approach")) { Tag = SignalState.Approach });
+            label.OnClick += Button_OnClick;
+
+            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
+            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.LimeGreen, Tag = SignalState.Manual });
+            radioButton.OnClick += Button_OnClick;
+            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Proceed")) { Tag = SignalState.Manual });
+            label.OnClick += Button_OnClick;
+
+            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
+            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.White, Tag = SignalState.CallOn });
+            radioButton.OnClick += Button_OnClick;
+            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Call On")) { Tag = SignalState.CallOn });
+            label.OnClick += Button_OnClick;
+#pragma warning restore CA2000 // Dispose objects before losing scope
             return layout;
+        }
+
+        private void Button_OnClick(object sender, MouseClickEventArgs e)
+        {
+            if (sender is WindowControl control && control.Tag != null)
+            {
+                signal.State = (SignalState)control.Tag;
+            }
+            Close();
         }
 
         protected override void FocusLost()
