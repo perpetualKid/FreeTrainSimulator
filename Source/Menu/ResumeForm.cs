@@ -79,7 +79,6 @@ namespace Orts.Menu
         private readonly IEnumerable<Route> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
-
         private CancellationTokenSource ctsLoader;
 
         public string SelectedSaveFile { get; private set; }
@@ -115,11 +114,11 @@ namespace Orts.Menu
             }
             else
             {
-                Text += $" - { route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
+                Text += $" - {route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
                 pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
             }
 
-            if (multiplayer) 
+            if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
         }
 
@@ -202,16 +201,8 @@ namespace Orts.Menu
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
-                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"), 
+                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"),
                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            return reply == DialogResult.Yes;
-        }
-
-        private bool AcceptOfNonvalidDbfSetup()
-        {
-            DialogResult reply = MessageBox.Show(catalog.GetString(
-                   "The selected file contains Debrief Eval data.\nBut Debrief Evaluation checkbox (Main menu) is unchecked.\nYou cannot continue with the Evaluation on course.\n\nContinue?"),
-                   $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             return reply == DialogResult.Yes;
         }
 
@@ -221,13 +212,6 @@ namespace Orts.Menu
 
             if (null != save)
             {
-                //Debrief Eval
-                if (save.DebriefEvaluation && !settings.ActivityEvalulation)
-                {
-                    if (!AcceptOfNonvalidDbfSetup())
-                        return;
-                }
-
                 if (save.Valid != false && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
                 {
                     if (save.Valid == null)

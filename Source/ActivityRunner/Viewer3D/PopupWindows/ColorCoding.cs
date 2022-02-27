@@ -36,5 +36,18 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 speed <= allowedSpeed ? Color.PaleGreen :
                 speed < allowedSpeed + speedThreshold ? Color.Orange : Color.Red;
         }
+
+        internal static Color DelayColor(in TimeSpan delay)
+        {
+            return delay.TotalSeconds switch
+            {
+                > 120 => Color.OrangeRed,
+                > 60 => Color.LightSalmon,
+                0 => Color.White,
+                < 0 => Color.LightSalmon,
+                _ => Color.LightGreen,
+            };
+
+        }
     }
 }

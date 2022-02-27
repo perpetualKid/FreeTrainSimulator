@@ -51,7 +51,6 @@ namespace Orts.Menu
             this.comboBoxConsist = new System.Windows.Forms.ComboBox();
             this.comboBoxLocomotive = new System.Windows.Forms.ComboBox();
             this.comboBoxActivity = new System.Windows.Forms.ComboBox();
-            this.checkDebriefActivityEval = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -404,7 +403,6 @@ namespace Orts.Menu
             this.panelModeActivity.Controls.Add(this.comboBoxConsist);
             this.panelModeActivity.Controls.Add(this.comboBoxLocomotive);
             this.panelModeActivity.Controls.Add(this.comboBoxActivity);
-            this.panelModeActivity.Controls.Add(this.checkDebriefActivityEval);
             this.panelModeActivity.Controls.Add(this.label3);
             this.panelModeActivity.Controls.Add(this.label4);
             this.panelModeActivity.Controls.Add(this.label5);
@@ -494,20 +492,6 @@ namespace Orts.Menu
             this.comboBoxActivity.Size = new System.Drawing.Size(373, 23);
             this.comboBoxActivity.TabIndex = 1;
             this.comboBoxActivity.SelectedIndexChanged += new System.EventHandler(this.ComboBoxActivity_SelectedIndexChanged);
-            // 
-            // checkDebriefActivityEval
-            // 
-            this.checkDebriefActivityEval.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkDebriefActivityEval.AutoSize = true;
-            this.checkDebriefActivityEval.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkDebriefActivityEval.Location = new System.Drawing.Point(250, 0);
-            this.checkDebriefActivityEval.Margin = new System.Windows.Forms.Padding(2);
-            this.checkDebriefActivityEval.Name = "checkDebriefActivityEval";
-            this.checkDebriefActivityEval.Size = new System.Drawing.Size(125, 19);
-            this.checkDebriefActivityEval.TabIndex = 20;
-            this.checkDebriefActivityEval.Text = "Debrief evaluation:";
-            this.checkDebriefActivityEval.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkDebriefActivityEval.UseVisualStyleBackColor = true;
             // 
             // label3
             // 
@@ -1022,7 +1006,6 @@ namespace Orts.Menu
         private System.Windows.Forms.ContextMenuStrip contextMenuStripDocuments;
         private System.Windows.Forms.Button buttonResumeMP;
         private System.Windows.Forms.Button buttonStartMP;
-        private System.Windows.Forms.CheckBox checkDebriefActivityEval;
         private System.Windows.Forms.Label labelTimetableWeatherFile;
         private System.Windows.Forms.ComboBox comboBoxTimetableWeatherFile;
     }

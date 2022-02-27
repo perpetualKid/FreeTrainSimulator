@@ -93,7 +93,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public class Simulator: IGametimeSource
+    public class Simulator : IGametimeSource
     {
         private string explorePath;
         private string exploreConsist;
@@ -682,8 +682,7 @@ namespace Orts.Simulation
             HazardManager?.Update(elapsedClockSeconds);
             FuelManager.Update();
             ContainerManager.Update();
-            if (Settings.ActivityEvalulation)
-                ActivityEvaluation.Instance.Update();
+            ActivityEvaluation.Instance.Update();
         }
 
         internal void SetWeather(WeatherType weather, SeasonType season)

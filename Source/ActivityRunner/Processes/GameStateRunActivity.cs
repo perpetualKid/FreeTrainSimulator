@@ -18,11 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -376,15 +373,12 @@ namespace Orts.ActivityRunner.Processes
             }
 
             //Debrief Eval
-            if (Viewer.Settings.ActivityEvalulation)
-            {
-                foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
-                    File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
+            foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
+                File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
-                {
-                    ActivityEvaluation.Save(outf);
-                }
+            using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
+            {
+                ActivityEvaluation.Save(outf);
             }
         }
 
@@ -432,26 +426,18 @@ namespace Orts.ActivityRunner.Processes
 
                     //Restore Debrief eval data                    
                     string evaluationFile = Path.ChangeExtension(saveFile, ".eval");
-                    if (settings.ActivityEvalulation)
+                    if (File.Exists(evaluationFile))
                     {
-                        try
+                        using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
                         {
-                            if (File.Exists(evaluationFile))
+                            try
                             {
-                                using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
-                                {
-                                    ActivityEvaluation.Restore(evalInput);
-                                }
+                                ActivityEvaluation.Restore(evalInput);
                             }
-                            else
-                                //Resume mode: .eval file doesn't exist, avoid to generate a new report.
-                                settings.ActivityEvalulation = false;
+                            catch (IOException)
+                            {
+                            }
                         }
-                        catch (IOException)
-                        {
-                            settings.ActivityEvalulation = false;
-                        }
-
                     }
                 }
                 catch (Exception error)
@@ -1012,10 +998,9 @@ namespace Orts.ActivityRunner.Processes
 
         private static long GetProcessBytesLoaded()
         {
-            if (NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out NativeStructs.IO_COUNTERS counters))
-                return (long)counters.ReadTransferCount;
-
-            return 0;
+            return NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out NativeStructs.IO_COUNTERS counters)
+                ? (long)counters.ReadTransferCount
+                : 0;
         }
     }
 }

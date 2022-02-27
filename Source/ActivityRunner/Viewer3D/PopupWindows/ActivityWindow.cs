@@ -65,7 +65,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (Simulator.Instance.IsReplaying)
                 Simulator.Instance.Confirmer.Confirm(CabControl.Activity, CabSetting.On);
-            //Simulator.Instance.ActivityRun?.CompleteActivity();
             (Owner.Game as GameHost).PopState();
         }
 

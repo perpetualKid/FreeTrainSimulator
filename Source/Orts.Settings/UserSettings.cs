@@ -80,8 +80,6 @@ namespace Orts.Settings
         public bool LogErrorsOnly { get; set; }
         [Default(false)]
         public bool LogSaveData { get; set; }
-        [Default(false)]
-        public bool ActivityEvalulation { get; set; }
         [Default("")]
         public string Multiplayer_User { get; set; }
         [Default("127.0.0.1")]
