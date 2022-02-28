@@ -420,8 +420,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 result.AppendFormat("\t{0}", eng.State.GetLocalizedDescription());
 
             //result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Locomotive.IsMetric, false, false));
-            foreach (var eng in DEList)
+
+            if (Locomotive.DieselTransmissionType == MSTSDieselLocomotive.DieselTransmissionTypes.Mechanic)
+            {
+
+                foreach (var eng in DEList)
+                {
+                    //   Power(Watts) = Torque(Nm) * rpm / 9.54.
+                    var tempPowerDisplay = eng.GearBox.torqueCurveMultiplier * eng.DieselTorqueTab[eng.RealRPM] * eng.RealRPM / 9.54f;
+                    tempPowerDisplay = MathHelper.Clamp(tempPowerDisplay, 0, MaxOutputPowerW);  // Clamp throttle setting within bounds
+                    result.AppendFormat("\t{0}", FormatStrings.FormatPower(tempPowerDisplay, Locomotive.IsMetric, false, false));
+                }
+            }
+            else
+            {
+                foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
+            }
 
             //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Load"));
             foreach (var eng in DEList)
