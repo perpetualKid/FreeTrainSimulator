@@ -1075,7 +1075,7 @@ namespace Orts.Simulation.RollingStocks
 
             var status = new StringBuilder();
             // ID
-            status.Append($"{CarID}({DistributedPowerUnitId})\t");
+            status.Append($"{CarID.Replace(" ", "")}({DistributedPowerUnitId})\t");
             // Throttle
             status.Append($"{throttle}\t");
 
