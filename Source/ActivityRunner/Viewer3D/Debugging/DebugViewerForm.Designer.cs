@@ -53,7 +53,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.reply2Selected = new System.Windows.Forms.Button();
             this.chkDrawPath = new System.Windows.Forms.CheckBox();
-            this.boxSetSignal = new System.Windows.Forms.ListBox();
             this.boxSetSwitch = new System.Windows.Forms.ListBox();
             this.chkPickSignals = new System.Windows.Forms.CheckBox();
             this.chkPickSwitches = new System.Windows.Forms.CheckBox();
@@ -307,21 +306,6 @@
             this.chkDrawPath.Text = "Draw Path";
             this.chkDrawPath.UseVisualStyleBackColor = true;
             this.chkDrawPath.CheckedChanged += new System.EventHandler(this.chkDrawPathChanged);
-            // 
-            // boxSetSignal
-            // 
-            this.boxSetSignal.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.boxSetSignal.Enabled = false;
-            this.boxSetSignal.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.boxSetSignal.FormattingEnabled = true;
-            this.boxSetSignal.ItemHeight = 25;
-            this.boxSetSignal.Location = new System.Drawing.Point(209, 205);
-            this.boxSetSignal.MinimumSize = new System.Drawing.Size(160, 100);
-            this.boxSetSignal.Name = "boxSetSignal";
-            this.boxSetSignal.Size = new System.Drawing.Size(164, 100);
-            this.boxSetSignal.TabIndex = 25;
-            this.boxSetSignal.Visible = false;
-            this.boxSetSignal.SelectedIndexChanged += new System.EventHandler(this.boxSetSignalChosen);
             // 
             // boxSetSwitch
             // 
@@ -827,7 +811,6 @@
             this.Controls.Add(this.chkPickSwitches);
             this.Controls.Add(this.chkPickSignals);
             this.Controls.Add(this.boxSetSwitch);
-            this.Controls.Add(this.boxSetSignal);
             this.Controls.Add(this.chkDrawPath);
             this.Controls.Add(this.reply2Selected);
             this.Controls.Add(this.messages);
@@ -861,7 +844,6 @@
         }
 
         #endregion
-        private System.Windows.Forms.ListBox boxSetSignal;
         private System.Windows.Forms.ListBox boxSetSwitch;
         private System.Windows.Forms.ColorDialog cdBackground;
         private System.Windows.Forms.Label lblInstruction1;

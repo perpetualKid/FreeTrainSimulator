@@ -163,10 +163,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
             viewWindow = new RectangleF(0, 0, 5000f, 5000f);
             windowSizeUpDown.Accelerations.Add(new NumericUpDownAcceleration(1, 100));
-            boxSetSignal.Items.Add("System Controlled");
-            boxSetSignal.Items.Add("Stop");
-            boxSetSignal.Items.Add("Approach");
-            boxSetSignal.Items.Add("Proceed");
             chkAllowUserSwitch.Checked = false;
             selectedTrainList = new List<Train>();
             if (MultiPlayerManager.IsMultiPlayer())
@@ -1467,12 +1463,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if (temp != null)
                     {
                         if (temp is SwitchWidget)
-                        { switchPickedItem = (SwitchWidget)temp; signalPickedItem = null; HandlePickedSwitch(); }
-                        if (temp is SignalWidget)
-                        { signalPickedItem = (SignalWidget)temp; switchPickedItem = null; HandlePickedSignal(); }
+                        { switchPickedItem = (SwitchWidget)temp; HandlePickedSwitch(); }
                     }
                     else
-                    { switchPickedItem = null; signalPickedItem = null; UnHandleItemPick(); PickedTrain = null; }
+                    { switchPickedItem = null; UnHandleItemPick(); PickedTrain = null; }
                 }
 
             }
@@ -1485,44 +1479,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void UnHandleItemPick()
         {
-            boxSetSignal.Visible = false;
-            //boxSetSignal.Enabled = false;
             //boxSetSwitch.Enabled = false;
             boxSetSwitch.Visible = false;
-        }
-        private void HandlePickedSignal()
-        {
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider)
-                return;//normal client not server or aider
-                       //boxSetSwitch.Enabled = false;
-            boxSetSwitch.Visible = false;
-            if (signalPickedItem == null)
-                return;
-            var y = LastCursorPosition.Y;
-            if (LastCursorPosition.Y < 100)
-                y = 100;
-            if (LastCursorPosition.Y > pbCanvas.Size.Height - 100)
-                y = pbCanvas.Size.Height - 100;
-
-            if (boxSetSignal.Items.Count == 5)
-                boxSetSignal.Items.RemoveAt(4);
-
-            if (signalPickedItem.Signal.EnabledTrain != null && signalPickedItem.Signal.CallOnEnabled)
-            {
-                if (signalPickedItem.Signal.EnabledTrain.Train.AllowedCallOnSignal != signalPickedItem.Signal)
-                    boxSetSignal.Items.Add("Enable call on");
-                /*else
-                    boxSetSignal.Items.Add("Disable call on");*/
-                // To disable Call On signal must be manually set to stop, to avoid signal state change
-                // in the interval between this list is shown and the option is selected by dispatcher
-            }
-
-            boxSetSignal.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
-            boxSetSignal.Enabled = true;
-            boxSetSignal.Focus();
-            boxSetSignal.SelectedIndex = -1;
-            boxSetSignal.Visible = true;
-            return;
         }
 
         private void HandlePickedSwitch()
@@ -1530,7 +1488,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider)
                 return;//normal client not server
                        //boxSetSignal.Enabled = false;
-            boxSetSignal.Visible = false;
             if (switchPickedItem == null)
                 return;
             var y = LastCursorPosition.Y + 100;
@@ -1555,30 +1512,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (chkPickSwitches.Checked == true)
             {
                 foreach (var item in switchItemsDrawn)
-                {
-                    //if out of range, continue
-                    if (item.Location2D.X < x - range || item.Location2D.X > x + range
-                       || item.Location2D.Y < y - range || item.Location2D.Y > y + range)
-                        continue;
-
-                    if (closestItem != null)
-                    {
-                        var dist = Math.Pow(item.Location2D.X - closestItem.Location2D.X, 2) + Math.Pow(item.Location2D.Y - closestItem.Location2D.Y, 2);
-                        if (dist < closest)
-                        {
-                            closest = dist;
-                            closestItem = item;
-                        }
-                    }
-                    else
-                        closestItem = item;
-                }
-                if (closestItem != null)
-                { return closestItem; }
-            }
-            if (chkPickSignals.Checked == true)
-            {
-                foreach (var item in signalItemsDrawn)
                 {
                     //if out of range, continue
                     if (item.Location2D.X < x - range || item.Location2D.X > x + range
@@ -1928,62 +1861,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void chkDrawPathChanged(object sender, EventArgs e)
         {
             this.drawPath = chkDrawPath.Checked;
-        }
-
-        private void boxSetSignalChosen(object sender, EventArgs e)
-        {
-            if (signalPickedItem == null)
-            {
-                UnHandleItemPick();
-                return;
-            }
-            var signal = signalPickedItem.Signal;
-            var type = boxSetSignal.SelectedIndex;
-            if (MultiPlayerManager.Instance().AmAider)
-            {
-                MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
-                UnHandleItemPick();
-                return;
-            }
-            switch (type)
-            {
-                case 0:
-                    signal.DispatcherClearHoldSignal();
-                    break;
-                case 1:
-                    signal.DispatcherRequestHoldSignal(true);
-                    break;
-                case 2:
-                    signal.HoldState = SignalHoldState.ManualApproach;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
-                        var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
-                        var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
-                        if (drawstate1 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
-                        else if (drawstate2 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
-                        else
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                        // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
-                        sigHead.TextSignalAspect = "";
-                    }
-                    break;
-                case 3:
-                    signal.HoldState = SignalHoldState.ManualPass;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        sigHead.SetLeastRestrictiveAspect();
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                    }
-                    break;
-                case 4:
-                    signal.SetManualCallOn(true);
-                    break;
-            }
-            UnHandleItemPick();
         }
 
         private void boxSetSwitchChosen(object sender, EventArgs e)

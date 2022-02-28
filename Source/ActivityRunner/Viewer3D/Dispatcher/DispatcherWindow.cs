@@ -27,6 +27,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -420,7 +421,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
-                if (content.SignalSelected != null)
+                if (content.SignalSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
                 {
                     SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
