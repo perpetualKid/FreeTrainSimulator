@@ -337,7 +337,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var widgetWidth = Math.Min(penWidth * 6, 15);
 
                     // Draw signals on top of path so they are easier to see.
-                    signalItemsDrawn.Clear();
                     ShowSignals(g, scaledB, widgetWidth);
 
                     // Draw switches
@@ -505,7 +504,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             pen = redPen;
                         }
                         g.FillEllipse(color, DispatchViewer.GetRect(scaledItem, width));
-                        signalItemsDrawn.Add(s);
                         if (s.hasDir)
                         {
                             scaledB.X = (s.Dir.X - subX) * xScale; scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;

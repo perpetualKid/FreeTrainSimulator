@@ -27,7 +27,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.MultiPlayer;
@@ -46,7 +45,7 @@ namespace Orts.Simulation.Track
     /// </summary>
     //================================================================================================//
 
-    public class TrackCircuitSection
+    public class TrackCircuitSection: IJunction
     {
         public static TrackCircuitSection Invalid { get; } = new TrackCircuitSection(-1);
 
@@ -92,6 +91,21 @@ namespace Orts.Simulation.Track
 
         // trough data
         internal List<TroughInfoData> TroughInfo { get; private set; }                    // full trough info data
+        SwitchState IJunction.State 
+        { 
+            get => State; 
+            set => throw new NotImplementedException(); 
+        }
+
+        protected SwitchState State
+        {
+            get
+            {
+                if (CircuitType != TrackCircuitType.Junction)
+                    return SwitchState.Invalid;
+                return (RuntimeData.Instance.TrackDB.TrackNodes[OriginalIndex] as TrackJunctionNode).SelectedRoute == JunctionDefaultRoute ? SwitchState.MainRoute : SwitchState.SideRoute;
+            }
+        }
 
         //================================================================================================//
         /// <summary>

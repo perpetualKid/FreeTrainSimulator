@@ -2,6 +2,7 @@
 
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation
 {
@@ -14,9 +15,9 @@ namespace Orts.Simulation
             return simulator.SignalEnvironment.Signals[signalId];
         }
 
-        public ISwitch SwitchById(int switchId)
+        public IJunction SwitchById(int junctionId)
 {
-            return RuntimeData.Instance.TrackDB.TrackNodes[switchId] as ISwitch;
+            return TrackCircuitSection.TrackCircuitList[junctionId];
         }
     }
 }

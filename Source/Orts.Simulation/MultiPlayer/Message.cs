@@ -780,6 +780,24 @@ namespace Orts.Simulation.MultiPlayer
             HandThrown = handThrown;
         }
 
+        public MSGSwitch(string user, IJunction junction, SwitchState targetState, bool handThrown)
+        {
+            if (!MultiPlayerManager.Instance().AmAider && MultiPlayerManager.Instance().TrySwitch == false)
+            {
+                if (handThrown && Simulator.Instance.Confirmer != null)
+                    Simulator.Instance.Confirmer.Information(CatalogManager.Catalog.GetString("Dispatcher does not allow hand throw at this time"));
+                OK = false;
+                return;
+            }
+            this.user = user;
+            TrackJunctionNode junctionNode = (junction as TrackJunctionNode) ?? throw new InvalidCastException(nameof(junction));
+            WorldID = junctionNode.UiD.WorldId;
+            TileX = junctionNode.UiD.Location.TileX;
+            TileZ = junctionNode.UiD.Location.TileZ;
+            Selection = (int)targetState;
+            HandThrown = handThrown;
+        }
+
         public override string ToString()
         {
             if (!OK) return null;

@@ -78,7 +78,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private string name = "";
         private List<SwitchWidget> switchItemsDrawn;
-        private List<SignalWidget> signalItemsDrawn;
 
         public SwitchWidget switchPickedItem;
         public SignalWidget signalPickedItem;
@@ -234,7 +233,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
 
             switchItemsDrawn = new List<SwitchWidget>();
-            signalItemsDrawn = new List<SignalWidget>();
             switches = new List<SwitchWidget>();
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -704,7 +702,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
 
                 switchItemsDrawn.Clear();
-                signalItemsDrawn.Clear();
                 PointF scaledItem = new PointF();
                 var width = 6f * p.Width;
                 if (width > 15)
@@ -767,7 +764,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         }
                         g.FillEllipse(color, GetRect(scaledItem, width));
                         //if (s.Signal.enabledTrain != null) g.DrawString(""+s.Signal.enabledTrain.Train.Number, trainFont, Brushes.Black, scaledItem);
-                        signalItemsDrawn.Add(s);
                         if (s.hasDir)
                         {
                             scaledB.X = (s.Dir.X - subX) * xScale;

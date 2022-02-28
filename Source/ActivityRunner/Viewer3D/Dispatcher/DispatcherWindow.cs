@@ -170,8 +170,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             }));
             windowManager.SetLazyWindows(WindowType.SignalState, new Lazy<WindowBase>(() =>
             {
-                SignalStateWindow signalWindow = new SignalStateWindow(windowManager, new Point(50, 50));
-                return signalWindow;
+                return new SignalStateWindow(windowManager, new Point(50, 50));
+            }));
+            windowManager.SetLazyWindows(WindowType.SwitchState, new Lazy<WindowBase>(() =>
+            {
+                return new SwitchStateWindow(windowManager, new Point(50, 50));
             }));
             Components.Add(windowManager);
 
@@ -421,10 +424,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
-                if (content.SignalSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
+                if (content.SignalSelected != null && (MultiPlayerManager.MultiplayerState == MultiplayerState.None))
                 {
                     SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
+                }
+                else if (content.SwitchSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
+                {
+                    SwitchStateWindow switchstateWindow = windowManager[WindowType.SwitchState] as SwitchStateWindow;
+                    switchstateWindow.OpenAt(pointerCommandArgs.Position, content.SwitchSelected);
                 }
             }
         }

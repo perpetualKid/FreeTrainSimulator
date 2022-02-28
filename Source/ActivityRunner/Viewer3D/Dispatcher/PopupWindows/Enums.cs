@@ -4,5 +4,6 @@
     {
         DebugScreen,
         SignalState,
+        SwitchState,
     }
 }
