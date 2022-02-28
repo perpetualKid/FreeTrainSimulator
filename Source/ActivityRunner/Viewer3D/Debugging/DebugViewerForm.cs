@@ -51,8 +51,6 @@ using Image = System.Drawing.Image;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
-
-
     /// <summary>
     /// Defines an external window for use as a debugging viewer 
     /// when using Open Rails 
@@ -79,8 +77,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private string name = "";
         private List<SwitchWidget> switchItemsDrawn;
 
-        public SwitchWidget switchPickedItem;
-        public SignalWidget signalPickedItem;
+        public SwitchWidget SwitchPickedItem { get; }
+        public SignalWidget SignalPickedItem { get; }
         private bool drawPath = true; //draw train path
         private ImageList imageList1;
         private List<Train> selectedTrainList;
@@ -1448,55 +1446,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             {
                 PictureMoveAndZoomInOut(e.X, e.Y, windowSizeUpDown.Maximum);
             }
-            else if (LeftClick == false)
-            {
-                if (LastCursorPosition.X == e.X && LastCursorPosition.Y == e.Y)
-                {
-                    var range = 5 * (int)xScale;
-                    if (range > 10)
-                        range = 10;
-                    var temp = findItemFromMouse(e.X, e.Y, range);
-                    if (temp != null)
-                    {
-                        if (temp is SwitchWidget)
-                        { switchPickedItem = (SwitchWidget)temp; HandlePickedSwitch(); }
-                    }
-                    else
-                    { switchPickedItem = null; UnHandleItemPick(); PickedTrain = null; }
-                }
-
-            }
             lblInstruction1.Visible = false;
             lblInstruction2.Visible = false;
             lblInstruction3.Visible = false;
             lblInstruction4.Visible = false;
 
-        }
-
-        private void UnHandleItemPick()
-        {
-            //boxSetSwitch.Enabled = false;
-            boxSetSwitch.Visible = false;
-        }
-
-        private void HandlePickedSwitch()
-        {
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider)
-                return;//normal client not server
-                       //boxSetSignal.Enabled = false;
-            if (switchPickedItem == null)
-                return;
-            var y = LastCursorPosition.Y + 100;
-            if (y < 140)
-                y = 140;
-            if (y > pbCanvas.Size.Height + 100)
-                y = pbCanvas.Size.Height + 100;
-            boxSetSwitch.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
-            boxSetSwitch.Enabled = true;
-            boxSetSwitch.Focus();
-            boxSetSwitch.SelectedIndex = -1;
-            boxSetSwitch.Visible = true;
-            return;
         }
 
         private ItemWidget findItemFromMouse(int x, int y, int range)
@@ -1859,55 +1813,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.drawPath = chkDrawPath.Checked;
         }
 
-        private void boxSetSwitchChosen(object sender, EventArgs e)
-        {
-            if (switchPickedItem == null)
-            {
-                UnHandleItemPick();
-                return;
-            }
-            TrackJunctionNode sw = switchPickedItem.Item as TrackJunctionNode;
-            var type = boxSetSwitch.SelectedIndex;
-
-            //aider can send message to the server for a switch
-            if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().AmAider)
-            {
-                var nextSwitchTrack = sw;
-                var Selected = 0;
-                switch (type)
-                {
-                    case 0:
-                        Selected = switchPickedItem.main;
-                        break;
-                    case 1:
-                        Selected = 1 - switchPickedItem.main;
-                        break;
-                }
-                //aider selects and throws the switch, but need to confirm by the dispatcher
-                MultiPlayerManager.Notify((new MSGSwitch(MultiPlayerManager.GetUserName(),
-                    nextSwitchTrack.UiD.Location.TileX, nextSwitchTrack.UiD.Location.TileZ, nextSwitchTrack.UiD.WorldId, Selected, true)).ToString());
-                simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
-
-            }
-            //server throws the switch immediately
-            else
-            {
-                switch (type)
-                {
-                    case 0:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, switchPickedItem.main);
-                        //sw.SelectedRoute = (int)switchPickedItem.main;
-                        break;
-                    case 1:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, 1 - switchPickedItem.main);
-                        //sw.SelectedRoute = 1 - (int)switchPickedItem.main;
-                        break;
-                }
-            }
-            UnHandleItemPick();
-
-        }
-
         private void chkAllowNewCheck(object sender, EventArgs e)
         {
             MultiPlayerManager.Instance().AllowNewPlayer = chkAllowNew.Checked;
@@ -1979,25 +1884,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 ClickedTrain = true;
             else
                 ClickedTrain = false;
-        }
-
-        private void bBackgroundColor_Click(object sender, EventArgs e)
-        {
-            // Can't just use a dialog as the watchdog timer trips and returns OR back to the Menu.exe.
-            //if (cdBackground.ShowDialog() == DialogResult.OK)
-            //{
-            //	pbCanvas.BackColor = cdBackground.Color;
-            //}
-
-            // As an alternative, cycle through 3 non-white backgrounds
-            if (pbCanvas.BackColor == Color.White)
-                pbCanvas.BackColor = Color.FromArgb(64, 128, 128);
-            else if (pbCanvas.BackColor == Color.FromArgb(64, 128, 128))
-                pbCanvas.BackColor = Color.FromArgb(250, 234, 209);
-            else if (pbCanvas.BackColor == Color.FromArgb(250, 234, 209))
-                pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
-            else if (pbCanvas.BackColor == Color.FromArgb(250, 240, 230)) // Windows color "linen"
-                pbCanvas.BackColor = Color.White;
         }
 
         private void PictureMoveAndZoomInOut(int x, int y, decimal scale)

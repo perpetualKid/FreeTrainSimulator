@@ -73,12 +73,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         {
             if (sender is WindowControl control && control.Tag != null)
             {
-                //if (MultiPlayerManager.Instance().AmAider)
-                //{
-                //    MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
-                //    UnHandleItemPick();
-                //    return;
-                //}
                 //aider can send message to the server for a switch
                 if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().AmAider)
                 {
