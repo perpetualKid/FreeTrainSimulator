@@ -90,6 +90,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             chkPickSwitches.Visible = dispatchView;
             btnSeeInGame.Visible = dispatchView;
             btnFollow.Visible = dispatchView;
+            windowSizeUpDown.Visible = dispatchView;
             label1.Visible = dispatchView;
             resLabel.Visible = dispatchView;
             refreshButton.Visible = dispatchView;
@@ -170,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var xRange = maxX - minX;
             var yRange = maxY - minY;
             var maxSize = (int)(((xRange > yRange) ? xRange : yRange) * 1.5);
-            windowSizeUpDownMaximum = (decimal)maxSize;
+            windowSizeUpDown.Maximum = (decimal)maxSize;
         }
 
         private void PopulateItemLists()

@@ -40,6 +40,7 @@
         {
             this.pbCanvas = new System.Windows.Forms.PictureBox();
             this.refreshButton = new System.Windows.Forms.Button();
+            this.windowSizeUpDown = new System.Windows.Forms.NumericUpDown();
             this.resLabel = new System.Windows.Forms.Label();
             this.AvatarView = new System.Windows.Forms.ListView();
             this.rmvButton = new System.Windows.Forms.Button();
@@ -86,6 +87,7 @@
             this.lblInstruction4 = new System.Windows.Forms.Label();
             this.cbShowPlatforms = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbCanvas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.windowSizeUpDown)).BeginInit();
             this.gbTrainLabels.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudDaylightOffsetHrs)).BeginInit();
             this.tWindow.SuspendLayout();
@@ -114,6 +116,36 @@
             this.refreshButton.Text = "View Train";
             this.refreshButton.UseVisualStyleBackColor = true;
             this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
+            // 
+            // windowSizeUpDown
+            // 
+            this.windowSizeUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.windowSizeUpDown.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.windowSizeUpDown.Increment = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            this.windowSizeUpDown.Location = new System.Drawing.Point(802, 31);
+            this.windowSizeUpDown.Maximum = new decimal(new int[] {
+            200000,
+            0,
+            0,
+            0});
+            this.windowSizeUpDown.Minimum = new decimal(new int[] {
+            80,
+            0,
+            0,
+            0});
+            this.windowSizeUpDown.Name = "windowSizeUpDown";
+            this.windowSizeUpDown.Size = new System.Drawing.Size(79, 27);
+            this.windowSizeUpDown.TabIndex = 6;
+            this.windowSizeUpDown.Value = new decimal(new int[] {
+            5000,
+            0,
+            0,
+            0});
+            this.windowSizeUpDown.ValueChanged += new System.EventHandler(this.windowSizeUpDown_ValueChanged);
             // 
             // resLabel
             // 
@@ -727,6 +759,7 @@
             this.Controls.Add(this.AvatarView);
             this.Controls.Add(this.resLabel);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.windowSizeUpDown);
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.pbCanvas);
             this.Controls.Add(this.tWindow);
@@ -735,6 +768,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Map Window";
             ((System.ComponentModel.ISupportInitialize)(this.pbCanvas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.windowSizeUpDown)).EndInit();
             this.gbTrainLabels.ResumeLayout(false);
             this.gbTrainLabels.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudDaylightOffsetHrs)).EndInit();
@@ -750,6 +784,7 @@
         private System.Windows.Forms.TabPage tDispatch;
         private System.Windows.Forms.TabPage tTimetable;
         public System.Windows.Forms.Button refreshButton;
+        public System.Windows.Forms.NumericUpDown windowSizeUpDown;
         public System.Windows.Forms.Label resLabel;
         public System.Windows.Forms.ListView AvatarView;
         public System.Windows.Forms.Button rmvButton;

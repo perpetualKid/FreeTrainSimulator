@@ -159,6 +159,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             UITimer.Start();
 
             viewWindow = new RectangleF(0, 0, 5000f, 5000f);
+            windowSizeUpDown.Accelerations.Add(new NumericUpDownAcceleration(1, 100));
             chkAllowUserSwitch.Checked = false;
             selectedTrainList = new List<Train>();
             if (MultiPlayerManager.IsMultiPlayer())
@@ -291,7 +292,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var maxsize = maxX - minX > maxY - minY ? maxX - minX : maxY - minY;
             // Take up to next 100
             maxsize = (int)(maxsize / 100 + 1) * 100;
-            windowSizeUpDownMaximum = (decimal)maxsize;
+            windowSizeUpDown.Maximum = (decimal)maxsize;
             Inited = true;
 
             if (RuntimeData.Instance.TrackDB?.TrackItems == null)
@@ -1354,12 +1355,26 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         }
 
-        decimal windowSizeUpDownMaximum = 200000;
-        decimal windowSizeUpDownMinimum = 80;
-        decimal windowSizeUpDownValue = 5000;
+        private void windowSizeUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            // this is the center, before increasing the size
+            PointF center = new PointF(viewWindow.X + viewWindow.Width / 2f, viewWindow.Y + viewWindow.Height / 2f);
+
+
+            float newSizeH = (float)windowSizeUpDown.Value;
+            float verticalByHorizontal = viewWindow.Height / viewWindow.Width;
+            float newSizeV = newSizeH * verticalByHorizontal;
+
+            viewWindow = new RectangleF(center.X - newSizeH / 2f, center.Y - newSizeV / 2f, newSizeH, newSizeV);
+
+
+            GenerateView();
+        }
+
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            decimal tempValue = windowSizeUpDownValue;
+            decimal tempValue = windowSizeUpDown.Value;
             if (e.Delta < 0)
                 tempValue /= 0.95m;
             else if (e.Delta > 0)
@@ -1367,11 +1382,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             else
                 return;
 
-            if (tempValue < windowSizeUpDownMinimum)
-                tempValue = windowSizeUpDownMinimum;
-            if (tempValue > windowSizeUpDownMaximum)
-                tempValue = windowSizeUpDownMaximum;
-            windowSizeUpDownValue = tempValue;
+            if (tempValue < windowSizeUpDown.Minimum)
+                tempValue = windowSizeUpDown.Minimum;
+            if (tempValue > windowSizeUpDown.Maximum)
+                tempValue = windowSizeUpDown.Maximum;
+            windowSizeUpDown.Value = tempValue;
         }
 
         private bool Zooming;
@@ -1429,7 +1444,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
             else if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
             {
-                PictureMoveAndZoomInOut(e.X, e.Y, windowSizeUpDownMaximum);
+                PictureMoveAndZoomInOut(e.X, e.Y, windowSizeUpDown.Maximum);
             }
             lblInstruction1.Visible = false;
             lblInstruction2.Visible = false;
@@ -1527,17 +1542,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
                 else if (Zooming)
                 {
-                    decimal tempValue = windowSizeUpDownValue;
+                    decimal tempValue = windowSizeUpDown.Value;
                     if (LastCursorPosition.Y - e.Y < 0)
                         tempValue /= 0.95m;
                     else if (LastCursorPosition.Y - e.Y > 0)
                         tempValue *= 0.95m;
 
-                    if (tempValue < windowSizeUpDownMinimum)
-                        tempValue = windowSizeUpDownMinimum;
-                    if (tempValue > windowSizeUpDownMaximum)
-                        tempValue = windowSizeUpDownMaximum;
-                    windowSizeUpDownValue = tempValue;
+                    if (tempValue < windowSizeUpDown.Minimum)
+                        tempValue = windowSizeUpDown.Minimum;
+                    if (tempValue > windowSizeUpDown.Maximum)
+                        tempValue = windowSizeUpDown.Maximum;
+                    windowSizeUpDown.Value = tempValue;
                     GenerateView();
 
                 }
@@ -1876,11 +1891,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             int diffX = x - pbCanvas.Width / 2;
             int diffY = y - pbCanvas.Height / 2;
             viewWindow.Offset(diffX / xScale, -diffY / yScale);
-            if (scale < windowSizeUpDownMinimum)
-                scale = windowSizeUpDownMinimum;
-            if (scale > windowSizeUpDownMaximum)
-                scale = windowSizeUpDownMaximum;
-            windowSizeUpDownValue = scale;
+            if (scale < windowSizeUpDown.Minimum)
+                scale = windowSizeUpDown.Minimum;
+            if (scale > windowSizeUpDown.Maximum)
+                scale = windowSizeUpDown.Maximum;
+            windowSizeUpDown.Value = scale;
             GenerateView();
         }
 
@@ -1900,17 +1915,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
             else if (Zooming)
             {
-                decimal tempValue = windowSizeUpDownValue;
+                decimal tempValue = windowSizeUpDown.Value;
                 if (LastCursorPosition.Y - e.Y < 0)
                     tempValue /= 0.95m;
                 else if (LastCursorPosition.Y - e.Y > 0)
                     tempValue *= 0.95m;
 
-                if (tempValue < windowSizeUpDownMinimum)
-                    tempValue = windowSizeUpDownMinimum;
-                if (tempValue > windowSizeUpDownMaximum)
-                    tempValue = windowSizeUpDownMaximum;
-                windowSizeUpDownValue = tempValue;
+                if (tempValue < windowSizeUpDown.Minimum)
+                    tempValue = windowSizeUpDown.Minimum;
+                if (tempValue > windowSizeUpDown.Maximum)
+                    tempValue = windowSizeUpDown.Maximum;
+                windowSizeUpDown.Value = tempValue;
                 GenerateView(true);
             }
             LastCursorPosition.X = e.X;
