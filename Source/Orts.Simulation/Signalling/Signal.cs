@@ -97,7 +97,9 @@ namespace Orts.Simulation.Signalling
         public TrackCircuitPartialPathRoute SignalRoute { get; internal set; } = new TrackCircuitPartialPathRoute();  // train route from signal
         public int TrainRouteIndex { get; private set; }    // index of section after signal in train route list
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
-        public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning restore CA1002 // Do not expose generic lists
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
 

@@ -142,11 +142,15 @@ namespace Orts.Formats.Msts.Models
         /// <summary>The name of the texture to use for the lights</summary>
         public string LightTextureName { get; private set; }
         /// <summary></summary>
-        public IList<SignalLight> Lights { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<SignalLight> Lights { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
         /// <summary>Name-indexed draw states</summary>
         public Dictionary<string, SignalDrawState> DrawStates { get; private set; }
         /// <summary>List of aspects this signal type can have</summary>
-        public IList<SignalAspect> Aspects { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<SignalAspect> Aspects { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
         /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
         /// in front of a train. MSTS calculation</summary>
         public int ClearAheadNumberMsts { get; private set; }
@@ -542,7 +546,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Name identifying the draw state</summary>
         public string Name { get; private set; }
         /// <summary>The lights to draw in this state</summary>
-        public IList<SignalDrawLight> DrawLights { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<SignalDrawLight> DrawLights { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
         /// <summary>The position of the semaphore for this draw state (as a keyframe)</summary>
         public float SemaphorePosition { get; private set; }
 
@@ -746,7 +752,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Description of the signal shape</summary>
         public string Description { get; private set; }
         /// <summary>List of sub-objects that are belong to this shape</summary>
-        public IList<SignalSubObject> SignalSubObjs { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<SignalSubObject> SignalSubObjs { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.

@@ -45,11 +45,15 @@ namespace Orts.Simulation.Activities
         private double prevTrainSpeed = -1;
         internal int? startTimeS;    // Clock time in seconds when activity was launched.
 
-        public IList<ActivityTask> Tasks { get; } = new List<ActivityTask>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<ActivityTask> Tasks { get; } = new List<ActivityTask>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public ActivityTask ActivityTask { get; private set; }
 
         // Freight events
-        public IList<EventWrapper> EventList { get; } = new List<EventWrapper>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<EventWrapper> EventList { get; } = new List<EventWrapper>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public bool Completed { get; private set; }          // true once activity is completed.
         public bool Succeeded { get; internal set; }        // status of completed activity
         public EventWrapper TriggeredEvent { get; set; } // Indicates the currently triggered event whose data the ActivityWindow will pop up to display.
@@ -70,11 +74,13 @@ namespace Orts.Simulation.Activities
         public bool NewMessageFromNewPlayer { get; set; } // flag to indicate to ActivityWindow that there is a new message to be shown;
         public string MessageFromNewPlayer { get; internal set; } // string to be displayed in ActivityWindow
 
-        public ICollection<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         public bool WeatherChangesPresent { get; private set; } // tested in case of randomized activities to state wheter weather should be randomized
 
-        private Activity(BinaryReader inf, Simulator simulator, IList<EventWrapper> oldEventList, ICollection<TempSpeedPostItem> tempSpeedPostItems)
+        private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
         {
             TempSpeedPostItems = tempSpeedPostItems;
             this.simulator = simulator;
@@ -323,7 +329,7 @@ namespace Orts.Simulation.Activities
                 outf.Write(stationStopLogFile);
         }
 
-        private void Restore(BinaryReader inf, Simulator simulator, IList<EventWrapper> oldEventList)
+        private void Restore(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList)
         {
             int rdval;
 

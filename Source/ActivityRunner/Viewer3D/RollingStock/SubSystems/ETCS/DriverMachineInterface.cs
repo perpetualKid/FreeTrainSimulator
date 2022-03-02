@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly MSTSLocomotive Locomotive;
         public readonly bool GaugeOnly;
         public readonly Viewer Viewer;
-        public IList<DMIWindow> Windows = new List<DMIWindow>();
+        private List<DMIWindow> Windows = new List<DMIWindow>();
         private float PrevScale = 1;
         public ETCSStatus ETCSStatus { get; private set; }
 

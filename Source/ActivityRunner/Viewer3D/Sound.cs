@@ -44,6 +44,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -53,9 +54,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
 using Orts.Simulation;
-using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -2283,17 +2282,17 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// How to select from available files
         /// </summary>
-        protected SoundPlayCommand.Selection SelectionMethod;
+        private readonly SoundPlayCommand.Selection selectionMethod;
         /// <summary>
         /// Index of the file to play inside <see cref="Files"/> vector
         /// </summary>
-        public int iFile;
+        private int fileIndex;
 
         protected ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
             Files = mstsSoundPlayCommand?.Files;
-            SelectionMethod = mstsSoundPlayCommand.SelectionMethod;
+            selectionMethod = mstsSoundPlayCommand.SelectionMethod;
         }
 
         // precompiled version for activity sounds
@@ -2301,7 +2300,7 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(ortsStream)
         {
             Files = new List<string>() { wavFileName };
-            SelectionMethod = SoundPlayCommand.Selection.Sequential;
+            selectionMethod = SoundPlayCommand.Selection.Sequential;
         }
 
         /// <summary>
@@ -2310,80 +2309,33 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <returns>File name with full path </returns>
         protected string GetNextFile()
         {
-            if (SelectionMethod == SoundPlayCommand.Selection.Sequential)
+            if (selectionMethod == SoundPlayCommand.Selection.Sequential)
             {
-                ++iFile;
-                if (iFile >= Files.Count)
-                    iFile = 0;
+                ++fileIndex;
+                if (fileIndex >= Files.Count)
+                    fileIndex = 0;
             }
-            else if (SelectionMethod == SoundPlayCommand.Selection.Random)
+            else if (selectionMethod == SoundPlayCommand.Selection.Random)
             {
-                iFile = StaticRandom.Next(Files.Count);
+                fileIndex = StaticRandom.Next(Files.Count);
             }
 
             string[] pathArray = {  Simulator.Instance.RouteFolder.SoundFolder,
                                     ORTSStream.SoundSource.SMSFolder,
                                     Simulator.Instance.RouteFolder.ContentFolder.SoundFolder };
-            return FolderStructure.FindFileFromFolders(pathArray, Files[iFile]) ?? string.Empty;
+            return FolderStructure.FindFileFromFolders(pathArray, Files[fileIndex]) ?? string.Empty;
         }
     }
 
     public class WorldSounds
     {
-        private Dictionary<string, IList<WorldSoundRegion>> SoundRegions = new Dictionary<string, IList<WorldSoundRegion>>();
-        private Viewer Viewer;
-        private SoundSource ss;
+        private readonly Dictionary<string, IList<WorldSoundRegion>> soundRegions = new Dictionary<string, IList<WorldSoundRegion>>();
+        private readonly Viewer viewer;
+        private SoundSource soundSource;
 
         public WorldSounds(Viewer viewer)
         {
-            Viewer = viewer;
-        }
-
-        public int GetTType(TDBObjects tdbObjs)
-        {
-            int retval = 0;
-            WorldSoundRegion prevItem = null;
-            WorldSoundRegion nextItem = null;
-            float prevDist;
-            float nextDist;
-
-            List<int> validitems = (from lwsr in SoundRegions.Values
-                                    from wsr in lwsr
-                                    from i in wsr.TrackNodes
-                                    select i).Distinct().ToList();
-
-            TrackItem prev = tdbObjs.FindPrevItem<SoundRegionItem>(out prevDist, validitems);
-            TrackItem next = tdbObjs.FindNextItem<SoundRegionItem>(out nextDist, validitems);
-
-            if (prev != null)
-            {
-                prevItem = (from lwsr in SoundRegions.Values
-                            from wsr in lwsr
-                            where wsr.TrackNodes.Contains(prev.TrackItemId)
-                            select wsr).FirstOrDefault();
-            }
-
-            if (next != null)
-            {
-                nextItem = (from lwsr in SoundRegions.Values
-                            from wsr in lwsr
-                            where wsr.TrackNodes.Contains(next.TrackItemId)
-                            select wsr).FirstOrDefault();
-            }
-
-            if (prevItem != null && nextItem != null)
-            {
-                if (prevItem.TrackType == nextItem.TrackType)
-                {
-                    retval = prevItem.TrackType;
-                }
-                else if (nextDist < 10)
-                {
-                    retval = int.MaxValue;
-                }
-            }
-
-            return retval;
+            this.viewer = viewer;
         }
 
         public int GetTType(Simulation.Physics.Train train, out float outPrevDist, out float outNextDist)
@@ -2413,10 +2365,10 @@ namespace Orts.ActivityRunner.Viewer3D
             float nextDist = float.MaxValue;
             float d;
 
-            lock (SoundRegions)
+            lock (soundRegions)
             {
                 // Check every sound region's all track nodes
-                foreach (List<WorldSoundRegion> lwsr in SoundRegions.Values)
+                foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
                 {
                     foreach (WorldSoundRegion wsr in lwsr)
                     {
@@ -2528,11 +2480,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void AddByTile(int TileX, int TileZ)
         {
-            string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
+            string name = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
             WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems.Count);
             if (wf.TrackItemSound != null)
             {
-                string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
+                string[] pathArray = { viewer.Simulator.RouteFolder.SoundFolder, viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
 
                 var ls = new List<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)
@@ -2541,18 +2493,17 @@ namespace Orts.ActivityRunner.Viewer3D
                     var fullPath = FolderStructure.FindFileFromFolders(pathArray, fss.FileName);
                     if (fullPath != null)
                     {
-                        ss = new SoundSource(Viewer, wl, SoundEventSource.None, fullPath, true);
-                        if (ss != null)
-                            ls.Add(ss);
+                        soundSource = new SoundSource(viewer, wl, SoundEventSource.None, fullPath, true);
+                            ls.Add(soundSource);
                     }
                 }
-                Viewer.SoundProcess.AddSoundSources(name, ls);
+                viewer.SoundProcess.AddSoundSources(name, ls);
 
-                lock (SoundRegions)
+                lock (soundRegions)
                 {
-                    if (!SoundRegions.ContainsKey(name))
+                    if (!soundRegions.ContainsKey(name))
                     {
-                        SoundRegions.Add(name, wf.TrackItemSound.SoundRegions);
+                        soundRegions.Add(name, wf.TrackItemSound.SoundRegions);
                     }
                 }
             }
@@ -2560,131 +2511,18 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void RemoveByTile(int TileX, int TileZ)
         {
-            string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
-            Viewer.SoundProcess.RemoveSoundSources(name);
-            lock (SoundRegions)
+            string name = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
+            viewer.SoundProcess.RemoveSoundSources(name);
+            lock (soundRegions)
             {
-                if (SoundRegions.ContainsKey(name))
+                if (soundRegions.ContainsKey(name))
                 {
-                    SoundRegions.Remove(name);
+                    soundRegions.Remove(name);
                 }
             }
         }
     }
 
-    public class TDBObjects
-    {
-        private MSTSWagon _car;
-        private List<TrackNode> trackNodes;
-        private List<TrackItem> trItems;
-
-        public TDBObjects(MSTSWagon Car)
-        {
-            _car = Car;
-            trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
-            trItems = RuntimeData.Instance.TrackDB.TrackItems;
-        }
-
-        private AIPathNode FindNode()
-        {
-            AIPathNode retval = null;
-            return retval;
-        }
-
-        private AIPathNode GetNextNode(AIPathNode node)
-        {
-            if (node.NextMainNode == null)
-                return node.NextSidingNode;
-            else
-                return node.NextMainNode;
-        }
-
-        private AIPathNode GetPrevNode(AIPathNode node)
-        {
-            AIPathNode retval = null;
-            AIPathNode p = node;
-            return retval;
-        }
-
-        private int GetTVNIndex(AIPathNode node)
-        {
-            if (node == null)
-                return -1;
-
-            if (node.NextMainNode == null)
-                return node.NextSidingTVNIndex;
-            else
-                return node.NextMainTVNIndex;
-        }
-
-        public TrackItem FindNextItem<T>(out float distance)
-            where T : TrackItem
-        {
-            Traveller traveller = _car.Train.FrontTDBTraveller;
-            return FindItem<T>(traveller, GetNextNode, out distance, null);
-        }
-
-        public TrackItem FindNextItem<T>(out float distance, List<int> validitems)
-            where T : TrackItem
-        {
-            Traveller traveller = _car.Train.FrontTDBTraveller;
-            return FindItem<T>(traveller, GetNextNode, out distance, validitems);
-        }
-
-        public TrackItem FindPrevItem<T>(out float distance)
-            where T : TrackItem
-        {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
-            return FindItem<T>(traveller, GetPrevNode, out distance, null);
-        }
-
-        public TrackItem FindPrevItem<T>(out float distance, List<int> validitems)
-            where T : TrackItem
-        {
-            Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, true);
-            return FindItem<T>(traveller, GetPrevNode, out distance, validitems);
-        }
-
-        private TrackItem FindItem<T>(Traveller traveller, Func<AIPathNode, AIPathNode> move, out float distance, List<int> validitems)
-            where T : TrackItem
-        {
-            T Item = null;
-            int currentNode;
-            AIPathNode aiNode = FindNode();
-            currentNode = GetTVNIndex(aiNode);
-            distance = float.MaxValue;
-
-            while (aiNode != null && currentNode != -1)
-            {
-                if (trackNodes[currentNode] is TrackVectorNode trackVectorNode)
-                {
-                    for (int i = 0; i < trackVectorNode.TrackItemIndices.Length; i++)
-                    {
-                        if ((trItems[trackVectorNode.TrackItemIndices[i]]) is T item && validitems != null && validitems.Contains(item.TrackItemId))
-                        {
-                            float dist = traveller.DistanceTo(item.Location);
-                            if (dist > 0)
-                            {
-                                if (dist < distance)
-                                {
-                                    distance = dist;
-                                    Item = item;
-                                }
-                            }
-                        }
-                    }
-
-                    if (Item != null)
-                        return Item;
-                }
-
-                aiNode = move(aiNode);
-                currentNode = GetTVNIndex(aiNode);
-            }
-
-            return null;
-        }
-    }
     public class ORTSActSoundSources
     {
         public ORTSActSoundSources( )

@@ -485,12 +485,16 @@ namespace Orts.Formats.Msts.Models
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
 
-        public IList<float> Values { get; } = new List<float>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<float> Values { get; } = new List<float>();
+#pragma warning restore CA1002 // Do not expose generic lists
     }
 
     public class CabViewDiscreteControl : CabViewFramedControl
     {
-        public IList<int> Positions { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> Positions { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         private int valuesRead;
         private int numPositions;
@@ -818,7 +822,9 @@ namespace Orts.Formats.Msts.Models
     #region Multistate Display Controls
     public class CabViewMultiStateDisplayControl : CabViewFramedControl
     {
-        public IList<float> Styles { get; } = new List<float>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<float> Styles { get; } = new List<float>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal CabViewMultiStateDisplayControl(STFReader stf, string basePath)
         {
@@ -899,7 +905,9 @@ namespace Orts.Formats.Msts.Models
 
     public class CabViewAnimatedDisplayControl : CabViewFramedControl
     {
-        public IList<double> MSStyles { get; } = new List<double>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<double> MSStyles { get; } = new List<double>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public float CycleTimeS { get; private set; }
 
         internal CabViewAnimatedDisplayControl(STFReader stf, string basepath)

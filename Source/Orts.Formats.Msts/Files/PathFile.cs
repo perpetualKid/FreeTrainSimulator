@@ -116,8 +116,10 @@ namespace Orts.Formats.Msts.Files
         public string End { get; private set; }
         public PathFlags Flags { get; private set; }
         public bool IsPlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
-        public IList<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
-        public IList<PathNode> PathNodes { get; } = new List<PathNode>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
+        public List<PathNode> PathNodes { get; } = new List<PathNode>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         #endregion
         /// <summary>
