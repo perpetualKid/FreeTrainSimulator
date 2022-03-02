@@ -6,10 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Graphics;
+
 
 using Path = Orts.Models.Simplified.Path ;
 
@@ -19,10 +23,22 @@ namespace Orts.TrackViewer.WinForms.Controls
     {
         private readonly GameWindow parent;
 
+        private readonly ICatalog catalog;
+
+        private string tempfolderPath;
+
+        private Folder folder;
+
+        private IEnumerable<Path> paths;
+
         internal MainMenuControl(GameWindow game)
         {
             parent = game;
             InitializeComponent();
+
+            catalog = CatalogManager.Catalog;
+            Localizer.Localize(this, catalog);
+
             MainMenuStrip.MenuActivate += MainMenuStrip_MenuActivate;
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
@@ -224,7 +240,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private bool closingCancelled;
 
         //  ****
-        private IEnumerable<Path> paths;
+        
 
         private void FolderDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
@@ -271,6 +287,25 @@ namespace Orts.TrackViewer.WinForms.Controls
                 if (toolStripMenuItem == selectedMenuItem)
                     continue;
                 toolStripMenuItem.Checked = false;
+            }
+        }
+
+        private async void tempfoldertoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            using (FolderBrowserDialog folderBrowser = new FolderBrowserDialog())
+            {
+                folderBrowser.SelectedPath = "";
+                folderBrowser.Description = catalog.GetString("Select a temporary folder containing Routes folder");
+                folderBrowser.ShowNewFolderButton = false;
+                if (folderBrowser.ShowDialog(this) == DialogResult.OK)
+                {
+
+                    folder = new Folder(System.IO.Path.GetFileName(tempfolderPath), folderBrowser.SelectedPath);
+
+                    parent.UnloadRoute();
+                    PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
+                }
             }
         }
 
@@ -357,5 +392,6 @@ namespace Orts.TrackViewer.WinForms.Controls
         }
 
         #endregion
+
     }
 }
