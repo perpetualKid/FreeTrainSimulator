@@ -66,7 +66,7 @@ namespace Orts.Simulation.AIs
         /// Creates a queue of AI trains in the order they should appear.
         /// At the moment AI trains are also created off scene so the rendering code will know about them.
         /// </summary>
-        public AI(Simulator simulator, CancellationToken cancellationToken, double activityStartTime)
+        public AI(Simulator simulator, double activityStartTime, CancellationToken cancellationToken)
         {
             Simulator = simulator;
 #if WITH_PATH_DEBUG

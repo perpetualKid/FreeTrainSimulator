@@ -479,7 +479,7 @@ namespace Orts.Simulation
         {
             Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             if (playerTrain != null)
             {
                 _ = playerTrain.PostInit();
@@ -493,7 +493,7 @@ namespace Orts.Simulation
         {
             AITrain playerTrain = InitializeAPPlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             playerTrain.AI = AI;
             if (playerTrain != null)
             {
