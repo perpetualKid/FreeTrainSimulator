@@ -17,10 +17,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class SharedShape
     {
-        private static readonly List<string> shapeWarnings = new List<string>();
+        private static readonly HashSet<string> shapeWarnings = new HashSet<string>();
 
         // This data is common to all instances of the shape
-        public IList<string> MatrixNames { get; private set; } = new List<string>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> MatrixNames { get; private set; } = new List<string>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public Matrix[] Matrices = Array.Empty<Matrix>();  // the original natural pose for this shape - shared by all instances
         public Animations Animations;
         public LodControl[] LodControls;
@@ -49,7 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             SharedShape.viewer = viewer;
         }
 
-        public static SharedShape Empty = new SharedShape();
+        public static SharedShape Empty { get; } = new SharedShape();
         /// <summary>
         /// MSTS shape from shape file
         /// </summary>

@@ -225,7 +225,9 @@ namespace Orts.Formats.Msts.Models
     {
         public int Distance { get; private set; }
         public int PatchSize { get; private set; }
-        public IList<Patch> Patches { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Patch> Patches { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal PatchSet(SBR block)
         {
@@ -261,8 +263,10 @@ namespace Orts.Formats.Msts.Models
     public class Shader
     {
         public string Name { get; private set; }
-        public IList<TextureSlot> Textureslots { get; private set; }
-        public IList<UVCalc> UVCalcs { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TextureSlot> Textureslots { get; private set; }
+        public List<UVCalc> UVCalcs { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal Shader(SBR block)
         {

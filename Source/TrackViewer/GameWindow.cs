@@ -388,11 +388,23 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[WindowType.DebugScreen].ToggleVisibility();
+            });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
-            userCommandController.AddEvent(UserCommand.LocationWindow, KeyEventType.KeyPressed, () => windowManager[WindowType.LocationWindow].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.HelpWindow, KeyEventType.KeyPressed, () => windowManager[WindowType.HelpWindow].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[WindowType.LocationWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[WindowType.HelpWindow].ToggleVisibility();
+            });
             #endregion
 
             #region popup windows
@@ -438,10 +450,13 @@ namespace Orts.TrackViewer
             await Task.WhenAll(initTasks).ConfigureAwait(false);
             await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
-            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+            if (Settings.RestoreLastView)
             {
-                if (Settings.WindowStatus[windowType])
-                    windowManager[windowType].Open();
+                foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+                {
+                    if (Settings.WindowStatus[windowType])
+                        windowManager[windowType].Open();
+                }
             }
         }
 

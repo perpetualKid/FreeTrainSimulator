@@ -129,7 +129,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Type of signal</summary>
         public string SignalType { get; private set; }
         /// <summary></summary>
-        public IList<TrackItemSignalDirection> SignalDirections { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackItemSignalDirection> SignalDirections { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.

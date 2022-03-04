@@ -138,6 +138,8 @@ namespace Orts.Graphics.MapView
             }
         }
 
+        public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
+
         private void AddTrackSegments()
         {
             TrackDB trackDB = RuntimeData.Instance.TrackDB;

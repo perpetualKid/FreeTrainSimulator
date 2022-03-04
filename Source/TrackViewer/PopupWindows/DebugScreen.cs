@@ -48,7 +48,6 @@ namespace Orts.TrackViewer.PopupWindows
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
         {
             currentProvider[informationType].DebugInformationProvider = provider;
-//            currentProvider[informationType] = new NameValueTextGrid(this, (int)(provider.DebugInfo.Count * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)
@@ -59,22 +58,25 @@ namespace Orts.TrackViewer.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, TabAction, true);
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, TabAction);
             return base.Close();
         }
 
         public override void TabAction(UserCommandArgs args)
         {
-            if (currentDebugScreen != DebugScreenInformation.Common)
-                currentProvider[currentDebugScreen].Visible = false;
-            currentDebugScreen = currentDebugScreen.Next();
-            currentProvider[currentDebugScreen].Visible = true;
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            {
+                if (currentDebugScreen != DebugScreenInformation.Common)
+                    currentProvider[currentDebugScreen].Visible = false;
+                currentDebugScreen = currentDebugScreen.Next();
+                currentProvider[currentDebugScreen].Visible = true;
+            }
         }
     }
 }

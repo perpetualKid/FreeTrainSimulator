@@ -105,7 +105,7 @@ namespace ORTS.TrackViewer.Drawing
                 signalFileNames = new Dictionary<int, string>();
                 string WFilePath = storedRoutePath + @"\WORLD\";
 
-                List<TokenID> Tokens = new List<TokenID>
+                HashSet<TokenID> Tokens = new HashSet<TokenID>
                 {
                     TokenID.Signal
                 };

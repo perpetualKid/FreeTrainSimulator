@@ -75,7 +75,7 @@ namespace Orts.TrackViewer.Settings
         public string[] LastLocation { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
 
-        [Default(false)]
+        [Default(true)]
         public bool RestoreLastView { get; set; }
 
         [Default(TrackViewerViewSettings.All)]

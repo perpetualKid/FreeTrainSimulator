@@ -287,7 +287,9 @@ namespace Orts.Formats.Msts.Models
 
     public class Matrices : List<Matrix>
     {
-        public IList<string> MatrixNames { get; } = new List<string>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> MatrixNames { get; } = new List<string>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal Matrices(SBR block)
         {

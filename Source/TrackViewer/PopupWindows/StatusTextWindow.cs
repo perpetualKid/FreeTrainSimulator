@@ -29,7 +29,7 @@ namespace Orts.TrackViewer.PopupWindows
         {
             layout = base.Layout(layout, 1.5f);
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
-            routeLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+            routeLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, HorizontalAlignment.Center, Color.Orange);
             statusTextLine.Add(routeLabel);
             return layout;
         }

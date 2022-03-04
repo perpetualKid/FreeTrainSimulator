@@ -71,7 +71,7 @@ namespace Orts.Simulation.Commanding
         /// Assumes replayCommandList is already sorted by time.
         /// </para>
         /// </summary>
-        public void Update(IList<ICommand> replayCommandList ) {
+        public void Update(List<ICommand> replayCommandList ) {
             double elapsedTime = Simulator.ClockTime;
 
             if( PauseState == ReplayPauseState.Before ) {
@@ -116,7 +116,7 @@ namespace Orts.Simulation.Commanding
             }
         }
 
-        private void ReplayCommand( double elapsedTime, IList<ICommand> replayCommandList, ICommand c ) {
+        private void ReplayCommand( double elapsedTime, List<ICommand> replayCommandList, ICommand c ) {
             c.Redo();                           // Action the command
             CommandList.Add( c );               // Add to the log of commands
             replayCommandList.RemoveAt( 0 );    // Remove it from the head of the replay list
@@ -164,7 +164,7 @@ namespace Orts.Simulation.Commanding
             }
         }
 
-        public static void ReportReplayCommands(IList<ICommand> list ) 
+        public static void ReportReplayCommands(List<ICommand> list ) 
         {
             Trace.WriteLine( "\nList of commands to replay:" );
             foreach(ICommand c in list) 

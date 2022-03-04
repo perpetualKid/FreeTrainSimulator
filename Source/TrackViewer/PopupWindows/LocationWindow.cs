@@ -46,35 +46,37 @@ namespace Orts.TrackViewer.PopupWindows
             if (!useWorldCoordinates)
             {
                 ControlLayoutHorizontal tileTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.0));
-                tileLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+                tileLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Color.Orange);
                 tileTextLine.Add(tileLabel);
             }
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
-            locationLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Orange);
+            locationLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, string.Empty, HorizontalAlignment.Center, Color.Orange);
             statusTextLine.Add(locationLabel);
-
             return layout;
         }
 
         public override void TabAction(UserCommandArgs args)
         {
-            useWorldCoordinates = !useWorldCoordinates;
-            updateRequired = true;
-            Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
-            Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
-            base.TabAction(args);
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            {
+                useWorldCoordinates = !useWorldCoordinates;
+                updateRequired = true;
+                Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+                Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
+                base.TabAction(args);
+            }
         }
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction, true);
             updateRequired = true;
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.LocationWindowTab, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction);
             return base.Close();
         }
 

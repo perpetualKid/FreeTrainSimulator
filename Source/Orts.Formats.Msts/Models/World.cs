@@ -169,7 +169,7 @@ namespace Orts.Formats.Msts.Models
             TokenID.ViewDbSphere,
         };
 
-        internal WorldObjects(SBR block, IList<TokenID> allowedTokens, int tileX, int tileZ)
+        internal WorldObjects(SBR block, HashSet<TokenID> allowedTokens, int tileX, int tileZ)
         {
             block.VerifyID(TokenID.Tr_Worldfile);
             int detailLevel = 0;
@@ -541,7 +541,9 @@ namespace Orts.Formats.Msts.Models
         public uint SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
-        public IList<TrackSection> TrackSections { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackSection> TrackSections { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal DynamicTrackObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
@@ -576,7 +578,7 @@ namespace Orts.Formats.Msts.Models
             TrackSections = new List<TrackSection>() { source.TrackSections[trackSetionIndex] };
         }
 
-        private static IList<TrackSection> ReadTrackSections(SBR block)
+        private static List<TrackSection> ReadTrackSections(SBR block)
         {
             List<TrackSection> result = new List<TrackSection>();
             block.VerifyID(TokenID.TrackSections);
@@ -648,7 +650,9 @@ namespace Orts.Formats.Msts.Models
     {
         public string TextureFile { get; private set; } //ace
         public TextData TextSize { get; private set; }// ( 0.08 0.06 0 )
-        public IList<Vector4> SignShapes { get; } = new List<Vector4>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Vector4> SignShapes { get; } = new List<Vector4>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public TrackItems TrackItemIds { get; } = new TrackItems();
 
         internal SpeedPostObject(SBR block, int detailLevel, int tileX, int tileZ)
@@ -725,8 +729,10 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        public IList<int> RoadDbItems { get; } = new List<int>();
-        public IList<int> TrackDbItems { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> RoadDbItems { get; } = new List<int>();
+        public List<int> TrackDbItems { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
     }
 
     public class LevelCrossingObject : WorldObject

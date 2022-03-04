@@ -13,8 +13,6 @@ using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 using Orts.Graphics.Window.Controls.Layout;
 
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-
 namespace Orts.Graphics.Window
 {
     public class ModalWindowEventArgs : EventArgs
@@ -40,6 +38,7 @@ namespace Orts.Graphics.Window
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
 
+        private const float opacityDefault = 0.6f;
         private Matrix xnaView;
         private Matrix xnaProjection;
         internal ref readonly Matrix XNAView => ref xnaView;
@@ -67,7 +66,6 @@ namespace Orts.Graphics.Window
             base(game)
         {
             DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-            ControlLayout.ScaleFactor = DpiScaling;
             clientBounds = Game.Window.ClientBounds;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
@@ -89,7 +87,7 @@ namespace Orts.Graphics.Window
 
             WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
             WindowShader.GlassColor = Color.Black;
-            WindowShader.Opacity = 0.6f; // configurable?
+            WindowShader.Opacity = opacityDefault;
             WindowShader.WindowTexture = windowTexture;
 
             TextFontDefault = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Regular)[DefaultFontSize];
@@ -176,6 +174,12 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 window.UpdateLocation();
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
+                if (window != mouseActiveWindow)
+                {
+                    mouseActiveWindow?.FocusLost();
+                    mouseActiveWindow = window;
+                    window?.FocusSet();
+                }
                 mouseActiveWindow = window;
                 if (window.Modal)
                 {
@@ -197,6 +201,8 @@ namespace Orts.Graphics.Window
                 modalWindow = null;
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
+            if (mouseActiveWindow == window)
+                mouseActiveWindow = null;
             List<WindowBase> updatedWindowList = windows.ToList();
             if (updatedWindowList.Remove(window))
             {
@@ -223,6 +229,7 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
+            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -304,16 +311,17 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
-                if (modalWindow != null && mouseActiveWindow != modalWindow)
+                WindowBase activeWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
+                if (activeWindow != mouseActiveWindow)
                 {
-                    userCommandArgs.Handled = true;
-                    modalWindow.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
+                    mouseActiveWindow?.FocusLost();
+                    mouseActiveWindow = activeWindow;
+                    activeWindow?.FocusSet();
                 }
-                else if (mouseActiveWindow != null)
+                if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
-                    if (mouseActiveWindow != windows.Last())
+                    if (modalWindow == null && mouseActiveWindow != windows.Last())
                     {
                         List<WindowBase> updatedWindowList = windows.ToList();
                         if (updatedWindowList.Remove(mouseActiveWindow))
@@ -322,7 +330,12 @@ namespace Orts.Graphics.Window
                             windows = updatedWindowList;
                         }
                     }
-                    mouseActiveWindow.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
+                    else if (modalWindow != null &&  mouseActiveWindow != modalWindow)
+                    {
+                        mouseActiveWindow.FocusLost();
+                        mouseActiveWindow = null;
+                    }
+                    mouseActiveWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
                 }
             }
         }
@@ -337,6 +350,7 @@ namespace Orts.Graphics.Window
             foreach (WindowBase window in windows)
             {
                 WindowShader.SetState(null);
+                WindowShader.Opacity = window == mouseActiveWindow ? opacityDefault * 1.2f : opacityDefault;
                 window.WindowDraw();
                 WindowShader.ResetState();
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null);

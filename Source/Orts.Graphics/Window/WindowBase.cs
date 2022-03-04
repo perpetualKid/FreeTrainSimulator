@@ -117,6 +117,13 @@ namespace Orts.Graphics.Window
             Resize();
         }
 
+        protected void Relocate(Point location)
+        {
+            this.location = new Point(
+                (int)Math.Round(100.0 * location.X / (Owner.ClientBounds.Width - borderRect.Width)),
+                (int)Math.Round(100.0 * location.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+            UpdateLocation();
+        }
 
         private void Resize()
         {
@@ -190,6 +197,12 @@ namespace Orts.Graphics.Window
             windowLayout.Initialize();
             this.windowLayout = windowLayout;
         }
+
+        protected internal virtual void FocusSet()
+        { }
+
+        protected internal virtual void FocusLost()
+        { }
 
         protected virtual ControlLayout Layout(ControlLayout layout, float headerScaling = 1.0f)
         {

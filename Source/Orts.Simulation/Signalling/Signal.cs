@@ -97,7 +97,9 @@ namespace Orts.Simulation.Signalling
         public TrackCircuitPartialPathRoute SignalRoute { get; internal set; } = new TrackCircuitPartialPathRoute();  // train route from signal
         public int TrainRouteIndex { get; private set; }    // index of section after signal in train route list
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
-        public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning restore CA1002 // Do not expose generic lists
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
 
@@ -424,11 +426,9 @@ namespace Orts.Simulation.Signalling
 
         public int TrackItemIndex => (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
 
-        SignalState ISignal.State
-        {
-            get => State;
-            set => throw new NotImplementedException();
-        }
+        SignalState ISignal.State { get => State; set => State = value; }
+
+        bool ISignal.CallOnEnabled => CallOnEnabled && EnabledTrain != null && EnabledTrain.Train.AllowedCallOnSignal != this;
 
         protected SignalState State
         {
@@ -449,6 +449,53 @@ namespace Orts.Simulation.Signalling
                     }
                 }
                 return result;
+            }
+            set 
+            {
+                switch (value)
+                {
+                    case SignalState.Clear:
+                        DispatcherClearHoldSignal();
+                        break;
+                    case SignalState.Lock:
+                        DispatcherRequestHoldSignal(true);
+                        break;
+                        case SignalState.Approach:
+                        HoldState = SignalHoldState.ManualApproach;
+                        foreach (SignalHead signalHead in SignalHeads)
+                        {
+                            int drawstate1 = signalHead.DefaultDrawState(SignalAspectState.Approach_1);
+                            int drawstate2 = signalHead.DefaultDrawState(SignalAspectState.Approach_2);
+                            int drawstate3 = signalHead.DefaultDrawState(SignalAspectState.Approach_3);
+                            if (drawstate1 > 0)
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_1; 
+                            }
+                            else if (drawstate2 > 0)
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_2; 
+                            }
+                            else
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_3; 
+                            }
+                            signalHead.DrawState = signalHead.DefaultDrawState(signalHead.SignalIndicationState);
+                            // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
+                            signalHead.TextSignalAspect = "";
+                        }
+                        break;
+                    case SignalState.Manual:
+                        HoldState = SignalHoldState.ManualPass;
+                        foreach (SignalHead signalHead in SignalHeads)
+                        {
+                            signalHead.SetLeastRestrictiveAspect();
+                            signalHead.DrawState = signalHead.DefaultDrawState(signalHead.SignalIndicationState);
+                        }
+                        break;
+                    case SignalState.CallOn:
+                        SetManualCallOn(true);
+                        break;
+                }
             }
         }
 

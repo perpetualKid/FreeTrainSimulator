@@ -170,8 +170,7 @@ namespace Orts.Common.Input
         {
             if (value < 0 || value > 999.9)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0.0 and 999.9");
-            value *= 10;    //simplify display setting for fractional part
-            int s = (int)(value >= 0 ? value + .5 : -value + .5);
+            int s = (int)(value * 10);    //simplify display setting for fractional part
             if (s < 100)
                 SetLeds(0, LedDecimalDigits[s / 10], LedDigits[s % 10]);
             else if (s < 1000)

@@ -687,24 +687,24 @@ namespace Orts.ActivityRunner.Viewer3D
         // Alpha test
         AlphaTest = 0x2,
         // Blending
-        AlphaBlendingNone = 0x0,
+        AlphaBlendingNone = None,
         AlphaBlendingBlend = 0x4,
         AlphaBlendingAdd = 0x8,
         AlphaBlendingMask = 0xC,
         // Shader
-        ShaderImage = 0x00,
+        ShaderImage = None,
         ShaderDarkShade = 0x10,
         ShaderHalfBright = 0x20,
         ShaderFullBright = 0x30,
         ShaderVegetation = 0x40,
         ShaderMask = 0x70,
         // Lighting
-        Specular0 = 0x000,
+        Specular0 = None,
         Specular25 = 0x080,
         Specular750 = 0x100,
         SpecularMask = 0x180,
         // Texture address mode
-        TextureAddressModeWrap = 0x000,
+        TextureAddressModeWrap = None,
         TextureAddressModeMirror = 0x200,
         TextureAddressModeClamp = 0x400,
         TextureAddressModeBorder = 0x600,

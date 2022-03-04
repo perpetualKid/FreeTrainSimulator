@@ -14,6 +14,7 @@ namespace Orts.TrackViewer.Settings
         {
             UserCommandModifierInput moveSlow = new UserCommandModifierInput(KeyModifiers.Control);
             UserCommandModifierInput moveFast = new UserCommandModifierInput(KeyModifiers.Shift);
+            UserCommandModifierInput windowTab = new UserCommandModifierInput(KeyModifiers.Shift);
 
             // All UserCommandModifierInput commands go here.
             UserCommands[UserCommand.Cancel] = new UserCommandKeyInput(Keys.Escape);
@@ -28,12 +29,9 @@ namespace Orts.TrackViewer.Settings
             UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, moveFast, moveSlow);
-            UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5);
-            UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
-            UserCommands[UserCommand.LocationWindow] = new UserCommandKeyInput(Keys.F12);
-            UserCommands[UserCommand.LocationWindowTab] = new UserCommandKeyInput(Keys.F12, KeyModifiers.Shift);
-            UserCommands[UserCommand.HelpWindow] = new UserCommandKeyInput(Keys.F1);
-            UserCommands[UserCommand.HelpWindowTab] = new UserCommandKeyInput(Keys.F1, KeyModifiers.Shift);
+            UserCommands[UserCommand.DisplayDebugScreen] = new UserCommandModifiableKeyInput(Keys.F5, windowTab);
+            UserCommands[UserCommand.DisplayLocationWindow] = new UserCommandModifiableKeyInput(Keys.F12, windowTab);
+            UserCommands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(Keys.F1, windowTab);
         }
     }
 }

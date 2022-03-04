@@ -29,8 +29,7 @@ namespace Orts.TrackViewer.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
-                new Point(owner.DefaultFontSize * 36, (int)(owner.DefaultFontSize * 5.5f + 20)))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(430, 85))
         {
             Modal = true;
             ZOrder = 100;

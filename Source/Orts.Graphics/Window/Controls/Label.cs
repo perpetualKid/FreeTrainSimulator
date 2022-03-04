@@ -12,6 +12,7 @@ namespace Orts.Graphics.Window.Controls
             get => text;
             set { text = value; Initialize(); } 
         }
+
         public HorizontalAlignment Alignment { get; }
         private Point alignmentOffset;
         private Rectangle? clippingRectangle;
@@ -37,6 +38,11 @@ namespace Orts.Graphics.Window.Controls
 
         public Label(WindowBase window, int width, int height, string text)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, null, Color.White)
+        {
+        }
+
+        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align, Color color)
+            : this(window, 0, 0, width, height, text, align, null, color)
         {
         }
 
@@ -69,6 +75,7 @@ namespace Orts.Graphics.Window.Controls
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            base.Draw(spriteBatch, offset);
         }
 
         protected override void Dispose(bool disposing)

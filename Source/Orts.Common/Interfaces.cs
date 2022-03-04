@@ -24,6 +24,8 @@
     public interface ISignal
     { 
         SignalState State { get; set; }
+
+        public bool CallOnEnabled { get; }
     }
 
     public interface ISwitch
