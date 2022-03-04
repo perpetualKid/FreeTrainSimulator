@@ -1914,7 +1914,7 @@ namespace Orts.Simulation.Physics
                 CalculatePositionOfCars(elapsedClockSeconds, distanceM);
 
             // calculate projected speed
-            if (elapsedClockSeconds < AccelerationMpSpS.SmoothPeriodS)
+            if (elapsedClockSeconds < AccelerationMpSpS.SmoothPeriod)
                 AccelerationMpSpS.Update(elapsedClockSeconds, (SpeedMpS - previousSpeedMpS) / elapsedClockSeconds);
             previousSpeedMpS = SpeedMpS;
             ProjectedSpeedMpS = SpeedMpS + 60 * (float)AccelerationMpSpS.SmoothedValue;

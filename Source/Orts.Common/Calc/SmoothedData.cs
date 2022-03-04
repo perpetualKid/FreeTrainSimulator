@@ -21,14 +21,15 @@ namespace Orts.Common.Calc
 {
     public class SmoothedData
     {
-        public SmoothedData()
+        private const double DefaultSmoothPeriod = 3;
+
+        public SmoothedData(): this(DefaultSmoothPeriod)
         {
         }
 
         public SmoothedData(double smoothPeriodS)
-            : this()
         {
-            SmoothPeriodS = smoothPeriodS;
+            SmoothPeriod = smoothPeriodS;
         }
 
         public virtual void Update(double periodS, double value)
@@ -47,7 +48,7 @@ namespace Orts.Common.Calc
 
         protected double SmoothValue(double smoothedValue, double periodS, double value)
         {
-            double rate = SmoothPeriodS / periodS;
+            double rate = SmoothPeriod / periodS;
             if (rate < 1 || double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue))
                 return value;
             else
@@ -62,7 +63,7 @@ namespace Orts.Common.Calc
         public double Value { get; private set; } = double.NaN;
         public double SmoothedValue { get; private set; } = double.NaN;
 
-        public double SmoothPeriodS { get; } = 3;
+        public double SmoothPeriod { get; }
     }
 
     public class SmoothedDataWithPercentiles : SmoothedData
