@@ -86,11 +86,11 @@ namespace Tests.Orts.Common.Calc
 
         [DataTestMethod]
         // FPS-like tests
-        [DataRow(5, 3, 0.318)]
-        [DataRow(10, 3, 0.337)]
-        [DataRow(30, 3, 0.350)]
+        [DataRow(5, 3, 0.353)]
+        [DataRow(10, 3, 0.353)]
+        [DataRow(30, 3, 0.353)]
         [DataRow(60, 3, 0.353)]
-        [DataRow(120, 3, 0.355)]
+        [DataRow(120, 3, 0.353)]
         // Physics-like tests
         [DataRow(60, 1, 0.000)] // Exhaust particles
         [DataRow(60, 2, 0.066)] // Smoke colour
