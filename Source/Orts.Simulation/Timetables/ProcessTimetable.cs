@@ -23,6 +23,7 @@
 // #define DEBUG_TIMETABLE
 //
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -2384,6 +2385,7 @@ namespace Orts.Simulation.Timetables
                 // set train details
                 TTTrain.CheckFreight();
                 TTTrain.SetDistributedPowerUnitIds();
+                TTTrain.ReinitializeEOT();
                 TTTrain.SpeedSettings.routeSpeedMpS = (float)simulator.Route.SpeedLimit;
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
@@ -2441,6 +2443,11 @@ namespace Orts.Simulation.Timetables
 
                     if (wagon.IsEngine)
                         wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                    else if (wagon.IsEOT)
+                    {
+                        wagonFolder = Path.Combine(simulator.RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
+                        wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                    }
 
                     if (!File.Exists(wagonFilePath))
                     {
@@ -2458,6 +2465,8 @@ namespace Orts.Simulation.Timetables
                     car.SignalEvent(TrainEvent.Pantograph1Up);
 
                     TTTrain.Length += car.CarLengthM;
+                    if (car is EndOfTrainDevice)
+                        TTTrain.EndOfTrainDevice = car as EndOfTrainDevice;
                 }
             }
 

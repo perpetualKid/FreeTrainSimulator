@@ -29,6 +29,7 @@
 // #define DEBUG_DEADLOCK
 //
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,6 +45,7 @@ using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
+using static Orts.Formats.Msts.FolderStructure.ContentFolder;
 
 namespace Orts.Simulation.AIs
 {
@@ -836,6 +838,8 @@ namespace Orts.Simulation.AIs
                 StartList.InsertTrain(train);
                 Simulator.StartReference.Add(train.Number);
             }
+//            if (train.Cars[0] is MSTSLocomotive && (train.Cars[0] as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+//                    train.EOT = new EOT((train.Cars[0] as MSTSLocomotive).EOTEnabled, true, train);
             return train;
         }
 
@@ -896,6 +900,11 @@ namespace Orts.Simulation.AIs
                 ;
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                else if (wagon.IsEOT)
+                {
+                    string wagonFolder = Path.Combine(Simulator.RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
+                    wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                }
 
                 if (!File.Exists(wagonFilePath))
                 {
@@ -909,6 +918,14 @@ namespace Orts.Simulation.AIs
                     car.Flipped = wagon.Flip;
                     train.Length += car.CarLengthM;
                     car.UiD = wagon.UiD;
+                    if (car is EndOfTrainDevice)
+                    {
+                        train.EndOfTrainDevice = car as EndOfTrainDevice;
+                        if (!isInitialPlayerTrain)
+                        {
+                            train.EndOfTrainDevice.InitializeLevel();
+                        }
+                    }
 
                     if (isInitialPlayerTrain)
                     {

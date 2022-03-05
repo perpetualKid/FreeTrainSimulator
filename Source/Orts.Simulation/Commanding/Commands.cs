@@ -26,6 +26,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.World;
+using System.IO;
 
 namespace Orts.Simulation.Commanding
 {
@@ -2180,4 +2181,155 @@ namespace Orts.Simulation.Commanding
             return base.ToString();
         }
     }
+
+    // EOT Commands
+
+    [Serializable()]
+    public sealed class EOTCommTestCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTCommTestCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train?.EndOfTrainDevice != null)
+            {
+                Receiver.Train.EndOfTrainDevice.CommTest();
+            }
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTDisarmCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTDisarmCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train?.EndOfTrainDevice != null)
+            {
+                Receiver.Train.EndOfTrainDevice.Disarm();
+            }
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTArmTwoWayCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTArmTwoWayCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train?.EndOfTrainDevice != null)
+            {
+                Receiver.Train.EndOfTrainDevice.ArmTwoWay();
+            }
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTEmergencyBrakeCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTEmergencyBrakeCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train?.EndOfTrainDevice != null)
+            {
+                Receiver.Train.EndOfTrainDevice.EmergencyBrake(targetState);
+            }
+        }
+    }
+
+    [Serializable()]
+    public sealed class ToggleEOTEmergencyBrakeCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleEOTEmergencyBrakeCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train?.EndOfTrainDevice != null)
+            {
+                Receiver.Train.EndOfTrainDevice.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
+            }
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTMountCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+        public string PickedEOTType { get; set; }
+
+        public EOTMountCommand(CommandLog log, bool toState, string pickedEOTType)
+            : base(log, toState)
+        {
+            PickedEOTType = pickedEOTType;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train != null)
+            {
+                if (targetState)
+                {
+                    string wagonFilePath = PickedEOTType.ToLowerInvariant();
+                    try
+                    {
+                        EndOfTrainDevice eot = (EndOfTrainDevice)RollingStock.Load(Receiver.Train, wagonFilePath);
+                        eot.CarID = $"{Receiver.Train.Number} - EOT";
+                        eot.Train.EndOfTrainDevice = eot;
+                    }
+                    catch (Exception error)
+                    {
+                        Trace.WriteLine(new FileLoadException(wagonFilePath, error));
+                        return;
+                    }
+                    Receiver.Train.CalculatePositionOfEOT();
+                    Receiver.Train.PhysicsUpdate(0);
+                }
+                else
+                {
+                    Receiver.Train.RecalculateRearTDBTraveller();
+                    var car = Receiver.Train.Cars[^1];
+                    car.Train = null;
+                    car.IsPartOfActiveTrain = false;  // to stop sounds
+                    Receiver.Train.Cars.Remove(car);
+                    Receiver.Train.EndOfTrainDevice = null;
+                    Receiver.Train.PhysicsUpdate(0);
+                }
+            }
+        }
+    }
+
 }

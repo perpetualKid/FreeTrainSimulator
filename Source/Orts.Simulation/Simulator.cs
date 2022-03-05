@@ -42,6 +42,8 @@ using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -124,6 +126,7 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
+        public string EOTPath;      // ie c:\program files\microsoft games\train simulator\trains\ORTS_EOT
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -198,7 +201,7 @@ namespace Orts.Simulation
 
         public MovingTable ActiveMovingTable { get; set; }
 
-
+        public FullEOTPaths FullEOTPaths { get; }
         // Replay functionality!
         public CommandLog Log { get; set; }
         public List<ICommand> ReplayCommandList { get; set; }
@@ -219,7 +222,8 @@ namespace Orts.Simulation
         public event EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
         public event EventHandler RequestTTDetachWindow;
 
-        public float TimetableLoadedFraction = 0.0f;    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
+        public float TimetableLoadedFraction { get; internal set; }    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
+
         public Simulator(UserSettings settings, string activityPath)
         {
             Instance = this;
@@ -288,6 +292,15 @@ namespace Orts.Simulation
                 Trace.Write(" EXTCLOCK");
                 ClockFile cf = new ClockFile(clockFile, RouteFolder.ShapesFolder);
                 Clocks = cf.Clocks;
+            }
+
+            EOTPath = RouteFolder.ContentFolder.TrainSetsFolder + @"\TRAINS\ORTS_EOT\";
+
+            // Generate a list of EOTs that may be used to attach at end of train
+            if (Directory.Exists(EOTPath))
+            {
+                Trace.Write(" EOT");
+                FullEOTPaths = new FullEOTPaths(EOTPath);
             }
 
             Confirmer = new Confirmer(this, 1.5);
@@ -1038,6 +1051,11 @@ namespace Orts.Simulation
                 string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                else if (wagon.IsEOT)
+                {
+                    string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot",wagon.Folder);
+                    wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                }
 
                 if (!File.Exists(wagonFilePath))
                 {
@@ -1057,6 +1075,8 @@ namespace Orts.Simulation
                         car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
+                    if (car is EndOfTrainDevice endOfTrain) 
+                        train.EndOfTrainDevice = endOfTrain;
 
                     train.Length += car.CarLengthM;
 
@@ -1111,6 +1131,10 @@ namespace Orts.Simulation
             float prevEQres = train.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
             train.EqualReservoirPressurePSIorInHg = prevEQres; // The previous command modifies EQ reservoir pressure, causing issues with EP brake systems, so restore to prev value
+
+//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
+
             return (train);
         }
 
@@ -1179,6 +1203,9 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
+//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
+
             return train;
         }
 
@@ -1220,6 +1247,11 @@ namespace Orts.Simulation
                         string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                         if (wagon.IsEngine)
                             wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                        else if (wagon.IsEOT)
+                        {
+                            string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
+                            wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                        }
 
                         if (!File.Exists(wagonFilePath))
                         {
@@ -1233,6 +1265,8 @@ namespace Orts.Simulation
                             car.Flipped = !wagon.Flip;
                             car.UiD = wagon.UiD;
                             car.CarID = activityObject.ID + " - " + car.UiD;
+                            if (car is EndOfTrainDevice endOfTrain)
+                                train.EndOfTrainDevice = endOfTrain;
                         }
                         catch (Exception error)
                         {
@@ -1589,8 +1623,10 @@ namespace Orts.Simulation
 
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
+            train.ReinitializeEOT();
             train2.CheckFreight();
             train2.SetDistributedPowerUnitIds();
+            train2.ReinitializeEOT();
 
             train.Update(0);   // stop the wheels from moving etc
             train2.Update(0);  // stop the wheels from moving etc

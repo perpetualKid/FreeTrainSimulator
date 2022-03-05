@@ -52,6 +52,7 @@ namespace Orts.Common.Input
         [Description("Display Compass Window")] DisplayCompassWindow,
         [Description("Display Basic HUD Toggle")] DisplayBasicHUDToggle,
         [Description("Display Train List Window")] DisplayTrainListWindow,
+        [Description("Display EOT List Window")] DisplayEOTListWindow,
 
         [Description("Debug Speed Up")] DebugSpeedUp,
         [Description("Debug Speed Down")] DebugSpeedDown,
@@ -149,6 +150,7 @@ namespace Orts.Common.Input
         [Description("Control Brake Hose Disconnect")] ControlBrakeHoseDisconnect,
         [Description("Control Alerter")] ControlAlerter,
         [Description("Control Emergency Push Button")] ControlEmergencyPushButton,
+        [Description("Control EOT Emergency Brake")] ControlEOTEmergencyBrake,
         [Description("Control Sander")] ControlSander,
         [Description("Control Sander Toggle")] ControlSanderToggle,
         [Description("Control Wiper")] ControlWiper,

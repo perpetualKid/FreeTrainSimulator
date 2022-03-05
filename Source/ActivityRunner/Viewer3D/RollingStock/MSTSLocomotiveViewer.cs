@@ -204,6 +204,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakeHoseConnect, KeyEventType.KeyPressed, BrakeHoseConnectCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakeHoseDisconnect, KeyEventType.KeyPressed, BrakeHoseDisconnectCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlEmergencyPushButton, KeyEventType.KeyPressed, EmergencyPushButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEOTEmergencyBrake, KeyEventType.KeyPressed, EOTEmergencyBrakeCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, KeyEventType.KeyPressed, SanderOnCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, KeyEventType.KeyReleased, SanderOffCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyPressed, SanderToogleCommand, true);
@@ -306,6 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakeHoseConnect, KeyEventType.KeyPressed, BrakeHoseConnectCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakeHoseDisconnect, KeyEventType.KeyPressed, BrakeHoseDisconnectCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEmergencyPushButton, KeyEventType.KeyPressed, EmergencyPushButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEOTEmergencyBrake, KeyEventType.KeyPressed, EOTEmergencyBrakeCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, KeyEventType.KeyPressed, SanderOnCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, KeyEventType.KeyReleased, SanderOffCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyPressed, SanderToogleCommand);
@@ -379,6 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void BrakeHoseConnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, true);
         private void BrakeHoseDisconnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, false);
         private void EmergencyPushButtonCommand() => _ = new EmergencyPushButtonCommand(Viewer.Log, !Locomotive.EmergencyButtonPressed);
+        private void EOTEmergencyBrakeCommand() => _ = new ToggleEOTEmergencyBrakeCommand(Viewer.Log);
         private void SanderOnCommand() => _ = new SanderCommand(Viewer.Log, true);
         private void SanderOffCommand() => _ = new SanderCommand(Viewer.Log, false);
         private void SanderToogleCommand() => _ = new SanderCommand(Viewer.Log, !Locomotive.Sander);
@@ -2369,6 +2372,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Odometer_Reset:
                 case CabViewControlType.Orts_Generic_Item1:
                 case CabViewControlType.Orts_Generic_Item2:
+                case CabViewControlType.Orts_Eot_Emergency_Brake:
                     index = (int)data;
                     break;
                 case CabViewControlType.Orts_Screen_Select:
@@ -2379,10 +2383,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_DistributedPower_Brake:
                 case CabViewControlType.Orts_DistributedPower_Increase:
                 case CabViewControlType.Orts_DistributedPower_Decrease:
+                case CabViewControlType.Orts_Eot_Comm_Test:
+                case CabViewControlType.Orts_Eot_Disarm:
+                case CabViewControlType.Orts_Eot_Arm_Two_Way:
                     index = ButtonState ? 1 : 0;
                     break;
                 case CabViewControlType.Orts_Static_Display:
                     index = 0;
+                    break;
+                case CabViewControlType.Orts_Eot_State_Display:
+                    index = ControlDiscrete.Values.FindIndex(ind => ind > (int)data) - 1;
+                    if (index == -2)
+                        index = ControlDiscrete.Values.Count - 1;
                     break;
 
                 // Train Control System controls
@@ -2882,6 +2894,34 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
                         _ = new DistributedPowerDecreaseCommand(Viewer.Log);
                     ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_Eot_Comm_Test:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new EOTCommTestCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_Eot_Disarm:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new EOTDisarmCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_Eot_Arm_Two_Way:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new EOTArmTwoWayCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_Eot_Emergency_Brake:
+                    var p = UpdateCommandValue(0, buttonEventType, delta);
+                    if (UpdateCommandValue(0, buttonEventType, delta) == 1)
+                    {
+                        if (Locomotive.Train?.EndOfTrainDevice!= null)
+                        {
+                            _ = new ToggleEOTEmergencyBrakeCommand(Viewer.Log);
+                        }
+                    }
                     break;
             }
         }

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -58,7 +59,10 @@ namespace Orts.Simulation.RollingStocks
 
             if (!wagFile.IsEngine)
             {
-                // its an ordinary MSTS wagon
+                if (wagFilePath.ToLower().Contains("orts_eot"))
+                    car = new EndOfTrainDevice(wagFilePath);
+                else
+                    // its an ordinary MSTS wagon
                 car = new MSTSWagon(wagFilePath);
             }
             else

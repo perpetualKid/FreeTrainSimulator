@@ -1269,6 +1269,7 @@ namespace Orts.Simulation.MultiPlayer
             //train.InitializeSignals(false);//client do it won't have impact
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
+            train.ReinitializeEOT();
             TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
 
             train.SetInitialTrainRoute(tempRoute);
@@ -1460,6 +1461,7 @@ namespace Orts.Simulation.MultiPlayer
                 train.DistanceTravelled = Travelled;
                 train.CheckFreight();
                 train.SetDistributedPowerUnitIds();
+                train.ReinitializeEOT();
             }
             // New train
             else
@@ -1502,6 +1504,7 @@ namespace Orts.Simulation.MultiPlayer
                 //train1.InitializeSignals(false);
                 train.CheckFreight();
                 train.SetDistributedPowerUnitIds();
+                train.ReinitializeEOT();
                 TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
 
                 train.SetInitialTrainRoute(tempRoute);
@@ -2534,6 +2537,7 @@ namespace Orts.Simulation.MultiPlayer
                         train.ControlMode = TrainControlMode.Explorer;
                         train.CheckFreight();
                         train.SetDistributedPowerUnitIds();
+                        train.ReinitializeEOT();
                         train.InitializeBrakes();
                         tempRoute = train.CalculateInitialTrainPosition();
                         if (tempRoute.Count == 0)
@@ -2585,6 +2589,7 @@ namespace Orts.Simulation.MultiPlayer
                 train2.LeadNextLocomotive();
                 train2.CheckFreight();
                 train2.SetDistributedPowerUnitIds();
+                train.ReinitializeEOT();
 
                 //train2 may contain myself, and no other players, thus will make myself controlling this train
                 /*if (train2.Cars.Contains(MPManager.Simulator.PlayerLocomotive))
@@ -2608,6 +2613,7 @@ namespace Orts.Simulation.MultiPlayer
                 train2.ControlMode = TrainControlMode.Explorer;
                 train2.CheckFreight();
                 train2.SetDistributedPowerUnitIds();
+                train.ReinitializeEOT();
                 train2.InitializeBrakes();
                 tempRoute = train2.CalculateInitialTrainPosition();
                 if (tempRoute.Count == 0)
@@ -2880,6 +2886,7 @@ namespace Orts.Simulation.MultiPlayer
             train.RearTDBTraveller = new Traveller(location, direction == 0 ? Direction.Forward : Direction.Backward);
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
+            train.ReinitializeEOT();
             train.CalculatePositionOfCars();
             train.LeadLocomotive = null; train2.LeadLocomotive = null;
             if (Lead != -1 && Lead < train.Cars.Count) train.LeadLocomotive = train.Cars[Lead];

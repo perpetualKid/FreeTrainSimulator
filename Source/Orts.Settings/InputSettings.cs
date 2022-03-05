@@ -212,6 +212,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlDynamicBrakeIncrease] = new UserCommandKeyInput(0x34);
             commands[UserCommand.ControlElectricTrainSupply] = new UserCommandKeyInput(0x30, KeyModifiers.Alt);
             commands[UserCommand.ControlEmergencyPushButton] = new UserCommandKeyInput(0x0E);
+            commands[UserCommand.ControlEOTEmergencyBrake] = new UserCommandKeyInput(0x0E, KeyModifiers.Control);
             commands[UserCommand.ControlEngineBrakeDecrease] = new UserCommandKeyInput(0x1A);
             commands[UserCommand.ControlEngineBrakeIncrease] = new UserCommandKeyInput(0x1B);
             commands[UserCommand.ControlBrakemanBrakeDecrease] = new UserCommandKeyInput(0x1A, KeyModifiers.Alt);
@@ -324,6 +325,7 @@ namespace Orts.Settings
             commands[UserCommand.DisplayTrackMonitorWindow] = new UserCommandModifiableKeyInput(0x3E, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayTrainOperationsWindow] = new UserCommandKeyInput(0x43);
             commands[UserCommand.DisplayTrainDpuWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Shift);
+            commands[UserCommand.DisplayEOTListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Control);
 
             commands[UserCommand.GameAutopilotMode] = new UserCommandKeyInput(0x1E, KeyModifiers.Alt);
             commands[UserCommand.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);

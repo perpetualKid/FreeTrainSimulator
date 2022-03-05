@@ -10499,6 +10499,7 @@ namespace Orts.Simulation.Timetables
             // set various items
             attachTrain.CheckFreight();
             attachTrain.SetDistributedPowerUnitIds();
+            attachTrain.ReinitializeEOT();
             attachCar.SignalEvent(TrainEvent.Couple);
             attachTrain.ProcessSpeedSettings();
 
@@ -10867,7 +10868,10 @@ namespace Orts.Simulation.Timetables
             // check freight for both trains
             CheckFreight();
             SetDistributedPowerUnitIds();
+            ReinitializeEOT();
             newTrain.CheckFreight();
+            newTrain.SetDistributedPowerUnitIds();
+            newTrain.ReinitializeEOT();
 
             // check speed values for both trains
             ProcessSpeedSettings();

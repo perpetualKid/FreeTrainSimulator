@@ -3632,6 +3632,7 @@ namespace Orts.Simulation.AIs
                 // set various items
                 attachTrain.CheckFreight();
                 attachTrain.SetDistributedPowerUnitIds();
+                attachTrain.ReinitializeEOT();
                 attachTrain.ActivityClearingDistanceM = attachTrain.Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
                 attachCar.SignalEvent(TrainEvent.Couple);
 
@@ -3765,6 +3766,7 @@ namespace Orts.Simulation.AIs
             UpdateOccupancies();
             AddTrackSections();
             ResetActions(true);
+            ReinitializeEOT();
             PhysicsUpdate(0);
 
         }
@@ -3989,9 +3991,11 @@ namespace Orts.Simulation.AIs
             // set various items
             CheckFreight();
             SetDistributedPowerUnitIds();
+            ReinitializeEOT();
             ActivityClearingDistanceM = Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
             attachTrain.CheckFreight();
             attachTrain.SetDistributedPowerUnitIds();
+            attachTrain.ReinitializeEOT();
             attachTrain.ActivityClearingDistanceM = attachTrain.Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
             // anticipate reversal point and remove active action
             TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset = Math.Max(PresentPosition[Direction.Forward].Offset - 10f, 0.3f);

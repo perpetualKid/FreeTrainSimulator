@@ -5059,6 +5059,11 @@ namespace Orts.Simulation.RollingStocks
                         data = ConvertFromPSI(cvc, BrakeSystem.GetVacResPressurePSI());
                         break;
                     }
+                case CabViewControlType.Orts_Eot_Brake_Pipe:
+                    {
+                        data = ConvertFromPSI(cvc, this.Train.Cars.Last().BrakeSystem.BrakeLine1PressurePSI);
+                        break;
+                    }
                 case CabViewControlType.Rpm:
                     {
 
@@ -5646,7 +5651,8 @@ namespace Orts.Simulation.RollingStocks
 
                 default:
                     {
-                        data = 0;
+                        if (Train?.EndOfTrainDevice != null && data == 0)
+                            data = Train.EndOfTrainDevice.GetDataOf(cvc);
                         break;
                     }
             }

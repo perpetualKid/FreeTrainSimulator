@@ -30,10 +30,16 @@ namespace Orts.Scripting.Api
             CurrentValue = script.GameTime;
         }
 
-        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic
+        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic //TrainCar
         {
             CurrentValue = () => (float)car.Simulator.GameTime;
         }
+
+        //public Timer(dynamic eot)//TODO 20220510 refactor use of dynamic //Eot
+        //{
+        //    CurrentValue = () => (float)eot.Train.Simulator.GameTime;
+        //}
+
     }
 
     public class Odometer : Counter

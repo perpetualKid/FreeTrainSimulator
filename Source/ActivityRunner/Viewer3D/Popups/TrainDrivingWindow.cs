@@ -1057,6 +1057,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             InfoToLabel(string.Empty, "Sprtr", "", "", true);
 
+
+            // EOT
+
+            if (Locomotive.Train.EndOfTrainDevice != null)
+            {
+
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("EOT"), $"{Locomotive.Train.EndOfTrainDevice.State}", string.Empty, false);
+                InfoToLabel(string.Empty, "Sprtr", "", "", true);
+            }
+
             // Distributed Power
             if (Owner.Viewer.PlayerLocomotive is MSTSDieselLocomotive && multipleUnitsConfiguration != null)
             {
