@@ -288,6 +288,7 @@ namespace Orts.Menu
             settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
             settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             settings.WebServer = checkEnableWebServer.Checked;
+            settings.WebServerPort = (int)numericWebServerPort.Value;
 
             // Audio tab
             settings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;

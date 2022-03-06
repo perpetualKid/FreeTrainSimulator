@@ -18,13 +18,17 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 
-using EmbedIO.Net;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Sockets;
 using System.Threading;
+using System.Windows.Forms;
+
+using EmbedIO.Net;
+
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.WebServices;
-using System.IO;
-using System.Windows.Forms;
-using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -63,8 +67,22 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             string contentPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Content\\Web");
             EndPointManager.UseIpv6 = true;
-            using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{Game.Settings.WebServerPort}", contentPath))
-                server.RunAsync(StopServer.Token).Wait();
+            try
+            {
+                using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{Game.Settings.WebServerPort}", contentPath))
+                    server.RunAsync(StopServer.Token).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is SocketException)
+                {
+                    Trace.TraceWarning($"Port {Game.Settings.WebServerPort} is already in use. Continuing without webserver");
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
         }
     }
 }
