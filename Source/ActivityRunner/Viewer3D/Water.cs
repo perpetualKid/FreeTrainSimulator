@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Xna;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -39,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly VertexBufferBinding[] VertexBufferBindings;
         private Matrix xnaMatrix = Matrix.Identity;
 
-        public WaterPrimitive(Viewer viewer, Tile tile)
+        public WaterPrimitive(Viewer viewer, TileSample tile)
         {
             Viewer = viewer;
             TileX = tile.TileX;
@@ -79,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount);
         }
 
-        private void LoadGeometry(GraphicsDevice graphicsDevice, Tile tile, out int primitiveCount, out IndexBuffer indexBuffer, out VertexBuffer vertexBuffer)
+        private void LoadGeometry(GraphicsDevice graphicsDevice, TileSample tile, out int primitiveCount, out IndexBuffer indexBuffer, out VertexBuffer vertexBuffer)
         {
             primitiveCount = 0;
             var waterLevels = new Matrix2x2(tile.WaterNW, tile.WaterNE, tile.WaterSW, tile.WaterSE);

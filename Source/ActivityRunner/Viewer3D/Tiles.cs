@@ -23,12 +23,10 @@ using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 using Orts.Common.Position;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -45,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
-        private TileList Tiles = new TileList(new List<Tile>());
+        private TileList Tiles = new TileList(new List<TileSample>());
 
         /// <summary>
         /// Constructs a new TileManager for loading tiles from a specific path, either at high-resolution or low-resolution.
@@ -73,7 +71,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Take the current list of tiles, evict any necessary so the new tile fits, load and add the new
             // tile to the list, and store it all atomically in Tiles.
-            var tileList = new List<Tile>(tiles.List);
+            var tileList = new List<TileSample>(tiles.List);
             while (tileList.Count >= MaximumCachedTiles)
                 tileList.RemoveAt(0);
 
@@ -82,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
                 return;
 
-            var newTile = new Tile(FilePath, tileX, tileZ, Zoom, visible);
+            var newTile = new TileSample(FilePath, tileX, tileZ, Zoom, visible);
             if (newTile.Loaded)
             {
                 tileList.Add(newTile);
@@ -95,7 +93,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
                 return;
 
-            newTile = new Tile(FilePath, tileX, tileZ, Zoom - 1, visible);
+            newTile = new TileSample(FilePath, tileX, tileZ, Zoom - 1, visible);
             if (newTile.Loaded)
             {
                 tileList.Add(newTile);
@@ -111,7 +109,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="tileZ">MSTS TileZ coordinate of the tile, or of a logical tile inside a larger physical tile</param>
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
         /// <returns>The <c>Tile</c> covering the specified coordinates, if one exists and is loaded. It may be a single tile or quad tile.</returns>
-        public Tile LoadAndGetTile(int tileX, int tileZ, bool visible)
+        public TileSample LoadAndGetTile(int tileX, int tileZ, bool visible)
         {
             Load(tileX, tileZ, visible);
             return GetTile(tileX, tileZ);
@@ -144,10 +142,10 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="tileX">MSTS TileX coordinate</param>
         /// <param name="tileZ">MSTS TileZ coordinate</param>
         /// <returns>The <c>Tile</c> covering the specified coordinates, if one exists and is loaded. It may be a single tile or quad tile.</returns>
-        public Tile GetTile(int tileX, int tileZ)
+        public TileSample GetTile(int tileX, int tileZ)
         {
             var tiles = Tiles;
-            Tile tile;
+            TileSample tile;
 
             // Check for 1x1 (or 8x8) tiles.
             TileHelper.Snap(ref tileX, ref tileZ, Zoom);
@@ -235,7 +233,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="ux">X sample coordinate</param>
         /// <param name="uz">Z sample coordinate</param>
         /// <returns>Elevation at the given sample coordinates</returns>
-        public float GetElevation(Tile tile, int ux, int uz)
+        public float GetElevation(TileSample tile, int ux, int uz)
         {
             if (ux >= 0 && ux < tile.SampleCount && uz >= 0 && uz < tile.SampleCount)
                 return tile.GetElevation(ux, uz);
@@ -267,7 +265,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="ux">X sample coordinate</param>
         /// <param name="uz">Z sample coordinate</param>
         /// <returns>Vertex-hidden flag at the given sample coordinates</returns>
-        public bool IsVertexHidden(Tile tile, int ux, int uz)
+        public bool IsVertexHidden(TileSample tile, int ux, int uz)
         {
             if (ux >= 0 && ux < tile.SampleCount && uz >= 0 && uz < tile.SampleCount)
                 return tile.IsVertexHidden(ux, uz);
@@ -295,122 +293,18 @@ namespace Orts.ActivityRunner.Viewer3D
             /// <summary>
             /// Stores tiles in load order, so eviction is predictable and reasonable.
             /// </summary>
-            public readonly List<Tile> List;
+            public readonly List<TileSample> List;
 
             /// <summary>
             /// Stores tiles by their TileX, TileZ location, so lookup is fast.
             /// </summary>
-            public readonly Dictionary<uint, Tile> ByXZ;
+            public readonly Dictionary<uint, TileSample> ByXZ;
 
-            public TileList(List<Tile> list)
+            public TileList(List<TileSample> list)
             {
                 List = list;
                 ByXZ = list.ToDictionary(t => ((uint)t.TileX << 16) + (uint)t.TileZ);
             }
-        }
-    }
-
-    /// <summary>
-    /// Represents a single MSTS tile stored on disk, of whatever size (2KM, 4KM, 16KM or 32KM sqaure).
-    /// </summary>
-    [DebuggerDisplay("TileX = {TileX}, TileZ = {TileZ}, Size = {Size}")]
-    public class Tile
-    {
-        public readonly int TileX, TileZ, Size;
-
-        public bool Loaded { get { return TFile != null && YFile != null; } }
-        public float Floor { get { return TFile.Terrain.Samples.SampleFloor; } }  // in meters
-        public float Resolution { get { return TFile.Terrain.Samples.SampleScale; } }  // in meters per( number in Y-file )
-        public int SampleCount { get { return TFile.Terrain.Samples.SampleCount; } }
-        public float SampleSize { get { return TFile.Terrain.Samples.SampleSize; } }
-        public int PatchCount { get { return TFile.Terrain.Patchsets[0].PatchSize; } }
-        public Formats.Msts.Models.Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
-        public float WaterNE { get { return TFile.Terrain.WaterLevelOffset.NE != 0 ? TFile.Terrain.WaterLevelOffset.NE : TFile.Terrain.WaterLevelOffset.SW; } } // in meters
-        public float WaterNW { get { return TFile.Terrain.WaterLevelOffset.NW != 0 ? TFile.Terrain.WaterLevelOffset.NW : TFile.Terrain.WaterLevelOffset.SW; } }
-        public float WaterSE { get { return TFile.Terrain.WaterLevelOffset.SE != 0 ? TFile.Terrain.WaterLevelOffset.SE : TFile.Terrain.WaterLevelOffset.SW; } }
-        public float WaterSW { get { return TFile.Terrain.WaterLevelOffset.SW != 0 ? TFile.Terrain.WaterLevelOffset.SW : TFile.Terrain.WaterLevelOffset.SW; } }
-
-        public bool ContainsWater
-        {
-            get
-            {
-                if (TFile.Terrain.WaterLevelOffset != null)
-                    foreach (var patchset in TFile.Terrain.Patchsets)
-                        foreach (var patch in patchset.Patches)
-                            if (patch.WaterEnabled)
-                                return true;
-                return false;
-            }
-        }
-
-        public Patch GetPatch(int x, int z)
-        {
-            return TFile.Terrain.Patchsets[0].Patches[z * PatchCount + x];
-        }
-
-        private readonly TerrainFile TFile;
-        private readonly TerrainAltitudeFile YFile;
-        private readonly TerrainFlagsFile FFile;
-
-        public Tile(string filePath, int tileX, int tileZ, TileHelper.Zoom zoom, bool visible)
-        {
-            if (!Directory.Exists(filePath))
-                return;
-
-            TileX = tileX;
-            TileZ = tileZ;
-            Size = 1 << (15 - (int)zoom);
-
-            string fileName = TileHelper.FromTileXZ(tileX, tileZ, zoom);
-            string[] tileFiles = Directory.GetFiles(filePath, fileName + "??.*");
-
-            foreach (string file in tileFiles)
-            {
-                if (file.EndsWith(".t", StringComparison.OrdinalIgnoreCase))
-                    try
-                    {
-                        TFile = new TerrainFile(file);
-                    }
-                    catch (Exception error)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, error));
-                    }
-                else if (file.EndsWith("_y.raw", StringComparison.OrdinalIgnoreCase))
-                    try
-                    {
-                        YFile = new TerrainAltitudeFile(file, SampleCount);
-                    }
-                    catch (Exception exception)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, exception));
-                    }
-                else if (file.EndsWith("_f.raw", StringComparison.OrdinalIgnoreCase))
-                    try
-                    {
-                        FFile = new TerrainFlagsFile(file, SampleCount);
-                    }
-                    catch (Exception exception)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, exception));
-                    }
-            }
-            // T and Y files are expected to exist; F files are optional.
-            if (null == TFile)
-            {
-                if (visible)
-                    Trace.TraceWarning("Ignoring missing tile {0}.t", fileName);
-                return;
-            }
-        }
-
-        internal float GetElevation(int ux, int uz)
-        {
-            return (float)YFile.ElevationAt(ux, uz) * Resolution + Floor;
-        }
-
-        internal bool IsVertexHidden(int ux, int uz)
-        {
-            return FFile != null && FFile.IsVertexHiddenAt(ux, uz);
         }
     }
 }

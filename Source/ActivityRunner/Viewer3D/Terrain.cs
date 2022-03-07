@@ -64,8 +64,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 var terrainTiles = TerrainTiles;
                 var newTerrainTiles = new List<TerrainTile>();
 
-                var tiles = new List<Tile>();
-                var loTiles = new List<Tile>();
+                var tiles = new List<TileSample>();
+                var loTiles = new List<TileSample>();
                 var needed = (int)Math.Ceiling((float)Viewer.Settings.ViewingDistance / 2048);
 
                 // First we establish the regular tiles we need to cover the current viewable area.
@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly TerrainPrimitive[,] TerrainPatches;
         private readonly WaterPrimitive WaterTile;
 
-        public TerrainTile(Viewer viewer, TileManager tileManager, Tile tile)
+        public TerrainTile(Viewer viewer, TileManager tileManager, TileSample tile)
         {
             Trace.Write(tile.Size > 2 ? "L" : "T");
             TileX = tile.TileX;
@@ -198,10 +198,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         // These are only used while the contructor runs and are discarded after.
         private readonly TileManager TileManager;
-        private readonly Tile Tile;
+        private readonly TileSample Tile;
         private readonly Patch Patch;
 
-        public TerrainPrimitive(Viewer viewer, TileManager tileManager, Tile tile, int x, int z)
+        public TerrainPrimitive(Viewer viewer, TileManager tileManager, TileSample tile, int x, int z)
         {
             Viewer = viewer;
             TileX = tile.TileX;
