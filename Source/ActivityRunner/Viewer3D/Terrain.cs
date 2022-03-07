@@ -90,10 +90,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Now we turn each unique (distinct) loaded tile in to a terrain tile.
                 newTerrainTiles = tiles
                     .Where(t => t != null).Distinct()
-                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.TileX && tt.TileZ == tile.TileZ && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
+                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
                     .Union(loTiles
                         .Where(t => t != null).Distinct()
-                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.TileX && tt.TileZ == tile.TileZ && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
+                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
                     ).ToList();
 
                 TerrainTiles = newTerrainTiles;
@@ -136,8 +136,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public TerrainTile(Viewer viewer, TileManager tileManager, TileSample tile)
         {
             Trace.Write(tile.Size > 2 ? "L" : "T");
-            TileX = tile.TileX;
-            TileZ = tile.TileZ;
+            TileX = tile.Tile.X;
+            TileZ = tile.Tile.Z;
             Size = tile.Size;
             PatchCount = tile.PatchCount;
 
@@ -204,8 +204,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public TerrainPrimitive(Viewer viewer, TileManager tileManager, TileSample tile, int x, int z)
         {
             Viewer = viewer;
-            TileX = tile.TileX;
-            TileZ = tile.TileZ;
+            TileX = tile.Tile.X;
+            TileZ = tile.Tile.Z;
             Size = tile.Size;
 
             PatchX = x;

@@ -32,7 +32,10 @@ namespace Orts.Formats.Msts.Models
     [DebuggerDisplay("TileX = {TileX}, TileZ = {TileZ}, Size = {Size}")]
     public class TileSample
     {
-        public readonly int TileX, TileZ, Size;
+        private readonly Tile tile;
+        public ref readonly Tile Tile => ref tile;
+
+        public int Size { get; }
 
         public bool Loaded { get { return TFile != null && YFile != null; } }
         public float Floor { get { return TFile.Terrain.Samples.SampleFloor; } }  // in meters
@@ -40,7 +43,9 @@ namespace Orts.Formats.Msts.Models
         public int SampleCount { get { return TFile.Terrain.Samples.SampleCount; } }
         public float SampleSize { get { return TFile.Terrain.Samples.SampleSize; } }
         public int PatchCount { get { return TFile.Terrain.Patchsets[0].PatchSize; } }
-        public Formats.Msts.Models.Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
+#pragma warning disable CA1819 // Properties should not return arrays
+        public Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
+#pragma warning restore CA1819 // Properties should not return arrays
         public float WaterNE { get { return TFile.Terrain.WaterLevelOffset.NE != 0 ? TFile.Terrain.WaterLevelOffset.NE : TFile.Terrain.WaterLevelOffset.SW; } } // in meters
         public float WaterNW { get { return TFile.Terrain.WaterLevelOffset.NW != 0 ? TFile.Terrain.WaterLevelOffset.NW : TFile.Terrain.WaterLevelOffset.SW; } }
         public float WaterSE { get { return TFile.Terrain.WaterLevelOffset.SE != 0 ? TFile.Terrain.WaterLevelOffset.SE : TFile.Terrain.WaterLevelOffset.SW; } }
@@ -73,50 +78,36 @@ namespace Orts.Formats.Msts.Models
             if (!Directory.Exists(filePath))
                 return;
 
-            TileX = tileX;
-            TileZ = tileZ;
+            tile = new Tile(tileX, tileZ);
             Size = 1 << (15 - (int)zoom);
 
-            string fileName = TileHelper.FromTileXZ(tileX, tileZ, zoom);
-            string[] tileFiles = Directory.GetFiles(filePath, fileName + "??.*");
+            string filePattern = TileHelper.FromTileXZ(tileX, tileZ, zoom);
 
-            foreach (string file in tileFiles)
+            foreach (string fileName in Directory.EnumerateFiles(filePath, filePattern + "??.*"))
             {
-                if (file.EndsWith(".t", StringComparison.OrdinalIgnoreCase))
-                    try
+                try
+                {
+                    switch (fileName)
                     {
-                        TFile = new TerrainFile(file);
+                        case string t when t.EndsWith(".t", StringComparison.OrdinalIgnoreCase):
+                            TFile = new TerrainFile(fileName);
+                            break;
+                        case string y when y.EndsWith("_y.raw", StringComparison.OrdinalIgnoreCase):
+                            YFile = new TerrainAltitudeFile(fileName, SampleCount);
+                            break;
+                        case string f when f.EndsWith("_f.raw", StringComparison.OrdinalIgnoreCase):
+                            FFile = new TerrainFlagsFile(fileName, SampleCount);
+                            break;
                     }
-                    catch (Exception error)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, error));
-                    }
-                else if (file.EndsWith("_y.raw", StringComparison.OrdinalIgnoreCase))
-                    try
-                    {
-                        YFile = new TerrainAltitudeFile(file, SampleCount);
-                    }
-                    catch (Exception exception)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, exception));
-                    }
-                else if (file.EndsWith("_f.raw", StringComparison.OrdinalIgnoreCase))
-                    try
-                    {
-                        FFile = new TerrainFlagsFile(file, SampleCount);
-                    }
-                    catch (Exception exception)
-                    {
-                        Trace.WriteLine(new FileLoadException(file, exception));
-                    }
+                }
+                catch (IOException exception)
+                {
+                    Trace.WriteLine(new FileLoadException(fileName, exception));
+                }
             }
             // T and Y files are expected to exist; F files are optional.
-            if (null == TFile)
-            {
-                if (visible)
-                    Trace.TraceWarning("Ignoring missing tile {0}.t", fileName);
-                return;
-            }
+            if (null == TFile && visible)
+                Trace.TraceWarning("Ignoring missing tile {0}.t", filePattern);
         }
 
         public float GetElevation(int ux, int uz)

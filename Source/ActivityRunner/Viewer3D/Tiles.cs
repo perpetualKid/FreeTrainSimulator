@@ -192,8 +192,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 return 0;
 
             // Adjust x/z based on the tile we found - this may not be in the same TileX/Z as we requested due to large (e.g. 2x2) tiles.
-            x += 1024 + 2048 * (tileX - tile.TileX);
-            z += 1024 + 2048 * (tileZ - tile.TileZ - tile.Size);
+            x += 1024 + 2048 * (tileX - tile.Tile.X);
+            z += 1024 + 2048 * (tileZ - tile.Tile.Z - tile.Size);
             z *= -1;
 
             // Convert x/z in meters to terrain tile samples and get the coordinates of the NW corner.
@@ -243,11 +243,11 @@ namespace Orts.ActivityRunner.Viewer3D
             // sample resolution or not.
             var x = ux * tile.SampleSize;
             var z = 2048 * tile.Size - uz * tile.SampleSize;
-            var otherTile = GetTile(tile.TileX + (int)Math.Floor(x / 2048), tile.TileZ + (int)Math.Floor((z - 1) / 2048));
+            var otherTile = GetTile(tile.Tile.X + (int)Math.Floor(x / 2048), tile.Tile.Z + (int)Math.Floor((z - 1) / 2048));
             if (otherTile != null)
             {
-                var ux2 = (int)((x + 2048 * (tile.TileX - otherTile.TileX)) / otherTile.SampleSize);
-                var uz2 = -(int)((z + 2048 * (tile.TileZ - otherTile.TileZ - otherTile.Size)) / otherTile.SampleSize);
+                var ux2 = (int)((x + 2048 * (tile.Tile.X - otherTile.Tile.X)) / otherTile.SampleSize);
+                var uz2 = -(int)((z + 2048 * (tile.Tile.Z - otherTile.Tile.Z - otherTile.Size)) / otherTile.SampleSize);
                 ux2 = Math.Min(ux2, otherTile.SampleCount - 1);
                 uz2 = Math.Min(uz2, otherTile.SampleCount - 1);
                 return otherTile.GetElevation(ux2, uz2);
@@ -275,11 +275,11 @@ namespace Orts.ActivityRunner.Viewer3D
             // sample resolution or not.
             var x = ux * tile.SampleSize;
             var z = 2048 * tile.Size - uz * tile.SampleSize;
-            var otherTile = GetTile(tile.TileX + (int)Math.Floor(x / 2048), tile.TileZ + (int)Math.Floor((z - 1) / 2048));
+            var otherTile = GetTile(tile.Tile.X + (int)Math.Floor(x / 2048), tile.Tile.Z + (int)Math.Floor((z - 1) / 2048));
             if (otherTile != null)
             {
-                var ux2 = (int)((x + 2048 * (tile.TileX - otherTile.TileX)) / otherTile.SampleSize);
-                var uz2 = -(int)((z + 2048 * (tile.TileZ - otherTile.TileZ - otherTile.Size)) / otherTile.SampleSize);
+                var ux2 = (int)((x + 2048 * (tile.Tile.X - otherTile.Tile.X)) / otherTile.SampleSize);
+                var uz2 = -(int)((z + 2048 * (tile.Tile.Z - otherTile.Tile.Z - otherTile.Size)) / otherTile.SampleSize);
                 return otherTile.IsVertexHidden(ux2, uz2);
             }
 
@@ -303,7 +303,7 @@ namespace Orts.ActivityRunner.Viewer3D
             public TileList(List<TileSample> list)
             {
                 List = list;
-                ByXZ = list.ToDictionary(t => ((uint)t.TileX << 16) + (uint)t.TileZ);
+                ByXZ = list.ToDictionary(t => ((uint)t.Tile.X << 16) + (uint)t.Tile.Z);
             }
         }
     }

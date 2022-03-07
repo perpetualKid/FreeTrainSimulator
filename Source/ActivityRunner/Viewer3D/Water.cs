@@ -43,8 +43,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public WaterPrimitive(Viewer viewer, TileSample tile)
         {
             Viewer = viewer;
-            TileX = tile.TileX;
-            TileZ = tile.TileZ;
+            TileX = tile.Tile.X;
+            TileZ = tile.Tile.Z;
             Size = tile.Size;
 
             if (Viewer.ENVFile.WaterLayers != null)

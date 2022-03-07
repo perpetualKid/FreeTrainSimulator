@@ -755,8 +755,8 @@ namespace ORTS.TrackViewer.Drawing
             this.locationTranslator = locationTranslator;
             TileSize = tile.Size;
 
-            snappedTileX = tile.TileX;
-            snappedTileZ = tile.TileZ;
+            snappedTileX = tile.Tile.X;
+            snappedTileZ = tile.Tile.Z;
             TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[TileSize]);
 
             verticesFull = CreateVerticesFromTile(tile);
@@ -861,7 +861,7 @@ namespace ORTS.TrackViewer.Drawing
             float cornerZ = patch.CenterZ - 1024 + 2048 * tile.Size;
             cornerX += -patch.RadiusM + cornerIndexX * step;
             cornerZ += -patch.RadiusM + (squaresPerPatch - cornerIndexZ) * step;
-            WorldLocation location = new WorldLocation(tile.TileX, tile.TileZ, cornerX, 0, cornerZ);
+            WorldLocation location = new WorldLocation(tile.Tile.X, tile.Tile.Z, cornerX, 0, cornerZ);
 
             // Rotate, Flip, and stretch the texture using the matrix coordinates stored in terrain_patchset_patch 
             // transform uv by the 2x3 matrix made up of X,Y  W,B  C,H
