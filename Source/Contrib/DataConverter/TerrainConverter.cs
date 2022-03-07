@@ -25,6 +25,7 @@ using System.Xml.Linq;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.DataConverter
 {
@@ -80,22 +81,21 @@ namespace Orts.DataConverter
 
             string baseFileName = Path.Combine(Path.GetDirectoryName(conversion.Input), Path.GetFileNameWithoutExtension(conversion.Input));
 
-            TerrainFile tFile = new TerrainFile(baseFileName + ".t");
+            Terrain terrain = TerrainFile.LoadTerrainFile(baseFileName + ".t");
 
-            int sampleCount = tFile.Terrain.Samples.SampleCount;
+            int sampleCount = terrain.Samples.SampleCount;
             TerrainAltitudeFile yFile = new TerrainAltitudeFile(baseFileName + "_y.raw", sampleCount);
-            TerrainFlagsFile fFile;
             if (File.Exists(baseFileName + "_f.raw"))
             {
-                fFile = new TerrainFlagsFile(baseFileName + "_f.raw", sampleCount);
+                _ = TerrainFlagsFile.LoadTerrainFlagsFile(baseFileName + "_f.raw", sampleCount);
             }
 
-            int patchCount = tFile.Terrain.Patchsets[0].PatchSize;
+            int patchCount = terrain.Patchsets[0].PatchSize;
             for (int x = 0; x < patchCount; x++)
             {
                 for (int z = 0; z < patchCount; z++)
                 {
-                    TerrainConverterPatch patch = new TerrainConverterPatch(tFile, yFile, x, z);
+                    TerrainConverterPatch patch = new TerrainConverterPatch(terrain, yFile, x, z);
 
                     XNamespace cNS = "http://www.collada.org/2005/11/COLLADASchema";
                     XDocument colladaDocument = new XDocument(
@@ -252,26 +252,26 @@ namespace Orts.DataConverter
 
     internal class TerrainConverterPatch
     {
-        private readonly TerrainFile TFile;
+        private readonly Terrain terrain;
         private readonly TerrainAltitudeFile YFile;
         private readonly int PatchX;
         private readonly int PatchZ;
         private readonly int PatchSize;
 
-        public TerrainConverterPatch(TerrainFile tFile, TerrainAltitudeFile yFile, int patchX, int patchZ)
+        public TerrainConverterPatch(Terrain terrain, TerrainAltitudeFile yFile, int patchX, int patchZ)
         {
-            TFile = tFile;
+            this.terrain = terrain;
             YFile = yFile;
             PatchX = patchX;
             PatchZ = patchZ;
-            PatchSize = tFile.Terrain.Samples.SampleCount / tFile.Terrain.Patchsets[0].PatchSize;
+            PatchSize = terrain.Samples.SampleCount / terrain.Patchsets[0].PatchSize;
         }
 
         private int GetElevation(int x, int z)
         {
             return YFile.ElevationAt(
-                Math.Min(PatchX * PatchSize + x, TFile.Terrain.Samples.SampleCount - 1),
-                Math.Min(PatchZ * PatchSize + z, TFile.Terrain.Samples.SampleCount - 1)
+                Math.Min(PatchX * PatchSize + x, terrain.Samples.SampleCount - 1),
+                Math.Min(PatchZ * PatchSize + z, terrain.Samples.SampleCount - 1)
             );
         }
 
@@ -293,7 +293,7 @@ namespace Orts.DataConverter
             {
                 for (int z = 0; z <= PatchSize; z++)
                 {
-                    output.AppendFormat(CultureInfo.InvariantCulture, $"{x * TFile.Terrain.Samples.SampleSize} {GetElevation(x, z) * TFile.Terrain.Samples.SampleScale} {z * TFile.Terrain.Samples.SampleSize} ");
+                    output.AppendFormat(CultureInfo.InvariantCulture, $"{x * terrain.Samples.SampleSize} {GetElevation(x, z) * terrain.Samples.SampleScale} {z * terrain.Samples.SampleSize} ");
                 }
             }
 

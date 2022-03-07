@@ -62,7 +62,7 @@ namespace Orts.ContentChecker
             }
             else
             {
-                _ = new TerrainFlagsFile(file, sampleCount);
+                _ = TerrainFlagsFile.LoadTerrainFlagsFile(file, sampleCount);
             }
         }
     }
