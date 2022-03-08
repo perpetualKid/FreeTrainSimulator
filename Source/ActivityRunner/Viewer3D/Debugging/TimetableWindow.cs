@@ -86,8 +86,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
 
             chkDrawPath.Visible = dispatchView;
-            chkPickSignals.Visible = dispatchView;
-            chkPickSwitches.Visible = dispatchView;
             btnSeeInGame.Visible = dispatchView;
             btnFollow.Visible = dispatchView;
             windowSizeUpDown.Visible = dispatchView;

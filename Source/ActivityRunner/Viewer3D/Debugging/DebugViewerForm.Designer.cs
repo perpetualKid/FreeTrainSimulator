@@ -53,8 +53,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.reply2Selected = new System.Windows.Forms.Button();
             this.chkDrawPath = new System.Windows.Forms.CheckBox();
-            this.chkPickSignals = new System.Windows.Forms.CheckBox();
-            this.chkPickSwitches = new System.Windows.Forms.CheckBox();
             this.chkAllowNew = new System.Windows.Forms.CheckBox();
             this.messages = new System.Windows.Forms.ListBox();
             this.btnAssist = new System.Windows.Forms.Button();
@@ -302,32 +300,6 @@
             this.chkDrawPath.Text = "Draw Path";
             this.chkDrawPath.UseVisualStyleBackColor = true;
             this.chkDrawPath.CheckedChanged += new System.EventHandler(this.chkDrawPathChanged);
-            // 
-            // chkPickSignals
-            // 
-            this.chkPickSignals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkPickSignals.AutoSize = true;
-            this.chkPickSignals.Checked = true;
-            this.chkPickSignals.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSignals.Location = new System.Drawing.Point(781, 75);
-            this.chkPickSignals.Name = "chkPickSignals";
-            this.chkPickSignals.Size = new System.Drawing.Size(106, 21);
-            this.chkPickSignals.TabIndex = 27;
-            this.chkPickSignals.Text = "Pick Signals";
-            this.chkPickSignals.UseVisualStyleBackColor = true;
-            // 
-            // chkPickSwitches
-            // 
-            this.chkPickSwitches.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkPickSwitches.AutoSize = true;
-            this.chkPickSwitches.Checked = true;
-            this.chkPickSwitches.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSwitches.Location = new System.Drawing.Point(781, 93);
-            this.chkPickSwitches.Name = "chkPickSwitches";
-            this.chkPickSwitches.Size = new System.Drawing.Size(115, 21);
-            this.chkPickSwitches.TabIndex = 28;
-            this.chkPickSwitches.Text = "Pick Switches";
-            this.chkPickSwitches.UseVisualStyleBackColor = true;
             // 
             // chkAllowNew
             // 
@@ -744,8 +716,6 @@
             this.Controls.Add(this.btnNormal);
             this.Controls.Add(this.btnAssist);
             this.Controls.Add(this.chkAllowNew);
-            this.Controls.Add(this.chkPickSwitches);
-            this.Controls.Add(this.chkPickSignals);
             this.Controls.Add(this.chkDrawPath);
             this.Controls.Add(this.reply2Selected);
             this.Controls.Add(this.messages);
@@ -797,8 +767,6 @@
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.Button reply2Selected;
         public System.Windows.Forms.CheckBox chkDrawPath;
-        public System.Windows.Forms.CheckBox chkPickSignals;
-        public System.Windows.Forms.CheckBox chkPickSwitches;
         public System.Windows.Forms.CheckBox chkAllowNew;
         public System.Windows.Forms.ListBox messages;
         public System.Windows.Forms.Button btnAssist;

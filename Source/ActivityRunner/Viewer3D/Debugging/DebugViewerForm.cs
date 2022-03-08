@@ -243,7 +243,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     if (trackVectorNode.TrackVectorSections.Length > 1)
                     {
-                        AddSegments(trackVectorNode, trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
+                        AddSegments(trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY);
                     }
                     else
                     {
@@ -340,25 +340,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             bool FindDefault = false;
             try
             {
-                if (simulator.Settings.ShowAvatar == false)
-                    throw new Exception();
+                if (!simulator.Settings.ShowAvatar)
+                    return;
                 FindDefault = true;
                 var request = WebRequest.Create(url);
                 using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
-                    Image newImage = Image.FromStream(stream);//Image.FromFile("C:\\test1.png");//
+                    Image newImage = Image.FromStream(stream);
                     avatarList[name] = newImage;
-
-                    /*using (MemoryStream ms = new MemoryStream())
-                    {
-                        // Convert Image to byte[]
-                        newImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        byte[] imageBytes = ms.ToArray();
-
-                        // Convert byte[] to Base64 String
-                        string base64String = Convert.ToBase64String(imageBytes);
-                    }*/
                 }
             }
             catch
@@ -366,35 +356,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (FindDefault)
                 {
                     byte[] imageBytes = Convert.FromBase64String(imagestring);
-                    MemoryStream ms = new MemoryStream(imageBytes, 0,
-                      imageBytes.Length);
+                    using (MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+                    {
 
-                    // Convert byte[] to Image
-                    ms.Write(imageBytes, 0, imageBytes.Length);
-                    Image newImage = Image.FromStream(ms, true);
-                    avatarList[name] = newImage;
+                        // Convert byte[] to Image
+                        ms.Write(imageBytes, 0, imageBytes.Length);
+                        Image newImage = Image.FromStream(ms, true);
+                        avatarList[name] = newImage;
+                    }
                 }
                 else
                 {
                     avatarList[name] = null;
                 }
             }
-
-
-            /*
-            imageList1.Images.Clear();
-            AvatarView.Items.Clear();
-            var i = 0;
-            foreach (var pair in avatarList)
-            {
-                if (pair.Value == null) AvatarView.Items.Add(pair.Key);
-                else
-                {
-                    AvatarView.Items.Add(pair.Key).ImageIndex = i;
-                    imageList1.Images.Add(pair.Value);
-                    i++;
-                }
-            }*/
         }
 
         private int LostCount;//how many players in the lost list (quit)
@@ -672,15 +647,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width) || (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0))
                         continue;
 
-
-                    //if (highlightTrackSections.Checked)
-                    //{
-                    //   if (line.Section != null && line.Section.InterlockingTrack == trackSections.SelectedValue)
-                    //   {
-                    //      p.Width = 5f;
-                    //   }
-                    //}
-
                     if (line.isCurved == true)
                     {
                         scaledC.X = (line.C.Location.Location.X - subX) * xScale;
@@ -693,10 +659,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     else
                         g.DrawLine(p, scaledA, scaledB);
 
-                    /*if (line.MySection != null)
-                    {
-                        g.DrawString(""+line.MySection.StartElev+" "+line.MySection.EndElev, sidingFont, sidingBrush, scaledB);
-                    }*/
                 }
 
                 switchItemsDrawn.Clear();
@@ -761,7 +723,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             pen = redPen;
                         }
                         g.FillEllipse(color, GetRect(scaledItem, width));
-                        //if (s.Signal.enabledTrain != null) g.DrawString(""+s.Signal.enabledTrain.Train.Number, trainFont, Brushes.Black, scaledItem);
                         if (s.hasDir)
                         {
                             scaledB.X = (s.Dir.X - subX) * xScale;
@@ -1263,7 +1224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
         /// <param name="simulator"></param>
-        private void AddSegments(TrackNode node, TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
+        private void AddSegments(TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY)
         {
             double tempX1, tempX2, tempZ1, tempZ2;
 
@@ -1459,30 +1420,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 range = 5;
             double closest = float.NaN;
             ItemWidget closestItem = null;
-            if (chkPickSwitches.Checked == true)
-            {
-                foreach (var item in switchItemsDrawn)
-                {
-                    //if out of range, continue
-                    if (item.Location2D.X < x - range || item.Location2D.X > x + range
-                       || item.Location2D.Y < y - range || item.Location2D.Y > y + range)
-                        continue;
-
-                    if (closestItem != null)
-                    {
-                        var dist = Math.Pow(item.Location2D.X - closestItem.Location2D.X, 2) + Math.Pow(item.Location2D.Y - closestItem.Location2D.Y, 2);
-                        if (dist < closest)
-                        {
-                            closest = dist;
-                            closestItem = item;
-                        }
-                    }
-                    else
-                        closestItem = item;
-                }
-                if (closestItem != null)
-                { return closestItem; }
-            }
 
             //now check for trains (first car only)
             TrainCar firstCar;

@@ -21,7 +21,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private RadioButton rbtnSiding;
 
         public SwitchStateWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Signal State"), relativeLocation, new Point(80, 105))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Switch State"), relativeLocation, new Point(120, 65))
         {
             Modal = true;
             offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));
