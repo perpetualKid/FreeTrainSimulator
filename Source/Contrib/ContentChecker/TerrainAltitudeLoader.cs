@@ -62,7 +62,7 @@ namespace Orts.ContentChecker
             }
             else
             {
-                _ = new TerrainAltitudeFile(file, sampleCount);
+                _ = TerrainAltitudeFile.LoadTerrainAltitudeFile(file, sampleCount);
             }
         }
     }

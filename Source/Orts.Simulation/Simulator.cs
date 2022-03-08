@@ -140,7 +140,9 @@ namespace Orts.Simulation
         public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<int, AITrain> AutoGenDictionary { get; } = new Dictionary<int, AITrain>();
-        public IList<int> StartReference { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> StartReference { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public Weather Weather { get; } = new Weather();
 
         public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
@@ -166,8 +168,10 @@ namespace Orts.Simulation
         public float InitialTileZ { get; private set; }
         public HazardManager HazardManager { get; private set; }
 
-        public IList<MovingTable> MovingTables { get; } = new List<MovingTable>();
-        public IList<CarSpawners> CarSpawnerLists { get; } = new List<CarSpawners>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
+        public List<CarSpawners> CarSpawnerLists { get; } = new List<CarSpawners>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public ClockList Clocks { get; private set; }           // List of OR-Clocks given by externe file "openrails\clocks.dat"
 
         // timetable pools
@@ -475,7 +479,7 @@ namespace Orts.Simulation
         {
             Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             if (playerTrain != null)
             {
                 _ = playerTrain.PostInit();
@@ -489,7 +493,7 @@ namespace Orts.Simulation
         {
             AITrain playerTrain = InitializeAPPlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             playerTrain.AI = AI;
             if (playerTrain != null)
             {

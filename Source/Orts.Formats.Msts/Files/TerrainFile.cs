@@ -20,15 +20,16 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Files
 {
-    public class TerrainFile
+    public static class TerrainFile
     {
-        public Terrain Terrain { get; private set; }
-
-        public TerrainFile(string fileName)
+        public static Terrain LoadTerrainFile(string fileName)
         {
             using (var sbr = SBR.Open(fileName))
-            using (var block = sbr.ReadSubBlock())
-                Terrain = new Terrain(block);
+            {
+                using (var block = sbr.ReadSubBlock())
+                    return new Terrain(block);
+            }
         }
+
     }
 }

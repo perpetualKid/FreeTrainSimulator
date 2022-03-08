@@ -45,7 +45,9 @@ namespace Orts.Formats.Msts.Models
         public MaxVelocity MaxVelocity { get; private set; }
         public float Durability { get; private set; } = 1.0f;   // Value assumed if attribute not found.
 
-        public IList<Wagon> Wagons { get; } = new List<Wagon>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Wagon> Wagons { get; } = new List<Wagon>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
 
         internal TrainSet(STFReader stf)

@@ -17,6 +17,7 @@
 
 using System.IO;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ContentChecker
 {
@@ -25,7 +26,7 @@ namespace Orts.ContentChecker
     /// </summary>
     internal class TerrainLoader : Loader
     {
-        private TerrainFile tFile;
+        private Terrain terrain;
 
         /// <summary>
         /// Try to load the file.
@@ -35,13 +36,13 @@ namespace Orts.ContentChecker
         public override void TryLoading(string file)
         {
             loadedFile = file;
-            tFile = new TerrainFile(file);
+            terrain = TerrainFile.LoadTerrainFile(file);
         }
 
         protected override void AddDependentFiles()
         {
             string baseFileWithDir = Path.Combine(Path.GetDirectoryName(loadedFile), Path.GetFileNameWithoutExtension(loadedFile));
-            int sampleCount = tFile.Terrain.Samples.SampleCount;
+            int sampleCount = terrain.Samples.SampleCount;
             AddAdditionalFileAction.Invoke(baseFileWithDir + "_y.raw", new TerrainAltitudeLoader(sampleCount));
 
             string f_raw_file = baseFileWithDir + "_f.raw";

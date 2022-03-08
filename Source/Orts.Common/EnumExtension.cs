@@ -14,17 +14,17 @@ namespace Orts.Common
     {
         private static class EnumCache<T> where T : Enum
         {
-            internal static readonly IList<string> Names;
-            internal static readonly IList<T> Values;
+            internal static readonly ReadOnlyCollection<string> Names;
+            internal static readonly ReadOnlyCollection<T> Values;
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
             internal static readonly string EnumDescription;
-            internal static readonly IDictionary<string, T> NameValuePairs;
+            internal static readonly Dictionary<string, T> NameValuePairs;
             internal static readonly int Length;
             internal static readonly int SupportsReverse;
 #pragma warning disable CA1802 // Use literals where appropriate
             internal static readonly bool ConsecutiveValues = true;
 #pragma warning restore CA1802 // Use literals where appropriate
-            internal static readonly IDictionary<T, int> ValueLookup;
+            internal static readonly Dictionary<T, int> ValueLookup;
             internal static readonly int Offset;
             internal static Catalog Catalog;
 
@@ -138,7 +138,7 @@ namespace Orts.Common
         /// <summary>
         /// returns a static list of all names in this enum
         /// </summary>
-        public static IList<string> GetNames<T>() where T : Enum
+        public static IReadOnlyCollection<string> GetNames<T>() where T : Enum
         {
             return EnumCache<T>.Names;
         }
@@ -146,7 +146,7 @@ namespace Orts.Common
         /// <summary>
         /// returns a static list of all values in this enum
         /// </summary>
-        public static IList<T> GetValues<T>() where T : Enum
+        public static IReadOnlyCollection<T> GetValues<T>() where T : Enum
         {
             return EnumCache<T>.Values;
         }

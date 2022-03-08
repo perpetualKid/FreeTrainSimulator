@@ -312,10 +312,12 @@ namespace Orts.Formats.Msts.Models
         public bool ActivitySuccess { get; private set; }
         public string ActivityFail { get; private set; }
         // MSTS Activity Editor limits model to 4 outcomes of any type. We use lists so there is no restriction.
-        public IList<int> ActivateList { get; } = new List<int>();
-        public IList<int> RestoreActivityLevels { get; } = new List<int>();
-        public IList<int> DecrementActivityLevels { get; } = new List<int>();
-        public IList<int> IncrementActivityLevels { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> ActivateList { get; } = new List<int>();
+        public List<int> RestoreActivityLevels { get; } = new List<int>();
+        public List<int> DecrementActivityLevels { get; } = new List<int>();
+        public List<int> IncrementActivityLevels { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public string DisplayMessage { get; private set; }
         //       public string WaitingTrainToRestart;
         public RestartWaitingTrain RestartWaitingTrain { get; private set; }

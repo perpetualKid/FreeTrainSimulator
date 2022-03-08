@@ -300,7 +300,7 @@ namespace Orts.Simulation.Signalling
         private void BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
             ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
         {
-            List<TokenID> Tokens = new List<TokenID>
+            HashSet<TokenID> Tokens = new HashSet<TokenID>
             {
                 TokenID.Signal,
                 TokenID.Speedpost,
