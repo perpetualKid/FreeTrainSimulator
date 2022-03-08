@@ -26,7 +26,6 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {

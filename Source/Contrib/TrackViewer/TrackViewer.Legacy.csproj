@@ -95,8 +95,6 @@
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Graphics\Orts.Graphics.csproj" />
     <ProjectReference Include="..\..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
-    <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
-    <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">

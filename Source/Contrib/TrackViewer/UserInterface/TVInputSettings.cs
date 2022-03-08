@@ -21,9 +21,8 @@
 // Here all possible key commands are defined (enumerated) as well as linked to a specific key or key combination.
 
 using System;
-using Orts.Common;
+
 using Orts.Common.Input;
-using Orts.Settings;
 
 namespace ORTS.TrackViewer.UserInterface
 {
