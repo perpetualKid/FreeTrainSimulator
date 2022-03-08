@@ -361,15 +361,19 @@ namespace Orts.ActivityRunner.Viewer3D
                     var sw = (short)(nw + 17);
                     var se = (short)(sw + 1);
 
+                    bool vertexHiddenXZ = IsVertexHidden(x, z);
+                    bool vertexHiddenX1Z1 = IsVertexHidden(x + 1, z + 1);
+                    bool vertexHiddenX1Z = IsVertexHidden(x + 1, z);
+                    bool vertexHiddenXZ1 = IsVertexHidden(x, z + 1);
                     if ((z & 1) == (x & 1))  // Triangles alternate
                     {
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z1 && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = se;
                             indexBuffer[i++] = sw;
                         }
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z && !vertexHiddenX1Z1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = ne;
@@ -378,13 +382,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                     {
-                        if (!IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenX1Z && !vertexHiddenX1Z1 && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = ne;
                             indexBuffer[i++] = se;
                             indexBuffer[i++] = sw;
                         }
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = ne;

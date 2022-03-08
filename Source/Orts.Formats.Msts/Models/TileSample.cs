@@ -44,7 +44,7 @@ namespace Orts.Formats.Msts.Models
 
         public int Size { get; }
 
-        public bool Loaded { get { return terrain != null && terrainAltitude != null; } }
+        public bool Valid { get { return terrain != null && terrainAltitude != null; } }
         public float Floor { get { return terrain.Samples.SampleFloor; } }  // in meters
         public float Resolution { get { return terrain.Samples.SampleScale; } }  // in meters per( number in Y-file )
         public int SampleCount { get; }//{ get { return terrain.Samples.SampleCount; } }
@@ -122,6 +122,11 @@ namespace Orts.Formats.Msts.Models
         public bool IsVertexHidden(int x, int z)
         {
             return terrainFlags?[x * SampleCount + z] ?? false;
+        }
+
+        public bool InsideTile(int x, int z)
+        {
+            return x >= 0 && x < SampleCount && z >= 0 && z < SampleCount;
         }
     }
 }
