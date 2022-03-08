@@ -138,8 +138,6 @@ namespace ORTS.TrackViewer
         /// <summary>Maximum number of times we will skipp drawing</summary>
         private const int maxSkipDrawAmount = 10;
 
-        /// <summary>The fontmanager that we use to draw strings</summary>
-        private FontManager fontManager;
         /// <summary>The command-line arguments</summary>
         private string[] commandLineArgs;
         #endregion
@@ -191,6 +189,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         protected override void Initialize()
         {
+            TextManager.Initialize(this);
             TVInputSettings.SetDefaults();
 
             // This control is purely here to capture focus and prevent it slipping out and on to the menu.
@@ -215,7 +214,6 @@ namespace ORTS.TrackViewer
                 StrictChecking = true
             };
 
-            fontManager = FontManager.Instance;
             SetSubwindowSizes();
 
             IsMouseVisible = true;
@@ -259,7 +257,7 @@ namespace ORTS.TrackViewer
             drawAreaInset.SetScreenSize(ScreenW - ScreenW / insetRatio, menuHeight + 1, ScreenW / insetRatio, ScreenH / insetRatio);
 
             //Some on-screen features depend on the actual font-height
-            int halfHeight = (int)(fontManager.DefaultFont.Height / 2);
+            int halfHeight = (int)(TextManager.Instance.DefaultFont.Height / 2);
             drawScaleRuler.SetLocationAndSize(halfHeight, ScreenH - statusbarHeight - halfHeight, 2 * halfHeight);
             drawLongitudeLatitude = new DrawLongitudeLatitude(halfHeight, menuHeight);
             drawEditorAction = new DrawEditorAction(halfHeight, menuHeight + 2 * halfHeight);
@@ -301,11 +299,6 @@ namespace ORTS.TrackViewer
             // it is better to have integer locations, otherwise text is difficult to read
             Vector2 messageLocation = new Vector2((float)Math.Round(ScreenW / 2f), (float)Math.Round(ScreenH / 2f));
             BasicShapes.DrawStringCentered(messageLocation, DrawColors.colorsNormal.Text, message);
-
-            // we have to redo the string drawing, because we now first have to load the characters into textures.
-            fontManager.Update(GraphicsDevice);
-            BasicShapes.DrawStringCentered(messageLocation, DrawColors.colorsNormal.Text, message);
-
             spriteBatch.End();
             EndDraw();
         }
@@ -336,7 +329,6 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            fontManager.Update(GraphicsDevice);
             if (DrawTrackDB != null)
             {   // when update is called, we are not searching via menu
                 DrawTrackDB.ClearHighlightOverrides();
@@ -924,7 +916,7 @@ namespace ORTS.TrackViewer
             {
                 RouteData.Load(newRoute.Path, messageHandler);
                 DrawTrackDB = new DrawTrackDB(messageHandler);
-                drawLabels = new DrawLabels(fontManager.DefaultFont.Height);
+                drawLabels = new DrawLabels(TextManager.Instance.DefaultFont.Height);
                 CurrentRoute = newRoute;
 
                 Properties.Settings.Default.defaultRoute = CurrentRoute.Path.Split('\\').Last();
