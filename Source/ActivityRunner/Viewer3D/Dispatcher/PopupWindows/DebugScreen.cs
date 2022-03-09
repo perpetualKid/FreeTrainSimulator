@@ -38,7 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
         {
-            currentProvider[informationType].DebugInformationProvider = provider;
+            currentProvider[informationType].InformationProvider = provider;
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)

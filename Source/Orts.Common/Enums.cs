@@ -946,4 +946,13 @@ namespace Orts.Common
         Location,
         Size,
     }
+
+    public enum DispatcherWindowType
+    {
+        DebugScreen,
+        SignalChange,
+        SwitchChange,
+        SignalState,
+    }
+
 }

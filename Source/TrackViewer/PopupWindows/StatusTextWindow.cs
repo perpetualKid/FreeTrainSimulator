@@ -19,7 +19,7 @@ namespace Orts.TrackViewer.PopupWindows
         public string RouteName { get => routeLabel?.Text; set => routeLabel.Text = value; }
 
         public StatusTextWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, CatalogManager.Catalog.GetString("Loading Route"), relativeLocation, new Point(300, 70))
+            base(owner, "Loading Route", relativeLocation, new Point(300, 70))
         {
             Interactive = false;
             ZOrder = 70;

@@ -27,6 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             UserCommands[UserCommand.FollowTrain] = new UserCommandKeyInput(Keys.F);
             UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5);
             UserCommands[UserCommand.DebugScreenTab] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
+            UserCommands[UserCommand.SignalStateWindow] = new UserCommandKeyInput(Keys.F12);
         }
     }
 }

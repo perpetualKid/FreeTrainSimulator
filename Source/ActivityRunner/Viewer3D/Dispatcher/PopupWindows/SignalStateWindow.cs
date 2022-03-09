@@ -1,101 +1,84 @@
-﻿using System;
+﻿
+using System.Collections.Generic;
+using System.Collections.Specialized;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
     public class SignalStateWindow : WindowBase
     {
-        private readonly Point offset;
-        private ISignal signal;
-        private RadioButton rbtnSystem;
-        private ControlLayout callonLine;
-
-
-        public SignalStateWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Signal State"), relativeLocation, new Point(140, 105))
+        private class SignalStateInformation : INameValueInformationProvider
         {
-            Modal = true;
-            offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));
+            public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+
+            public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
         }
 
-        public void OpenAt(Point point, ISignal signal)
+        private readonly SignalStateInformation signalStateInformation = new SignalStateInformation();
+        private Signal signal;
+
+        public SignalStateWindow(WindowManager owner, Point relativeLocation) :
+            base(owner, "Signal State", relativeLocation, new Point(220, 140))
         {
-            this.signal = signal;
-            rbtnSystem.State = true;
-            callonLine.Visible = signal?.CallOnEnabled ?? false;
-            Relocate(point + offset);
-            Open();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            Label label;
-            RadioButton radioButton;
             layout = base.Layout(layout, headerScaling);
-            ControlLayout rbLayout = layout.AddLayoutVertical();
-            RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
-            callonLine.Add(rbtnSystem = new RadioButton(this, radioButtonGroup) { TextColor = Color.White, State = true, Tag = SignalState.Clear });
-            rbtnSystem.OnClick += Button_OnClick;
-            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("System Controlled")) { Tag = SignalState.Clear });
-            label.OnClick += Button_OnClick;
-
-            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
-            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.Red, Tag = SignalState.Lock });
-            radioButton.OnClick += Button_OnClick;
-            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Stop")) { Tag = SignalState.Lock });
-            label.OnClick += Button_OnClick;
-
-            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
-            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.Yellow, Tag = SignalState.Approach });
-            radioButton.OnClick += Button_OnClick;
-            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Approach")) { Tag = SignalState.Approach });
-            label.OnClick += Button_OnClick;
-
-            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
-            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.LimeGreen, Tag = SignalState.Manual });
-            radioButton.OnClick += Button_OnClick;
-            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Proceed")) { Tag = SignalState.Manual });
-            label.OnClick += Button_OnClick;
-
-            callonLine = rbLayout.AddLayoutHorizontalLineOfText();
-            callonLine.Add(radioButton = new RadioButton(this, radioButtonGroup) { TextColor = Color.White, Tag = SignalState.CallOn });
-            radioButton.OnClick += Button_OnClick;
-            callonLine.Add(label = new Label(this, callonLine.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Call On")) { Tag = SignalState.CallOn });
-            label.OnClick += Button_OnClick;
-#pragma warning restore CA2000 // Dispose objects before losing scope
+            layout = layout.AddLayoutVertical();
+            NameValueTextGrid signalStates = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
+            {
+                InformationProvider = signalStateInformation,
+                ColumnWidth = 140,
+            };
+            layout.Add(signalStates);
             return layout;
         }
 
-        private void Button_OnClick(object sender, MouseClickEventArgs e)
+        public void UpdateSignal(ISignal signal)
         {
-            if (sender is WindowControl control && control.Tag != null)
+            signalStateInformation.DebugInfo.Clear();
+
+            if (signal is Signal signalState)
             {
-                //if (MultiPlayerManager.Instance().AmAider)
-                //{
-                //    MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
-                //    UnHandleItemPick();
-                //    return;
-                //}
-                signal.State = (SignalState)control.Tag;
+                this.signal = signalState;
+                signalStateInformation.DebugInfo[Catalog.GetString("Train")] = signalState.EnabledTrain != null ? $"{signalState.EnabledTrain.Train.Number} - {signalState.EnabledTrain.Train.Name}" : string.Empty;
+                signalStateInformation.DebugInfo[Catalog.GetString("Signal")] = $"{signalState.Index}";
+                signalStateInformation.FormattingOptions[Catalog.GetString("Train")] = FormatOption.BoldYellow;
+                signalStateInformation.FormattingOptions[Catalog.GetString("Signal")] = FormatOption.BoldOrange;
+                foreach (SignalHead signalHead in signalState.SignalHeads)
+                {
+                    signalStateInformation.DebugInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
+                }
             }
-            Close();
         }
 
-        protected override void FocusLost()
+        protected override void Update(GameTime gameTime)
+{
+            if (null != signal)
+            {
+                foreach (SignalHead signalHead in signal.SignalHeads)
+                {
+                    signalStateInformation.DebugInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
+                }
+            }
+            base.Update(gameTime);
+        }
+
+        public override bool Close()
         {
-            Close();
-            base.FocusLost();
+            signal = null;
+            return base.Close();
         }
     }
 }

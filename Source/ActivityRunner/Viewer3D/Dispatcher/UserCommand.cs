@@ -15,5 +15,6 @@
         FollowTrain,
         DebugScreen,
         DebugScreenTab,
+        SignalStateWindow,
     }
 }

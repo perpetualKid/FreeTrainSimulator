@@ -79,7 +79,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         public SwitchWidget SwitchPickedItem { get; }
         public SignalWidget SignalPickedItem { get; }
-        private bool drawPath = true; //draw train path
         private ImageList imageList1;
         private List<Train> selectedTrainList;
         /// <summary>
@@ -1028,8 +1027,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         //draw the train path if it is within the window
         private void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB, float MaximumSectionDistance)
         {
-            if (drawPath != true)
-                return;
             bool ok = false;
             if (train == simulator.PlayerLocomotive.Train)
                 ok = true;
@@ -1743,11 +1740,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             else
                 PickedTrain = MultiPlayerManager.OnlineTrains.FindTrain(name);
 
-        }
-
-        private void chkDrawPathChanged(object sender, EventArgs e)
-        {
-            this.drawPath = chkDrawPath.Checked;
         }
 
         private void chkAllowNewCheck(object sender, EventArgs e)

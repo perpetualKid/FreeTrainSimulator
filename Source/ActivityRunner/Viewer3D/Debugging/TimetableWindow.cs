@@ -85,7 +85,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 refreshButton.Text = "View Self";
             }
 
-            chkDrawPath.Visible = dispatchView;
             btnSeeInGame.Visible = dispatchView;
             btnFollow.Visible = dispatchView;
             windowSizeUpDown.Visible = dispatchView;
@@ -111,7 +110,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             cbShowPlatforms.Visible = timetableView;
             cbShowPlatformLabels.Visible = timetableView;
             cbShowSidings.Visible = timetableView;
-            cbShowSignalState.Visible = timetableView;
             cbShowTrainLabels.Visible = timetableView;
             cbShowTrainState.Visible = timetableView;
             bTrainKey.Visible = timetableView;
@@ -512,29 +510,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
                         g.DrawLine(pen, scaledItem, scaledB);
                     }
-                    ShowSignalState(g, scaledItem, s);
-                }
-            }
-        }
-
-        private void ShowSignalState(System.Drawing.Graphics g, PointF scaledItem, SignalWidget sw)
-        {
-            if (cbShowSignalState.Checked)
-            {
-                var item = sw.Item as SignalItem;
-                var trainNumber = sw.Signal?.EnabledTrain?.Train?.Number;
-                var trainString = (trainNumber == null) ? "" : $" train: {trainNumber}";
-                var offset = 0;
-                var position = scaledItem;
-                foreach (var signalHead in sw.Signal.SignalHeads)
-                {
-                    offset++;
-                    position.X += offset * 10;
-                    position.Y += offset * 15;
-                    var text = $"  {item?.SignalObject} {signalHead.SignalType.Name} {signalHead.SignalIndicationState} {trainString}";
-                    scaledItem.Y = GetUnusedYLocation(scaledItem.X, pbCanvas.Height - (sw.Location.Y - subY) * yScale, text);
-                    if (scaledItem.Y >= 0f) // -1 indicates no free slot to draw label
-                        g.DrawString(text, SignalFont, signalBrush, scaledItem);
                 }
             }
         }

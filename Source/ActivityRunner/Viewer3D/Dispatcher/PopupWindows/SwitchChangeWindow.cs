@@ -13,15 +13,15 @@ using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    public class SwitchStateWindow : WindowBase
+    public class SwitchChangeWindow : WindowBase
     {
         private readonly Point offset;
         private IJunction junction;
         private RadioButton rbtnMain;
         private RadioButton rbtnSiding;
 
-        public SwitchStateWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString("Switch State"), relativeLocation, new Point(120, 65))
+        public SwitchChangeWindow(WindowManager owner, Point relativeLocation) :
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Change Switch", relativeLocation, new Point(120, 65))
         {
             Modal = true;
             offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));
@@ -53,19 +53,17 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             layout = base.Layout(layout, headerScaling);
             ControlLayout rbLayout = layout.AddLayoutVertical();
             RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
-#pragma warning disable CA2000 // Dispose objects before losing scope
             ControlLayout line = rbLayout.AddLayoutHorizontalLineOfText();
             line.Add(rbtnMain= new RadioButton(this, radioButtonGroup) { TextColor = Color.White, State = true, Tag = SwitchState.MainRoute });
             rbtnMain.OnClick += Button_OnClick;
-            line.Add(label = new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Main Route")) { Tag = SwitchState.MainRoute});
+            line.Add(label = new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString("Main Route")) { Tag = SwitchState.MainRoute});
             label.OnClick += Button_OnClick;
 
             line = rbLayout.AddLayoutHorizontalLineOfText();
             line.Add(rbtnSiding = new RadioButton(this, radioButtonGroup) { TextColor = Color.Red, Tag = SwitchState.SideRoute });
             rbtnSiding.OnClick += Button_OnClick;
-            line.Add(label = new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Side Route")) { Tag = SwitchState.SideRoute });
+            line.Add(label = new Label(this, line.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString("Side Route")) { Tag = SwitchState.SideRoute });
             label.OnClick += Button_OnClick;
-#pragma warning restore CA2000 // Dispose objects before losing scope
             return layout;
         }
 
@@ -78,7 +76,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
                 {
                     //aider selects and throws the switch, but need to confirm by the dispatcher
                     MultiPlayerManager.Notify((new MSGSwitch(MultiPlayerManager.GetUserName(), junction, (SwitchState)control.Tag, true)).ToString());
-                    Simulator.Instance.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
+                    Simulator.Instance.Confirmer.Information(Catalog.GetString("Switching Request Sent to the Server"));
                 }
                 else
                 {

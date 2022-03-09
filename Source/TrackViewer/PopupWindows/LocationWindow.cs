@@ -28,7 +28,7 @@ namespace Orts.TrackViewer.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
-            base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 48))
+            base(owner, "World Coordinates", relativeLocation, new Point(200, 48))
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
@@ -61,7 +61,7 @@ namespace Orts.TrackViewer.PopupWindows
             {
                 useWorldCoordinates = !useWorldCoordinates;
                 updateRequired = true;
-                Caption = useWorldCoordinates ? CatalogManager.Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+                Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
                 Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
                 base.TabAction(args);
             }

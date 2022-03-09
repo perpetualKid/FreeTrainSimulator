@@ -14,7 +14,7 @@ namespace Orts.Graphics.Window.Controls
         private const int defaultColumnSize = 100;
 
         private readonly List<ValueTuple<Vector2, Texture2D, Color>> drawItems = new List<(Vector2, Texture2D, Color)>();
-        public INameValueInformationProvider DebugInformationProvider { get; set; }
+        public INameValueInformationProvider InformationProvider { get; set; }
         private readonly System.Drawing.Font font;
         private readonly TextTextureResourceHolder textureHolder;
 
@@ -30,19 +30,25 @@ namespace Orts.Graphics.Window.Controls
             textureHolder = new TextTextureResourceHolder(Window.Owner.Game);
         }
 
+        public NameValueTextGrid(WindowBase window, int x, int y, int width, int heigth) : base(window, x, y, width, heigth)
+        {
+            font = Window.Owner.TextFontDefault;
+            textureHolder = new TextTextureResourceHolder(Window.Owner.Game);
+        }
+
         internal override void Update(GameTime gameTime)
         {
-            if (null == DebugInformationProvider)
+            if (null == InformationProvider)
                 return;
 
             float lineOffset = 0;
             drawItems.Clear();
             int hashCode;
-            foreach (string identifier in DebugInformationProvider.DebugInfo)
+            foreach (string identifier in InformationProvider.DebugInfo)
             {
                 System.Drawing.Font currentFont = font;
                 FormatOption formatOption = null;
-                if ((DebugInformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
+                if ((InformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
                 {
                     currentFont = FontManager.Scaled(Window.Owner.DefaultFont, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
                 }
@@ -50,7 +56,7 @@ namespace Orts.Graphics.Window.Controls
                 hashCode = HashCode.Combine(identifier, formatOption);
                 Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
                 drawItems.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
-                texture = textureHolder.PrepareResource(DebugInformationProvider.DebugInfo[identifier], currentFont);
+                texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont);
                 drawItems.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                 lineOffset += font.Size * LineSpacing;
             }

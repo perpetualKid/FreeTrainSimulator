@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private CommonDebugInfo debugInfo;
 
         private UserCommandController<UserCommand> userCommandController;
-        private WindowManager<WindowType> windowManager;
+        private WindowManager<DispatcherWindowType> windowManager;
 
         private bool followTrain;
 
@@ -160,21 +160,25 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            EnumArray<Type, DispatcherWindowType> windowTypes = new EnumArray<Type, DispatcherWindowType>();
+            windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.SignalState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<WindowBase>(() =>
             {
-                return new SignalStateWindow(windowManager, new Point(50, 50));
+                return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(WindowType.SwitchState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<WindowBase>(() =>
             {
-                return new SwitchStateWindow(windowManager, new Point(50, 50));
+                return new SwitchChangeWindow(windowManager, new Point(50, 50));
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
+            {
+                return new SignalStateWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
             Components.Add(windowManager);
 
@@ -212,9 +216,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.SignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
             #endregion
 
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
@@ -420,18 +426,30 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             contentArea.MouseDragging(userCommandArgs);
         }
 
+        public void MouseLeftClick(UserCommandArgs userCommandArgs)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
+                {
+                    SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
+                    signalstateWindow.UpdateSignal(content.SignalSelected);
+                }
+            }
+        }
+
         public void MouseRightClick(UserCommandArgs userCommandArgs)
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 if (content.SignalSelected != null && (MultiPlayerManager.MultiplayerState == MultiplayerState.None))
                 {
-                    SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
+                    SignalChangeWindow signalstateWindow = windowManager[DispatcherWindowType.SignalChange] as SignalChangeWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
                 }
                 else if (content.SwitchSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
                 {
-                    SwitchStateWindow switchstateWindow = windowManager[WindowType.SwitchState] as SwitchStateWindow;
+                    SwitchChangeWindow switchstateWindow = windowManager[DispatcherWindowType.SwitchChange] as SwitchChangeWindow;
                     switchstateWindow.OpenAt(pointerCommandArgs.Position, content.SwitchSelected);
                 }
             }

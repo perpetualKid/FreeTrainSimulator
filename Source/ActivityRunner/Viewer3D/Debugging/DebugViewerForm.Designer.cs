@@ -52,7 +52,6 @@
             this.composeMSG = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.reply2Selected = new System.Windows.Forms.Button();
-            this.chkDrawPath = new System.Windows.Forms.CheckBox();
             this.chkAllowNew = new System.Windows.Forms.CheckBox();
             this.messages = new System.Windows.Forms.ListBox();
             this.btnAssist = new System.Windows.Forms.Button();
@@ -66,7 +65,6 @@
             this.lblShow = new System.Windows.Forms.Label();
             this.cbShowPlatformLabels = new System.Windows.Forms.CheckBox();
             this.cbShowSidings = new System.Windows.Forms.CheckBox();
-            this.cbShowSignalState = new System.Windows.Forms.CheckBox();
             this.gbTrainLabels = new System.Windows.Forms.GroupBox();
             this.bTrainKey = new System.Windows.Forms.Button();
             this.rbShowActiveTrainLabels = new System.Windows.Forms.RadioButton();
@@ -287,20 +285,6 @@
             this.reply2Selected.UseVisualStyleBackColor = true;
             this.reply2Selected.Click += new System.EventHandler(this.replySelected);
             // 
-            // chkDrawPath
-            // 
-            this.chkDrawPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkDrawPath.AutoSize = true;
-            this.chkDrawPath.Checked = true;
-            this.chkDrawPath.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDrawPath.Location = new System.Drawing.Point(781, 57);
-            this.chkDrawPath.Name = "chkDrawPath";
-            this.chkDrawPath.Size = new System.Drawing.Size(95, 21);
-            this.chkDrawPath.TabIndex = 24;
-            this.chkDrawPath.Text = "Draw Path";
-            this.chkDrawPath.UseVisualStyleBackColor = true;
-            this.chkDrawPath.CheckedChanged += new System.EventHandler(this.chkDrawPathChanged);
-            // 
             // chkAllowNew
             // 
             this.chkAllowNew.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -462,19 +446,6 @@
             this.cbShowSidings.Text = "Siding labels";
             this.cbShowSidings.UseVisualStyleBackColor = true;
             this.cbShowSidings.Visible = false;
-            // 
-            // cbShowSignalState
-            // 
-            this.cbShowSignalState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowSignalState.AutoSize = true;
-            this.cbShowSignalState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSignalState.Location = new System.Drawing.Point(786, 300);
-            this.cbShowSignalState.Name = "cbShowSignalState";
-            this.cbShowSignalState.Size = new System.Drawing.Size(106, 22);
-            this.cbShowSignalState.TabIndex = 42;
-            this.cbShowSignalState.Text = "Signal state";
-            this.cbShowSignalState.UseVisualStyleBackColor = true;
-            this.cbShowSignalState.Visible = false;
             // 
             // gbTrainLabels
             // 
@@ -703,7 +674,6 @@
             this.Controls.Add(this.lblDayLightOffsetHrs);
             this.Controls.Add(this.nudDaylightOffsetHrs);
             this.Controls.Add(this.gbTrainLabels);
-            this.Controls.Add(this.cbShowSignalState);
             this.Controls.Add(this.cbShowSidings);
             this.Controls.Add(this.cbShowPlatformLabels);
             this.Controls.Add(this.lblShow);
@@ -716,7 +686,6 @@
             this.Controls.Add(this.btnNormal);
             this.Controls.Add(this.btnAssist);
             this.Controls.Add(this.chkAllowNew);
-            this.Controls.Add(this.chkDrawPath);
             this.Controls.Add(this.reply2Selected);
             this.Controls.Add(this.messages);
             this.Controls.Add(this.composeMSG);
@@ -766,7 +735,6 @@
         public System.Windows.Forms.Button composeMSG;
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.Button reply2Selected;
-        public System.Windows.Forms.CheckBox chkDrawPath;
         public System.Windows.Forms.CheckBox chkAllowNew;
         public System.Windows.Forms.ListBox messages;
         public System.Windows.Forms.Button btnAssist;
@@ -780,7 +748,6 @@
         public System.Windows.Forms.Label lblShow;
         public System.Windows.Forms.CheckBox cbShowPlatformLabels;
         public System.Windows.Forms.CheckBox cbShowSidings;
-        public System.Windows.Forms.CheckBox cbShowSignalState;
         public System.Windows.Forms.GroupBox gbTrainLabels;
         public System.Windows.Forms.RadioButton rbShowActiveTrainLabels;
         public System.Windows.Forms.RadioButton rbShowAllTrainLabels;

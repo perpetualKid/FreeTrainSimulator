@@ -401,6 +401,13 @@ namespace Orts.Settings
 
         [Default(0)]
         public int DispatcherWindowScreen { get; set; }
+
+        [Default(new string[]
+        {
+            nameof(DispatcherWindowType.SignalState) + "=0,100",
+        })]
+        public EnumArray<int[], DispatcherWindowType> DispatcherWindowLocations { get; set; }
+
         #endregion
         #endregion
 
