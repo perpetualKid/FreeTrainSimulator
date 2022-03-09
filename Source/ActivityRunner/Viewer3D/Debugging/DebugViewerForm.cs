@@ -189,11 +189,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private Font trainFont;
         private Font sidingFont;
         private Font PlatformFont;
-        private Font SignalFont;
         private SolidBrush trainBrush;
         private SolidBrush sidingBrush;
         private SolidBrush platformBrush;
-        private SolidBrush signalBrush;
         private SolidBrush inactiveTrainBrush;
 
         private double lastUpdateTime;
@@ -1839,7 +1837,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 int diffX = e.X - LastCursorPosition.X;
                 int diffY = e.Y - LastCursorPosition.Y;
 
-                ClipDrag(diffX, diffY);
                 GenerateView(true);
             }
             else if (Zooming)
@@ -1925,39 +1922,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Process.Start(psi);
         }
 
-        /// <summary>
-        /// Provides a clip zone to stop user from pushing track fully out of window
-        /// </summary>
-        /// <param name="diffX"></param>
-        /// <param name="diffY"></param>
-        private void ClipDrag(int diffX, int diffY)
-        {
-            // Moving the mouse right means moving the ViewWindow left.
-            var changeXm = -(float)(diffX / xScale);
-            // Moving the mouse up means moving the ViewWindow up.
-            var changeYm = +(float)(diffY / yScale);
-
-
-            const int clipPixels = 100;
-            var viewWindowLeftM = minX + viewWindow.X;
-            var viewWindowRightM = minX + viewWindow.X + viewWindow.Width;
-            var bufferXm = clipPixels / xScale;
-            var viewWindowTopM = minY + viewWindow.Y;
-            var viewWindowBottomM = minY + viewWindow.Y + viewWindow.Height;
-            var bufferYm = clipPixels / yScale;
-
-            if (viewWindowRightM + changeXm < minX + bufferXm) // drag right => -ve changeX
-                changeXm = +(minX + bufferXm - viewWindowRightM);
-            else if (viewWindowLeftM + changeXm > maxX - bufferXm)
-                changeXm = +(maxX - bufferXm - viewWindowLeftM);
-
-            if (viewWindowBottomM + changeYm < minY + bufferYm)
-                changeYm = minY + bufferYm - viewWindowBottomM;
-            else if (viewWindowTopM + changeYm > maxY - bufferYm)
-                changeYm = maxY - bufferYm - viewWindowTopM;
-
-            viewWindow.Offset(changeXm, changeYm);
-        }
         #endregion
     }
 

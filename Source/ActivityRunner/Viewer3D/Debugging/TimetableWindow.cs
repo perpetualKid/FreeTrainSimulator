@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
@@ -126,12 +127,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             PlatformFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
-            SignalFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             trainBrush = new SolidBrush(Color.Red);
             inactiveTrainBrush = new SolidBrush(Color.DarkRed);
             sidingBrush = new SolidBrush(Color.Blue);
             platformBrush = new SolidBrush(Color.DarkBlue);
-            signalBrush = new SolidBrush(Color.DarkRed);
             pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
         }
 
@@ -206,9 +205,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             // Instead create a single item which replaces the 2 platform items.
                             var replacement = new SidingWidget(item as SidingItem)
                             {
-                                Location = GetMidPoint(oldLocation, newLocation)
+                                Location = new PointF()
+                                {
+                                    X = (oldLocation.X + newLocation.X) / 2,
+                                    Y = (oldLocation.Y + newLocation.Y) / 2
+                                }
                             };
-
                             // Replace the old siding item with the replacement
                             sidings.RemoveAt(oldSidingIndex);
                             sidings.Add(replacement);
@@ -238,12 +240,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             // Instead create a single item which replaces the 2 platform items.
                             var replacement = new PlatformWidget(item as PlatformItem)
                             {
-                                Extent1 = oldLocation
-                                ,
-                                Extent2 = newLocation
-                                // Give it the right-hand location
-                                ,
-                                Location = GetRightHandPoint(oldLocation, newLocation)
+                                Extent1 = oldLocation,
+                                Extent2 = newLocation,
+                                Location = (oldLocation.X > newLocation.X) ? oldLocation : newLocation
                             };
 
                             // Replace the old platform item with the replacement
@@ -260,28 +259,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             foreach (var p in platforms)
                 if (p.Extent1.IsEmpty || p.Extent2.IsEmpty)
                     Trace.TraceWarning("Platform '{0}' is incomplete as the two ends do not match. It will not show in full in the Timetable Tab of the Map Window", p.Name);
-        }
-
-        /// <summary>
-        /// Returns the mid-point between two locations
-        /// </summary>
-        /// <param name="location"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        private PointF GetMidPoint(PointF location1, PointF location2)
-        {
-            return new PointF()
-            {
-                X = (location1.X + location2.X) / 2
-                ,
-                Y = (location1.Y + location2.Y) / 2
-            };
-        }
-
-        private PointF GetRightHandPoint(PointF location1, PointF location2)
-        {
-            return (location1.X > location2.X) ? location1 : location2;
         }
 
         private void GenerateTimetableView(bool dragging)
