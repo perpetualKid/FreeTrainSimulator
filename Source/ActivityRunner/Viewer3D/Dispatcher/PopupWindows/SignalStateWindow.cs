@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             if (signal is Signal signalState)
             {
                 this.signal = signalState;
-                signalStateInformation.DebugInfo[Catalog.GetString("Train")] = signalState.EnabledTrain != null ? $"{signalState.EnabledTrain.Train.Number} - {signalState.EnabledTrain.Train.Name}" : string.Empty;
+                signalStateInformation.DebugInfo[Catalog.GetString("Train")] = signalState.EnabledTrain != null ? $"{signalState.EnabledTrain.Train.Number} - {signalState.EnabledTrain.Train.Name}" : Catalog.GetString("---");
                 signalStateInformation.DebugInfo[Catalog.GetString("Signal")] = $"{signalState.Index}";
                 signalStateInformation.FormattingOptions[Catalog.GetString("Train")] = FormatOption.BoldYellow;
                 signalStateInformation.FormattingOptions[Catalog.GetString("Signal")] = FormatOption.BoldOrange;

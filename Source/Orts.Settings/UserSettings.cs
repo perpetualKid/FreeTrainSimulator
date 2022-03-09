@@ -409,6 +409,12 @@ namespace Orts.Settings
         })]
         public EnumArray<int[], DispatcherWindowType> DispatcherWindowLocations { get; set; }
 
+        [Default(new string[]
+        {
+            nameof(DispatcherWindowType.SignalState) + "=False",
+            nameof(DispatcherWindowType.HelpWindow) + "=True",
+        })]
+        public EnumArray<bool, DispatcherWindowType> DispatcherWindowStatus { get; set; }
         #endregion
         #endregion
 

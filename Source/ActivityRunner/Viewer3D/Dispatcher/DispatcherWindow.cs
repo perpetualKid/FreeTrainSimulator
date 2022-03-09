@@ -189,6 +189,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             #endregion
 
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            {
+                if (settings.DispatcherWindowStatus[windowType])
+                    windowManager[windowType].Open();
+            }
+
             base.Initialize();
         }
 
@@ -320,6 +326,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             settings.DispatcherWindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             settings.DispatcherWindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             settings.DispatcherWindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            {
+                if (windowManager.WindowInitialized(windowType))
+                {
+                    settings.DispatcherWindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                }
+                    settings.DispatcherWindowStatus[windowType] = windowManager.WindowOpened(windowType);
+            }
 
             settings.Save();
         }
