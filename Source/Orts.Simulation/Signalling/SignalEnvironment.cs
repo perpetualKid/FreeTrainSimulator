@@ -3682,13 +3682,12 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //only used by MP to manually set a switch to a desired position
-        public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
+        public bool RequestSetSwitch(IJunction junctionSection, SwitchState targetState)
         {
-            if (null == switchNode)
-                throw new ArgumentNullException(nameof(switchNode));
+            if (null == junctionSection)
+                throw new ArgumentNullException(nameof(junctionSection));
 
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = junctionSection as TrackCircuitSection;
             bool switchReserved = (switchSection.CircuitState.SignalReserved >= 0 || switchSection.CircuitState.TrainClaimed.Count > 0);
             bool switchSet = false;
 
@@ -3699,7 +3698,7 @@ namespace Orts.Simulation.Signalling
 
             if (!switchSection.CircuitState.Occupied())
             {
-                switchSection.JunctionSetManual = desiredState;
+                switchSection.JunctionSetManual = targetState == SwitchState.SideRoute ? 1 - switchSection.JunctionDefaultRoute : switchSection.JunctionDefaultRoute;
                 (trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
@@ -3724,6 +3723,16 @@ namespace Orts.Simulation.Signalling
                 }
             }
             return switchSet;
+        }
+
+        //only used by MP to manually set a switch to a desired position
+        public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
+        {
+            if (null == switchNode)
+                throw new ArgumentNullException(nameof(switchNode));
+
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            return RequestSetSwitch(switchSection, (SwitchState)desiredState);
         }
 
         //================================================================================================//

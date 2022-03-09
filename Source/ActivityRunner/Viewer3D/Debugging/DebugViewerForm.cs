@@ -51,8 +51,6 @@ using Image = System.Drawing.Image;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
-
-
     /// <summary>
     /// Defines an external window for use as a debugging viewer 
     /// when using Open Rails 
@@ -78,11 +76,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private string name = "";
         private List<SwitchWidget> switchItemsDrawn;
-        private List<SignalWidget> signalItemsDrawn;
 
-        public SwitchWidget switchPickedItem;
-        public SignalWidget signalPickedItem;
-        private bool drawPath = true; //draw train path
+        public SwitchWidget SwitchPickedItem { get; }
+        public SignalWidget SignalPickedItem { get; }
         private ImageList imageList1;
         private List<Train> selectedTrainList;
         /// <summary>
@@ -163,10 +159,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
             viewWindow = new RectangleF(0, 0, 5000f, 5000f);
             windowSizeUpDown.Accelerations.Add(new NumericUpDownAcceleration(1, 100));
-            boxSetSignal.Items.Add("System Controlled");
-            boxSetSignal.Items.Add("Stop");
-            boxSetSignal.Items.Add("Approach");
-            boxSetSignal.Items.Add("Proceed");
             chkAllowUserSwitch.Checked = false;
             selectedTrainList = new List<Train>();
             if (MultiPlayerManager.IsMultiPlayer())
@@ -238,7 +230,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
 
             switchItemsDrawn = new List<SwitchWidget>();
-            signalItemsDrawn = new List<SignalWidget>();
             switches = new List<SwitchWidget>();
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -251,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     if (trackVectorNode.TrackVectorSections.Length > 1)
                     {
-                        AddSegments(trackVectorNode, trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
+                        AddSegments(trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY);
                     }
                     else
                     {
@@ -348,25 +339,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             bool FindDefault = false;
             try
             {
-                if (simulator.Settings.ShowAvatar == false)
-                    throw new Exception();
+                if (!simulator.Settings.ShowAvatar)
+                    return;
                 FindDefault = true;
                 var request = WebRequest.Create(url);
                 using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
-                    Image newImage = Image.FromStream(stream);//Image.FromFile("C:\\test1.png");//
+                    Image newImage = Image.FromStream(stream);
                     avatarList[name] = newImage;
-
-                    /*using (MemoryStream ms = new MemoryStream())
-                    {
-                        // Convert Image to byte[]
-                        newImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        byte[] imageBytes = ms.ToArray();
-
-                        // Convert byte[] to Base64 String
-                        string base64String = Convert.ToBase64String(imageBytes);
-                    }*/
                 }
             }
             catch
@@ -374,35 +355,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (FindDefault)
                 {
                     byte[] imageBytes = Convert.FromBase64String(imagestring);
-                    MemoryStream ms = new MemoryStream(imageBytes, 0,
-                      imageBytes.Length);
+                    using (MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+                    {
 
-                    // Convert byte[] to Image
-                    ms.Write(imageBytes, 0, imageBytes.Length);
-                    Image newImage = Image.FromStream(ms, true);
-                    avatarList[name] = newImage;
+                        // Convert byte[] to Image
+                        ms.Write(imageBytes, 0, imageBytes.Length);
+                        Image newImage = Image.FromStream(ms, true);
+                        avatarList[name] = newImage;
+                    }
                 }
                 else
                 {
                     avatarList[name] = null;
                 }
             }
-
-
-            /*
-            imageList1.Images.Clear();
-            AvatarView.Items.Clear();
-            var i = 0;
-            foreach (var pair in avatarList)
-            {
-                if (pair.Value == null) AvatarView.Items.Add(pair.Key);
-                else
-                {
-                    AvatarView.Items.Add(pair.Key).ImageIndex = i;
-                    imageList1.Images.Add(pair.Value);
-                    i++;
-                }
-            }*/
         }
 
         private int LostCount;//how many players in the lost list (quit)
@@ -680,15 +646,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width) || (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0))
                         continue;
 
-
-                    //if (highlightTrackSections.Checked)
-                    //{
-                    //   if (line.Section != null && line.Section.InterlockingTrack == trackSections.SelectedValue)
-                    //   {
-                    //      p.Width = 5f;
-                    //   }
-                    //}
-
                     if (line.isCurved == true)
                     {
                         scaledC.X = (line.C.Location.Location.X - subX) * xScale;
@@ -701,14 +658,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     else
                         g.DrawLine(p, scaledA, scaledB);
 
-                    /*if (line.MySection != null)
-                    {
-                        g.DrawString(""+line.MySection.StartElev+" "+line.MySection.EndElev, sidingFont, sidingBrush, scaledB);
-                    }*/
                 }
 
                 switchItemsDrawn.Clear();
-                signalItemsDrawn.Clear();
                 PointF scaledItem = new PointF();
                 var width = 6f * p.Width;
                 if (width > 15)
@@ -770,8 +722,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             pen = redPen;
                         }
                         g.FillEllipse(color, GetRect(scaledItem, width));
-                        //if (s.Signal.enabledTrain != null) g.DrawString(""+s.Signal.enabledTrain.Train.Number, trainFont, Brushes.Black, scaledItem);
-                        signalItemsDrawn.Add(s);
                         if (s.hasDir)
                         {
                             scaledB.X = (s.Dir.X - subX) * xScale;
@@ -1077,8 +1027,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         //draw the train path if it is within the window
         private void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB, float MaximumSectionDistance)
         {
-            if (drawPath != true)
-                return;
             bool ok = false;
             if (train == simulator.PlayerLocomotive.Train)
                 ok = true;
@@ -1273,7 +1221,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
         /// <param name="simulator"></param>
-        private void AddSegments(TrackNode node, TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
+        private void AddSegments(TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY)
         {
             double tempX1, tempX2, tempZ1, tempZ2;
 
@@ -1456,94 +1404,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             {
                 PictureMoveAndZoomInOut(e.X, e.Y, windowSizeUpDown.Maximum);
             }
-            else if (LeftClick == false)
-            {
-                if (LastCursorPosition.X == e.X && LastCursorPosition.Y == e.Y)
-                {
-                    var range = 5 * (int)xScale;
-                    if (range > 10)
-                        range = 10;
-                    var temp = findItemFromMouse(e.X, e.Y, range);
-                    if (temp != null)
-                    {
-                        if (temp is SwitchWidget)
-                        { switchPickedItem = (SwitchWidget)temp; signalPickedItem = null; HandlePickedSwitch(); }
-                        if (temp is SignalWidget)
-                        { signalPickedItem = (SignalWidget)temp; switchPickedItem = null; HandlePickedSignal(); }
-                    }
-                    else
-                    { switchPickedItem = null; signalPickedItem = null; UnHandleItemPick(); PickedTrain = null; }
-                }
-
-            }
             lblInstruction1.Visible = false;
             lblInstruction2.Visible = false;
             lblInstruction3.Visible = false;
             lblInstruction4.Visible = false;
 
-        }
-
-        private void UnHandleItemPick()
-        {
-            boxSetSignal.Visible = false;
-            //boxSetSignal.Enabled = false;
-            //boxSetSwitch.Enabled = false;
-            boxSetSwitch.Visible = false;
-        }
-        private void HandlePickedSignal()
-        {
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider)
-                return;//normal client not server or aider
-                       //boxSetSwitch.Enabled = false;
-            boxSetSwitch.Visible = false;
-            if (signalPickedItem == null)
-                return;
-            var y = LastCursorPosition.Y;
-            if (LastCursorPosition.Y < 100)
-                y = 100;
-            if (LastCursorPosition.Y > pbCanvas.Size.Height - 100)
-                y = pbCanvas.Size.Height - 100;
-
-            if (boxSetSignal.Items.Count == 5)
-                boxSetSignal.Items.RemoveAt(4);
-
-            if (signalPickedItem.Signal.EnabledTrain != null && signalPickedItem.Signal.CallOnEnabled)
-            {
-                if (signalPickedItem.Signal.EnabledTrain.Train.AllowedCallOnSignal != signalPickedItem.Signal)
-                    boxSetSignal.Items.Add("Enable call on");
-                /*else
-                    boxSetSignal.Items.Add("Disable call on");*/
-                // To disable Call On signal must be manually set to stop, to avoid signal state change
-                // in the interval between this list is shown and the option is selected by dispatcher
-            }
-
-            boxSetSignal.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
-            boxSetSignal.Enabled = true;
-            boxSetSignal.Focus();
-            boxSetSignal.SelectedIndex = -1;
-            boxSetSignal.Visible = true;
-            return;
-        }
-
-        private void HandlePickedSwitch()
-        {
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider)
-                return;//normal client not server
-                       //boxSetSignal.Enabled = false;
-            boxSetSignal.Visible = false;
-            if (switchPickedItem == null)
-                return;
-            var y = LastCursorPosition.Y + 100;
-            if (y < 140)
-                y = 140;
-            if (y > pbCanvas.Size.Height + 100)
-                y = pbCanvas.Size.Height + 100;
-            boxSetSwitch.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
-            boxSetSwitch.Enabled = true;
-            boxSetSwitch.Focus();
-            boxSetSwitch.SelectedIndex = -1;
-            boxSetSwitch.Visible = true;
-            return;
         }
 
         private ItemWidget findItemFromMouse(int x, int y, int range)
@@ -1552,54 +1417,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 range = 5;
             double closest = float.NaN;
             ItemWidget closestItem = null;
-            if (chkPickSwitches.Checked == true)
-            {
-                foreach (var item in switchItemsDrawn)
-                {
-                    //if out of range, continue
-                    if (item.Location2D.X < x - range || item.Location2D.X > x + range
-                       || item.Location2D.Y < y - range || item.Location2D.Y > y + range)
-                        continue;
-
-                    if (closestItem != null)
-                    {
-                        var dist = Math.Pow(item.Location2D.X - closestItem.Location2D.X, 2) + Math.Pow(item.Location2D.Y - closestItem.Location2D.Y, 2);
-                        if (dist < closest)
-                        {
-                            closest = dist;
-                            closestItem = item;
-                        }
-                    }
-                    else
-                        closestItem = item;
-                }
-                if (closestItem != null)
-                { return closestItem; }
-            }
-            if (chkPickSignals.Checked == true)
-            {
-                foreach (var item in signalItemsDrawn)
-                {
-                    //if out of range, continue
-                    if (item.Location2D.X < x - range || item.Location2D.X > x + range
-                       || item.Location2D.Y < y - range || item.Location2D.Y > y + range)
-                        continue;
-
-                    if (closestItem != null)
-                    {
-                        var dist = Math.Pow(item.Location2D.X - closestItem.Location2D.X, 2) + Math.Pow(item.Location2D.Y - closestItem.Location2D.Y, 2);
-                        if (dist < closest)
-                        {
-                            closest = dist;
-                            closestItem = item;
-                        }
-                    }
-                    else
-                        closestItem = item;
-                }
-                if (closestItem != null)
-                { return closestItem; }
-            }
 
             //now check for trains (first car only)
             TrainCar firstCar;
@@ -1925,116 +1742,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         }
 
-        private void chkDrawPathChanged(object sender, EventArgs e)
-        {
-            this.drawPath = chkDrawPath.Checked;
-        }
-
-        private void boxSetSignalChosen(object sender, EventArgs e)
-        {
-            if (signalPickedItem == null)
-            {
-                UnHandleItemPick();
-                return;
-            }
-            var signal = signalPickedItem.Signal;
-            var type = boxSetSignal.SelectedIndex;
-            if (MultiPlayerManager.Instance().AmAider)
-            {
-                MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
-                UnHandleItemPick();
-                return;
-            }
-            switch (type)
-            {
-                case 0:
-                    signal.DispatcherClearHoldSignal();
-                    break;
-                case 1:
-                    signal.DispatcherRequestHoldSignal(true);
-                    break;
-                case 2:
-                    signal.HoldState = SignalHoldState.ManualApproach;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
-                        var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
-                        var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
-                        if (drawstate1 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
-                        else if (drawstate2 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
-                        else
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                        // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
-                        sigHead.TextSignalAspect = "";
-                    }
-                    break;
-                case 3:
-                    signal.HoldState = SignalHoldState.ManualPass;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        sigHead.SetLeastRestrictiveAspect();
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                    }
-                    break;
-                case 4:
-                    signal.SetManualCallOn(true);
-                    break;
-            }
-            UnHandleItemPick();
-        }
-
-        private void boxSetSwitchChosen(object sender, EventArgs e)
-        {
-            if (switchPickedItem == null)
-            {
-                UnHandleItemPick();
-                return;
-            }
-            TrackJunctionNode sw = switchPickedItem.Item as TrackJunctionNode;
-            var type = boxSetSwitch.SelectedIndex;
-
-            //aider can send message to the server for a switch
-            if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().AmAider)
-            {
-                var nextSwitchTrack = sw;
-                var Selected = 0;
-                switch (type)
-                {
-                    case 0:
-                        Selected = switchPickedItem.main;
-                        break;
-                    case 1:
-                        Selected = 1 - switchPickedItem.main;
-                        break;
-                }
-                //aider selects and throws the switch, but need to confirm by the dispatcher
-                MultiPlayerManager.Notify((new MSGSwitch(MultiPlayerManager.GetUserName(),
-                    nextSwitchTrack.UiD.Location.TileX, nextSwitchTrack.UiD.Location.TileZ, nextSwitchTrack.UiD.WorldId, Selected, true)).ToString());
-                simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
-
-            }
-            //server throws the switch immediately
-            else
-            {
-                switch (type)
-                {
-                    case 0:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, switchPickedItem.main);
-                        //sw.SelectedRoute = (int)switchPickedItem.main;
-                        break;
-                    case 1:
-                        simulator.SignalEnvironment.RequestSetSwitch(sw, 1 - switchPickedItem.main);
-                        //sw.SelectedRoute = 1 - (int)switchPickedItem.main;
-                        break;
-                }
-            }
-            UnHandleItemPick();
-
-        }
-
         private void chkAllowNewCheck(object sender, EventArgs e)
         {
             MultiPlayerManager.Instance().AllowNewPlayer = chkAllowNew.Checked;
@@ -2106,25 +1813,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 ClickedTrain = true;
             else
                 ClickedTrain = false;
-        }
-
-        private void bBackgroundColor_Click(object sender, EventArgs e)
-        {
-            // Can't just use a dialog as the watchdog timer trips and returns OR back to the Menu.exe.
-            //if (cdBackground.ShowDialog() == DialogResult.OK)
-            //{
-            //	pbCanvas.BackColor = cdBackground.Color;
-            //}
-
-            // As an alternative, cycle through 3 non-white backgrounds
-            if (pbCanvas.BackColor == Color.White)
-                pbCanvas.BackColor = Color.FromArgb(64, 128, 128);
-            else if (pbCanvas.BackColor == Color.FromArgb(64, 128, 128))
-                pbCanvas.BackColor = Color.FromArgb(250, 234, 209);
-            else if (pbCanvas.BackColor == Color.FromArgb(250, 234, 209))
-                pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
-            else if (pbCanvas.BackColor == Color.FromArgb(250, 240, 230)) // Windows color "linen"
-                pbCanvas.BackColor = Color.White;
         }
 
         private void PictureMoveAndZoomInOut(int x, int y, decimal scale)

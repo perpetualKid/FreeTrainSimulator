@@ -85,9 +85,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 refreshButton.Text = "View Self";
             }
 
-            chkDrawPath.Visible = dispatchView;
-            chkPickSignals.Visible = dispatchView;
-            chkPickSwitches.Visible = dispatchView;
             btnSeeInGame.Visible = dispatchView;
             btnFollow.Visible = dispatchView;
             windowSizeUpDown.Visible = dispatchView;
@@ -113,9 +110,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             cbShowPlatforms.Visible = timetableView;
             cbShowPlatformLabels.Visible = timetableView;
             cbShowSidings.Visible = timetableView;
-            cbShowSwitches.Visible = timetableView;
-            cbShowSignals.Visible = timetableView;
-            cbShowSignalState.Visible = timetableView;
             cbShowTrainLabels.Visible = timetableView;
             cbShowTrainState.Visible = timetableView;
             bTrainKey.Visible = timetableView;
@@ -124,7 +118,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             rbShowAllTrainLabels.Visible = timetableView;
             lblDayLightOffsetHrs.Visible = timetableView;
             nudDaylightOffsetHrs.Visible = timetableView;
-            bBackgroundColor.Visible = timetableView;
         }
 
         private void SetTimetableMedia()
@@ -144,11 +137,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void AdjustControlLocations()
         {
-            if (Height < 600 || Width < 800) return;
+            if (Height < 600 || Width < 800)
+                return;
 
             if (oldHeight != Height || oldWidth != Width) //use the label "Res" as anchor point to determine the picture size
             {
-                oldWidth = Width; oldHeight = Height;
+                oldWidth = Width;
+                oldHeight = Height;
 
                 pbCanvas.Top = 50;
                 pbCanvas.Width = label1.Left - 25;                  // 25 pixels found by trial and error
@@ -337,7 +332,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var widgetWidth = Math.Min(penWidth * 6, 15);
 
                     // Draw signals on top of path so they are easier to see.
-                    signalItemsDrawn.Clear();
                     ShowSignals(g, scaledB, widgetWidth);
 
                     // Draw switches
@@ -384,11 +378,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 switch (penWidth)
                 {
                     case 1:
-                        platformPen.Color = Color.FromArgb(0, 0, 255); break;
+                        platformPen.Color = Color.FromArgb(0, 0, 255);
+                        break;
                     case 2:
-                        platformPen.Color = Color.FromArgb(150, 150, 255); break;
+                        platformPen.Color = Color.FromArgb(150, 150, 255);
+                        break;
                     default:
-                        platformPen.Color = Color.FromArgb(200, 200, 255); break;
+                        platformPen.Color = Color.FromArgb(200, 200, 255);
+                        break;
                 }
 
                 var width = grayPen.Width * 3;
@@ -441,7 +438,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     scaledC.X = (line.C.Location.Location.X - subX) * xScale;
                     scaledC.Y = pbCanvas.Height - (line.C.Location.Location.Z - subY) * yScale;
-                    points[0] = scaledA; points[1] = scaledC; points[2] = scaledB;
+                    points[0] = scaledA;
+                    points[1] = scaledC;
+                    points[2] = scaledB;
                     g.DrawCurve(p, points);
                 }
                 else
@@ -451,89 +450,66 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void ShowSwitches(System.Drawing.Graphics g, float width)
         {
-            if (cbShowSwitches.Checked)
-                for (var i = 0; i < switches.Count; i++)
-                {
-                    SwitchWidget sw = switches[i];
+            for (var i = 0; i < switches.Count; i++)
+            {
+                SwitchWidget sw = switches[i];
 
-                    var x = (sw.Location.X - subX) * xScale;
-                    var y = pbCanvas.Height - (sw.Location.Y - subY) * yScale;
-                    if (x < 0 || y < 0)
-                        continue;
+                var x = (sw.Location.X - subX) * xScale;
+                var y = pbCanvas.Height - (sw.Location.Y - subY) * yScale;
+                if (x < 0 || y < 0)
+                    continue;
 
-                    var scaledItem = new PointF() { X = x, Y = y };
+                var scaledItem = new PointF() { X = x, Y = y };
 
-                    if (sw.Item.SelectedRoute == sw.main)
-                        g.FillEllipse(Brushes.Black, DispatchViewer.GetRect(scaledItem, width));
-                    else
-                        g.FillEllipse(Brushes.Gray, DispatchViewer.GetRect(scaledItem, width));
+                if (sw.Item.SelectedRoute == sw.main)
+                    g.FillEllipse(Brushes.Black, DispatchViewer.GetRect(scaledItem, width));
+                else
+                    g.FillEllipse(Brushes.Gray, DispatchViewer.GetRect(scaledItem, width));
 
-                    sw.Location2D.X = scaledItem.X; sw.Location2D.Y = scaledItem.Y;
-                    switchItemsDrawn.Add(sw);
-                }
+                sw.Location2D.X = scaledItem.X;
+                sw.Location2D.Y = scaledItem.Y;
+                switchItemsDrawn.Add(sw);
+            }
         }
 
         private void ShowSignals(System.Drawing.Graphics g, PointF scaledB, float width)
         {
-            if (cbShowSignals.Checked)
-                foreach (var s in signals)
-                {
-                    if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
-                        continue;
-                    var x = (s.Location.X - subX) * xScale;
-                    var y = pbCanvas.Height - (s.Location.Y - subY) * yScale;
-                    if (x < 0 || y < 0)
-                        continue;
-
-                    var scaledItem = new PointF() { X = x, Y = y };
-                    s.Location2D.X = scaledItem.X; s.Location2D.Y = scaledItem.Y;
-                    if (s.Signal.SignalNormal())
-                    {
-                        var color = Brushes.Lime; // bright colour for readability
-                        var pen = greenPen;
-                        if (s.IsProceed == 0)
-                        {
-                        }
-                        else if (s.IsProceed == 1)
-                        {
-                            color = Brushes.Yellow; // bright colour for readbility
-                            pen = orangePen;
-                        }
-                        else
-                        {
-                            color = Brushes.Red;
-                            pen = redPen;
-                        }
-                        g.FillEllipse(color, DispatchViewer.GetRect(scaledItem, width));
-                        signalItemsDrawn.Add(s);
-                        if (s.hasDir)
-                        {
-                            scaledB.X = (s.Dir.X - subX) * xScale; scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
-                            g.DrawLine(pen, scaledItem, scaledB);
-                        }
-                        ShowSignalState(g, scaledItem, s);
-                    }
-                }
-        }
-
-        private void ShowSignalState(System.Drawing.Graphics g, PointF scaledItem, SignalWidget sw)
-        {
-            if (cbShowSignalState.Checked)
+            foreach (var s in signals)
             {
-                var item = sw.Item as SignalItem;
-                var trainNumber = sw.Signal?.EnabledTrain?.Train?.Number;
-                var trainString = (trainNumber == null) ? "" : $" train: {trainNumber}";
-                var offset = 0;
-                var position = scaledItem;
-                foreach (var signalHead in sw.Signal.SignalHeads)
+                if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
+                    continue;
+                var x = (s.Location.X - subX) * xScale;
+                var y = pbCanvas.Height - (s.Location.Y - subY) * yScale;
+                if (x < 0 || y < 0)
+                    continue;
+
+                var scaledItem = new PointF() { X = x, Y = y };
+                s.Location2D.X = scaledItem.X;
+                s.Location2D.Y = scaledItem.Y;
+                if (s.Signal.SignalNormal())
                 {
-                    offset++;
-                    position.X += offset * 10;
-                    position.Y += offset * 15;
-                    var text = $"  {item?.SignalObject} {signalHead.SignalType.Name} {signalHead.SignalIndicationState} {trainString}";
-                    scaledItem.Y = GetUnusedYLocation(scaledItem.X, pbCanvas.Height - (sw.Location.Y - subY) * yScale, text);
-                    if (scaledItem.Y >= 0f) // -1 indicates no free slot to draw label
-                        g.DrawString(text, SignalFont, signalBrush, scaledItem);
+                    var color = Brushes.Lime; // bright colour for readability
+                    var pen = greenPen;
+                    if (s.IsProceed == 0)
+                    {
+                    }
+                    else if (s.IsProceed == 1)
+                    {
+                        color = Brushes.Yellow; // bright colour for readbility
+                        pen = orangePen;
+                    }
+                    else
+                    {
+                        color = Brushes.Red;
+                        pen = redPen;
+                    }
+                    g.FillEllipse(color, DispatchViewer.GetRect(scaledItem, width));
+                    if (s.hasDir)
+                    {
+                        scaledB.X = (s.Dir.X - subX) * xScale;
+                        scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
+                        g.DrawLine(pen, scaledItem, scaledB);
+                    }
                 }
             }
         }
@@ -580,7 +556,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var margin2 = 5000 * xScale;
 
             //variable for drawing train path
-            var mDist = 5000f; 
+            var mDist = 5000f;
 
             selectedTrainList.Clear();
 
@@ -668,16 +644,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 var scaledTrain = new PointF();
                 float x;
                 float y;
-                    t.Move(dist + car.CarLengthM / 2); // Move along from centre of car to front of car
-                    x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
-                    y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
+                t.Move(dist + car.CarLengthM / 2); // Move along from centre of car to front of car
+                x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
+                y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
 
-                    // If car out of view then skip it.
-                    if (x < -margin || y < -margin)
-                        return;
+                // If car out of view then skip it.
+                if (x < -margin || y < -margin)
+                    return;
 
-                    t.Move(-car.CarLengthM + (1 / xScale)); // Move from front of car to rear less 1 pixel to create a visible gap
-                    scaledTrain.X = x; scaledTrain.Y = y;
+                t.Move(-car.CarLengthM + (1 / xScale)); // Move from front of car to rear less 1 pixel to create a visible gap
+                scaledTrain.X = x;
+                scaledTrain.Y = y;
                 x = (t.TileX * 2048 + t.Location.X - subX) * xScale;
                 y = pbCanvas.Height - (t.TileZ * 2048 + t.Location.Z - subY) * yScale;
 

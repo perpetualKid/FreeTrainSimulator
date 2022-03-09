@@ -52,11 +52,6 @@
             this.composeMSG = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.reply2Selected = new System.Windows.Forms.Button();
-            this.chkDrawPath = new System.Windows.Forms.CheckBox();
-            this.boxSetSignal = new System.Windows.Forms.ListBox();
-            this.boxSetSwitch = new System.Windows.Forms.ListBox();
-            this.chkPickSignals = new System.Windows.Forms.CheckBox();
-            this.chkPickSwitches = new System.Windows.Forms.CheckBox();
             this.chkAllowNew = new System.Windows.Forms.CheckBox();
             this.messages = new System.Windows.Forms.ListBox();
             this.btnAssist = new System.Windows.Forms.Button();
@@ -70,8 +65,6 @@
             this.lblShow = new System.Windows.Forms.Label();
             this.cbShowPlatformLabels = new System.Windows.Forms.CheckBox();
             this.cbShowSidings = new System.Windows.Forms.CheckBox();
-            this.cbShowSignals = new System.Windows.Forms.CheckBox();
-            this.cbShowSignalState = new System.Windows.Forms.CheckBox();
             this.gbTrainLabels = new System.Windows.Forms.GroupBox();
             this.bTrainKey = new System.Windows.Forms.Button();
             this.rbShowActiveTrainLabels = new System.Windows.Forms.RadioButton();
@@ -79,8 +72,6 @@
             this.nudDaylightOffsetHrs = new System.Windows.Forms.NumericUpDown();
             this.lblDayLightOffsetHrs = new System.Windows.Forms.Label();
             this.cdBackground = new System.Windows.Forms.ColorDialog();
-            this.bBackgroundColor = new System.Windows.Forms.Button();
-            this.cbShowSwitches = new System.Windows.Forms.CheckBox();
             this.lblInstruction1 = new System.Windows.Forms.Label();
             this.cbShowTrainLabels = new System.Windows.Forms.CheckBox();
             this.tWindow = new System.Windows.Forms.TabControl();
@@ -294,79 +285,6 @@
             this.reply2Selected.UseVisualStyleBackColor = true;
             this.reply2Selected.Click += new System.EventHandler(this.replySelected);
             // 
-            // chkDrawPath
-            // 
-            this.chkDrawPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkDrawPath.AutoSize = true;
-            this.chkDrawPath.Checked = true;
-            this.chkDrawPath.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDrawPath.Location = new System.Drawing.Point(781, 57);
-            this.chkDrawPath.Name = "chkDrawPath";
-            this.chkDrawPath.Size = new System.Drawing.Size(95, 21);
-            this.chkDrawPath.TabIndex = 24;
-            this.chkDrawPath.Text = "Draw Path";
-            this.chkDrawPath.UseVisualStyleBackColor = true;
-            this.chkDrawPath.CheckedChanged += new System.EventHandler(this.chkDrawPathChanged);
-            // 
-            // boxSetSignal
-            // 
-            this.boxSetSignal.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.boxSetSignal.Enabled = false;
-            this.boxSetSignal.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.boxSetSignal.FormattingEnabled = true;
-            this.boxSetSignal.ItemHeight = 25;
-            this.boxSetSignal.Location = new System.Drawing.Point(209, 205);
-            this.boxSetSignal.MinimumSize = new System.Drawing.Size(160, 100);
-            this.boxSetSignal.Name = "boxSetSignal";
-            this.boxSetSignal.Size = new System.Drawing.Size(164, 100);
-            this.boxSetSignal.TabIndex = 25;
-            this.boxSetSignal.Visible = false;
-            this.boxSetSignal.SelectedIndexChanged += new System.EventHandler(this.boxSetSignalChosen);
-            // 
-            // boxSetSwitch
-            // 
-            this.boxSetSwitch.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.boxSetSwitch.Enabled = false;
-            this.boxSetSwitch.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.boxSetSwitch.FormattingEnabled = true;
-            this.boxSetSwitch.ItemHeight = 25;
-            this.boxSetSwitch.Items.AddRange(new object[] {
-            "To Main Route",
-            "To Side Route"});
-            this.boxSetSwitch.Location = new System.Drawing.Point(398, 205);
-            this.boxSetSwitch.MinimumSize = new System.Drawing.Size(120, 50);
-            this.boxSetSwitch.Name = "boxSetSwitch";
-            this.boxSetSwitch.Size = new System.Drawing.Size(125, 50);
-            this.boxSetSwitch.TabIndex = 26;
-            this.boxSetSwitch.Visible = false;
-            this.boxSetSwitch.SelectedIndexChanged += new System.EventHandler(this.boxSetSwitchChosen);
-            // 
-            // chkPickSignals
-            // 
-            this.chkPickSignals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkPickSignals.AutoSize = true;
-            this.chkPickSignals.Checked = true;
-            this.chkPickSignals.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSignals.Location = new System.Drawing.Point(781, 75);
-            this.chkPickSignals.Name = "chkPickSignals";
-            this.chkPickSignals.Size = new System.Drawing.Size(106, 21);
-            this.chkPickSignals.TabIndex = 27;
-            this.chkPickSignals.Text = "Pick Signals";
-            this.chkPickSignals.UseVisualStyleBackColor = true;
-            // 
-            // chkPickSwitches
-            // 
-            this.chkPickSwitches.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkPickSwitches.AutoSize = true;
-            this.chkPickSwitches.Checked = true;
-            this.chkPickSwitches.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSwitches.Location = new System.Drawing.Point(781, 93);
-            this.chkPickSwitches.Name = "chkPickSwitches";
-            this.chkPickSwitches.Size = new System.Drawing.Size(115, 21);
-            this.chkPickSwitches.TabIndex = 28;
-            this.chkPickSwitches.Text = "Pick Switches";
-            this.chkPickSwitches.UseVisualStyleBackColor = true;
-            // 
             // chkAllowNew
             // 
             this.chkAllowNew.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -529,32 +447,6 @@
             this.cbShowSidings.UseVisualStyleBackColor = true;
             this.cbShowSidings.Visible = false;
             // 
-            // cbShowSignals
-            // 
-            this.cbShowSignals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowSignals.AutoSize = true;
-            this.cbShowSignals.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSignals.Location = new System.Drawing.Point(769, 280);
-            this.cbShowSignals.Name = "cbShowSignals";
-            this.cbShowSignals.Size = new System.Drawing.Size(78, 22);
-            this.cbShowSignals.TabIndex = 41;
-            this.cbShowSignals.Text = "Signals";
-            this.cbShowSignals.UseVisualStyleBackColor = true;
-            this.cbShowSignals.Visible = false;
-            // 
-            // cbShowSignalState
-            // 
-            this.cbShowSignalState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowSignalState.AutoSize = true;
-            this.cbShowSignalState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSignalState.Location = new System.Drawing.Point(786, 300);
-            this.cbShowSignalState.Name = "cbShowSignalState";
-            this.cbShowSignalState.Size = new System.Drawing.Size(106, 22);
-            this.cbShowSignalState.TabIndex = 42;
-            this.cbShowSignalState.Text = "Signal state";
-            this.cbShowSignalState.UseVisualStyleBackColor = true;
-            this.cbShowSignalState.Visible = false;
-            // 
             // gbTrainLabels
             // 
             this.gbTrainLabels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -645,32 +537,6 @@
             // 
             this.cdBackground.AnyColor = true;
             this.cdBackground.ShowHelp = true;
-            // 
-            // bBackgroundColor
-            // 
-            this.bBackgroundColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bBackgroundColor.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bBackgroundColor.Location = new System.Drawing.Point(779, 590);
-            this.bBackgroundColor.Name = "bBackgroundColor";
-            this.bBackgroundColor.Size = new System.Drawing.Size(131, 23);
-            this.bBackgroundColor.TabIndex = 46;
-            this.bBackgroundColor.Text = "Background color";
-            this.bBackgroundColor.UseVisualStyleBackColor = true;
-            this.bBackgroundColor.Visible = false;
-            this.bBackgroundColor.Click += new System.EventHandler(this.bBackgroundColor_Click);
-            // 
-            // cbShowSwitches
-            // 
-            this.cbShowSwitches.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowSwitches.AutoSize = true;
-            this.cbShowSwitches.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSwitches.Location = new System.Drawing.Point(769, 260);
-            this.cbShowSwitches.Name = "cbShowSwitches";
-            this.cbShowSwitches.Size = new System.Drawing.Size(90, 22);
-            this.cbShowSwitches.TabIndex = 47;
-            this.cbShowSwitches.Text = "Switches";
-            this.cbShowSwitches.UseVisualStyleBackColor = true;
-            this.cbShowSwitches.Visible = false;
             // 
             // lblInstruction1
             // 
@@ -805,13 +671,9 @@
             this.Controls.Add(this.cbShowTrainState);
             this.Controls.Add(this.cbShowTrainLabels);
             this.Controls.Add(this.lblInstruction1);
-            this.Controls.Add(this.cbShowSwitches);
-            this.Controls.Add(this.bBackgroundColor);
             this.Controls.Add(this.lblDayLightOffsetHrs);
             this.Controls.Add(this.nudDaylightOffsetHrs);
             this.Controls.Add(this.gbTrainLabels);
-            this.Controls.Add(this.cbShowSignalState);
-            this.Controls.Add(this.cbShowSignals);
             this.Controls.Add(this.cbShowSidings);
             this.Controls.Add(this.cbShowPlatformLabels);
             this.Controls.Add(this.lblShow);
@@ -824,11 +686,6 @@
             this.Controls.Add(this.btnNormal);
             this.Controls.Add(this.btnAssist);
             this.Controls.Add(this.chkAllowNew);
-            this.Controls.Add(this.chkPickSwitches);
-            this.Controls.Add(this.chkPickSignals);
-            this.Controls.Add(this.boxSetSwitch);
-            this.Controls.Add(this.boxSetSignal);
-            this.Controls.Add(this.chkDrawPath);
             this.Controls.Add(this.reply2Selected);
             this.Controls.Add(this.messages);
             this.Controls.Add(this.composeMSG);
@@ -861,8 +718,6 @@
         }
 
         #endregion
-        private System.Windows.Forms.ListBox boxSetSignal;
-        private System.Windows.Forms.ListBox boxSetSwitch;
         private System.Windows.Forms.ColorDialog cdBackground;
         private System.Windows.Forms.Label lblInstruction1;
         private System.Windows.Forms.TabPage tDispatch;
@@ -880,9 +735,6 @@
         public System.Windows.Forms.Button composeMSG;
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.Button reply2Selected;
-        public System.Windows.Forms.CheckBox chkDrawPath;
-        public System.Windows.Forms.CheckBox chkPickSignals;
-        public System.Windows.Forms.CheckBox chkPickSwitches;
         public System.Windows.Forms.CheckBox chkAllowNew;
         public System.Windows.Forms.ListBox messages;
         public System.Windows.Forms.Button btnAssist;
@@ -896,15 +748,11 @@
         public System.Windows.Forms.Label lblShow;
         public System.Windows.Forms.CheckBox cbShowPlatformLabels;
         public System.Windows.Forms.CheckBox cbShowSidings;
-        public System.Windows.Forms.CheckBox cbShowSignals;
-        public System.Windows.Forms.CheckBox cbShowSignalState;
         public System.Windows.Forms.GroupBox gbTrainLabels;
         public System.Windows.Forms.RadioButton rbShowActiveTrainLabels;
         public System.Windows.Forms.RadioButton rbShowAllTrainLabels;
         public System.Windows.Forms.NumericUpDown nudDaylightOffsetHrs;
         public System.Windows.Forms.Label lblDayLightOffsetHrs;
-        public System.Windows.Forms.Button bBackgroundColor;
-        public System.Windows.Forms.CheckBox cbShowSwitches;
         public System.Windows.Forms.CheckBox cbShowTrainLabels;
         public System.Windows.Forms.PictureBox pbCanvas;
         public System.Windows.Forms.TabControl tWindow;

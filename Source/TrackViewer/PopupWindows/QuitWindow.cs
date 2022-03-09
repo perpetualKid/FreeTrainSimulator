@@ -29,7 +29,7 @@ namespace Orts.TrackViewer.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(430, 85))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), $"Exit {RuntimeInfo.ApplicationName}", relativeLocation, new Point(430, 85))
         {
             Modal = true;
             ZOrder = 100;
@@ -42,16 +42,16 @@ namespace Orts.TrackViewer.PopupWindows
                 throw new ArgumentNullException(nameof(layout));
 
             layout = base.Layout(layout, 1.5f);
-            quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
+            quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
-            cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Cancel ({InputSettings.UserCommands[UserCommand.Cancel].ToString().Max(3)})"), HorizontalAlignment.Center);
+            cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, Catalog.GetString($"Cancel ({InputSettings.UserCommands[UserCommand.Cancel].ToString().Max(3)})"), HorizontalAlignment.Center);
             cancelButton.OnClick += CancelButton_OnClick;
             ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             buttonLine.Add(quitButton);
             buttonLine.AddVerticalSeparator();
             buttonLine.Add(cancelButton);
             layout.AddHorizontalSeparator(true);
-            printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Take Screenshot ({InputSettings.UserCommands[UserCommand.PrintScreen].ToString().Max(3)})"), HorizontalAlignment.Center);
+            printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Take Screenshot ({InputSettings.UserCommands[UserCommand.PrintScreen].ToString().Max(3)})"), HorizontalAlignment.Center);
             printScreenButton.OnClick += PrintScreenButton_OnClick;
             buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             buttonLine.Add(printScreenButton);

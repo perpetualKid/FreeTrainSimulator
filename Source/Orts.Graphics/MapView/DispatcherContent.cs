@@ -139,6 +139,7 @@ namespace Orts.Graphics.MapView
         }
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
+        public IJunction SwitchSelected => (nearestDispatchItem as JunctionSegment)?.Junction;
 
         private void AddTrackSegments()
         {

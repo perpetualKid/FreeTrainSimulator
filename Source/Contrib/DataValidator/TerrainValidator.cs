@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.DataValidator
 {
@@ -28,21 +29,21 @@ namespace Orts.DataValidator
         {
             try
             {
-                TerrainFile parsed = new TerrainFile(File);
+                Terrain parsedTerrain = TerrainFile.LoadTerrainFile(File);
                 if (File.Contains("\\lo_tiles\\", StringComparison.OrdinalIgnoreCase))
                 {
-                    Equal(TraceEventType.Warning, 64, parsed.Terrain.Samples.SampleCount, "terrain_nsamples");
-                    Equal(TraceEventType.Warning, 256, parsed.Terrain.Samples.SampleSize, "terrain_sample_size");
+                    Equal(TraceEventType.Warning, 64, parsedTerrain.Samples.SampleCount, "terrain_nsamples");
+                    Equal(TraceEventType.Warning, 256, parsedTerrain.Samples.SampleSize, "terrain_sample_size");
                 }
                 else
                 {
-                    Equal(TraceEventType.Warning, 256, parsed.Terrain.Samples.SampleCount, "terrain_nsamples");
-                    Equal(TraceEventType.Warning, 8, parsed.Terrain.Samples.SampleSize, "terrain_sample_size");
+                    Equal(TraceEventType.Warning, 256, parsedTerrain.Samples.SampleCount, "terrain_nsamples");
+                    Equal(TraceEventType.Warning, 8, parsedTerrain.Samples.SampleSize, "terrain_sample_size");
                 }
-                Equal(TraceEventType.Warning, 0, parsed.Terrain.Samples.SampleRotation, "terrain_sample_rotation");
-                ValidFileRef(TraceEventType.Error, parsed.Terrain.Samples.SampleBufferE, "terrain_sample_ebuffer");
-                ValidFileRef(TraceEventType.Error, parsed.Terrain.Samples.SampleBufferN, "terrain_sample_nbuffer");
-                ValidFileRef(TraceEventType.Error, parsed.Terrain.Samples.SampleBufferY, "terrain_sample_ybuffer");
+                Equal(TraceEventType.Warning, 0, parsedTerrain.Samples.SampleRotation, "terrain_sample_rotation");
+                ValidFileRef(TraceEventType.Error, parsedTerrain.Samples.SampleBufferE, "terrain_sample_ebuffer");
+                ValidFileRef(TraceEventType.Error, parsedTerrain.Samples.SampleBufferN, "terrain_sample_nbuffer");
+                ValidFileRef(TraceEventType.Error, parsedTerrain.Samples.SampleBufferY, "terrain_sample_ybuffer");
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)

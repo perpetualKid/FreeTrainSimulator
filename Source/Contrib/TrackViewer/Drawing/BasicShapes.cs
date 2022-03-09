@@ -16,14 +16,15 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Media.Imaging;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.ActivityRunner.Viewer3D;
+
 using Orts.Formats.Msts.Files;
+using Orts.Graphics.Xna;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -36,13 +37,11 @@ namespace ORTS.TrackViewer.Drawing
     internal static class BasicShapes
     {
         private static SpriteBatch spriteBatch;
-        
+
         //size of a identifying feature in the texture (in pixels), so we can scale as needed
         private static readonly Dictionary<string, float> textureScales = new Dictionary<string, float>();
         private static readonly Dictionary<string, Vector2> textureOffsets = new Dictionary<string, Vector2>();
         private static readonly Dictionary<string,Texture2D> textures = new Dictionary<string,Texture2D>();
-
-        private static FontManager fontManager;
 
         /// <summary>
         /// Some initialization needed for actual drawing
@@ -93,8 +92,6 @@ namespace ORTS.TrackViewer.Drawing
             LoadAndHighlightTexture(graphicsDevice, contentPath, "playerTrain", "steamTrain",31,31);
 
             PrepareArcDrawing();
-            fontManager = FontManager.Instance;
-
         }
 
         /// <summary>
@@ -114,11 +111,12 @@ namespace ORTS.TrackViewer.Drawing
             Texture2D tempTexture;
             try
             {
-                tempTexture = SharedTextureManager.Get(graphicsDevice, fullFileName);
+                using (var stream = File.OpenRead(fullFileName))
+                {
+                    tempTexture = Texture2D.FromStream(graphicsDevice, stream);
+                }
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (IOException)
             {
                 tempTexture = textures["disc"];
             }
@@ -456,9 +454,11 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="message">The string to print</param>
         public static void DrawExpandingString(Vector2 point, Color color, string message)
         {
-            // text is better readable when on integer locations
-            Point intPoint = new Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
-            fontManager.ExpandingFont.Draw(spriteBatch, new Rectangle(), intPoint, message, LabelAlignment.Left, color);
+            //// text is better readable when on integer locations
+            //Point intPoint = new Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
+            //fontManager.ExpandingFont.Draw(spriteBatch, new Rectangle(), intPoint, message, LabelAlignment.Left, color);
+            Texture2D texture = TextManager.Instance.PrepareZoomed(message);
+            spriteBatch.Draw(texture, point, color);
         }
 
         /// <summary>
@@ -469,9 +469,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="message">The string to print</param>
         public static void DrawString(Vector2 point, Color color, string message)
         {
-            // text is better readable when on integer locations
-            Point intPoint = new Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
-            fontManager.DefaultFont.Draw(spriteBatch, new Rectangle(), intPoint, message, LabelAlignment.Left, color);
+            Texture2D texture = TextManager.Instance.Prepare(message);
+            spriteBatch.Draw(texture, point, color);
         }
 
         /// <summary>
@@ -482,9 +481,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="message">The string to print</param>
         public static void DrawStringCentered(Vector2 point, Color color, string message)
         {
-            // text is better readable when on integer locations
-            Point intPoint = new Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
-            fontManager.DefaultFont.Draw(spriteBatch, new Rectangle(), intPoint, message, LabelAlignment.Center, color);
+            Texture2D texture = TextManager.Instance.Prepare(message);
+            spriteBatch.Draw(texture, point - texture.Bounds.Size.ToVector2()/2, color);
         }
 
         /// <summary>
@@ -532,104 +530,68 @@ namespace ORTS.TrackViewer.Drawing
         private static float[] sinTable; // similar
     }
 
-    /// <summary>
-    /// Contains all the fonts we need to draw. 
-    /// Since fonts are expensive, we make a singleton class out of it.
-    /// Two different fonts are supported at the same time. There is a constant default font.
-    /// And there is an expandable font: a font that can be changed upon request.
-    /// </summary>
-    public class FontManager
+    public class TextManager: IDisposable
     {
-        /// <summary>Singleton instance of the class</summary>
-        private static readonly FontManager instance = new FontManager();
+        private static readonly int[] fontSizes = new int[] {10,11,12,13,14,16,18,20};
 
-        /// <summary>List of supported font sizes</summary>
-        private readonly int[] fontSizes;
-        /// <summary>Default fontsize</summary>
-        private readonly int defaultFontSize;
-        /// <summary>Fontsize to be used for exanding text</summary>
-        private readonly int expandingFontSize;
-        
-        /// <summary>The text manager that supports the font(s)</summary>
-        private readonly WindowTextManager textManager;
+        private readonly TextTextureResourceHolder textTextures;
+        private System.Drawing.Font sizedFont;
+        private bool disposedValue;
 
-        /// <summary>List of fonts</summary>
-        private readonly Dictionary<int, WindowTextFont> fonts;
-        
-        /// <summary>
-        /// Constructor, private so only called during class initialization
-        /// </summary>
-        private FontManager()
+        private TextManager(Game game)
         {
-            fontSizes = new int[] {10,11,12,13,14,16,18,20};
-            defaultFontSize = 10;
-            expandingFontSize = defaultFontSize;
-
-            fonts = new Dictionary<int, WindowTextFont>();
-            textManager = new WindowTextManager();
-            DefaultFont = InitFont(defaultFontSize);
-            RequestFontSize(expandingFontSize);
+            textTextures = new TextTextureResourceHolder(game);
+            Orts.Graphics.FontManager.ScalingFactor *= 96f / 72;
+            DefaultFont = Orts.Graphics.FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
         }
 
-        /// <summary>
-        /// Initialize a font and put it in the lists of fonts
-        /// </summary>
-        /// <param name="fontSize">Requested font size. There is no check on the fontsize</param>
-        private WindowTextFont InitFont(int fontSize)
+
+        public System.Drawing.Font DefaultFont { get; }
+
+        public static void Initialize(Game game)
         {
-            if (!fonts.ContainsKey(fontSize))
-            {
-                fonts[fontSize] = textManager.GetScaled("Segoe UI", fontSize, System.Drawing.FontStyle.Regular, 0);
-            }
-            return fonts[fontSize];
+            if (Instance == null)
+                Instance = new TextManager(game);
         }
 
-        /// <summary>
-        /// Return the singleton instance of the font manager
-        /// </summary>
-        public static FontManager Instance => instance;
-        /// <summary>his is the default font that can be used for drawing</summary>
-        public WindowTextFont DefaultFont { get; private set; }
-        /// <summary>This is the expanding font that can be used for drawing</summary>
-        public WindowTextFont ExpandingFont { get; private set; }
+        public static TextManager Instance { get; private set; }
 
-        /// <summary>
-        /// Request a certain font size. This font size will then be used for drawing when using the expanding font.
-        /// If the fontsize is not available, the best possible fontsize is used
-        /// </summary>
-        /// <param name="requestedFontSize">The font size that is requested</param>
-        public void RequestFontSize(int requestedFontSize)
+        public Texture2D Prepare(string text)
         {
-            int selectedFontSize;
+            return textTextures.PrepareResource(text, DefaultFont);
+        }
 
-            if (fontSizes.Contains(requestedFontSize))
+        public void ZoomFontSize(int size)
+        {
+            size = fontSizes.Where(s => s >= size).OrderByDescending(s => s).FirstOrDefault();
+            if (size == 0)
+                size = fontSizes[^1];
+            sizedFont = Orts.Graphics.FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
+        }
+
+        public Texture2D PrepareZoomed(string text)
+        {
+            return textTextures.PrepareResource(text, sizedFont);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
             {
-                selectedFontSize = requestedFontSize;
-            }
-            else
-            {   // we need to find a good size, we round up
-                selectedFontSize = fontSizes.Max();
-                foreach (int fontSize in fontSizes.OrderByDescending(s => s))
+                if (disposing)
                 {
-                    if (fontSize >= requestedFontSize)
-                    {
-                        selectedFontSize = fontSize;
-                    }
+                    textTextures?.Dispose();
                 }
+                disposedValue = true;
             }
-
-            ExpandingFont = InitFont(selectedFontSize);
         }
 
-        /// <summary>
-        /// Update, because Textmanager only loads the needed characters when it knows it needs to print it.
-        /// Therefore, this needs to be called often.
-        /// </summary>
-        public void Update(GraphicsDevice graphicsDevice)
+        public void Dispose()
         {
-            textManager.Load(graphicsDevice);
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
-
     }
 
     /// <summary>

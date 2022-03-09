@@ -61,8 +61,6 @@ using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-using Tile = Orts.ActivityRunner.Viewer3D.Tile;
-
 namespace ORTS.TrackViewer.Drawing
 {
     /// <summary>
@@ -269,7 +267,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             loadedTerrainTiles.Add(index); // whatever comes next, there is not need to reload this tile ever again.
 
-            Tile newTile = LoadTile(tileX, tileZ, false);
+            TileSample newTile = LoadTile(tileX, tileZ, false);
             if (newTile == null)
             {
                 newTile = LoadTile(tileX, tileZ, true);
@@ -298,7 +296,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tileZ">The cornerIndexZ-value of the tile number</param>
         /// <param name="loTiles">Loading LO tile (Distant Mountain) or not</param>
         /// <returns>The tile information as a 'Tile' object</returns>
-        private Tile LoadTile(int tileX, int tileZ, bool loTiles)
+        private TileSample LoadTile(int tileX, int tileZ, bool loTiles)
         {
             TileHelper.Zoom zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
             string path = loTiles ? lotilesPath : tilesPath;
@@ -308,8 +306,8 @@ namespace ORTS.TrackViewer.Drawing
             TileHelper.Snap(ref tileX, ref tileZ, zoom);
 
             // we set visible to false to make sure errors are loaded
-            Tile newTile = new Tile(path, tileX, tileZ, zoom, false);
-            if (newTile.Loaded)
+            TileSample newTile = new TileSample(path, tileX, tileZ, zoom, false);
+            if (newTile.Valid)
             {
                 return newTile;
             }
@@ -317,8 +315,8 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // Check for 2x2 or 16x16 tiles.
                 TileHelper.Snap(ref tileX, ref tileZ, zoom - 1);
-                newTile = new Tile(tilesPath, tileX, tileZ, zoom - 1, false);
-                if (newTile.Loaded)
+                newTile = new TileSample(tilesPath, tileX, tileZ, zoom - 1, false);
+                if (newTile.Valid)
                 {
                     return newTile;
                 }
@@ -751,14 +749,14 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tile">The tile (parsed .t-file)</param>
         /// <param name="textureManager">The manager for the textures</param>
         /// <param name="locationTranslator">The translator for mapping 3D tile-based coordinates to quasi-2D locations</param>
-        public TerrainTile2D(Tile tile, TerrainTextureManager textureManager, Translate3Dto2D locationTranslator)
+        public TerrainTile2D(TileSample tile, TerrainTextureManager textureManager, Translate3Dto2D locationTranslator)
         {
             this.textureManager = textureManager;
             this.locationTranslator = locationTranslator;
             TileSize = tile.Size;
 
-            snappedTileX = tile.TileX;
-            snappedTileZ = tile.TileZ;
+            snappedTileX = tile.Tile.X;
+            snappedTileZ = tile.Tile.Z;
             TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[TileSize]);
 
             verticesFull = CreateVerticesFromTile(tile);
@@ -785,7 +783,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="tile">The tile (parsed .t-file)</param>
         /// <return>A dictionary with texture-name indexed arrays of vertices</return>
-        private Dictionary<string, VertexPositionTexture[]> CreateVerticesFromTile(Tile tile)
+        private Dictionary<string, VertexPositionTexture[]> CreateVerticesFromTile(TileSample tile)
         {
             newVertices = new Dictionary<string, List<VertexPositionTexture>>();
 
@@ -817,7 +815,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tile">The tile (parsed .t-file)</param>
         /// <param name="patch">The terrain patch (one of the patches in the tile)</param>
         /// <returns>The texture name</returns>
-        private string CreateVerticesFromPatch(Tile tile, Patch patch)
+        private string CreateVerticesFromPatch(TileSample tile, Patch patch)
         {
             IList<TextureSlot> ts = tile.Shaders[patch.ShaderIndex].Textureslots;
             string textureName = ts[0].FileName;
@@ -852,7 +850,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="cornerIndexX">Defines the x-value of the corner (0 or 1)</param>
         /// <param name="cornerIndexZ">Defines the z-value of the corner (0 or 1)</param>
         /// <param name="textureName">The name of the texture</param>
-        private void CreateSingleCornerVertex(Tile tile, Patch patch, float cornerIndexX, float cornerIndexZ, string textureName)
+        private void CreateSingleCornerVertex(TileSample tile, Patch patch, float cornerIndexX, float cornerIndexZ, string textureName)
         {
             int squaresPerPatch = 16;
             cornerIndexX *= squaresPerPatch;
@@ -863,7 +861,7 @@ namespace ORTS.TrackViewer.Drawing
             float cornerZ = patch.CenterZ - 1024 + 2048 * tile.Size;
             cornerX += -patch.RadiusM + cornerIndexX * step;
             cornerZ += -patch.RadiusM + (squaresPerPatch - cornerIndexZ) * step;
-            WorldLocation location = new WorldLocation(tile.TileX, tile.TileZ, cornerX, 0, cornerZ);
+            WorldLocation location = new WorldLocation(tile.Tile.X, tile.Tile.Z, cornerX, 0, cornerZ);
 
             // Rotate, Flip, and stretch the texture using the matrix coordinates stored in terrain_patchset_patch 
             // transform uv by the 2x3 matrix made up of X,Y  W,B  C,H

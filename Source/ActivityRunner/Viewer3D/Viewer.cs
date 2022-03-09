@@ -809,9 +809,9 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.DebugSoundForm, KeyEventType.KeyPressed, () => SoundDebugFormEnabled = !SoundDebugFormEnabled);
             UserCommandController.AddEvent(UserCommand.CameraJumpSeeSwitch, KeyEventType.KeyPressed, () =>
             {
-                if (Program.DebugViewer != null && Program.DebugViewer.Enabled && (Program.DebugViewer.switchPickedItem != null || Program.DebugViewer.signalPickedItem != null))
+                if (Program.DebugViewer != null && Program.DebugViewer.Enabled && (Program.DebugViewer.SwitchPickedItem != null || Program.DebugViewer.SignalPickedItem != null))
                 {
-                    WorldLocation location = Program.DebugViewer.switchPickedItem?.Item != null ? Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8) : Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
+                    WorldLocation location = Program.DebugViewer.SwitchPickedItem?.Item != null ? Program.DebugViewer.SwitchPickedItem.Item.UiD.Location.ChangeElevation(8) : Program.DebugViewer.SignalPickedItem.Item.Location.ChangeElevation(8);
                     if (FreeRoamCameraList.Count == 0)
                         _ = new UseFreeRoamCameraCommand(Log);
                     FreeRoamCamera.SetLocation(location);

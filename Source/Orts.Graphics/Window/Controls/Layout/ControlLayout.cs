@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -7,7 +9,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Graphics.Window.Controls.Layout
 {
-    public abstract class ControlLayout : WindowControl
+#pragma warning disable CA1710 // Identifiers should have correct suffix
+    public abstract class ControlLayout : WindowControl, ICollection<WindowControl>
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         public const int SeparatorPadding = 2;
 
@@ -30,6 +34,10 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
 
+        public int Count => ((ICollection<WindowControl>)Controls).Count;
+
+        public bool IsReadOnly => ((ICollection<WindowControl>)Controls).IsReadOnly;
+
         protected T InternalAdd<T>(T control) where T : WindowControl
         {
             if (null == control)
@@ -42,9 +50,9 @@ namespace Orts.Graphics.Window.Controls.Layout
             return control;
         }
 
-        public void Add(WindowControl control)
+        public void Add(WindowControl item)
         {
-            InternalAdd(control);
+            InternalAdd(item);
         }
 
         public void AddSpace(int width, int height)
@@ -225,5 +233,34 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
+        public void Clear()
+        {
+            ((ICollection<WindowControl>)Controls).Clear();
+        }
+
+        public bool Contains(WindowControl item)
+        {
+            return ((ICollection<WindowControl>)Controls).Contains(item);
+        }
+
+        public void CopyTo(WindowControl[] array, int arrayIndex)
+        {
+            ((ICollection<WindowControl>)Controls).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(WindowControl item)
+        {
+            return ((ICollection<WindowControl>)Controls).Remove(item);
+        }
+
+        public IEnumerator<WindowControl> GetEnumerator()
+        {
+            return ((IEnumerable<WindowControl>)Controls).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)Controls).GetEnumerator();
+        }
     }
 }

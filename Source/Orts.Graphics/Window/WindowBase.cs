@@ -1,5 +1,7 @@
 ﻿using System;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -42,12 +44,15 @@ namespace Orts.Graphics.Window
 
         internal ControlLayout CapturedControl { get; set; }
 
-        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
+        public Catalog Catalog { get; }
+
+        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog = null)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = relativeLocation;
             borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
-            Caption = caption;
+            Catalog = catalog ?? CatalogManager.Catalog;
+            Caption = catalog?.GetString(caption) ?? caption;
         }
 
         internal protected virtual void Initialize()

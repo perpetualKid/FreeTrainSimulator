@@ -41,7 +41,9 @@ namespace Orts.Settings
 
         private readonly Dictionary<string, object> customDefaultValues = new Dictionary<string, object>();
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static UserSettings()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             //TODO: user settings (as any other runtime data) may not be saved in exe folder (which might be under \Program Files if installed via installer)
             // default user settings are searched in order: Json, Ini, Registry
@@ -401,6 +403,23 @@ namespace Orts.Settings
 
         [Default(0)]
         public int DispatcherWindowScreen { get; set; }
+
+        [Default(new string[]
+        {
+            nameof(DispatcherWindowType.SignalState) + "=100,100",
+            nameof(DispatcherWindowType.HelpWindow) + "=50,50",
+            nameof(DispatcherWindowType.SignalChange) + "=0,0",
+            nameof(DispatcherWindowType.SwitchChange) + "=0,0",
+            nameof(DispatcherWindowType.DebugScreen) + "=0,0",
+        })]
+        public EnumArray<int[], DispatcherWindowType> DispatcherWindowLocations { get; set; }
+
+        [Default(new string[]
+        {
+            nameof(DispatcherWindowType.SignalState) + "=False",
+            nameof(DispatcherWindowType.HelpWindow) + "=True",
+        })]
+        public EnumArray<bool, DispatcherWindowType> DispatcherWindowStatus { get; set; }
         #endregion
         #endregion
 

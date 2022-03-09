@@ -27,6 +27,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -59,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private CommonDebugInfo debugInfo;
 
         private UserCommandController<UserCommand> userCommandController;
-        private WindowManager<WindowType> windowManager;
+        private WindowManager<DispatcherWindowType> windowManager;
 
         private bool followTrain;
 
@@ -159,22 +160,40 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            EnumArray<Type, DispatcherWindowType> windowTypes = new EnumArray<Type, DispatcherWindowType>();
+            windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.SignalState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<WindowBase>(() =>
             {
-                SignalStateWindow signalWindow = new SignalStateWindow(windowManager, new Point(50, 50));
-                return signalWindow;
+                return new SignalChangeWindow(windowManager, new Point(50, 50));
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<WindowBase>(() =>
+            {
+                return new SwitchChangeWindow(windowManager, new Point(50, 50));
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
+            {
+                return new SignalStateWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.SignalState].ToPoint());
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            {
+                HelpWindow helpWindow = new HelpWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
+                return helpWindow;
             }));
             Components.Add(windowManager);
 
             #endregion
+
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            {
+                if (settings.DispatcherWindowStatus[windowType])
+                    windowManager[windowType].Open();
+            }
 
             base.Initialize();
         }
@@ -208,9 +227,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[WindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
+            });
             #endregion
 
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
@@ -300,6 +326,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             settings.DispatcherWindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             settings.DispatcherWindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             settings.DispatcherWindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            {
+                if (windowManager.WindowInitialized(windowType))
+                {
+                    settings.DispatcherWindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                }
+                    settings.DispatcherWindowStatus[windowType] = windowManager.WindowOpened(windowType);
+            }
 
             settings.Save();
         }
@@ -416,14 +451,28 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             contentArea.MouseDragging(userCommandArgs);
         }
 
+        public void MouseLeftClick(UserCommandArgs userCommandArgs)
+        {
+            if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
+            {
+                SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
+                signalstateWindow.UpdateSignal(content.SignalSelected);
+            }
+        }
+
         public void MouseRightClick(UserCommandArgs userCommandArgs)
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
-                if (content.SignalSelected != null)
+                if (content.SignalSelected != null && (MultiPlayerManager.MultiplayerState == MultiplayerState.None))
                 {
-                    SignalStateWindow signalstateWindow = windowManager[WindowType.SignalState] as SignalStateWindow;
+                    SignalChangeWindow signalstateWindow = windowManager[DispatcherWindowType.SignalChange] as SignalChangeWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
+                }
+                else if (content.SwitchSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
+                {
+                    SwitchChangeWindow switchstateWindow = windowManager[DispatcherWindowType.SwitchChange] as SwitchChangeWindow;
+                    switchstateWindow.OpenAt(pointerCommandArgs.Position, content.SwitchSelected);
                 }
             }
         }

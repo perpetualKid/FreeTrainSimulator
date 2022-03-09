@@ -6,11 +6,10 @@ using Orts.Common;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.TrackViewer.Settings;
 
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    public class HelpWindow : WindowBase
+    internal class HelpWindow: WindowBase
     {
         public HelpWindow(WindowManager owner, Point relativeLocation) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), "Help", relativeLocation, new Point(360, 125))

@@ -3,7 +3,7 @@
     public interface IRuntimeReferenceResolver
     {
         ISignal SignalById(int signalId);
-        ISwitch SwitchById(int switchId);
+        IJunction SwitchById(int switchId);
     }
 
     public enum SignalState
@@ -17,6 +17,7 @@
 
     public enum SwitchState
     { 
+        Invalid = -1,
         MainRoute,
         SideRoute,
     }
@@ -28,7 +29,7 @@
         public bool CallOnEnabled { get; }
     }
 
-    public interface ISwitch
+    public interface IJunction
     {
         SwitchState State { get; set; }
     }

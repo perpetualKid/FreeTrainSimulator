@@ -101,8 +101,6 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>The discrete scale giving the meters per pixel in nice numbers</summary>
         private readonly DiscreteScale metersPerPixel;
 
-        /// <summary>The fontmanager that is used to draw strings</summary>
-        private readonly FontManager fontManager;
         #endregion
 
         #region General public methods
@@ -116,7 +114,6 @@ namespace ORTS.TrackViewer.Drawing
             AreaH = 700;
             metersPerPixel = new DiscreteScale();
             MouseLocation = new WorldLocation(0, 0, 0, 0, 0);  // default mouse location far far away
-            fontManager = FontManager.Instance;
             SetDrawArea(-1, 1, -1, 1); // just have a default
             this.drawScaleRuler = drawScaleRuler;
         }
@@ -341,7 +338,7 @@ namespace ORTS.TrackViewer.Drawing
             if (updateFontSize)
             {
                 //Set the size of the font for drawing text. Font size is about 10 times the scale in pixels/meter
-                fontManager.RequestFontSize((int)(Scale * 10));
+                TextManager.Instance?.ZoomFontSize((int)(Scale * 10));
             }
         }
         #endregion

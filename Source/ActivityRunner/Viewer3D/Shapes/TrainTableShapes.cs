@@ -12,8 +12,6 @@ using Orts.Common.Xna;
 using Orts.Simulation;
 using Orts.Simulation.World;
 
-using SharpDX.Direct3D9;
-
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class TurntableShape : PoseableShape
