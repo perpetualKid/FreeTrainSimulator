@@ -953,6 +953,7 @@ namespace Orts.Common
         SignalChange,
         SwitchChange,
         SignalState,
+        HelpWindow,
     }
 
 }

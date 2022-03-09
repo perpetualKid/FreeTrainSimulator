@@ -180,6 +180,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 return new SignalStateWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            {
+                HelpWindow helpWindow = new HelpWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
+                return helpWindow;
+            }));
             Components.Add(windowManager);
 
             #endregion
@@ -219,8 +224,13 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.SignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
+            });
             #endregion
 
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
@@ -428,13 +438,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         public void MouseLeftClick(UserCommandArgs userCommandArgs)
         {
-            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
             {
-                if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
-                {
-                    SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
-                    signalstateWindow.UpdateSignal(content.SignalSelected);
-                }
+                SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
+                signalstateWindow.UpdateSignal(content.SignalSelected);
             }
         }
 

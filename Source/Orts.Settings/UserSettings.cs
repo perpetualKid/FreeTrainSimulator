@@ -404,7 +404,8 @@ namespace Orts.Settings
 
         [Default(new string[]
         {
-            nameof(DispatcherWindowType.SignalState) + "=0,100",
+            nameof(DispatcherWindowType.SignalState) + "=100,100",
+            nameof(DispatcherWindowType.HelpWindow) + "=50,50",
         })]
         public EnumArray<int[], DispatcherWindowType> DispatcherWindowLocations { get; set; }
 
