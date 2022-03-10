@@ -125,7 +125,7 @@ namespace Orts.Formats.Msts
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes.ToList();
+            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes;
         }
 
         /// <summary>
@@ -414,22 +414,12 @@ namespace Orts.Formats.Msts
         }
 
         /// <summary>
-        /// Returns the distance from the traveller's current lcation, in its current direction, to the location specified
-        /// </summary>
-        /// <param name="location">Target world location</param>
-        /// <returns>f the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(in WorldLocation location)
-        {
-            return DistanceTo(new Traveller(this), null, location, float.MaxValue);
-        }
-
-        /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="location">Target location</param>
-        /// <param name="maxDistance">MAximum distance to search for specified location.</param>
+        /// <param name="maxDistance">Maximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(in WorldLocation location, float maxDistance)
+        public float DistanceTo(in WorldLocation location, float maxDistance = float.MaxValue)
         {
             return DistanceTo(new Traveller(this), null, location, maxDistance);
         }
@@ -439,20 +429,9 @@ namespace Orts.Formats.Msts
         /// </summary>
         /// <param name="trackNode">Target track node.</param>
         /// <param name="location">Target location</param>
+        /// <param name="maxDistance">Maximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, in WorldLocation location)
-        {
-            return DistanceTo(new Traveller(this), trackNode, location, float.MaxValue);
-        }
-
-        /// <summary>
-        /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
-        /// </summary>
-        /// <param name="trackNode">Target track node.</param>
-        /// <param name="location">Target location</param>
-        /// <param name="maxDistance">MAximum distance to search for specified location.</param>
-        /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, in WorldLocation location, float maxDistance)
+        public float DistanceTo(TrackNode trackNode, in WorldLocation location, float maxDistance = float.MaxValue)
         {
             return DistanceTo(new Traveller(this), trackNode, location, maxDistance);
         }
@@ -608,7 +587,7 @@ namespace Orts.Formats.Msts
                 ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (ts == null)
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
-                to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
+                to = pin.Direction > 0 ? -trackOffset : ts.Length + trackOffset;
             }
 
             location = tvs.Location;
@@ -659,23 +638,14 @@ namespace Orts.Formats.Msts
                 TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs[i].SectionIndex);
                 if (ts == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
-                float length = GetLength(ts);
-                trackNodeLength += length;
+                trackNodeLength += ts.Length;
                 if (i < TrackVectorSectionIndex)
-                    trackNodeOffset += length;
+                    trackNodeOffset += ts.Length;
                 else if (i == TrackVectorSectionIndex)
                     trackNodeOffset += trackOffset * (ts.Curved ? ts.Radius : 1);
             }
             if (Direction == Direction.Backward)
                 trackNodeOffset = trackNodeLength - trackNodeOffset;
-        }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            if (trackSection == null)
-                return 0;
-
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         /// <summary>

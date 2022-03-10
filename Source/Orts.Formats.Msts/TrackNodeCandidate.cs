@@ -182,8 +182,7 @@ namespace Orts.Formats.Msts
             else
                 radiansAlongCurve = (float)Math.Asin(l.Z / trackSection.Radius);
             float lon = radiansAlongCurve * trackSection.Radius;
-            float trackSectionLength = GetLength(trackSection);
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return null;
 
             return new TrackNodeCandidate(Math.Abs(lat), lon, trackSection);
@@ -221,16 +220,10 @@ namespace Orts.Formats.Msts
             (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
-            if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return null;
 
             return new TrackNodeCandidate(Math.Abs(lat), lon, trackSection);
         }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
-        }
-
     }
 }

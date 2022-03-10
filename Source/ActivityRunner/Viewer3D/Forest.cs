@@ -310,9 +310,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     sectPosToForest.Z *= -1;
                     trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (trackSection == null) continue;
-                    var trackSectionLength = GetLength(trackSection);
-                    if (Math.Abs(sectPosToForest.X) > trackSectionLength + toAddX) continue;
-                    if (Math.Abs(sectPosToForest.Z) > trackSectionLength + toAddZ) continue;
+                    if (Math.Abs(sectPosToForest.X) > trackSection.Length + toAddX) 
+                        continue;
+                    if (Math.Abs(sectPosToForest.Z) > trackSection.Length + toAddZ) 
+                        continue;
                     sections.Add(section);
                 }
             }
@@ -355,8 +356,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return false;
             var radiansAlongCurve = (float)Math.Asin(rotated.z / trackSection.Radius);
             var lon = radiansAlongCurve * trackSection.Radius;
-            var trackSectionLength = GetLength(trackSection);
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return false;
 
             return true;
@@ -381,18 +381,12 @@ namespace Orts.ActivityRunner.Viewer3D
             // Calculate distance along and away from the track centerline.
             float lat, lon;
             (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
-            var trackSectionLength = GetLength(trackSection);
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return false;
 
             return true;
-        }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         public override void Draw()

@@ -3357,9 +3357,6 @@ namespace Orts.Simulation.Signalling
 
                         TrackSection TS = tsectiondat.TrackSections[section.SectionIndex];
 
-                        // determine length
-                        float length = TS.Curved ? MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius : TS.Length;
-
                         // check tunnel shape
 
                         bool tunnelShape = false;
@@ -3377,13 +3374,13 @@ namespace Orts.Simulation.Signalling
                             numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
                             if (inTunnel)
                             {
-                                lastTunnel[1] += length;
+                                lastTunnel[1] += TS.Length;
                             }
                             else
                             {
                                 lastTunnel = new float[2];
                                 lastTunnel[0] = totalLength;
-                                lastTunnel[1] = length;
+                                lastTunnel[1] = TS.Length;
                                 inTunnel = true;
                             }
                         }
@@ -3394,7 +3391,7 @@ namespace Orts.Simulation.Signalling
                             inTunnel = false;
                             numPaths = -1;
                         }
-                        totalLength += length;
+                        totalLength += TS.Length;
                     }
 
                     // add last tunnel item

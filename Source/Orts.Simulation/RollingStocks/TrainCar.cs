@@ -2797,7 +2797,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
         #region Traveller-based updates
-        public float CurrentCurveRadius;
+        public float CurrentCurveRadius { get; private set; }
 
         internal void UpdatedTraveler(Traveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
         {

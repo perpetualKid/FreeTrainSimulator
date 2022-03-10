@@ -158,7 +158,7 @@ namespace Orts.Simulation.Track
                 {
                     if (RuntimeData.Instance.TSectionDat.TrackSections.TryGetValue(section.SectionIndex, out TrackSection trackSection))
                     {
-                        Length += trackSection.Curved ? MathHelper.ToRadians(Math.Abs(trackSection.Angle)) * trackSection.Radius : trackSection.Length;
+                        Length += trackSection.Length;
                     }
                 }
             }

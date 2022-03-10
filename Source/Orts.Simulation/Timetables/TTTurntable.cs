@@ -760,25 +760,12 @@ namespace Orts.Simulation.Timetables
 
             for (int iVector = firstIndex; iVector <= LastIndex; iVector++)
             {
-                float thisLength = 0.0f;
-
                 TrackVectorSection thisVector = vectors[iVector];
 
-                if (RuntimeData.Instance.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
+                if (RuntimeData.Instance.TSectionDat.TrackSections.TryGetValue(thisVector.SectionIndex, out TrackSection ts))
                 {
-                    TrackSection TS = RuntimeData.Instance.TSectionDat.TrackSections[thisVector.SectionIndex];
-
-                    if (TS.Curved)
-                    {
-                        thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
-                    }
-                    else
-                    {
-                        thisLength = TS.Length;
-                    }
+                    returnLength += ts.Length;
                 }
-
-                returnLength += thisLength;
             }
 
             return (returnLength);

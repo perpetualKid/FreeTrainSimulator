@@ -394,23 +394,8 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="tvsi">The track vector section index</param>
         private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
-            float fullSectionLength;
             TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
-            if (trackSection == null)
-            {
-                return 100;  // need to return something. Not easy to recover
-            }
-
-            if (trackSection.Curved)
-            {
-                fullSectionLength = trackSection.Radius * Math.Abs(Microsoft.Xna.Framework.MathHelper.ToRadians(trackSection.Angle));
-            }
-            else
-            {
-                fullSectionLength = trackSection.Length;
-            }
-            return fullSectionLength;
+            return tsectionDat.TrackSections.TryGet(tvs.SectionIndex)?.Length ?? 100; // need to return something. Not easy to recover
         }
         #endregion
     }

@@ -41,6 +41,7 @@ namespace Orts.Formats.Msts.Models
                     Radius = b;
                     Angle = MathHelper.ToDegrees(a);
                     Curved = true;
+                    Length = Radius * Math.Abs(a);
                 }
                 stf.SkipRestOfBlock();
             }
@@ -109,6 +110,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             Radius = stf.ReadFloat(STFReader.Units.Distance, null);
             Angle = stf.ReadFloat(STFReader.Units.None, null);
+            Length = Radius * Math.Abs(MathHelper.ToRadians(Angle));
             stf.SkipRestOfBlock();
         }
     }
