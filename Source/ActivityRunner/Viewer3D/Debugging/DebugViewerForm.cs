@@ -2111,12 +2111,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         public DebugVector A;
         public DebugVector B;
         public DebugVector C;
-        //public float radius;
+
         public bool isCurved;
 
-        public float angle1, angle2;
-        //public SectionCurve curve = null;
-        //public TrVectorSection MySection;
         public LineSegment(DebugVector A, DebugVector B, TrackVectorSection Section)
         {
             this.A = A;
