@@ -3501,9 +3501,6 @@ namespace Orts.Simulation.Signalling
 
                         TrackSection trackSection = tsectiondat.TrackSections[section.SectionIndex];
 
-                        // determine length
-                        float length = trackSection.Curved ? MathHelper.ToRadians(Math.Abs(trackSection.Angle)) * trackSection.Radius : trackSection.Length;
-
                         // check trough shape
 
                         bool troughShape = false;
@@ -3524,13 +3521,13 @@ namespace Orts.Simulation.Signalling
                             numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
                             if (overTrough)
                             {
-                                lastTrough[1] += length;
+                                lastTrough[1] += trackSection.Length;
                             }
                             else
                             {
                                 lastTrough = new float[2];
                                 lastTrough[0] = totalLength;
-                                lastTrough[1] = length;
+                                lastTrough[1] = trackSection.Length;
                                 overTrough = true;
                             }
                         }
@@ -3541,7 +3538,7 @@ namespace Orts.Simulation.Signalling
                             overTrough = false;
                             numPaths = -1;
                         }
-                        totalLength += length;
+                        totalLength += trackSection.Length;
                     }
 
                     // add last tunnel item

@@ -31,12 +31,11 @@ namespace Orts.Graphics.MapView.Widgets
                 Angle = trackSection.Angle;
                 Length = trackSection.Radius;
 
-                double length = trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle));
-
                 int sign = -Math.Sign(trackSection.Angle);
-                double angleRadians = -length / trackSection.Radius;
-                double cosArotated = Math.Cos(trackVectorSection.Direction.Y + sign * angleRadians);
-                double sinArotated = Math.Sin(trackVectorSection.Direction.Y + sign * angleRadians);
+
+                double angleRadians = MathHelper.ToRadians(trackSection.Angle);
+                double cosArotated = Math.Cos(trackVectorSection.Direction.Y + angleRadians);
+                double sinArotated = Math.Sin(trackVectorSection.Direction.Y + angleRadians);
                 double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 vector = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ);
