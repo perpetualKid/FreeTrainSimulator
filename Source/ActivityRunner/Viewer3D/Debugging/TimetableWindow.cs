@@ -532,9 +532,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var margin = 30 * xScale;   //margins to determine if we want to draw a train
             var margin2 = 5000 * xScale;
 
-            //variable for drawing train path
-            var mDist = 5000f;
-
             selectedTrainList.Clear();
 
             if (simulator.TimetableMode)
@@ -588,7 +585,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     || y < -margin2)
                     continue;
 
-                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB, mDist);
+                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB);
 
                 // pen | train | Values for a good presentation
                 //  1		10

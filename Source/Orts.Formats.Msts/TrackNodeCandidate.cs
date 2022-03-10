@@ -88,35 +88,21 @@ namespace Orts.Formats.Msts
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
         /// <param name="trackNode">The parent trackNode of the vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackVectorNode trackNode)
+        private static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackVectorNode trackNode)
         {
             TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
-            if (trackVectorSection == null)
+
+            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
+            if (trackSection == null)
                 return null;
-            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, location, trackVectorSection);
+
+            TrackNodeCandidate candidate = TryTrackSection(location, trackVectorSection, trackSection);
             if (candidate == null)
                 return null;
 
             candidate.TrackVectorSectionIndex = tvsi;
             candidate.TrackVectorSection = trackVectorSection;
             return candidate;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the tracksection given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tsi">The track section index</param>
-        /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackVectorSection">The parent track vector section</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackSection(int tsi, in WorldLocation location, TrackVectorSection trackVectorSection)
-        {
-            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tsi);
-            if (trackSection == null)
-                return null;
-
-            return TryTrackSection(location, trackVectorSection, trackSection);
         }
 
         /// <summary>
