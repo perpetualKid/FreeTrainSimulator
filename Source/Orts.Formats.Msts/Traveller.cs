@@ -765,14 +765,14 @@ namespace Orts.Formats.Msts
         /// <returns>The remaining distance if the traveller reached the end of the track section.</returns>
         public float MoveInSection(float distanceToGo)
         {
-            int distanceSign = Math.Sign(distanceToGo);
+            int sign = Math.Sign(distanceToGo);
             distanceToGo = Math.Abs(distanceToGo);
-            if (distanceSign < 0)
+            if (sign < 0)
                 ReverseDirection();
             distanceToGo = MoveInTrackSection(distanceToGo);
-            if (distanceSign < 0)
+            if (sign < 0)
                 ReverseDirection();
-            return distanceSign * distanceToGo;
+            return sign * distanceToGo;
         }
 
         private float MoveInTrackSection(float distanceToGo)
@@ -788,11 +788,11 @@ namespace Orts.Formats.Msts
 
         private float MoveInTrackSectionInfinite(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float distance = distanceToGo;
             if (Direction == Direction.Backward && distance > trackOffset)
                 distance = trackOffset;
-            trackOffset += scale * distance;
+            trackOffset += sign * distance;
             trackNodeOffset += distance;
             locationSet = false;
             return distanceToGo - distance;
@@ -800,7 +800,7 @@ namespace Orts.Formats.Msts
 
         private float MoveInTrackSectionCurved(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float desiredTurnRadians = distanceToGo / trackSection.Radius;
             float sectionTurnRadians = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
             if (direction == Direction.Forward)
@@ -813,7 +813,7 @@ namespace Orts.Formats.Msts
                 if (desiredTurnRadians > trackOffset)
                     desiredTurnRadians = trackOffset;
             }
-            trackOffset += scale * desiredTurnRadians;
+            trackOffset += sign * desiredTurnRadians;
             trackNodeOffset += desiredTurnRadians * trackSection.Radius;
             locationSet = false;
             return distanceToGo - desiredTurnRadians * trackSection.Radius;
@@ -821,7 +821,7 @@ namespace Orts.Formats.Msts
 
         private float MoveInTrackSectionStraight(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float desiredDistance = distanceToGo;
             if (direction == Direction.Forward)
             {
@@ -833,7 +833,7 @@ namespace Orts.Formats.Msts
                 if (desiredDistance > trackOffset)
                     desiredDistance = trackOffset;
             }
-            trackOffset += scale * desiredDistance;
+            trackOffset += sign * desiredDistance;
             trackNodeOffset += desiredDistance;
             locationSet = false;
             return distanceToGo - desiredDistance;

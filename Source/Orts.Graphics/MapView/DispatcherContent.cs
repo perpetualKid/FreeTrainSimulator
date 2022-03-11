@@ -133,19 +133,27 @@ namespace Orts.Graphics.MapView
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
+        // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
+            float length = 0;
             PathSegments.Clear();
             if (null == TrackNodeSegments)
                 return;
             Traveller traveller = new Traveller(trainTraveller);
             if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
+            {
                 PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
-            while (traveller.TrackNodeType != TrackNodeType.End)
+                length += PathSegments[^1].Length;
+            }
+            while (traveller.TrackNodeType != TrackNodeType.End && length < 5000)
             {
                 traveller.NextSection();
                 if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                {
                     PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
+                    length += PathSegments[^1].Length;
+                }
             }
         }
 

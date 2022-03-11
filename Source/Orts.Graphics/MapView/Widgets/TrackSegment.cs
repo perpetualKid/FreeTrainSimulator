@@ -20,6 +20,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly int TrackVectorSectionIndex;
 
         internal readonly float Angle;
+        internal readonly float Radius;
 
         public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex)
         {
@@ -30,7 +31,8 @@ namespace Orts.Graphics.MapView.Widgets
             if (trackSection.Curved)
             {
                 Angle = trackSection.Angle;
-                Length = trackSection.Radius;
+                Radius = trackSection.Radius;
+                Length = trackSection.Length;
 
                 int sign = -Math.Sign(trackSection.Angle);
 
@@ -64,7 +66,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = GetColor<TrackSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
@@ -81,7 +83,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = GetColor<RoadSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
