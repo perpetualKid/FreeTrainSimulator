@@ -3435,7 +3435,7 @@ namespace Orts.Simulation.AIs
             else if (PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && FrontTDBTraveller.TrackNodeOffset + 25 > FrontTDBTraveller.TrackNodeLength)
             {
                 var tempTraveller = new Traveller(FrontTDBTraveller);
-                if (tempTraveller.NextTrackNode() && tempTraveller.IsEnd)
+                if (tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End)
                 {
                     removeIt = false;
                     MovementState = AiMovementState.Frozen;
@@ -3447,7 +3447,7 @@ namespace Orts.Simulation.AIs
                 {
                     var tempTraveller = new Traveller(RearTDBTraveller);
                     tempTraveller.ReverseDirection();
-                    if (tempTraveller.NextTrackNode() && tempTraveller.IsEnd)
+                    if (tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End)
                     {
                         removeIt = false;
                         MovementState = AiMovementState.Frozen;

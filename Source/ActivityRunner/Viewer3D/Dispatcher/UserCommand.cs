@@ -15,6 +15,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         [Description("Zoom and Follow Player Train")] FollowTrain,
         [Description("Debug Information (Tab)")] DisplayDebugScreen,
         [Description("Signal State Window")] DisplaySignalStateWindow,
-        [Description("Help Window (Tab)")] DisplayHelpWindow
+        [Description("Help Window (Tab)")] DisplayHelpWindow,
+        [Description("Debug Stepwise")] DebugStep,
     }
 }

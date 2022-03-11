@@ -17,10 +17,11 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly float Length;
 
         internal readonly int TrackNodeIndex;
+        internal readonly int TrackVectorSectionIndex;
 
         internal readonly float Angle;
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -56,6 +57,7 @@ namespace Orts.Graphics.MapView.Widgets
             Curved = trackSection.Curved;
             Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;
             TrackNodeIndex = trackNodeIndex;
+            TrackVectorSectionIndex = trackVectorSectionIndex;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -70,7 +72,8 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadSegment : TrackSegment
     {
-        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex) : base(trackVectorSection, trackSection, trackNodeIndex)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex) : 
+            base(trackVectorSection, trackSection, trackNodeIndex, trackVectorSectionIndex)
         {
         }
 

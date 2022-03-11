@@ -107,9 +107,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     var initialNodeOffset = cacheNode.DistanceTo(position.WorldLocation);
                     // Go and collect all the cache entries for the visible range of vector nodes (straights, curves).
                     var totalDistance = 0f;
-                    while (!cacheNode.IsEnd && totalDistance - initialNodeOffset < DisplayDistance)
+                    while (cacheNode.TrackNodeType != TrackNodeType.End && totalDistance - initialNodeOffset < DisplayDistance)
                     {
-                        if (cacheNode.IsTrack)
+                        if (cacheNode.TrackNodeType == TrackNodeType.Track)
                         {
                             var cache = GetCacheEntry(cacheNode);
                             cache.Age = 0;
@@ -276,12 +276,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 rv.Length += MaximumSectionDistance - trackNode.MoveInSection(MaximumSectionDistance);
                 if (!trackNode.NextSection())
                     break;
-                if (trackNode.IsEnd)
-                    rv.Objects.Add(new TrackSectionEndOfLine() { Distance = rv.Length });
-                else if (trackNode.IsJunction)
-                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TrackNode as TrackJunctionNode, NodeIndex = nodeIndex });
-                else
-                    rv.Objects.Add(new TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
+                switch (trackNode.TrackNodeType)
+                {
+                    case TrackNodeType.End:
+                        rv.Objects.Add(new TrackSectionEndOfLine() { Distance = rv.Length });
+                        break;
+                    case TrackNodeType.Junction:
+                        rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TrackNode as TrackJunctionNode, NodeIndex = nodeIndex });
+                        break;
+                    default:
+                        rv.Objects.Add(new TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
+                        break;
+                }
                 if (trackNode.TrackNode.Index != nodeIndex)
                     break;
             }

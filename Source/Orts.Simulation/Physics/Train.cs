@@ -1500,16 +1500,16 @@ namespace Orts.Simulation.Physics
         internal virtual void PhysicsUpdate(double elapsedClockSeconds)
         {
             //if out of track, will set it to stop
-            if ((FrontTDBTraveller != null && FrontTDBTraveller.IsEnd) || (RearTDBTraveller != null && RearTDBTraveller.IsEnd))
+            if (FrontTDBTraveller?.TrackNodeType == TrackNodeType.End || RearTDBTraveller?.TrackNodeType == TrackNodeType.End)
             {
-                if (FrontTDBTraveller.IsEnd && RearTDBTraveller.IsEnd)
+                if (FrontTDBTraveller.TrackNodeType == RearTDBTraveller.TrackNodeType)
                 {//if both travellers are out, very rare occation, but have to treat it
                     RearTDBTraveller.ReverseDirection();
                     RearTDBTraveller.NextTrackNode();
                 }
-                else if (FrontTDBTraveller.IsEnd)
+                else if (FrontTDBTraveller.TrackNodeType == TrackNodeType.End)
                     RearTDBTraveller.Move(-1);//if front is out, move back
-                else if (RearTDBTraveller.IsEnd)
+                else if (RearTDBTraveller.TrackNodeType == TrackNodeType.End)
                     RearTDBTraveller.Move(1);//if rear is out, move forward
                 foreach (TrainCar car in Cars)
                 {

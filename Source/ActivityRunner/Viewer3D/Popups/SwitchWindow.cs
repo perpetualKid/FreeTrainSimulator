@@ -117,9 +117,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TrackJunctionNode SwitchNode = null;
             while (traveller.NextSection())
             {
-                if (traveller.IsJunction)
+                if (traveller.TrackNode is TrackJunctionNode junctionNode)
                 {
-                    SwitchNode = traveller.TrackNode as TrackJunctionNode;
+                    SwitchNode = junctionNode;
                     break;
                 }
                 SwitchPreviousNode = traveller.TrackNode;

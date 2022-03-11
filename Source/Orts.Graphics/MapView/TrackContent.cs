@@ -253,11 +253,12 @@ namespace Orts.Graphics.MapView
                         endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -292,11 +293,12 @@ namespace Orts.Graphics.MapView
                         roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                 }

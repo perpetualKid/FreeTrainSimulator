@@ -104,6 +104,13 @@ namespace Orts.Formats.Msts
     #endregion
 
     #region Path
+    public enum TrackNodeType
+    { 
+        Track,
+        Junction,
+        End,
+    }
+
     // This relates to TrPathFlags, which is not always present in .pat file
     // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
     // Bit 1 - waiting point (2/x2)
@@ -593,6 +600,7 @@ namespace Orts.Formats.Msts
 
     #endregion
 
+    #region Train Car and Engines
     public enum EngineType
     {
         Unknown,
@@ -626,6 +634,6 @@ namespace Orts.Formats.Msts
         Heated,
         PowerVan,
     }
-
+    #endregion
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

@@ -709,7 +709,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             var tempTraveller = new Traveller(Locomotive.Train.RearTDBTraveller);
             tempTraveller.ReverseDirection();
-            return tempTraveller.NextTrackNode() && tempTraveller.IsEnd;
+            return tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;
         }
 
 

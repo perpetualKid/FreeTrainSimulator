@@ -34,6 +34,8 @@ namespace Orts.Graphics.MapView
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
 
+        internal List<TrackSegment> PathSegments { get; } = new List<TrackSegment>();
+
         public DispatcherContent(Game game) :
             base(game)
         {
@@ -79,13 +81,17 @@ namespace Orts.Graphics.MapView
                 if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
                     trackItem.Draw(ContentArea);
             }
+            foreach (TrackSegment segment in PathSegments)
+            {
+                if (ContentArea.InsideScreenArea(segment))
+                    segment.Draw(ContentArea, ColorVariation.Highlight, 2);
+            }
             if (null != Trains)
             {
                 foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
                     trainCar.Draw(ContentArea);
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
-
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -127,6 +133,22 @@ namespace Orts.Graphics.MapView
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
+        public void UpdateTrainPath(Traveller trainTraveller)
+        {
+            PathSegments.Clear();
+            if (null == TrackNodeSegments)
+                return;
+            Traveller traveller = new Traveller(trainTraveller);
+            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
+                PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
+            while (traveller.TrackNodeType != TrackNodeType.End)
+            {
+                traveller.NextSection();
+                if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                    PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
+            }
+        }
+
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
         {
             if (null == colorPreferences)
@@ -136,6 +158,8 @@ namespace Orts.Graphics.MapView
             {
                 ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
             }
+
+            PointWidget.OverrideColorVariation<TrackSegment>(ColorVariation.Highlight, Color.Red);
         }
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
@@ -165,11 +189,12 @@ namespace Orts.Graphics.MapView
                         endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -190,7 +215,7 @@ namespace Orts.Graphics.MapView
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
+            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
             Tiles = new TileIndexedList<GridTile, Tile>(
                 TrackSegments.Select(d => d.Tile as ITile).Distinct()
