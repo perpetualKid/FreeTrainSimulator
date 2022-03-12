@@ -61,7 +61,6 @@ using System.Windows.Forms;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Common;
 using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Models.Simplified;
@@ -208,9 +207,7 @@ namespace Orts.Menu
 
         private void ResumeSave()
         {
-            SavePoint save = saveBindingSource.Current as SavePoint;
-
-            if (null != save)
+            if (saveBindingSource.Current is SavePoint save)
             {
                 if (save.Valid != false && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
                 {

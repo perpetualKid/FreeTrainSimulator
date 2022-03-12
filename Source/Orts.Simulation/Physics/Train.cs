@@ -401,7 +401,7 @@ namespace Orts.Simulation.Physics
         {
             get
             {
-                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] as MSTSLocomotive : null;
+                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] as MSTSLocomotive : Cars.OfType<MSTSLocomotive>().FirstOrDefault();
             }
             internal set
             {

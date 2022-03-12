@@ -346,22 +346,6 @@ namespace Orts.ActivityRunner.Processes
                     outf.Write(argument);
                 outf.Write((int)activityType);
 
-                // The Save command is the only command that doesn't take any action. It just serves as a marker.
-                _ = new SaveCommand(simulator.Log, fileStem);
-                simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
-
-                // Copy the logfile to the save folder
-                string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
-
-                if (File.Exists(logFileName))
-                {
-                    Trace.Flush();
-                    foreach (TraceListener listener in Trace.Listeners)
-                        listener.Flush();
-                    File.Delete(logName);
-                    File.Copy(logFileName, logName);
-                }
-
                 simulator.Save(outf);
                 Viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
@@ -370,6 +354,22 @@ namespace Orts.ActivityRunner.Processes
 
                 // Write out position within file so we can check when restoring.
                 outf.Write(outf.BaseStream.Position);
+            }
+
+            // The Save command is the only command that doesn't take any action. It just serves as a marker.
+            _ = new SaveCommand(simulator.Log, fileStem);
+            simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
+
+            // Copy the logfile to the save folder
+            string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
+
+            if (File.Exists(logFileName))
+            {
+                Trace.Flush();
+                foreach (TraceListener listener in Trace.Listeners)
+                    listener.Flush();
+                File.Delete(logName);
+                File.Copy(logFileName, logName);
             }
 
             //Debrief Eval
