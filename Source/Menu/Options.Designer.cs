@@ -28,7 +28,7 @@ namespace Orts.Menu
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
             this.pbEnableWebServer = new System.Windows.Forms.PictureBox();
-            this.pbDisableTcsScripts = new System.Windows.Forms.PictureBox();
+            this.pbEnableTcsScripts = new System.Windows.Forms.PictureBox();
             this.pbOtherUnits = new System.Windows.Forms.PictureBox();
             this.pbPressureUnit = new System.Windows.Forms.PictureBox();
             this.pbLanguage = new System.Windows.Forms.PictureBox();
@@ -43,7 +43,7 @@ namespace Orts.Menu
             this.numericWebServerPort = new System.Windows.Forms.NumericUpDown();
             this.checkEnableWebServer = new System.Windows.Forms.CheckBox();
             this.checkSpeedMonitor = new System.Windows.Forms.CheckBox();
-            this.checkDisableTCSScripts = new System.Windows.Forms.CheckBox();
+            this.checkEnableTCSScripts = new System.Windows.Forms.CheckBox();
             this.labelOtherUnits = new System.Windows.Forms.Label();
             this.labelPressureUnit = new System.Windows.Forms.Label();
             this.comboOtherUnits = new System.Windows.Forms.ComboBox();
@@ -219,7 +219,7 @@ namespace Orts.Menu
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbEnableWebServer)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbDisableTcsScripts)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnableTcsScripts)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOtherUnits)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbPressureUnit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbLanguage)).BeginInit();
@@ -359,9 +359,9 @@ namespace Orts.Menu
             this.checkConfirmations.AutoSize = true;
             this.checkConfirmations.Location = new System.Drawing.Point(31, 51);
             this.checkConfirmations.Name = "checkConfirmations";
-            this.checkConfirmations.Size = new System.Drawing.Size(143, 19);
+            this.checkConfirmations.Size = new System.Drawing.Size(185, 19);
             this.checkConfirmations.TabIndex = 4;
-            this.checkConfirmations.Text = "Control confirmations";
+            this.checkConfirmations.Text = "Show Control confirmations";
             this.checkConfirmations.UseVisualStyleBackColor = true;
             // 
             // tabOptions
@@ -389,7 +389,7 @@ namespace Orts.Menu
             // tabPageGeneral
             // 
             this.tabPageGeneral.Controls.Add(this.pbEnableWebServer);
-            this.tabPageGeneral.Controls.Add(this.pbDisableTcsScripts);
+            this.tabPageGeneral.Controls.Add(this.pbEnableTcsScripts);
             this.tabPageGeneral.Controls.Add(this.pbOtherUnits);
             this.tabPageGeneral.Controls.Add(this.pbPressureUnit);
             this.tabPageGeneral.Controls.Add(this.pbLanguage);
@@ -404,7 +404,7 @@ namespace Orts.Menu
             this.tabPageGeneral.Controls.Add(this.numericWebServerPort);
             this.tabPageGeneral.Controls.Add(this.checkEnableWebServer);
             this.tabPageGeneral.Controls.Add(this.checkSpeedMonitor);
-            this.tabPageGeneral.Controls.Add(this.checkDisableTCSScripts);
+            this.tabPageGeneral.Controls.Add(this.checkEnableTCSScripts);
             this.tabPageGeneral.Controls.Add(this.labelOtherUnits);
             this.tabPageGeneral.Controls.Add(this.labelPressureUnit);
             this.tabPageGeneral.Controls.Add(this.comboOtherUnits);
@@ -441,16 +441,16 @@ namespace Orts.Menu
             // 
             // pbDisableTcsScripts
             // 
-            this.pbDisableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.Image")));
-            this.pbDisableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.InitialImage")));
-            this.pbDisableTcsScripts.Location = new System.Drawing.Point(7, 274);
-            this.pbDisableTcsScripts.Name = "pbDisableTcsScripts";
-            this.pbDisableTcsScripts.Size = new System.Drawing.Size(18, 18);
-            this.pbDisableTcsScripts.TabIndex = 41;
-            this.pbDisableTcsScripts.TabStop = false;
-            this.pbDisableTcsScripts.Click += new System.EventHandler(this.HelpIcon_Click);
-            this.pbDisableTcsScripts.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
-            this.pbDisableTcsScripts.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            this.pbEnableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.Image")));
+            this.pbEnableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.InitialImage")));
+            this.pbEnableTcsScripts.Location = new System.Drawing.Point(7, 274);
+            this.pbEnableTcsScripts.Name = "pbDisableTcsScripts";
+            this.pbEnableTcsScripts.Size = new System.Drawing.Size(18, 18);
+            this.pbEnableTcsScripts.TabIndex = 41;
+            this.pbEnableTcsScripts.TabStop = false;
+            this.pbEnableTcsScripts.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbEnableTcsScripts.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbEnableTcsScripts.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // pbOtherUnits
             // 
@@ -637,13 +637,13 @@ namespace Orts.Menu
             // 
             // checkDisableTCSScripts
             // 
-            this.checkDisableTCSScripts.AutoSize = true;
-            this.checkDisableTCSScripts.Location = new System.Drawing.Point(31, 274);
-            this.checkDisableTCSScripts.Name = "checkDisableTCSScripts";
-            this.checkDisableTCSScripts.Size = new System.Drawing.Size(123, 19);
-            this.checkDisableTCSScripts.TabIndex = 13;
-            this.checkDisableTCSScripts.Text = "Disable TCS scripts";
-            this.checkDisableTCSScripts.UseVisualStyleBackColor = true;
+            this.checkEnableTCSScripts.AutoSize = true;
+            this.checkEnableTCSScripts.Location = new System.Drawing.Point(31, 274);
+            this.checkEnableTCSScripts.Name = "checkDisableTCSScripts";
+            this.checkEnableTCSScripts.Size = new System.Drawing.Size(123, 19);
+            this.checkEnableTCSScripts.TabIndex = 13;
+            this.checkEnableTCSScripts.Text = "Enable TCS scripts";
+            this.checkEnableTCSScripts.UseVisualStyleBackColor = true;
             // 
             // labelOtherUnits
             // 
@@ -2838,7 +2838,7 @@ namespace Orts.Menu
             this.tabPageGeneral.ResumeLayout(false);
             this.tabPageGeneral.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbEnableWebServer)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbDisableTcsScripts)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnableTcsScripts)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOtherUnits)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbPressureUnit)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbLanguage)).EndInit();
@@ -3037,7 +3037,7 @@ namespace Orts.Menu
         private System.Windows.Forms.Label labelContent;
         private System.Windows.Forms.CheckBox checkShapeWarnings;
         private System.Windows.Forms.Label labelDayAmbientLight;
-        private System.Windows.Forms.CheckBox checkDisableTCSScripts;
+        private System.Windows.Forms.CheckBox checkEnableTCSScripts;
         private System.Windows.Forms.NumericUpDown precipitationBoxHeight;
         private System.Windows.Forms.NumericUpDown precipitationBoxWidth;
         private System.Windows.Forms.Label label23;
@@ -3103,7 +3103,7 @@ namespace Orts.Menu
         private System.Windows.Forms.Button buttonUpdaterExecute;
         private System.Windows.Forms.PictureBox pbOverspeedMonitor;
         private System.Windows.Forms.PictureBox pbEnableWebServer;
-        private System.Windows.Forms.PictureBox pbDisableTcsScripts;
+        private System.Windows.Forms.PictureBox pbEnableTcsScripts;
         private System.Windows.Forms.PictureBox pbOtherUnits;
         private System.Windows.Forms.PictureBox pbPressureUnit;
         private System.Windows.Forms.PictureBox pbLanguage;

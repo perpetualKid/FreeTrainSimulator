@@ -100,14 +100,14 @@ namespace Orts.Menu
             checkAlerterExternal.Enabled = this.settings.Alerter;
             checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
             checkSpeedMonitor.Checked = this.settings.SpeedControl;
-            checkConfirmations.Checked = !this.settings.SuppressConfirmations;
+            checkConfirmations.Checked = !this.settings.SuppressConfirmations;// Inverted as "Show confirmations" is better UI than "Suppress confirmations"
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
             comboPressureUnit.SelectedValue = this.settings.PressureUnit;
             comboOtherUnits.SelectedValue = settings.MeasurementUnit;
-            checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
+            checkEnableTCSScripts.Checked = !this.settings.DisableTCSScripts;// Inverted as "Enable scripts" is better UI than "Disable scripts"
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
 
@@ -232,7 +232,7 @@ namespace Orts.Menu
             checkAdhesionPropToWeather.Checked = this.settings.AdhesionProportionalToWeather;
             trackAdhesionFactorChange.Value = this.settings.AdhesionFactorChange;
             TrackAdhesionFactor_ValueChanged(null, null);
-            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;
+            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;   // Inverted as "Show warnings" is better UI than "Suppress warnings"
             precipitationBoxHeight.Value = this.settings.PrecipitationBoxHeight;
             precipitationBoxWidth.Value = this.settings.PrecipitationBoxWidth;
             precipitationBoxLength.Value = this.settings.PrecipitationBoxLength;
@@ -286,7 +286,7 @@ namespace Orts.Menu
             settings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
             settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
-            settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
+            settings.DisableTCSScripts = !checkEnableTCSScripts.Checked; // Inverted as "Enable scripts" is better UI than "Disable scripts"
             settings.WebServer = checkEnableWebServer.Checked;
             settings.WebServerPort = (int)numericWebServerPort.Value;
 
@@ -692,7 +692,7 @@ namespace Orts.Menu
                 (pbLanguage, new Control[] { labelLanguage, comboLanguage }, "/options.html#language"),
                 (pbPressureUnit, new Control[] { labelPressureUnit, comboPressureUnit }, "/options.html#pressure-unit"),
                 (pbOtherUnits, new Control[] { labelOtherUnits, comboOtherUnits }, "/options.html#other-units"),
-                (pbDisableTcsScripts, new[] { checkDisableTCSScripts }, "/options.html#disable-tcs-scripts"),
+                (pbEnableTcsScripts, new[] { checkEnableTCSScripts }, "/options.html#disable-tcs-scripts"),
                 (pbEnableWebServer, new[] { checkEnableWebServer }, "/options.html#enable-web-server"),
                 (pbOverspeedMonitor, new[] { checkSpeedMonitor }, "/options.html#overspeed-monitor"),
             };
