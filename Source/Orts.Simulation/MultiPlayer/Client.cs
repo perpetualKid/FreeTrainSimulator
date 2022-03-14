@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 using GetText;
 
+using Orts.Common;
+
 namespace Orts.Simulation.MultiPlayer
 {
     internal class Client : IDisposable

@@ -71,7 +71,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Physics
 {
-    public partial class Train
+    public partial class Train: ITrain
     {
         #region const
         private const int TileSize = 2048;
@@ -114,7 +114,8 @@ namespace Orts.Simulation.Physics
         public static int TotalNumber { get; private set; } = 1; // start at 1 (0 is reserved for player train)
 
         public TrainCar FirstCar => Cars[0];
-        public TrainCar LastCar => Cars[Cars.Count - 1];
+        public TrainCar LastCar => Cars[^1];
+        public bool IsActive => TrainType == TrainType.Player || (this is AITrain aITrain && aITrain.MovementState != AiMovementState.Static && !(TrainType == TrainType.AiIncorporated && !IncorporatingTrain.IsPathless));
 
         public Traveller RearTDBTraveller { get; internal set; }               // positioned at the back of the last car in the train
         public Traveller FrontTDBTraveller { get; internal set; }              // positioned at the front of the train by CalculatePositionOfCars

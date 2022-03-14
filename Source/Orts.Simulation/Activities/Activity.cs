@@ -25,6 +25,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;

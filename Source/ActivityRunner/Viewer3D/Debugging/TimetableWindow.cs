@@ -23,6 +23,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -653,7 +654,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // inactive loco: RGB 153,128,0
             // active car: RGB 0,204,0
             // inactive car: RGB 0,153,0
-            if (IsActiveTrain(t as Simulation.AIs.AITrain))
+            if (t.IsActive)
                 if (car is MSTSLocomotive)
                     trainPen.Color = (car == locoCar) ? Color.FromArgb(204, 170, 0) : Color.FromArgb(153, 128, 0);
                 else
@@ -676,7 +677,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             scaledTrain.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
             if (rbShowActiveTrainLabels.Checked)
             {
-                if (t is Simulation.AIs.AITrain && IsActiveTrain(t as Simulation.AIs.AITrain))
+                if (t.IsActive)
                     ShowTrainNameAndState(g, scaledTrain, t, trainName);
             }
             else
@@ -689,7 +690,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             if (t == null)
                 return false;
-            return (t.MovementState != AiMovementState.Static && !(t.TrainType == TrainType.AiIncorporated && !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
+            return (t.MovementState != AiMovementState.Static && (t.TrainType != TrainType.AiIncorporated || !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
         }
 
         private void ShowTrainNameAndState(System.Drawing.Graphics g, PointF scaledItem, Train t, string trainName)
@@ -703,7 +704,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var lastPos = trainName.LastIndexOf(":");
                     var shortName = (lastPos > 0) ? trainName.Substring(0, lastPos) : trainName;
 
-                    if (IsActiveTrain(tTTrain))
+                    if (t.IsActive)
                     {
                         if (cbShowTrainState.Checked)
                         {
