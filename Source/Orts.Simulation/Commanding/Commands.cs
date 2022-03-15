@@ -1026,7 +1026,7 @@ namespace Orts.Simulation.Commanding
             if (targetState)
             {
                 Receiver.AlerterReset(TCSEvent.HornActivated);
-                Receiver.Simulator.HazardManager.Horn();
+                Simulator.Instance.HazardManager.Horn();
             }
         }
 
@@ -1102,12 +1102,12 @@ namespace Orts.Simulation.Commanding
                         if (!MasterKeyHeadlightControl)
                         {
                             Receiver.Headlight = 1;
-                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
+                            Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         }
                         break;
                     case 1:
                         Receiver.Headlight = 2;
-                        Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.On);
+                        Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.On);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
@@ -1120,12 +1120,12 @@ namespace Orts.Simulation.Commanding
                         if (!MasterKeyHeadlightControl)
                         {
                             Receiver.Headlight = 0;
-                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
+                            Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
                         }
                         break;
                     case 2:
                         Receiver.Headlight = 1;
-                        Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
+                        Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);

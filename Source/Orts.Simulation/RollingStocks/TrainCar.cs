@@ -61,7 +61,7 @@ namespace Orts.Simulation.RollingStocks
 
     public abstract class TrainCar: IWorldPosition
     {
-        public readonly Simulator Simulator;
+        internal readonly Simulator simulator;
         public readonly string WagFilePath;
         public string RealWagFilePath; //we are substituting missing remote cars in MP, so need to remember this
 
@@ -636,20 +636,20 @@ namespace Orts.Simulation.RollingStocks
 
         public virtual void Initialize()
         {
-            CurveResistanceDependent = Simulator.Settings.CurveResistanceDependent;
-            CurveSpeedDependent = Simulator.Settings.CurveSpeedDependent;
-            TunnelResistanceDependent = Simulator.Settings.TunnelResistanceDependent;
+            CurveResistanceDependent = simulator.Settings.CurveResistanceDependent;
+            CurveSpeedDependent = simulator.Settings.CurveSpeedDependent;
+            TunnelResistanceDependent = simulator.Settings.TunnelResistanceDependent;
             
             //CurveForceFilter.Initialize();
             // Initialize tunnel resistance values
 
-            DoubleTunnelCrossSectAreaM2 = Simulator.Route.DoubleTunnelAreaM2;
-            SingleTunnelCrossSectAreaM2 = Simulator.Route.SingleTunnelAreaM2;
-            DoubleTunnelPerimeterM = Simulator.Route.DoubleTunnelPerimeterM;
-            SingleTunnelPerimeterAreaM = Simulator.Route.SingleTunnelPerimeterM;
+            DoubleTunnelCrossSectAreaM2 = simulator.Route.DoubleTunnelAreaM2;
+            SingleTunnelCrossSectAreaM2 = simulator.Route.SingleTunnelAreaM2;
+            DoubleTunnelPerimeterM = simulator.Route.DoubleTunnelPerimeterM;
+            SingleTunnelPerimeterAreaM = simulator.Route.SingleTunnelPerimeterM;
 
             // get route speed limit
-            RouteSpeedMpS = (float)Simulator.Route.SpeedLimit;
+            RouteSpeedMpS = (float)simulator.Route.SpeedLimit;
 
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels
@@ -752,7 +752,7 @@ namespace Orts.Simulation.RollingStocks
             const float DryLapseTemperatureC = 9.8f;
             const float WetLapseTemperatureC = 5.5f;
 
-            if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
+            if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
                 TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
             }
@@ -790,7 +790,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 _AccelerationMpSS = (_SpeedMpS - _PrevSpeedMpS) / (float)elapsedClockSeconds;
 
-                if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics)
+                if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics)
                     _AccelerationMpSS = (float)AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
 
                 _PrevSpeedMpS = _SpeedMpS;
@@ -814,17 +814,17 @@ namespace Orts.Simulation.RollingStocks
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
 
             // Sets outside temperature dependent upon the season
-            if (Simulator.Season == SeasonType.Winter)
+            if (simulator.Season == SeasonType.Winter)
             {
                 // Winter temps
                 InitialCarOutsideTempC = (float)OutsideWinterTempbyLatitudeC[LatitudeDeg];
             }
-            else if (Simulator.Season == SeasonType.Autumn)
+            else if (simulator.Season == SeasonType.Autumn)
             {
                 // Autumn temps
                 InitialCarOutsideTempC = (float)OutsideAutumnTempbyLatitudeC[LatitudeDeg];
             }
-            else if (Simulator.Season == SeasonType.Spring)
+            else if (simulator.Season == SeasonType.Spring)
             {
                 // Spring temps
                 InitialCarOutsideTempC = (float)OutsideSpringTempbyLatitudeC[LatitudeDeg];
@@ -838,7 +838,7 @@ namespace Orts.Simulation.RollingStocks
             // If weather is freezing. Snow will only be produced when temp is between 0 and 2 Deg C. Adjust temp as appropriate
             const float SnowTemperatureC = 2;
 
-            if (Simulator.WeatherType == WeatherType.Snow && InitialCarOutsideTempC > SnowTemperatureC)
+            if (simulator.WeatherType == WeatherType.Snow && InitialCarOutsideTempC > SnowTemperatureC)
             {
                 InitialCarOutsideTempC = 0;  // Weather snowing - freezing conditions. 
             }
@@ -862,13 +862,13 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Only apply slide, and advanced brake friction, if advanced adhesion is selected, simplecontrolphysics is not set, and it is a Player train
-            if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsPlayerTrain)
+            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain)
             {
 
                 // Get user defined brake shoe coefficient if defined in WAG file
                 float UserFriction = GetUserBrakeShoeFrictionFactor();
                 float ZeroUserFriction = GetZeroUserBrakeShoeFrictionFactor();
-                float AdhesionMultiplier = Simulator.Settings.AdhesionFactor / 100.0f; // User set adjustment factor - convert to a factor where 100% = no change to adhesion
+                float AdhesionMultiplier = simulator.Settings.AdhesionFactor / 100.0f; // User set adjustment factor - convert to a factor where 100% = no change to adhesion
 
                 // This section calculates an adjustment factor for the brake force dependent upon the "base" (zero speed) friction value. 
                 //For a user defined case the base value is the zero speed value from the curve entered by the user.
@@ -968,7 +968,7 @@ namespace Orts.Simulation.RollingStocks
                         {
                             BrakeSkid = true; 	// wagon wheel is slipping
                             var message = "Car ID: " + CarID + " - experiencing braking force wheel skid.";
-                            Simulator.Confirmer.Message(ConfirmLevel.Warning, message);
+                            simulator.Confirmer.Message(ConfirmLevel.Warning, message);
                         }
                     }
                     else if (BrakeSkid && AbsSpeedMpS > 0.01)
@@ -1550,7 +1550,7 @@ namespace Orts.Simulation.RollingStocks
                     if (DerailPossible && DerailElapsedTimeS > derailTimeS)
                     {
                         DerailExpected = true;
-                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString($"Car {CarID} has derailed on the curve."));
+                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString($"Car {CarID} has derailed on the curve."));
                       //  Trace.TraceInformation("Car Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5} Nadal {6} Coeff {7}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, NadalDerailmentCoefficient, DerailmentCoefficient);
                      //   Trace.TraceInformation("Car Ahead Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}", CarAhead.CarID, CarAhead.CouplerForceU, CarAhead.CouplerForceUSmoothed.SmoothedValue, CarAhead.TotalWagonLateralDerailForceN, CarAhead.TotalWagonVerticalDerailForceN, CarAhead.WagonCouplerAngleDerailRad);
                     }
@@ -1693,7 +1693,7 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateCurveSpeedLimit()
         {
             float s = AbsSpeedMpS; // speed of train
-            var train = Simulator.PlayerLocomotive.Train;//Debrief Eval
+            var train = simulator.PlayerLocomotive.Train;//Debrief Eval
 
             // get curve radius
 
@@ -1706,9 +1706,9 @@ namespace Orts.Simulation.RollingStocks
                     float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
                     
                     // If super elevation set in Route (TRK) file
-                    if (Simulator.Route.SuperElevationHgtpRadiusM != null)
+                    if (simulator.Route.SuperElevationHgtpRadiusM != null)
                     {
-                        SuperelevationM = (float)Simulator.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
+                        SuperelevationM = (float)simulator.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
 
                     }
                     else
@@ -1824,15 +1824,15 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 IsMaxSafeCurveSpeed = true; // set flag for IsMaxSafeCurveSpeed reached
 
-                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)    // Warning messages will only apply if this is player train and not running in TT mode
+                                if (Train.IsPlayerDriven && !simulator.TimetableMode)    // Warning messages will only apply if this is player train and not running in TT mode
                                 {
                                     if (Train.IsFreight)
                                     {
-                                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric) ));
+                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric) ));
                                     }
                                     else
                                     {
-                                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your passengers in car {0} are feeling uncomfortable. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric)));
+                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your passengers in car {0} are feeling uncomfortable. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric)));
                                     }
 
                                     if (dbfmaxsafecurvespeedmps != MaxSafeCurveSpeedMps)//Debrief eval
@@ -1863,10 +1863,10 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 IsCriticalMaxSpeed = true; // set flag for IsCriticalSpeed reached
 
-                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
+                                if (Train.IsPlayerDriven && !simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
                                 {
                                     BrakeSystem.FrontBrakeHoseConnected = false; // break the brake hose connection between cars if the speed is too fast
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too fast for this curve, and have snapped a brake hose on Car " + CarID + ". You will need to repair the hose and restart."));
+                                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too fast for this curve, and have snapped a brake hose on Car " + CarID + ". You will need to repair the hose and restart."));
 
                                     dbfEvalsnappedbrakehose = true;//Debrief eval
 
@@ -2106,7 +2106,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected TrainCar(Simulator simulator, string wagFile)
         {
-            Simulator = simulator;
+            this.simulator = simulator;
             WagFilePath = wagFile;
             RealWagFilePath = wagFile;
         }
@@ -2759,7 +2759,7 @@ namespace Orts.Simulation.RollingStocks
         #region Super-elevation
         private void UpdateSuperElevation(Traveller traveler,  double elapsedTimeS)
         {
-            if (Simulator.Settings.UseSuperElevation == 0)
+            if (simulator.Settings.UseSuperElevation == 0)
                 return;
             if (prevElev < -30f) { prevElev += 40f; return; }//avoid the first two updates as they are not valid
 
@@ -2829,7 +2829,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Don't add vibrations to train cars less than 2.5 meter in length; they're unsuitable for these calculations.
             if (CarLengthM < 2.5f) return;
-            if (Simulator.Settings.CarVibratingLevel != 0)
+            if (simulator.Settings.CarVibratingLevel != 0)
             {
 
                 //var elapsedTimeS = Math.Abs(speedMpS) > 0.001f ? distanceM / speedMpS : 0;
@@ -2905,7 +2905,7 @@ namespace Orts.Simulation.RollingStocks
                 PrevTiltingZRot = TiltingZRot;
                 if (this.Flipped) TiltingZRot *= -1f;
             }
-            if (Simulator.Settings.CarVibratingLevel != 0 || Train.IsTilting)
+            if (simulator.Settings.CarVibratingLevel != 0 || Train.IsTilting)
             {
                 var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
                 var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
@@ -2920,16 +2920,16 @@ namespace Orts.Simulation.RollingStocks
             switch (StaticRandom.Next(4))
             {
                 case 0:
-                    VibrationRotationVelocityRadpS.Y += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
+                    VibrationRotationVelocityRadpS.Y += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
                     break;
                 case 1:
-                    VibrationRotationVelocityRadpS.Z += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
+                    VibrationRotationVelocityRadpS.Z += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
                     break;
                 case 2:
-                    VibrationTranslationVelocityMpS.X += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
+                    VibrationTranslationVelocityMpS.X += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
                     break;
                 case 3:
-                    VibrationTranslationVelocityMpS.Y += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
+                    VibrationTranslationVelocityMpS.Y += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
                     break;
             }
         }
@@ -3107,7 +3107,7 @@ namespace Orts.Simulation.RollingStocks
             // Only initialise these values the first time around the loop
             if (!IsCarHeatingInitialized)
             {
-                if (mstsLocomotive.EngineType == EngineType.Steam && Simulator.Settings.HotStart || mstsLocomotive.EngineType == EngineType.Diesel || mstsLocomotive.EngineType == EngineType.Electric)
+                if (mstsLocomotive.EngineType == EngineType.Steam && simulator.Settings.HotStart || mstsLocomotive.EngineType == EngineType.Diesel || mstsLocomotive.EngineType == EngineType.Electric)
                 {
                     if (CarOutsideTempC < DesiredCompartmentTempSetpointC)
                     {

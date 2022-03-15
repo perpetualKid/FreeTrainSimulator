@@ -188,7 +188,7 @@ namespace Orts.Simulation.RollingStocks
         {
             base.LoadFromWagFile(wagFilePath);
 
-            if (Simulator.Settings.VerboseConfigurationMessages)  // Display locomotivve name for verbose error messaging
+            if (simulator.Settings.VerboseConfigurationMessages)  // Display locomotivve name for verbose error messaging
             {
                 Trace.TraceInformation("\n\n ================================================= {0} =================================================", LocomotiveName);
             }
@@ -202,7 +202,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = MSTSSpeedOfMaxContinuousForceMpS; // Use MSTS value if present
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to default value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, IsMetric));
 
                 }
@@ -210,7 +210,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = MaxPowerW / MaxContinuousForceN;
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to 'calculated' value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, IsMetric));
 
                 }
@@ -218,7 +218,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = 10.0f; // If not defined then set at an "arbitary" value of 22mph
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to 'arbitary' value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, IsMetric));
 
                 }
@@ -251,7 +251,7 @@ namespace Orts.Simulation.RollingStocks
 
                     LocomotiveMaxRailOutputPowerW = MaxPowerW;  // Set to default power value
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set to default value = {0}", FormatStrings.FormatPower(LocomotiveMaxRailOutputPowerW, IsMetric, false, false));
                     }
@@ -260,7 +260,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     LocomotiveMaxRailOutputPowerW = 2500000.0f; // If no default value then set to arbitary value
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set at arbitary value = {0}", FormatStrings.FormatPower(LocomotiveMaxRailOutputPowerW, IsMetric, false, false));
                     }
@@ -272,7 +272,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     MaximumDieselEnginePowerW = LocomotiveMaxRailOutputPowerW;  // If no value set in ENG file, then set the Prime Mover power to same as RailOutputPower (typically the MaxPower value)
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Maximum Diesel Engine Prime Mover Power set the same as MaxRailOutputPower {0} value", FormatStrings.FormatPower(MaximumDieselEnginePowerW, IsMetric, false, false));
 
                 }
@@ -288,7 +288,7 @@ namespace Orts.Simulation.RollingStocks
                     float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
                     MaxForceN = LocomotiveMaxRailOutputPowerW / StartingSpeedMpS;
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Maximum Force set to {0} value, calculated from Rail Power Value.", FormatStrings.FormatForce(MaxForceN, IsMetric));
                 }
                 else
@@ -297,7 +297,7 @@ namespace Orts.Simulation.RollingStocks
                     float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
                     float MaxForceN = (float)TractiveForceCurves.Get(ThrottleSetting, StartingSpeedMpS);
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Maximum Force set to {0} value, calcuated from Tractive Force Tables", FormatStrings.FormatForce(MaxForceN, IsMetric));
                 }
 
@@ -306,7 +306,7 @@ namespace Orts.Simulation.RollingStocks
 
 
             // Check force assumptions set for diesel
-            if (Simulator.Settings.VerboseConfigurationMessages)
+            if (simulator.Settings.VerboseConfigurationMessages)
             {
                 float CalculatedMaxContinuousForceN = 0;
                 float ThrottleSetting = 1.0f; // Must be at full throttle for these calculations
@@ -525,14 +525,14 @@ namespace Orts.Simulation.RollingStocks
             // The following is not in the UpdateControllers function due to the fact that fuel level has to be calculated after the motive force calculation.
             FuelController.Update(elapsedClockSeconds);
             if (FuelController.UpdateValue > 0.0)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.DieselFuel, CabSetting.Increase, FuelController.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.DieselFuel, CabSetting.Increase, FuelController.CurrentValue * 100);
 
             // Update water controller for steam boiler heating tank
             if (this.IsLeadLocomotive() && IsSteamHeatFitted)
             {
                 WaterController.Update(elapsedClockSeconds);
                 if (WaterController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeatBoilerWater, CabSetting.Increase, WaterController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeatBoilerWater, CabSetting.Increase, WaterController.CurrentValue * 100);
             }
 
         }

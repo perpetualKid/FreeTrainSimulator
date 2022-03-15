@@ -192,7 +192,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public ScriptedBrakeController(MSTSLocomotive locomotive)
         {
-            Simulator = locomotive.Simulator;
+            Simulator = locomotive.simulator;
             Locomotive = locomotive;
 
             MaxPressurePSI = 90;
@@ -209,7 +209,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public ScriptedBrakeController(ScriptedBrakeController controller, MSTSLocomotive locomotive)
         {
-            Simulator = locomotive.Simulator;
+            Simulator = locomotive.simulator;
             Locomotive = locomotive;
 
             scriptName = controller.scriptName;
@@ -353,8 +353,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.PreUpdate = () => Simulator.PreUpdate;
                 Script.DistanceM = () => Locomotive.DistanceM;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.Simulator.Confirmer.Message;
+                Script.Confirm = Locomotive.simulator.Confirmer.Confirm;
+                Script.Message = Locomotive.simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

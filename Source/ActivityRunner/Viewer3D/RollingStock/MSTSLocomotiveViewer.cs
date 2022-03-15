@@ -2725,7 +2725,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Control.ControlType == CabViewControlType.Clock)
             {
                 // Clock is drawn specially.
-                var clockSeconds = Locomotive.Simulator.ClockTime;
+                var clockSeconds = Viewer.Simulator.ClockTime;
                 var hour = (int)(clockSeconds / 3600) % 24;
                 var minute = (int)(clockSeconds / 60) % 60;
                 var seconds = (int)clockSeconds % 60;
@@ -2798,7 +2798,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
-                    var clockSeconds = Locomotive.Simulator.ClockTime;
+                    var clockSeconds = Viewer.Simulator.ClockTime;
                     var hour = (int)(clockSeconds / 3600) % 24;
                     var minute = (int)(clockSeconds / 60) % 60;
                     var seconds = (int)clockSeconds % 60;
@@ -2874,7 +2874,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
-                    var clockSeconds = Locomotive.Simulator.ClockTime;
+                    var clockSeconds = Viewer.Simulator.ClockTime;
                     var hour = (int)(clockSeconds / 3600) % 24;
                     var minute = (int)(clockSeconds / 60) % 60;
                     var seconds = (int)clockSeconds % 60;

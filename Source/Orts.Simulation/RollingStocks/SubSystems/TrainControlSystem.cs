@@ -182,7 +182,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public ScriptedTrainControlSystem(MSTSLocomotive locomotive)
         {
             Locomotive = locomotive;
-            Simulator = Locomotive.Simulator;
+            Simulator = Locomotive.simulator;
 
             PowerAuthorization = true;
             CircuitBreakerClosingOrder = false;
@@ -262,8 +262,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.PreUpdate = () => Simulator.PreUpdate;
                 Script.DistanceM = () => Locomotive.DistanceM;
-                Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.Simulator.Confirmer.Message;
+                Script.Confirm = Locomotive.simulator.Confirmer.Confirm;
+                Script.Message = Locomotive.simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

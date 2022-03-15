@@ -473,7 +473,7 @@ namespace Orts.Simulation.RollingStocks
                     WagonNumAxles = 4; // Set 4 axles as default
                 }
 
-                if (Simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.Settings.VerboseConfigurationMessages)
                 {
                     Trace.TraceInformation("Number of Wagon Axles set to default value of {0}", WagonNumAxles);
                 }
@@ -906,9 +906,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void GetMeasurementUnits()
         {
-            IsMetric = Simulator.Settings.MeasurementUnit == MeasurementUnit.Metric || (Simulator.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
-                (Simulator.Settings.MeasurementUnit == MeasurementUnit.Route && Simulator.Route.MilepostUnitsMetric);
-            IsUK = Simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+            IsMetric = simulator.Settings.MeasurementUnit == MeasurementUnit.Metric || (simulator.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
+                (simulator.Settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
+            IsUK = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
         }
 
         public override void Initialize()
@@ -1785,7 +1785,7 @@ namespace Orts.Simulation.RollingStocks
                         TendersSteamLocomotive.MaxTenderCoalMassKG = TenderWagonMaxCoalMassKG;
                         TendersSteamLocomotive.MaxLocoTenderWaterMassKG = TenderWagonMaxWaterMassKG;
 
-                        if (Simulator.Settings.VerboseConfigurationMessages)
+                        if (simulator.Settings.VerboseConfigurationMessages)
                         {
                             Trace.TraceInformation("Fuel and Water Masses adjusted to Tender Values Specified in WAG File - Coal mass {0} kg, Water Mass {1}", FormatStrings.FormatMass(TendersSteamLocomotive.MaxTenderCoalMassKG, IsMetric), FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), IsMetric, IsUK));
                         }
@@ -1891,7 +1891,7 @@ namespace Orts.Simulation.RollingStocks
                     if (IsPlayerTrain)
                     {
                         if (WeightLoadController.UpdateValue != 0.0)
-                            Simulator.Confirmer.UpdateWithPerCent(CabControl.FreightLoad,
+                            simulator.Confirmer.UpdateWithPerCent(CabControl.FreightLoad,
                                 CabSetting.Increase, WeightLoadController.CurrentValue * 100);
                     // Update wagon parameters sensitive to wagon mass change
                     // Calculate the difference ratio, ie how full the wagon is. This value allows the relevant value to be scaled from the empty mass to the full mass of the wagon
@@ -1926,10 +1926,10 @@ namespace Orts.Simulation.RollingStocks
                     FreightAnimations.FreightType = PickupType.None;
                 }
                 if (FreightAnimations.WagonEmptyWeight != -1) MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight;
-                if (WaitForAnimationReady && WeightLoadController.CommandStartTime + FreightAnimations.UnloadingStartDelay <= Simulator.ClockTime)
+                if (WaitForAnimationReady && WeightLoadController.CommandStartTime + FreightAnimations.UnloadingStartDelay <= simulator.ClockTime)
                 {
                     WaitForAnimationReady = false;
-                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Starting unload"));
+                    simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Starting unload"));
                     WeightLoadController.StartDecrease(WeightLoadController.MinimumValue);
                 }
             }
@@ -2417,7 +2417,7 @@ namespace Orts.Simulation.RollingStocks
             float TrackIntersect = LowLoadGrade - (TrackGrad * LowLoadKg);
 
             // Determine Axle loading of Car
-            if (WagonType == WagonType.Engine && IsPlayerTrain && Simulator.PlayerLocomotive is MSTSLocomotive locoParameters)
+            if (WagonType == WagonType.Engine && IsPlayerTrain && simulator.PlayerLocomotive is MSTSLocomotive locoParameters)
             {
                 // This only takes into account the driven axles for 100% accuracy the non driven axles should also be considered
                 AxleLoadKg = locoParameters.DrvWheelWeightKg / locoParameters.LocoNumDrvAxles;
@@ -2618,7 +2618,7 @@ namespace Orts.Simulation.RollingStocks
              // The model uses the Newton Law of Heating and cooling to model the time taken for temperature rise and fall - ie of the form T(t) = Ts + (T0 - Ts)exp(kt)
              
              // Keep track of Activity details if an activity, setup random wagon, and start time for hotbox
-             if (Simulator.ActivityRun != null && IsPlayerTrain)
+             if (simulator.ActivityRun != null && IsPlayerTrain)
              {
                  if (ActivityElapsedDurationS < HotBoxStartTimeS)
                  {
@@ -2629,11 +2629,11 @@ namespace Orts.Simulation.RollingStocks
                  if (!HotBoxHasBeenInitialized) // If already initialised then skip
                  {
                     // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
-                    if (Simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
+                    if (simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
                      {
-                         var HotboxRandom = StaticRandom.Next(100) / Simulator.Settings.ActRandomizationLevel;
+                         var HotboxRandom = StaticRandom.Next(100) / simulator.Settings.ActRandomizationLevel;
                          float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
-                         var RawHotBoxTimeRandomS = StaticRandom.Next((int)Simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
+                         var RawHotBoxTimeRandomS = StaticRandom.Next((int)simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
                          if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
                          {
                               if (HotboxRandom < 10)
@@ -2758,7 +2758,7 @@ namespace Orts.Simulation.RollingStocks
              if (WheelBearingTemperatureDegC > 115)
              {
                  var hotboxfailuremessage = "CarID " + CarID + " has experienced a failure due to a hot wheel bearing";
-                 Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxfailuremessage);
+                 simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxfailuremessage);
                  WheelBearingFailed = true;
              }
              else if (WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115)
@@ -2766,7 +2766,7 @@ namespace Orts.Simulation.RollingStocks
                  if (!WheelBearingHot)
                  {
                       var hotboxmessage = "CarID " + CarID + " is experiencing a hot wheel bearing";
-                      Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxmessage);
+                      simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxmessage);
                       WheelBearingHot = true;
                  }
              }
@@ -3023,7 +3023,7 @@ namespace Orts.Simulation.RollingStocks
         // This section updates the special effects
         {
 
-            var LocomotiveParameters = Simulator.PlayerLocomotive as MSTSLocomotive;
+            var LocomotiveParameters = simulator.PlayerLocomotive as MSTSLocomotive;
 
             // if this is a heating steam boiler car then adjust steam pressure
             // Don't turn steam heat on until pressure valve has been opened, water and fuel capacity also needs to be present, steam heating shouldn't already be present on diesel or steam locomotive
@@ -3104,7 +3104,7 @@ namespace Orts.Simulation.RollingStocks
                 // Update Water Scoop Spray Information when scoop is down and filling from trough
 
                 bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
-                var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
+                var LocomotiveIdentification = simulator.PlayerLocomotive as MSTSLocomotive;
 
                 if (WagonType == WagonType.Tender || WagonType == WagonType.Engine)
                 {
@@ -3120,7 +3120,7 @@ namespace Orts.Simulation.RollingStocks
                         }
 
                     }
-                    else if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
+                    else if (simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
                     {
                         ProcessWaterEffects = true; // Allow water effects to be processed
                     }
@@ -3206,7 +3206,7 @@ namespace Orts.Simulation.RollingStocks
                     // Find the steam leakage rate based upon valve opening and current boiler pressure
                     float SteamBrakeLeakRate = LocomotiveIdentification.EngineBrakeController.CurrentValue * (LocomotiveIdentification.BoilerPressurePSI / LocomotiveIdentification.MaxBoilerPressurePSI);
 
-                    if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.EngineBrakeController.CurrentValue > 0)
+                    if (simulator.PlayerLocomotive == this && LocomotiveIdentification.EngineBrakeController.CurrentValue > 0)
                     {
                         // Turn steam brake leaks on 
                         SteamBrakeLeaksDurationS = 0.75f;
@@ -3296,7 +3296,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SignalEvent(PowerSupplyEvent evt)
         {
-            if (Simulator.PlayerLocomotive == this || AcceptMUSignals)
+            if (simulator.PlayerLocomotive == this || AcceptMUSignals)
             {
                 switch (evt)
                 {
@@ -3316,7 +3316,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SignalEvent(PowerSupplyEvent evt, int id)
         {
-            if (Simulator.PlayerLocomotive == this || AcceptMUSignals)
+            if (simulator.PlayerLocomotive == this || AcceptMUSignals)
             {
                 switch (evt)
                 {
@@ -3337,7 +3337,7 @@ namespace Orts.Simulation.RollingStocks
         public void ToggleDoorsLeft()
         {
             DoorLeftOpen = !DoorLeftOpen;
-            if (Simulator.PlayerLocomotive == this || Train.LeadLocomotive == this) // second part for remote trains
+            if (simulator.PlayerLocomotive == this || Train.LeadLocomotive == this) // second part for remote trains
             {//inform everyone else in the train
                 foreach (var car in Train.Cars)
                 {
@@ -3358,10 +3358,10 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (DoorLeftOpen) SignalEvent(TrainEvent.DoorOpen); // hook for sound trigger
                 else SignalEvent(TrainEvent.DoorClose);
-                if (Simulator.PlayerLocomotive == this)
+                if (simulator.PlayerLocomotive == this)
                 {
-                    if (!GetCabFlipped()) Simulator.Confirmer.Confirm(CabControl.DoorsLeft, DoorLeftOpen ? CabSetting.On : CabSetting.Off);
-                    else Simulator.Confirmer.Confirm(CabControl.DoorsRight, DoorLeftOpen ? CabSetting.On : CabSetting.Off);
+                    if (!GetCabFlipped()) simulator.Confirmer.Confirm(CabControl.DoorsLeft, DoorLeftOpen ? CabSetting.On : CabSetting.Off);
+                    else simulator.Confirmer.Confirm(CabControl.DoorsRight, DoorLeftOpen ? CabSetting.On : CabSetting.Off);
                 }
             }
         }
@@ -3369,7 +3369,7 @@ namespace Orts.Simulation.RollingStocks
         public void ToggleDoorsRight()
         {
             DoorRightOpen = !DoorRightOpen;
-            if (Simulator.PlayerLocomotive == this || Train.LeadLocomotive == this) // second part for remote trains
+            if (simulator.PlayerLocomotive == this || Train.LeadLocomotive == this) // second part for remote trains
             { //inform everyone else in the train
                 foreach (TrainCar car in Train.Cars)
                 {
@@ -3390,10 +3390,10 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (DoorRightOpen) SignalEvent(TrainEvent.DoorOpen); // hook for sound trigger
                 else SignalEvent(TrainEvent.DoorClose);
-                if (Simulator.PlayerLocomotive == this)
+                if (simulator.PlayerLocomotive == this)
                 {
-                    if (!GetCabFlipped()) Simulator.Confirmer.Confirm(CabControl.DoorsRight, DoorRightOpen ? CabSetting.On : CabSetting.Off);
-                    else Simulator.Confirmer.Confirm(CabControl.DoorsLeft, DoorRightOpen ? CabSetting.On : CabSetting.Off);
+                    if (!GetCabFlipped()) simulator.Confirmer.Confirm(CabControl.DoorsRight, DoorRightOpen ? CabSetting.On : CabSetting.Off);
+                    else simulator.Confirmer.Confirm(CabControl.DoorsLeft, DoorRightOpen ? CabSetting.On : CabSetting.Off);
                 }
             }
         }
@@ -3403,7 +3403,7 @@ namespace Orts.Simulation.RollingStocks
             MirrorOpen = !MirrorOpen;
             if (MirrorOpen) SignalEvent(TrainEvent.MirrorOpen); // hook for sound trigger
             else SignalEvent(TrainEvent.MirrorClose);
-            if (Simulator.PlayerLocomotive == this) Simulator.Confirmer.Confirm(CabControl.Mirror, MirrorOpen ? CabSetting.On : CabSetting.Off);
+            if (simulator.PlayerLocomotive == this) simulator.Confirmer.Confirm(CabControl.Mirror, MirrorOpen ? CabSetting.On : CabSetting.Off);
         }
 
         public void FindControlActiveLocomotive()
@@ -3590,7 +3590,7 @@ namespace Orts.Simulation.RollingStocks
         }
         public override float GetCouplerZeroLengthM()
         {
-            if (IsPlayerTrain && Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
+            if (IsPlayerTrain && simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
             {
                 float zerolength;
                 if (Coupler != null)
@@ -3994,11 +3994,11 @@ namespace Orts.Simulation.RollingStocks
             var controller = WeightLoadController;
             if (controller == null)
             {
-                Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Incompatible data"));
+                simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Incompatible data"));
                 return;
             }
             controller.SetValue(fraction);
-            controller.CommandStartTime = Simulator.ClockTime;  // for Replay to use 
+            controller.CommandStartTime = simulator.ClockTime;  // for Replay to use 
 
             if (FreightAnimations.LoadedOne == null)
             {
@@ -4008,7 +4008,7 @@ namespace Orts.Simulation.RollingStocks
             if (!unload)
             {
                 controller.SetStepSize(matchPickup.Capacity.FeedRateKGpS/ MSTSNotchController.StandardBoost / FreightAnimations.LoadedOne.FreightWeightWhenFull);
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Starting refill"));
+                simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Starting refill"));
                 controller.StartIncrease(controller.MaximumValue);
             }
             else
@@ -4017,7 +4017,7 @@ namespace Orts.Simulation.RollingStocks
                 WaitForAnimationReady = true;
                 UnloadingPartsOpen = true;
                 if (FreightAnimations.UnloadingStartDelay > 0)
-                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Preparing for unload"));
+                    simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Preparing for unload"));
             }
 
         }

@@ -31,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     {
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
-        public Simulator Simulator => PowerSupply.Locomotive.Simulator;
+        public Simulator Simulator => PowerSupply.Locomotive.simulator;
 
         public bool Activated;
         private string ScriptName = "Automatic";
@@ -134,8 +134,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 Script.PreUpdate = () => Simulator.PreUpdate;
                 Script.DistanceM = () => Locomotive.DistanceM;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.Simulator.Confirmer.Message;
+                Script.Confirm = Locomotive.simulator.Confirmer.Confirm;
+                Script.Message = Locomotive.simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

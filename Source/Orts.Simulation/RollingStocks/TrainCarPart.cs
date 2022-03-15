@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-using Orts.Formats.Msts;
-
 namespace Orts.Simulation.RollingStocks
 {
     // data and methods used to align trucks and models to track

@@ -1540,7 +1540,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Determine whether to start locomotive in Hot or Cold State
-            HotStart = Simulator.Settings.HotStart;
+            HotStart = simulator.Settings.HotStart;
 
             // Calculate maximum power of the locomotive, based upon the maximum IHP
             // Maximum IHP will occur at different (piston) speed for saturated locomotives and superheated based upon the wheel revolution. Typically saturated locomotive produce maximum power @ a piston speed of 700 ft/min , and superheated will occur @ 1000ft/min
@@ -1903,7 +1903,7 @@ namespace Orts.Simulation.RollingStocks
 
             ApplyBoilerPressure();
 
-            if (Simulator.Settings.DataLogSteamPerformance)
+            if (simulator.Settings.DataLogSteamPerformance)
             {
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
                 Trace.TraceInformation("Version - {0}", VersionInfo.Version);
@@ -2202,28 +2202,28 @@ namespace Orts.Simulation.RollingStocks
                 // On a steam locomotive, the Reverser is the same as the Cut Off Control.
                 switch (Direction)
                 {
-                    case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                    case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                    case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                    case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                    case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                    case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
                 }
             if (IsPlayerTrain)
             {
                 if (BlowerController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
                 if (BlowerController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
                 if (DamperController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
                 if (DamperController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
                 if (FireboxDoorController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
                 if (FireboxDoorController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
                 if (FiringRateController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Increase, FiringRateController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Increase, FiringRateController.CurrentValue * 100);
                 if (FiringRateController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Decrease, FiringRateController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Decrease, FiringRateController.CurrentValue * 100);
             }
 
             if (SmallEjectorControllerFitted)
@@ -2232,9 +2232,9 @@ namespace Orts.Simulation.RollingStocks
                 if (IsPlayerTrain)
                 {
                     if (SmallEjectorController.UpdateValue > 0.0)
-                        Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Increase, SmallEjectorController.CurrentValue * 100);
+                        simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Increase, SmallEjectorController.CurrentValue * 100);
                     if (SmallEjectorController.UpdateValue < 0.0)
-                        Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Decrease, SmallEjectorController.CurrentValue * 100);
+                        simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Decrease, SmallEjectorController.CurrentValue * 100);
                 }
             }
 
@@ -2244,9 +2244,9 @@ namespace Orts.Simulation.RollingStocks
                 if (IsPlayerTrain)
                 {
                     if (LargeEjectorController.UpdateValue > 0.0)
-                        Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
+                        simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
                     if (LargeEjectorController.UpdateValue < 0.0)
-                        Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
+                        simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
                 }
             }
 
@@ -2254,43 +2254,43 @@ namespace Orts.Simulation.RollingStocks
             if (IsPlayerTrain)
             {
                 if (Injector1Controller.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, CabSetting.Increase, Injector1Controller.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, CabSetting.Increase, Injector1Controller.CurrentValue * 100);
                 if (Injector1Controller.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, CabSetting.Decrease, Injector1Controller.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, CabSetting.Decrease, Injector1Controller.CurrentValue * 100);
             }
             Injector2Controller.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
                 if (Injector2Controller.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, CabSetting.Increase, Injector2Controller.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, CabSetting.Increase, Injector2Controller.CurrentValue * 100);
                 if (Injector2Controller.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, CabSetting.Decrease, Injector2Controller.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, CabSetting.Decrease, Injector2Controller.CurrentValue * 100);
             }
 
             BlowerController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
                 if (BlowerController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
                 if (BlowerController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
             }
 
             DamperController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
                 if (DamperController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
                 if (DamperController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
             }
             FiringRateController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
                 if (FiringRateController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Increase, FiringRateController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Increase, FiringRateController.CurrentValue * 100);
                 if (FiringRateController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Decrease, FiringRateController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FiringRate, CabSetting.Decrease, FiringRateController.CurrentValue * 100);
             }
 
             var oldFireboxDoorValue = FireboxDoorController.CurrentValue;
@@ -2298,9 +2298,9 @@ namespace Orts.Simulation.RollingStocks
             {
                 FireboxDoorController.Update(elapsedClockSeconds);
                 if (FireboxDoorController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
                 if (FireboxDoorController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
                 if (oldFireboxDoorValue == 0 && FireboxDoorController.CurrentValue > 0)
                     SignalEvent(TrainEvent.FireboxDoorOpen);
                 else if (oldFireboxDoorValue > 0 && FireboxDoorController.CurrentValue == 0)
@@ -2311,14 +2311,14 @@ namespace Orts.Simulation.RollingStocks
             if (IsPlayerTrain)
             {
                 if (FuelController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.TenderCoal, CabSetting.Increase, FuelController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.TenderCoal, CabSetting.Increase, FuelController.CurrentValue * 100);
             }
 
             WaterController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
                 if (WaterController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.TenderWater, CabSetting.Increase, WaterController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.TenderWater, CabSetting.Increase, WaterController.CurrentValue * 100);
             }
         }
 
@@ -2351,7 +2351,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!CoalIsExhausted)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Tender coal supply is empty. Your loco will fail."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Tender coal supply is empty. Your loco will fail."));
                 }
                 CoalIsExhausted = true;
             }
@@ -2448,7 +2448,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!WaterIsExhausted && IsPlayerTrain)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Tender water supply is empty. Your loco will fail."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Tender water supply is empty. Your loco will fail."));
                 }
                 WaterIsExhausted = true;
             }
@@ -2574,7 +2574,7 @@ namespace Orts.Simulation.RollingStocks
                 if (!FireIsExhausted)
                 {
                     if (IsPlayerTrain)
-                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Fire has dropped too far. Your loco will fail."));
+                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Fire has dropped too far. Your loco will fail."));
                     FireIsExhausted = true; // fire has run out of fuel.
                 }
             }
@@ -2656,7 +2656,7 @@ namespace Orts.Simulation.RollingStocks
                             FuelBoost = true; // boost shoveling 
                             if (!StokerIsMechanical && IsPlayerTrain)  // Don't display message if stoker in operation
                             {
-                                Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("FireMass is getting low. Your fireman will shovel faster, but don't wear him out."));
+                                simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("FireMass is getting low. Your fireman will shovel faster, but don't wear him out."));
                             }
                         }
                     }
@@ -2668,7 +2668,7 @@ namespace Orts.Simulation.RollingStocks
                         FuelBoost = false; // disable boost shoveling 
                         if (!StokerIsMechanical && IsPlayerTrain)  // Don't display message if stoker in operation
                         {
-                            Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("FireMass is back within limits. Your fireman will shovel as per normal."));
+                            simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("FireMass is back within limits. Your fireman will shovel as per normal."));
                         }
                     }
                 }
@@ -3141,7 +3141,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!IsGrateLimit)  // Provide message to player that grate limit has been exceeded
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit exceeded - boiler heat rate cannot increase."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit exceeded - boiler heat rate cannot increase."));
                 }
                 IsGrateLimit = true;
             }
@@ -3149,7 +3149,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (IsGrateLimit)  // Provide message to player that grate limit has now returned within limits
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit return to normal."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit return to normal."));
                 }
                 IsGrateLimit = false;
             }
@@ -4510,7 +4510,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate the elapse time for the steam performance monitoring
-            if (Simulator.Settings.DataLogSteamPerformance)
+            if (simulator.Settings.DataLogSteamPerformance)
             {
                 if (SpeedMpS > 0.05)
                 {
@@ -4654,7 +4654,7 @@ namespace Orts.Simulation.RollingStocks
             // Typically tangential force will be greater at starting then when the locomotive is at speed, as interia and reduce steam pressure will decrease the value. 
             // By default this model uses information based upon a "NYC 4-4-2 locomotive", for smaller locomotives this data is changed in the OR initialisation phase.
 
-            if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting)
+            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting)
                 // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
                 // Don't use slip model when train is in auto pilot
             {
@@ -5190,7 +5190,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // If simple brake controls chosen, then "automatically" set the large ejector value
-                if (Simulator.Settings.SimpleControlPhysics || !LargeEjectorControllerFitted)
+                if (simulator.Settings.SimpleControlPhysics || !LargeEjectorControllerFitted)
                 {
 
                     //  Provided BP is greater then max vacuum pressure large ejector will operate at full efficiency
@@ -5307,20 +5307,20 @@ namespace Orts.Simulation.RollingStocks
             if (WaterFraction < WaterMinLevel)  // Blow fusible plugs if absolute boiler water drops below 70%
             {
                 if (!FusiblePlugIsBlown)
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Water level dropped too far. Plug has fused and loco has failed."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Water level dropped too far. Plug has fused and loco has failed."));
                 FusiblePlugIsBlown = true; // if water level has dropped, then fusible plug will blow , see "water model"
             }
             // Check for priming            
             if (WaterFraction >= WaterMaxLevel) // Priming occurs if water level exceeds 91%
             {
                 if (!BoilerIsPriming)
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Boiler overfull and priming."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Boiler overfull and priming."));
                 BoilerIsPriming = true;
             }
             else if (WaterFraction < WaterMaxLevelSafe)
             {
                 if (BoilerIsPriming)
-                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Boiler no longer priming."));
+                    simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Boiler no longer priming."));
                 BoilerIsPriming = false;
             }
         }
@@ -6477,7 +6477,7 @@ namespace Orts.Simulation.RollingStocks
                     );
             }
 
-            if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared) 
+            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared) 
                 // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
             {
                 status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Slip Monitor"));
@@ -6711,7 +6711,7 @@ namespace Orts.Simulation.RollingStocks
                     if (SteamGearPosition < 2.0f) // Maximum number of gears is two
                     {
                         SteamGearPosition += 1.0f;
-                        Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, SteamGearPosition);
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, SteamGearPosition);
                         if (SteamGearPosition == 0.0)
                         {
                             // Re-initialise the following for the new gear setting - set to zero as in neutral speed
@@ -6805,7 +6805,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Gears can't be changed unless throttle is at zero."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Gears can't be changed unless throttle is at zero."));
 
                 }
             }
@@ -6825,7 +6825,7 @@ namespace Orts.Simulation.RollingStocks
                     if (SteamGearPosition > 0.0f) // Gear number can't go below zero
                     {
                         SteamGearPosition -= 1.0f;
-                        Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, SteamGearPosition);
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, SteamGearPosition);
                         if (SteamGearPosition == 1.0)
                         {
 
@@ -6883,7 +6883,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Gears can't be changed unless throttle is at zero."));
+                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Gears can't be changed unless throttle is at zero."));
 
                 }
             }
@@ -6905,9 +6905,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartSmallEjectorIncrease(float? target)
         {
-            SmallEjectorController.CommandStartTime = Simulator.ClockTime;
+            SmallEjectorController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.SmallEjector, CabSetting.Increase, SmallEjectorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.SmallEjector, CabSetting.Increase, SmallEjectorController.CurrentValue * 100);
             SmallEjectorController.StartIncrease(target);
             SignalEvent(TrainEvent.SmallEjectorChange);
         }
@@ -6915,7 +6915,7 @@ namespace Orts.Simulation.RollingStocks
         public void StopSmallEjectorIncrease()
         {
             SmallEjectorController.StopIncrease();
-            new ContinuousSmallEjectorCommand(Simulator.Log, 1, true, SmallEjectorController.CurrentValue, SmallEjectorController.CommandStartTime);
+            new ContinuousSmallEjectorCommand(simulator.Log, 1, true, SmallEjectorController.CurrentValue, SmallEjectorController.CommandStartTime);
         }
 
         public void StartSmallEjectorDecrease()
@@ -6926,7 +6926,7 @@ namespace Orts.Simulation.RollingStocks
         public void StartSmallEjectorDecrease(float? target)
         {
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.SmallEjector, CabSetting.Decrease, SmallEjectorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.SmallEjector, CabSetting.Decrease, SmallEjectorController.CurrentValue * 100);
             SmallEjectorController.StartDecrease(target);
             SignalEvent(TrainEvent.SmallEjectorChange);
         }
@@ -6935,7 +6935,7 @@ namespace Orts.Simulation.RollingStocks
         {
             SmallEjectorController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousSmallEjectorCommand(Simulator.Log, 1, false, SmallEjectorController.CurrentValue, SmallEjectorController.CommandStartTime);
+                new ContinuousSmallEjectorCommand(simulator.Log, 1, false, SmallEjectorController.CurrentValue, SmallEjectorController.CommandStartTime);
         }
 
         public void SmallEjectorChangeTo(bool increase, float? target)
@@ -6963,10 +6963,10 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousSmallEjectorCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousSmallEjectorCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         #endregion
@@ -6982,9 +6982,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartLargeEjectorIncrease(float? target)
         {
-            LargeEjectorController.CommandStartTime = Simulator.ClockTime;
+            LargeEjectorController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
             LargeEjectorController.StartIncrease(target);
             SignalEvent(TrainEvent.LargeEjectorChange);
         }
@@ -6992,7 +6992,7 @@ namespace Orts.Simulation.RollingStocks
         public void StopLargeEjectorIncrease()
         {
             LargeEjectorController.StopIncrease();
-            new ContinuousLargeEjectorCommand(Simulator.Log, 1, true, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
+            new ContinuousLargeEjectorCommand(simulator.Log, 1, true, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
         }
 
         public void StartLargeEjectorDecrease()
@@ -7003,7 +7003,7 @@ namespace Orts.Simulation.RollingStocks
         public void StartLargeEjectorDecrease(float? target)
         {
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
             LargeEjectorController.StartDecrease(target);
             SignalEvent(TrainEvent.LargeEjectorChange);
         }
@@ -7012,7 +7012,7 @@ namespace Orts.Simulation.RollingStocks
         {
             LargeEjectorController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousLargeEjectorCommand(Simulator.Log, 1, false, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
+                new ContinuousLargeEjectorCommand(simulator.Log, 1, false, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
         }
 
         public void LargeEjectorChangeTo(bool increase, float? target)
@@ -7040,10 +7040,10 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousLargeEjectorCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousLargeEjectorCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         #endregion
@@ -7051,12 +7051,12 @@ namespace Orts.Simulation.RollingStocks
         public override void StartReverseIncrease(float? target)
         {
             CutoffController.StartIncrease(target);
-            CutoffController.CommandStartTime = Simulator.ClockTime;
+            CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7064,18 +7064,18 @@ namespace Orts.Simulation.RollingStocks
         public void StopReverseIncrease()
         {
             CutoffController.StopIncrease();
-            new ContinuousReverserCommand(Simulator.Log, true, CutoffController.CurrentValue, CutoffController.CommandStartTime);
+            new ContinuousReverserCommand(simulator.Log, true, CutoffController.CurrentValue, CutoffController.CommandStartTime);
         }
 
         public override void StartReverseDecrease(float? target)
         {
             CutoffController.StartDecrease(target);
-            CutoffController.CommandStartTime = Simulator.ClockTime;
+            CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7083,7 +7083,7 @@ namespace Orts.Simulation.RollingStocks
         public void StopReverseDecrease()
         {
             CutoffController.StopDecrease();
-            new ContinuousReverserCommand(Simulator.Log, false, CutoffController.CurrentValue, CutoffController.CommandStartTime);
+            new ContinuousReverserCommand(simulator.Log, false, CutoffController.CurrentValue, CutoffController.CommandStartTime);
         }
 
         public void ReverserChangeTo(bool isForward, float? target)
@@ -7111,11 +7111,11 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousReverserCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousReverserCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.GameTime);
                 SignalEvent(TrainEvent.ReverserChange);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamLocomotiveReverser, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.SteamLocomotiveReverser, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void SetCutoffPercent(float percent)
@@ -7131,16 +7131,16 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartInjector1Increase(float? target)
         {
-            Injector1Controller.CommandStartTime = Simulator.ClockTime;
+            Injector1Controller.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector1, CabSetting.Increase, Injector1Controller.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector1, CabSetting.Increase, Injector1Controller.CurrentValue * 100);
             Injector1Controller.StartIncrease(target);
         }
 
         public void StopInjector1Increase()
         {
             Injector1Controller.StopIncrease();
-            new ContinuousInjectorCommand(Simulator.Log, 1, true, Injector1Controller.CurrentValue, Injector1Controller.CommandStartTime);
+            new ContinuousInjectorCommand(simulator.Log, 1, true, Injector1Controller.CurrentValue, Injector1Controller.CommandStartTime);
         }
 
         public void StartInjector1Decrease()
@@ -7151,15 +7151,15 @@ namespace Orts.Simulation.RollingStocks
         public void StartInjector1Decrease(float? target)
         {
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector1, CabSetting.Decrease, Injector1Controller.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector1, CabSetting.Decrease, Injector1Controller.CurrentValue * 100);
             Injector1Controller.StartDecrease(target);
-            Injector1Controller.CommandStartTime = Simulator.ClockTime;
+            Injector1Controller.CommandStartTime = simulator.ClockTime;
         }
 
         public void StopInjector1Decrease()
         {
             Injector1Controller.StopDecrease();
-            new ContinuousInjectorCommand(Simulator.Log, 1, false, Injector1Controller.CurrentValue, Injector1Controller.CommandStartTime);
+            new ContinuousInjectorCommand(simulator.Log, 1, false, Injector1Controller.CurrentValue, Injector1Controller.CommandStartTime);
         }
 
         public void Injector1ChangeTo(bool increase, float? target)
@@ -7187,10 +7187,10 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousInjectorCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousInjectorCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void StartInjector2Increase()
@@ -7200,16 +7200,16 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartInjector2Increase(float? target)
         {
-            Injector2Controller.CommandStartTime = Simulator.ClockTime;
+            Injector2Controller.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector2, CabSetting.Increase, Injector2Controller.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector2, CabSetting.Increase, Injector2Controller.CurrentValue * 100);
             Injector2Controller.StartIncrease(target);
         }
 
         public void StopInjector2Increase()
         {
             Injector2Controller.StopIncrease();
-            new ContinuousInjectorCommand(Simulator.Log, 2, true, Injector2Controller.CurrentValue, Injector2Controller.CommandStartTime);
+            new ContinuousInjectorCommand(simulator.Log, 2, true, Injector2Controller.CurrentValue, Injector2Controller.CommandStartTime);
         }
 
         public void StartInjector2Decrease()
@@ -7219,16 +7219,16 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartInjector2Decrease(float? target)
         {
-            Injector2Controller.CommandStartTime = Simulator.ClockTime;
+            Injector2Controller.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector2, CabSetting.Decrease, Injector2Controller.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Injector2, CabSetting.Decrease, Injector2Controller.CurrentValue * 100);
             Injector2Controller.StartDecrease(target);
         }
 
         public void StopInjector2Decrease()
         {
             Injector2Controller.StopDecrease();
-            new ContinuousInjectorCommand(Simulator.Log, 2, false, Injector2Controller.CurrentValue, Injector2Controller.CommandStartTime);
+            new ContinuousInjectorCommand(simulator.Log, 2, false, Injector2Controller.CurrentValue, Injector2Controller.CommandStartTime);
         }
 
         public void Injector2ChangeTo(bool increase, float? target)
@@ -7256,10 +7256,10 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousInjectorCommand(Simulator.Log, 2, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousInjectorCommand(simulator.Log, 2, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void StartBlowerIncrease()
@@ -7269,9 +7269,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartBlowerIncrease(float? target)
         {
-            BlowerController.CommandStartTime = Simulator.ClockTime;
+            BlowerController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Blower, CabSetting.Increase, BlowerController.CurrentValue * 100);
             BlowerController.StartIncrease(target);
             SignalEvent(TrainEvent.BlowerChange);
         }
@@ -7280,7 +7280,7 @@ namespace Orts.Simulation.RollingStocks
         {
             BlowerController.StopIncrease();
             if (IsPlayerTrain)
-                new ContinuousBlowerCommand(Simulator.Log, true, BlowerController.CurrentValue, BlowerController.CommandStartTime);
+                new ContinuousBlowerCommand(simulator.Log, true, BlowerController.CurrentValue, BlowerController.CommandStartTime);
         }
 
         public void StartBlowerDecrease()
@@ -7290,9 +7290,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartBlowerDecrease(float? target)
         {
-            BlowerController.CommandStartTime = Simulator.ClockTime;
+            BlowerController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Blower, CabSetting.Decrease, BlowerController.CurrentValue * 100);
             BlowerController.StartDecrease(target);
             SignalEvent(TrainEvent.BlowerChange);
         }
@@ -7301,7 +7301,7 @@ namespace Orts.Simulation.RollingStocks
         {
             BlowerController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousBlowerCommand(Simulator.Log, false, BlowerController.CurrentValue, BlowerController.CommandStartTime);
+                new ContinuousBlowerCommand(simulator.Log, false, BlowerController.CurrentValue, BlowerController.CommandStartTime);
         }
 
         public void BlowerChangeTo(bool increase, float? target)
@@ -7329,11 +7329,11 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousBlowerCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousBlowerCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.GameTime);
                 SignalEvent(TrainEvent.BlowerChange);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void StartDamperIncrease()
@@ -7343,9 +7343,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartDamperIncrease(float? target)
         {
-            DamperController.CommandStartTime = Simulator.ClockTime;
+            DamperController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Damper, CabSetting.Increase, DamperController.CurrentValue * 100);
             DamperController.StartIncrease(target);
             SignalEvent(TrainEvent.DamperChange);
         }
@@ -7354,7 +7354,7 @@ namespace Orts.Simulation.RollingStocks
         {
             DamperController.StopIncrease();
             if (IsPlayerTrain)
-                new ContinuousDamperCommand(Simulator.Log, true, DamperController.CurrentValue, DamperController.CommandStartTime);
+                new ContinuousDamperCommand(simulator.Log, true, DamperController.CurrentValue, DamperController.CommandStartTime);
         }
 
         public void StartDamperDecrease()
@@ -7364,9 +7364,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartDamperDecrease(float? target)
         {
-            DamperController.CommandStartTime = Simulator.ClockTime;
+            DamperController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.Damper, CabSetting.Decrease, DamperController.CurrentValue * 100);
             DamperController.StartDecrease(target);
             SignalEvent(TrainEvent.DamperChange);
         }
@@ -7375,7 +7375,7 @@ namespace Orts.Simulation.RollingStocks
         {
             DamperController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousDamperCommand(Simulator.Log, false, DamperController.CurrentValue, DamperController.CommandStartTime);
+                new ContinuousDamperCommand(simulator.Log, false, DamperController.CurrentValue, DamperController.CommandStartTime);
         }
 
         public void DamperChangeTo(bool increase, float? target)
@@ -7403,11 +7403,11 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousDamperCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousDamperCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.GameTime);
                 SignalEvent(TrainEvent.DamperChange);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void StartFireboxDoorIncrease()
@@ -7417,9 +7417,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartFireboxDoorIncrease(float? target)
         {
-            FireboxDoorController.CommandStartTime = Simulator.ClockTime;
+            FireboxDoorController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.FireboxDoor, CabSetting.Increase, FireboxDoorController.CurrentValue * 100);
             FireboxDoorController.StartIncrease(target);
             SignalEvent(TrainEvent.FireboxDoorChange);
         }
@@ -7428,7 +7428,7 @@ namespace Orts.Simulation.RollingStocks
         {
             FireboxDoorController.StopIncrease();
             if (IsPlayerTrain)
-                new ContinuousFireboxDoorCommand(Simulator.Log, true, FireboxDoorController.CurrentValue, FireboxDoorController.CommandStartTime);
+                new ContinuousFireboxDoorCommand(simulator.Log, true, FireboxDoorController.CurrentValue, FireboxDoorController.CommandStartTime);
         }
 
         public void StartFireboxDoorDecrease()
@@ -7438,9 +7438,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartFireboxDoorDecrease(float? target)
         {
-            FireboxDoorController.CommandStartTime = Simulator.ClockTime;
+            FireboxDoorController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.FireboxDoor, CabSetting.Decrease, FireboxDoorController.CurrentValue * 100);
             FireboxDoorController.StartDecrease(target);
             SignalEvent(TrainEvent.FireboxDoorChange);
         }
@@ -7448,7 +7448,7 @@ namespace Orts.Simulation.RollingStocks
         {
             FireboxDoorController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousFireboxDoorCommand(Simulator.Log, false, FireboxDoorController.CurrentValue, FireboxDoorController.CommandStartTime);
+                new ContinuousFireboxDoorCommand(simulator.Log, false, FireboxDoorController.CurrentValue, FireboxDoorController.CommandStartTime);
         }
 
         public void FireboxDoorChangeTo(bool increase, float? target)
@@ -7476,11 +7476,11 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousFireboxDoorCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousFireboxDoorCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.GameTime);
                 SignalEvent(TrainEvent.FireboxDoorChange);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void StartFiringRateIncrease()
@@ -7490,9 +7490,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartFiringRateIncrease(float? target)
         {
-            FiringRateController.CommandStartTime = Simulator.ClockTime;
+            FiringRateController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
             FiringRateController.StartIncrease(target);
         }
 
@@ -7500,7 +7500,7 @@ namespace Orts.Simulation.RollingStocks
         {
             FiringRateController.StopIncrease();
             if (IsPlayerTrain)
-                new ContinuousFiringRateCommand(Simulator.Log, true, FiringRateController.CurrentValue, FiringRateController.CommandStartTime);
+                new ContinuousFiringRateCommand(simulator.Log, true, FiringRateController.CurrentValue, FiringRateController.CommandStartTime);
         }
 
         public void StartFiringRateDecrease()
@@ -7510,9 +7510,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartFiringRateDecrease(float? target)
         {
-            FiringRateController.CommandStartTime = Simulator.ClockTime;
+            FiringRateController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
             FiringRateController.StartDecrease(target);
         }
 
@@ -7520,7 +7520,7 @@ namespace Orts.Simulation.RollingStocks
         {
             FiringRateController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousFiringRateCommand(Simulator.Log, false, FiringRateController.CurrentValue, FiringRateController.CommandStartTime);
+                new ContinuousFiringRateCommand(simulator.Log, false, FiringRateController.CurrentValue, FiringRateController.CommandStartTime);
         }
 
         public void FiringRateChangeTo(bool increase, float? target)
@@ -7545,7 +7545,7 @@ namespace Orts.Simulation.RollingStocks
         {
             FireMassKG += ShovelMassKG;
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.FireShovelfull, CabSetting.On);
+                simulator.Confirmer.Confirm(CabControl.FireShovelfull, CabSetting.On);
             // Make a black puff of smoke
             SmokeColor.Update(1, 0);
         }
@@ -7560,7 +7560,7 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.CylinderCocksClose);
 
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.CylinderCocks, CylinderCocksAreOpen ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.CylinderCocks, CylinderCocksAreOpen ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleCylinderCompound()
@@ -7572,7 +7572,7 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.CylinderCompoundToggle);
                 if (IsPlayerTrain)
                 {
-                    Simulator.Confirmer.Confirm(CabControl.CylinderCompound, CylinderCompoundOn ? CabSetting.On : CabSetting.Off);
+                    simulator.Confirmer.Confirm(CabControl.CylinderCompound, CylinderCompoundOn ? CabSetting.On : CabSetting.Off);
                 }
                 if (!CylinderCompoundOn) // Compound bypass valve closed - operating in compound mode
                 {
@@ -7596,7 +7596,7 @@ namespace Orts.Simulation.RollingStocks
             Injector1IsOn = !Injector1IsOn;
             SignalEvent(Injector1IsOn ? TrainEvent.WaterInjector1On : TrainEvent.WaterInjector1Off); // hook for sound trigger
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.Injector1, Injector1IsOn ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.Injector1, Injector1IsOn ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleInjector2()
@@ -7606,7 +7606,7 @@ namespace Orts.Simulation.RollingStocks
             Injector2IsOn = !Injector2IsOn;
             SignalEvent(Injector2IsOn ? TrainEvent.WaterInjector2On : TrainEvent.WaterInjector2Off); // hook for sound trigger
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.Injector2, Injector2IsOn ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.Injector2, Injector2IsOn ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleBlowdownValve()
@@ -7619,7 +7619,7 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.BoilerBlowdownOff);
 
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleManualFiring()
@@ -7634,21 +7634,21 @@ namespace Orts.Simulation.RollingStocks
         public void AIFireOn()
         {
             SetFireOn = true;
-            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has started adding fuel to fire"));
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has started adding fuel to fire"));
             SetFireOff = false;
         }
 
         public void AIFireOff()
         {
             SetFireOff = true;
-            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has stopped adding fuel to fire"));
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has stopped adding fuel to fire"));
             SetFireOn = false;
         }
 
         public void AIFireReset()
         {
             SetFireReset = true;
-            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has been reset"));
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has been reset"));
             SetFireOff = false;
             SetFireOn = false;
         }

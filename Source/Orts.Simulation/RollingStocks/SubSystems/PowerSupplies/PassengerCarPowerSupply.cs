@@ -32,7 +32,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public class ScriptedPassengerCarPowerSupply : IPassengerCarPowerSupply, ISubSystem<ScriptedPassengerCarPowerSupply>
     {
         public readonly MSTSWagon Wagon;
-        protected Simulator Simulator => Wagon.Simulator;
+        protected Simulator Simulator => Wagon.simulator;
         protected Train Train => Wagon.Train;
         protected Pantographs Pantographs => Wagon.Pantographs;
         protected int CarId;
