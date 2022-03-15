@@ -450,8 +450,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (matrixName.Length == 6)
                 {
-                    int id = 1;
-                    _ = int.TryParse(matrixName.AsSpan(5), out id);
+                    _ = int.TryParse(matrixName.AsSpan(5), out int id);
                     Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
@@ -798,17 +797,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // truck angle animation
             foreach (var p in Car.Parts)
             {
-                if (p.iMatrix <= 0)
+                if (p.Matrix <= 0)
                     continue;
                 Matrix m = Matrix.Identity;
-                m.Translation = TrainCarShape.SharedShape.Matrices[p.iMatrix].Translation;
+                m.Translation = TrainCarShape.SharedShape.Matrices[p.Matrix].Translation;
                 m.M11 = p.Cos;
                 m.M13 = p.Sin;
                 m.M31 = -p.Sin;
                 m.M33 = p.Cos;
 
                 // To cancel out any vibration, apply the inverse here. If no vibration is present, this matrix will be Matrix.Identity.
-                TrainCarShape.XNAMatrices[p.iMatrix] = Car.VibrationInverseMatrix * m;
+                TrainCarShape.XNAMatrices[p.Matrix] = Car.VibrationInverseMatrix * m;
             }
 
             if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Car.Simulator.Settings.SimpleControlPhysics)

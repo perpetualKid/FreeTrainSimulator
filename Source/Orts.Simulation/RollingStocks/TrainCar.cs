@@ -143,7 +143,6 @@ namespace Orts.Simulation.RollingStocks
         public bool HasPassengerCapacity;
         public bool HasInsideView;
         public float CarHeightAboveSeaLevelM;
-        public float WagonNumBogies;
         public float CarBogieCentreLengthM;
         public float CarBodyLengthM;
         public float CarCouplerFaceLengthM;
@@ -578,7 +577,7 @@ namespace Orts.Simulation.RollingStocks
         // set when model is loaded
         public List<WheelAxle> WheelAxles = new List<WheelAxle>();
         public bool WheelAxlesLoaded;
-        public List<TrainCarPart> Parts = new List<TrainCarPart>();
+        public TrainCarParts Parts { get; } = new TrainCarParts();
 
         // For use by cameras, initialized in MSTSWagon class and its derived classes
         public List<PassengerViewPoint> PassengerViewpoints = new List<PassengerViewPoint>();
@@ -1467,10 +1466,10 @@ namespace Orts.Simulation.RollingStocks
                         float BB1 = 0;
 
                         // Prevent NaN if WagonNumBogies = 0
-                        if ( WagonNumBogies != 0)
+                        if ( Parts.Count > 0)
                         {
                             // AA1 = CarAhead.CouplerForceU * (float)Math.Sin(WagonCouplerAngleDerailRad) / WagonNumBogies;
-                            AA1 = (float)Math.Abs(CarAhead.CouplerForceUSmoothed.SmoothedValue) * (float)Math.Sin(WagonCouplerAngleDerailRad) / WagonNumBogies;
+                            AA1 = (float)Math.Abs(CarAhead.CouplerForceUSmoothed.SmoothedValue) * (float)Math.Sin(WagonCouplerAngleDerailRad) / (Parts.Count -1);
                         }
                         else
                         {
@@ -2399,16 +2398,16 @@ namespace Orts.Simulation.RollingStocks
             if (Parts.Count > 0 && bogie1Axles == 4 || bogie2Axles == 4) // 1 bogie will have a Parts.Count of 2.
             {
                 if (Parts.Count == 2)
-                    if (parentMatrix == Parts[1].iMatrix && wheels.Length == 8)
+                    if (parentMatrix == Parts[1].Matrix && wheels.Length == 8)
                         if (bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
                             return;
 
                 if (Parts.Count == 3)
                 {
-                    if (parentMatrix == Parts[1].iMatrix && wheels.Length == 8)
+                    if (parentMatrix == Parts[1].Matrix && wheels.Length == 8)
                         if (bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
                             return;
-                    if (parentMatrix == Parts[2].iMatrix && wheels.Length == 8)
+                    if (parentMatrix == Parts[2].Matrix && wheels.Length == 8)
                         if (bogie2Axles == 4 && bogieID == 1) // This test is strictly testing for and leaving out axles meant for a Bogie1 assignment.
                             return;
                 }
@@ -2448,74 +2447,20 @@ namespace Orts.Simulation.RollingStocks
         {
             if (WheelAxlesLoaded || WheelHasBeenSet)
                 return;
-            foreach (var p in Parts) if (p.bogie && offset.AlmostEqual(p.OffsetM, 0.05f)) { offset = p.OffsetM + 0.1f; break; }
-            if (bogie == "BOGIE1")
-            {
-                while (Parts.Count <= id)
-                    Parts.Add(new TrainCarPart(0, 0));
-                Parts[id].OffsetM = offset;
-                Parts[id].iMatrix = matrix;
-                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
-            }
-            else if (bogie == "BOGIE2")
-            {
-                // This was the initial problem.  If the shape file contained only one entry that was labeled as BOGIE2(should be BOGIE1)
-                // the process would assign 2 to id, causing it to create 2 Parts entries( or 2 bogies) when one was only needed.  It is possible that
-                // this issue created many of the problems with articulated wagons later on in the process.
-                // 2 would be assigned to id, not because there were 2 entries, but because 2 was in BOGIE2.
-                if (numBogie2 == 1 && numBogie1 == 0)
-                {
-                    id -= 1;
-                    while (Parts.Count <= id)
-                        Parts.Add(new TrainCarPart(0, 0));
-                    Parts[id].OffsetM = offset;
-                    Parts[id].iMatrix = matrix;
-                    Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
+            foreach (var p in Parts) 
+                if (p.Bogie && offset.AlmostEqual(p.OffsetM, 0.05f)) 
+                { 
+                    offset = p.OffsetM + 0.1f; break; 
                 }
-                else
-                {
-                    while (Parts.Count <= id)
-                        Parts.Add(new TrainCarPart(0, 0));
-                    Parts[id].OffsetM = offset;
-                    Parts[id].iMatrix = matrix;
-                    Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
-                }
-            }
-            else if (bogie == "BOGIE3")
+            //    // This was the initial problem.  If the shape file contained only one entry that was labeled as BOGIE2(should be BOGIE1)
+            //    // the process would assign 2 to id, causing it to create 2 Parts entries( or 2 bogies) when one was only needed.  It is possible that
+            //    // this issue created many of the problems with articulated wagons later on in the process.
+            //    // 2 would be assigned to id, not because there were 2 entries, but because 2 was in BOGIE2.
+            if ("BOGIE2".Equals(bogie, StringComparison.OrdinalIgnoreCase) && numBogie2 == 1 && numBogie1 == 0)
             {
-                while (Parts.Count <= id)
-                    Parts.Add(new TrainCarPart(0, 0));
-                Parts[id].OffsetM = offset;
-                Parts[id].iMatrix = matrix;
-                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
+                id -= 1;
             }
-            else if (bogie == "BOGIE4")
-            {
-                while (Parts.Count <= id)
-                    Parts.Add(new TrainCarPart(0, 0));
-                Parts[id].OffsetM = offset;
-                Parts[id].iMatrix = matrix;
-                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
-            }
-            else if (bogie == "BOGIE")
-            {
-                while (Parts.Count <= id)
-                    Parts.Add(new TrainCarPart(0, 0));
-                Parts[id].OffsetM = offset;
-                Parts[id].iMatrix = matrix;
-                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
-            }
-            // The else will cover additions not covered above.
-            else
-            {
-                while (Parts.Count <= id)
-                    Parts.Add(new TrainCarPart(0, 0));
-                Parts[id].OffsetM = offset;
-                Parts[id].iMatrix = matrix;
-                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
-            }
-
-            WagonNumBogies = Parts.Count - 1;
+            Parts[id] = new TrainCarPart(offset, matrix, true);
 
         } // end AddBogie()
 
@@ -2533,13 +2478,13 @@ namespace Orts.Simulation.RollingStocks
             WheelHasBeenSet = true;
             // No parts means no bogies (always?), so make sure we've got Parts[0] for the car itself.
             if (Parts.Count == 0)
-                Parts.Add(new TrainCarPart(0, 0));
+                Parts.Add(TrainCarPart.None);
             // No axles but we have bogies.
             if (WheelAxles.Count == 0 && Parts.Count > 1)
             {
                 // Fake the axles by pretending each has 1 axle.
                 foreach (var part in Parts)
-                    WheelAxles.Add(new WheelAxle(part.OffsetM, part.iMatrix, 0));
+                    WheelAxles.Add(new WheelAxle(part.OffsetM, part.Matrix, 0));
                 Trace.TraceInformation("Wheel axle data faked based on {1} bogies for {0}", WagFilePath, Parts.Count - 1);
             }
             bool articFront = !WheelAxles.Any(a => a.OffsetM < 0);
@@ -2554,7 +2499,7 @@ namespace Orts.Simulation.RollingStocks
                     if (w.BogieMatrix > 0)
                     {
                         for (var i = 0; i < Parts.Count; i++)
-                            if (Parts[i].iMatrix == w.BogieMatrix)
+                            if (Parts[i].Matrix == w.BogieMatrix)
                             {
                                 w.BogieIndex = i;
                                 break;
@@ -2578,11 +2523,11 @@ namespace Orts.Simulation.RollingStocks
             // Note: Steam locomotive modelers are aware of this issue and are now making sure there is ample spacing between axle and bogie.
             for (var i = 1; i < Parts.Count; i++)
             {
-                if (Parts[i].bogie == true && Parts[i].SumWgt < 1.5)
+                if (Parts[i].Bogie == true && Parts[i].SumWgt < 1.5)
                 {
                     foreach (var w in WheelAxles)
                     {
-                        if (w.BogieMatrix == Parts[i].iMatrix)
+                        if (w.BogieMatrix == Parts[i].Matrix)
                         {
                             if (w.OffsetM.AlmostEqual(Parts[i].OffsetM, 0.6f))
                             {
@@ -2703,7 +2648,7 @@ namespace Orts.Simulation.RollingStocks
                     var x = traveler.X + 2048 * (traveler.TileX - tileX);
                     var y = traveler.Y;
                     var z = traveler.Z + 2048 * (traveler.TileZ - tileZ);
-                    WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0, traveler);
+                    WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 - CentreOfGravityM.Z - o;
                 traveler.Move(o);
@@ -2719,7 +2664,7 @@ namespace Orts.Simulation.RollingStocks
                     var x = traveler.X + 2048 * (traveler.TileX - tileX);
                     var y = traveler.Y;
                     var z = traveler.Z + 2048 * (traveler.TileZ - tileZ);
-                    WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0, traveler);
+                    WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 + CentreOfGravityM.Z + o;
                 traveler.Move(o);
@@ -2771,7 +2716,7 @@ namespace Orts.Simulation.RollingStocks
                     double d = p.OffsetM - p.SumOffset / p.SumWgt;
                     if (-.2 < d && d < .2)
                         continue;
-                    p.AddWheelSetLocation(1, p.OffsetM, p0.A[0] + p.OffsetM * p0.B[0], p0.A[1] + p.OffsetM * p0.B[1], p0.A[2] + p.OffsetM * p0.B[2], 0, null);
+                    p.AddWheelSetLocation(1, p.OffsetM, p0.A[0] + p.OffsetM * p0.B[0], p0.A[1] + p.OffsetM * p0.B[1], p0.A[2] + p.OffsetM * p0.B[2], 0);
                     p.FindCenterLine();
                 }
                 Vector3 fwd1 = new Vector3(p.B[0], p.B[1], -p.B[2]);
@@ -3250,101 +3195,6 @@ namespace Orts.Simulation.RollingStocks
             float HeatLossInfiltrationW = (float)Dynamics.Power.FromKW(SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
 
             TotalCarCompartmentHeatLossW = HeatLossTransmissionW + HeatLossInfiltrationW + HeatLossVentilationW;
-        }
-    }
-
-    public class WheelAxle : IComparer<WheelAxle>
-    {
-        public float OffsetM;   // distance from center of model, positive forward
-        public int BogieIndex;
-        public int BogieMatrix;
-        public TrainCarPart Part;
-        public WheelAxle(float offset, int bogie, int parentMatrix)
-        {
-            OffsetM = offset;
-            BogieIndex = bogie;
-            BogieMatrix = parentMatrix;
-        }
-        public int Compare(WheelAxle x, WheelAxle y)
-        {
-            if (x.OffsetM > y.OffsetM) return 1;
-            if (x.OffsetM < y.OffsetM) return -1;
-            return 0;
-        }
-    }
-
-    // data and methods used to align trucks and models to track
-    public class TrainCarPart
-    {
-        public float OffsetM;   // distance from center of model, positive forward
-        public int iMatrix;     // matrix in shape that needs to be moved
-        public float Cos = 1;       // truck angle cosine
-        public float Sin;       // truck angle sin
-        // line fitting variables
-        public double SumWgt;
-        public double SumOffset;
-        public double SumOffsetSq;
-        public double[] SumX = new double[4];
-        public double[] SumXOffset = new double[4];
-        public float[] A = new float[4];
-        public float[] B = new float[4];
-        public bool bogie;
-        public TrainCarPart(float offset, int i)
-        {
-            OffsetM = offset;
-            iMatrix = i;
-        }
-        public void InitLineFit()
-        {
-            SumWgt = SumOffset = SumOffsetSq = 0;
-            for (int i = 0; i < 4; i++)
-                SumX[i] = SumXOffset[i] = 0;
-        }
-        public void AddWheelSetLocation(float w, float o, float x, float y, float z, float t, Traveller traveler)
-        {
-            SumWgt += w;
-            SumOffset += w * o;
-            SumOffsetSq += w * o * o;
-            SumX[0] += w * x;
-            SumXOffset[0] += w * x * o;
-            SumX[1] += w * y;
-            SumXOffset[1] += w * y * o;
-            SumX[2] += w * z;
-            SumXOffset[2] += w * z * o;
-            SumX[3] += w * t;
-            SumXOffset[3] += w * t * o;
-        }
-        public void AddPartLocation(float w, TrainCarPart part)
-        {
-            SumWgt += w;
-            SumOffset += w * part.OffsetM;
-            SumOffsetSq += w * part.OffsetM * part.OffsetM;
-            for (int i = 0; i < 4; i++)
-            {
-                float x = part.A[i] + part.OffsetM * part.B[i];
-                SumX[i] += w * x;
-                SumXOffset[i] += w * x * part.OffsetM;
-            }
-        }
-        public void FindCenterLine()
-        {
-            double d = SumWgt * SumOffsetSq - SumOffset * SumOffset;
-            if (d > 1e-20)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    A[i] = (float)((SumOffsetSq * SumX[i] - SumOffset * SumXOffset[i]) / d);
-                    B[i] = (float)((SumWgt * SumXOffset[i] - SumOffset * SumX[i]) / d);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    A[i] = (float)(SumX[i] / SumWgt);
-                    B[i] = 0;
-                }
-            }
         }
     }
 }

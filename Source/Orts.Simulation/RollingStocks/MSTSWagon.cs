@@ -479,12 +479,6 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            // Should always be at least one bogie on rolling stock. If is zero then NaN error occurs.
-            if (WagonNumBogies == 0)
-            {
-                WagonNumBogies = 1;
-            }
-
             // Set wheel flange parameters to default values.
             if (MaximumWheelFlangeAngleRad == 0)
             {
@@ -1329,7 +1323,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
                 case "wagon(numwheels": MSTSWagonNumWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
                 case "wagon(ortsnumberaxles": WagonNumAxles = stf.ReadIntBlock(null); break;
-                case "wagon(ortsnumberbogies": WagonNumBogies = stf.ReadIntBlock(null); break;
+//                case "wagon(ortsnumberbogies": WagonNumBogies = stf.ReadIntBlock(null); break;
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
                     break;
@@ -1448,7 +1442,6 @@ namespace Orts.Simulation.RollingStocks
             TenderWagonMaxCoalMassKG = copy.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = copy.TenderWagonMaxWaterMassKG;
             WagonNumAxles = copy.WagonNumAxles;
-            WagonNumBogies = copy.WagonNumBogies;
             MSTSWagonNumWheels = copy.MSTSWagonNumWheels;
             MassKG = copy.MassKG;
             InitialMassKG = copy.InitialMassKG;
