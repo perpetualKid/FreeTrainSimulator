@@ -525,7 +525,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         private float rpmRatio;
         internal float torqueCurveMultiplier;
         private float throttleFraction;
-
+        public float TorqueCurveMultiplier => torqueCurveMultiplier;
         private double tractiveForceN;
         public float TractiveForceN
         {

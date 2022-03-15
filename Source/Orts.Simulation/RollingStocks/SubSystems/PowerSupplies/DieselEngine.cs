@@ -419,11 +419,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", eng.State.GetLocalizedDescription());
 
-            //result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Locomotive.IsMetric, false, false));
-
             if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
             {
-
+                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), Simulator.Catalog.GetString(" "));
                 foreach (var eng in DEList)
                 {
                     //   Power(Watts) = Torque(Nm) * rpm / 9.54.
@@ -434,6 +432,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
             else
             {
+                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Simulator.Instance.MetricUnits, false, false));
                 foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
             }
@@ -924,7 +923,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             get
             {
-                return CurrentDieselOutputPowerW <= 0f ? 0f : ((OutputPowerW + (Locomotive.DieselEngines.NumOfActiveEngines > 0 ? Locomotive.LocomotivePowerSupply.ElectricTrainSupplyPowerW / Locomotive.DieselEngines.NumOfActiveEngines : 0f)) * 100f / CurrentDieselOutputPowerW);
+                if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                {
+                    return CurrentDieselOutputPowerW <= 0f ? 0f : (((Locomotive.MotiveForceN * Locomotive.SpeedMpS) + (Locomotive.DieselEngines.NumOfActiveEngines > 0 ? Locomotive.LocomotivePowerSupply.ElectricTrainSupplyPowerW / Locomotive.DieselEngines.NumOfActiveEngines : 0f)) * 100f / CurrentDieselOutputPowerW);
+                }
+                else
+                {
+                    return CurrentDieselOutputPowerW <= 0f ? 0f : ((OutputPowerW + (Locomotive.DieselEngines.NumOfActiveEngines > 0 ? Locomotive.LocomotivePowerSupply.ElectricTrainSupplyPowerW / Locomotive.DieselEngines.NumOfActiveEngines : 0f)) * 100f / CurrentDieselOutputPowerW);
+                }
             }
         }
         /// <summary>
