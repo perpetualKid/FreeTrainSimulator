@@ -731,8 +731,8 @@ namespace Orts.Simulation.RollingStocks
 
         #endregion
 
-        public MSTSSteamLocomotive(Simulator simulator, string wagFile)
-            : base(simulator, wagFile)
+        public MSTSSteamLocomotive(string wagFile)
+            : base(wagFile)
         {
             PowerSupply = new SteamPowerSupply(this);
 

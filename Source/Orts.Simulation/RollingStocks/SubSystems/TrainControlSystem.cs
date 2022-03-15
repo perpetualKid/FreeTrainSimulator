@@ -122,7 +122,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public bool Activated;
         public bool CustomTCSScript;
         private readonly MSTSLocomotive Locomotive;
-        private readonly Simulator Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
         private float ItemSpeedLimit;
         private TrackMonitorSignalAspect ItemAspect;
         private float ItemDistance;
@@ -182,7 +182,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public ScriptedTrainControlSystem(MSTSLocomotive locomotive)
         {
             Locomotive = locomotive;
-            Simulator = Locomotive.simulator;
 
             PowerAuthorization = true;
             CircuitBreakerClosingOrder = false;
@@ -262,8 +261,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.PreUpdate = () => Simulator.PreUpdate;
                 Script.DistanceM = () => Locomotive.DistanceM;
-                Script.Confirm = Locomotive.simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.simulator.Confirmer.Message;
+                Script.Confirm = Simulator.Confirmer.Confirm;
+                Script.Message = Simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

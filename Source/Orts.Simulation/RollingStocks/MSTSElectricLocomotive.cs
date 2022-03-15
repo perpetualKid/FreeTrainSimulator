@@ -54,8 +54,8 @@ namespace Orts.Simulation.RollingStocks
     {
         public ScriptedElectricPowerSupply ElectricPowerSupply => PowerSupply as ScriptedElectricPowerSupply;
 
-        public MSTSElectricLocomotive(Simulator simulator, string wagFile) :
-            base(simulator, wagFile)
+        public MSTSElectricLocomotive(string wagFile) :
+            base(wagFile)
         {
             PowerSupply = new ScriptedElectricPowerSupply(this);
         }

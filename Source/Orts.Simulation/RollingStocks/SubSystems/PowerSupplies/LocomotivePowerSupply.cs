@@ -31,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public abstract class ScriptedLocomotivePowerSupply : ILocomotivePowerSupply
     {
         public readonly MSTSLocomotive Locomotive;
-        protected Simulator Simulator => Locomotive.simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
         protected Train Train => Locomotive.Train;
         protected int CarId;
 
@@ -259,8 +259,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             AbstractScript.PreUpdate = () => Simulator.PreUpdate;
             AbstractScript.DistanceM = () => Locomotive.DistanceM;
             AbstractScript.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-            AbstractScript.Confirm = Locomotive.simulator.Confirmer.Confirm;
-            AbstractScript.Message = Locomotive.simulator.Confirmer.Message;
+            AbstractScript.Confirm = Simulator.Confirmer.Confirm;
+            AbstractScript.Message = Simulator.Confirmer.Message;
             AbstractScript.SignalEvent = Locomotive.SignalEvent;
             AbstractScript.SignalEventToTrain = (evt) =>
             {

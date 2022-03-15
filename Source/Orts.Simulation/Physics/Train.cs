@@ -820,7 +820,7 @@ namespace Orts.Simulation.Physics
             if (count > 0)
             {
                 for (int i = 0; i < count; ++i)
-                    Cars.Add(RollingStock.Restore(simulator, inf, this));
+                    Cars.Add(RollingStock.Restore(inf, this));
             }
         }
 

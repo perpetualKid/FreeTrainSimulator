@@ -268,46 +268,46 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Initialise Coupler shapes 
-            if (car.FrontCouplerShapeFileName != null)
+            if (car.FrontCouplerAnimation != null)
             {
-                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontCouplerOpenShapeFileName != null)
+            if (car.FrontCouplerOpenAnimation != null)
             {
-                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerShapeFileName != null)
+            if (car.RearCouplerAnimation != null)
             {
-                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerOpenShapeFileName != null)
+            if (car.RearCouplerOpenAnimation != null)
             {
-                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
             // Initialise air hose shapes
 
-            if (car.FrontAirHoseShapeFileName != null)
+            if (car.FrontAirHoseAnimation != null)
             {
-                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontAirHoseDisconnectedShapeFileName != null)
+            if (car.FrontAirHoseDisconnectedAnimation != null)
             {
-                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseShapeFileName != null)
+            if (car.RearAirHoseAnimation != null)
             {
-                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseDisconnectedShapeFileName != null)
+            if (car.RearAirHoseDisconnectedAnimation != null)
             {
-                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
 
@@ -958,9 +958,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontCouplerAnimWidthM,
-                    Y = Car.FrontCouplerAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
+                    X = Car.FrontCouplerAnimation.Width,
+                    Y = Car.FrontCouplerAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -1009,9 +1009,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearCouplerAnimWidthM,
-                    Y = Car.RearCouplerAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearCouplerAnimation.Width,
+                    Y = Car.RearCouplerAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -1046,9 +1046,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontAirHoseAnimWidthM,
-                    Y = Car.FrontAirHoseAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
+                    X = Car.FrontAirHoseAnimation.Width,
+                    Y = Car.FrontAirHoseAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
                 };
 
                 if (Car.CarAhead != null) // Display animated coupler if there is a car behind this car
@@ -1092,9 +1092,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearAirHoseAnimWidthM,
-                    Y = Car.RearAirHoseAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearAirHoseAnimation.Width,
+                    Y = Car.RearAirHoseAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car

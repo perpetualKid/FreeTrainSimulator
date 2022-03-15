@@ -31,7 +31,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     {
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
-        public Simulator Simulator => PowerSupply.Locomotive.simulator;
 
         public bool Activated;
         private string ScriptName = "Automatic";
@@ -118,7 +117,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                             break;
 
                         default:
-                            Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
+                            Script = Simulator.Instance.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
                             break;
                     }
                 }
@@ -129,13 +128,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 }
 
                 // AbstractScriptClass
-                Script.ClockTime = () => Simulator.ClockTime;
-                Script.GameTime = () => Simulator.GameTime;
-                Script.PreUpdate = () => Simulator.PreUpdate;
+                Script.ClockTime = () => Simulator.Instance.ClockTime;
+                Script.GameTime = () => Simulator.Instance.GameTime;
+                Script.PreUpdate = () => Simulator.Instance.PreUpdate;
                 Script.DistanceM = () => Locomotive.DistanceM;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.Confirm = Locomotive.simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.simulator.Confirmer.Message;
+                Script.Confirm = Simulator.Instance.Confirmer.Confirm;
+                Script.Message = Simulator.Instance.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

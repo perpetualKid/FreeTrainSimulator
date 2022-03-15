@@ -52,8 +52,6 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-using System.Linq;
-using System.Security.Cryptography;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -80,7 +78,6 @@ namespace Orts.Simulation.RollingStocks
         public bool IsLowTorqueRollerBearing; // Has low torque roller bearings
         public bool IsFrictionBearing; //Has oil based friction (or solid bearings)
         public bool IsGreaseFrictionBearing; // Has grease based friction (or solid bearings)
-        public bool IsStandStill = true;  // Used for MSTS type friction
         public bool IsDavisFriction = true; // Default to new Davis type friction
         public bool IsBelowMergeSpeed = true; // set indicator for low speed operation as per given speed
 
@@ -311,8 +308,8 @@ namespace Orts.Simulation.RollingStocks
             set { base.BrakeSystem = value; } // value needs to be set to allow trailing cars to have same brake system as locomotive when in simple brake mode
         }
 
-        public MSTSWagon(Simulator simulator, string wagFilePath)
-            : base(simulator, wagFilePath)
+        public MSTSWagon(string wagFilePath)
+            : base(wagFilePath)
         {
             Pantographs = new Pantographs(this);
         }
@@ -370,7 +367,7 @@ namespace Orts.Simulation.RollingStocks
                 while (!stf.Eof)
                 {
                     stf.ReadItem();
-                    Parse(stf.Tree.ToLower(), stf);
+                    Parse(stf.Tree.ToLowerInvariant(), stf);
                 }
             }
 
@@ -391,28 +388,28 @@ namespace Orts.Simulation.RollingStocks
                 InteriorShapeFileName = null;
             }
 
-            if (FrontCouplerShapeFileName != null && !File.Exists(Path.Combine(wagonFolder, FrontCouplerShapeFileName)))
+            if (FrontCouplerAnimation != null && !File.Exists(Path.Combine(wagonFolder, FrontCouplerAnimation.ShapeFileName)))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, FrontCouplerShapeFileName)));
-                FrontCouplerShapeFileName = null;
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, FrontCouplerAnimation.ShapeFileName)));
+                FrontCouplerAnimation = null;
             }
 
-            if (RearCouplerShapeFileName != null && !File.Exists(Path.Combine(wagonFolder, RearCouplerShapeFileName)))
+            if (RearCouplerAnimation != null && !File.Exists(Path.Combine(wagonFolder, RearCouplerAnimation.ShapeFileName)))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, RearCouplerShapeFileName)));
-                RearCouplerShapeFileName = null;
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, RearCouplerAnimation.ShapeFileName)));
+                RearCouplerAnimation = null;
             }
 
-            if (FrontAirHoseShapeFileName != null && !File.Exists(Path.Combine(wagonFolder, FrontAirHoseShapeFileName)))
+            if (FrontAirHoseAnimation != null && !File.Exists(Path.Combine(wagonFolder, FrontAirHoseAnimation.ShapeFileName)))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, FrontAirHoseShapeFileName)));
-                FrontAirHoseShapeFileName = null;
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, FrontAirHoseAnimation.ShapeFileName)));
+                FrontAirHoseAnimation = null;
             }
 
-            if (RearAirHoseShapeFileName != null && !File.Exists(Path.Combine(wagonFolder, RearAirHoseShapeFileName)))
+            if (RearAirHoseAnimation != null && !File.Exists(Path.Combine(wagonFolder, RearAirHoseAnimation.ShapeFileName)))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, RearAirHoseShapeFileName)));
-                RearAirHoseShapeFileName = null;
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, RearAirHoseAnimation.ShapeFileName)));
+                RearAirHoseAnimation = null;
             }
 
             // If trailing loco resistance constant has not been  defined in WAG/ENG file then assign default value based upon orig Davis values
@@ -1152,92 +1149,42 @@ namespace Orts.Simulation.RollingStocks
                 // Used for advanced coupler
 
                 case "wagon(coupling(frontcoupleranim":
-                    stf.MustMatch("(");
-                    FrontCouplerShapeFileName = stf.ReadString();
-                    FrontCouplerAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontCouplerAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontCouplerAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
+                    FrontCouplerAnimation = new ShapeAnimation(stf);
                     break;
-
                 case "wagon(coupling(frontairhoseanim":
-                    stf.MustMatch("(");
-                    FrontAirHoseShapeFileName = stf.ReadString();
-                    FrontAirHoseAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontAirHoseAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontAirHoseAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
+                    FrontAirHoseAnimation = new ShapeAnimation(stf);
                     break;
-
                 case "wagon(coupling(rearcoupleranim":
-                    stf.MustMatch("(");
-                    RearCouplerShapeFileName = stf.ReadString();
-                    RearCouplerAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearCouplerAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearCouplerAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
+                    RearCouplerAnimation = new ShapeAnimation(stf);
                     break;
-
                 case "wagon(coupling(rearairhoseanim":
-                    stf.MustMatch("(");
-                    RearAirHoseShapeFileName = stf.ReadString();
-                    RearAirHoseAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearAirHoseAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearAirHoseAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
+                    RearAirHoseAnimation = new ShapeAnimation(stf);
                     break;
-
                 case "wagon(coupling(spring(ortstensionstiffness":
                     stf.MustMatch("(");
                     Couplers[CouplerCountLocation].SetTensionStiffness(stf.ReadFloat(STFReader.Units.Force, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
-
                case "wagon(coupling(frontcoupleropenanim":
-                    stf.MustMatch("(");
+                    FrontCouplerOpenAnimation = new ShapeAnimation(stf);
                     FrontCouplerOpenFitted = true;
-                    FrontCouplerOpenShapeFileName = stf.ReadString();
-                    FrontCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
-                    break;
-                    
+                    break;                    
                case "wagon(coupling(rearcoupleropenanim":
-                    stf.MustMatch("(");
+                    RearCouplerOpenAnimation = new ShapeAnimation(stf);
                     RearCouplerOpenFitted = true;
-                    RearCouplerOpenShapeFileName = stf.ReadString();
-                    RearCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
-
                 case "wagon(coupling(frontairhosediconnectedanim":
-                    stf.MustMatch("(");
-                    FrontAirHoseDisconnectedShapeFileName = stf.ReadString();
-                    FrontAirHoseDisconnectedAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontAirHoseDisconnectedAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    FrontAirHoseDisconnectedAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
-                    break;
-                    
+                    FrontAirHoseDisconnectedAnimation = new ShapeAnimation(stf);
+                    break;                    
                 case "wagon(coupling(rearairhosediconnectedanim":
-                    stf.MustMatch("(");
-                    RearAirHoseDisconnectedShapeFileName = stf.ReadString();
-                    RearAirHoseDisconnectedAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearAirHoseDisconnectedAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    RearAirHoseDisconnectedAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
-                    stf.SkipRestOfBlock();
+                    RearAirHoseDisconnectedAnimation = new ShapeAnimation(stf);
                     break;
-
-
                 case "wagon(coupling(spring(ortscompressionstiffness":
                     stf.MustMatch("(");
                     Couplers[CouplerCountLocation].SetCompressionStiffness(stf.ReadFloat(STFReader.Units.Force, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
-
                 case "wagon(coupling(spring(ortstensionslack":
                     stf.MustMatch("(");
                     IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
@@ -1384,44 +1331,17 @@ namespace Orts.Simulation.RollingStocks
             FreightAnimMaxLevelM = copy.FreightAnimMaxLevelM;
             FreightAnimMinLevelM = copy.FreightAnimMinLevelM;
             FreightAnimFlag = copy.FreightAnimFlag;
-            FrontCouplerShapeFileName = copy.FrontCouplerShapeFileName;
-            FrontCouplerAnimWidthM = copy.FrontCouplerAnimWidthM;
-            FrontCouplerAnimHeightM = copy.FrontCouplerAnimHeightM;
-            FrontCouplerAnimLengthM = copy.FrontCouplerAnimLengthM;
-            FrontCouplerOpenShapeFileName = copy.FrontCouplerOpenShapeFileName;
-            FrontCouplerOpenAnimWidthM = copy.FrontCouplerOpenAnimWidthM;
-            FrontCouplerOpenAnimHeightM = copy.FrontCouplerOpenAnimHeightM;
-            FrontCouplerOpenAnimLengthM = copy.FrontCouplerOpenAnimLengthM;
+            FrontCouplerAnimation = copy.FrontCouplerAnimation;
+            FrontCouplerOpenAnimation = copy.FrontCouplerOpenAnimation;
+            RearCouplerAnimation = copy.RearCouplerAnimation;
+            RearCouplerOpenAnimation = copy.RearCouplerOpenAnimation;
             FrontCouplerOpenFitted = copy.FrontCouplerOpenFitted;
-            RearCouplerShapeFileName = copy.RearCouplerShapeFileName;
-            RearCouplerAnimWidthM = copy.RearCouplerAnimWidthM;
-            RearCouplerAnimHeightM = copy.RearCouplerAnimHeightM;
-            RearCouplerAnimLengthM = copy.RearCouplerAnimLengthM;
-            RearCouplerOpenShapeFileName = copy.RearCouplerOpenShapeFileName;
-            RearCouplerOpenAnimWidthM = copy.RearCouplerOpenAnimWidthM;
-            RearCouplerOpenAnimHeightM = copy.RearCouplerOpenAnimHeightM;
-            RearCouplerOpenAnimLengthM = copy.RearCouplerOpenAnimLengthM;
             RearCouplerOpenFitted = copy.RearCouplerOpenFitted;
 
-            FrontAirHoseShapeFileName = copy.FrontAirHoseShapeFileName;
-            FrontAirHoseAnimWidthM = copy.FrontAirHoseAnimWidthM;
-            FrontAirHoseAnimHeightM = copy.FrontAirHoseAnimHeightM;
-            FrontAirHoseAnimLengthM = copy.FrontAirHoseAnimLengthM;
-            
-            FrontAirHoseDisconnectedShapeFileName = copy.FrontAirHoseDisconnectedShapeFileName;
-            FrontAirHoseDisconnectedAnimWidthM = copy.FrontAirHoseDisconnectedAnimWidthM;
-            FrontAirHoseDisconnectedAnimHeightM = copy.FrontAirHoseDisconnectedAnimHeightM;
-            FrontAirHoseDisconnectedAnimLengthM = copy.FrontAirHoseDisconnectedAnimLengthM;
-            
-            RearAirHoseShapeFileName = copy.RearAirHoseShapeFileName;
-            RearAirHoseAnimWidthM = copy.RearAirHoseAnimWidthM;
-            RearAirHoseAnimHeightM = copy.RearAirHoseAnimHeightM;
-            RearAirHoseAnimLengthM = copy.RearAirHoseAnimLengthM;
-            
-            RearAirHoseDisconnectedShapeFileName = copy.RearAirHoseDisconnectedShapeFileName;
-            RearAirHoseDisconnectedAnimWidthM = copy.RearAirHoseDisconnectedAnimWidthM;
-            RearAirHoseDisconnectedAnimHeightM = copy.RearAirHoseDisconnectedAnimHeightM;
-            RearAirHoseDisconnectedAnimLengthM = copy.RearAirHoseDisconnectedAnimLengthM;
+            FrontAirHoseAnimation = copy.FrontAirHoseAnimation;
+            FrontAirHoseDisconnectedAnimation = copy.FrontAirHoseDisconnectedAnimation;
+            RearAirHoseAnimation = copy.RearAirHoseAnimation;
+            RearAirHoseDisconnectedAnimation = copy.RearAirHoseDisconnectedAnimation;
 
             CarWidthM = copy.CarWidthM;
             CarHeightM = copy.CarHeightM;
@@ -1614,22 +1534,6 @@ namespace Orts.Simulation.RollingStocks
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("ortsalternatepassengerviewpoint", ()=>{ ParseWagonInside(stf); }),
             });
-        }
-
-        public static float ParseFloat(string token)
-        {   // is there a better way to ignore any suffix?
-            while (token.Length > 0)
-            {
-                try
-                {
-                    return float.Parse(token);
-                }
-                catch (System.Exception)
-                {
-                    token = token.Substring(0, token.Length - 1);
-                }
-            }
-            return 0;
         }
 
         /// <summary>
@@ -2049,7 +1953,6 @@ namespace Orts.Simulation.RollingStocks
         private void UpdateTrainBaseResistance()
         {
             IsBelowMergeSpeed = AbsSpeedMpS < MergeSpeedMpS;
-            IsStandStill = AbsSpeedMpS < 0.1f;
             bool isStartingFriction = StandstillFrictionN != 0;
 
             if (IsDavisFriction) // If set to use next Davis friction then do so
@@ -2135,7 +2038,7 @@ namespace Orts.Simulation.RollingStocks
                     Friction0N *= (float)Math.Pow(.0025 * .44704, FrictionE1);
             }
 
-            if (IsStandStill)
+            if (AbsSpeedMpS < 0.1f)
             {
                 FrictionForceN = Friction0N;
             }
@@ -4301,6 +4204,27 @@ public void SetTensionStiffness(float a, float b)
             XNADirection.Z = -stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             XNADirection.Normalize();
             NozzleWidth = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            stf.SkipRestOfBlock();
+        }
+    }
+
+    public class ShapeAnimation
+    {
+        public string ShapeFileName { get; }
+
+        public float Width { get; }
+        public float Height { get; }
+        public float Length { get; }
+
+        public ShapeAnimation(STFReader stf)
+        {
+            if (null == stf)
+                throw new ArgumentNullException(nameof(stf));
+            stf.MustMatch("(");
+            ShapeFileName = stf.ReadString();
+            Width = stf.ReadFloat(STFReader.Units.Distance, null);
+            Height = stf.ReadFloat(STFReader.Units.Distance, null);
+            Length = stf.ReadFloat(STFReader.Units.Distance, null);
             stf.SkipRestOfBlock();
         }
     }

@@ -90,9 +90,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             DebugType = "1P";
 
             // Force graduated releasable brakes. Workaround for MSTS with bugs preventing to set eng/wag files correctly for this.
-            (Car as MSTSWagon).DistributorPresent |= Car.simulator.Settings.GraduatedRelease;
+            (Car as MSTSWagon).DistributorPresent |= Simulator.Instance.Settings.GraduatedRelease;
 
-            if (Car.simulator.Settings.RetainersOnAllCars && !(Car is MSTSLocomotive))
+            if (Simulator.Instance.Settings.RetainersOnAllCars && !(Car is MSTSLocomotive))
                 (Car as MSTSWagon).RetainerPositions = 4;
         }
 
@@ -305,11 +305,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
         {
             // reducing size of Emergency Reservoir for short (fake) cars
-            if (Car.simulator.Settings.CorrectQuestionableBrakingParams && Car.CarLengthM <= 1)
+            if (Simulator.Instance.Settings.CorrectQuestionableBrakingParams && Car.CarLengthM <= 1)
             EmergResVolumeM3 = Math.Min (0.02f, EmergResVolumeM3);
 
             // In simple brake mode set emergency reservoir volume, override high volume values to allow faster brake release.
-            if (Car.simulator.Settings.SimpleControlPhysics && EmergResVolumeM3 > 2.0)
+            if (Simulator.Instance.Settings.SimpleControlPhysics && EmergResVolumeM3 > 2.0)
                 EmergResVolumeM3 = 0.7f;
 
             BrakeLine1PressurePSI = Car.Train.EqualReservoirPressurePSIorInHg;

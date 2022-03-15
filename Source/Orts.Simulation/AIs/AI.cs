@@ -900,7 +900,7 @@ namespace Orts.Simulation.AIs
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(Simulator, wagonFilePath);
+                    TrainCar car = RollingStock.Load(wagonFilePath);
                     car.Flipped = wagon.Flip;
                     train.Cars.Add(car);
                     car.Train = train;

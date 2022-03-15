@@ -61,7 +61,7 @@ namespace Orts.Simulation.RollingStocks
 
     public abstract class TrainCar: IWorldPosition
     {
-        internal readonly Simulator simulator;
+        internal static readonly Simulator simulator = Simulator.Instance;
         public readonly string WagFilePath;
         public string RealWagFilePath; //we are substituting missing remote cars in MP, so need to remember this
 
@@ -162,50 +162,22 @@ namespace Orts.Simulation.RollingStocks
         public float InitialMaxBrakeForceN = 89e3f;   // Initial force when agon initialised
 
         // Coupler Animation
-        public string FrontCouplerShapeFileName;
-        public float FrontCouplerAnimLengthM;
-        public float FrontCouplerAnimWidthM;
-        public float FrontCouplerAnimHeightM;
+        public ShapeAnimation FrontCouplerAnimation { get; private protected set; }
+        public ShapeAnimation FrontCouplerOpenAnimation { get; private protected set; }
+        public ShapeAnimation RearCouplerAnimation { get; private protected set; }
+        public ShapeAnimation RearCouplerOpenAnimation { get; private protected set; }
 
-        public string FrontCouplerOpenShapeFileName;
-        public float FrontCouplerOpenAnimLengthM;
-        public float FrontCouplerOpenAnimWidthM;
-        public float FrontCouplerOpenAnimHeightM;
-        public bool FrontCouplerOpenFitted;
-        public bool FrontCouplerOpen;
+        public bool FrontCouplerOpenFitted { get; private protected set; }
+        public bool FrontCouplerOpen { get; internal protected set; }
 
-        public string RearCouplerShapeFileName;
-        public float RearCouplerAnimLengthM;
-        public float RearCouplerAnimWidthM;
-        public float RearCouplerAnimHeightM;
-
-        public string RearCouplerOpenShapeFileName;
-        public float RearCouplerOpenAnimLengthM;
-        public float RearCouplerOpenAnimWidthM;
-        public float RearCouplerOpenAnimHeightM;
-        public bool RearCouplerOpenFitted;
-        public bool RearCouplerOpen;
+        public bool RearCouplerOpenFitted { get; private protected set; }
+        public bool RearCouplerOpen { get; internal protected set; }
 
         // Air hose animation
-        public string FrontAirHoseShapeFileName;
-        public float FrontAirHoseAnimLengthM;
-        public float FrontAirHoseAnimWidthM;
-        public float FrontAirHoseAnimHeightM;
-
-        public string FrontAirHoseDisconnectedShapeFileName;
-        public float FrontAirHoseDisconnectedAnimLengthM;
-        public float FrontAirHoseDisconnectedAnimWidthM;
-        public float FrontAirHoseDisconnectedAnimHeightM;
-
-        public string RearAirHoseShapeFileName;
-        public float RearAirHoseAnimLengthM;
-        public float RearAirHoseAnimWidthM;
-        public float RearAirHoseAnimHeightM;
-
-        public string RearAirHoseDisconnectedShapeFileName;
-        public float RearAirHoseDisconnectedAnimLengthM;
-        public float RearAirHoseDisconnectedAnimWidthM;
-        public float RearAirHoseDisconnectedAnimHeightM;
+        public ShapeAnimation FrontAirHoseAnimation { get; private protected set; }
+        public ShapeAnimation FrontAirHoseDisconnectedAnimation { get; private protected set; }
+        public ShapeAnimation RearAirHoseAnimation { get; private protected set; }
+        public ShapeAnimation RearAirHoseDisconnectedAnimation { get; private protected set; }
 
         public float FrontAirHoseHeightAdjustmentM;
         public float RearAirHoseHeightAdjustmentM;
@@ -2104,9 +2076,8 @@ namespace Orts.Simulation.RollingStocks
         {
         }
 
-        protected TrainCar(Simulator simulator, string wagFile)
+        protected TrainCar(string wagFile)
         {
-            this.simulator = simulator;
             WagFilePath = wagFile;
             RealWagFilePath = wagFile;
         }

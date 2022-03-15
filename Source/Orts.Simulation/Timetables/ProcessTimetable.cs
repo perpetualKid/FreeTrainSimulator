@@ -2459,7 +2459,7 @@ namespace Orts.Simulation.Timetables
 
                     //try
                     //{
-                    car = RollingStock.Load(simulator, wagonFilePath);
+                    car = RollingStock.Load(wagonFilePath);
                     car.Flipped = wagon.Flip;
 
                     if (consistReverse)

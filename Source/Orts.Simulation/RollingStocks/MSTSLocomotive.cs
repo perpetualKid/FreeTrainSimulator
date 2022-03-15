@@ -441,12 +441,12 @@ namespace Orts.Simulation.RollingStocks
 
         public float PowerReduction;
 
-        public MSTSLocomotive(Simulator simulator, string wagPath)
-            : base(simulator, wagPath)
+        public MSTSLocomotive(string wagPath)
+            : base(wagPath)
         {
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
 
-            MilepostUnitsMetric = base.simulator.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = simulator.Route.MilepostUnitsMetric;
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();
@@ -454,7 +454,7 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.DampingNs = MassKG / 1000.0f;
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
             LocomotiveAxle.StabilityCorrection = true;
-            LocomotiveAxle.FilterMovingAverage = new Common.Calc.MovingAverage(base.simulator.Settings.AdhesionMovingAverageFilterSize);
+            LocomotiveAxle.FilterMovingAverage = new MovingAverage(simulator.Settings.AdhesionMovingAverageFilterSize);
             CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 

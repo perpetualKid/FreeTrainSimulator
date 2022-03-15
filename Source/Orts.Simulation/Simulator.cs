@@ -1047,7 +1047,7 @@ namespace Orts.Simulation
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(this, wagonFilePath);
+                    TrainCar car = RollingStock.Load(wagonFilePath);
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
@@ -1226,7 +1226,7 @@ namespace Orts.Simulation
 
                         try // Load could fail if file has bad data.
                         {
-                            TrainCar car = RollingStock.Load(this, wagonFilePath);
+                            TrainCar car = RollingStock.Load(wagonFilePath);
                             car.Flipped = !wagon.Flip;
                             car.UiD = wagon.UiD;
                             car.CarID = activityObject.ID + " - " + car.UiD;
