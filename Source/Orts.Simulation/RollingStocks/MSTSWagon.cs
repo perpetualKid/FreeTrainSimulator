@@ -545,7 +545,7 @@ namespace Orts.Simulation.RollingStocks
             MassKG = InitialMassKG;
             MaxHandbrakeForceN = InitialMaxHandbrakeForceN;
             MaxBrakeForceN = InitialMaxBrakeForceN;
-            CentreOfGravityM = InitialCentreOfGravityM;
+            centreOfGravityM = initialCentreOfGravityM;
 
             if (FreightAnimations != null)
             {
@@ -640,7 +640,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    LoadEmptyCentreOfGravityM_Y = CentreOfGravityM.Y;
+                    LoadEmptyCentreOfGravityM_Y = centreOfGravityM.Y;
                 }
 
                 // Read (initialise) Static load ones if a static load
@@ -717,7 +717,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else
                     {
-                        LoadFullCentreOfGravityM_Y = CentreOfGravityM.Y;
+                        LoadFullCentreOfGravityM_Y = centreOfGravityM.Y;
                     }
                 }
 
@@ -804,7 +804,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else
                     {
-                        LoadFullCentreOfGravityM_Y = CentreOfGravityM.Y;
+                        LoadFullCentreOfGravityM_Y = centreOfGravityM.Y;
                     }
                 }
 
@@ -828,7 +828,7 @@ namespace Orts.Simulation.RollingStocks
                             WagonFrontalAreaM2 = LoadFullWagonFrontalAreaM2;
 
                             // Update CoG related parameters
-                            CentreOfGravityM.Y = LoadFullCentreOfGravityM_Y;
+                            centreOfGravityM.Y = LoadFullCentreOfGravityM_Y;
 
                         }
 
@@ -861,7 +861,7 @@ namespace Orts.Simulation.RollingStocks
                     WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                     // Update CoG related parameters
-                    CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                    centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }
                 else  // If Freight animation is Continuous and freight is not loaded then set initial values to the empty wagon values
                 {
@@ -878,7 +878,7 @@ namespace Orts.Simulation.RollingStocks
                         DavisCNSSpMM = LoadEmptyORTSDavis_C;
 
                         // Update CoG related parameters
-                        CentreOfGravityM.Y = LoadEmptyCentreOfGravityM_Y;
+                        centreOfGravityM.Y = LoadEmptyCentreOfGravityM_Y;
                     }
                 }
 
@@ -1000,23 +1000,23 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsmaximumwheelflangeangle": MaximumWheelFlangeAngleRad = stf.ReadFloatBlock(STFReader.Units.Angle, null); break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
-                    TrackGaugeM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    trackGauge = stf.ReadFloat(STFReader.Units.Distance, null);
                     // Allow for imperial feet and inches to be specified separately (not ideal - please don't copy this).
                     if (!stf.EndOfBlock())
                     {
-                        TrackGaugeM += stf.ReadFloat(STFReader.Units.Distance, 0);
+                        trackGauge += stf.ReadFloat(STFReader.Units.Distance, 0);
                         stf.SkipRestOfBlock();
                     }
                     break;
                 case "wagon(centreofgravity":
                     stf.MustMatch("(");
-                    InitialCentreOfGravityM.X = stf.ReadFloat(STFReader.Units.Distance, null);
-                    InitialCentreOfGravityM.Y = stf.ReadFloat(STFReader.Units.Distance, null);
-                    InitialCentreOfGravityM.Z = stf.ReadFloat(STFReader.Units.Distance, null);
-                    if (Math.Abs(InitialCentreOfGravityM.Z) > 1)
+                    initialCentreOfGravityM.X = stf.ReadFloat(STFReader.Units.Distance, null);
+                    initialCentreOfGravityM.Y = stf.ReadFloat(STFReader.Units.Distance, null);
+                    initialCentreOfGravityM.Z = stf.ReadFloat(STFReader.Units.Distance, null);
+                    if (Math.Abs(initialCentreOfGravityM.Z) > 1)
                     {
-                        STFException.TraceWarning(stf, $"Ignored CentreOfGravity Z value {InitialCentreOfGravityM.Z} outside range -1 to +1");
-                        InitialCentreOfGravityM.Z = 0;
+                        STFException.TraceWarning(stf, $"Ignored CentreOfGravity Z value {initialCentreOfGravityM.Z} outside range -1 to +1");
+                        initialCentreOfGravityM.Z = 0;
                     }
                     stf.SkipRestOfBlock();
                     break;
@@ -1346,9 +1346,9 @@ namespace Orts.Simulation.RollingStocks
             CarWidthM = copy.CarWidthM;
             CarHeightM = copy.CarHeightM;
             CarLengthM = copy.CarLengthM;
-            TrackGaugeM = copy.TrackGaugeM;
-            CentreOfGravityM = copy.CentreOfGravityM;
-            InitialCentreOfGravityM = copy.InitialCentreOfGravityM;
+            trackGauge = copy.trackGauge;
+            centreOfGravityM = copy.centreOfGravityM;
+            initialCentreOfGravityM = copy.initialCentreOfGravityM;
             UnbalancedSuperElevationM = copy.UnbalancedSuperElevationM;
             RigidWheelBaseM = copy.RigidWheelBaseM;
             CarBogieCentreLengthM = copy.CarBogieCentreLengthM;
@@ -1821,7 +1821,7 @@ namespace Orts.Simulation.RollingStocks
 
 
                         // Update CoG related parameters
-                        CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                        centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                     }
                 }
                 if (WeightLoadController.UpdateValue == 0.0 && FreightAnimations.LoadedOne != null && FreightAnimations.LoadedOne.LoadPerCent == 0.0)
@@ -1898,7 +1898,7 @@ namespace Orts.Simulation.RollingStocks
                         WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                         // Update CoG related parameters
-                        CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                        centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                     }
                 }
 
@@ -1943,7 +1943,7 @@ namespace Orts.Simulation.RollingStocks
                         WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                         // Update CoG related parameters
-                        CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                        centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                         
                     }
                 }
@@ -2884,7 +2884,7 @@ namespace Orts.Simulation.RollingStocks
                     WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                     // Update CoG related parameters
-                    CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                    centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }
                 else if (AuxWagonType == AuxWagonType.AuxiliaryTender)
                 {
@@ -2917,7 +2917,7 @@ namespace Orts.Simulation.RollingStocks
                     WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                     // Update CoG related parameters
-                    CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
+                    centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }
             }
         }

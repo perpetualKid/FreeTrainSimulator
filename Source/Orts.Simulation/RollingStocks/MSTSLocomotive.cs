@@ -2460,7 +2460,7 @@ namespace Orts.Simulation.RollingStocks
             //Curtius-Kniffler computation for the basic model
             //        float max0 = 1.0f;  //Adhesion conditions [N]
 
-            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)
+            if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)
             {
                 // Steam locomotive details updated in UpdateTractiveForce method, and inserted into adhesion module
                 // ****************  NB WheelSpeed updated within Steam Locomotive module at the moment - to be fixed to prevent discrepancies ******************
@@ -2933,7 +2933,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set adhesion conditions for other steam locomotives
-            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
+            if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
             {
                 LocomotiveCoefficientFrictionHUD = Train.LocomotiveCoefficientFriction; // Set display value for HUD - steam
             }

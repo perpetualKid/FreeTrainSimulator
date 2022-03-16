@@ -986,7 +986,7 @@ namespace Orts.Simulation.AIs
                 {
                     Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                     position.Y -= 1000;
-                    thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                    thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                 }
                 thisTrain.ResetInitialTrainRoute(tempRoute);
                 validPosition = thisTrain.PostInit();
@@ -1175,7 +1175,7 @@ namespace Orts.Simulation.AIs
                     {
                         Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
-                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                        thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                     }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 
@@ -1201,7 +1201,7 @@ namespace Orts.Simulation.AIs
                     {
                         Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
-                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                        thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                     }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 

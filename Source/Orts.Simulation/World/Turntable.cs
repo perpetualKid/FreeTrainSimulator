@@ -288,7 +288,7 @@ namespace Orts.Simulation.World
             relativeCarPositions = new List<Matrix>();
             foreach (TrainCar trainCar in train?.Cars ?? throw new ArgumentNullException(nameof(train)))
             {
-                trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
+                trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
                 Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                 relativeCarPositions.Add(relativeCarPosition);
             }
@@ -319,8 +319,8 @@ namespace Orts.Simulation.World
                 int relativeCarPositions = 0;
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
-                    traincar.WorldPosition = new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
-                        Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix));
+                    traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
+                        Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
                     relativeCarPositions++;
                 }
             }

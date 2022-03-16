@@ -61,9 +61,31 @@ namespace Orts.Simulation.RollingStocks
 
     public abstract class TrainCar: IWorldPosition
     {
-        internal static readonly Simulator simulator = Simulator.Instance;
-        public readonly string WagFilePath;
-        public string RealWagFilePath; //we are substituting missing remote cars in MP, so need to remember this
+        #region const
+        // Input values to allow the temperature for different values of latitude to be calculated
+        private static readonly double[] WorldLatitudeDeg = new double[] { -50.0f, -40.0f, -30.0f, -20.0f, -10.0f, 0.0f, 10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f };
+        // Temperature in deg Celcius
+        private static readonly double[] WorldTemperatureWinter = new double[] { 0.9f, 8.7f, 12.4f, 17.2f, 20.9f, 25.9f, 22.8f, 18.2f, 11.1f, 1.1f, -10.2f, -18.7f };
+        private static readonly double[] WorldTemperatureAutumn = new double[] { 7.5f, 13.7f, 18.8f, 22.0f, 24.0f, 26.0f, 25.0f, 21.6f, 21.0f, 14.3f, 6.0f, 3.8f };
+        private static readonly double[] WorldTemperatureSpring = new double[] { 8.5f, 13.1f, 17.6f, 18.6f, 24.6f, 25.9f, 26.8f, 23.4f, 18.5f, 12.6f, 6.1f, 1.7f };
+        private static readonly double[] WorldTemperatureSummer = new double[] { 13.4f, 18.3f, 22.8f, 24.3f, 24.4f, 25.0f, 25.2f, 22.5f, 26.6f, 24.8f, 19.4f, 14.3f };
+        // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
+        private static readonly double[] SteamUsageLbpH = { 0.0, 3000.0 };
+        // Water Usage
+        private static readonly double[] WaterUsageGalukpH = { 0.0, 300.0 };
+        // Fuel usage
+        private static readonly double[] FuelUsageGalukpH = { 0.0, 31.0 };
+
+        // Used to calculate Carriage Steam Heat Loss
+        private const float BogieHeightM = 1.06f; // Height reduced by 1.06m to allow for bogies, etc
+        private const float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
+        private const float SpecificHeatCapacityAirKJpKgK = 1.006f; // Specific Heat Capacity of Air
+        private const float DensityAirKgpM3 = 1.247f;   // Density of air - use a av value
+        #endregion
+
+        private protected static readonly Simulator simulator = Simulator.Instance;
+        public string WagFilePath { get; }
+        public string RealWagFilePath { get; internal set; } //we are substituting missing remote cars in MP, so need to remember this
 
         public static int DbfEvalTravellingTooFast;//Debrief eval
         public static int DbfEvalTravellingTooFastSnappedBrakeHose;//Debrief eval
@@ -85,15 +107,6 @@ namespace Orts.Simulation.RollingStocks
         // Used to calculate Carriage Steam Heat Loss - ToDo - ctn_steamer - consolidate these parameters with other steam heat ones, also check as some now may be obsolete
         public Interpolator TrainHeatBoilerWaterUsageGalukpH;
         public Interpolator TrainHeatBoilerFuelUsageGalukpH;
-
-        // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
-        private static double[] SteamUsageLbpH = {0.0, 3000.0};
-
-        // Water Usage
-        private static double[] WaterUsageGalukpH = { 0.0, 300.0 };
-
-        // Fuel usage
-        private static double[] FuelUsageGalukpH = { 0.0, 31.0};
 
         public static Interpolator SteamHeatBoilerWaterUsageGalukpH { get; } = new Interpolator(SteamUsageLbpH, WaterUsageGalukpH);
 
@@ -189,11 +202,6 @@ namespace Orts.Simulation.RollingStocks
         public float CarAirHoseLengthM;
         public float CarAirHoseHorizontalLengthM;
 
-        // Used to calculate Carriage Steam Heat Loss
-        public const float BogieHeightM = 1.06f; // Height reduced by 1.06m to allow for bogies, etc
-        public const float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
-        public const float SpecificHeatCapacityAirKJpKgK = 1.006f; // Specific Heat Capacity of Air
-        public const float DensityAirKgpM3 = 1.247f;   // Density of air - use a av value
         public float CarHeatVolumeM3 { get => CarWidthM * (CarLengthM - CarCouplingPipeM) * (CarHeightM - BogieHeightM); } // Volume of car for heating purposes
         public float CarHeatPipeAreaM2;  // Area of surface of car pipe
         public float CarOutsideTempC;   // Ambient temperature outside of car
@@ -222,6 +230,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        public float CarHeightMinusBogie => CarHeightM - BogieHeightM;
         // Used to calculate wheel sliding for locked brake
         public bool WheelBrakeSlideProtectionFitted;
         public bool WheelBrakeSlideProtectionActive;
@@ -258,10 +267,10 @@ namespace Orts.Simulation.RollingStocks
         public string CarID = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
 
         // status of the traincar - set by the train physics after it calls TrainCar.Update()
-        public WorldPosition WorldPosition = WorldPosition.None;  // current position of the car
+        private WorldPosition worldPosition = WorldPosition.None;
+        public ref readonly WorldPosition WorldPosition => ref worldPosition;  // current position of the car
         public float DistanceM;  // running total of distance travelled - always positive, updated by train physics
-        public float _SpeedMpS; // meters per second; updated by train physics, relative to direction of car  50mph = 22MpS
-        public float _PrevSpeedMpS;
+        private float prevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
         public int HUDCouplerForceIndication; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
@@ -309,30 +318,6 @@ namespace Orts.Simulation.RollingStocks
         private Interpolator OutsideSummerTempbyLatitudeC;
         public bool AmbientTemperatureInitialised;
 
-        // Input values to allow the temperature for different values of latitude to be calculated
-        private static double[] WorldLatitudeDeg = new double[]
-        {
-           -50.0f, -40.0f, -30.0f, -20.0f, -10.0f, 0.0f, 10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f
-        };
-
-        // Temperature in deg Celcius
-        private static double[] WorldTemperatureWinter = new double[]
-        {
-            0.9f, 8.7f, 12.4f, 17.2f, 20.9f, 25.9f, 22.8f, 18.2f, 11.1f, 1.1f, -10.2f, -18.7f
-         };
-        private static double[] WorldTemperatureAutumn = new double[]
-        {
-            7.5f, 13.7f, 18.8f, 22.0f, 24.0f, 26.0f, 25.0f, 21.6f, 21.0f, 14.3f, 6.0f, 3.8f
-         };
-        private static double[] WorldTemperatureSpring = new double[]
-        {
-            8.5f, 13.1f, 17.6f, 18.6f, 24.6f, 25.9f, 26.8f, 23.4f, 18.5f, 12.6f, 6.1f, 1.7f
-         };
-        private static double[] WorldTemperatureSummer = new double[]
-        {
-            13.4f, 18.3f, 22.8f, 24.3f, 24.4f, 25.0f, 25.2f, 22.5f, 26.6f, 24.8f, 19.4f, 14.3f
-         };
-
         public static Interpolator WorldWinterLatitudetoTemperatureC()
         {
             return new Interpolator(WorldLatitudeDeg, WorldTemperatureWinter);
@@ -358,17 +343,7 @@ namespace Orts.Simulation.RollingStocks
         public bool IsUK;
         public float prevElev = -100f;
 
-        public float SpeedMpS
-        {
-            get
-            {
-                return _SpeedMpS;
-            }
-            set
-            {
-                _SpeedMpS = value;
-            }
-        }
+        public float SpeedMpS { get; set; }// meters per second; updated by train physics, relative to direction of car  50mph = 22MpS
 
         public float AccelerationMpSS
         {
@@ -557,9 +532,9 @@ namespace Orts.Simulation.RollingStocks
         public List<ViewPoint> HeadOutViewpoints = new List<ViewPoint>();
 
         // Used by Curve Speed Method
-        protected float TrackGaugeM = 1.435f;  // Track gauge - read in MSTSWagon
-        protected Vector3 InitialCentreOfGravityM = new Vector3(0, 1.8f, 0); // get centre of gravity - read in MSTSWagon
-        protected Vector3 CentreOfGravityM = new Vector3(0, 1.8f, 0); // get centre of gravity after adjusted for freight animation
+        private protected float trackGauge = 1.435f;  // Track gauge - read in MSTSWagon
+        private protected Vector3 initialCentreOfGravityM = new Vector3(0, 1.8f, 0); // get centre of gravity - read in MSTSWagon
+        private protected Vector3 centreOfGravityM = new Vector3(0, 1.8f, 0); // get centre of gravity after adjusted for freight animation
         protected float SuperelevationM; // Super elevation on the curve
         protected float UnbalancedSuperElevationM;  // Unbalanced superelevation, read from MSTS Wagon File
         protected float SuperElevationTotalM; // Total superelevation
@@ -576,8 +551,6 @@ namespace Orts.Simulation.RollingStocks
         protected int LocoNumDrvAxles; // Number of drive axles on locomotive
         protected float MSTSLocoNumDrvWheels; // Number of drive axles on locomotive - used to read MSTS value as default
         public float DriverWheelRadiusM = (float)Size.Length.FromIn(30.0f); // Drive wheel radius of locomotive wheels - Wheel radius of loco drive wheels can be anywhere from about 10" to 40".
-
-        public SteamEngineType SteamEngineType { get; private protected set; }
 
         public WagonType WagonType { get; private protected set; }
 
@@ -740,7 +713,7 @@ namespace Orts.Simulation.RollingStocks
             // gravity force, M32 is up component of forward vector
             GravityForceN = MassKG * GravitationalAccelerationMpS2 * WorldPosition.XNAMatrix.M32;
             CurrentElevationPercent = 100f * WorldPosition.XNAMatrix.M32;
-            AbsSpeedMpS = Math.Abs(_SpeedMpS);
+            AbsSpeedMpS = Math.Abs(SpeedMpS);
 
             //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
@@ -760,12 +733,12 @@ namespace Orts.Simulation.RollingStocks
             // acceleration
             if (elapsedClockSeconds > 0.0f)
             {
-                _AccelerationMpSS = (_SpeedMpS - _PrevSpeedMpS) / (float)elapsedClockSeconds;
+                _AccelerationMpSS = (SpeedMpS - prevSpeedMpS) / (float)elapsedClockSeconds;
 
                 if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics)
                     _AccelerationMpSS = (float)AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
 
-                _PrevSpeedMpS = _SpeedMpS;
+                prevSpeedMpS = SpeedMpS;
             }
         }
 
@@ -1425,7 +1398,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     var B2 = GravitationalAccelerationMpS2 * (float)Math.Sin(SuperElevationAngleRad);
                     var B3 = (float)Math.Pow(Math.Abs(SpeedMpS), 2) / CurrentCurveRadius;
-                    var B4 = CentreOfGravityM.Y / TrackGaugeM;
+                    var B4 = centreOfGravityM.Y / trackGauge;
 
                     TotalWagonVerticalDerailForceN = A + B1 * (B3 - B2) * B4;
 
@@ -1693,7 +1666,7 @@ namespace Orts.Simulation.RollingStocks
                                 // Calculate superelevation based upon the route speed limit and the curve radius
                                 // SE = ((TrackGauge x Velocity^2 ) / Gravity x curve radius)
 
-                                SuperelevationM = (TrackGaugeM * RouteSpeedMpS * RouteSpeedMpS) / (GravitationalAccelerationMpS2 * CurrentCurveRadius);
+                                SuperelevationM = (trackGauge * RouteSpeedMpS * RouteSpeedMpS) / (GravitationalAccelerationMpS2 * CurrentCurveRadius);
 
                             }
                             else
@@ -1751,14 +1724,14 @@ namespace Orts.Simulation.RollingStocks
 
                     SuperElevationAngleRad = (float)Math.Sinh(SuperelevationM); // Balanced superelevation only angle
 
-                    MaxCurveEqualLoadSpeedMps = (float)Math.Sqrt((SuperelevationM * GravitationalAccelerationMpS2 * CurrentCurveRadius) / TrackGaugeM); // Used for calculating curve resistance
+                    MaxCurveEqualLoadSpeedMps = (float)Math.Sqrt((SuperelevationM * GravitationalAccelerationMpS2 * CurrentCurveRadius) / trackGauge); // Used for calculating curve resistance
 
                     // Railway companies often allow the vehicle to exceed the equal loading speed, provided that the passengers didn't feel uncomfortable, and that the car was not likely to excced the maximum critical speed
                     SuperElevationTotalM = SuperelevationM + UnbalancedSuperElevationM;
 
                     float SuperElevationTotalAngleRad = (float)Math.Sinh(SuperElevationTotalM); // Total superelevation includes both balanced and unbalanced superelevation
 
-                    float MaxSafeCurveSpeedMps = (float)Math.Sqrt((SuperElevationTotalM * GravitationalAccelerationMpS2 * CurrentCurveRadius) / TrackGaugeM);
+                    float MaxSafeCurveSpeedMps = (float)Math.Sqrt((SuperElevationTotalM * GravitationalAccelerationMpS2 * CurrentCurveRadius) / trackGauge);
 
                     // Calculate critical speed - indicates the speed above which stock will overturn - sum of the moments of centrifrugal force and the vertical weight of the vehicle around the CoG
                     // critical speed = SQRT ( (centrifrugal force x gravity x curve radius) / Vehicle weight)
@@ -1766,12 +1739,12 @@ namespace Orts.Simulation.RollingStocks
 
                     float SinTheta = (float)Math.Sin(SuperElevationAngleRad);
                     float CosTheta = (float)Math.Cos(SuperElevationAngleRad);
-                    float HalfTrackGaugeM = TrackGaugeM / 2.0f;
+                    float HalfTrackGaugeM = trackGauge / 2.0f;
 
-                    float CriticalMaxSpeedMpS = (float)Math.Sqrt((CurrentCurveRadius * GravitationalAccelerationMpS2 * (CentreOfGravityM.Y * SinTheta + HalfTrackGaugeM * CosTheta)) / (CentreOfGravityM.Y * CosTheta - HalfTrackGaugeM * SinTheta));
+                    float CriticalMaxSpeedMpS = (float)Math.Sqrt((CurrentCurveRadius * GravitationalAccelerationMpS2 * (centreOfGravityM.Y * SinTheta + HalfTrackGaugeM * CosTheta)) / (centreOfGravityM.Y * CosTheta - HalfTrackGaugeM * SinTheta));
 
                     float Sin2Theta = 0.5f * (1 - (float)Math.Cos(2.0 * SuperElevationAngleRad));
-                    float CriticalMinSpeedMpS = (float)Math.Sqrt((GravitationalAccelerationMpS2 * CurrentCurveRadius * HalfTrackGaugeM * Sin2Theta) / (CosTheta * (CentreOfGravityM.Y * CosTheta + HalfTrackGaugeM * SinTheta)));
+                    float CriticalMinSpeedMpS = (float)Math.Sqrt((GravitationalAccelerationMpS2 * CurrentCurveRadius * HalfTrackGaugeM * Sin2Theta) / (CosTheta * (centreOfGravityM.Y * CosTheta + HalfTrackGaugeM * SinTheta)));
 
                     if (CurveSpeedDependent)
                     {
@@ -2017,7 +1990,7 @@ namespace Orts.Simulation.RollingStocks
                     // Curve Resistance = (Vehicle mass x Coeff Friction) * (Track Gauge + Vehicle Fixed Wheelbase) / (2 * curve radius)
                     // Vehicle Fixed Wheel base is the distance between the wheels, ie bogie or fixed wheels
 
-                    CurveForceN = MassKG * Train.WagonCoefficientFriction * (TrackGaugeM + RigidWheelBaseM) / (2.0f * CurrentCurveRadius);
+                    CurveForceN = MassKG * Train.WagonCoefficientFriction * (trackGauge + RigidWheelBaseM) / (2.0f * CurrentCurveRadius);
                     float CurveResistanceSpeedFactor = Math.Abs((MaxCurveEqualLoadSpeedMps - AbsSpeedMpS) / MaxCurveEqualLoadSpeedMps) * StartCurveResistanceFactor;
                     CurveForceN *= CurveResistanceSpeedFactor * CurveResistanceZeroSpeedFactor;
                     CurveForceN *= GravitationalAccelerationMpS2; // to convert to Newtons
@@ -2114,7 +2087,7 @@ namespace Orts.Simulation.RollingStocks
             MotiveForceN = inf.ReadSingle();
             FrictionForceN = inf.ReadSingle();
             SpeedMpS = inf.ReadSingle();
-            _PrevSpeedMpS = SpeedMpS;
+            prevSpeedMpS = SpeedMpS;
             CouplerSlackM = inf.ReadSingle();
             Headlight = inf.ReadInt32();
             OrgConsist = inf.ReadString();
@@ -2145,7 +2118,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             else SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
-            _PrevSpeedMpS = SpeedMpS;
+            prevSpeedMpS = SpeedMpS;
         }
 
         public bool HasFrontCab
@@ -2610,7 +2583,7 @@ namespace Orts.Simulation.RollingStocks
             var tileZ = traveler.TileZ;
             if (Flipped == backToFront)
             {
-                var o = -CarLengthM / 2 - CentreOfGravityM.Z;
+                var o = -CarLengthM / 2 - centreOfGravityM.Z;
                 for (var k = 0; k < WheelAxles.Count; k++)
                 {
                     var d = WheelAxles[k].OffsetM - o;
@@ -2621,12 +2594,12 @@ namespace Orts.Simulation.RollingStocks
                     var z = traveler.Z + 2048 * (traveler.TileZ - tileZ);
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
-                o = CarLengthM / 2 - CentreOfGravityM.Z - o;
+                o = CarLengthM / 2 - centreOfGravityM.Z - o;
                 traveler.Move(o);
             }
             else
             {
-                var o = CarLengthM / 2 - CentreOfGravityM.Z;
+                var o = CarLengthM / 2 - centreOfGravityM.Z;
                 for (var k = WheelAxles.Count - 1; k >= 0; k--)
                 {
                     var d = o - WheelAxles[k].OffsetM;
@@ -2637,7 +2610,7 @@ namespace Orts.Simulation.RollingStocks
                     var z = traveler.Z + 2048 * (traveler.TileZ - tileZ);
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
-                o = CarLengthM / 2 + CentreOfGravityM.Z + o;
+                o = CarLengthM / 2 + centreOfGravityM.Z + o;
                 traveler.Move(o);
             }
 
@@ -2672,7 +2645,7 @@ namespace Orts.Simulation.RollingStocks
             m.M41 = p0.A[0];
             m.M42 = p0.A[1] + 0.275f;
             m.M43 = -p0.A[2];
-            WorldPosition = new WorldPosition(tileX, tileZ, m);
+            worldPosition = new WorldPosition(tileX, tileZ, m);
             
             UpdatedTraveler(traveler, elapsedTimeS, distance, speed);
 
@@ -2746,7 +2719,7 @@ namespace Orts.Simulation.RollingStocks
                 prevElev = z;
             }
 
-            WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
+            worldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
         }
         #endregion
 
@@ -2880,7 +2853,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
                 var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
-                WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
+                worldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
                 VibrationInverseMatrix = Matrix.Invert(rotation * translation);
             }
         }
@@ -3166,6 +3139,11 @@ namespace Orts.Simulation.RollingStocks
             float HeatLossInfiltrationW = (float)Dynamics.Power.FromKW(SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
 
             TotalCarCompartmentHeatLossW = HeatLossTransmissionW + HeatLossInfiltrationW + HeatLossVentilationW;
+        }
+
+        internal void UpdateWorldPosition(in WorldPosition worldPosition)
+        {
+            this.worldPosition = worldPosition;
         }
     }
 }

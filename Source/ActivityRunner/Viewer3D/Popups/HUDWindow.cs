@@ -1021,7 +1021,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             var train = Viewer.PlayerLocomotive.Train;
             var mstsLocomotive = Viewer.PlayerLocomotive as MSTSLocomotive;
-            var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
             var HUDEngineType = mstsLocomotive.EngineType;
 
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted) // Only display the following information if a train brake is defined.
@@ -1439,7 +1438,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             if (mstsLocomotive != null)
             {
-                var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
+                var HUDSteamEngineType = (mstsLocomotive as MSTSSteamLocomotive)?.SteamEngineType;
                 var HUDEngineType = mstsLocomotive.EngineType;
                 if (HUDEngineType != EngineType.Control) // Don't display adhesion information if it is an unpowered control car.
                 {

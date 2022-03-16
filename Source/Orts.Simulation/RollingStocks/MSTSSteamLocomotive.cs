@@ -337,6 +337,8 @@ namespace Orts.Simulation.RollingStocks
         private float FractionBoilerAreaInsulated;
         private float BoilerHeatRadiationLossBTU; // Heat loss of boiler (hourly value)
 
+        public SteamEngineType SteamEngineType { get; private protected set; }
+
         #region Additional steam properties
         private const float SpecificHeatCoalKJpKGpK = 1.26f; // specific heat of coal - kJ/kg/K
         private const float SteamVaporSpecVolumeAt100DegC1BarM3pKG = 1.696f;
