@@ -15,26 +15,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
 using System.Diagnostics;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public abstract class TrainCarViewer
     {
         // TODO add view location and limits
-        public TrainCar Car;
-        public LightViewer lightDrawer;
+        public TrainCar Car { get; }
+        public LightViewer LightDrawer { get; }
 
-        protected Viewer Viewer;
+        private protected static Viewer Viewer;
 
         protected TrainCarViewer(Viewer viewer, TrainCar car)
         {
             Car = car;
-            Viewer = viewer;
-
+            Viewer ??= viewer;
+            LightDrawer = new LightViewer(Viewer, car);
         }
 
         public abstract void HandleUserInput(in ElapsedTime elapsedTime);
@@ -58,8 +62,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         internal abstract void Mark();
 
-
         public float[] Velocity = new float[] { 0, 0, 0 };
+
+        public int TrackSoundType { get; set; }
+        public WorldLocation TrackSoundLocation { get; set; } = WorldLocation.None;
+        public float TrackSoundDistSquared { get; set; }
 
         public void UpdateSoundPosition()
         {
@@ -110,13 +117,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
             foreach (var soundSourceID in soundSourceIDs)
             {
-                Viewer.Simulator.UpdaterWorking = true;
+                Simulator.Instance.UpdaterWorking = true;
                 if (OpenAL.IsSource(soundSourceID))
                 {
                     OpenAL.Sourcefv(soundSourceID, OpenAL.AL_POSITION, soundLocation);
                     OpenAL.Sourcefv(soundSourceID, OpenAL.AL_VELOCITY, Velocity);
                 }
-                Viewer.Simulator.UpdaterWorking = false;
+                Simulator.Instance.UpdaterWorking = false;
             }
             // TODO END
         }

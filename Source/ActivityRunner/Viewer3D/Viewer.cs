@@ -322,8 +322,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
                 }
             }
-
-            Initialize();
         }
 
         public void Save(BinaryWriter outf, string fileStem)
@@ -455,7 +453,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             World = new World(this, Simulator.ClockTime);
 
-            ViewerSounds = new SoundSource(this, soundSource => new[]
+            ViewerSounds = new SoundSource(soundSource => new[]
             {
                 new SoundStream(soundSource, soundStream => new[]
                 {
@@ -1319,7 +1317,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                SoundProcess.AddSoundSource(this, new SoundSource(this, car as MSTSWagon, smsFilePath));
+                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, smsFilePath));
             }
             catch (Exception error)
             {

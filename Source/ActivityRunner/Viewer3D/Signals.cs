@@ -36,6 +36,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -216,10 +217,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
 
-                if (!viewer.Simulator.SignalConfig.SignalTypes.ContainsKey(mstsSignalSubObj.SignalSubSignalType))
+                if (!Simulator.Instance.SignalConfig.SignalTypes.ContainsKey(mstsSignalSubObj.SignalSubSignalType))
                     return;
 
-                var mstsSignalType = viewer.Simulator.SignalConfig.SignalTypes[mstsSignalSubObj.SignalSubSignalType];
+                var mstsSignalType = Simulator.Instance.SignalConfig.SignalTypes[mstsSignalSubObj.SignalSubSignalType];
 
                 if (SignalTypes.ContainsKey(mstsSignalType.Name))
                     SignalTypeData = SignalTypes[mstsSignalType.Name];
@@ -281,12 +282,12 @@ namespace Orts.ActivityRunner.Viewer3D
                         SemaphoreParts.Add(SemaphorePart);
                     }
 
-                    if (Viewer.Simulator.Route.DefaultSignalSMS != null)
+                    if (Simulator.Instance.Route.DefaultSignalSMS != null)
                     {
-                        var soundPath = Viewer.Simulator.RouteFolder.SoundFile(Viewer.Simulator.Route.DefaultSignalSMS);
+                        var soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultSignalSMS);
                         try
                         {
-                            Sound = new SoundSource(Viewer, SignalShape.WorldPosition.WorldLocation, SoundEventSource.Signal, soundPath);
+                            Sound = new SoundSource(SignalShape.WorldPosition.WorldLocation, SoundEventSource.Signal, soundPath);
                             Viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                         }
                         catch (Exception error)
@@ -448,7 +449,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 else
                 {
                     var mstsLightTexture = viewer.Simulator.SignalConfig.LightTextures[mstsSignalType.LightTextureName];
-                    Material = viewer.MaterialManager.Load("SignalLight", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, mstsLightTexture.TextureFile));
+                    Material = viewer.MaterialManager.Load("SignalLight", Helpers.GetRouteTextureFile(Helpers.TextureFlags.None, mstsLightTexture.TextureFile));
                     GlowMaterial = viewer.MaterialManager.Load("SignalLightGlow");
 #if DEBUG_SIGNAL_SHAPES
                     Type = (SignalTypeDataType)mstsSignalType.FnType;

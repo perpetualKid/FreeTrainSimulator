@@ -328,9 +328,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         var texture = sFile.Shape.Textures[primitiveState.TextureIndices[0]];
                         var imageName = sFile.Shape.ImageNames[texture.ImageIndex];
                         if (String.IsNullOrEmpty(sharedShape.ReferencePath))
-                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, textureFlags, imageName), (int)options, texture.MipMapLODBias);
+                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(textureFlags, imageName), (int)options, texture.MipMapLODBias);
                         else
-                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(viewer.Simulator, textureFlags, sharedShape.ReferencePath, imageName), (int)options, texture.MipMapLODBias);
+                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(textureFlags, sharedShape.ReferencePath, imageName), (int)options, texture.MipMapLODBias);
                     }
                     else
                     {

@@ -289,6 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             Viewer = new Viewer(simulator, Game);
+            Viewer.Initialize();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
@@ -418,6 +419,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
+                    Viewer.Initialize();
                     if (MultiPlayerManager.IsMultiPlayer())
                     {
                         if (ActivityType == ActivityType.Activity)
@@ -512,6 +514,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
 
             // Load command log to replay
@@ -585,6 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
             else
             {
@@ -599,6 +603,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
+                    Viewer.Initialize();
                     Viewer.Restore(inf);
                 }
             }
@@ -645,6 +650,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(Viewer));

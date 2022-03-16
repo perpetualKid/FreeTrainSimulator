@@ -59,7 +59,7 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.RollingStocks
 {
 
-    public abstract class TrainCar: IWorldPosition
+    public abstract class TrainCar : IWorldPosition
     {
         #region const
         // Input values to allow the temperature for different values of latitude to be calculated
@@ -99,7 +99,7 @@ namespace Orts.Simulation.RollingStocks
         private static float dbfmaxsafecurvespeedmps;//Debrief eval
         public static int DbfEvalTrainOverturned;//Debrief eval
         public bool ldbfevaltrainoverturned;
-                                        
+
         // original consist of which car was part (used in timetable for couple/uncouple options)
         public string OrgConsist = string.Empty;
 
@@ -384,7 +384,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (AcceptMUSignals && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && ((MSTSLocomotive) Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
+                    if (Train.LeadLocomotive != null && ((MSTSLocomotive)Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
                     {
                         return 100;
                     }
@@ -392,7 +392,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         return Train.MUDynamicBrakePercent;
                     }
-}
+                }
                 else
                     return LocalDynamicBrakePercent;
             }
@@ -552,7 +552,7 @@ namespace Orts.Simulation.RollingStocks
             curveResistanceDependent = simulator.Settings.CurveResistanceDependent;
             curveSpeedDependent = simulator.Settings.CurveSpeedDependent;
             tunnelResistanceDependent = simulator.Settings.TunnelResistanceDependent;
-            
+
             //CurveForceFilter.Initialize();
         }
 
@@ -566,7 +566,7 @@ namespace Orts.Simulation.RollingStocks
                 InitializeCarTemperatures();
                 ambientTemperatureInitialised = true;
             }
-            
+
             // Update temperature variation for height of car above sea level
             // Typically in clear conditions there is a 9.8 DegC variation for every 1000m (1km) rise, in snow/rain there is approx 5.5 DegC variation for every 1000m (1km) rise
             float TemperatureHeightVariationDegC = 0;
@@ -581,9 +581,9 @@ namespace Orts.Simulation.RollingStocks
             {
                 TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
             }
-            
+
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
-            
+
             CarOutsideTempC = initialCarOutsideTempC - TemperatureHeightVariationDegC;
 
             // gravity force, M32 is up component of forward vector
@@ -626,7 +626,7 @@ namespace Orts.Simulation.RollingStocks
         {
             // Find the latitude reading and set outside temperature
             EarthCoordinates.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, out double latitude, out double longitude);
-                        
+
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
 
             // Sets outside temperature dependent upon the season
@@ -702,7 +702,7 @@ namespace Orts.Simulation.RollingStocks
                 if (this is MSTSDieselLocomotive || this is MSTSElectricLocomotive)
                 {
                     // If advanced adhesion model indicates wheel slip warning, then check other conditions (throttle and brake force) to determine whether it is a wheel slip or brake skid
-                    if (WheelSlipWarning && ThrottlePercent < 0.1f && BrakeRetardForceN > 25.0) 
+                    if (WheelSlipWarning && ThrottlePercent < 0.1f && BrakeRetardForceN > 25.0)
                     {
                         BrakeSkidWarning = true;  // set brake skid flag true
                     }
@@ -738,7 +738,7 @@ namespace Orts.Simulation.RollingStocks
                             BrakeSkidWarning = true; 	// wagon wheel is about to slip
                         }
                     }
-                    else if ( BrakeWheelTreadForceN < 0.75f * WagonBrakeAdhesiveForceN)
+                    else if (BrakeWheelTreadForceN < 0.75f * WagonBrakeAdhesiveForceN)
                     {
                         BrakeSkidWarning = false; 	// wagon wheel is back to normal
                     }
@@ -750,7 +750,7 @@ namespace Orts.Simulation.RollingStocks
                         WheelBrakeSlideProtectionDumpValveLockout = false;
 
                     }
-                    
+
 
 
                     // Calculate adhesive force based upon whether in skid or not
@@ -762,7 +762,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         WagonBrakeAdhesiveForceN = MassKG * GravitationalAccelerationMpS2 * Train.WagonCoefficientFriction; // Adhesive force wheel normal
                     }
-                                   
+
 
                     // Test if wheel forces are high enough to induce a slip. Set slip flag if slip occuring 
                     if (!BrakeSkid && AbsSpeedMpS > 0.01)  // Train must be moving forward to experience skid
@@ -780,7 +780,7 @@ namespace Orts.Simulation.RollingStocks
                         {
                             BrakeSkid = false; 	// wagon wheel is not slipping
                         }
-                        
+
                     }
                     else
                     {
@@ -912,11 +912,11 @@ namespace Orts.Simulation.RollingStocks
             // To achieve an accurate coupler angle calculation the following length need to be calculated. These values can be included in the ENG/WAG file for greatest accuracy, or alternatively OR will
             // calculate some default values based upon the length of the car specified in the "Size" statement. This value may however be inaccurate, and sets the "visual" distance for placement of the 
             // animated coupler. So often it is a good idea to add the values in the WAG file.
-            
+
             var OverhangThisCarM = 0.5f * (CarBodyLengthM - CarBogieCentreLengthM); // Vehicle overhang - B
             var BogieDistanceThisCarM = 0.5f * CarBogieCentreLengthM; // 0.5 * distance between bogie centres - A
             var CouplerDistanceThisCarM = 0.5f * (CarCouplerFaceLengthM - CarBodyLengthM);
-                        
+
             var OverhangBehindCarM = 2.545f;  // Vehicle overhang - B
             var BogieDistanceBehindCarM = 8.23f;  // 0.5 * distance between bogie centres - A
             var CouplerDistanceBehindCarM = 0.5f * (CarCouplerFaceLengthM - CarBodyLengthM);
@@ -941,7 +941,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 couplerDistanceM = 0.0001f; // Stop couplerDistance equalling zero as this causes NaN calculations in following calculations.
             }
-            
+
             float BogieCentresAdjVehiclesM = OverhangThisCarM + OverhangBehindCarM + couplerDistanceM; // L value = Overhangs + Coupler spacing - D
 
             if (CarBehind != null)
@@ -1103,7 +1103,7 @@ namespace Orts.Simulation.RollingStocks
 
                         //     Trace.TraceInformation("Buff - CarId {0} Thiscar {1} A {2} B {3} C {4} 180 {5}", CarID, WagonFrontCouplerBuffAngleRad, X, Y, Z, MathHelper.ToRadians(180.0f));
 
-                       // Trace.TraceInformation("Buff - CarId {0} StringThis {1} StringBehind {2} BuffThis {3} BuffAhead {4}", CarID, WagonRearCouplerAngleRad, CarBehind.WagonFrontCouplerAngleRad, WagonRearCouplerBuffAngleRad, CarBehind.WagonFrontCouplerBuffAngleRad);
+                        // Trace.TraceInformation("Buff - CarId {0} StringThis {1} StringBehind {2} BuffThis {3} BuffAhead {4}", CarID, WagonRearCouplerAngleRad, CarBehind.WagonFrontCouplerAngleRad, WagonRearCouplerBuffAngleRad, CarBehind.WagonFrontCouplerBuffAngleRad);
 
                     }
 
@@ -1250,14 +1250,14 @@ namespace Orts.Simulation.RollingStocks
                         float BB1 = 0;
 
                         // Prevent NaN if WagonNumBogies = 0
-                        if ( Parts.Count > 0)
+                        if (Parts.Count > 0)
                         {
                             // AA1 = CarAhead.CouplerForceU * (float)Math.Sin(WagonCouplerAngleDerailRad) / WagonNumBogies;
-                            AA1 = (float)Math.Abs(CarAhead.CouplerForceUSmoothed.SmoothedValue) * (float)Math.Sin(WagonCouplerAngleDerailRad) / (Parts.Count -1);
+                            AA1 = (float)Math.Abs(CarAhead.CouplerForceUSmoothed.SmoothedValue) * (float)Math.Sin(WagonCouplerAngleDerailRad) / (Parts.Count - 1);
                         }
                         else
                         {
-                           // AA1 = CarAhead.CouplerForceU * (float)Math.Sin(WagonCouplerAngleDerailRad);
+                            // AA1 = CarAhead.CouplerForceU * (float)Math.Sin(WagonCouplerAngleDerailRad);
                             AA1 = (float)Math.Abs(CarAhead.CouplerForceUSmoothed.SmoothedValue) * (float)Math.Sin(WagonCouplerAngleDerailRad);
                         }
 
@@ -1296,7 +1296,7 @@ namespace Orts.Simulation.RollingStocks
                     var wagonAdhesion = Train.WagonCoefficientFriction;
 
                     // Calculate Nadal derailment coefficient limit
-                    NadalDerailmentCoefficient = ((float) Math.Tan(MaximumWheelFlangeAngleRad) - wagonAdhesion) / (1f + wagonAdhesion * (float) Math.Tan(MaximumWheelFlangeAngleRad));
+                    NadalDerailmentCoefficient = ((float)Math.Tan(MaximumWheelFlangeAngleRad) - wagonAdhesion) / (1f + wagonAdhesion * (float)Math.Tan(MaximumWheelFlangeAngleRad));
 
                     // Calculate Angle of Attack - AOA = sin-1(2 * bogie wheel base / curve radius)
                     AngleOfAttackRad = (float)Math.Asin(2 * rigidWheelBaseM / CurrentCurveRadius);
@@ -1315,7 +1315,7 @@ namespace Orts.Simulation.RollingStocks
 
                     var parameterB = parameterB_1 + parameterB_2;
 
-                    DerailClimbDistanceM = (float)Size.Length.FromFt( (float)((parameterA * parameterB * Size.Length.ToIn(WheelFlangeLengthM)) / ((angleofAttackmRad + (parameterB * Size.Length.ToIn(WheelFlangeLengthM))))) );
+                    DerailClimbDistanceM = (float)Size.Length.FromFt((float)((parameterA * parameterB * Size.Length.ToIn(WheelFlangeLengthM)) / ((angleofAttackmRad + (parameterB * Size.Length.ToIn(WheelFlangeLengthM))))));
 
                     // calculate the time taken to travel the derail climb distance
                     var derailTimeS = DerailClimbDistanceM / AbsSpeedMpS;
@@ -1335,13 +1335,13 @@ namespace Orts.Simulation.RollingStocks
                     {
                         DerailExpected = true;
                         simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString($"Car {CarID} has derailed on the curve."));
-                      //  Trace.TraceInformation("Car Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5} Nadal {6} Coeff {7}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, NadalDerailmentCoefficient, DerailmentCoefficient);
-                     //   Trace.TraceInformation("Car Ahead Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}", CarAhead.CarID, CarAhead.CouplerForceU, CarAhead.CouplerForceUSmoothed.SmoothedValue, CarAhead.TotalWagonLateralDerailForceN, CarAhead.TotalWagonVerticalDerailForceN, CarAhead.WagonCouplerAngleDerailRad);
+                        //  Trace.TraceInformation("Car Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5} Nadal {6} Coeff {7}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, NadalDerailmentCoefficient, DerailmentCoefficient);
+                        //   Trace.TraceInformation("Car Ahead Derail - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}", CarAhead.CarID, CarAhead.CouplerForceU, CarAhead.CouplerForceUSmoothed.SmoothedValue, CarAhead.TotalWagonLateralDerailForceN, CarAhead.TotalWagonVerticalDerailForceN, CarAhead.WagonCouplerAngleDerailRad);
                     }
                     else if (DerailPossible)
                     {
                         DerailElapsedTimeS += (float)elapsedClockSeconds;
-                     //   Trace.TraceInformation("Car Derail Time - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}, Elapsed {6}, DeratilTime {7}, Distance {8} Nadal {9} Coeff {10}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, DerailElapsedTimeS, derailTimeS, DerailClimbDistanceM, NadalDerailmentCoefficient, DerailmentCoefficient);
+                        //   Trace.TraceInformation("Car Derail Time - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}, Elapsed {6}, DeratilTime {7}, Distance {8} Nadal {9} Coeff {10}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, DerailElapsedTimeS, derailTimeS, DerailClimbDistanceM, NadalDerailmentCoefficient, DerailmentCoefficient);
                     }
                     else
                     {
@@ -1354,11 +1354,11 @@ namespace Orts.Simulation.RollingStocks
                         DerailPossible = false;
                     }
 
-//                    if (CarID == "0 - 84" || CarID == "0 - 83" || CarID == "0 - 82" || CarID == "0 - 81" || CarID == "0 - 80" || CarID == "0 - 79")
-//                    {
-//                        Trace.TraceInformation("Nadal - {0}, Adhesion {1} Flange Angle {2}", NadalDerailmentCoefficient, wagonAdhesion, MaximumWheelFlangeAngleRad);
-//                        Trace.TraceInformation("Derailment - CarID {0}, Nadal {1}, Derail {2} Possible {3} Expected {4} Derail Distance {5} ElapsedTime {6} DerailTime {7}", CarID, NadalDerailmentCoefficient, DerailmentCoefficient, DerailPossible, DerailExpected, DerailClimbDistanceM, DerailElapsedTimeS, derailTimeS);
-//                    }
+                    //                    if (CarID == "0 - 84" || CarID == "0 - 83" || CarID == "0 - 82" || CarID == "0 - 81" || CarID == "0 - 80" || CarID == "0 - 79")
+                    //                    {
+                    //                        Trace.TraceInformation("Nadal - {0}, Adhesion {1} Flange Angle {2}", NadalDerailmentCoefficient, wagonAdhesion, MaximumWheelFlangeAngleRad);
+                    //                        Trace.TraceInformation("Derailment - CarID {0}, Nadal {1}, Derail {2} Possible {3} Expected {4} Derail Distance {5} ElapsedTime {6} DerailTime {7}", CarID, NadalDerailmentCoefficient, DerailmentCoefficient, DerailPossible, DerailExpected, DerailClimbDistanceM, DerailElapsedTimeS, derailTimeS);
+                    //                    }
                 }
                 else
                 {
@@ -1413,11 +1413,11 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // If a westerly direction (ie -ve) convert to an angle between 0 and 360
-                if (FrontWagonDirectionDeg< 0)
+                if (FrontWagonDirectionDeg < 0)
                     FrontWagonDirectionDeg += 360;
 
                 // Rear Wagon Direction
-                direction = (float) Math.Atan2(CarBehind.WorldPosition.XNAMatrix.M13, CarBehind.WorldPosition.XNAMatrix.M11);
+                direction = (float)Math.Atan2(CarBehind.WorldPosition.XNAMatrix.M13, CarBehind.WorldPosition.XNAMatrix.M11);
                 float BehindWagonDirectionDeg = MathHelper.ToDegrees((float)direction);
 
 
@@ -1433,15 +1433,15 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // If a westerly direction (ie -ve) convert to an angle between 0 and 360
-                if (BehindWagonDirectionDeg< 0)
+                if (BehindWagonDirectionDeg < 0)
                     BehindWagonDirectionDeg += 360;
 
-                if (FrontWagonDirectionDeg > 270 && BehindWagonDirectionDeg< 90)
+                if (FrontWagonDirectionDeg > 270 && BehindWagonDirectionDeg < 90)
                 {
                     FrontWagonDirectionDeg -= 360;
                 }
 
-                if (FrontWagonDirectionDeg< 90 && BehindWagonDirectionDeg> 270)
+                if (FrontWagonDirectionDeg < 90 && BehindWagonDirectionDeg > 270)
                 {
                     BehindWagonDirectionDeg -= 360;
                 }
@@ -1453,7 +1453,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     curveDirection = "Right";
                 }
-                else if (FrontWagonDirectionDeg<BehindWagonDirectionDeg && directionBandwidth> 0.005)
+                else if (FrontWagonDirectionDeg < BehindWagonDirectionDeg && directionBandwidth > 0.005)
                 {
                     curveDirection = "Left";
                 }
@@ -1488,7 +1488,7 @@ namespace Orts.Simulation.RollingStocks
                 if (CurrentCurveRadius > 0)  // only check curve speed if it is a curve
                 {
                     float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
-                    
+
                     // If super elevation set in Route (TRK) file
                     if (simulator.Route.SuperElevationHgtpRadiusM != null)
                     {
@@ -1588,7 +1588,7 @@ namespace Orts.Simulation.RollingStocks
 
                     if (curveSpeedDependent)
                     {
-                        
+
                         // This section not required any more???????????
                         // This section tests for the durability value of the consist. Durability value will non-zero if read from consist files. 
                         // Timetable mode does not read consistent durability values for consists, and therefore value will be zero at this time. 
@@ -1613,7 +1613,7 @@ namespace Orts.Simulation.RollingStocks
                                 {
                                     if (Train.IsFreight)
                                     {
-                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric) ));
+                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric)));
                                     }
                                     else
                                     {
@@ -1631,7 +1631,7 @@ namespace Orts.Simulation.RollingStocks
 
                             }
                         }
-                        else if ( s < MaxSafeCurveSpeedMps - SpeedToleranceMpS)  // Reset notification once spped drops
+                        else if (s < MaxSafeCurveSpeedMps - SpeedToleranceMpS)  // Reset notification once spped drops
                         {
                             if (IsMaxSafeCurveSpeed)
                             {
@@ -1665,7 +1665,7 @@ namespace Orts.Simulation.RollingStocks
                             }
 
                         }
-                        else if ( s < CriticalMaxSpeedMpS - SpeedToleranceMpS) // Reset notification once speed drops
+                        else if (s < CriticalMaxSpeedMpS - SpeedToleranceMpS) // Reset notification once speed drops
                         {
                             if (IsCriticalMaxSpeed)
                             {
@@ -1687,27 +1687,27 @@ namespace Orts.Simulation.RollingStocks
                         // Code is disabled until a bteer way is determined to work out whether track piees are superelevated or not.
 
                         // if speed doesn't reach minimum speed required around the curve then set notification
-                       // Breaking of brake hose will not apply to TT mode or AI trains or if on a curve less then 150m to cover operation in shunting yards, where track would mostly have no superelevation
-//                        if (s < CriticalMinSpeedMpS && Train.GetType() != typeof(AITrain) && Train.GetType() != typeof(TTTrain) && CurrentCurveRadius > 150 ) 
-//                       {
-//                            if (!IsCriticalMinSpeed)
-//                            {
-//                                IsCriticalMinSpeed = true; // set flag for IsCriticalSpeed not reached
-//
-//                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
-//                                {
-//                                      Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too slow for this curve, and Car " + CarID + "may topple over."));
-//                                }
-//                            }
-//
-//                        }
-//                        else if (s > CriticalMinSpeedMpS + SpeedToleranceMpS) // Reset notification once speed increases
-//                        {
-//                            if (IsCriticalMinSpeed)
-//                            {
-//                                IsCriticalMinSpeed = false; // reset flag for IsCriticalSpeed reached - if speed on curve decreases
-//                            }
-//                        }
+                        // Breaking of brake hose will not apply to TT mode or AI trains or if on a curve less then 150m to cover operation in shunting yards, where track would mostly have no superelevation
+                        //                        if (s < CriticalMinSpeedMpS && Train.GetType() != typeof(AITrain) && Train.GetType() != typeof(TTTrain) && CurrentCurveRadius > 150 ) 
+                        //                       {
+                        //                            if (!IsCriticalMinSpeed)
+                        //                            {
+                        //                                IsCriticalMinSpeed = true; // set flag for IsCriticalSpeed not reached
+                        //
+                        //                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
+                        //                                {
+                        //                                      Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too slow for this curve, and Car " + CarID + "may topple over."));
+                        //                                }
+                        //                            }
+                        //
+                        //                        }
+                        //                        else if (s > CriticalMinSpeedMpS + SpeedToleranceMpS) // Reset notification once speed increases
+                        //                        {
+                        //                            if (IsCriticalMinSpeed)
+                        //                            {
+                        //                                IsCriticalMinSpeed = false; // reset flag for IsCriticalSpeed reached - if speed on curve decreases
+                        //                            }
+                        //                        }
 
 #if DEBUG_CURVE_SPEED
                    Trace.TraceInformation("================================== TrainCar.cs - DEBUG_CURVE_SPEED ==============================================================");
@@ -1731,7 +1731,7 @@ namespace Orts.Simulation.RollingStocks
 
         #endregion
 
-    
+
         #region Calculate friction force in curves
 
         /// <summary>
@@ -1750,7 +1750,7 @@ namespace Orts.Simulation.RollingStocks
                     if (rigidWheelBaseM == 0)   // Calculate default values if no value in Wag File
                     {
 
-                        
+
                         float Axles = WheelAxles.Count;
                         float Bogies = Parts.Count - 1;
                         float BogieSize = Axles / Bogies;
@@ -1819,7 +1819,7 @@ namespace Orts.Simulation.RollingStocks
                                 // Wheelbase = 1.25 x (Loco Drive Axles - 1.0) x Drive Wheel diameter
 
                                 rigidWheelBaseM = 1.25f * (LocoNumDrvAxles - 1.0f) * (DriverWheelRadiusM * 2.0f);
- 
+
                             }
 
                         }
@@ -1864,7 +1864,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 locomotivetypetext = "Unpowered Control Trailer Car";
             }
-            
+
             return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
                 CarID,
                 Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
@@ -1957,7 +1957,8 @@ namespace Orts.Simulation.RollingStocks
                 SpeedMpS = Flipped ^ loco.UsingRearCab ? -Train.InitialSpeed : Train.InitialSpeed;
             }
 
-            else SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
+            else
+                SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
             prevSpeedMpS = SpeedMpS;
         }
 
@@ -1967,7 +1968,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 var loco = this as MSTSLocomotive;
                 var i = (int)CabViewType.Front;
-                if (loco == null || loco.CabViewList.Count <= i || loco.CabViewList[i].CabViewType != CabViewType.Front) return false;
+                if (loco == null || loco.CabViewList.Count <= i || loco.CabViewList[i].CabViewType != CabViewType.Front)
+                    return false;
                 return (loco.CabViewList[i].ViewPointList.Count > 0);
             }
         }
@@ -1978,7 +1980,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 var loco = this as MSTSLocomotive;
                 var i = (int)CabViewType.Rear;
-                if (loco == null || loco.CabViewList.Count <= i) return false;
+                if (loco == null || loco.CabViewList.Count <= i)
+                    return false;
                 return (loco.CabViewList[i].ViewPointList.Count > 0);
             }
         }
@@ -1989,7 +1992,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 var loco = this as MSTSLocomotive;
                 var i = (int)CabViewType.Front;
-                if (loco == null || loco.CabView3D == null || loco.CabView3D.CabViewType != CabViewType.Front) return false;
+                if (loco == null || loco.CabView3D == null || loco.CabView3D.CabViewType != CabViewType.Front)
+                    return false;
                 return (loco.CabView3D.ViewPointList.Count > i);
             }
         }
@@ -2000,7 +2004,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 var loco = this as MSTSLocomotive;
                 var i = (int)CabViewType.Rear;
-                if (loco == null || loco.CabView3D == null) return false;
+                if (loco == null || loco.CabView3D == null)
+                    return false;
                 return (loco.CabView3D.ViewPointList.Count > i);
             }
         }
@@ -2092,12 +2097,12 @@ namespace Orts.Simulation.RollingStocks
         {
             return 0.1f;
         }
- 
+
         public virtual float GetCouplerCompressionSlackAM()
         {
             return 0;
         }
- 
+
         public virtual float GetCouplerCompressionSlackBM()
         {
             return 0.1f;
@@ -2107,12 +2112,12 @@ namespace Orts.Simulation.RollingStocks
         {
             return 0.05f;
         }
-         
+
         public virtual float GetMaximumCouplerTensionSlack2M()
         {
             return 0.1f;
         }
- 
+
         public virtual float GetMaximumCouplerTensionSlack3M()
         {
             return 0.13f;
@@ -2127,7 +2132,7 @@ namespace Orts.Simulation.RollingStocks
         {
             return 0.1f;
         }
- 
+
         public virtual float GetMaximumCouplerCompressionSlack3M()
         {
             return 0.13f;
@@ -2201,7 +2206,8 @@ namespace Orts.Simulation.RollingStocks
             //some old stocks have only two wheels, but defined to have four, two share the same offset, thus all computing of rotations will have problem
             //will check, if so, make the offset different a bit.
             foreach (var axles in WheelAxles)
-                if (offset.AlmostEqual(axles.OffsetM, 0.05f)) { offset = axles.OffsetM + 0.7f; break; }
+                if (offset.AlmostEqual(axles.OffsetM, 0.05f))
+                { offset = axles.OffsetM + 0.7f; break; }
 
             // Came across a model where the axle offset that is part of a bogie would become 0 during the initial process.  This is something we must test for.
             if (wheels.Length == 8 && Parts.Count > 0)
@@ -2231,10 +2237,11 @@ namespace Orts.Simulation.RollingStocks
         {
             if (WheelAxlesLoaded || WheelHasBeenSet)
                 return;
-            foreach (var p in Parts) 
-                if (p.Bogie && offset.AlmostEqual(p.OffsetM, 0.05f)) 
-                { 
-                    offset = p.OffsetM + 0.1f; break; 
+            foreach (var p in Parts)
+                if (p.Bogie && offset.AlmostEqual(p.OffsetM, 0.05f))
+                {
+                    offset = p.OffsetM + 0.1f;
+                    break;
                 }
             //    // This was the initial problem.  If the shape file contained only one entry that was labeled as BOGIE2(should be BOGIE1)
             //    // the process would assign 2 to id, causing it to create 2 Parts entries( or 2 bogies) when one was only needed.  It is possible that
@@ -2486,7 +2493,7 @@ namespace Orts.Simulation.RollingStocks
             m.M42 = p0.A[1] + 0.275f;
             m.M43 = -p0.A[2];
             worldPosition = new WorldPosition(tileX, tileZ, m);
-            
+
             UpdatedTraveler(traveler, elapsedTimeS, distance, speed);
 
             // calculate truck angles
@@ -2541,18 +2548,20 @@ namespace Orts.Simulation.RollingStocks
         #endregion
 
         #region Super-elevation
-        private void UpdateSuperElevation(Traveller traveler,  double elapsedTimeS)
+        private void UpdateSuperElevation(Traveller traveler, double elapsedTimeS)
         {
             if (simulator.Settings.UseSuperElevation == 0)
                 return;
-            if (prevElev < -30f) { prevElev += 40f; return; }//avoid the first two updates as they are not valid
+            if (prevElev < -30f)
+            { prevElev += 40f; return; }//avoid the first two updates as they are not valid
 
             // Because the traveler is at the FRONT of the TrainCar, smooth the super-elevation out with the rear.
             var z = traveler.GetSuperElevation(-CarLengthM);
             if (Flipped)
                 z *= -1;
             // TODO This is a hack until we fix the super-elevation code as described in http://www.elvastower.com/forums/index.php?/topic/28751-jerky-superelevation-effect/
-            if (prevElev < -10f || prevElev > 10f) prevElev = z;//initial, will jump to the desired value
+            if (prevElev < -10f || prevElev > 10f)
+                prevElev = z;//initial, will jump to the desired value
             else
             {
                 z = prevElev + (z - prevElev) * (float)Math.Min(elapsedTimeS, 1);//smooth rotation
@@ -2612,7 +2621,8 @@ namespace Orts.Simulation.RollingStocks
             // NOTE: Traveller is at the FRONT of the TrainCar!
 
             // Don't add vibrations to train cars less than 2.5 meter in length; they're unsuitable for these calculations.
-            if (CarLengthM < 2.5f) return;
+            if (CarLengthM < 2.5f)
+                return;
             if (simulator.Settings.CarVibratingLevel != 0)
             {
 
@@ -2687,7 +2697,8 @@ namespace Orts.Simulation.RollingStocks
                 TiltingZRot = traveler.FindTiltedZ(speedMpS);//rotation if tilted, an indication of centrifugal force
                 TiltingZRot = PrevTiltingZRot + (TiltingZRot - PrevTiltingZRot) * (float)elapsedTimeS;//smooth rotation
                 PrevTiltingZRot = TiltingZRot;
-                if (this.Flipped) TiltingZRot *= -1f;
+                if (this.Flipped)
+                    TiltingZRot *= -1f;
             }
             if (simulator.Settings.CarVibratingLevel != 0 || Train.IsTilting)
             {
@@ -2719,26 +2730,19 @@ namespace Orts.Simulation.RollingStocks
         }
         #endregion
 
-        // TODO These three fields should be in the TrainCarViewer.
-        public int TrackSoundType;
-        public WorldLocation TrackSoundLocation = WorldLocation.None;
-        public float TrackSoundDistSquared;
-
-
         /// <summary>
         /// Checks if traincar is over trough. Used to check if refill possible
         /// </summary>
         /// <returns> returns true if car is over trough</returns>
-
-        public bool IsOverTrough()
+        protected bool IsOverTrough()
         {
-            var isOverTrough = false;
+            bool overTrough = false;
             // start at front of train
-            int thisSectionIndex = Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex;
-            if (thisSectionIndex < 0) return isOverTrough;
-            float thisSectionOffset = Train.PresentPosition[Common.Direction.Forward].Offset;
-            TrackDirection thisSectionDirection = Train.PresentPosition[Common.Direction.Forward].Direction;
-
+            int sectionIndex = Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex;
+            if (sectionIndex < 0)
+                return overTrough;
+            float sectionOffset = Train.PresentPosition[Common.Direction.Forward].Offset;
+            TrackDirection sectionDirection = Train.PresentPosition[Common.Direction.Forward].Direction;
 
             float usedCarLength = CarLengthM;
             float processedCarLength = 0;
@@ -2746,108 +2750,81 @@ namespace Orts.Simulation.RollingStocks
 
             while (validSections)
             {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-                isOverTrough = false;
+                TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[sectionIndex];
+                overTrough = false;
 
                 // car spans sections
-                if ((CarLengthM - processedCarLength) > thisSectionOffset)
+                if ((CarLengthM - processedCarLength) > sectionOffset)
                 {
-                    usedCarLength = thisSectionOffset - processedCarLength;
+                    usedCarLength = sectionOffset - processedCarLength;
                 }
 
                 // section has troughs
-                foreach (TroughInfoData trough in thisSection.TroughInfo ?? Enumerable.Empty<TroughInfoData>())
+                foreach (TroughInfoData trough in section.TroughInfo ?? Enumerable.Empty<TroughInfoData>())
                 {
-                    float troughStartOffset = trough.Start[thisSectionDirection];
-                    float troughEndOffset = trough.End[thisSectionDirection];
+                    float troughStartOffset = trough.Start[sectionDirection];
+                    float troughEndOffset = trough.End[sectionDirection];
 
-                    if (troughStartOffset > 0 && troughStartOffset > thisSectionOffset)      // start of trough is in section beyond present position - cannot be over this trough nor any following
+                    if (troughStartOffset > 0 && troughStartOffset > sectionOffset)      // start of trough is in section beyond present position - cannot be over this trough nor any following
                     {
-                        return isOverTrough;
+                        return overTrough;
                     }
 
-                    if (troughEndOffset > 0 && troughEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of trough, test next
+                    if (troughEndOffset > 0 && troughEndOffset < (sectionOffset - usedCarLength)) // beyond end of trough, test next
                     {
                         continue;
                     }
 
-                    if (troughStartOffset <= 0 || troughStartOffset < (thisSectionOffset - usedCarLength)) // start of trough is behind
+                    if (troughStartOffset <= 0 || troughStartOffset < (sectionOffset - usedCarLength)) // start of trough is behind
                     {
-                        isOverTrough = true;
-                        return isOverTrough;
+                        overTrough = true;
+                        return overTrough;
                     }
                 }
-                // tested this section, any need to go beyond?
 
+                // tested this section, any need to go beyond?
                 processedCarLength += usedCarLength;
+                // go back one section
+                int sectionRouteIndex = Train.ValidRoute[0].GetRouteIndexBackward(sectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
+                if (sectionRouteIndex >= 0)
                 {
-                    // go back one section
-                    int thisSectionRouteIndex = Train.ValidRoute[0].GetRouteIndexBackward(thisSectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
-                    if (thisSectionRouteIndex >= 0)
-                    {
-                        thisSectionIndex = thisSectionRouteIndex;
-                        thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-                        thisSectionOffset = thisSection.Length;  // always at end of next section
-                        thisSectionDirection = (TrackDirection)Train.ValidRoute[0][thisSectionRouteIndex].Direction;
-                    }
-                    else // ran out of train
-                    {
-                        validSections = false;
-                    }
+                    sectionIndex = sectionRouteIndex;
+                    section = TrackCircuitSection.TrackCircuitList[sectionIndex];
+                    sectionOffset = section.Length;  // always at end of next section
+                    sectionDirection = Train.ValidRoute[0][sectionRouteIndex].Direction;
+                }
+                else // ran out of train
+                {
+                    validSections = false;
                 }
             }
-            return isOverTrough;
+            return overTrough;
         }
 
         /// <summary>
         /// Checks if traincar is over junction or crossover. Used to check if water scoop breaks
         /// </summary>
         /// <returns> returns true if car is over junction</returns>
-
-        public bool IsOverJunction()
+        protected bool IsOverJunction()
         {
-
-            // To Do - This identifies the start of the train, but needs to be further refined to work for each carriage.
-            var isOverJunction = false;
-            // start at front of train
-            //int thisSectionIndex = Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
-            //float thisSectionOffset = Train.PresentPosition[Direction.Forward].Offset;
-            //TrackDirection thisSectionDirection = Train.PresentPosition[Direction.Forward].Direction;
-
-
-            float usedCarLength = CarLengthM;
 
             if (Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex != Train.PresentPosition[Common.Direction.Backward].TrackCircuitSectionIndex)
             {
-                try
+                foreach (TrackCircuitSection section in Train.OccupiedTrack)
                 {
-                    var copyOccupiedTrack = Train.OccupiedTrack.ToArray();
-                    foreach (var thisSection in copyOccupiedTrack)
+                    if (section.CircuitType == TrackCircuitType.Junction || section.CircuitType == TrackCircuitType.Crossover)
                     {
-
-                        //                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
-
-                        if (thisSection.CircuitType == TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitType.Crossover)
+                        // train is on a switch; let's see if car is on a switch too
+                        ref readonly WorldLocation switchLocation = ref RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex].UiD.Location;
+                        double distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                        if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                         {
-
-                            // train is on a switch; let's see if car is on a switch too
-                            ref readonly WorldLocation switchLocation = ref RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
-                            var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
-                            if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
-                            {
-                                isOverJunction = true;
-                                return isOverJunction;
-                            }
+                            return true;
                         }
                     }
                 }
-                catch
-                {
-
-                }
             }
-
-            return isOverJunction;
+            return false;
         }
 
         public virtual void SwitchToPlayerControl()
