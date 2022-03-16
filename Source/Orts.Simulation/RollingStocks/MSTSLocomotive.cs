@@ -761,11 +761,11 @@ namespace Orts.Simulation.RollingStocks
             if (!(this is MSTSSteamLocomotive))
                 InitializeFromORTSSpecific(Path.Combine(cab3dBasePath, cvfFileName), extendedCVF);
 
-            var cabViewAngle = CabViewpoints[0].StartDirection.Y;
-            var cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
+            float cabViewAngle = CabViewpoints?[0].StartDirection.Y ?? 0;
+            CabViewType cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
 
             // only one cabview, and it looks rear; insert a void one at first place to maintain fast indexing
-            if (CabViewpoints.Count == 1 && cabViewType == CabViewType.Rear)
+            if (CabViewpoints?.Count == 1 && cabViewType == CabViewType.Rear)
                 CabViewpoints.Insert(0, new PassengerViewPoint());
 
             return new CabView3D(cvfFile, CabViewpoints, extendedCVF, cabViewType, noseAhead, shapeFilePath);
@@ -889,6 +889,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
                 case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
                 case "engine(headout":
+                    HeadOutViewpoints ??= new List<ViewPoint>();
                     HeadOutViewpoints.Add(new ViewPoint(stf.ReadVector3Block(STFReader.Units.Distance, Vector3.Zero)));
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;

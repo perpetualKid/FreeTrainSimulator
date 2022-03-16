@@ -1097,7 +1097,7 @@ namespace Orts.ActivityRunner.Viewer3D
             get
             {
                 return (!IsEnvSound && !IsExternal && (Viewer.Camera.Style == Camera.Styles.Cab || Viewer.Camera.Style == Camera.Styles.ThreeDimCab)
-                    && Car != null && Viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints.Count == 0
+                    && Car != null && Viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints == null
                     && (Car.Train == Viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted));
             }
         }

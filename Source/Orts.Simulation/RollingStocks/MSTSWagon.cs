@@ -40,6 +40,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -195,7 +196,21 @@ namespace Orts.Simulation.RollingStocks
         public float HeatingSteamBoilerDurationS;
         public float HeatingSteamBoilerVolumeM3pS;
         public Color HeatingSteamBoilerSteadyColor = Color.LightSlateGray;
-        public bool HeatingBoilerSet;
+
+        private bool heatingBoilerSet;
+        private bool trainHeatingBoilerInitialised;
+
+        public bool InitializeBoilerHeating()
+        {                     
+            // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
+            if (!trainHeatingBoilerInitialised && !heatingBoilerSet)
+            {
+                heatingBoilerSet = true;
+                trainHeatingBoilerInitialised = true;
+                return true;
+            }
+            return false;
+        }
 
         // Wagon Smoke
         public float WagonSmokeVolumeM3pS;
@@ -1295,7 +1310,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
 
                 case "wagon(intakepoint": IntakePointList.Add(new IntakePoint(stf)); break;
-                case "wagon(passengercapacity": HasPassengerCapacity = true; break;
+                case "wagon(passengercapacity": PassengerCapacity = (int)stf.ReadFloatBlock(STFReader.Units.None, 0); break;
                 case "wagon(ortsfreightanims":
                     FreightAnimations = new FreightAnimations(stf, this);
                     break;
@@ -1321,159 +1336,155 @@ namespace Orts.Simulation.RollingStocks
         /// 
         /// IMPORTANT NOTE:  everything you initialized in parse, must be initialized here
         /// </summary>
-        public virtual void Copy(MSTSWagon copy)
+        public virtual void Copy(MSTSWagon source)
         {
-            MainShapeFileName = copy.MainShapeFileName;
-            HasPassengerCapacity = copy.HasPassengerCapacity;
-            WagonType = copy.WagonType;
-            WagonSpecialType = copy.WagonSpecialType;
-            FreightShapeFileName = copy.FreightShapeFileName;
-            FreightAnimMaxLevelM = copy.FreightAnimMaxLevelM;
-            FreightAnimMinLevelM = copy.FreightAnimMinLevelM;
-            FreightAnimFlag = copy.FreightAnimFlag;
-            FrontCouplerAnimation = copy.FrontCouplerAnimation;
-            FrontCouplerOpenAnimation = copy.FrontCouplerOpenAnimation;
-            RearCouplerAnimation = copy.RearCouplerAnimation;
-            RearCouplerOpenAnimation = copy.RearCouplerOpenAnimation;
-            FrontCouplerOpenFitted = copy.FrontCouplerOpenFitted;
-            RearCouplerOpenFitted = copy.RearCouplerOpenFitted;
+            MainShapeFileName = source.MainShapeFileName;
+            PassengerCapacity = source.PassengerCapacity;
+            WagonType = source.WagonType;
+            WagonSpecialType = source.WagonSpecialType;
+            FreightShapeFileName = source.FreightShapeFileName;
+            FreightAnimMaxLevelM = source.FreightAnimMaxLevelM;
+            FreightAnimMinLevelM = source.FreightAnimMinLevelM;
+            FreightAnimFlag = source.FreightAnimFlag;
+            FrontCouplerAnimation = source.FrontCouplerAnimation;
+            FrontCouplerOpenAnimation = source.FrontCouplerOpenAnimation;
+            RearCouplerAnimation = source.RearCouplerAnimation;
+            RearCouplerOpenAnimation = source.RearCouplerOpenAnimation;
+            FrontCouplerOpenFitted = source.FrontCouplerOpenFitted;
+            RearCouplerOpenFitted = source.RearCouplerOpenFitted;
 
-            FrontAirHoseAnimation = copy.FrontAirHoseAnimation;
-            FrontAirHoseDisconnectedAnimation = copy.FrontAirHoseDisconnectedAnimation;
-            RearAirHoseAnimation = copy.RearAirHoseAnimation;
-            RearAirHoseDisconnectedAnimation = copy.RearAirHoseDisconnectedAnimation;
+            FrontAirHoseAnimation = source.FrontAirHoseAnimation;
+            FrontAirHoseDisconnectedAnimation = source.FrontAirHoseDisconnectedAnimation;
+            RearAirHoseAnimation = source.RearAirHoseAnimation;
+            RearAirHoseDisconnectedAnimation = source.RearAirHoseDisconnectedAnimation;
 
-            CarWidthM = copy.CarWidthM;
-            CarHeightM = copy.CarHeightM;
-            CarLengthM = copy.CarLengthM;
-            trackGauge = copy.trackGauge;
-            centreOfGravityM = copy.centreOfGravityM;
-            initialCentreOfGravityM = copy.initialCentreOfGravityM;
-            UnbalancedSuperElevationM = copy.UnbalancedSuperElevationM;
-            rigidWheelBaseM = copy.rigidWheelBaseM;
-            CarBogieCentreLengthM = copy.CarBogieCentreLengthM;
-            CarBodyLengthM = copy.CarBodyLengthM;
-            CarCouplerFaceLengthM = copy.CarCouplerFaceLengthM;
-            CarAirHoseLengthM = copy.CarAirHoseLengthM;
-            CarAirHoseHorizontalLengthM = copy.CarAirHoseHorizontalLengthM;
-            MaximumWheelFlangeAngleRad = copy.MaximumWheelFlangeAngleRad;
-            WheelFlangeLengthM = copy.WheelFlangeLengthM;
-            AuxTenderWaterMassKG = copy.AuxTenderWaterMassKG;
-            TenderWagonMaxCoalMassKG = copy.TenderWagonMaxCoalMassKG;
-            TenderWagonMaxWaterMassKG = copy.TenderWagonMaxWaterMassKG;
-            WagonNumAxles = copy.WagonNumAxles;
-            MSTSWagonNumWheels = copy.MSTSWagonNumWheels;
-            MassKG = copy.MassKG;
-            InitialMassKG = copy.InitialMassKG;
-            WheelRadiusM = copy.WheelRadiusM;
-            DriverWheelRadiusM = copy.DriverWheelRadiusM;
-            MainSoundFileName = copy.MainSoundFileName;
-            BrakeShoeFrictionFactor = copy.BrakeShoeFrictionFactor;
-            WheelBrakeSlideProtectionFitted = copy.WheelBrakeSlideProtectionFitted;
-            WheelBrakeSlideProtectionLimitDisabled = copy.WheelBrakeSlideProtectionLimitDisabled;
-            InitialMaxBrakeForceN = copy.InitialMaxBrakeForceN;
-            InitialMaxHandbrakeForceN = copy.InitialMaxHandbrakeForceN;
-            MaxBrakeForceN = copy.MaxBrakeForceN;
-            MaxHandbrakeForceN = copy.MaxHandbrakeForceN;
-            WindowDeratingFactor = copy.WindowDeratingFactor;
-            DesiredCompartmentTempSetpointC = copy.DesiredCompartmentTempSetpointC;
-            CompartmentHeatingPipeAreaFactor = copy.CompartmentHeatingPipeAreaFactor;
-            MainSteamHeatPipeOuterDiaM = copy.MainSteamHeatPipeOuterDiaM;
-            MainSteamHeatPipeInnerDiaM = copy.MainSteamHeatPipeInnerDiaM;
-            CarConnectSteamHoseInnerDiaM = copy.CarConnectSteamHoseInnerDiaM;
-            CarConnectSteamHoseOuterDiaM = copy.CarConnectSteamHoseOuterDiaM;
-            MaximumSteamHeatBoilerWaterTankCapacityL = copy.MaximumSteamHeatBoilerWaterTankCapacityL;
-            MaximiumSteamHeatBoilerFuelTankCapacityL = copy.MaximiumSteamHeatBoilerFuelTankCapacityL;
-            TrainHeatBoilerWaterUsageGalukpH = new Interpolator(copy.TrainHeatBoilerWaterUsageGalukpH);
-            TrainHeatBoilerFuelUsageGalukpH = new Interpolator(copy.TrainHeatBoilerFuelUsageGalukpH);
-            DavisAN = copy.DavisAN;
-            DavisBNSpM = copy.DavisBNSpM;
-            DavisCNSSpMM = copy.DavisCNSSpMM;
-            DavisDragConstant = copy.DavisDragConstant;
-            WagonFrontalAreaM2 = copy.WagonFrontalAreaM2;
-            TrailLocoResistanceFactor = copy.TrailLocoResistanceFactor;
-            FrictionC1 = copy.FrictionC1;
-            FrictionE1 = copy.FrictionE1;
-            FrictionV2 = copy.FrictionV2;
-            FrictionC2 = copy.FrictionC2;
-            FrictionE2 = copy.FrictionE2;
-            EffectData = copy.EffectData;
-            IsBelowMergeSpeed = copy.IsBelowMergeSpeed;
-            StandstillFrictionN = copy.StandstillFrictionN;
-            MergeSpeedFrictionN = copy.MergeSpeedFrictionN;
-            MergeSpeedMpS = copy.MergeSpeedMpS;
-            IsDavisFriction = copy.IsDavisFriction;
-            IsRollerBearing = copy.IsRollerBearing;
-            IsLowTorqueRollerBearing = copy.IsLowTorqueRollerBearing;
-            IsFrictionBearing = copy.IsFrictionBearing;
-            IsGreaseFrictionBearing = copy.IsGreaseFrictionBearing;
-            CarBrakeSystemType = copy.CarBrakeSystemType;
+            CarWidthM = source.CarWidthM;
+            CarHeightM = source.CarHeightM;
+            CarLengthM = source.CarLengthM;
+            trackGauge = source.trackGauge;
+            centreOfGravityM = source.centreOfGravityM;
+            initialCentreOfGravityM = source.initialCentreOfGravityM;
+            UnbalancedSuperElevationM = source.UnbalancedSuperElevationM;
+            rigidWheelBaseM = source.rigidWheelBaseM;
+            CarBogieCentreLengthM = source.CarBogieCentreLengthM;
+            CarBodyLengthM = source.CarBodyLengthM;
+            CarCouplerFaceLengthM = source.CarCouplerFaceLengthM;
+            CarAirHoseLengthM = source.CarAirHoseLengthM;
+            CarAirHoseHorizontalLengthM = source.CarAirHoseHorizontalLengthM;
+            MaximumWheelFlangeAngleRad = source.MaximumWheelFlangeAngleRad;
+            WheelFlangeLengthM = source.WheelFlangeLengthM;
+            AuxTenderWaterMassKG = source.AuxTenderWaterMassKG;
+            TenderWagonMaxCoalMassKG = source.TenderWagonMaxCoalMassKG;
+            TenderWagonMaxWaterMassKG = source.TenderWagonMaxWaterMassKG;
+            WagonNumAxles = source.WagonNumAxles;
+            MSTSWagonNumWheels = source.MSTSWagonNumWheels;
+            MassKG = source.MassKG;
+            InitialMassKG = source.InitialMassKG;
+            WheelRadiusM = source.WheelRadiusM;
+            DriverWheelRadiusM = source.DriverWheelRadiusM;
+            MainSoundFileName = source.MainSoundFileName;
+            BrakeShoeFrictionFactor = source.BrakeShoeFrictionFactor;
+            WheelBrakeSlideProtectionFitted = source.WheelBrakeSlideProtectionFitted;
+            WheelBrakeSlideProtectionLimitDisabled = source.WheelBrakeSlideProtectionLimitDisabled;
+            InitialMaxBrakeForceN = source.InitialMaxBrakeForceN;
+            InitialMaxHandbrakeForceN = source.InitialMaxHandbrakeForceN;
+            MaxBrakeForceN = source.MaxBrakeForceN;
+            MaxHandbrakeForceN = source.MaxHandbrakeForceN;
+            WindowDeratingFactor = source.WindowDeratingFactor;
+            DesiredCompartmentTempSetpointC = source.DesiredCompartmentTempSetpointC;
+            CompartmentHeatingPipeAreaFactor = source.CompartmentHeatingPipeAreaFactor;
+            MainSteamHeatPipeOuterDiaM = source.MainSteamHeatPipeOuterDiaM;
+            MainSteamHeatPipeInnerDiaM = source.MainSteamHeatPipeInnerDiaM;
+            CarConnectSteamHoseInnerDiaM = source.CarConnectSteamHoseInnerDiaM;
+            CarConnectSteamHoseOuterDiaM = source.CarConnectSteamHoseOuterDiaM;
+            MaximumSteamHeatBoilerWaterTankCapacityL = source.MaximumSteamHeatBoilerWaterTankCapacityL;
+            MaximiumSteamHeatBoilerFuelTankCapacityL = source.MaximiumSteamHeatBoilerFuelTankCapacityL;
+            TrainHeatBoilerWaterUsageGalukpH = new Interpolator(source.TrainHeatBoilerWaterUsageGalukpH);
+            TrainHeatBoilerFuelUsageGalukpH = new Interpolator(source.TrainHeatBoilerFuelUsageGalukpH);
+            DavisAN = source.DavisAN;
+            DavisBNSpM = source.DavisBNSpM;
+            DavisCNSSpMM = source.DavisCNSSpMM;
+            DavisDragConstant = source.DavisDragConstant;
+            WagonFrontalAreaM2 = source.WagonFrontalAreaM2;
+            TrailLocoResistanceFactor = source.TrailLocoResistanceFactor;
+            FrictionC1 = source.FrictionC1;
+            FrictionE1 = source.FrictionE1;
+            FrictionV2 = source.FrictionV2;
+            FrictionC2 = source.FrictionC2;
+            FrictionE2 = source.FrictionE2;
+            EffectData = source.EffectData;
+            IsBelowMergeSpeed = source.IsBelowMergeSpeed;
+            StandstillFrictionN = source.StandstillFrictionN;
+            MergeSpeedFrictionN = source.MergeSpeedFrictionN;
+            MergeSpeedMpS = source.MergeSpeedMpS;
+            IsDavisFriction = source.IsDavisFriction;
+            IsRollerBearing = source.IsRollerBearing;
+            IsLowTorqueRollerBearing = source.IsLowTorqueRollerBearing;
+            IsFrictionBearing = source.IsFrictionBearing;
+            IsGreaseFrictionBearing = source.IsGreaseFrictionBearing;
+            CarBrakeSystemType = source.CarBrakeSystemType;
             BrakeSystem = MSTSBrakeSystem.Create(CarBrakeSystemType, this);
-            EmergencyReservoirPresent = copy.EmergencyReservoirPresent;
-            DistributorPresent = copy.DistributorPresent;
-            HandBrakePresent = copy.HandBrakePresent;
-            ManualBrakePresent = copy.ManualBrakePresent;
-            AuxiliaryReservoirPresent = copy.AuxiliaryReservoirPresent;
-            RetainerPositions = copy.RetainerPositions;
-            InteriorShapeFileName = copy.InteriorShapeFileName;
-            InteriorSoundFileName = copy.InteriorSoundFileName;
-            Cab3DShapeFileName = copy.Cab3DShapeFileName;
-            Cab3DSoundFileName = copy.Cab3DSoundFileName;
-            Adhesion1 = copy.Adhesion1;
-            Adhesion2 = copy.Adhesion2;
-            Adhesion3 = copy.Adhesion3;
-            Curtius_KnifflerA = copy.Curtius_KnifflerA;
-            Curtius_KnifflerB = copy.Curtius_KnifflerB;
-            Curtius_KnifflerC = copy.Curtius_KnifflerC;
-            AdhesionK = copy.AdhesionK;
-            AxleInertiaKgm2 = copy.AxleInertiaKgm2;
-            AdhesionDriveWheelRadiusM = copy.AdhesionDriveWheelRadiusM;
-            SlipWarningThresholdPercent = copy.SlipWarningThresholdPercent;
-            Lights = copy.Lights;
-            ExternalSoundPassThruPercent = copy.ExternalSoundPassThruPercent;
-            foreach (PassengerViewPoint passengerViewPoint in copy.PassengerViewpoints)
-                PassengerViewpoints.Add(passengerViewPoint);
-            foreach (ViewPoint headOutViewPoint in copy.HeadOutViewpoints)
-                HeadOutViewpoints.Add(headOutViewPoint);
-            if (copy.CabViewpoints != null)
-            {
-                CabViewpoints = new List<PassengerViewPoint>();
-                foreach (PassengerViewPoint cabViewPoint in copy.CabViewpoints)
-                    CabViewpoints.Add(cabViewPoint);
-            }
-            IsAdvancedCoupler = copy.IsAdvancedCoupler;
-            foreach (MSTSCoupling coupler in copy.Couplers)
+            EmergencyReservoirPresent = source.EmergencyReservoirPresent;
+            DistributorPresent = source.DistributorPresent;
+            HandBrakePresent = source.HandBrakePresent;
+            ManualBrakePresent = source.ManualBrakePresent;
+            AuxiliaryReservoirPresent = source.AuxiliaryReservoirPresent;
+            RetainerPositions = source.RetainerPositions;
+            InteriorShapeFileName = source.InteriorShapeFileName;
+            InteriorSoundFileName = source.InteriorSoundFileName;
+            Cab3DShapeFileName = source.Cab3DShapeFileName;
+            Cab3DSoundFileName = source.Cab3DSoundFileName;
+            Adhesion1 = source.Adhesion1;
+            Adhesion2 = source.Adhesion2;
+            Adhesion3 = source.Adhesion3;
+            Curtius_KnifflerA = source.Curtius_KnifflerA;
+            Curtius_KnifflerB = source.Curtius_KnifflerB;
+            Curtius_KnifflerC = source.Curtius_KnifflerC;
+            AdhesionK = source.AdhesionK;
+            AxleInertiaKgm2 = source.AxleInertiaKgm2;
+            AdhesionDriveWheelRadiusM = source.AdhesionDriveWheelRadiusM;
+            SlipWarningThresholdPercent = source.SlipWarningThresholdPercent;
+            Lights = source.Lights;
+            ExternalSoundPassThruPercent = source.ExternalSoundPassThruPercent;
+            if (source.PassengerViewpoints != null)
+                PassengerViewpoints = new List<PassengerViewPoint>(source.PassengerViewpoints);
+            if (source.HeadOutViewpoints != null)
+                HeadOutViewpoints = new List<ViewPoint>(source.HeadOutViewpoints);
+            if (source.CabViewpoints != null)
+                CabViewpoints = new List<PassengerViewPoint>(source.CabViewpoints);
+            IsAdvancedCoupler = source.IsAdvancedCoupler;
+            foreach (MSTSCoupling coupler in source.Couplers)
             {
                 Couplers.Add(coupler);
             }
-            Pantographs.Copy(copy.Pantographs);
-            if (copy.FreightAnimations != null)
+            Pantographs.Copy(source.Pantographs);
+            if (source.FreightAnimations != null)
             {
-                FreightAnimations = new FreightAnimations(copy.FreightAnimations, this);
+                FreightAnimations = new FreightAnimations(source.FreightAnimations, this);
             }
 
-            LoadEmptyMassKg = copy.LoadEmptyMassKg;
-            LoadEmptyCentreOfGravityM_Y = copy.LoadEmptyCentreOfGravityM_Y;
-            LoadEmptyMaxBrakeForceN = copy.LoadEmptyMaxBrakeForceN;
-            LoadEmptyMaxHandbrakeForceN = copy.LoadEmptyMaxHandbrakeForceN;
-            LoadEmptyORTSDavis_A = copy.LoadEmptyORTSDavis_A;
-            LoadEmptyORTSDavis_B = copy.LoadEmptyORTSDavis_B;
-            LoadEmptyORTSDavis_C = copy.LoadEmptyORTSDavis_C;
-            LoadEmptyDavisDragConstant = copy.LoadEmptyDavisDragConstant;
-            LoadEmptyWagonFrontalAreaM2 = copy.LoadEmptyWagonFrontalAreaM2;
-            LoadFullMassKg = copy.LoadFullMassKg;
-            LoadFullCentreOfGravityM_Y = copy.LoadFullCentreOfGravityM_Y;
-            LoadFullMaxBrakeForceN = copy.LoadFullMaxBrakeForceN;
-            LoadFullMaxHandbrakeForceN = copy.LoadFullMaxHandbrakeForceN;
-            LoadFullORTSDavis_A = copy.LoadFullORTSDavis_A;
-            LoadFullORTSDavis_B = copy.LoadFullORTSDavis_B;
-            LoadFullORTSDavis_C = copy.LoadFullORTSDavis_C;
-            LoadFullDavisDragConstant = copy.LoadFullDavisDragConstant;
-            LoadFullWagonFrontalAreaM2 = copy.LoadFullWagonFrontalAreaM2;
+            LoadEmptyMassKg = source.LoadEmptyMassKg;
+            LoadEmptyCentreOfGravityM_Y = source.LoadEmptyCentreOfGravityM_Y;
+            LoadEmptyMaxBrakeForceN = source.LoadEmptyMaxBrakeForceN;
+            LoadEmptyMaxHandbrakeForceN = source.LoadEmptyMaxHandbrakeForceN;
+            LoadEmptyORTSDavis_A = source.LoadEmptyORTSDavis_A;
+            LoadEmptyORTSDavis_B = source.LoadEmptyORTSDavis_B;
+            LoadEmptyORTSDavis_C = source.LoadEmptyORTSDavis_C;
+            LoadEmptyDavisDragConstant = source.LoadEmptyDavisDragConstant;
+            LoadEmptyWagonFrontalAreaM2 = source.LoadEmptyWagonFrontalAreaM2;
+            LoadFullMassKg = source.LoadFullMassKg;
+            LoadFullCentreOfGravityM_Y = source.LoadFullCentreOfGravityM_Y;
+            LoadFullMaxBrakeForceN = source.LoadFullMaxBrakeForceN;
+            LoadFullMaxHandbrakeForceN = source.LoadFullMaxHandbrakeForceN;
+            LoadFullORTSDavis_A = source.LoadFullORTSDavis_A;
+            LoadFullORTSDavis_B = source.LoadFullORTSDavis_B;
+            LoadFullORTSDavis_C = source.LoadFullORTSDavis_C;
+            LoadFullDavisDragConstant = source.LoadFullDavisDragConstant;
+            LoadFullWagonFrontalAreaM2 = source.LoadFullWagonFrontalAreaM2;
 
-            if (copy.IntakePointList != null)
+            if (source.IntakePointList != null)
             {
-                foreach (IntakePoint copyIntakePoint in copy.IntakePointList)
+                foreach (IntakePoint copyIntakePoint in source.IntakePointList)
                 {
                     // If freight animations not used or else wagon is a tender or locomotive, use the "MSTS" type IntakePoints if present in WAG / ENG file
 
@@ -1483,13 +1494,13 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            MSTSBrakeSystem.InitializeFromCopy(copy.BrakeSystem);
-            if (copy.WeightLoadController != null) WeightLoadController = new MSTSNotchController(copy.WeightLoadController);
+            MSTSBrakeSystem.InitializeFromCopy(source.BrakeSystem);
+            if (source.WeightLoadController != null) WeightLoadController = new MSTSNotchController(source.WeightLoadController);
 
-            if (copy.PassengerCarPowerSupply != null)
+            if (source.PassengerCarPowerSupply != null)
             {
                 PowerSupply = new ScriptedPassengerCarPowerSupply(this);
-                PassengerCarPowerSupply.Copy(copy.PassengerCarPowerSupply);
+                PassengerCarPowerSupply.Copy(source.PassengerCarPowerSupply);
             }
         }
 
@@ -1507,8 +1518,10 @@ namespace Orts.Simulation.RollingStocks
             // Set initial direction
             passengerViewPoint.RotationXRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.X);
             passengerViewPoint.RotationYRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.Y);
+            PassengerViewpoints ??= new List<PassengerViewPoint>();
             PassengerViewpoints.Add(passengerViewPoint);
         }
+
         protected void Parse3DCab(STFReader stf)
         {
             PassengerViewPoint passengerViewPoint = new PassengerViewPoint();
@@ -1523,7 +1536,7 @@ namespace Orts.Simulation.RollingStocks
             // Set initial direction
             passengerViewPoint.RotationXRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.X);
             passengerViewPoint.RotationYRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.Y);
-            if (this.CabViewpoints == null) CabViewpoints = new List<PassengerViewPoint>();
+            CabViewpoints ??= new List<PassengerViewPoint>();
             CabViewpoints.Add(passengerViewPoint);
         }
 

@@ -557,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Train Overturned", TrainCar.DbfEvalTrainOverturned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
-                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Simulation.Physics.Train.NumOfCouplerBreaks);
+                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", owner.Viewer.PlayerTrain.NumOfCouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", Simulator.Instance.DebriefEvalOverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
@@ -923,7 +923,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             nhosebreaks = 7 * nhosebreaks;
 
                             //Coupler Breaks. -10.
-                            int ncouplerbreaks = Simulation.Physics.Train.NumOfCouplerBreaks;
+                            int ncouplerbreaks = owner.Viewer.PlayerTrain.NumOfCouplerBreaks;
                             labeltext = (lbreakcouplers ? "  Coupler breaks=" : "  Coupler overloaded=") + ncouplerbreaks;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncouplerbreaks = 10 * ncouplerbreaks;

@@ -379,7 +379,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
-                    outf.Write(Simulation.Physics.Train.NumOfCouplerBreaks);
+                    outf.Write(Viewer.PlayerTrain.NumOfCouplerBreaks);
                     outf.Write(Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
                     outf.Write(Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned);
@@ -450,7 +450,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS = infDbfEval.ReadDouble();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving = infDbfEval.ReadInt32();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped = infDbfEval.ReadInt32();
-                            Simulation.Physics.Train.NumOfCouplerBreaks = infDbfEval.ReadInt32();
+                            Viewer.PlayerTrain.NumOfCouplerBreaks = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned = infDbfEval.ReadInt32();

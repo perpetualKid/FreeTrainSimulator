@@ -1991,7 +1991,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class PassengerCamera : InsideCamera3D
     {
         public override Styles Style { get { return Styles.Passenger; } }
-        public override bool IsAvailable { get { return Viewer.SelectedTrain != null && Viewer.SelectedTrain.Cars.Any(c => c.PassengerViewpoints.Count > 0); } }
+        public override bool IsAvailable { get { return Viewer.SelectedTrain?.Cars.Any(c => c.PassengerViewpoints != null) ?? false; } }
         public override string Name { get { return Viewer.Catalog.GetString("Passenger"); } }
 
         public PassengerCamera(Viewer viewer)
@@ -2001,7 +2001,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected override List<TrainCar> GetCameraCars()
         {
-            return base.GetCameraCars().Where(c => c.PassengerViewpoints.Count > 0).ToList();
+            return base.GetCameraCars().Where(c => c.PassengerViewpoints != null).ToList();
         }
 
         protected override void SetCameraCar(TrainCar car)
@@ -2049,7 +2049,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public void ChangePassengerViewPoint(TrainCar car)
         {
             ActViewPoint++;
-            if (ActViewPoint >= car.PassengerViewpoints.Count) ActViewPoint = 0;
+            if (ActViewPoint >= (car.PassengerViewpoints?.Count ?? 0)) 
+                ActViewPoint = 0;
             SetCameraCar(car);
         }
     }
@@ -2249,7 +2250,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected bool PrevCabWasRear;
 
         // Head-out camera is only possible on the player train.
-        public override bool IsAvailable { get { return Viewer.PlayerTrain != null && Viewer.PlayerTrain.Cars.Any(c => c.HeadOutViewpoints.Count > 0); } }
+        public override bool IsAvailable { get { return Viewer.PlayerTrain?.Cars.Any(c => c.HeadOutViewpoints != null ) ?? false; } }
         public override float NearPlane { get { return 0.25f; } }
         public override string Name { get { return Viewer.Catalog.GetString("Head out"); } }
 
@@ -2263,13 +2264,13 @@ namespace Orts.ActivityRunner.Viewer3D
         protected override List<TrainCar> GetCameraCars()
         {
             // Head-out camera is only possible on the player train.
-            return Viewer.PlayerTrain.Cars.Where(c => c.HeadOutViewpoints.Count > 0).ToList();
+            return Viewer.PlayerTrain.Cars.Where(c => c.HeadOutViewpoints != null).ToList();
         }
 
         protected override void SetCameraCar(TrainCar car)
         {
             base.SetCameraCar(car);
-            if (attachedCar.HeadOutViewpoints.Count > 0)
+            if (attachedCar.HeadOutViewpoints != null)
                 attachedLocation = attachedCar.HeadOutViewpoints[CurrentViewpointIndex].Location;
 
             if (!Forwards)

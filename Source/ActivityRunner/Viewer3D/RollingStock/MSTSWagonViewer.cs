@@ -127,12 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (emitter.Key.Equals("heatingsteamboilerfx", StringComparison.OrdinalIgnoreCase))
                 {
                     HeatingSteamBoiler.AddRange(emitter.Value);
-                    // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
-                    if (!car.IsTrainHeatingBoilerInitialised && !car.HeatingBoilerSet)
-                    {
-                        car.HeatingBoilerSet = true;
-                        car.IsTrainHeatingBoilerInitialised = true;
-                    }
+                    car.InitializeBoilerHeating();
                 }
 
                 foreach (var drawer in HeatingSteamBoiler)
@@ -246,8 +241,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
-
-                car.HasFreightAnim = true;
                 FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 

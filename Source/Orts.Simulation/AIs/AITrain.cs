@@ -380,8 +380,8 @@ namespace Orts.Simulation.AIs
                     {
                         var carF = Cars[0];
                         var carL = Cars[Cars.Count - 1];
-                        if (carF.IsDriveable && carF.HasPassengerCapacity && (carF is MSTSElectricLocomotive)
-                            && carL.IsDriveable && carL.HasPassengerCapacity && (carL is MSTSElectricLocomotive))  // EMU or DMU train, higher decel
+                        if (carF.IsDriveable && carF.PassengerCapacity > 0 && (carF is MSTSElectricLocomotive)
+                            && carL.IsDriveable && carL.PassengerCapacity > 0 && (carL is MSTSElectricLocomotive))  // EMU or DMU train, higher decel
                         {
                             MaxAccelMpSS = 1.5f * MaxAccelMpSS;
                             MaxDecelMpSS = 2f * MaxDecelMpSSP;

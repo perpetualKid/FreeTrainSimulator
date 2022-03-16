@@ -69,6 +69,11 @@ namespace Orts.Simulation.RollingStocks
         private static readonly double[] WorldTemperatureAutumn = new double[] { 7.5f, 13.7f, 18.8f, 22.0f, 24.0f, 26.0f, 25.0f, 21.6f, 21.0f, 14.3f, 6.0f, 3.8f };
         private static readonly double[] WorldTemperatureSpring = new double[] { 8.5f, 13.1f, 17.6f, 18.6f, 24.6f, 25.9f, 26.8f, 23.4f, 18.5f, 12.6f, 6.1f, 1.7f };
         private static readonly double[] WorldTemperatureSummer = new double[] { 13.4f, 18.3f, 22.8f, 24.3f, 24.4f, 25.0f, 25.2f, 22.5f, 26.6f, 24.8f, 19.4f, 14.3f };
+        private static readonly Interpolator WorldWinterLatitudetoTemperatureC = new Interpolator(WorldLatitudeDeg, WorldTemperatureWinter);
+        private static readonly Interpolator WorldAutumnLatitudetoTemperatureC = new Interpolator(WorldLatitudeDeg, WorldTemperatureAutumn);
+        private static readonly Interpolator WorldSpringLatitudetoTemperatureC = new Interpolator(WorldLatitudeDeg, WorldTemperatureSpring);
+        private static readonly Interpolator WorldSummerLatitudetoTemperatureC = new Interpolator(WorldLatitudeDeg, WorldTemperatureSummer);
+
         // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
         private static readonly double[] SteamUsageLbpH = { 0.0, 3000.0 };
         // Water Usage
@@ -146,14 +151,13 @@ namespace Orts.Simulation.RollingStocks
         public float CarInsideTempC;
 
         // some properties of this car
-        public float CarWidthM = 2.5f;
-        public float CarLengthM = 40;       // derived classes must overwrite these defaults
-        public float CarHeightM = 4;        // derived classes must overwrite these defaults
-        public float MassKG = 10000;        // Mass in KG at runtime; coincides with InitialMassKG if there is no load and no ORTS freight anim
-        public float InitialMassKG = 10000;
-        public bool IsDriveable;
-        public bool HasFreightAnim;
-        public bool HasPassengerCapacity;
+        public float CarWidthM { get; protected set; } = 2.5f;
+        public float CarLengthM { get; internal protected set; } = 40;       // derived classes must overwrite these defaults
+        public float CarHeightM { get; protected set; } = 4;        // derived classes must overwrite these defaults
+        public float MassKG { get; internal protected set; } = 10000;        // Mass in KG at runtime; coincides with InitialMassKG if there is no load and no ORTS freight anim
+        public float InitialMassKG { get; protected set; } = 10000;
+        public bool IsDriveable { get; protected set; }
+        public int PassengerCapacity { get; protected set; }
         public bool HasInsideView;
         public float CarHeightAboveSeaLevelM;
         public float CarBogieCentreLengthM;
@@ -203,10 +207,9 @@ namespace Orts.Simulation.RollingStocks
         public float CarAirHoseHorizontalLengthM;
 
         public float CarHeatVolumeM3 { get => CarWidthM * (CarLengthM - CarCouplingPipeM) * (CarHeightM - BogieHeightM); } // Volume of car for heating purposes
-        public float CarHeatPipeAreaM2;  // Area of surface of car pipe
-        public float CarOutsideTempC;   // Ambient temperature outside of car
-        public float InitialCarOutsideTempC;
-        public bool IsTrainHeatingBoilerInitialised { get; set; }
+        public float CarOutsideTempC { get; private set; }   // Ambient temperature outside of car
+        private float initialCarOutsideTempC;
+
         public float ConvectionFactor
         {
             get
@@ -312,31 +315,7 @@ namespace Orts.Simulation.RollingStocks
         public float HotBoxStartTimeS;
 
         // Setup for ambient temperature dependency
-        private Interpolator OutsideWinterTempbyLatitudeC;
-        private Interpolator OutsideAutumnTempbyLatitudeC;
-        private Interpolator OutsideSpringTempbyLatitudeC;
-        private Interpolator OutsideSummerTempbyLatitudeC;
-        public bool AmbientTemperatureInitialised;
-
-        public static Interpolator WorldWinterLatitudetoTemperatureC()
-        {
-            return new Interpolator(WorldLatitudeDeg, WorldTemperatureWinter);
-        }
-
-        public static Interpolator WorldAutumnLatitudetoTemperatureC()
-        {
-            return new Interpolator(WorldLatitudeDeg, WorldTemperatureAutumn);
-        }
-
-        public static Interpolator WorldSpringLatitudetoTemperatureC()
-        {
-            return new Interpolator(WorldLatitudeDeg, WorldTemperatureSpring);
-        }
-
-        public static Interpolator WorldSummerLatitudetoTemperatureC()
-        {
-            return new Interpolator(WorldLatitudeDeg, WorldTemperatureSummer);
-        }
+        private bool ambientTemperatureInitialised;
 
         public bool AcceptMUSignals = true; //indicates if the car accepts multiple unit signals
         public bool IsMetric;
@@ -527,10 +506,12 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelAxlesLoaded;
         public TrainCarParts Parts { get; } = new TrainCarParts();
 
+#pragma warning disable CA1002 // Do not expose generic lists
         // For use by cameras, initialized in MSTSWagon class and its derived classes
-        public List<PassengerViewPoint> PassengerViewpoints = new List<PassengerViewPoint>();
-        public List<PassengerViewPoint> CabViewpoints; //three dimensional cab view point
-        public List<ViewPoint> HeadOutViewpoints = new List<ViewPoint>();
+        public List<PassengerViewPoint> PassengerViewpoints { get; private protected set; }
+        public List<PassengerViewPoint> CabViewpoints { get; private protected set; } //three dimensional cab view point
+        public List<ViewPoint> HeadOutViewpoints { get; private protected set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         // Used by Curve Speed Method
         private protected float trackGauge = 1.435f;  // Track gauge - read in MSTSWagon
@@ -580,10 +561,10 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Initialise ambient temperatures on first initial loop, then ignore
-            if (!AmbientTemperatureInitialised)
+            if (!ambientTemperatureInitialised)
             {
                 InitializeCarTemperatures();
-                AmbientTemperatureInitialised = true;
+                ambientTemperatureInitialised = true;
             }
             
             // Update temperature variation for height of car above sea level
@@ -603,7 +584,7 @@ namespace Orts.Simulation.RollingStocks
             
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
             
-            CarOutsideTempC = InitialCarOutsideTempC - TemperatureHeightVariationDegC;
+            CarOutsideTempC = initialCarOutsideTempC - TemperatureHeightVariationDegC;
 
             // gravity force, M32 is up component of forward vector
             GravityForceN = MassKG * GravitationalAccelerationMpS2 * WorldPosition.XNAMatrix.M32;
@@ -643,50 +624,32 @@ namespace Orts.Simulation.RollingStocks
         /// <\summary>           
         public void InitializeCarTemperatures()
         {
-            OutsideWinterTempbyLatitudeC = WorldWinterLatitudetoTemperatureC();
-            OutsideAutumnTempbyLatitudeC = WorldAutumnLatitudetoTemperatureC();
-            OutsideSpringTempbyLatitudeC = WorldSpringLatitudetoTemperatureC();
-            OutsideSummerTempbyLatitudeC = WorldSummerLatitudetoTemperatureC();
-
             // Find the latitude reading and set outside temperature
             EarthCoordinates.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, out double latitude, out double longitude);
                         
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
 
             // Sets outside temperature dependent upon the season
-            if (simulator.Season == SeasonType.Winter)
+            initialCarOutsideTempC = simulator.Season switch
             {
-                // Winter temps
-                InitialCarOutsideTempC = (float)OutsideWinterTempbyLatitudeC[LatitudeDeg];
-            }
-            else if (simulator.Season == SeasonType.Autumn)
-            {
-                // Autumn temps
-                InitialCarOutsideTempC = (float)OutsideAutumnTempbyLatitudeC[LatitudeDeg];
-            }
-            else if (simulator.Season == SeasonType.Spring)
-            {
-                // Spring temps
-                InitialCarOutsideTempC = (float)OutsideSpringTempbyLatitudeC[LatitudeDeg];
-            }
-            else
-            {
-                // Summer temps
-                InitialCarOutsideTempC = (float)OutsideSummerTempbyLatitudeC[LatitudeDeg];
-            }
+                SeasonType.Winter => (float)WorldWinterLatitudetoTemperatureC[LatitudeDeg],// Winter temps
+                SeasonType.Autumn => (float)WorldAutumnLatitudetoTemperatureC[LatitudeDeg],// Autumn temps
+                SeasonType.Spring => (float)WorldSpringLatitudetoTemperatureC[LatitudeDeg],// Spring temps
+                _ => (float)WorldSummerLatitudetoTemperatureC[LatitudeDeg],// Summer temps
+            };
 
             // If weather is freezing. Snow will only be produced when temp is between 0 and 2 Deg C. Adjust temp as appropriate
             const float SnowTemperatureC = 2;
 
-            if (simulator.WeatherType == WeatherType.Snow && InitialCarOutsideTempC > SnowTemperatureC)
+            if (simulator.WeatherType == WeatherType.Snow && initialCarOutsideTempC > SnowTemperatureC)
             {
-                InitialCarOutsideTempC = 0;  // Weather snowing - freezing conditions. 
+                initialCarOutsideTempC = 0;  // Weather snowing - freezing conditions. 
             }
 
             // Initialise wheel bearing temperature to ambient temperature
-            WheelBearingTemperatureDegC = InitialCarOutsideTempC;
-            InitialWheelBearingRiseTemperatureDegC = InitialCarOutsideTempC;
-            InitialWheelBearingDeclineTemperatureDegC = InitialCarOutsideTempC;
+            WheelBearingTemperatureDegC = initialCarOutsideTempC;
+            InitialWheelBearingRiseTemperatureDegC = initialCarOutsideTempC;
+            InitialWheelBearingDeclineTemperatureDegC = initialCarOutsideTempC;
         }
 
         #region Calculate Brake Skid
