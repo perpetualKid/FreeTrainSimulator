@@ -3079,7 +3079,7 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateFrictionCoefficient(double elapsedClockSeconds)
         {
             float BaseuMax = (float)(Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
-            float SandingFrictionCoefficientFactor = 0.0f;
+            float SandingFrictionCoefficientFactor = 1.0f;
             //Set the friction coeff due to weather
             if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
             {
@@ -3196,11 +3196,11 @@ namespace Orts.Simulation.RollingStocks
 
             if (WheelSlip && ThrottlePercent > 0.2f && !BrakeSkid)   // Test to see if loco wheel is slipping, then coeff of friction will be decreased below static value. Sanding will override this somewhat
             {
-                BaseFrictionCoefficientFactor = 0.15f * SandingFrictionCoefficientFactor;  // Descrease friction to take into account dynamic (kinetic) friction U = 0.0525
+                BaseFrictionCoefficientFactor *= 0.5f;  // Descrease friction to take into account dynamic (kinetic) friction, typically kinetic friction is approximately 50% of static friction.
             }
             else if (WheelSlip && ThrottlePercent < 0.1f && BrakeSkid) // Test to see if loco wheel is skidding due to brake application
             {
-                BaseFrictionCoefficientFactor = 0.15f * SandingFrictionCoefficientFactor;  // Descrease friction to take into account dynamic (kinetic) friction U = 0.0525
+                BaseFrictionCoefficientFactor *= 0.5f;  // Descrease friction to take into account dynamic (kinetic) friction, typically kinetic friction is approximately 50% of static friction.
             }
 
             var AdhesionMultiplier = simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
