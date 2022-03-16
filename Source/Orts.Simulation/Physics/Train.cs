@@ -2158,10 +2158,10 @@ namespace Orts.Simulation.Physics
                         validSections = false;  // end of while loop through sections
                         sectionOffset -= usedCarLength;   // position of next car in this section
 
-                        car.CarTunnelData.FrontPositionBeyondStartOfTunnel = FrontCarPositionInTunnel.HasValue ? FrontCarPositionInTunnel : null;
-                        car.CarTunnelData.LengthMOfTunnelAheadFront = FrontCarLengthOfTunnelAhead.HasValue ? FrontCarLengthOfTunnelAhead : null;
-                        car.CarTunnelData.LengthMOfTunnelBehindRear = RearCarLengthOfTunnelBehind.HasValue ? RearCarLengthOfTunnelBehind : null;
-                        car.CarTunnelData.numTunnelPaths = numTunnelPaths;
+                        car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
+                        car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
+                        car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
+                        car.TunnelNumPaths = numTunnelPaths;
                     }
                     else
                     {
@@ -2178,10 +2178,10 @@ namespace Orts.Simulation.Physics
                         {
                             validSections = false;
 
-                            car.CarTunnelData.FrontPositionBeyondStartOfTunnel = FrontCarPositionInTunnel.HasValue ? FrontCarPositionInTunnel : null;
-                            car.CarTunnelData.LengthMOfTunnelAheadFront = FrontCarLengthOfTunnelAhead.HasValue ? FrontCarLengthOfTunnelAhead : null;
-                            car.CarTunnelData.LengthMOfTunnelBehindRear = RearCarLengthOfTunnelBehind.HasValue ? RearCarLengthOfTunnelBehind : null;
-                            car.CarTunnelData.numTunnelPaths = numTunnelPaths;
+                            car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
+                            car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
+                            car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
+                            car.TunnelNumPaths = numTunnelPaths;
                         }
                     }
                 }

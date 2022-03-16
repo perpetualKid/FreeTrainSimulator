@@ -71,6 +71,7 @@ namespace Orts.Formats.Msts.Models
                 throw new STFException(stf, "Missing RouteStart");
             if (ForestClearDistance == 0 && RemoveForestTreesFromRoads)
                 Trace.TraceWarning("You must define also ORTSUserPreferenceForestClearDistance to avoid trees on roads");
+            Initialize();
         }
 
         public string RouteID { get; private set; }  // ie JAPAN1  - used for TRK file and route folder name
@@ -118,6 +119,84 @@ namespace Orts.Formats.Msts.Models
         public int SwitchSMSNumber { get; private set; } = -1; // defines the number of the switch SMS files in file ttypedat
         public int CurveSMSNumber { get; private set; } = -1; // defines the number of the curve SMS files in file ttype.dat
         public int CurveSwitchSMSNumber { get; private set; } = -1; // defines the number of the curve-switch SMS files in file ttype.dat
+
+        private void Initialize()
+        {
+            // if no values are in TRK file, calculate default values.
+            // Single track Tunnels
+
+            if (SingleTunnelAreaM2 == 0)
+            {
+
+                if (SpeedLimit >= 97.22) // if route speed greater then 350km/h
+                {
+                    SingleTunnelAreaM2 = 70.0f;
+                    SingleTunnelPerimeterM = 32.0f;
+                }
+                else if (SpeedLimit >= 69.4 && SpeedLimit < 97.22) // Route speed greater then 250km/h and less then 350km/h
+                {
+                    SingleTunnelAreaM2 = 70.0f;
+                    SingleTunnelPerimeterM = 32.0f;
+                }
+                else if (SpeedLimit >= 55.5 && SpeedLimit < 69.4) // Route speed greater then 200km/h and less then 250km/h
+                {
+                    SingleTunnelAreaM2 = 58.0f;
+                    SingleTunnelPerimeterM = 28.0f;
+                }
+                else if (SpeedLimit >= 44.4 && SpeedLimit < 55.5) // Route speed greater then 160km/h and less then 200km/h
+                {
+                    SingleTunnelAreaM2 = 50.0f;
+                    SingleTunnelPerimeterM = 25.5f;
+                }
+                else if (SpeedLimit >= 33.3 && SpeedLimit < 44.4) // Route speed greater then 120km/h and less then 160km/h
+                {
+                    SingleTunnelAreaM2 = 42.0f;
+                    SingleTunnelPerimeterM = 22.5f;
+                }
+                else       // Route speed less then 120km/h
+                {
+                    SingleTunnelAreaM2 = 21.0f;  // Typically older slower speed designed tunnels
+                    SingleTunnelPerimeterM = 17.8f;
+                }
+            }
+
+            // Double track Tunnels
+
+            if (DoubleTunnelAreaM2 == 0)
+            {
+
+                if (SpeedLimit >= 97.22) // if route speed greater then 350km/h
+                {
+                    DoubleTunnelAreaM2 = 100.0f;
+                    DoubleTunnelPerimeterM = 37.5f;
+                }
+                else if (SpeedLimit >= 69.4 && SpeedLimit < 97.22) // Route speed greater then 250km/h and less then 350km/h
+                {
+                    DoubleTunnelAreaM2 = 100.0f;
+                    DoubleTunnelPerimeterM = 37.5f;
+                }
+                else if (SpeedLimit >= 55.5 && SpeedLimit < 69.4) // Route speed greater then 200km/h and less then 250km/h
+                {
+                    DoubleTunnelAreaM2 = 90.0f;
+                    DoubleTunnelPerimeterM = 35.0f;
+                }
+                else if (SpeedLimit >= 44.4 && SpeedLimit < 55.5) // Route speed greater then 160km/h and less then 200km/h
+                {
+                    DoubleTunnelAreaM2 = 80.0f;
+                    DoubleTunnelPerimeterM = 34.5f;
+                }
+                else if (SpeedLimit >= 33.3 && SpeedLimit < 44.4) // Route speed greater then 120km/h and less then 160km/h
+                {
+                    DoubleTunnelAreaM2 = 76.0f;
+                    DoubleTunnelPerimeterM = 31.0f;
+                }
+                else       // Route speed less then 120km/h
+                {
+                    DoubleTunnelAreaM2 = 41.8f;  // Typically older slower speed designed tunnels
+                    DoubleTunnelPerimeterM = 25.01f;
+                }
+            }
+        }
 
     }
 

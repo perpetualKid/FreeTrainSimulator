@@ -1023,11 +1023,11 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsunbalancedsuperelevation": UnbalancedSuperElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortsrigidwheelbase":
                     stf.MustMatch("(");
-                    RigidWheelBaseM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    rigidWheelBaseM = stf.ReadFloat(STFReader.Units.Distance, null);
                     // Allow for imperial feet and inches to be specified separately (not ideal - please don't copy this).
                     if (!stf.EndOfBlock())
                     {
-                        RigidWheelBaseM += stf.ReadFloat(STFReader.Units.Distance, 0);
+                        rigidWheelBaseM += stf.ReadFloat(STFReader.Units.Distance, 0);
                         stf.SkipRestOfBlock();
                     }
                     break;
@@ -1350,7 +1350,7 @@ namespace Orts.Simulation.RollingStocks
             centreOfGravityM = copy.centreOfGravityM;
             initialCentreOfGravityM = copy.initialCentreOfGravityM;
             UnbalancedSuperElevationM = copy.UnbalancedSuperElevationM;
-            RigidWheelBaseM = copy.RigidWheelBaseM;
+            rigidWheelBaseM = copy.rigidWheelBaseM;
             CarBogieCentreLengthM = copy.CarBogieCentreLengthM;
             CarBodyLengthM = copy.CarBodyLengthM;
             CarCouplerFaceLengthM = copy.CarCouplerFaceLengthM;
@@ -2709,7 +2709,7 @@ namespace Orts.Simulation.RollingStocks
             // Lateral resistance - due to wheel flange being pushed against rail due to side wind.
             // Calculation based upon information provided in AREA 1942 Proceedings - https://archive.org/details/proceedingsofann431942amer - pg 56
 
-            if (Physics.Train.TrainWindResistanceDependent && !CarTunnelData.FrontPositionBeyondStartOfTunnel.HasValue && AbsSpeedMpS > 2.2352) // Only calculate wind resistance if option selected in options menu, and not in a tunnel, and speed is sufficient for wind effects (>5mph)
+            if (Physics.Train.TrainWindResistanceDependent && !TunnelFrontPositionBeyondStart.HasValue && AbsSpeedMpS > 2.2352) // Only calculate wind resistance if option selected in options menu, and not in a tunnel, and speed is sufficient for wind effects (>5mph)
             {
 
                 // Wagon Direction

@@ -447,7 +447,8 @@ namespace Orts.Simulation.RollingStocks
                 Train.MUDirection = Flipped ^ loco.UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
             }
         }
-        public BrakeSystem BrakeSystem;
+
+        public BrakeSystem BrakeSystem { get; protected set; }
 
         public float PreviousSteamBrakeCylinderPressurePSI;
 
@@ -499,9 +500,9 @@ namespace Orts.Simulation.RollingStocks
 
         public float CurrentElevationPercent;
 
-        public bool CurveResistanceDependent;
-        public bool CurveSpeedDependent;
-        public bool TunnelResistanceDependent;
+        private bool curveResistanceDependent;
+        private bool curveSpeedDependent;
+        private bool tunnelResistanceDependent;
 
 
         protected float MaxDurableSafeCurveSpeedMpS;
@@ -544,7 +545,6 @@ namespace Orts.Simulation.RollingStocks
         public bool IsCriticalMinSpeed; // Is the speed less then the minimum required for the wagon to travel around the curve
         protected float MaxCurveEqualLoadSpeedMps; // Max speed that rolling stock can do whist maintaining equal load on track
         protected float StartCurveResistanceFactor = 2.0f; // Set curve friction at Start = 200%
-        protected float RouteSpeedMpS; // Max Route Speed Limit
         protected const float GravitationalAccelerationMpS2 = 9.80665f; // Acceleration due to gravity 9.80665 m/s2
         protected int WagonNumAxles; // Number of axles on a wagon
         protected float MSTSWagonNumWheels; // Number of axless on a wagon - used to read MSTS value as default
@@ -558,126 +558,21 @@ namespace Orts.Simulation.RollingStocks
 
         public WagonSpecialType WagonSpecialType { get; private protected set; }
 
-        protected float CurveResistanceZeroSpeedFactor = 0.5f; // Based upon research (Russian experiments - 1960) the older formula might be about 2x actual value
-        protected float RigidWheelBaseM;   // Vehicle rigid wheelbase, read from MSTS Wagon file
-        protected float TrainCrossSectionAreaM2; // Cross sectional area of the train
-        protected float DoubleTunnelCrossSectAreaM2;
-        protected float SingleTunnelCrossSectAreaM2;
-        protected float DoubleTunnelPerimeterM;
-        protected float SingleTunnelPerimeterAreaM;
-        protected float TunnelCrossSectionAreaM2;
-        protected float TunnelPerimeterM;
+        private protected float curveResistanceZeroSpeedFactor = 0.5f; // Based upon research (Russian experiments - 1960) the older formula might be about 2x actual value
+        private protected float rigidWheelBaseM;   // Vehicle rigid wheelbase, read from MSTS Wagon file
 
-        // used by tunnel processing
-        public struct CarTunnelInfoData
-        {
-            public float? FrontPositionBeyondStartOfTunnel;          // position of front of wagon wrt start of tunnel
-            public float? LengthMOfTunnelAheadFront;                 // Length of tunnel remaining ahead of front of wagon (negative if front of wagon out of tunnel)
-            public float? LengthMOfTunnelBehindRear;                 // Length of tunnel behind rear of wagon (negative if rear of wagon has not yet entered tunnel)
-            public int numTunnelPaths;                               // Number of paths through tunnel
-        }
-
-        public CarTunnelInfoData CarTunnelData;
+        public float? TunnelFrontPositionBeyondStart { get; internal set; }          // position of front of wagon wrt start of tunnel
+        public float? TunnelLengthAheadFront { get; internal set; }                 // Length of tunnel remaining ahead of front of wagon (negative if front of wagon out of tunnel)
+        public float? TunnelLengthBehindRear { get; internal set; }                 // Length of tunnel behind rear of wagon (negative if rear of wagon has not yet entered tunnel)
+        public int TunnelNumPaths { get; internal set; }                               // Number of paths through tunnel
 
         public virtual void Initialize()
         {
-            CurveResistanceDependent = simulator.Settings.CurveResistanceDependent;
-            CurveSpeedDependent = simulator.Settings.CurveSpeedDependent;
-            TunnelResistanceDependent = simulator.Settings.TunnelResistanceDependent;
+            curveResistanceDependent = simulator.Settings.CurveResistanceDependent;
+            curveSpeedDependent = simulator.Settings.CurveSpeedDependent;
+            tunnelResistanceDependent = simulator.Settings.TunnelResistanceDependent;
             
             //CurveForceFilter.Initialize();
-            // Initialize tunnel resistance values
-
-            DoubleTunnelCrossSectAreaM2 = simulator.Route.DoubleTunnelAreaM2;
-            SingleTunnelCrossSectAreaM2 = simulator.Route.SingleTunnelAreaM2;
-            DoubleTunnelPerimeterM = simulator.Route.DoubleTunnelPerimeterM;
-            SingleTunnelPerimeterAreaM = simulator.Route.SingleTunnelPerimeterM;
-
-            // get route speed limit
-            RouteSpeedMpS = (float)simulator.Route.SpeedLimit;
-
-            // if no values are in TRK file, calculate default values.
-            // Single track Tunnels
-
-            if (SingleTunnelCrossSectAreaM2 == 0)
-            {
-
-                if (RouteSpeedMpS >= 97.22) // if route speed greater then 350km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 70.0f;
-                    SingleTunnelPerimeterAreaM = 32.0f;
-                }
-                else if (RouteSpeedMpS >= 69.4 && RouteSpeedMpS < 97.22) // Route speed greater then 250km/h and less then 350km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 70.0f;
-                    SingleTunnelPerimeterAreaM = 32.0f;
-                }
-                else if (RouteSpeedMpS >= 55.5 && RouteSpeedMpS < 69.4) // Route speed greater then 200km/h and less then 250km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 58.0f;
-                    SingleTunnelPerimeterAreaM = 28.0f;
-                }
-                else if (RouteSpeedMpS >= 44.4 && RouteSpeedMpS < 55.5) // Route speed greater then 160km/h and less then 200km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 50.0f;
-                    SingleTunnelPerimeterAreaM = 25.5f;
-                }
-                else if (RouteSpeedMpS >= 33.3 && RouteSpeedMpS < 44.4) // Route speed greater then 120km/h and less then 160km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 42.0f;
-                    SingleTunnelPerimeterAreaM = 22.5f;
-                }
-                else       // Route speed less then 120km/h
-                {
-                    SingleTunnelCrossSectAreaM2 = 21.0f;  // Typically older slower speed designed tunnels
-                    SingleTunnelPerimeterAreaM = 17.8f;
-                }
-            }
-
-            // Double track Tunnels
-
-            if (DoubleTunnelCrossSectAreaM2 == 0)
-            {
-
-                if (RouteSpeedMpS >= 97.22) // if route speed greater then 350km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 100.0f;
-                    DoubleTunnelPerimeterM = 37.5f;
-                }
-                else if (RouteSpeedMpS >= 69.4 && RouteSpeedMpS < 97.22) // Route speed greater then 250km/h and less then 350km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 100.0f;
-                    DoubleTunnelPerimeterM = 37.5f;
-                }
-                else if (RouteSpeedMpS >= 55.5 && RouteSpeedMpS < 69.4) // Route speed greater then 200km/h and less then 250km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 90.0f;
-                    DoubleTunnelPerimeterM = 35.0f;
-                }
-                else if (RouteSpeedMpS >= 44.4 && RouteSpeedMpS < 55.5) // Route speed greater then 160km/h and less then 200km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 80.0f;
-                    DoubleTunnelPerimeterM = 34.5f;
-                }
-                else if (RouteSpeedMpS >= 33.3 && RouteSpeedMpS < 44.4) // Route speed greater then 120km/h and less then 160km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 76.0f;
-                    DoubleTunnelPerimeterM = 31.0f;
-                }
-                else       // Route speed less then 120km/h
-                {
-                    DoubleTunnelCrossSectAreaM2 = 41.8f;  // Typically older slower speed designed tunnels
-                    DoubleTunnelPerimeterM = 25.01f;
-                }
-
-            }
-
-#if DEBUG_TUNNEL_RESISTANCE
-                Trace.TraceInformation("================================== TrainCar.cs - Tunnel Resistance Initialisation ==============================================================");
-                Trace.TraceInformation("Tunnel 1 tr perimeter {0} Tunnel 1 tr area {1}", SingleTunnelPerimeterAreaM, SingleTunnelPerimeterAreaM);
-                Trace.TraceInformation("Tunnel 2 tr perimeter {0} Tunnel 2 tr area {1}", DoubleTunnelPerimeterM, DoubleTunnelCrossSectAreaM2);
-#endif
-
         }
 
         // called when it's time to update the MotiveForce and FrictionForce
@@ -967,64 +862,45 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateTunnelForce()
         {
-            if (Train.IsPlayerDriven)   // Only calculate tunnel resistance when it is the player train.
+            if (tunnelResistanceDependent && Train.IsPlayerDriven)   // Only calculate tunnel resistance when it is the player train.
             {
-                if (TunnelResistanceDependent)
+                if (TunnelFrontPositionBeyondStart.HasValue)
                 {
-                    if (CarTunnelData.FrontPositionBeyondStartOfTunnel.HasValue)
+                    // Calculate tunnel default effective cross-section area, and tunnel perimeter - based upon the designed speed limit of the railway (TRK File)
+                    float tunnelLengthM = TunnelLengthAheadFront.Value + TunnelLengthBehindRear.Value;
+                    float crossSectionArea = CarWidthM * CarHeightM;
+
+                    float tunnelPerimeterM;
+                    float tunnelCrossSectionAreaM2;
+                    // Determine tunnel X-sect area and perimeter based upon number of tracks
+                    if (TunnelNumPaths >= 2)
                     {
-
-                        float? TunnelStart;
-                        float? TunnelAhead;
-                        float? TunnelBehind;
-
-                        TunnelStart = CarTunnelData.FrontPositionBeyondStartOfTunnel;      // position of front of wagon wrt start of tunnel
-                        TunnelAhead = CarTunnelData.LengthMOfTunnelAheadFront;            // Length of tunnel remaining ahead of front of wagon (negative if front of wagon out of tunnel)
-                        TunnelBehind = CarTunnelData.LengthMOfTunnelBehindRear;           // Length of tunnel behind rear of wagon (negative if rear of wagon has not yet entered tunnel)
-
-                        // Calculate tunnel default effective cross-section area, and tunnel perimeter - based upon the designed speed limit of the railway (TRK File)
-
-                        float TunnelLengthM = CarTunnelData.LengthMOfTunnelAheadFront.Value + CarTunnelData.LengthMOfTunnelBehindRear.Value;
-                        float TrainLengthTunnelM = Train.Length;
-                        float TrainMassTunnelKg = Train.MassKg;
-                        float PrevTrainCrossSectionAreaM2 = TrainCrossSectionAreaM2;
-                        TrainCrossSectionAreaM2 = CarWidthM * CarHeightM;
-                        if (TrainCrossSectionAreaM2 < PrevTrainCrossSectionAreaM2)
-                        {
-                            TrainCrossSectionAreaM2 = PrevTrainCrossSectionAreaM2;  // Assume locomotive cross-sectional area is the largest, if not use new one.
-                        }
-                        const float DensityAirKgpM3 = 1.2f;
-
-                        // Determine tunnel X-sect area and perimeter based upon number of tracks
-                        if (CarTunnelData.numTunnelPaths >= 2)
-                        {
-                            TunnelCrossSectionAreaM2 = DoubleTunnelCrossSectAreaM2; // Set values for double track tunnels and above
-                            TunnelPerimeterM = DoubleTunnelPerimeterM;
-                        }
-                        else
-                        {
-                            TunnelCrossSectionAreaM2 = SingleTunnelCrossSectAreaM2; // Set values for single track tunnels
-                            TunnelPerimeterM = SingleTunnelPerimeterAreaM;
-                        }
-
-                        // 
-                        // Calculate first tunnel factor
-
-                        float TunnelAComponent = (0.00003318f * DensityAirKgpM3 * TunnelCrossSectionAreaM2) / ((1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2)) * (1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2)));
-                        float TunnelBComponent = 174.419f * (1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2)) * (1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2));
-                        float TunnelCComponent = (2.907f * (1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2)) * (1 - (TrainCrossSectionAreaM2 / TunnelCrossSectionAreaM2))) / (4.0f * (TunnelCrossSectionAreaM2 / TunnelPerimeterM));
-
-                        float TempTunnel1 = (float)Math.Sqrt(TunnelBComponent + (TunnelCComponent * (TunnelLengthM - TrainLengthTunnelM) / TrainLengthTunnelM));
-                        float TempTunnel2 = (1.0f - (1.0f / (1.0f + TempTunnel1))) * (1.0f - (1.0f / (1.0f + TempTunnel1)));
-
-                        double UnitAerodynamicDrag = ((TunnelAComponent * TrainLengthTunnelM) / Mass.Kilogram.ToTonnes(TrainMassTunnelKg)) * TempTunnel2;
-
-                        TunnelForceN = (float)(UnitAerodynamicDrag * Mass.Kilogram.ToTonnes(MassKG) * AbsSpeedMpS * AbsSpeedMpS);
+                        tunnelCrossSectionAreaM2 = simulator.Route.DoubleTunnelAreaM2; // Set values for double track tunnels and above
+                        tunnelPerimeterM = simulator.Route.DoubleTunnelPerimeterM;
                     }
                     else
                     {
-                        TunnelForceN = 0.0f; // Reset tunnel force to zero when train is no longer in the tunnel
+                        tunnelCrossSectionAreaM2 = simulator.Route.SingleTunnelAreaM2; // Set values for single track tunnels
+                        tunnelPerimeterM = simulator.Route.SingleTunnelPerimeterM;
                     }
+
+                    // 
+                    // Calculate first tunnel factor
+
+                    float componentA = 0.00003318f * DensityAirKgpM3 * tunnelCrossSectionAreaM2 / ((1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)));
+                    float componentB = 174.419f * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2));
+                    float componentC = (2.907f * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2))) / (4.0f * (tunnelCrossSectionAreaM2 / tunnelPerimeterM));
+
+                    double tunnel1 = Math.Sqrt(componentB + (componentC * (tunnelLengthM - Train.Length) / Train.Length));
+                    double tunnel2 = (1.0 - (1.0 / (1.0 + tunnel1))) * (1.0 - (1.0 / (1.0 + tunnel1)));
+
+                    double UnitAerodynamicDrag = (componentA * Train.Length / Mass.Kilogram.ToTonnes(Train.MassKg)) * tunnel2;
+
+                    TunnelForceN = (float)(UnitAerodynamicDrag * Mass.Kilogram.ToTonnes(MassKG) * AbsSpeedMpS * AbsSpeedMpS);
+                }
+                else
+                {
+                    TunnelForceN = 0.0f; // Reset tunnel force to zero when train is no longer in the tunnel
                 }
             }
         }
@@ -1460,7 +1336,7 @@ namespace Orts.Simulation.RollingStocks
                     NadalDerailmentCoefficient = ((float) Math.Tan(MaximumWheelFlangeAngleRad) - wagonAdhesion) / (1f + wagonAdhesion * (float) Math.Tan(MaximumWheelFlangeAngleRad));
 
                     // Calculate Angle of Attack - AOA = sin-1(2 * bogie wheel base / curve radius)
-                    AngleOfAttackRad = (float)Math.Asin(2 * RigidWheelBaseM / CurrentCurveRadius);
+                    AngleOfAttackRad = (float)Math.Asin(2 * rigidWheelBaseM / CurrentCurveRadius);
                     var angleofAttackmRad = AngleOfAttackRad * 1000f; // Convert to micro radians
 
                     // Calculate the derail climb distance - uses the general form equation 2.4 from the above publication
@@ -1642,7 +1518,7 @@ namespace Orts.Simulation.RollingStocks
 
             // get curve radius
 
-            if (CurveSpeedDependent || CurveResistanceDependent)  // Function enabled by menu selection for either curve resistance or curve speed limit
+            if (curveSpeedDependent || curveResistanceDependent)  // Function enabled by menu selection for either curve resistance or curve speed limit
             {
 
 
@@ -1661,12 +1537,13 @@ namespace Orts.Simulation.RollingStocks
                         // Set to OR default values
                         if (CurrentCurveRadius > 2000)
                         {
-                            if (RouteSpeedMpS > 55.0)   // If route speed limit is greater then 200km/h, assume high speed passenger route
+                            double speedLimit;
+                            if ((speedLimit = simulator.Route.SpeedLimit) > 55.0)   // If route speed limit is greater then 200km/h, assume high speed passenger route
                             {
                                 // Calculate superelevation based upon the route speed limit and the curve radius
                                 // SE = ((TrackGauge x Velocity^2 ) / Gravity x curve radius)
 
-                                SuperelevationM = (trackGauge * RouteSpeedMpS * RouteSpeedMpS) / (GravitationalAccelerationMpS2 * CurrentCurveRadius);
+                                SuperelevationM = (float)(trackGauge * speedLimit * speedLimit) / (GravitationalAccelerationMpS2 * CurrentCurveRadius);
 
                             }
                             else
@@ -1746,7 +1623,7 @@ namespace Orts.Simulation.RollingStocks
                     float Sin2Theta = 0.5f * (1 - (float)Math.Cos(2.0 * SuperElevationAngleRad));
                     float CriticalMinSpeedMpS = (float)Math.Sqrt((GravitationalAccelerationMpS2 * CurrentCurveRadius * HalfTrackGaugeM * Sin2Theta) / (CosTheta * (centreOfGravityM.Y * CosTheta + HalfTrackGaugeM * SinTheta)));
 
-                    if (CurveSpeedDependent)
+                    if (curveSpeedDependent)
                     {
                         
                         // This section not required any more???????????
@@ -1901,13 +1778,13 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateCurveForce(double elapsedClockSeconds)
         {
-            if (CurveResistanceDependent)
+            if (curveResistanceDependent)
             {
 
                 if (CurrentCurveRadius > 0)
                 {
 
-                    if (RigidWheelBaseM == 0)   // Calculate default values if no value in Wag File
+                    if (rigidWheelBaseM == 0)   // Calculate default values if no value in Wag File
                     {
 
                         
@@ -1915,7 +1792,7 @@ namespace Orts.Simulation.RollingStocks
                         float Bogies = Parts.Count - 1;
                         float BogieSize = Axles / Bogies;
 
-                        RigidWheelBaseM = 1.6764f;       // Set a default in case no option is found - assume a standard 4 wheel (2 axle) bogie - wheel base - 5' 6" (1.6764m)
+                        rigidWheelBaseM = 1.6764f;       // Set a default in case no option is found - assume a standard 4 wheel (2 axle) bogie - wheel base - 5' 6" (1.6764m)
 
                         // Calculate the number of axles in a car
 
@@ -1926,11 +1803,11 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 if (Axles == 2)
                                 {
-                                    RigidWheelBaseM = 3.5052f;       // Assume a standard 4 wheel (2 axle) wagon - wheel base - 11' 6" (3.5052m)
+                                    rigidWheelBaseM = 3.5052f;       // Assume a standard 4 wheel (2 axle) wagon - wheel base - 11' 6" (3.5052m)
                                 }
                                 else if (Axles == 3)
                                 {
-                                    RigidWheelBaseM = 3.6576f;       // Assume a standard 6 wheel (3 axle) wagon - wheel base - 12' 2" (3.6576m)
+                                    rigidWheelBaseM = 3.6576f;       // Assume a standard 6 wheel (3 axle) wagon - wheel base - 12' 2" (3.6576m)
                                 }
                             }
                             else if (Bogies == 2)
@@ -1940,16 +1817,16 @@ namespace Orts.Simulation.RollingStocks
                                     if (WagonType == WagonType.Passenger)
                                     {
 
-                                        RigidWheelBaseM = 2.4384f;       // Assume a standard 4 wheel passenger bogie (2 axle) wagon - wheel base - 8' (2.4384m)
+                                        rigidWheelBaseM = 2.4384f;       // Assume a standard 4 wheel passenger bogie (2 axle) wagon - wheel base - 8' (2.4384m)
                                     }
                                     else
                                     {
-                                        RigidWheelBaseM = 1.6764f;       // Assume a standard 4 wheel freight bogie (2 axle) wagon - wheel base - 5' 6" (1.6764m)
+                                        rigidWheelBaseM = 1.6764f;       // Assume a standard 4 wheel freight bogie (2 axle) wagon - wheel base - 5' 6" (1.6764m)
                                     }
                                 }
                                 else if (Axles == 3)
                                 {
-                                    RigidWheelBaseM = 3.6576f;       // Assume a standard 6 wheel bogie (3 axle) wagon - wheel base - 12' 2" (3.6576m)
+                                    rigidWheelBaseM = 3.6576f;       // Assume a standard 6 wheel bogie (3 axle) wagon - wheel base - 12' 2" (3.6576m)
                                 }
                             }
 
@@ -1960,11 +1837,11 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 if (Axles == 2)
                                 {
-                                    RigidWheelBaseM = 1.6764f;       // Set a default in case no option is found - assume a standard 4 wheel (2 axle) bogie - wheel base - 5' 6" (1.6764m)
+                                    rigidWheelBaseM = 1.6764f;       // Set a default in case no option is found - assume a standard 4 wheel (2 axle) bogie - wheel base - 5' 6" (1.6764m)
                                 }
                                 else if (Axles == 3)
                                 {
-                                    RigidWheelBaseM = 3.5052f;       // Assume a standard 6 wheel bogie (3 axle) locomotive - wheel base - 11' 6" (3.5052m)
+                                    rigidWheelBaseM = 3.5052f;       // Assume a standard 6 wheel bogie (3 axle) locomotive - wheel base - 11' 6" (3.5052m)
                                 }
                             }
                             else // assume steam locomotive
@@ -1978,7 +1855,7 @@ namespace Orts.Simulation.RollingStocks
                                 //    Approximation for calculating rigid wheelbase for steam locomotives
                                 // Wheelbase = 1.25 x (Loco Drive Axles - 1.0) x Drive Wheel diameter
 
-                                RigidWheelBaseM = 1.25f * (LocoNumDrvAxles - 1.0f) * (DriverWheelRadiusM * 2.0f);
+                                rigidWheelBaseM = 1.25f * (LocoNumDrvAxles - 1.0f) * (DriverWheelRadiusM * 2.0f);
  
                             }
 
@@ -1990,9 +1867,9 @@ namespace Orts.Simulation.RollingStocks
                     // Curve Resistance = (Vehicle mass x Coeff Friction) * (Track Gauge + Vehicle Fixed Wheelbase) / (2 * curve radius)
                     // Vehicle Fixed Wheel base is the distance between the wheels, ie bogie or fixed wheels
 
-                    CurveForceN = MassKG * Train.WagonCoefficientFriction * (trackGauge + RigidWheelBaseM) / (2.0f * CurrentCurveRadius);
+                    CurveForceN = MassKG * Train.WagonCoefficientFriction * (trackGauge + rigidWheelBaseM) / (2.0f * CurrentCurveRadius);
                     float CurveResistanceSpeedFactor = Math.Abs((MaxCurveEqualLoadSpeedMps - AbsSpeedMpS) / MaxCurveEqualLoadSpeedMps) * StartCurveResistanceFactor;
-                    CurveForceN *= CurveResistanceSpeedFactor * CurveResistanceZeroSpeedFactor;
+                    CurveForceN *= CurveResistanceSpeedFactor * curveResistanceZeroSpeedFactor;
                     CurveForceN *= GravitationalAccelerationMpS2; // to convert to Newtons
                 }
                 else
