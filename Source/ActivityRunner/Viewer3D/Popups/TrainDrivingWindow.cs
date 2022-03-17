@@ -115,6 +115,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
+        private List<string> tokens = new List<string>()
+        {
+            Viewer.Catalog.GetString("BP"),
+            Viewer.Catalog.GetString("EQ"),
+            Viewer.Catalog.GetString("V")
+        };
+
         private string directionKeyInput;
         private string throttleKeyInput;
         private string cylinderCocksInput;
@@ -444,7 +451,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.Initialize();
             // Reset window size
-            UpdateWindowSize();
+            if (Visible)
+                UpdateWindowSize();
 
         }
 
@@ -457,6 +465,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 int colWidth = listToLabel.Max(x => x.FirstColWidth) + (standardHUDMode ? 15 : 20);
                 int TimeHboxPositionY = 0;
+                // search wider
+                int tokenOffset = 0;
+                int tokenWidth = 0;
+                foreach (string data in tokens.Where((string d) => !string.IsNullOrWhiteSpace(d)))
+                {
+                    tokenWidth = Owner.TextFontDefault.MeasureString(data);
+                    tokenOffset = tokenWidth > tokenOffset ? tokenWidth : tokenOffset;
+                }
                 foreach (var data in listToLabel)
                 {
                     if (data.FirstCol.Contains("NwLn", StringComparison.OrdinalIgnoreCase))
@@ -549,7 +565,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else
                             {
-                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                var iniLastCol = Viewer.Catalog.GetString(LastCol).IndexOf(" ", StringComparison.OrdinalIgnoreCase);
+                                if (tokens.Any(LastCol.Contains) && iniLastCol >= 0)
+                                {
+                                    hbox.Add(indicator = new Label(tokenOffset + (standardHUDMode ? 5 : 3), hbox.RemainingHeight, LastCol[..iniLastCol]));
+                                    hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol[iniLastCol..Viewer.Catalog.GetString(LastCol).Length].TrimStart()));
+                                }
+                                else
+                                {
+                                    hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                }
                                 indicator.Color = Color.White; // Default color
                             }
                         }
