@@ -847,6 +847,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortsgearedtractiveeffortfactor": GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortstractiveeffortfactor": TractiveEffortFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
                     string steamengineType = stf.ReadString();
@@ -909,6 +910,7 @@ namespace Orts.Simulation.RollingStocks
             EjectorLargeSteamConsumptionLbpS = locoCopy.EjectorLargeSteamConsumptionLbpS;
             ShovelMassKG = locoCopy.ShovelMassKG;
             GearedTractiveEffortFactor = locoCopy.GearedTractiveEffortFactor;
+            TractiveEffortFactor = locoCopy.TractiveEffortFactor;
             MaxTenderCoalMassKG = locoCopy.MaxTenderCoalMassKG;
             MaxLocoTenderWaterMassKG = locoCopy.MaxLocoTenderWaterMassKG;
             MaxFiringRateKGpS = locoCopy.MaxFiringRateKGpS;
@@ -1260,9 +1262,9 @@ namespace Orts.Simulation.RollingStocks
 
             // if the maximum cutoff for the locomotive is less then the default value, then decrease it so that tractive effort is not excessive. 
             // At some future stage it may be worthwhile to add an extra parameter to the ENG file to allow user setting.
-            if (CutoffController.MaximumValue < TractiveEffortFactor)
+            if (CutoffController.MaximumValue < TractiveEffortFactor && Simulator.Settings.VerboseConfigurationMessages)
             {
-                TractiveEffortFactor = CutoffController.MaximumValue;
+                Trace.TraceInformation("Maximum Cutoff {0} is less then the TractiveEffortFactor {1}, is this correct?", CutoffController.MaximumValue, TractiveEffortFactor);
             }
 
             if (SteamEngineType == SteamEngineType.Compound)
