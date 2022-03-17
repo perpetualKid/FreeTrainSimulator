@@ -138,6 +138,13 @@ namespace Orts.Common
         Trailing,
     }
 
+    public enum CurveDirection
+    { 
+        Straight,
+        Left,
+        Right,
+    }
+
     public enum CabSetting
     {
         Name,       // name of control

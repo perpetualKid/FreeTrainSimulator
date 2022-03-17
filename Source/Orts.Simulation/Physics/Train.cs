@@ -12141,46 +12141,7 @@ namespace Orts.Simulation.Physics
             //update speed for each car, so wheels will rotate
             foreach (TrainCar car in Cars)
             {
-                if (car != null)
-                {
-                    car.SpeedMpS = SpeedMpS;
-                    if (car.Flipped)
-                        car.SpeedMpS = -car.SpeedMpS;
-                    car.AbsSpeedMpS = (float)(car.AbsSpeedMpS * (1 - elapsedClockSeconds) + targetSpeedMpS * elapsedClockSeconds);
-                    if (car.IsDriveable && car is MSTSWagon mstsWagon)
-                    {
-                        mstsWagon.WheelSpeedMpS = SpeedMpS;
-                        if (car.AbsSpeedMpS > 0.5f)
-                        {
-                            if (car is MSTSElectricLocomotive electricLocomotive)
-                            {
-                                electricLocomotive.Variable1 = 70;
-                                electricLocomotive.Variable2 = 70;
-                            }
-                            else if (car is MSTSDieselLocomotive dieselLocomotive)
-                            {
-                                dieselLocomotive.Variable1 = 0.7f;
-                                dieselLocomotive.Variable2 = 0.7f;
-                            }
-                            else if (car is MSTSSteamLocomotive steamLocomotive)
-                            {
-                                steamLocomotive.Variable1 = car.AbsSpeedMpS / car.DriverWheelRadiusM / MathHelper.Pi * 5;
-                                steamLocomotive.Variable2 = 0.7f;
-                            }
-                        }
-                        else if (car is MSTSLocomotive mstsLocomotive)
-                        {
-                            mstsLocomotive.Variable1 = 0;
-                            mstsLocomotive.Variable2 = 0;
-                        }
-                    }
-#if INDIVIDUAL_CONTROL
-                if (car is MSTSLocomotive && car.CarID.StartsWith(MPManager.GetUserName()))
-                        {
-                            car.Update(elapsedClockSeconds);
-                        }
-#endif
-                }
+                car?.UpdateRemotePosition(elapsedClockSeconds, SpeedMpS, targetSpeedMpS);
             }
             //            Trace.TraceWarning("SpeedMpS {0}  LastSpeedMpS {1}  AbsSpeedMpS {2}  targetSpeedMpS {7} x {3}  expectedTravelled {4}  travelled {5}  newDistanceTravelledM {6}",
             //                SpeedMpS, LastSpeedMpS, Cars[0].AbsSpeedMpS, xx, expectedTravelled, travelled, newDistanceTravelledM, targetSpeedMpS);

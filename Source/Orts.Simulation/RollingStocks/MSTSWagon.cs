@@ -87,9 +87,9 @@ namespace Orts.Simulation.RollingStocks
         private float TempMassDiffRatio;
 
         // simulation parameters
-        public float Variable1;  // used to convey status to soundsource
-        public float Variable2;
-        public float Variable3;
+        public float Variable1 { get; protected set; }  // used to convey status to soundsource
+        public float Variable2 { get; protected set; }
+        public float Variable3 { get; protected set; }
 
         // wag file data
         public string MainShapeFileName;
@@ -2121,7 +2121,7 @@ namespace Orts.Simulation.RollingStocks
             else // Set to variable value as bearing heats and cools
                 WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
             // If hot box has been initiated, then increase friction on the wagon significantly
-            if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
+            if (hotBoxActivated && activityElapsedDuration > hotBoxStartTime)
             {
                 WheelBearingTemperatureResistanceFactor = 2.0f;
                 StaticFrictionFactorN *= 2.0f;
@@ -2463,7 +2463,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // If hot box has been initiated, then increase friction on the wagon significantly
-            if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
+            if (hotBoxActivated && activityElapsedDuration > hotBoxStartTime)
             {
                 WheelBearingTemperatureResistanceFactor = 2.0f;
             }
@@ -2529,13 +2529,13 @@ namespace Orts.Simulation.RollingStocks
              // Keep track of Activity details if an activity, setup random wagon, and start time for hotbox
              if (simulator.ActivityRun != null && IsPlayerTrain)
              {
-                 if (ActivityElapsedDurationS < HotBoxStartTimeS)
+                 if (activityElapsedDuration < hotBoxStartTime)
                  {
-                     ActivityElapsedDurationS += (float)elapsedClockSeconds;
+                     activityElapsedDuration += elapsedClockSeconds;
                  }
 
                  // Determine whether car will be activated with a random hot box, only tested once at start of activity
-                 if (!HotBoxHasBeenInitialized) // If already initialised then skip
+                 if (!hotBoxHasBeenInitialized) // If already initialised then skip
                  {
                     // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
                     if (simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
@@ -2547,17 +2547,17 @@ namespace Orts.Simulation.RollingStocks
                          {
                               if (HotboxRandom < 10)
                               {
-                                   HotBoxActivated = true;
+                                   hotBoxActivated = true;
                                    Train.HotBoxSetOnTrain = true;
-                                   HotBoxStartTimeS = PerCentRandom * RawHotBoxTimeRandomS;
+                                   hotBoxStartTime = PerCentRandom * RawHotBoxTimeRandomS;
 
-                                   Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, Time.Second.ToM(HotBoxStartTimeS));
+                                   Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, Time.Second.ToM(hotBoxStartTime));
                               }
                          }
                      }
                  }
                     
-                 HotBoxHasBeenInitialized = true; // Only allow to loop once at first pass
+                 hotBoxHasBeenInitialized = true; // Only allow to loop once at first pass
              }
              
              float BearingSpeedMaximumTemperatureDegC = 0;
@@ -2594,29 +2594,29 @@ namespace Orts.Simulation.RollingStocks
              {
 
              // Keep track of wheel bearing temperature until activtaion time reached
-                if (ActivityElapsedDurationS < HotBoxStartTimeS)
+                if (activityElapsedDuration < hotBoxStartTime)
                 {
-                     InitialHotBoxRiseTemperatureDegS = WheelBearingTemperatureDegC;
+                     initialHotBoxRiseTemperatureDegS = WheelBearingTemperatureDegC;
                 }
 
                 // Calculate Hot box bearing temperature
-                if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS && AbsSpeedMpS > 7.0)
+                if (hotBoxActivated && activityElapsedDuration > hotBoxStartTime && AbsSpeedMpS > 7.0)
                 {
                 
-                    if (!HotBoxSoundActivated)
+                    if (!hotBoxSoundActivated)
                     {
                          SignalEvent(TrainEvent.HotBoxBearingOn);
-                         HotBoxSoundActivated = true;
+                         hotBoxSoundActivated = true;
                     }
 
-                    HotBoxTemperatureRiseTimeS += (float)elapsedClockSeconds;
+                    hotBoxTemperatureRiseTimeS += (float)elapsedClockSeconds;
                     
                     // Calculate predicted bearing temperature based upon elapsed time
-                    WheelBearingTemperatureDegC = MaximumHotBoxBearingTemperatureDegC + (InitialHotBoxRiseTemperatureDegS - MaximumHotBoxBearingTemperatureDegC) * (float)(Math.Exp(HotBoxKConst * HotBoxTemperatureRiseTimeS));
+                    WheelBearingTemperatureDegC = MaximumHotBoxBearingTemperatureDegC + (initialHotBoxRiseTemperatureDegS - MaximumHotBoxBearingTemperatureDegC) * (float)(Math.Exp(HotBoxKConst * hotBoxTemperatureRiseTimeS));
                     
                     // Reset temperature decline values in preparation for next cylce
-                    WheelBearingTemperatureDeclineTimeS = 0;
-                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
+                    wheelBearingTemperatureDeclineTimeS = 0;
+                    initialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
                     
                 }
                 // Normal bearing temperature operation
@@ -2630,7 +2630,7 @@ namespace Orts.Simulation.RollingStocks
                     WheelBearingTemperatureRiseTimeS += (float)elapsedClockSeconds;
 
                     // Calculate predicted bearing temperature based upon elapsed time
-                    WheelBearingTemperatureDegC = MaximumNormalBearingTemperatureDegC + (InitialWheelBearingRiseTemperatureDegC - MaximumNormalBearingTemperatureDegC) * (float)(Math.Exp(HeatingKConst * WheelBearingTemperatureRiseTimeS));
+                    WheelBearingTemperatureDegC = MaximumNormalBearingTemperatureDegC + (initialWheelBearingRiseTemperatureDegC - MaximumNormalBearingTemperatureDegC) * (float)(Math.Exp(HeatingKConst * WheelBearingTemperatureRiseTimeS));
                     
                     // Cap bearing temperature depending upon speed
                     if (WheelBearingTemperatureDegC > BearingSpeedMaximumTemperatureDegC)
@@ -2639,8 +2639,8 @@ namespace Orts.Simulation.RollingStocks
                     }
                     
                     // Reset Decline values in preparation for next cylce
-                    WheelBearingTemperatureDeclineTimeS = 0;
-                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
+                    wheelBearingTemperatureDeclineTimeS = 0;
+                    initialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
                     
                 }
                 // Calculate cooling temperature if train stops or slows down 
@@ -2648,16 +2648,16 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (WheelBearingTemperatureDegC > CarOutsideTempC)
                     {
-                        WheelBearingTemperatureDeclineTimeS += (float)elapsedClockSeconds;
-                        WheelBearingTemperatureDegC = CarOutsideTempC + (InitialWheelBearingDeclineTemperatureDegC - CarOutsideTempC) * (float)(Math.Exp(CoolingKConst * WheelBearingTemperatureDeclineTimeS));
+                        wheelBearingTemperatureDeclineTimeS += (float)elapsedClockSeconds;
+                        WheelBearingTemperatureDegC = CarOutsideTempC + (initialWheelBearingDeclineTemperatureDegC - CarOutsideTempC) * (float)(Math.Exp(CoolingKConst * wheelBearingTemperatureDeclineTimeS));
                     }
                     
                         WheelBearingTemperatureRiseTimeS = 0;
-                        InitialWheelBearingRiseTemperatureDegC = WheelBearingTemperatureDegC;
+                        initialWheelBearingRiseTemperatureDegC = WheelBearingTemperatureDegC;
                         
                         // Turn off Hotbox sounds
                         SignalEvent(TrainEvent.HotBoxBearingOff);
-                        HotBoxSoundActivated = false;
+                        hotBoxSoundActivated = false;
                         
                 }
                 
@@ -2668,20 +2668,20 @@ namespace Orts.Simulation.RollingStocks
              {
                  var hotboxfailuremessage = "CarID " + CarID + " has experienced a failure due to a hot wheel bearing";
                  simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxfailuremessage);
-                 WheelBearingFailed = true;
+                 wheelBearingFailed = true;
              }
              else if (WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115)
              {
-                 if (!WheelBearingHot)
+                 if (!wheelBearingHot)
                  {
                       var hotboxmessage = "CarID " + CarID + " is experiencing a hot wheel bearing";
                       simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxmessage);
-                      WheelBearingHot = true;
+                      wheelBearingHot = true;
                  }
              }
              else
              {
-                 WheelBearingHot = false;
+                 wheelBearingHot = false;
              }
 
              // Assume following limits for HUD - Normal operation: Cool: < 50, 50 - 90, Warm: 90 - 100, Hot: 100 - 115, Fail: > 115 - Set up text for HUD
@@ -2792,7 +2792,7 @@ namespace Orts.Simulation.RollingStocks
 
                 double WagonFrontalAreaFt2 = Size.Area.ToFt2(WagonFrontalAreaM2);
 
-                LateralWindForceN = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C));
+                lateralWindForce = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C));
 
                 float LateralWindResistanceForceN = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction));
 
@@ -3931,9 +3931,12 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
+        protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
+        {
+            base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
+            WheelSpeedMpS = speed;
+        }
     }
-
-
 
     /// <summary>
     /// An IntakePoint object is created for any engine or wagon having a 

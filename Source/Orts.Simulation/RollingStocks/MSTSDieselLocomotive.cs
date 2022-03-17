@@ -1058,5 +1058,21 @@ namespace Orts.Simulation.RollingStocks
             // Check also for very low DieselEngineIdleRPM
             if (IdleRPM < 10) IdleRPM = Math.Max(150, MaxRPM / 10);
         }
+
+        protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
+        {
+            base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
+            if (AbsSpeedMpS > 0.5f)
+            {
+                Variable1 = 0.7f;
+                Variable2 = 0.7f;
+            }
+            else
+            {
+                Variable1 = 0;
+                Variable2 = 0;
+            }
+        }
+
     } // class DieselLocomotive
 }

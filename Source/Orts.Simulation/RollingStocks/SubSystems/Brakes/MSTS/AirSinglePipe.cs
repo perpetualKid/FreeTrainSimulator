@@ -556,7 +556,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 {
                     // WSP dump valve stops
                     Car.WheelBrakeSlideProtectionActive = false;
-                    Car.WheelBrakeSlideProtectionTimerS = Car.wheelBrakeSlideTimerResetValueS; // Reset WSP timer if 
+                    Car.WheelBrakeSlideProtectionTimerS = Car.WheelBrakeSlideTimerResetValueS; // Reset WSP timer if 
                 }
 
             }
@@ -592,16 +592,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     f = Car.MaxHandbrakeForceN * HandbrakePercent / 100;
             }
             else f = Math.Max(Car.MaxBrakeForceN, Car.MaxHandbrakeForceN / 2); 
-            Car.BrakeRetardForceN = f * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
-            if (Car.BrakeSkid) // Test to see if wheels are skiding to excessive brake force
-            {
-                Car.BrakeForceN = f * Car.SkidFriction;   // if excessive brakeforce, wheel skids, and loses adhesion
-            }
-            else
-            {
-                Car.BrakeForceN = f * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
-            }
-
+            Car.SetBrakeForce(f);
             // sound trigger checking runs every half second, to avoid the problems caused by the jumping BrakeLine1PressurePSI value, and also saves cpu time :)
             if (SoundTriggerCounter >= 0.5f)
             {

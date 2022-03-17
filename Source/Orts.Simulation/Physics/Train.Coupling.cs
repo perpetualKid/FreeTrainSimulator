@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Simulation.RollingStocks;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Simulation.Physics
 {
     public partial class Train
@@ -234,9 +236,8 @@ namespace Orts.Simulation.Physics
                     float maxCompressionCouplerLimitM = car.AdvancedCouplerDynamicCompressionSlackLimitM;
 
                     if (maxCompressionCouplerLimitM < car.CouplerSlackM && car.CouplerSlackM < maxTensionCouplerLimitM)
-                    {
-                        car.CouplerForceB = 1;
-                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+{
+                        car.SetCouplerForce(0);
                     }
                     else
                         car.CouplerForceR = Cars[i + 1].SpeedMpS - car.SpeedMpS;
@@ -247,8 +248,7 @@ namespace Orts.Simulation.Physics
                     float max = car.CouplerSlack2M;
                     if (-max < car.CouplerSlackM && car.CouplerSlackM < max)
                     {
-                        car.CouplerForceB = 1;
-                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                        car.SetCouplerForce(0);
                     }
                     else
                         car.CouplerForceR = Cars[i + 1].SpeedMpS - car.SpeedMpS;
@@ -357,8 +357,7 @@ namespace Orts.Simulation.Physics
 
                     if (IndividualCouplerSlackM >= maxZ1CompressionM && IndividualCouplerSlackM <= maxZ1TensionM) // Zone 1 coupler faces not in contact - no force generated
                     {
-                        car.CouplerForceB = 1;
-                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                        car.SetCouplerForce(0);
                     }
                     else
                     {
@@ -371,8 +370,7 @@ namespace Orts.Simulation.Physics
                     float max = car.GetMaximumSimpleCouplerSlack1M();
                     if (-max < car.CouplerSlackM && car.CouplerSlackM < max)
                     {
-                        car.CouplerForceB = 1;
-                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                        car.SetCouplerForce(0);
                     }
                     else
                         car.CouplerForceR = Cars[i + 1].TotalForceN / Cars[i + 1].MassKG - car.TotalForceN / car.MassKG;

@@ -1472,7 +1472,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                 case Curve.ControlMode.BrakeCylinder:
                     return car.BrakeSystem.GetCylPressurePSI();
                 case Curve.ControlMode.CurveForce:
-                    return (float)car.CurveForceNFiltered;
+                    return (float)car.CurveForceFiltered;
                 default:
                     return 0;
             }
@@ -1989,7 +1989,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     return car.BrakeSystem.GetCylPressurePSI();
                 case VariableTrigger.TriggerEvent.CurveForceDecrease:
                 case VariableTrigger.TriggerEvent.CurveForceIncrease:
-                    return (float)car.CurveForceNFiltered;
+                    return (float)car.CurveForceFiltered;
                 default:
                     return 0;
             }

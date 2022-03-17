@@ -204,14 +204,17 @@ namespace Orts.Simulation.RollingStocks
         protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
             Variable1 = ThrottlePercent;
-            if (ThrottlePercent == 0f) Variable2 = 0;
+            if (ThrottlePercent == 0f)
+                Variable2 = 0;
             else
             {
                 float dV2;
                 dV2 = Math.Abs(TractiveForceN) / MaxForceN * 100f - Variable2;
                 float max = 2f;
-                if (dV2 > max) dV2 = max;
-                else if (dV2 < -max) dV2 = -max;
+                if (dV2 > max)
+                    dV2 = max;
+                else if (dV2 < -max)
+                    dV2 = -max;
                 Variable2 += dV2;
             }
             if (DynamicBrakePercent > 0)
@@ -435,5 +438,19 @@ namespace Orts.Simulation.RollingStocks
             return (pickupType == PickupType.FuelWater) ? WaterController.CurrentValue : 0f;
         }
 
+        protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
+        {
+            base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
+            if (AbsSpeedMpS > 0.5f)
+            {
+                Variable1 = 70;
+                Variable2 = 70;
+            }
+            else
+            {
+                Variable1 = 0;
+                Variable2 = 0;
+            }
+        }
     } // class ElectricLocomotive
 }

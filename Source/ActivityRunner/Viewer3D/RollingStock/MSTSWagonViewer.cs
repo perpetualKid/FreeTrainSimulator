@@ -964,7 +964,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarAhead != null) // Display animated coupler if there is a car infront of this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     // If the car ahead does not have an animated coupler then location values will be zero for car ahaead, and no coupler will display. Hence do not correct coupler location 
                     if (Car.CarAhead.RearCouplerLocation != Vector3.Zero)
@@ -1014,7 +1014,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     couplerShape = RearCouplerShape;
                     Car.RearCouplerLocation = couplerPosition.Translation;

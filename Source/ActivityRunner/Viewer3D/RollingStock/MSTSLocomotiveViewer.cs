@@ -2135,7 +2135,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             break;
                         if (!Locomotive.HasSmoothStruc)
                         {
-                            index = Locomotive.DynamicBrakeController != null ? Locomotive.DynamicBrakeController.CurrentNotch : 0;
+                            index = Locomotive.DynamicBrakeController.CurrentNotch;
                         }
                         else
                             index = PercentToIndex(dynBrakePercent);

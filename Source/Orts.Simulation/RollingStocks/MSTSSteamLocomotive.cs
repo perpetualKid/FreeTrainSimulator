@@ -1971,31 +1971,6 @@ namespace Orts.Simulation.RollingStocks
             base.Update(elapsedClockSeconds);
             UpdateFX(elapsedClockSeconds);
 
-#if INDIVIDUAL_CONTROL
-            //this train is remote controlled, with mine as a helper, so I need to send the controlling information, but not the force.
-            if (MultiPlayer.MPManager.IsMultiPlayer() && this.Train.TrainType == Train.TRAINTYPE.REMOTE && this == Program.Simulator.PlayerLocomotive)
-            {
-                if (CutoffController.UpdateValue != 0.0 || BlowerController.UpdateValue != 0.0 || DamperController.UpdateValue != 0.0 || FiringRateController.UpdateValue != 0.0 || Injector1Controller.UpdateValue != 0.0 || Injector2Controller.UpdateValue != 0.0)
-                {
-                    controlUpdated = true;
-                }
-                Train.MUReverserPercent = CutoffController.Update(elapsedClockSeconds) * 100.0f;
-                if (Train.MUReverserPercent >= 0)
-                    Train.MUDirection = Direction.Forward;
-                else
-                    Train.MUDirection = Direction.Reverse;
-                return; //done, will go back and send the message to the remote train controller
-            }
-
-            if (MultiPlayer.MPManager.IsMultiPlayer() && this.notificationReceived == true)
-            {
-                Train.MUReverserPercent = CutoffController.CurrentValue * 100.0f;
-                if (Train.MUReverserPercent >= 0)
-                    Train.MUDirection = Direction.Forward;
-                else
-                    Train.MUDirection = Direction.Reverse;
-            }
-#endif
             throttle = ThrottlePercent / 100;
             cutoff = Math.Abs(Train.MUReverserPercent / 100);
             if (cutoff > CutoffController.MaximumValue) // Maximum value set in cutoff controller in ENG file
@@ -7764,6 +7739,21 @@ namespace Orts.Simulation.RollingStocks
             Train.MUDirection = MidpointDirection.Forward;
             Train.MUReverserPercent = 100;
             base.SwitchToAutopilotControl();
+        }
+
+        protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
+        {
+            base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
+            if (AbsSpeedMpS > 0.5f)
+            {
+                Variable1 = AbsSpeedMpS / DriverWheelRadiusM / MathHelper.Pi * 5;
+                Variable2 = 0.7f;
+            }
+            else
+            {
+                Variable1 = 0;
+                Variable2 = 0;
+            }
         }
 
     } // class SteamLocomotive

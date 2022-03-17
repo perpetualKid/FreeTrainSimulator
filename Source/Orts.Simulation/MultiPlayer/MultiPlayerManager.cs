@@ -222,13 +222,6 @@ namespace Orts.Simulation.MultiPlayer
                     BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
-
-#if INDIVIDUAL_CONTROL
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Server.BroadCast((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
             //server updates switch
@@ -281,14 +274,6 @@ namespace Orts.Simulation.MultiPlayer
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
-
-#if INDIVIDUAL_CONTROL
-
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Client.Send((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
 
