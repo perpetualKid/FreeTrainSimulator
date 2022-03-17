@@ -444,31 +444,31 @@ namespace Orts.Simulation.RollingStocks
 
             // Initialise car body lengths. Assume overhang is 2.0m each end, and bogie centres are the car length minus this value
 
-            if (CarCouplerFaceLengthM == 0)
+            if (CarCouplerFaceLength == 0)
             {
-                CarCouplerFaceLengthM = CarLengthM;
+                CarCouplerFaceLength = CarLengthM;
             }
 
-            if (CarBodyLengthM == 0)
+            if (CarBodyLength == 0)
             {
-                CarBodyLengthM = CarCouplerFaceLengthM - 0.8f;
+                CarBodyLength = CarCouplerFaceLength - 0.8f;
             }
 
-            if (CarBogieCentreLengthM == 0)
+            if (CarBogieCentreLength == 0)
             {
-                CarBogieCentreLengthM = CarCouplerFaceLengthM - 4.3f;
+                CarBogieCentreLength = CarCouplerFaceLength - 4.3f;
             }
 
-            if (CarAirHoseLengthM == 0)
+            if (airHoseLengthM == 0)
             {
-                CarAirHoseLengthM = (float)Size.Length.FromIn(26.25); // 26.25 inches
+                airHoseLengthM = (float)Size.Length.FromIn(26.25); // 26.25 inches
             }
 
-            var couplerlength = ((CarCouplerFaceLengthM - CarBodyLengthM) / 2) + 0.1f; // coupler length at rest, allow 0.1m also for slack
+            var couplerlength = ((CarCouplerFaceLength - CarBodyLength) / 2) + 0.1f; // coupler length at rest, allow 0.1m also for slack
 
-            if (CarAirHoseHorizontalLengthM == 0)
+            if (airHoseHorizontalLengthM == 0)
             {
-                CarAirHoseHorizontalLengthM = 0.3862f; // 15.2 inches
+                airHoseHorizontalLengthM = 0.3862f; // 15.2 inches
             }
             
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
@@ -490,14 +490,14 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set wheel flange parameters to default values.
-            if (MaximumWheelFlangeAngleRad == 0)
+            if (maximumWheelFlangeAngle == 0)
             {
-                MaximumWheelFlangeAngleRad = 1.22173f; // Default = 70 deg - Pre 1990 AAR 1:20 wheel
+                maximumWheelFlangeAngle = 1.22173f; // Default = 70 deg - Pre 1990 AAR 1:20 wheel
             }
 
-            if (WheelFlangeLengthM == 0)
+            if (wheelFlangeLength == 0)
             {
-                WheelFlangeLengthM = 0.0254f; // Height = 1.00in - Pre 1990 AAR 1:20 wheel
+                wheelFlangeLength = 0.0254f; // Height = 1.00in - Pre 1990 AAR 1:20 wheel
             }
 
             // Initialise steam heat parameters
@@ -556,8 +556,8 @@ namespace Orts.Simulation.RollingStocks
 
             // Initialise key wagon parameters
             MassKG = InitialMassKG;
-            MaxHandbrakeForceN = InitialMaxHandbrakeForceN;
-            MaxBrakeForceN = InitialMaxBrakeForceN;
+            MaxHandbrakeForceN = initialMaxHandbrakeForce;
+            MaxBrakeForceN = initialMaxBrakeForce;
             centreOfGravityM = initialCentreOfGravityM;
 
             if (FreightAnimations != null)
@@ -997,13 +997,13 @@ namespace Orts.Simulation.RollingStocks
                     CarLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
-                case "wagon(ortslengthbogiecentre": CarBogieCentreLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortslengthcarbody": CarBodyLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortslengthairhose": CarAirHoseLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortshorizontallengthairhose": CarAirHoseHorizontalLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortslengthcouplerface": CarCouplerFaceLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortswheelflangelength": WheelFlangeLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "wagon(ortsmaximumwheelflangeangle": MaximumWheelFlangeAngleRad = stf.ReadFloatBlock(STFReader.Units.Angle, null); break;
+                case "wagon(ortslengthbogiecentre": CarBogieCentreLength = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortslengthcarbody": CarBodyLength = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortslengthairhose": airHoseLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortshorizontallengthairhose": airHoseHorizontalLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortslengthcouplerface": CarCouplerFaceLength = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortswheelflangelength": wheelFlangeLength = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortsmaximumwheelflangeangle": maximumWheelFlangeAngle = stf.ReadFloatBlock(STFReader.Units.Angle, null); break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
                     trackGauge = stf.ReadFloat(STFReader.Units.Distance, null);
@@ -1056,8 +1056,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(wheelradius": DriverWheelRadiusM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(sound": MainSoundFileName = stf.ReadStringBlock(null); break;
                 case "wagon(ortsbrakeshoefriction": BrakeShoeFrictionFactor = stf.CreateInterpolator(); break;
-                case "wagon(maxhandbrakeforce": InitialMaxHandbrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
-                case "wagon(maxbrakeforce": InitialMaxBrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "wagon(maxhandbrakeforce": initialMaxHandbrakeForce = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "wagon(maxbrakeforce": initialMaxBrakeForce = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
                 case "wagon(ortswheelbrakeslideprotection": WheelBrakeSlideProtectionFitted = stf.ReadFloatBlock(STFReader.Units.None, null) == 1; break;
                 case "wagon(ortswheelbrakesslideprotectionlimitdisable": WheelBrakeSlideProtectionLimitDisabled = stf.ReadFloatBlock(STFReader.Units.None, null) == 1; break;
                 case "wagon(ortsdavis_a": DavisAN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
@@ -1358,13 +1358,13 @@ namespace Orts.Simulation.RollingStocks
             initialCentreOfGravityM = source.initialCentreOfGravityM;
             unbalancedSuperElevation = source.unbalancedSuperElevation;
             rigidWheelBaseM = source.rigidWheelBaseM;
-            CarBogieCentreLengthM = source.CarBogieCentreLengthM;
-            CarBodyLengthM = source.CarBodyLengthM;
-            CarCouplerFaceLengthM = source.CarCouplerFaceLengthM;
-            CarAirHoseLengthM = source.CarAirHoseLengthM;
-            CarAirHoseHorizontalLengthM = source.CarAirHoseHorizontalLengthM;
-            MaximumWheelFlangeAngleRad = source.MaximumWheelFlangeAngleRad;
-            WheelFlangeLengthM = source.WheelFlangeLengthM;
+            CarBogieCentreLength = source.CarBogieCentreLength;
+            CarBodyLength = source.CarBodyLength;
+            CarCouplerFaceLength = source.CarCouplerFaceLength;
+            airHoseLengthM = source.airHoseLengthM;
+            airHoseHorizontalLengthM = source.airHoseHorizontalLengthM;
+            maximumWheelFlangeAngle = source.maximumWheelFlangeAngle;
+            wheelFlangeLength = source.wheelFlangeLength;
             AuxTenderWaterMassKG = source.AuxTenderWaterMassKG;
             TenderWagonMaxCoalMassKG = source.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = source.TenderWagonMaxWaterMassKG;
@@ -1378,8 +1378,8 @@ namespace Orts.Simulation.RollingStocks
             BrakeShoeFrictionFactor = source.BrakeShoeFrictionFactor;
             WheelBrakeSlideProtectionFitted = source.WheelBrakeSlideProtectionFitted;
             WheelBrakeSlideProtectionLimitDisabled = source.WheelBrakeSlideProtectionLimitDisabled;
-            InitialMaxBrakeForceN = source.InitialMaxBrakeForceN;
-            InitialMaxHandbrakeForceN = source.InitialMaxHandbrakeForceN;
+            initialMaxBrakeForce = source.initialMaxBrakeForce;
+            initialMaxHandbrakeForce = source.initialMaxHandbrakeForce;
             MaxBrakeForceN = source.MaxBrakeForceN;
             MaxHandbrakeForceN = source.MaxHandbrakeForceN;
             windowDeratingFactor = source.windowDeratingFactor;
@@ -1586,11 +1586,11 @@ namespace Orts.Simulation.RollingStocks
 
             outf.Write(WheelBrakeSlideProtectionActive);
             outf.Write(WheelBrakeSlideProtectionTimerS);
-            outf.Write(AngleOfAttackRad);
-            outf.Write(DerailClimbDistanceM);
+            outf.Write(angleOfAttack);
+            outf.Write(derailClimbDistance);
             outf.Write(DerailPossible);
             outf.Write(DerailExpected);
-            outf.Write(DerailElapsedTimeS);
+            outf.Write(derailElapsedTime);
 
             base.Save(outf);
         }
@@ -1638,11 +1638,11 @@ namespace Orts.Simulation.RollingStocks
 
             WheelBrakeSlideProtectionActive = inf.ReadBoolean();
             WheelBrakeSlideProtectionTimerS = inf.ReadInt32();
-            AngleOfAttackRad = inf.ReadSingle();
-            DerailClimbDistanceM = inf.ReadSingle();
+            angleOfAttack = inf.ReadSingle();
+            derailClimbDistance = inf.ReadSingle();
             DerailPossible = inf.ReadBoolean();
             DerailExpected = inf.ReadBoolean();
-            DerailElapsedTimeS = inf.ReadSingle();
+            derailElapsedTime = inf.ReadSingle();
 
             base.Restore(inf);
         }

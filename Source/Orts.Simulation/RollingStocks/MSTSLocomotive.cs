@@ -441,6 +441,14 @@ namespace Orts.Simulation.RollingStocks
 
         public float PowerReduction;
 
+        public new MidpointDirection Direction
+        {
+            //TODO: following code lines have been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
+            // To achieve the same result with other means, without flipping trainset physics, the code lines probably should be changed
+            get => (IsDriveable && Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
+            set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
+        }
+
         public MSTSLocomotive(string wagPath)
             : base(wagPath)
         {

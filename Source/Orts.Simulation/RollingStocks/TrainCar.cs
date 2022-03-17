@@ -86,7 +86,7 @@ namespace Orts.Simulation.RollingStocks
         // Used to calculate Carriage Steam Heat Loss
         private const float BogieHeight = 1.06f; // Height reduced by 1.06m to allow for bogies, etc
         private const float CarCouplingPipeLength = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
-        private const float LowSpeed = 2.0f;
+        private const double LowSpeed = 2.0f;
         private const float DryLapseTemperatureC = 9.8f;
         private const float WetLapseTemperatureC = 5.5f;
 
@@ -169,24 +169,24 @@ namespace Orts.Simulation.RollingStocks
         public bool IsDriveable { get; protected set; }
         public int PassengerCapacity { get; protected set; }
         public bool HasInsideView { get; protected set; }
-        public float CarHeightAboveSeaLevelM;
-        public float CarBogieCentreLengthM;
-        public float CarBodyLengthM;
-        public float CarCouplerFaceLengthM;
-        public float DerailmentCoefficient;
-        public float NadalDerailmentCoefficient;
-        public float MaximumWheelFlangeAngleRad;
-        public float WheelFlangeLengthM;
-        public float AngleOfAttackRad;
-        public float DerailClimbDistanceM;
-        public bool DerailPossible;
-        public bool DerailExpected;
-        public float DerailElapsedTimeS;
+        public float CarHeightAboveSeaLevel { get; set; }
+        public float CarBogieCentreLength { get; protected set; }
+        public float CarBodyLength { get; protected set; }
+        public float CarCouplerFaceLength { get; protected set; }
+        public float DerailmentCoefficient { get; private set; }
+        private float nadalDerailmentCoefficient;
+        private protected float maximumWheelFlangeAngle;
+        private protected float wheelFlangeLength;
+        private protected float angleOfAttack;
+        private protected float derailClimbDistance;
+        public bool DerailPossible { get; protected set; }
+        public bool DerailExpected { get; protected set; }
+        private protected float derailElapsedTime;
 
-        public float MaxHandbrakeForceN;
-        public float MaxBrakeForceN = 89e3f;
-        public float InitialMaxHandbrakeForceN;  // Initial force when agon initialised
-        public float InitialMaxBrakeForceN = 89e3f;   // Initial force when agon initialised
+        internal float MaxHandbrakeForceN;
+        internal float MaxBrakeForceN = 89e3f;
+        private protected float initialMaxHandbrakeForce;  // Initial force when Wagon initialised
+        private protected float initialMaxBrakeForce = 89e3f;   // Initial force when Wagon initialised
 
         // Coupler Animation
         public ShapeAnimation FrontCouplerAnimation { get; private protected set; }
@@ -206,41 +206,19 @@ namespace Orts.Simulation.RollingStocks
         public ShapeAnimation RearAirHoseAnimation { get; private protected set; }
         public ShapeAnimation RearAirHoseDisconnectedAnimation { get; private protected set; }
 
-        public float FrontAirHoseHeightAdjustmentM;
-        public float RearAirHoseHeightAdjustmentM;
-        public float FrontAirHoseYAngleAdjustmentRad;
-        public float FrontAirHoseZAngleAdjustmentRad;
-        public float RearAirHoseYAngleAdjustmentRad;
-        public float RearAirHoseZAngleAdjustmentRad;
+        public float FrontAirHoseHeightAdjustmentM { get; private set; }
+        public float RearAirHoseHeightAdjustmentM { get; private set; }
+        public float FrontAirHoseYAngleAdjustmentRad { get; private set; }
+        public float FrontAirHoseZAngleAdjustmentRad { get; private set; }
+        public float RearAirHoseYAngleAdjustmentRad { get; private set; }
+        public float RearAirHoseZAngleAdjustmentRad { get; private set; }
 
-        public float CarAirHoseLengthM;
-        public float CarAirHoseHorizontalLengthM;
+        private protected float airHoseLengthM;
+        private protected float airHoseHorizontalLengthM;
 
         public float CarHeatVolumeM3 { get => CarWidthM * (CarLengthM - CarCouplingPipeLength) * (CarHeightM - BogieHeight); } // Volume of car for heating purposes
         public float CarOutsideTempC { get; private set; }   // Ambient temperature outside of car
         private float initialCarOutsideTempC;
-
-        public float ConvectionFactor
-        {
-            get
-            {
-                float convHeatTxfMinSpeed = 10.45f - LowSpeed + (10.0f * (float)Math.Pow(LowSpeed, 0.5));
-                float convHeatTxActualSpeed = 10.45f - AbsSpeedMpS + (10.0f * (float)Math.Pow(AbsSpeedMpS, 0.5));
-                float convFactor;
-
-                if (AbsSpeedMpS >= LowSpeed)
-                {
-                    convFactor = convHeatTxActualSpeed / convHeatTxfMinSpeed; // Calculate fraction
-                }
-                else
-                {
-                    convFactor = 1.0f; // If speed less then 2m/s then set fraction to give stationary Kc value 
-                }
-                convFactor = MathHelper.Clamp(convFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
-
-                return convFactor;
-            }
-        }
 
         public float CarHeightMinusBogie => CarHeightM - BogieHeight;
         // Used to calculate wheel sliding for locked brake
@@ -405,28 +383,8 @@ namespace Orts.Simulation.RollingStocks
                     LocalDynamicBrakePercent = value;
             }
         }
-        public MidpointDirection Direction
-        {
-            //TODO: following code lines have been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
-            // To achieve the same result with other means, without flipping trainset physics, the code lines probably should be changed
-            get
-            {
-                if (IsDriveable && Train.IsActualPlayerTrain)
-                {
-                    var loco = this as MSTSLocomotive;
-                    return Flipped ^ loco.UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection;
-                }
-                else
-                {
-                    return Flipped ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection;
-                }
-            }
-            set
-            {
-                var loco = this as MSTSLocomotive;
-                Train.MUDirection = Flipped ^ loco.UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
-            }
-        }
+
+        public virtual MidpointDirection Direction => Flipped ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection;
 
         public BrakeSystem BrakeSystem { get; protected set; }
         public BrakeSystemType BrakeSystemType { get; internal protected set; }
@@ -570,11 +528,11 @@ namespace Orts.Simulation.RollingStocks
             float TemperatureHeightVariationDegC;
             if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
-                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
+                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevel) * WetLapseTemperatureC;
             }
             else  // Apply dry height variation
             {
-                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
+                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevel) * DryLapseTemperatureC;
             }
 
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
@@ -905,18 +863,18 @@ namespace Orts.Simulation.RollingStocks
             // calculate some default values based upon the length of the car specified in the "Size" statement. This value may however be inaccurate, and sets the "visual" distance for placement of the 
             // animated coupler. So often it is a good idea to add the values in the WAG file.
 
-            var OverhangThisCarM = 0.5f * (CarBodyLengthM - CarBogieCentreLengthM); // Vehicle overhang - B
-            var BogieDistanceThisCarM = 0.5f * CarBogieCentreLengthM; // 0.5 * distance between bogie centres - A
-            var CouplerDistanceThisCarM = 0.5f * (CarCouplerFaceLengthM - CarBodyLengthM);
+            var OverhangThisCarM = 0.5f * (CarBodyLength - CarBogieCentreLength); // Vehicle overhang - B
+            var BogieDistanceThisCarM = 0.5f * CarBogieCentreLength; // 0.5 * distance between bogie centres - A
+            var CouplerDistanceThisCarM = 0.5f * (CarCouplerFaceLength - CarBodyLength);
 
             var OverhangBehindCarM = 2.545f;  // Vehicle overhang - B
             var BogieDistanceBehindCarM = 8.23f;  // 0.5 * distance between bogie centres - A
-            var CouplerDistanceBehindCarM = 0.5f * (CarCouplerFaceLengthM - CarBodyLengthM);
+            var CouplerDistanceBehindCarM = 0.5f * (CarCouplerFaceLength - CarBodyLength);
             if (CarBehind != null)
             {
-                OverhangBehindCarM = 0.5f * (CarBehind.CarBodyLengthM - CarBehind.CarBogieCentreLengthM);  // Vehicle overhang - B
-                BogieDistanceBehindCarM = 0.5f * CarBehind.CarBogieCentreLengthM;  // 0.5 * distance between bogie centres - A
-                CouplerDistanceBehindCarM = 0.5f * (CarBehind.CarCouplerFaceLengthM - CarBehind.CarBodyLengthM);
+                OverhangBehindCarM = 0.5f * (CarBehind.CarBodyLength - CarBehind.CarBogieCentreLength);  // Vehicle overhang - B
+                BogieDistanceBehindCarM = 0.5f * CarBehind.CarBogieCentreLength;  // 0.5 * distance between bogie centres - A
+                CouplerDistanceBehindCarM = 0.5f * (CarBehind.CarCouplerFaceLength - CarBehind.CarBodyLength);
             }
 
             float CouplerAlphaAngleRad;
@@ -1043,21 +1001,21 @@ namespace Orts.Simulation.RollingStocks
 
                         // Calculate Buff coupler angles. Car1 is current car, and Car2 is the car behind
                         // Car ahead rear coupler angle
-                        var ThiscarCouplerlengthft = Size.Length.ToFt(CarCouplerFaceLengthM - CarBodyLengthM) + CouplerSlackM / 2;
-                        var CarbehindCouplerlengthft = Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM - CarBehind.CarBodyLengthM) + CouplerSlackM / 2;
-                        var A1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var A2 = (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f) - ThiscarCouplerlengthft;
+                        var ThiscarCouplerlengthft = Size.Length.ToFt(CarCouplerFaceLength - CarBodyLength) + CouplerSlackM / 2;
+                        var CarbehindCouplerlengthft = Size.Length.ToFt(CarBehind.CarCouplerFaceLength - CarBehind.CarBodyLength) + CouplerSlackM / 2;
+                        var A1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLength), 2) / 4.0f);
+                        var A2 = (Size.Length.ToFt(CarCouplerFaceLength) / 2.0f) - ThiscarCouplerlengthft;
                         var A = (float)Math.Atan(A1 / A2);
 
-                        var B = (float)Math.Asin(2.0f * Size.Length.ToFt(CarTrackPlayM) / Size.Length.ToFt(CarBogieCentreLengthM));
+                        var B = (float)Math.Asin(2.0f * Size.Length.ToFt(CarTrackPlayM) / Size.Length.ToFt(CarBogieCentreLength));
                         var C1 = Math.Pow(ThiscarCouplerlengthft + CarbehindCouplerlengthft, 2);
 
-                        var C2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var C2_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLengthM);
+                        var C2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLength) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLength), 2) / 4.0f);
+                        var C2_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLength) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLength);
                         var C2 = Math.Pow((C2_1 + C2_2), 2);
 
-                        var C3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var C3_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM);
+                        var C3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLength) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLength), 2) / 4.0f);
+                        var C3_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLength) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLength);
                         var C3 = Math.Pow((C3_1 + C3_2), 2);
 
                         var C4 = 2.0f * (ThiscarCouplerlengthft + CarbehindCouplerlengthft) * (C2_1 + C2_2);
@@ -1072,19 +1030,19 @@ namespace Orts.Simulation.RollingStocks
 
 
                         // This car front coupler angle
-                        var X1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var X2 = (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f) - CarbehindCouplerlengthft;
+                        var X1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLength), 2) / 4.0f);
+                        var X2 = (Size.Length.ToFt(CarBehind.CarCouplerFaceLength) / 2.0f) - CarbehindCouplerlengthft;
                         var X = (float)Math.Atan(X1 / X2);
 
-                        var Y = (float)Math.Asin(2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM));
+                        var Y = (float)Math.Asin(2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) / Size.Length.ToFt(CarBehind.CarBogieCentreLength));
 
                         var Z1 = Math.Pow(ThiscarCouplerlengthft + CarbehindCouplerlengthft, 2);
-                        var Z2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var Z2_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM);
+                        var Z2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLength) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLength), 2) / 4.0f);
+                        var Z2_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLength) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLength);
                         var Z2 = Math.Pow((Z2_1 + Z2_2), 2);
 
-                        var Z3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var Z3_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLengthM);
+                        var Z3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLength) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLength), 2) / 4.0f);
+                        var Z3_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLength) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLength);
                         var Z3 = Math.Pow((Z3_1 + Z3_2), 2);
 
                         var Z4 = 2.0f * (ThiscarCouplerlengthft + CarbehindCouplerlengthft) * (Z2_1 + Z2_2);
@@ -1119,12 +1077,12 @@ namespace Orts.Simulation.RollingStocks
                 // The height and angle variation are then calculated against "at rest" reference point. The air hose angle is used to rotate the hose in two directions, ie the Y and Z axis. 
 
                 // Calculate height adjustment.
-                var rearairhoseheightadjustmentreferenceM = (float)Math.Sqrt((float)Math.Pow(CarAirHoseLengthM, 2) - (float)Math.Pow(CarAirHoseHorizontalLengthM, 2));
-                var frontairhoseheightadjustmentreferenceM = (float)Math.Sqrt((float)Math.Pow(CarAirHoseLengthM, 2) - (float)Math.Pow(CarBehind.CarAirHoseHorizontalLengthM, 2));
+                var rearairhoseheightadjustmentreferenceM = (float)Math.Sqrt((float)Math.Pow(airHoseLengthM, 2) - (float)Math.Pow(airHoseHorizontalLengthM, 2));
+                var frontairhoseheightadjustmentreferenceM = (float)Math.Sqrt((float)Math.Pow(airHoseLengthM, 2) - (float)Math.Pow(CarBehind.airHoseHorizontalLengthM, 2));
 
                 // actual airhose height
-                RearAirHoseHeightAdjustmentM = (float)Math.Sqrt((float)Math.Pow(CarAirHoseLengthM, 2) - (float)Math.Pow((CarAirHoseHorizontalLengthM + CouplerSlackM), 2));
-                CarBehind.FrontAirHoseHeightAdjustmentM = (float)Math.Sqrt((float)Math.Pow(CarAirHoseLengthM, 2) - (float)Math.Pow((CarBehind.CarAirHoseHorizontalLengthM + CouplerSlackM), 2));
+                RearAirHoseHeightAdjustmentM = (float)Math.Sqrt((float)Math.Pow(airHoseLengthM, 2) - (float)Math.Pow((airHoseHorizontalLengthM + CouplerSlackM), 2));
+                CarBehind.FrontAirHoseHeightAdjustmentM = (float)Math.Sqrt((float)Math.Pow(airHoseLengthM, 2) - (float)Math.Pow((CarBehind.airHoseHorizontalLengthM + CouplerSlackM), 2));
 
                 // refererence adjustment heights to rest position
                 // If higher then rest position, then +ve adjustment
@@ -1147,11 +1105,11 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Calculate angle adjustments
-                var rearAirhoseAngleAdjustmentReferenceRad = (float)Math.Asin(CarAirHoseHorizontalLengthM / CarAirHoseLengthM);
-                var frontAirhoseAngleAdjustmentReferenceRad = (float)Math.Asin(CarBehind.CarAirHoseHorizontalLengthM / CarAirHoseLengthM);
+                var rearAirhoseAngleAdjustmentReferenceRad = (float)Math.Asin(airHoseHorizontalLengthM / airHoseLengthM);
+                var frontAirhoseAngleAdjustmentReferenceRad = (float)Math.Asin(CarBehind.airHoseHorizontalLengthM / airHoseLengthM);
 
-                RearAirHoseZAngleAdjustmentRad = (float)Math.Asin((CarAirHoseHorizontalLengthM + CouplerSlackM) / CarAirHoseLengthM);
-                CarBehind.FrontAirHoseZAngleAdjustmentRad = (float)Math.Asin((CarBehind.CarAirHoseHorizontalLengthM + CouplerSlackM) / CarAirHoseLengthM);
+                RearAirHoseZAngleAdjustmentRad = (float)Math.Asin((airHoseHorizontalLengthM + CouplerSlackM) / airHoseLengthM);
+                CarBehind.FrontAirHoseZAngleAdjustmentRad = (float)Math.Asin((CarBehind.airHoseHorizontalLengthM + CouplerSlackM) / airHoseLengthM);
 
                 // refererence adjustment angles to rest position
                 if (RearAirHoseZAngleAdjustmentRad >= rearAirhoseAngleAdjustmentReferenceRad)
@@ -1286,32 +1244,32 @@ namespace Orts.Simulation.RollingStocks
                     var wagonAdhesion = Train.WagonCoefficientFriction;
 
                     // Calculate Nadal derailment coefficient limit
-                    NadalDerailmentCoefficient = ((float)Math.Tan(MaximumWheelFlangeAngleRad) - wagonAdhesion) / (1f + wagonAdhesion * (float)Math.Tan(MaximumWheelFlangeAngleRad));
+                    nadalDerailmentCoefficient = ((float)Math.Tan(maximumWheelFlangeAngle) - wagonAdhesion) / (1f + wagonAdhesion * (float)Math.Tan(maximumWheelFlangeAngle));
 
                     // Calculate Angle of Attack - AOA = sin-1(2 * bogie wheel base / curve radius)
-                    AngleOfAttackRad = (float)Math.Asin(2 * rigidWheelBaseM / CurrentCurveRadius);
-                    var angleofAttackmRad = AngleOfAttackRad * 1000f; // Convert to micro radians
+                    angleOfAttack = (float)Math.Asin(2 * rigidWheelBaseM / CurrentCurveRadius);
+                    var angleofAttackmRad = angleOfAttack * 1000f; // Convert to micro radians
 
                     // Calculate the derail climb distance - uses the general form equation 2.4 from the above publication
-                    var parameterA_1 = ((100 / (-1.9128f * MathHelper.ToDegrees(MaximumWheelFlangeAngleRad) + 146.56f)) + 3.1f) * Size.Length.ToIn(WheelFlangeLengthM);
+                    var parameterA_1 = ((100 / (-1.9128f * MathHelper.ToDegrees(maximumWheelFlangeAngle) + 146.56f)) + 3.1f) * Size.Length.ToIn(wheelFlangeLength);
 
-                    var parameterA_2 = (1.0f / (-0.0092f * Math.Pow(MathHelper.ToDegrees(MaximumWheelFlangeAngleRad), 2) + 1.2125f * MathHelper.ToDegrees(MaximumWheelFlangeAngleRad) - 39.031f)) + 1.23f;
+                    var parameterA_2 = (1.0f / (-0.0092f * Math.Pow(MathHelper.ToDegrees(maximumWheelFlangeAngle), 2) + 1.2125f * MathHelper.ToDegrees(maximumWheelFlangeAngle) - 39.031f)) + 1.23f;
 
                     var parameterA = parameterA_1 + parameterA_2;
 
-                    var parameterB_1 = ((10f / (-21.157f * Size.Length.ToIn(WheelFlangeLengthM) + 2.1052f)) + 0.05f) * MathHelper.ToDegrees(MaximumWheelFlangeAngleRad);
+                    var parameterB_1 = ((10f / (-21.157f * Size.Length.ToIn(wheelFlangeLength) + 2.1052f)) + 0.05f) * MathHelper.ToDegrees(maximumWheelFlangeAngle);
 
-                    var parameterB_2 = (10 / (0.2688f * Size.Length.ToIn(WheelFlangeLengthM) - 0.0266f)) - 5f;
+                    var parameterB_2 = (10 / (0.2688f * Size.Length.ToIn(wheelFlangeLength) - 0.0266f)) - 5f;
 
                     var parameterB = parameterB_1 + parameterB_2;
 
-                    DerailClimbDistanceM = (float)Size.Length.FromFt((float)((parameterA * parameterB * Size.Length.ToIn(WheelFlangeLengthM)) / ((angleofAttackmRad + (parameterB * Size.Length.ToIn(WheelFlangeLengthM))))));
+                    derailClimbDistance = (float)Size.Length.FromFt((float)((parameterA * parameterB * Size.Length.ToIn(wheelFlangeLength)) / ((angleofAttackmRad + (parameterB * Size.Length.ToIn(wheelFlangeLength))))));
 
                     // calculate the time taken to travel the derail climb distance
-                    var derailTimeS = DerailClimbDistanceM / AbsSpeedMpS;
+                    var derailTimeS = derailClimbDistance / AbsSpeedMpS;
 
                     // Set indication that a derail may occur
-                    if (DerailmentCoefficient > NadalDerailmentCoefficient)
+                    if (DerailmentCoefficient > nadalDerailmentCoefficient)
                     {
                         DerailPossible = true;
                     }
@@ -1321,7 +1279,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     // If derail climb time exceeded, then derail happens
-                    if (DerailPossible && DerailElapsedTimeS > derailTimeS)
+                    if (DerailPossible && derailElapsedTime > derailTimeS)
                     {
                         DerailExpected = true;
                         simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString($"Car {CarID} has derailed on the curve."));
@@ -1330,12 +1288,12 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else if (DerailPossible)
                     {
-                        DerailElapsedTimeS += (float)elapsedClockSeconds;
+                        derailElapsedTime += (float)elapsedClockSeconds;
                         //   Trace.TraceInformation("Car Derail Time - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}, Elapsed {6}, DeratilTime {7}, Distance {8} Nadal {9} Coeff {10}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, DerailElapsedTimeS, derailTimeS, DerailClimbDistanceM, NadalDerailmentCoefficient, DerailmentCoefficient);
                     }
                     else
                     {
-                        DerailElapsedTimeS = 0; // Reset timer if derail is not possible
+                        derailElapsedTime = 0; // Reset timer if derail is not possible
                     }
 
                     if (AbsSpeedMpS < 0.01)
@@ -1357,7 +1315,7 @@ namespace Orts.Simulation.RollingStocks
                     DerailmentCoefficient = 0;
                     DerailExpected = false;
                     DerailPossible = false;
-                    DerailElapsedTimeS = 0;
+                    derailElapsedTime = 0;
                 }
 
 
@@ -2847,7 +2805,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
 
-        public virtual void InitializeCarHeatingVariables()
+        protected virtual void InitializeCarHeatingVariables()
         {
             MSTSLocomotive mstsLocomotive = Train.LeadLocomotive as MSTSLocomotive;
 
@@ -2879,6 +2837,17 @@ namespace Orts.Simulation.RollingStocks
                 carHeatCurrentCompartmentHeatJ = Energy.Transfer.FromKJ(Const.AirDensityBySpecificHeatCapacity * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
 
                 carHeatingInitialized = true;
+            }
+        }
+
+        private static readonly double convHeatTxfMinSpeed = 10.45 - LowSpeed + (10.0 * Math.Pow(LowSpeed, 0.5));
+        private double ConvectionFactor
+        {
+            get
+            {
+                double convHeatTxActualSpeed = 10.45 - AbsSpeedMpS + (10.0 * Math.Pow(AbsSpeedMpS, 0.5));
+                double convFactor = (AbsSpeedMpS >= LowSpeed) ? convHeatTxActualSpeed / convHeatTxfMinSpeed : 1.0f; // If speed less then 2m/s then set fraction to give stationary Kc value 
+                return Math.Clamp(convFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
             }
         }
 

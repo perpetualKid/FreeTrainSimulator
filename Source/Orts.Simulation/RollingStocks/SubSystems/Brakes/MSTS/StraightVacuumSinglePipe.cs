@@ -233,7 +233,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     float standardtemperature = 288.15f; // Standard temperature = T = 288.15 K
                     float universalgasconstant = 8.3143f; // Universal gas constant = R = 8.3143 (N*m/mol*K)
 
-                    float alititudereducedvacuum = sealevelpressure * (float)Math.Exp((-1.0f * massearthair * gravitationalacceleration * Car.CarHeightAboveSeaLevelM) / (standardtemperature * universalgasconstant));
+                    float alititudereducedvacuum = sealevelpressure * (float)Math.Exp((-1.0f * massearthair * gravitationalacceleration * Car.CarHeightAboveSeaLevel) / (standardtemperature * universalgasconstant));
 
                     float vacuumreductionfactor = alititudereducedvacuum / sealevelpressure;
 

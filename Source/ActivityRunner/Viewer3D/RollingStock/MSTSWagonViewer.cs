@@ -906,7 +906,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Get the current height above "sea level" for the relevant car
-            Car.CarHeightAboveSeaLevelM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
+            Car.CarHeightAboveSeaLevel = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
