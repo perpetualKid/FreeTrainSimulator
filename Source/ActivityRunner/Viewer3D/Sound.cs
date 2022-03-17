@@ -136,7 +136,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// The sound may be from a train car
         /// </summary>
         public MSTSWagon Car { get; set; }
-        public TrainCarViewer CarViewer { get; }
+        public TrainCarViewer TrainCar { get; }
 
         private protected static readonly Viewer viewer = Program.Viewer;
         /// <summary>
@@ -155,7 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected SoundSourceBase(TrainCarViewer trainCar)
         {
-            CarViewer = trainCar;
+            TrainCar = trainCar;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -201,7 +201,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrackSoundSource(MSTSWagon car, MSTSWagonViewer carViewer) :
             base(carViewer)
         {
-            wagonViewer = CarViewer as MSTSWagonViewer ?? throw new InvalidCastException(nameof(carViewer));
+            wagonViewer = TrainCar as MSTSWagonViewer ?? throw new InvalidCastException(nameof(carViewer));
             Car = car;
             inSources = new List<SoundSource>();
             outSources = new List<SoundSource>();
@@ -1522,7 +1522,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         {
             if (ALSoundSource != null)
             {
-                ALSoundSource.HardActivate(ignore3D, SoundSource.Car);
+                ALSoundSource.HardActivate(ignore3D, SoundSource.TrainCar);
             }
         }
 

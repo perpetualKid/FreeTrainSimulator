@@ -2366,7 +2366,7 @@ namespace Orts.Simulation.Timetables
                         car.Train = TTTrain;
                         car.CarID = $"{TTTrain.Number:0000}_{carId:000}";
                         carId++;
-                        car.OrgConsist = consistDetails.ConsistFile;
+                        car.OrgiginalConsist = consistDetails.ConsistFile;
                         car.SignalEvent(TrainEvent.Pantograph1Up);
                         TTTrain.Length += car.CarLengthM;
                     }

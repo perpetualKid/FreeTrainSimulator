@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
+using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 
@@ -554,7 +555,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly float rolloffFactor = 1;
         private int soundSourceID = -1;
 
-        private readonly SoundItem[] SoundQueue = new SoundItem[QUEUELENGHT];
+        private readonly SoundItem[] soundQueue = new SoundItem[QUEUELENGHT];
 
         /// <summary>
         /// ID generated automatically by OpenAL, when activated
@@ -580,12 +581,12 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Attached TrainCar
         /// </summary>
-        private TrainCar Car;
+        private TrainCarViewer Car;
 
         /// <summary>
         /// Whether world position should be ignored
         /// </summary>
-        private bool Ignore3D;
+        private bool ignore3D;
 
         /// <summary>
         /// Constructs a new AL sound source
@@ -595,7 +596,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ALSoundSource(bool isEnv, float rolloffFactor)
         {
             soundSourceID = -1;
-            SoundQueue[queueTail].PlayState = PlayState.NOP;
+            soundQueue[queueTail].PlayState = PlayState.NOP;
             this.rolloffFactor = rolloffFactor;
         }
 
@@ -663,7 +664,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void InitPosition()
         {
-            if (Ignore3D)
+            if (ignore3D)
             {
                 OpenAL.Sourcei(soundSourceID, OpenAL.AL_SOURCE_RELATIVE, OpenAL.AL_TRUE);
                 OpenAL.Sourcef(soundSourceID, OpenAL.AL_DOPPLER_FACTOR, 0);
@@ -683,9 +684,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Queries a new <see cref="SoundSourceID"/> from OpenAL, if one is not allocated yet.
         /// </summary>
-        public void HardActivate(bool ignore3D, TrainCar car)
+        public void HardActivate(bool ignore3D, TrainCarViewer car)
         {
-            Ignore3D = ignore3D;
+            this.ignore3D = ignore3D;
             Car = car;
             mustActivate = true;
 
@@ -767,7 +768,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void Update()
         {
-            lock (SoundQueue)
+            lock (soundQueue)
             {
                 if (!wasPlaying && IsPlaying)
                     wasPlaying = true;
@@ -791,32 +792,32 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
 
-                switch (SoundQueue[queueTail % QUEUELENGHT].PlayState)
+                switch (soundQueue[queueTail % QUEUELENGHT].PlayState)
                 {
                     case PlayState.Playing:
                         int justActivated = TryActivate();
-                        switch (SoundQueue[queueTail % QUEUELENGHT].PlayMode)
+                        switch (soundQueue[queueTail % QUEUELENGHT].PlayMode)
                         {
                             // Determine next action if available
                             case PlayMode.LoopRelease:
                             case PlayMode.Release:
                             case PlayMode.ReleaseWithJump:
-                                if (SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayState == PlayState.New
-                                    && (SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.Release
-                                    || SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
+                                if (soundQueue[(queueTail + 1) % QUEUELENGHT].PlayState == PlayState.New
+                                    && (soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.Release
+                                    || soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
                                 {
-                                    SoundQueue[queueTail % QUEUELENGHT].PlayMode = SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode;
+                                    soundQueue[queueTail % QUEUELENGHT].PlayMode = soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode;
                                 }
 
-                                if (SoundQueue[queueTail % QUEUELENGHT].Update(soundSourceID, playbackSpeed))
+                                if (soundQueue[queueTail % QUEUELENGHT].Update(soundSourceID, playbackSpeed))
                                 {
                                     Start(); // Restart if buffers had been exhausted because of large update time
-                                    needsFrequentUpdate = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.ReleasedWithJump;
+                                    needsFrequentUpdate = soundQueue[queueTail % QUEUELENGHT].SoundPiece.ReleasedWithJump;
                                 }
                                 else
                                 {
                                     LeaveLoop();
-                                    SoundQueue[queueTail % QUEUELENGHT].LeaveItemPlay(soundSourceID);
+                                    soundQueue[queueTail % QUEUELENGHT].LeaveItemPlay(soundSourceID);
                                     Start(); // Restart if buffers had been exhausted because of large update time
                                     needsFrequentUpdate = false; // Queued the last chunk, get rest
                                     IsPlaying = false;
@@ -825,21 +826,21 @@ namespace Orts.ActivityRunner.Viewer3D
                                 break;
                             case PlayMode.Loop:
                             case PlayMode.OneShot:
-                                if (SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayState == PlayState.New
-                                    && (SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.Release
-                                    || SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
+                                if (soundQueue[(queueTail + 1) % QUEUELENGHT].PlayState == PlayState.New
+                                    && (soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.Release
+                                    || soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
                                 {
-                                    SoundQueue[queueTail % QUEUELENGHT].PlayMode = SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode;
-                                    SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayState = PlayState.NOP;
+                                    soundQueue[queueTail % QUEUELENGHT].PlayMode = soundQueue[(queueTail + 1) % QUEUELENGHT].PlayMode;
+                                    soundQueue[(queueTail + 1) % QUEUELENGHT].PlayState = PlayState.NOP;
                                     LeaveLoop();
                                     IsPlaying = false;
                                 }
-                                else if (SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.Loop)
+                                else if (soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.Loop)
                                 {
                                     // Unlike LoopRelease, which is being updated continuously, 
                                     // unattended Loop must be restarted explicitly after a reactivation.
                                     if (justActivated == 1)
-                                        SoundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.New;
+                                        soundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.New;
 
                                     // The reason of the following is that at Loop type of playing we mustn't EnterLoop() immediately after
                                     // InitItemPlay(), because an other buffer might be playing at that time, and we don't want to loop
@@ -847,7 +848,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // ones had been unqueued. This often happens at e.g. Variable2 frequency curves with multiple Loops and
                                     // Releases following each other when increasing throttle.
                                     OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFER, out int bufferID);
-                                    if (SoundQueue[queueTail % QUEUELENGHT].SoundPiece.IsMine(bufferID))
+                                    if (soundQueue[queueTail % QUEUELENGHT].SoundPiece.IsMine(bufferID))
                                     {
                                         EnterLoop();
                                         IsPlaying = true;
@@ -860,13 +861,13 @@ namespace Orts.ActivityRunner.Viewer3D
                                         needsFrequentUpdate = true; // and watch carefully
                                     }
                                 }
-                                else if (SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.OneShot)
+                                else if (soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.OneShot)
                                 {
-                                    needsFrequentUpdate = (SoundQueue[(queueTail + 1) % QUEUELENGHT].PlayState != PlayState.NOP);
+                                    needsFrequentUpdate = (soundQueue[(queueTail + 1) % QUEUELENGHT].PlayState != PlayState.NOP);
                                     OpenAL.GetSourcei(soundSourceID, OpenAL.AL_SOURCE_STATE, out int state);
-                                    if (state != OpenAL.AL_PLAYING || SoundQueue[queueTail % QUEUELENGHT].IsCheckpoint(soundSourceID, playbackSpeed))
+                                    if (state != OpenAL.AL_PLAYING || soundQueue[queueTail % QUEUELENGHT].IsCheckpoint(soundSourceID, playbackSpeed))
                                     {
-                                        SoundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
+                                        soundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
                                         IsPlaying = false;
                                     }
                                 }
@@ -876,36 +877,36 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Found a playable item, play it
                     case PlayState.New:
                         // Only if it is a Play command
-                        if (SoundQueue[queueTail % QUEUELENGHT].PlayMode != PlayMode.Release
-                            && SoundQueue[queueTail % QUEUELENGHT].PlayMode != PlayMode.ReleaseWithJump)
+                        if (soundQueue[queueTail % QUEUELENGHT].PlayMode != PlayMode.Release
+                            && soundQueue[queueTail % QUEUELENGHT].PlayMode != PlayMode.ReleaseWithJump)
                         {
                             justActivated = TryActivate();
                             OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFER, out int bufferID);
 
                             // If reactivated LoopRelease sound is already playing, then we are at a wrong place, 
                             // no need for reinitialization, just continue after 1st cue point
-                            if (IsPlaying && justActivated == 1 && SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease)
+                            if (IsPlaying && justActivated == 1 && soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease)
                             {
-                                SoundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.Playing;
+                                soundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.Playing;
                             }
                             // Wait with initialization of a sound piece similar to the previous one, while that is still in queue.
                             // Otherwise we might end up with queueing the same buffers hundreds of times.
-                            else if (!IsPlaying || !SoundQueue[queueTail % QUEUELENGHT].SoundPiece.IsMine(bufferID))
+                            else if (!IsPlaying || !soundQueue[queueTail % QUEUELENGHT].SoundPiece.IsMine(bufferID))
                             {
-                                needsFrequentUpdate = SoundQueue[queueTail % QUEUELENGHT].InitItemPlay(soundSourceID);
+                                needsFrequentUpdate = soundQueue[queueTail % QUEUELENGHT].InitItemPlay(soundSourceID);
                                 float sampleRate = SampleRate;
-                                SampleRate = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
+                                SampleRate = soundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
                                 if (sampleRate != SampleRate && SampleRate != 0)
                                     PlaybackSpeed *= sampleRate / SampleRate;
 
                                 Start();
-                                needsFrequentUpdate |= SoundQueue[queueTail % QUEUELENGHT].SoundPiece.ReleasedWithJump;
+                                needsFrequentUpdate |= soundQueue[queueTail % QUEUELENGHT].SoundPiece.ReleasedWithJump;
                             }
                         }
                         // Otherwise mark as done
                         else
                         {
-                            SoundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
+                            soundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
                             IsPlaying = false;
                             needsFrequentUpdate = false;
                         }
@@ -927,7 +928,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void SkipProcessed()
         {
-            while (SoundQueue[queueTail % QUEUELENGHT].PlayState == PlayState.NOP && queueHeader != queueTail)
+            while (soundQueue[queueTail % QUEUELENGHT].PlayState == PlayState.NOP && queueHeader != queueTail)
                 queueTail++;
         }
 
@@ -939,11 +940,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private void XCheckVolumeAndState()
         {
             if (volume == 0 && (
-                SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.Release ||
-                SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
+                soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.Release ||
+                soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump))
             {
                 Stop();
-                SoundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
+                soundQueue[queueTail % QUEUELENGHT].PlayState = PlayState.NOP;
                 needsFrequentUpdate = false;
             }
 
@@ -975,18 +976,18 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="releasedWithJumpOrOneShotRepeated">Indicator if sound may be released with jump (LoopRelease), or is repeated command (OneShot)</param>
         public void Queue(string Name, PlayMode Mode, bool external, bool releasedWithJumpOrOneShotRepeated)
         {
-            lock (SoundQueue)
+            lock (soundQueue)
             {
                 if (soundSourceID == -1)
                 {
                     if (Mode == PlayMode.Release || Mode == PlayMode.ReleaseWithJump)
                     {
                         queueHeader = queueTail;
-                        SoundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.NOP;
+                        soundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.NOP;
                     }
                     else if (queueHeader != queueTail
-                        && SoundQueue[(queueHeader - 1) % QUEUELENGHT].SoundPiece.Name == Name
-                        && SoundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode == PlayMode.Loop
+                        && soundQueue[(queueHeader - 1) % QUEUELENGHT].SoundPiece.Name == Name
+                        && soundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode == PlayMode.Loop
                         && Mode == PlayMode.Loop)
                     {
                         // Don't put into queue repeatedly
@@ -994,11 +995,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     else
                     {
                         // Cannot optimize, put into Queue
-                        SoundQueue[queueHeader % QUEUELENGHT].SetPiece(Name, external, releasedWithJumpOrOneShotRepeated);
-                        SoundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.New;
-                        SoundQueue[queueHeader % QUEUELENGHT].PlayMode = Mode;
-                        if (queueHeader == queueTail && SoundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
-                            SampleRate = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
+                        soundQueue[queueHeader % QUEUELENGHT].SetPiece(Name, external, releasedWithJumpOrOneShotRepeated);
+                        soundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.New;
+                        soundQueue[queueHeader % QUEUELENGHT].PlayMode = Mode;
+                        if (queueHeader == queueTail && soundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
+                            SampleRate = soundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
 
                         queueHeader++;
                     }
@@ -1014,7 +1015,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     for (int i = 1; i < 5; i++)
                     {
 
-                        prev = SoundQueue[(queueHeader - i) % QUEUELENGHT];
+                        prev = soundQueue[(queueHeader - i) % QUEUELENGHT];
 
                         prevMode = prev.PlayMode;
 
@@ -1026,7 +1027,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (queueHeader - i == queueTail) break;
                     }
 
-                    prev = SoundQueue[(queueHeader - 1) % QUEUELENGHT];
+                    prev = soundQueue[(queueHeader - 1) % QUEUELENGHT];
                     prevMode = prev.PlayMode;
 
                     bool optimized = false;
@@ -1062,9 +1063,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                 break;
                         }
 
-                        if (prevMode != SoundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode)
+                        if (prevMode != soundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode)
                         {
-                            SoundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode = prevMode;
+                            soundQueue[(queueHeader - 1) % QUEUELENGHT].PlayMode = prevMode;
                             optimized = true;
                         }
                     }
@@ -1073,20 +1074,20 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (queueHeader - 1 > queueTail && (Mode == PlayMode.Release || Mode == PlayMode.ReleaseWithJump))
                     {
                         for (int i = queueHeader - 1; i > queueTail; i--)
-                            if (SoundQueue[(i - 1) % QUEUELENGHT].PlayMode == PlayMode.Loop || SoundQueue[(i - 1) % QUEUELENGHT].PlayMode == PlayMode.LoopRelease)
-                                SoundQueue[(i - 1) % QUEUELENGHT].PlayMode = Mode;
+                            if (soundQueue[(i - 1) % QUEUELENGHT].PlayMode == PlayMode.Loop || soundQueue[(i - 1) % QUEUELENGHT].PlayMode == PlayMode.LoopRelease)
+                                soundQueue[(i - 1) % QUEUELENGHT].PlayMode = Mode;
                     }
                     if (optimized)
                         return;
                 }
 
                 // Cannot optimize, put into Queue
-                SoundQueue[queueHeader % QUEUELENGHT].SetPiece(Name, external, Mode == PlayMode.LoopRelease && releasedWithJumpOrOneShotRepeated);
-                SoundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.New;
-                SoundQueue[queueHeader % QUEUELENGHT].PlayMode = Mode;
+                soundQueue[queueHeader % QUEUELENGHT].SetPiece(Name, external, Mode == PlayMode.LoopRelease && releasedWithJumpOrOneShotRepeated);
+                soundQueue[queueHeader % QUEUELENGHT].PlayState = PlayState.New;
+                soundQueue[queueHeader % QUEUELENGHT].PlayMode = Mode;
                 // Need an initial sample rate value for frequency curve calculation
-                if (queueHeader == queueTail && SoundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
-                    SampleRate = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
+                if (queueHeader == queueTail && soundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
+                    SampleRate = soundQueue[queueTail % QUEUELENGHT].SoundPiece.Frequency;
 
                 queueHeader++;
             }
@@ -1100,22 +1101,22 @@ namespace Orts.ActivityRunner.Viewer3D
             int h = queueHeader;
             while (h >= queueTail)
             {
-                if (SoundQueue[h % QUEUELENGHT].PlayState == PlayState.NOP)
+                if (soundQueue[h % QUEUELENGHT].PlayState == PlayState.NOP)
                 {
                     h--;
                     continue;
                 }
 
-                if ((SoundQueue[h % QUEUELENGHT].PlayMode == PlayMode.Loop ||
-                    SoundQueue[h % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ||
-                    (SoundQueue[h % QUEUELENGHT].PlayMode == PlayMode.OneShot && SoundQueue[h % QUEUELENGHT].SoundPiece.Length > 50000)
+                if ((soundQueue[h % QUEUELENGHT].PlayMode == PlayMode.Loop ||
+                    soundQueue[h % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ||
+                    (soundQueue[h % QUEUELENGHT].PlayMode == PlayMode.OneShot && soundQueue[h % QUEUELENGHT].SoundPiece.Length > 50000)
                     ) &&
-                    (SoundQueue[h % QUEUELENGHT].PlayState == PlayState.New ||
-                    SoundQueue[h % QUEUELENGHT].PlayState == PlayState.Playing))
+                    (soundQueue[h % QUEUELENGHT].PlayState == PlayState.New ||
+                    soundQueue[h % QUEUELENGHT].PlayState == PlayState.Playing))
                     break;
 
-                if (SoundQueue[h % QUEUELENGHT].PlayMode == PlayMode.Release ||
-                    SoundQueue[h % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump)
+                if (soundQueue[h % QUEUELENGHT].PlayMode == PlayMode.Release ||
+                    soundQueue[h % QUEUELENGHT].PlayMode == PlayMode.ReleaseWithJump)
                 {
                     h = queueTail - 1;
                 }
@@ -1128,16 +1129,16 @@ namespace Orts.ActivityRunner.Viewer3D
                 int i;
                 for (i = h - 1; i >= queueTail; i--)
                 {
-                    SoundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
+                    soundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
                 }
 
                 for (i = queueHeader; i > h; i--)
                 {
-                    SoundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
+                    soundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
                 }
 
-                SoundQueue[h % QUEUELENGHT].PlayState = PlayState.New;
-                SoundQueue[(h + 1) % QUEUELENGHT].PlayState = PlayState.NOP;
+                soundQueue[h % QUEUELENGHT].PlayState = PlayState.New;
+                soundQueue[(h + 1) % QUEUELENGHT].PlayState = PlayState.NOP;
 
                 queueHeader = h + 1;
                 queueTail = h;
@@ -1145,7 +1146,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else
             {
                 for (int i = queueTail; i <= queueHeader; i++)
-                    SoundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
+                    soundQueue[i % QUEUELENGHT].PlayState = PlayState.NOP;
 
                 queueHeader = queueTail;
             }
@@ -1200,7 +1201,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                SoundPiece soundPiece = SoundQueue[queueTail % QUEUELENGHT].SoundPiece;
+                SoundPiece soundPiece = soundQueue[queueTail % QUEUELENGHT].SoundPiece;
                 if (soundPiece != null)
                     mstsMonoTreatment = soundPiece.MstsMonoTreatment;
                 return mstsMonoTreatment;
@@ -1243,10 +1244,10 @@ namespace Orts.ActivityRunner.Viewer3D
             string[] retval = new string[4];
             retval[0] = soundSourceID.ToString(CultureInfo.InvariantCulture);
 
-            if (SoundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
+            if (soundQueue[queueTail % QUEUELENGHT].SoundPiece != null)
             {
-                retval[1] = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.Name.Split('\\').Last();
-                retval[2] = SoundQueue[queueTail % QUEUELENGHT].SoundPiece.NumCuePoints.ToString(CultureInfo.InvariantCulture);
+                retval[1] = soundQueue[queueTail % QUEUELENGHT].SoundPiece.Name.Split('\\').Last();
+                retval[2] = soundQueue[queueTail % QUEUELENGHT].SoundPiece.NumCuePoints.ToString(CultureInfo.InvariantCulture);
             }
             else
             {
@@ -1254,13 +1255,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 retval[2] = "0";
             }
 
-            if (SoundQueue[queueTail % QUEUELENGHT].PlayState != PlayState.NOP)
+            if (soundQueue[queueTail % QUEUELENGHT].PlayState != PlayState.NOP)
             {
-                retval[3] = $"{SoundQueue[queueTail % QUEUELENGHT].PlayState} {SoundQueue[queueTail % QUEUELENGHT].PlayMode}{(SoundQueue[queueTail % QUEUELENGHT].SoftLoopPoints && SoundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ? "Soft" : "")}";
+                retval[3] = $"{soundQueue[queueTail % QUEUELENGHT].PlayState} {soundQueue[queueTail % QUEUELENGHT].PlayMode}{(soundQueue[queueTail % QUEUELENGHT].SoftLoopPoints && soundQueue[queueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ? "Soft" : "")}";
             }
             else
             {
-                retval[3] = $"Stopped {SoundQueue[queueTail % QUEUELENGHT].PlayMode}";
+                retval[3] = $"Stopped {soundQueue[queueTail % QUEUELENGHT].PlayMode}";
             }
 
             retval[3] += $" {queueHeader - queueTail}";

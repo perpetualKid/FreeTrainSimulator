@@ -6245,13 +6245,13 @@ namespace Orts.Simulation.RollingStocks
                    FormatStrings.h,
                    Simulator.Catalog.GetString("Last:"),
                    Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(Train.LastCar.CarSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
+                   FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                    Simulator.Catalog.GetString("Temp"),
                    FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits),
                    Simulator.Catalog.GetString("OutTemp"),
                    FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits),
                    Simulator.Catalog.GetString("NetHt"),
-                   Train.LastCar.CarNetHeatFlowRateW);
+                   Train.LastCar.carNetHeatFlowRateW);
             }
 
             status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Fireman"));

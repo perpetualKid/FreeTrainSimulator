@@ -10303,7 +10303,7 @@ namespace Orts.Simulation.Timetables
                     bool inConsist = false;
 
                     // check if front must be detached
-                    if (detachConsist.Contains(Cars[0].OrgConsist))
+                    if (detachConsist.Contains(Cars[0].OrgiginalConsist))
                     {
                         inConsist = true;
                         frontpos = true;
@@ -10312,7 +10312,7 @@ namespace Orts.Simulation.Timetables
 
                         while (nextunit < Cars.Count && inConsist)
                         {
-                            if (detachConsist.Contains(Cars[nextunit].OrgConsist))
+                            if (detachConsist.Contains(Cars[nextunit].OrgiginalConsist))
                             {
                                 iunits++;
                                 nextunit++;
@@ -10323,7 +10323,7 @@ namespace Orts.Simulation.Timetables
                             }
                         }
                     }
-                    else if (detachConsist.Contains(Cars[Cars.Count - 1].OrgConsist))
+                    else if (detachConsist.Contains(Cars[Cars.Count - 1].OrgiginalConsist))
                     {
                         inConsist = true;
                         frontpos = false;
@@ -10332,7 +10332,7 @@ namespace Orts.Simulation.Timetables
 
                         while (nextunit >= 0 && inConsist)
                         {
-                            if (detachConsist.Contains(Cars[nextunit].OrgConsist))
+                            if (detachConsist.Contains(Cars[nextunit].OrgiginalConsist))
                             {
                                 iunits++;
                                 nextunit--;

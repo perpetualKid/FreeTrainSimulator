@@ -179,11 +179,12 @@ namespace Orts.Simulation.RollingStocks
             set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
         }
 
-        public float CurrentLocomotiveSteamHeatBoilerWaterCapacityL
+        public double CurrentLocomotiveSteamHeatBoilerWaterCapacityL
         {
-            get { return WaterController.CurrentValue * MaximumSteamHeatBoilerWaterTankCapacityL; }
-            set { WaterController.CurrentValue = value / MaximumSteamHeatBoilerWaterTankCapacityL; }
+            get { return WaterController.CurrentValue * maximumSteamHeatBoilerWaterTankCapacityL; }
+            set { WaterController.CurrentValue = (float)(value / maximumSteamHeatBoilerWaterTankCapacityL); }
         }
+
         public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
 
         public float BoilerPressurePSI;     // Steam Gauge pressure - what the engineer sees.
@@ -2729,7 +2730,7 @@ namespace Orts.Simulation.RollingStocks
                 else
                 {
                     CurrentLocomotiveSteamHeatBoilerWaterCapacityL += WaterScoopInputAmountL; // add water if it is a steam heat boiler
-                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = MathHelper.Clamp(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, 0.0f, MaximumSteamHeatBoilerWaterTankCapacityL);
+                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = Math.Clamp(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, 0.0f, maximumSteamHeatBoilerWaterTankCapacityL);
                 }
 
                 // Calculate drag force

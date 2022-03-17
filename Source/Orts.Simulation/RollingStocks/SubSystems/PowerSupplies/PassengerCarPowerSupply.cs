@@ -328,8 +328,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script.AirConditioningPowerW = () => AirConditioningPowerW;
             Script.AirConditioningYield = () => AirConditioningYield;
             Script.PowerOnDelayS = () => PowerOnDelayS;
-            Script.DesiredTemperatureC = () => Wagon.DesiredCompartmentTempSetpointC;
-            Script.InsideTemperatureC = () => Wagon.CarInsideTempC;
+            Script.DesiredTemperatureC = () => (float)Wagon.DesiredCompartmentTempSetpointC;
+            Script.InsideTemperatureC = () => (float)Wagon.CarInsideTempC;
             Script.OutsideTemperatureC = () => Wagon.CarOutsideTempC;
 
             // AbstractPowerSupply setters
