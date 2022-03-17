@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Diagnostics;
+using System.IO;
 
 using Orts.Common;
 using Orts.Simulation.RollingStocks;
@@ -32,10 +33,10 @@ namespace Orts.Simulation.Physics
                 {
                     foreach (MSTSWagon car in Cars)
                     {
-                        if (lead.CarBrakeSystemType != car.CarBrakeSystemType) // Test to see if car brake system is the same as the locomotive
+                        if (lead.BrakeSystemType != car.BrakeSystemType) // Test to see if car brake system is the same as the locomotive
                         {
                             // If not, change so that they are compatible
-                            car.CarBrakeSystemType = lead.CarBrakeSystemType;
+                            car.BrakeSystemType = lead.BrakeSystemType;
                             if (lead.BrakeSystem is VacuumSinglePipe)
                                 car.MSTSBrakeSystem = new VacuumSinglePipe(car);
                             else if (lead.BrakeSystem is AirTwinPipe)
@@ -54,10 +55,10 @@ namespace Orts.Simulation.Physics
                             else if (lead.BrakeSystem is SingleTransferPipe)
                                 car.MSTSBrakeSystem = new SingleTransferPipe(car);
                             else
-                                throw new Exception("Unknown brake type");
+                                throw new InvalidDataException("Unknown brake type");
 
                             car.MSTSBrakeSystem.InitializeFromCopy(lead.BrakeSystem);
-                            Trace.TraceInformation("Car and Locomotive Brake System Types Incompatible on Car {0} - Car brakesystem type changed to {1}", car.CarID, car.CarBrakeSystemType);
+                            Trace.TraceInformation($"Car and Locomotive Brake System Types Incompatible on Car {car.CarID} - Car brakesystem type changed to {car.BrakeSystemType}");
                         }
                     }
                 }
@@ -130,7 +131,7 @@ namespace Orts.Simulation.Physics
                 // Hence automatic brakes will operate to this point in the train.
                 if (i < Cars.Count - 1)
                 {
-                    if (Cars[i + 1].CarBrakeSystemType == "manual_braking") //TODO 20201125 convert to enum
+                    if (Cars[i + 1].BrakeSystemType == Formats.Msts.BrakeSystemType.ManualBraking)
                     {
                         Cars[i].BrakeSystem.AngleCockBOpen = false;
                     }

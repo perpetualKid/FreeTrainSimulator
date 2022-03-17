@@ -719,7 +719,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 TempTotalTrainBrakePipeVolumeM3 += car.BrakeSystem.BrakePipeVolumeM3; // Calculate total brake pipe volume of train
 
                 // If vehicle is not a vacuum piped vehicle then calculate both volume of train pipe and BC, otherwise for vacuum piped vehicles only calculate train pipe
-                if (car.CarBrakeSystemType != "vacuum_piped")
+                if (car.BrakeSystemType != BrakeSystemType.VacuumPiped)
                 {
                     TempTotalTrainBrakeCylinderVolumeM3 += car.BrakeSystem.GetVacBrakeCylNumber() * car.BrakeSystem.GetCylVolumeM3(); // Calculate total brake cylinder volume of train
 
@@ -838,7 +838,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 // Calculate train pipe pressure at lead locomotive.
                 // If a straight vacuum brake, then calculate lead brake pressure in straightvacuumsinglepipe class.
-                if (lead != null && lead.CarBrakeSystemType != "straight_vacuum_single_pipe")
+                if (lead != null && lead.BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 {
 
                     // When brakeController put into Running position the RunningLock ensures that brake pipe matches the Equalising Reservoir (Desired Vacuum) before
@@ -1272,7 +1272,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                     // This monitors the last car in the train, and if the valve is open then BP pressure will be maintained at atmospheric (eg brakes in applied state)
                     // When valve is closed then pressure will be able to drop, and return to normal
-                    if (car == train.Cars[train.Cars.Count - 1] && car.BrakeSystem.AngleCockBOpen)
+                    if (car == train.Cars[^1] && car.BrakeSystem.AngleCockBOpen)
                     {
                         // Test to make sure that BP pressure stays within reasonable bounds
                         if (AdjbrakePipeTimeFactorS == 0)

@@ -883,8 +883,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsdynamicbrakeshasautobailoff": DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true); break;
                 case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
                 case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
-                case "engine(numwheels": MSTSLocoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (MSTSLocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
-                case "engine(ortsnumberdriveaxles": LocoNumDrvAxles = stf.ReadIntBlock(null); if (LocoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(numwheels": locoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (locoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(ortsnumberdriveaxles": locoNumDrvAxles = stf.ReadIntBlock(null); if (locoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
                 case "engine(antislip": AntiSlip = stf.ReadBoolBlock(false); break;
                 case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
                 case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
@@ -1002,8 +1002,8 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeDelayS = locoCopy.DynamicBrakeDelayS;
             MaxDynamicBrakeForceN = locoCopy.MaxDynamicBrakeForceN;
             HasSmoothStruc = locoCopy.HasSmoothStruc;
-            LocoNumDrvAxles = locoCopy.LocoNumDrvAxles;
-            MSTSLocoNumDrvWheels = locoCopy.MSTSLocoNumDrvWheels;
+            locoNumDrvAxles = locoCopy.locoNumDrvAxles;
+            locoNumDrvWheels = locoCopy.locoNumDrvWheels;
             AntiSlip = locoCopy.AntiSlip;
             VacuumPumpFitted = locoCopy.VacuumPumpFitted;
             FastVacuumExhausterFitted = locoCopy.FastVacuumExhausterFitted;
@@ -1302,20 +1302,20 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Ensure Drive Axles is set with a default value if user doesn't supply an OR value in ENG file
-            if (LocoNumDrvAxles == 0)
+            if (locoNumDrvAxles == 0)
             {
-                if (MSTSLocoNumDrvWheels != 0 && MSTSLocoNumDrvWheels < 6)
+                if (locoNumDrvWheels != 0 && locoNumDrvWheels < 6)
                 {
-                    LocoNumDrvAxles = (int)MSTSLocoNumDrvWheels;
+                    locoNumDrvAxles = (int)locoNumDrvWheels;
                 }
                 else
                 {
-                    LocoNumDrvAxles = 4; // Set 4 axles as default
+                    locoNumDrvAxles = 4; // Set 4 axles as default
                 }
 
                 if (simulator.Settings.VerboseConfigurationMessages)
                 {
-                    Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", LocoNumDrvAxles);
+                    Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", locoNumDrvAxles);
                 }
             }
 
@@ -2245,7 +2245,7 @@ namespace Orts.Simulation.RollingStocks
         {
                  // Ejectors are controlled independently for the "straight_vacuum_single_pipe" brake type 
                  // Ejectors are controlled by brake control valves in Simple Physics Control
-                if (simulator.Settings.SimpleControlPhysics && CarBrakeSystemType != "straight_vacuum_single_pipe")
+                if (simulator.Settings.SimpleControlPhysics && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 // Simple braking - control Ejector automatically based upon the brake control position
                 // Stop ejector operation if full vacuum pressure reached
                 {
@@ -2260,7 +2260,7 @@ namespace Orts.Simulation.RollingStocks
                     LargeEjectorSoundOn = false;
                 }
                 }
-                else if (!LargeEjectorControllerFitted && CarBrakeSystemType != "straight_vacuum_single_pipe") // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
+                else if (!LargeEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe) // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
                 {
                     if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release)
                     {
@@ -2293,7 +2293,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
 
-                if (SmallEjectorControllerFitted && CarBrakeSystemType != "straight_vacuum_single_pipe")
+                if (SmallEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 // Turn small ejector on if controlled from drivers controller
                 if (SmallEjectorFeedFraction > 0.05)
                 {
@@ -2452,7 +2452,7 @@ namespace Orts.Simulation.RollingStocks
         public void AdvancedAdhesion(double elapsedClockSeconds)
         {
 
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
@@ -2519,13 +2519,13 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Check if the following few lines are required???
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
             }
 
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
                 return;
 
             //Curtius-Kniffler computation

@@ -15,35 +15,36 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public abstract class MSTSBrakeSystem : BrakeSystem
     {
-        public static BrakeSystem Create(string type, TrainCar car)
+        public static BrakeSystem Create(BrakeSystemType brakeSystem, TrainCar car)
         {
-            switch (type)
+            return brakeSystem switch
             {
-                case "manual_braking": return new ManualBraking(car);
-                case "straight_vacuum_single_pipe": return new StraightVacuumSinglePipe(car);
-                case "vacuum_twin_pipe":
-                case "vacuum_single_pipe": return new VacuumSinglePipe(car);
-                case "air_twin_pipe": return new AirTwinPipe(car);
-                case "air_single_pipe": return new AirSinglePipe(car);
-                case "ecp":
-                case "ep": return new EPBrakeSystem(car);
-                case "sme": return new SMEBrakeSystem(car);
-                case "air_piped":
-                case "vacuum_piped": return new SingleTransferPipe(car);
-                default: return new SingleTransferPipe(car);
-            }
+                BrakeSystemType.ManualBraking => new ManualBraking(car),
+                BrakeSystemType.StraightVacuumSinglePipe => new StraightVacuumSinglePipe(car),
+                BrakeSystemType.VacuumTwinPipe => new VacuumSinglePipe(car),
+                BrakeSystemType.VacuumSinglePipe => new VacuumSinglePipe(car),
+                BrakeSystemType.AirTwinPipe => new AirTwinPipe(car),
+                BrakeSystemType.AirSinglePipe => new AirSinglePipe(car),
+                BrakeSystemType.Ecp => new EPBrakeSystem(car),
+                BrakeSystemType.Ep => new EPBrakeSystem(car),
+                BrakeSystemType.Sme => new SMEBrakeSystem(car),
+                BrakeSystemType.AirPiped => new SingleTransferPipe(car),
+                BrakeSystemType.VacuumPiped => new SingleTransferPipe(car),
+                _ => new SingleTransferPipe(car),
+            };
         }
 
         public abstract void Parse(string lowercasetoken, STFReader stf);
 
         public abstract void Update(double elapsedClockSeconds);
 
-        public abstract void InitializeFromCopy(BrakeSystem copy);
+        public abstract void InitializeFromCopy(BrakeSystem source);
     }
 }

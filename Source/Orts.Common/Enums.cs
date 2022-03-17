@@ -719,7 +719,6 @@ namespace Orts.Common
         [Description("Unknown")] Undefined,
     }
 
-
     public enum TCSEvent
     {
         /// <summary>

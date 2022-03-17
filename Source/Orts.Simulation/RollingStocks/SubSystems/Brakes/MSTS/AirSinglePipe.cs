@@ -101,25 +101,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return HandbrakePercent > 0;
         }
 
-        public override void InitializeFromCopy(BrakeSystem copy)
+        public override void InitializeFromCopy(BrakeSystem source)
         {
-            AirSinglePipe thiscopy = (AirSinglePipe)copy;
-            MaxCylPressurePSI = thiscopy.MaxCylPressurePSI;
-            AuxCylVolumeRatio = thiscopy.AuxCylVolumeRatio;
-            AuxBrakeLineVolumeRatio = thiscopy.AuxBrakeLineVolumeRatio;
-            EmergResVolumeM3 = thiscopy.EmergResVolumeM3;
-            BrakePipeVolumeM3 = thiscopy.BrakePipeVolumeM3;
-            RetainerPressureThresholdPSI = thiscopy.RetainerPressureThresholdPSI;
-            ReleaseRatePSIpS = thiscopy.ReleaseRatePSIpS;
-            MaxReleaseRatePSIpS = thiscopy.MaxReleaseRatePSIpS;
-            MaxApplicationRatePSIpS = thiscopy.MaxApplicationRatePSIpS;
-            MaxAuxilaryChargingRatePSIpS = thiscopy.MaxAuxilaryChargingRatePSIpS;
-            BrakeInsensitivityPSIpS = thiscopy.BrakeInsensitivityPSIpS;
-            EmergResChargingRatePSIpS = thiscopy.EmergResChargingRatePSIpS;
-            EmergAuxVolumeRatio = thiscopy.EmergAuxVolumeRatio;
-            TwoPipes = thiscopy.TwoPipes;
-            NoMRPAuxResCharging = thiscopy.NoMRPAuxResCharging;
-            HoldingValve = thiscopy.HoldingValve;
+            AirSinglePipe singlePipe = source as AirSinglePipe ?? throw new InvalidCastException(nameof(source));
+            MaxCylPressurePSI = singlePipe.MaxCylPressurePSI;
+            AuxCylVolumeRatio = singlePipe.AuxCylVolumeRatio;
+            AuxBrakeLineVolumeRatio = singlePipe.AuxBrakeLineVolumeRatio;
+            EmergResVolumeM3 = singlePipe.EmergResVolumeM3;
+            BrakePipeVolumeM3 = singlePipe.BrakePipeVolumeM3;
+            RetainerPressureThresholdPSI = singlePipe.RetainerPressureThresholdPSI;
+            ReleaseRatePSIpS = singlePipe.ReleaseRatePSIpS;
+            MaxReleaseRatePSIpS = singlePipe.MaxReleaseRatePSIpS;
+            MaxApplicationRatePSIpS = singlePipe.MaxApplicationRatePSIpS;
+            MaxAuxilaryChargingRatePSIpS = singlePipe.MaxAuxilaryChargingRatePSIpS;
+            BrakeInsensitivityPSIpS = singlePipe.BrakeInsensitivityPSIpS;
+            EmergResChargingRatePSIpS = singlePipe.EmergResChargingRatePSIpS;
+            EmergAuxVolumeRatio = singlePipe.EmergAuxVolumeRatio;
+            TwoPipes = singlePipe.TwoPipes;
+            NoMRPAuxResCharging = singlePipe.NoMRPAuxResCharging;
+            HoldingValve = singlePipe.HoldingValve;
         }
 
         // Get the brake BC & BP for EOT conditions

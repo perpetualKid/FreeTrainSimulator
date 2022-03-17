@@ -73,7 +73,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 // Adjust brake cylinder pressures as brake pipe varies
                 // straight braked cars will have separate calculations done, if locomotive is not straight braked, then revert car to vacuum single pipe  
-                if (lead.CarBrakeSystemType == "straight_vacuum_single_pipe")
+                if (lead.BrakeSystemType == BrakeSystemType.StraightVacuumSinglePipe)
                 {
                     (Car as MSTSWagon).NonAutoBrakePresent = true; // Set flag to indicate that non auto brake is set in train
                     bool skiploop;
@@ -353,7 +353,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
                 }
 
-                if (((lead.CarBrakeSystemType == "vacuum_single_pipe" || lead.CarBrakeSystemType == "vacuum_twin_pipe") && (Car as MSTSWagon).AuxiliaryReservoirPresent))
+                if (((lead.BrakeSystemType == BrakeSystemType.VacuumSinglePipe || lead.BrakeSystemType == BrakeSystemType.VacuumTwinPipe) && (Car as MSTSWagon).AuxiliaryReservoirPresent))
                 {
                     // update non calculated values using vacuum single pipe class
                     base.Update(elapsedClockSeconds);

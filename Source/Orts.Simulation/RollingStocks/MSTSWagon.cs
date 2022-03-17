@@ -474,20 +474,20 @@ namespace Orts.Simulation.RollingStocks
             }
             
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
-            if (WagonNumAxles == 0 && WagonType != WagonType.Engine)
+            if (wagonNumAxles == 0 && WagonType != WagonType.Engine)
             {
-                if (MSTSWagonNumWheels != 0 && MSTSWagonNumWheels < 6)
+                if (wagonNumWheels != 0 && wagonNumWheels < 6)
                 {
-                    WagonNumAxles = (int) MSTSWagonNumWheels;
+                    wagonNumAxles = (int) wagonNumWheels;
                 }
                 else
                 {
-                    WagonNumAxles = 4; // Set 4 axles as default
+                    wagonNumAxles = 4; // Set 4 axles as default
                 }
 
                 if (simulator.Settings.VerboseConfigurationMessages)
                 {
-                    Trace.TraceInformation("Number of Wagon Axles set to default value of {0}", WagonNumAxles);
+                    Trace.TraceInformation("Number of Wagon Axles set to default value of {0}", wagonNumAxles);
                 }
             }
 
@@ -913,7 +913,7 @@ namespace Orts.Simulation.RollingStocks
             IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0;
 
             if (BrakeSystem == null)
-                BrakeSystem = MSTSBrakeSystem.Create(CarBrakeSystemType, this);
+                BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
         }
 
         public void GetMeasurementUnits()
@@ -930,24 +930,24 @@ namespace Orts.Simulation.RollingStocks
 
             base.Initialize();
                        
-            if (UnbalancedSuperElevationM == 0 || UnbalancedSuperElevationM > 0.5) // If UnbalancedSuperElevationM > 18", or equal to zero, then set a default value
+            if (unbalancedSuperElevation == 0 || unbalancedSuperElevation > 0.5) // If UnbalancedSuperElevationM > 18", or equal to zero, then set a default value
             {
                 switch (WagonType)
                 {
                     case WagonType.Freight:
-                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        unbalancedSuperElevation = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonType.Passenger:
-                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        unbalancedSuperElevation = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonType.Engine:
-                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        unbalancedSuperElevation = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     case WagonType.Tender:
-                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        unbalancedSuperElevation = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     default:
-                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
+                        unbalancedSuperElevation = (float)Size.Length.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
                         break;
                 }
             }
@@ -1035,7 +1035,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     stf.SkipRestOfBlock();
                     break;
-                case "wagon(ortsunbalancedsuperelevation": UnbalancedSuperElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortsunbalancedsuperelevation": unbalancedSuperElevation = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortsrigidwheelbase":
                     stf.MustMatch("(");
                     rigidWheelBaseM = stf.ReadFloat(STFReader.Units.Distance, null);
@@ -1096,11 +1096,12 @@ namespace Orts.Simulation.RollingStocks
                     stf.SkipRestOfBlock();
                     ; break;
                 case "wagon(brakesystemtype":
-                    CarBrakeSystemType = stf.ReadStringBlock(null).ToLower();
-                    BrakeSystem = MSTSBrakeSystem.Create(CarBrakeSystemType, this);
+                    EnumExtension.GetValue(stf.ReadStringBlock(null).Replace("_", string.Empty, StringComparison.OrdinalIgnoreCase), out BrakeSystemType brakeSystemType);
+                    BrakeSystemType = brakeSystemType;
+                    BrakeSystem = MSTSBrakeSystem.Create(brakeSystemType, this);
                     break;
                 case "wagon(brakeequipmenttype":
-                    foreach (var equipment in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
+                    foreach (var equipment in stf.ReadStringBlock("").ToLowerInvariant().Replace(" ", "").Split(','))
                     {
                         switch (equipment)
                         {
@@ -1283,8 +1284,8 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(inside": HasInsideView = true; ParseWagonInside(stf); break;
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
-                case "wagon(numwheels": MSTSWagonNumWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
-                case "wagon(ortsnumberaxles": WagonNumAxles = stf.ReadIntBlock(null); break;
+                case "wagon(numwheels": wagonNumWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
+                case "wagon(ortsnumberaxles": wagonNumAxles = stf.ReadIntBlock(null); break;
 //                case "wagon(ortsnumberbogies": WagonNumBogies = stf.ReadIntBlock(null); break;
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
@@ -1364,7 +1365,7 @@ namespace Orts.Simulation.RollingStocks
             trackGauge = source.trackGauge;
             centreOfGravityM = source.centreOfGravityM;
             initialCentreOfGravityM = source.initialCentreOfGravityM;
-            UnbalancedSuperElevationM = source.UnbalancedSuperElevationM;
+            unbalancedSuperElevation = source.unbalancedSuperElevation;
             rigidWheelBaseM = source.rigidWheelBaseM;
             CarBogieCentreLengthM = source.CarBogieCentreLengthM;
             CarBodyLengthM = source.CarBodyLengthM;
@@ -1376,8 +1377,8 @@ namespace Orts.Simulation.RollingStocks
             AuxTenderWaterMassKG = source.AuxTenderWaterMassKG;
             TenderWagonMaxCoalMassKG = source.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = source.TenderWagonMaxWaterMassKG;
-            WagonNumAxles = source.WagonNumAxles;
-            MSTSWagonNumWheels = source.MSTSWagonNumWheels;
+            wagonNumAxles = source.wagonNumAxles;
+            wagonNumWheels = source.wagonNumWheels;
             MassKG = source.MassKG;
             InitialMassKG = source.InitialMassKG;
             WheelRadiusM = source.WheelRadiusM;
@@ -1422,8 +1423,8 @@ namespace Orts.Simulation.RollingStocks
             IsLowTorqueRollerBearing = source.IsLowTorqueRollerBearing;
             IsFrictionBearing = source.IsFrictionBearing;
             IsGreaseFrictionBearing = source.IsGreaseFrictionBearing;
-            CarBrakeSystemType = source.CarBrakeSystemType;
-            BrakeSystem = MSTSBrakeSystem.Create(CarBrakeSystemType, this);
+            BrakeSystemType = source.BrakeSystemType;
+            BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
             EmergencyReservoirPresent = source.EmergencyReservoirPresent;
             DistributorPresent = source.DistributorPresent;
             HandBrakePresent = source.HandBrakePresent;
@@ -2336,14 +2337,14 @@ namespace Orts.Simulation.RollingStocks
             if (WagonType == WagonType.Engine && IsPlayerTrain && simulator.PlayerLocomotive is MSTSLocomotive locoParameters)
             {
                 // This only takes into account the driven axles for 100% accuracy the non driven axles should also be considered
-                AxleLoadKg = locoParameters.DrvWheelWeightKg / locoParameters.LocoNumDrvAxles;
+                AxleLoadKg = locoParameters.DrvWheelWeightKg / locoParameters.locoNumDrvAxles;
             }
             else
             {
                 // Typically this loop should only be processed when it is a car of some description, and therefore it will use the wagon axles as it reference.
-                if (WagonNumAxles > 0)
+                if (wagonNumAxles > 0)
                 {
-                    AxleLoadKg = MassKG / WagonNumAxles;
+                    AxleLoadKg = MassKG / wagonNumAxles;
                 }
             }
             // Calculate the track gradient based on wagon axle loading

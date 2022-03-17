@@ -17,16 +17,17 @@
 
 using System;
 using System.Collections.Generic;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
+
+using static Orts.Formats.Msts.Parsers.STFReader;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public class SingleTransferPipe : AirSinglePipe
     {
-        private static readonly float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
-
         public SingleTransferPipe(TrainCar car)
             : base(car)
         {
@@ -35,10 +36,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
+            if (null == stf)
+                throw new ArgumentNullException(nameof(stf));
             switch (lowercasetoken)
             {
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume":
+                    BrakePipeVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
             }
         }
 
@@ -50,7 +55,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             (Car as MSTSWagon).RetainerPositions = 0;
             (Car as MSTSWagon).EmergencyReservoirPresent = false;
             // Calculate brake pipe size depending upon whether vacuum or air braked
-            if (Car.CarBrakeSystemType == "vacuum_piped")
+            if (Car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {
                 BrakePipeVolumeM3 = (0.050f * 0.050f * (float)Math.PI / 4f) * Math.Max(5.0f, (1 + Car.CarLengthM)); // Using (2") pipe
             }
@@ -60,16 +65,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        public override void InitializeFromCopy(BrakeSystem copy)
+        public override void InitializeFromCopy(BrakeSystem source)
         {
-            SingleTransferPipe thiscopy = (SingleTransferPipe)copy;
-            BrakePipeVolumeM3 = thiscopy.BrakePipeVolumeM3;
+            BrakePipeVolumeM3 = (source as SingleTransferPipe)?.BrakePipeVolumeM3 ?? throw new ArgumentNullException(nameof(source));
         }
 
         public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
+            if (null == units)
+                throw new ArgumentNullException(nameof(units));
             // display differently depending upon whether vacuum or air braked system
-            if (Car.CarBrakeSystemType == "vacuum_piped")
+            if (Car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {
                 return Simulator.Catalog.GetString($" BP {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}");
             }
@@ -81,8 +87,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
+            if (null == units)
+                throw new ArgumentNullException(nameof(units));
             // display differently depending upon whether vacuum or air braked system
-            if (Car.CarBrakeSystemType == "vacuum_piped")
+            if (Car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {
                 string s = Simulator.Catalog.GetString($" V {FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.InHg, Pressure.Unit.InHg, true)}");
                 if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
@@ -100,15 +108,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     s += Simulator.Catalog.GetString($" Handbrake {HandbrakePercent:F0}%");
                 return s;
             }
-            
         }
 
         // This overides the information for each individual wagon in the extended HUD  
-       public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
+            if (null == units)
+                throw new ArgumentNullException(nameof(units));
             // display differently depending upon whether vacuum or air braked system
-            if (Car.CarBrakeSystemType == "vacuum_piped")
-            {       
+            if (Car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
+            {
 
                 return new string[] {
                 DebugType,
@@ -124,7 +133,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             else  // air braked by default
             {
 
-            return new string[] {
+                return new string[] {
                 DebugType,
                 string.Empty,
                 FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
@@ -140,7 +149,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
                 };
 
-           }
+            }
         }
 
         public override float GetCylPressurePSI()
@@ -156,7 +165,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Update(double elapsedClockSeconds)
         {
             BleedOffValveOpen = false;
-            Car.BrakeRetardForceN = ( Car.MaxHandbrakeForceN * HandbrakePercent / 100) * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
+            Car.BrakeRetardForceN = (Car.MaxHandbrakeForceN * HandbrakePercent / 100) * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
             if (Car.BrakeSkid) // Test to see if wheels are skiding to excessive brake force
             {
                 Car.BrakeForceN = (Car.MaxHandbrakeForceN * HandbrakePercent / 100) * Car.SkidFriction;   // if excessive brakeforce, wheel skids, and loses adhesion
@@ -165,7 +174,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 Car.BrakeForceN = (Car.MaxHandbrakeForceN * HandbrakePercent / 100) * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
             }
-        
+
         }
     }
 }
