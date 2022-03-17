@@ -389,7 +389,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Simulator.Instance.DebriefEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
-                    outf.Write(simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
+                    outf.Write(simulator.PlayerLocomotive.DistanceTravelled + Popups.HelpWindow.DbfEvalDistanceTravelled);
                 }
             }
         }

@@ -215,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <returns>A list of ListLabels, one per row of the popup.</returns>
         public static IEnumerable<ListLabel> TrackMonitorDisplayList(this Viewer viewer)
         {
-            bool useMetric = viewer.MilepostUnitsMetric;
+            bool useMetric = Simulator.Instance.MetricUnits;
             var labels = new List<ListLabel>();
             void AddLabel(ListLabel label)
             {

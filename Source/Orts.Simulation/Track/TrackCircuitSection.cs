@@ -843,13 +843,13 @@ namespace Orts.Simulation.Track
             }
 
             // make sure items are cleared in correct sequence
-            float? lastDistance = train.Train.requiredActions.GetLastClearingDistance();
+            float? lastDistance = train.Train.RequiredActions.GetLastClearingDistance();
             if (lastDistance.HasValue && lastDistance > distanceToClear)
             {
                 distanceToClear = lastDistance.Value;
             }
 
-            train.Train.requiredActions.InsertAction(new ClearSectionItem(distanceToClear, Index));
+            train.Train.RequiredActions.InsertAction(new ClearSectionItem(distanceToClear, Index));
 
             // set deadlock trap if required
 

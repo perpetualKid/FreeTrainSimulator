@@ -2155,7 +2155,7 @@ namespace Orts.Simulation.Timetables
                     validStop = true;
                     AIActionItem newAction = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                     newAction.SetParam(distancesM[1], 0.0f, distancesM[0], DistanceTravelledM);
-                    requiredActions.InsertAction(newAction);
+                    RequiredActions.InsertAction(newAction);
                 }
             }
         }
@@ -5765,7 +5765,7 @@ namespace Orts.Simulation.Timetables
 
                         // remove end-of-route action and recreate it as it may be altered on approach to moving table
                         DistanceTravelledItem removeAction = null;
-                        foreach (DistanceTravelledItem thisAction in requiredActions)
+                        foreach (DistanceTravelledItem thisAction in RequiredActions)
                         {
                             if (thisAction.GetType() == typeof(AIActionItem))
                             {
@@ -5778,7 +5778,7 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        if (removeAction != null) requiredActions.Remove(removeAction);
+                        if (removeAction != null) RequiredActions.Remove(removeAction);
 
                         // set new end of route action
                         SetEndOfRouteAction();
@@ -8092,7 +8092,7 @@ namespace Orts.Simulation.Timetables
             ActivateTriggeredTrain(TriggerActivationType.Dispose, -1);
 
             // check if any outstanding moving table actions
-            List<DistanceTravelledItem> reqActions = requiredActions.GetActions(0.0f, typeof(ClearMovingTableAction));
+            List<DistanceTravelledItem> reqActions = RequiredActions.GetActions(0.0f, typeof(ClearMovingTableAction));
             foreach (DistanceTravelledItem thisAction in reqActions)
             {
                 ClearMovingTable();

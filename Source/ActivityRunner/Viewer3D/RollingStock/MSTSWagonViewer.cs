@@ -978,8 +978,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (absXc > 0.005 || absYc > 0.005 || absZc > 0.005)
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
-                            tileX = Car.CarAhead.RearCouplerLocationTileX;
-                            tileZ = Car.CarAhead.RearCouplerLocationTileZ;
+                            tileX = Car.CarAhead.WorldPosition.TileX;
+                            tileZ = Car.CarAhead.WorldPosition.TileZ;
                         }
                     }
                     couplerShape = FrontCouplerShape;
@@ -1018,8 +1018,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                     couplerShape = RearCouplerShape;
                     Car.RearCouplerLocation = couplerPosition.Translation;
-                    Car.RearCouplerLocationTileX = Car.WorldPosition.TileX;
-                    Car.RearCouplerLocationTileZ = Car.WorldPosition.TileZ;
 
                 }
                 else if (RearCouplerOpenShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present

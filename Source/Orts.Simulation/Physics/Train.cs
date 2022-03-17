@@ -81,14 +81,6 @@ namespace Orts.Simulation.Physics
         internal const float StandardClearingDistanceM = 30.0f;  // standard clearing distance for trains in activities
         internal const int StandardTrainMinCarNo = 10;           // Minimum number of cars for a train to have standard clearing distance
 
-        private const float EmissivityFactor = 0.79f; // Oxidised steel
-        private const float OneAtmospherePSI = 14.696f;      // Atmospheric Pressure
-        private const float PipeHeatTransCoeffWpM2K = 22.0f;    // heat transmission coefficient for a steel pipe.
-        private const float BoltzmanConstPipeWpM2 = 0.0000000567f; // Boltzman's Constant
-
-        private const float SpecificHeatCapacityAirKJpKgK = 1.006f; // Specific Heat Capacity of Air
-        private const float DensityAirKgpM3 = 1.247f;   // Density of air - use a av value
-
         private const float RearPositionOverlap = 25.0f;       // allowed overlap when slipping
         private const float StandardWaitTimeS = 60.0f;         // wait for 1 min before claim state
 
@@ -307,7 +299,7 @@ namespace Orts.Simulation.Physics
 
         internal float DistanceTravelled { get; set; }                                          // distance travelled, but not exactly
         private float targetSpeedMpS;                                    // target speed for remote trains; used for sound management
-        internal DistanceTravelledActions requiredActions { get; } = new DistanceTravelledActions(); // distance travelled action list
+        internal DistanceTravelledActions RequiredActions { get; } = new DistanceTravelledActions(); // distance travelled action list
         internal AuxActionsContainer AuxActionsContainer { get; } // Action To Do during activity, like WP
 
         internal float ActivityClearingDistanceM { get; set; } = 30.0f;        // clear distance to stopping point for activities
@@ -532,9 +524,9 @@ namespace Orts.Simulation.Physics
 
             DistanceTravelledM = source.DistanceTravelledM;
 
-            if (source.requiredActions.Count > 0)
+            if (source.RequiredActions.Count > 0)
             {
-                requiredActions = source.requiredActions.Copy();
+                RequiredActions = source.RequiredActions.Copy();
             }
 
             RoutedForward = new TrainRouted(this, 0);
@@ -774,19 +766,19 @@ namespace Orts.Simulation.Physics
                 {
                     case 1:
                         ActivateSpeedLimit speedLimit = new ActivateSpeedLimit(inf);
-                        requiredActions.InsertAction(speedLimit);
+                        RequiredActions.InsertAction(speedLimit);
                         break;
                     case 2:
                         ClearSectionItem clearSection = new ClearSectionItem(inf);
-                        requiredActions.InsertAction(clearSection);
+                        RequiredActions.InsertAction(clearSection);
                         break;
                     case 3:
                         AIActionItem actionItem = new AIActionItem(inf);
-                        requiredActions.InsertAction(actionItem);
+                        RequiredActions.InsertAction(actionItem);
                         break;
                     case 4:
                         AuxActionItem auxAction = new AuxActionItem(inf);
-                        requiredActions.InsertAction(auxAction);
+                        RequiredActions.InsertAction(auxAction);
                         Trace.TraceWarning("DistanceTravelledItem type 4 restored as AuxActionItem");
                         break;
                     default:
@@ -1037,8 +1029,8 @@ namespace Orts.Simulation.Physics
             PresentPosition[Direction.Backward].Save(outf);
             PreviousPosition[Direction.Forward].Save(outf);
             //  Save requiredAction, the original actions
-            outf.Write(requiredActions.Count);
-            foreach (DistanceTravelledItem thisAction in requiredActions)
+            outf.Write(RequiredActions.Count);
+            foreach (DistanceTravelledItem thisAction in RequiredActions)
             {
                 thisAction.Save(outf);
             }
@@ -1890,13 +1882,13 @@ namespace Orts.Simulation.Physics
                         car.CarHeatCompartmentPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
 
                         // Pipe convection heat produced - steam is reduced to atmospheric pressure when it is injected into compartment
-                        float CompartmentSteamPipeTempC = (float)Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
-                        car.CarCompartmentSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarInsideTempC));
+                        double CompartmentSteamPipeTempC = Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
+                        car.CarCompartmentSteamPipeHeatConvW = (float)(Const.PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarInsideTempC));
 
                         // Pipe radiation heat produced
-                        float PipeTempAK = (float)Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
-                        float PipeTempBK = (float)Math.Pow(Temperature.Kelvin.FromC(car.CarInsideTempC), 4.0f);
-                        car.CarCompartmentSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
+                        double PipeTempAK = Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
+                        double PipeTempBK = Math.Pow(Temperature.Kelvin.FromC(car.CarInsideTempC), 4.0f);
+                        car.CarCompartmentSteamHeatPipeRadW = (float)(Const.BoltzmanConstPipeWpM2 * Const.EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
 
                         car.CarHeatCompartmentSteamPipeHeatW = car.CarCompartmentSteamHeatPipeRadW + car.CarCompartmentSteamPipeHeatConvW;
                     }
@@ -1923,7 +1915,7 @@ namespace Orts.Simulation.Physics
                     float SteamTrapDiaIn = 0.1875f;
                     float SteamTrapValveSizeAreaIn2 = (float)Math.PI * (SteamTrapDiaIn / 2.0f) * (SteamTrapDiaIn / 2.0f);
 
-                    car.CarHeatSteamTrapUsageLBpS = (SteamTrapValveSizeAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / SteamTrapValveDischargeFactor;
+                    car.CarHeatSteamTrapUsageLBpS = (float)(SteamTrapValveSizeAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + Const.OneAtmospherePSI)) / SteamTrapValveDischargeFactor;
 
                     // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
                     const float ConnectingHoseDischargeFactor = 70.0f;
@@ -1932,7 +1924,7 @@ namespace Orts.Simulation.Physics
                     float ConnectingHoseLeakDiaIn = 0.1875f;
                     float ConnectingHoseLeakAreaIn2 = (float)Math.PI * (ConnectingHoseLeakDiaIn / 2.0f) * (ConnectingHoseLeakDiaIn / 2.0f);
 
-                    car.CarHeatConnectingSteamHoseLeakageLBpS = car.SteamHoseLeakRateRandom * (ConnectingHoseLeakAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / ConnectingHoseDischargeFactor;
+                    car.CarHeatConnectingSteamHoseLeakageLBpS = car.SteamHoseLeakRateRandom * (float)(ConnectingHoseLeakAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + Const.OneAtmospherePSI)) / ConnectingHoseDischargeFactor;
 
                     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1966,7 +1958,7 @@ namespace Orts.Simulation.Physics
                     // Given the net heat loss the car calculate the current heat capacity, and corresponding temperature
                     car.CarHeatCurrentCompartmentHeatJ += car.CarNetHeatFlowRateW * (float)elapsedClockSeconds;
 
-                    car.CarInsideTempC = (float)Energy.Transfer.ToKJ(car.CarHeatCurrentCompartmentHeatJ) / (SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3) + car.CarOutsideTempC;
+                    car.CarInsideTempC = (float)(Energy.Transfer.ToKJ(car.CarHeatCurrentCompartmentHeatJ) / (Const.AirDensityBySpecificHeatCapacity * car.CarHeatVolumeM3) + car.CarOutsideTempC);
 
                     if (car.CarInsideTempC > car.DesiredCompartmentTempSetpointC)
                     {
@@ -2081,7 +2073,7 @@ namespace Orts.Simulation.Physics
                         // Given the net heat loss the car calculate the current heat capacity, and corresponding temperature
                         car.CarHeatCurrentCompartmentHeatJ += car.CarNetHeatFlowRateW * (float)elapsedClockSeconds;
 
-                        car.CarInsideTempC = (float)Energy.Transfer.ToKJ(car.CarHeatCurrentCompartmentHeatJ) / (SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3) + car.CarOutsideTempC;
+                        car.CarInsideTempC = (float)(Energy.Transfer.ToKJ(car.CarHeatCurrentCompartmentHeatJ) / (Const.AirDensityBySpecificHeatCapacity * car.CarHeatVolumeM3) + car.CarOutsideTempC);
                     }
                 }
             }
@@ -2580,7 +2572,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     AllowedMaxSpeedMpS = validSpeedMpS;
                                 }
-                                requiredActions.UpdatePendingSpeedlimits(validSpeedMpS);  // update any older pending speed limits
+                                RequiredActions.UpdatePendingSpeedlimits(validSpeedMpS);  // update any older pending speed limits
                             }
                             else
                             {
@@ -2589,8 +2581,8 @@ namespace Orts.Simulation.Physics
                                 ActivateSpeedLimit speedLimit = new ActivateSpeedLimit(reqDistance,
                                     speedInfo.LimitedSpeedReduction == 0 ? newSpeedMpS : -1, -1f,
                                     speedInfo.LimitedSpeedReduction == 0 ? -1 : newSpeedMpS);
-                                requiredActions.InsertAction(speedLimit);
-                                requiredActions.UpdatePendingSpeedlimits(newSpeedMpS);  // update any older pending speed limits
+                                RequiredActions.InsertAction(speedLimit);
+                                RequiredActions.UpdatePendingSpeedlimits(newSpeedMpS);  // update any older pending speed limits
                             }
 
                             if (newSpeedMpS < allowedAbsoluteMaxSpeedLimitMpS)
@@ -2823,7 +2815,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
                                 }
-                                requiredActions.UpdatePendingSpeedlimits(AllowedMaxSpeedMpS);  // update any older pending speed limits
+                                RequiredActions.UpdatePendingSpeedlimits(AllowedMaxSpeedMpS);  // update any older pending speed limits
                             }
                             else
                             {
@@ -2844,8 +2836,8 @@ namespace Orts.Simulation.Physics
                                     speedLimit = new ActivateSpeedLimit(reqDistance, firstObject.ActualSpeed, firstObject.ActualSpeed);
                                 }
 
-                                requiredActions.InsertAction(speedLimit);
-                                requiredActions.UpdatePendingSpeedlimits(firstObject.ActualSpeed);  // update any older pending speed limits
+                                RequiredActions.InsertAction(speedLimit);
+                                RequiredActions.UpdatePendingSpeedlimits(firstObject.ActualSpeed);  // update any older pending speed limits
                             }
                         }
                         else if (!simulator.TimetableMode)
@@ -3167,7 +3159,7 @@ namespace Orts.Simulation.Physics
             float validTempSpeedLimitMpS = allowedMaxTempSpeedLimitMpS;
 
             // update valid speed with pending actions
-            foreach (DistanceTravelledItem distanceAction in requiredActions)
+            foreach (DistanceTravelledItem distanceAction in RequiredActions)
             {
                 if (distanceAction is ActivateSpeedLimit speedLimit)
                 {
@@ -3610,7 +3602,7 @@ namespace Orts.Simulation.Physics
 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 
-                    car.UpdatedTraveler(traveller, elapsedTime, distance, SpeedMpS);
+                    car.UpdatedTraveller(traveller, elapsedTime, distance, SpeedMpS);
                 }
                 length += car.CarLengthM;
             }
@@ -3701,7 +3693,7 @@ namespace Orts.Simulation.Physics
                     // Cycle down the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN - (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN);
                     m += car.MassKG;
-                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
                     {
                         if (j == Cars.Count - 1 || car.CouplerSlackM < car.AdvancedCouplerDynamicTensionSlackLimitM)
                             break;
@@ -3755,7 +3747,7 @@ namespace Orts.Simulation.Physics
                     // Cycle up the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN + car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN;
                     m += car.MassKG;
-                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
                     {
                         if (j == 0 || car.CouplerSlackM > car.AdvancedCouplerDynamicCompressionSlackLimitM)
                             break;
@@ -4465,7 +4457,7 @@ namespace Orts.Simulation.Physics
                 return;
             if (backward < BackwardThreshold)
             {
-                List<DistanceTravelledItem> nowActions = requiredActions.GetActions(DistanceTravelledM);
+                List<DistanceTravelledItem> nowActions = RequiredActions.GetActions(DistanceTravelledM);
                 if (nowActions.Count > 0)
                 {
                     PerformActions(nowActions);
@@ -5641,7 +5633,7 @@ namespace Orts.Simulation.Physics
             NextSignalObject[1] = element.TrackCircuitSection.EndSignals[element.Direction];
 
             // clear all build up distance actions
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
         }
 
         /// <summary>
@@ -6709,7 +6701,7 @@ namespace Orts.Simulation.Physics
             }
 
             // clear all build up distance actions
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
         }
 
         /// <summary>
@@ -7404,7 +7396,7 @@ namespace Orts.Simulation.Physics
 
             // clear all outstanding actions
             ClearActiveSectionItems();
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
 
             // clear signal info
             NextSignalObject[0] = null;
@@ -7648,7 +7640,7 @@ namespace Orts.Simulation.Physics
             // clear all outstanding actions
 
             ClearActiveSectionItems();
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
 
             // clear signal info
 
@@ -7703,7 +7695,7 @@ namespace Orts.Simulation.Physics
             }
 
             // remove any actions build up during manual mode
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
 
             // restore train placement
             RestoreTrainPlacement(newRoute, oldRoute, routeIndex, reversal);
@@ -7769,7 +7761,7 @@ namespace Orts.Simulation.Physics
 
             // clear all outstanding actions
             ClearActiveSectionItems();
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
 
             // clear signal info
 
@@ -8379,7 +8371,7 @@ namespace Orts.Simulation.Physics
         /// <\summary>
         internal void ClearActiveSectionItems()
         {
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+            List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             foreach (DistanceTravelledItem action in activeActions)
             {
                 if (action is ClearSectionItem)
@@ -8449,7 +8441,7 @@ namespace Orts.Simulation.Physics
 
             // clear outstanding clear sections for sections no longer occupied
 
-            foreach (DistanceTravelledItem action in requiredActions)
+            foreach (DistanceTravelledItem action in RequiredActions)
             {
                 if (action is ClearSectionItem)
                 {
@@ -8505,7 +8497,7 @@ namespace Orts.Simulation.Physics
 
             // clear outstanding clear sections
 
-            foreach (DistanceTravelledItem actionItem in requiredActions)
+            foreach (DistanceTravelledItem actionItem in RequiredActions)
             {
                 if (actionItem is ClearSectionItem clearSectionItem)
                 {
@@ -8528,7 +8520,7 @@ namespace Orts.Simulation.Physics
             CheckFreight();
 
             // clear all track occupation actions
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+            List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             activeActions.Clear();
 
             // save existing TCPositions
@@ -8634,7 +8626,7 @@ namespace Orts.Simulation.Physics
                 {
                     distanceToClear += Length;
                 }
-                requiredActions.InsertAction(new ClearSectionItem(distanceToClear, section.Index));
+                RequiredActions.InsertAction(new ClearSectionItem(distanceToClear, section.Index));
             }
 
             // rebuild list of station stops
@@ -8851,7 +8843,7 @@ namespace Orts.Simulation.Physics
                 RemoveFromTrack();
                 ClearDeadlocks();
 
-                List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+                List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
                 activeActions.Clear();
             }
 
@@ -8909,7 +8901,7 @@ namespace Orts.Simulation.Physics
                     Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], 0, RoutedBackward);
                     ValidRoute[1].Clear();
                 }
-                requiredActions.Clear();
+                RequiredActions.Clear();
 
                 if (trafficService != null)
                     trafficService.Clear();
@@ -9069,7 +9061,7 @@ namespace Orts.Simulation.Physics
         {
             RemoveFromTrack();
             ClearDeadlocks();
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+            List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             activeActions.Clear();
         }
 

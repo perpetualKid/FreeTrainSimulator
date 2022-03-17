@@ -1207,7 +1207,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MultiPlayerManager.Instance().Update(Simulator.GameTime);
             }
 
-            UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;

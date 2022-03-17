@@ -230,7 +230,6 @@ namespace Orts.Simulation.RollingStocks
         public float TrackSanderSandConsumptionM3pS = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
 
         // Vacuum Braking parameters
-        private static readonly double OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
         public bool SmallSteamEjectorIsOn;
         public bool LargeSteamEjectorIsOn;
         public bool VacuumPumpOperating;
@@ -851,8 +850,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
                 case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
                 case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
 
                 case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
@@ -1486,7 +1485,7 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            if (DoesBrakeCutPower && (BrakeSystem is VacuumSinglePipe) && (BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > OneAtmospherePSI))
+            if (DoesBrakeCutPower && (BrakeSystem is VacuumSinglePipe) && (BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > Const.OneAtmospherePSI))
             {
                 BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be restored once brake pipe rises above 15 InHg
 

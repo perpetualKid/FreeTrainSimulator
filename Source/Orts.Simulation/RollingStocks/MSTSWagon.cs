@@ -340,8 +340,6 @@ namespace Orts.Simulation.RollingStocks
                 LoadFromWagFile(WagFilePath);
                 CarManager.LoadedCars.Add(WagFilePath, this);
             }
-
-            GetMeasurementUnits();
         }
 
         // Values for adjusting wagon physics due to load changes
@@ -916,13 +914,6 @@ namespace Orts.Simulation.RollingStocks
                 BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
         }
 
-        public void GetMeasurementUnits()
-        {
-            IsMetric = simulator.Settings.MeasurementUnit == MeasurementUnit.Metric || (simulator.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
-                (simulator.Settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
-            IsUK = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
-        }
-
         public override void Initialize()
         {
             Pantographs.Initialize();
@@ -1203,13 +1194,13 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(coupling(spring(ortstensionslack":
                     stf.MustMatch("(");
-                    IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
+                    avancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
                     Couplers[CouplerCountLocation].SetTensionSlack(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                case "wagon(coupling(spring(ortscompressionslack":
                     stf.MustMatch("(");
-                    IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
+                    avancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
                     Couplers[CouplerCountLocation].SetCompressionSlack(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
@@ -1453,7 +1444,7 @@ namespace Orts.Simulation.RollingStocks
                 HeadOutViewpoints = new List<ViewPoint>(source.HeadOutViewpoints);
             if (source.CabViewpoints != null)
                 CabViewpoints = new List<PassengerViewPoint>(source.CabViewpoints);
-            IsAdvancedCoupler = source.IsAdvancedCoupler;
+            avancedCoupler = source.avancedCoupler;
             foreach (MSTSCoupling coupler in source.Couplers)
             {
                 Couplers.Add(coupler);
@@ -1705,7 +1696,8 @@ namespace Orts.Simulation.RollingStocks
 
                         if (simulator.Settings.VerboseConfigurationMessages)
                         {
-                            Trace.TraceInformation("Fuel and Water Masses adjusted to Tender Values Specified in WAG File - Coal mass {0} kg, Water Mass {1}", FormatStrings.FormatMass(TendersSteamLocomotive.MaxTenderCoalMassKG, IsMetric), FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), IsMetric, IsUK));
+                            Trace.TraceInformation("Fuel and Water Masses adjusted to Tender Values Specified in WAG File - Coal mass {0} kg, Water Mass {1}", FormatStrings.FormatMass(TendersSteamLocomotive.MaxTenderCoalMassKG, simulator.MetricUnits), 
+                                FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), simulator.MetricUnits, simulator.Settings.MeasurementUnit == MeasurementUnit.UK));
                         }
                     }
                 }
@@ -3507,7 +3499,7 @@ namespace Orts.Simulation.RollingStocks
         }
         public override float GetCouplerZeroLengthM()
         {
-            if (IsPlayerTrain && simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
+            if (IsPlayerTrain && simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && avancedCoupler)
             {
                 float zerolength;
                 if (Coupler != null)
@@ -3589,7 +3581,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 return base.GetAdvancedCouplerFlag();
             }
-            return IsAdvancedCoupler;
+            return avancedCoupler;
         }
 
         public override float GetMaximumSimpleCouplerSlack1M()  // This limits the maximum amount of slack, and typically will be equal to y - x of R0 statement
@@ -3817,7 +3809,7 @@ namespace Orts.Simulation.RollingStocks
             coupler.Break2N = other.GetCouplerBreak2N();
 
             // ADvanced coupler parameters
-            IsAdvancedCoupler = other.GetAdvancedCouplerFlag();
+            avancedCoupler = other.GetAdvancedCouplerFlag();
 
             coupler.TensionR0X = other.GetCouplerZeroLengthM();
             coupler.TensionR0Y = other.GetCouplerTensionR0Y();

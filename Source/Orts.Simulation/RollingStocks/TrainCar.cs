@@ -56,8 +56,6 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Simulation.RollingStocks
 {
 
@@ -84,10 +82,13 @@ namespace Orts.Simulation.RollingStocks
         private static readonly double[] FuelUsageGalukpH = { 0.0, 31.0 };
 
         // Used to calculate Carriage Steam Heat Loss
-        private const float BogieHeightM = 1.06f; // Height reduced by 1.06m to allow for bogies, etc
-        private const float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
-        private const float SpecificHeatCapacityAirKJpKgK = 1.006f; // Specific Heat Capacity of Air
-        private const float DensityAirKgpM3 = 1.247f;   // Density of air - use a av value
+        private const float BogieHeight = 1.06f; // Height reduced by 1.06m to allow for bogies, etc
+        private const float CarCouplingPipeLength = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
+        private const float LowSpeed = 2.0f;
+        private const float DryLapseTemperatureC = 9.8f;
+        private const float WetLapseTemperatureC = 5.5f;
+
+
         #endregion
 
         private protected static readonly Simulator simulator = Simulator.Instance;
@@ -208,7 +209,7 @@ namespace Orts.Simulation.RollingStocks
         public float CarAirHoseLengthM;
         public float CarAirHoseHorizontalLengthM;
 
-        public float CarHeatVolumeM3 { get => CarWidthM * (CarLengthM - CarCouplingPipeM) * (CarHeightM - BogieHeightM); } // Volume of car for heating purposes
+        public float CarHeatVolumeM3 { get => CarWidthM * (CarLengthM - CarCouplingPipeLength) * (CarHeightM - BogieHeight); } // Volume of car for heating purposes
         public float CarOutsideTempC { get; private set; }   // Ambient temperature outside of car
         private float initialCarOutsideTempC;
 
@@ -216,26 +217,25 @@ namespace Orts.Simulation.RollingStocks
         {
             get
             {
-                const float LowSpeedMpS = 2.0f;
-                float ConvHeatTxfMinSpeed = 10.45f - LowSpeedMpS + (10.0f * (float)Math.Pow(LowSpeedMpS, 0.5));
-                float ConvHeatTxActualSpeed = 10.45f - AbsSpeedMpS + (10.0f * (float)Math.Pow(AbsSpeedMpS, 0.5));
-                float ConvFactor;
+                float convHeatTxfMinSpeed = 10.45f - LowSpeed + (10.0f * (float)Math.Pow(LowSpeed, 0.5));
+                float convHeatTxActualSpeed = 10.45f - AbsSpeedMpS + (10.0f * (float)Math.Pow(AbsSpeedMpS, 0.5));
+                float convFactor;
 
-                if (AbsSpeedMpS >= LowSpeedMpS)
+                if (AbsSpeedMpS >= LowSpeed)
                 {
-                    ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate fraction
+                    convFactor = convHeatTxActualSpeed / convHeatTxfMinSpeed; // Calculate fraction
                 }
                 else
                 {
-                    ConvFactor = 1.0f; // If speed less then 2m/s then set fraction to give stationary Kc value 
+                    convFactor = 1.0f; // If speed less then 2m/s then set fraction to give stationary Kc value 
                 }
-                ConvFactor = MathHelper.Clamp(ConvFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
+                convFactor = MathHelper.Clamp(convFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
 
-                return ConvFactor;
+                return convFactor;
             }
         }
 
-        public float CarHeightMinusBogie => CarHeightM - BogieHeightM;
+        public float CarHeightMinusBogie => CarHeightM - BogieHeight;
         // Used to calculate wheel sliding for locked brake
         public bool WheelBrakeSlideProtectionFitted;
         public bool WheelBrakeSlideProtectionActive;
@@ -259,43 +259,40 @@ namespace Orts.Simulation.RollingStocks
         public float AuxTenderWaterMassKG;    // Water mass in auxiliary tender
         public AuxWagonType AuxWagonType;           // Store wagon type for use with auxilary tender calculations
 
-        public Lights Lights;
-        public FreightAnimations FreightAnimations;
-        public int Headlight;
+        public Lights Lights { get; private protected set; }
+        public FreightAnimations FreightAnimations { get; private protected set; }
+        public int Headlight { get; set; }
 
         // instance variables set by train physics when it creates the traincar
-        public Train Train;  // the car is connected to this train
-                             //        public bool IsPlayerTrain { get { return Train.TrainType == ORTS.Train.TRAINTYPE.PLAYER ? true : false; } set { } }
-        public bool IsPlayerTrain { get { return Train.IsPlayerDriven; } set { } }
-        public bool Flipped; // the car is reversed in the consist
-        public int UiD;
-        public string CarID = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
+        public Train Train { get; internal set; }  // the car is connected to this train
+
+        public bool IsPlayerTrain => Train.IsPlayerDriven;
+        public bool Flipped { get; internal set; } // the car is reversed in the consist
+        public int UiD { get; internal set; }
+        public string CarID { get; internal set; } = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
 
         // status of the traincar - set by the train physics after it calls TrainCar.Update()
         private WorldPosition worldPosition = WorldPosition.None;
         public ref readonly WorldPosition WorldPosition => ref worldPosition;  // current position of the car
-        public float DistanceM;  // running total of distance travelled - always positive, updated by train physics
+        public float DistanceTravelled { get; internal set; }  // running total of distance travelled - always positive, updated by train physics
         private float prevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
         public int HUDCouplerForceIndication; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
         public float CouplerSlack2M;  // slack calculated using draft gear force
-        public bool IsAdvancedCoupler; // Flag to indicate that coupler is to be treated as an advanced coupler
-        public float FrontCouplerSlackM; // Slack in car front coupler
-        public float RearCouplerSlackM;  // Slack in rear coupler
-        public TrainCar CarAhead;
-        public TrainCar CarBehind;
+        internal bool avancedCoupler; // Flag to indicate that coupler is to be treated as an advanced coupler
+        public float FrontCouplerSlackM { get; internal set; } // Slack in car front coupler
+        public float RearCouplerSlackM { get; internal set; }  // Slack in rear coupler
+        public TrainCar CarAhead { get; internal set; }
+        public TrainCar CarBehind { get; internal set; }
         public Vector3 RearCouplerLocation;
-        public int RearCouplerLocationTileX;
-        public int RearCouplerLocationTileZ;
         public float AdvancedCouplerDynamicTensionSlackLimitM;   // Varies as coupler moves
         public float AdvancedCouplerDynamicCompressionSlackLimitM; // Varies as coupler moves
 
         public bool WheelSlip;  // true if locomotive wheels slipping
         public bool WheelSlipWarning;
         public bool WheelSkid;  // True if wagon wheels lock up.
-        public float _AccelerationMpSS;
-        protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilterType.Butterworth, 1, 1.0f, 0.1f);
+        private readonly IIRFilter accelerationFilter = new IIRFilter(IIRFilterType.Butterworth, 1, 1.0f, 0.1f);
         public float HUDMaximumCouplerForceN;
 
         public float WheelBearingTemperatureDegC = 40.0f;
@@ -320,16 +317,11 @@ namespace Orts.Simulation.RollingStocks
         private bool ambientTemperatureInitialised;
 
         public bool AcceptMUSignals = true; //indicates if the car accepts multiple unit signals
-        public bool IsMetric;
-        public bool IsUK;
-        public float prevElev = -100f;
+        private float prevElev = -100f;
 
         public float SpeedMpS { get; set; }// meters per second; updated by train physics, relative to direction of car  50mph = 22MpS
 
-        public float AccelerationMpSS
-        {
-            get { return _AccelerationMpSS; }
-        }
+        public float AccelerationMpSS { get; private set; }
 
         public float LocalThrottlePercent;
         // represents the MU line travelling through the train.  Uncontrolled locos respond to these commands.
@@ -566,9 +558,6 @@ namespace Orts.Simulation.RollingStocks
                 ambientTemperatureInitialised = true;
             }
 
-            const float DryLapseTemperatureC = 9.8f;
-            const float WetLapseTemperatureC = 5.5f;
-
             // Update temperature variation for height of car above sea level
             // Typically in clear conditions there is a 9.8 DegC variation for every 1000m (1km) rise, in snow/rain there is approx 5.5 DegC variation for every 1000m (1km) rise
             float TemperatureHeightVariationDegC;
@@ -608,10 +597,10 @@ namespace Orts.Simulation.RollingStocks
             // acceleration
             if (elapsedClockSeconds > 0.0f)
             {
-                _AccelerationMpSS = (SpeedMpS - prevSpeedMpS) / (float)elapsedClockSeconds;
+                AccelerationMpSS = (SpeedMpS - prevSpeedMpS) / (float)elapsedClockSeconds;
 
                 if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics)
-                    _AccelerationMpSS = (float)AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
+                    AccelerationMpSS = (float)accelerationFilter.Filter(AccelerationMpSS, elapsedClockSeconds);
 
                 prevSpeedMpS = SpeedMpS;
             }
@@ -849,9 +838,9 @@ namespace Orts.Simulation.RollingStocks
                     // 
                     // Calculate first tunnel factor
 
-                    float componentA = 0.00003318f * DensityAirKgpM3 * tunnelCrossSectionAreaM2 / ((1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)));
-                    float componentB = 174.419f * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2));
-                    float componentC = (2.907f * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2))) / (4.0f * (tunnelCrossSectionAreaM2 / tunnelPerimeterM));
+                    double componentA = 0.00003318 * Const.DensityAir * tunnelCrossSectionAreaM2 / ((1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)));
+                    double componentB = 174.419 * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2));
+                    double componentC = (2.907 * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2))) / (4.0 * (tunnelCrossSectionAreaM2 / tunnelPerimeterM));
 
                     double tunnel1 = Math.Sqrt(componentB + (componentC * (tunnelLengthM - Train.Length) / Train.Length));
                     double tunnel2 = (1.0 - (1.0 / (1.0 + tunnel1))) * (1.0 - (1.0 / (1.0 + tunnel1)));
@@ -1607,11 +1596,11 @@ namespace Orts.Simulation.RollingStocks
                                 {
                                     if (Train.IsFreight)
                                     {
-                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric)));
+                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your freight car {0} may be damaged. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, simulator.MetricUnits)));
                                     }
                                     else
                                     {
-                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your passengers in car {0} are feeling uncomfortable. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, IsMetric)));
+                                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You are travelling too fast for this curve. Slow down, your passengers in car {0} are feeling uncomfortable. The recommended speed for this curve is {1}", CarID, FormatStrings.FormatSpeedDisplay(MaxSafeCurveSpeedMps, simulator.MetricUnits)));
                                     }
 
                                     if (dbfmaxsafecurvespeedmps != MaxSafeCurveSpeedMps)//Debrief eval
@@ -1861,10 +1850,10 @@ namespace Orts.Simulation.RollingStocks
                 Direction.GetLocalizedDescription(),
                 AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
-                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric)}",
+                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
                 // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
-                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, IsMetric, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, IsMetric)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
+                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
+                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
                 Simulator.Catalog.GetString(locomotivetypetext));
         }
 
@@ -2484,7 +2473,7 @@ namespace Orts.Simulation.RollingStocks
             m.M43 = -p0.A[2];
             worldPosition = new WorldPosition(tileX, tileZ, m);
 
-            UpdatedTraveler(traveller, elapsedTimeS, distance, speed);
+            UpdatedTraveller(traveller, elapsedTimeS, distance, speed);
 
             // calculate truck angles
             for (int i = 1; i < Parts.Count; i++)
@@ -2525,7 +2514,7 @@ namespace Orts.Simulation.RollingStocks
         #region Traveller-based updates
         public float CurrentCurveRadius { get; private set; }
 
-        internal void UpdatedTraveler(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
+        internal void UpdatedTraveller(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
         {
             // We need to avoid introducing any unbounded effects, so cap the elapsed time to 0.25 seconds (4FPS).
             if (elapsedTimeS > 0.25)
@@ -2657,7 +2646,7 @@ namespace Orts.Simulation.RollingStocks
                 VibrationTranslationM += VibrationTranslationVelocityMpS * (float)elapsedTimeS;
 
                 // Add new vibrations every CarLengthM in either direction.
-                if (Math.Round((VibrationOffsetM.X + DistanceM) / CarLengthM) != Math.Round((VibrationOffsetM.X + DistanceM + distanceM) / CarLengthM))
+                if (Math.Round((VibrationOffsetM.X + DistanceTravelled) / CarLengthM) != Math.Round((VibrationOffsetM.X + DistanceTravelled + distanceM) / CarLengthM))
                 {
                     AddVibrations(VibrationFactorDistance);
                 }
@@ -2880,7 +2869,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // Initialise current Train Steam Heat based upon selected Current carriage Temp
                 // Calculate Starting Heat value in Car Q = C * M * Tdiff, where C = Specific heat capacity, M = Mass ( Volume * Density), Tdiff - difference in temperature
-                CarHeatCurrentCompartmentHeatJ = (float)Energy.Transfer.FromKJ(SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
+                CarHeatCurrentCompartmentHeatJ = (float)Energy.Transfer.FromKJ(Const.AirDensityBySpecificHeatCapacity * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
 
                 IsCarHeatingInitialized = true;
             }
@@ -2916,9 +2905,9 @@ namespace Orts.Simulation.RollingStocks
             float HeatLossTransRoofW = RoofHeatLossFactor * (CarWidthM * (CarLengthM - CarCouplingPipeM)) * HeatTransCoeffRoofWpm2C * (CarInsideTempC - CarOutsideTempC);
 
             // Each car will have 2 x sides + 2 x ends. Each side will be made up of solid walls, and windows. A factor has been assumed to determine the ratio of window area to wall area.
-            float HeatLossTransWindowsW = (WindowDeratingFactor * (CarHeightM - BogieHeightM) * (CarLengthM - CarCouplingPipeM)) * HeatTransCoeffWindowsWpm2C * (CarInsideTempC - CarOutsideTempC);
-            float HeatLossTransSidesW = (1.0f - WindowDeratingFactor) * (CarHeightM - BogieHeightM) * (CarLengthM - CarCouplingPipeM) * HeatTransCoeffSidesWpm2C * (CarInsideTempC - CarOutsideTempC);
-            float HeatLossTransEndsW = (CarHeightM - BogieHeightM) * (CarLengthM - CarCouplingPipeM) * HeatTransCoeffEndsWpm2C * (CarInsideTempC - CarOutsideTempC);
+            float HeatLossTransWindowsW = (WindowDeratingFactor * (CarHeightM - BogieHeight) * (CarLengthM - CarCouplingPipeM)) * HeatTransCoeffWindowsWpm2C * (CarInsideTempC - CarOutsideTempC);
+            float HeatLossTransSidesW = (1.0f - WindowDeratingFactor) * (CarHeightM - BogieHeight) * (CarLengthM - CarCouplingPipeM) * HeatTransCoeffSidesWpm2C * (CarInsideTempC - CarOutsideTempC);
+            float HeatLossTransEndsW = (CarHeightM - BogieHeight) * (CarLengthM - CarCouplingPipeM) * HeatTransCoeffEndsWpm2C * (CarInsideTempC - CarOutsideTempC);
 
             // Total equals 2 x sides, ends, windows
             float HeatLossTransTotalSidesW = (2.0f * HeatLossTransWindowsW) + (2.0f * HeatLossTransSidesW) + (2.0f * HeatLossTransEndsW);
@@ -2937,13 +2926,13 @@ namespace Orts.Simulation.RollingStocks
 
             if (Train.AtStation && !Train.MayDepart) // When train is at station, if the train is ready to depart, assume all doors are closed, and hence no ventilation loss
             {
-                HeatLossVentilationW = (float)Dynamics.Power.FromKW((1.0f - HeatRecoveryEfficiency) * SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * AirFlowVolumeM3pS * (CarInsideTempC - CarOutsideTempC));
+                HeatLossVentilationW = (float)Dynamics.Power.FromKW((1.0f - HeatRecoveryEfficiency) * Const.AirDensityBySpecificHeatCapacity * AirFlowVolumeM3pS * (CarInsideTempC - CarOutsideTempC));
             }
 
             // ++++++++++++++++++++++++
             // Infiltration Heat loss, per degree of temp change
             float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(10.0f);      // Pepper article suggests that approx 14 air changes per hour happen for a train that is moving @ 50mph, use and av figure of 10.0.
-            float HeatLossInfiltrationW = (float)Dynamics.Power.FromKW(SpecificHeatCapacityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
+            float HeatLossInfiltrationW = (float)Dynamics.Power.FromKW(Const.AirDensityBySpecificHeatCapacity * NumAirShiftspSec * CarHeatVolumeM3 * (CarInsideTempC - CarOutsideTempC));
 
             TotalCarCompartmentHeatLossW = HeatLossTransmissionW + HeatLossInfiltrationW + HeatLossVentilationW;
         }

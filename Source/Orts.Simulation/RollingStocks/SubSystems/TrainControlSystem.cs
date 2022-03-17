@@ -260,7 +260,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.ClockTime = () => (float)Simulator.ClockTime;
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.PreUpdate = () => Simulator.PreUpdate;
-                Script.DistanceM = () => Locomotive.DistanceM;
+                Script.DistanceM = () => Locomotive.DistanceTravelled;
                 Script.Confirm = Simulator.Confirmer.Confirm;
                 Script.Message = Simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;

@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -131,7 +132,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     if (!Car.BrakesStuck)
                     {
 
-                        float brakecylinderfraction = ((OneAtmospherePSI - CylPressurePSIA) / MaxForcePressurePSI);
+                        float brakecylinderfraction = (float)((Const.OneAtmospherePSI - CylPressurePSIA) / MaxForcePressurePSI);
                         brakecylinderfraction = MathHelper.Clamp(brakecylinderfraction, 0, 1);
 
                         f = Car.MaxBrakeForceN * brakecylinderfraction;
@@ -239,8 +240,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     float MaxVacuumPipeLevelPSI = lead.TrainBrakeController.MaxPressurePSI * vacuumreductionfactor;
 
                     // To stop sound triggers "bouncing" near end of increase/decrease operation a small dead (bandwith) zone is introduced where triggers will not change state
-                    decreaseSoundTriggerBandwidth = OneAtmospherePSI - 0.2f;
-                    increaseSoundTriggerBandwidth = (OneAtmospherePSI - MaxVacuumPipeLevelPSI) + 0.2f;
+                    decreaseSoundTriggerBandwidth = (float)Const.OneAtmospherePSI - 0.2f;
+                    increaseSoundTriggerBandwidth = (float)(Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI) + 0.2f;
 
                     // Set value for large ejector to operate - it will depend upon whether the locomotive is a single or twin ejector unit.
                     float LargeEjectorChargingRateInHgpS;
@@ -275,9 +276,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             // turn ejector on as required
                             lead.LargeSteamEjectorIsOn = true;
@@ -296,9 +297,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * (AdjLargeEjectorChargingRateInHgpS + AdjSmallEjectorChargingRateInHgpS);
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             // turn ejectors on as required
                             lead.LargeSteamEjectorIsOn = true;
@@ -325,9 +326,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         {
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             lead.BrakeFlagIncrease = true;
                         }
@@ -338,9 +339,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                             lead.BrakeFlagDecrease = true;
 
                             lead.BrakeSystem.BrakeLine1PressurePSI *= (float)(1 + elapsedClockSeconds / AdjBrakeServiceTimeFactorS); ;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI > OneAtmospherePSI)
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI > Const.OneAtmospherePSI)
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI;
                             }
                         }
 
@@ -348,7 +349,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         lead.BrakeSystem.BrakeLine1PressurePSI += (float)elapsedClockSeconds * AdjTrainPipeLeakLossPSI;
 
                         // Keep brake line within relevant limits - ie between 21 or 25 InHg and Atmospheric pressure.
-                        lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, OneAtmospherePSI - MaxVacuumPipeLevelPSI, OneAtmospherePSI);
+                        lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI, (float)Const.OneAtmospherePSI);
 
                     }
                 }

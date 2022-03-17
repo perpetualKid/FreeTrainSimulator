@@ -1721,7 +1721,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
 
         public override void TryTrigger()
         {
-            if (car.DistanceM > triggerDistance)
+            if (car.DistanceTravelled > triggerDistance)
             {
                 Signaled = true;
                 if (Enabled)
@@ -1751,11 +1751,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         {
             if (SMS.MaximumDistance != SMS.MinimumDistance)
             {
-                triggerDistance = car.DistanceM + ((float)StaticRandom.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
             }
             else
             {
-                triggerDistance = car.DistanceM + ((float)StaticRandom.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
             }
         }
 
