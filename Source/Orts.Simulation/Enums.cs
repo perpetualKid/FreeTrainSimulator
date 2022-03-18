@@ -153,4 +153,10 @@ namespace Orts.Simulation
         Couple,
         Uncouple
     }
+
+    public enum TrainCarLocation
+    { 
+        Front,
+        Rear,
+    }
 }
