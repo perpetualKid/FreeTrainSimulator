@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -73,7 +74,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 // Adjust brake cylinder pressures as brake pipe varies
                 // straight braked cars will have separate calculations done, if locomotive is not straight braked, then revert car to vacuum single pipe  
-                if (lead.CarBrakeSystemType == "straight_vacuum_single_pipe")
+                if (lead.BrakeSystemType == BrakeSystemType.StraightVacuumSinglePipe)
                 {
                     (Car as MSTSWagon).NonAutoBrakePresent = true; // Set flag to indicate that non auto brake is set in train
                     bool skiploop;
@@ -131,7 +132,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     if (!Car.BrakesStuck)
                     {
 
-                        float brakecylinderfraction = ((OneAtmospherePSI - CylPressurePSIA) / MaxForcePressurePSI);
+                        float brakecylinderfraction = (float)((Const.OneAtmospherePSI - CylPressurePSIA) / MaxForcePressurePSI);
                         brakecylinderfraction = MathHelper.Clamp(brakecylinderfraction, 0, 1);
 
                         f = Car.MaxBrakeForceN * brakecylinderfraction;
@@ -143,16 +144,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     {
                         f = Math.Max(Car.MaxBrakeForceN, Car.MaxHandbrakeForceN / 2);
                     }
-                    Car.BrakeRetardForceN = f * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
-                    if (Car.BrakeSkid) // Test to see if wheels are skiding due to excessive brake force
-                    {
-                        Car.BrakeForceN = f * Car.SkidFriction;   // if excessive brakeforce, wheel skids, and loses adhesion
-                    }
-                    else
-                    {
-                        Car.BrakeForceN = f * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple odel constant force applied as per value in WAG file, will vary with wheel skid.
-                    }
-
+                    Car.SetBrakeForce(f);
                     // If wagons are not attached to the locomotive, then set wagon BC pressure to same as locomotive in the Train brake line
                     if (!Car.Train.WagonsAttached && (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender))
                     {
@@ -232,15 +224,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     float standardtemperature = 288.15f; // Standard temperature = T = 288.15 K
                     float universalgasconstant = 8.3143f; // Universal gas constant = R = 8.3143 (N*m/mol*K)
 
-                    float alititudereducedvacuum = sealevelpressure * (float)Math.Exp((-1.0f * massearthair * gravitationalacceleration * Car.CarHeightAboveSeaLevelM) / (standardtemperature * universalgasconstant));
+                    float alititudereducedvacuum = sealevelpressure * (float)Math.Exp((-1.0f * massearthair * gravitationalacceleration * Car.CarHeightAboveSeaLevel) / (standardtemperature * universalgasconstant));
 
                     float vacuumreductionfactor = alititudereducedvacuum / sealevelpressure;
 
                     float MaxVacuumPipeLevelPSI = lead.TrainBrakeController.MaxPressurePSI * vacuumreductionfactor;
 
                     // To stop sound triggers "bouncing" near end of increase/decrease operation a small dead (bandwith) zone is introduced where triggers will not change state
-                    decreaseSoundTriggerBandwidth = OneAtmospherePSI - 0.2f;
-                    increaseSoundTriggerBandwidth = (OneAtmospherePSI - MaxVacuumPipeLevelPSI) + 0.2f;
+                    decreaseSoundTriggerBandwidth = (float)Const.OneAtmospherePSI - 0.2f;
+                    increaseSoundTriggerBandwidth = (float)(Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI) + 0.2f;
 
                     // Set value for large ejector to operate - it will depend upon whether the locomotive is a single or twin ejector unit.
                     float LargeEjectorChargingRateInHgpS;
@@ -275,9 +267,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             // turn ejector on as required
                             lead.LargeSteamEjectorIsOn = true;
@@ -296,9 +288,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * (AdjLargeEjectorChargingRateInHgpS + AdjSmallEjectorChargingRateInHgpS);
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             // turn ejectors on as required
                             lead.LargeSteamEjectorIsOn = true;
@@ -325,9 +317,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         {
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                             lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
                             lead.BrakeFlagIncrease = true;
                         }
@@ -338,9 +330,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                             lead.BrakeFlagDecrease = true;
 
                             lead.BrakeSystem.BrakeLine1PressurePSI *= (float)(1 + elapsedClockSeconds / AdjBrakeServiceTimeFactorS); ;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI > OneAtmospherePSI)
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI > Const.OneAtmospherePSI)
                             {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI;
+                                lead.BrakeSystem.BrakeLine1PressurePSI = (float)Const.OneAtmospherePSI;
                             }
                         }
 
@@ -348,12 +340,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         lead.BrakeSystem.BrakeLine1PressurePSI += (float)elapsedClockSeconds * AdjTrainPipeLeakLossPSI;
 
                         // Keep brake line within relevant limits - ie between 21 or 25 InHg and Atmospheric pressure.
-                        lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, OneAtmospherePSI - MaxVacuumPipeLevelPSI, OneAtmospherePSI);
+                        lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, (float)Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI, (float)Const.OneAtmospherePSI);
 
                     }
                 }
 
-                if (((lead.CarBrakeSystemType == "vacuum_single_pipe" || lead.CarBrakeSystemType == "vacuum_twin_pipe") && (Car as MSTSWagon).AuxiliaryReservoirPresent))
+                if (((lead.BrakeSystemType == BrakeSystemType.VacuumSinglePipe || lead.BrakeSystemType == BrakeSystemType.VacuumTwinPipe) && (Car as MSTSWagon).AuxiliaryReservoirPresent))
                 {
                     // update non calculated values using vacuum single pipe class
                     base.Update(elapsedClockSeconds);

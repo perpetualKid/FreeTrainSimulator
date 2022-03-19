@@ -380,8 +380,8 @@ namespace Orts.Simulation.AIs
                     {
                         var carF = Cars[0];
                         var carL = Cars[Cars.Count - 1];
-                        if (carF.IsDriveable && carF.HasPassengerCapacity && (carF is MSTSElectricLocomotive)
-                            && carL.IsDriveable && carL.HasPassengerCapacity && (carL is MSTSElectricLocomotive))  // EMU or DMU train, higher decel
+                        if (carF.IsDriveable && carF.PassengerCapacity > 0 && (carF is MSTSElectricLocomotive)
+                            && carL.IsDriveable && carL.PassengerCapacity > 0 && (carL is MSTSElectricLocomotive))  // EMU or DMU train, higher decel
                         {
                             MaxAccelMpSS = 1.5f * MaxAccelMpSS;
                             MaxDecelMpSS = 2f * MaxDecelMpSSP;
@@ -1074,7 +1074,7 @@ namespace Orts.Simulation.AIs
                         validStop = true;
                         AIActionItem newAction = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                         newAction.SetParam(distancesM[1], 0.0f, distancesM[0], DistanceTravelledM);
-                        requiredActions.InsertAction(newAction);
+                        RequiredActions.InsertAction(newAction);
                     }
                 }
             }
@@ -3722,7 +3722,7 @@ namespace Orts.Simulation.AIs
                 CalculatePositionOfCars();
                 DistanceTravelledM += attachTrain.Length;
                 PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
-                requiredActions.ModifyRequiredDistance(attachTrain.Length);
+                RequiredActions.ModifyRequiredDistance(attachTrain.Length);
             }
             else // coupled to rear so front position is still valid
             {
@@ -4199,7 +4199,7 @@ namespace Orts.Simulation.AIs
             TrainType = TrainType.AiIncorporated;
             LeadLocomotiveIndex = -1;
             Cars.Clear();
-            requiredActions.RemovePendingAIActionItems(true);
+            RequiredActions.RemovePendingAIActionItems(true);
             UncondAttach = false;
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Join success: Train {0} service {1} has been incorporated into train {2} service {3}",
                 Number, Name.Substring(0, Math.Min(Name.Length, 20)), incorporatingTrain.Number, incorporatingTrain.Name.Substring(0, Math.Min(incorporatingTrain.Name.Length, 20))));
@@ -4280,7 +4280,7 @@ namespace Orts.Simulation.AIs
 
             AIActionItem newAction = new AIActionItem(thisItem, thisAction);
             newAction.SetParam(triggerDistanceM, reqSpeedMpS, activateDistanceTravelledM, DistanceTravelledM);
-            requiredActions.InsertAction(newAction);
+            RequiredActions.InsertAction(newAction);
         }
 
         //================================================================================================//
@@ -4338,7 +4338,7 @@ namespace Orts.Simulation.AIs
             }
 
             // clear any outstanding actions
-            requiredActions.RemovePendingAIActionItems(false);
+            RequiredActions.RemovePendingAIActionItems(false);
 
             // reset auxiliary actions
             AuxActionsContainer.SetAuxAction(this);
@@ -4535,7 +4535,7 @@ namespace Orts.Simulation.AIs
                     {
                         actionValid = false;
                         thisItem.RequiredDistance = thisItem.ActivateDistanceM - fullRangeM;
-                        requiredActions.InsertAction(thisItem);
+                        RequiredActions.InsertAction(thisItem);
                     }
 
                 }
@@ -4563,7 +4563,7 @@ namespace Orts.Simulation.AIs
                     actionValid = false;
                     thisItem.RequiredDistance = distancesM[1];
                     thisItem.ActivateDistanceM = distancesM[0];
-                    requiredActions.InsertAction(thisItem);
+                    RequiredActions.InsertAction(thisItem);
                 }
                 else
                 // always copy active stop distance
@@ -4743,7 +4743,7 @@ namespace Orts.Simulation.AIs
                     if (actionRef.IsGeneric)
                     {
                         nextGenAction = thisItem;   //  SPA In order to manage GenericAuxAction without disturbing normal actions
-                        requiredActions.Remove(thisItem);
+                        RequiredActions.Remove(thisItem);
                     }
                     else
                     {

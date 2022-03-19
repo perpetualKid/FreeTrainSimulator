@@ -223,13 +223,6 @@ namespace Orts.Simulation.MultiPlayer
                     BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
-
-#if INDIVIDUAL_CONTROL
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Server.BroadCast((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
             //server updates switch
@@ -282,14 +275,6 @@ namespace Orts.Simulation.MultiPlayer
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
-
-#if INDIVIDUAL_CONTROL
-
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Client.Send((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
 
@@ -835,7 +820,7 @@ namespace Orts.Simulation.MultiPlayer
                 char type = 'w';
                 if (wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase)) type = 'e';
                 string newWagonFilePath = SubMissingCar(length, type);
-                car = RollingStock.Load(Simulator.Instance, newWagonFilePath);
+                car = RollingStock.Load(newWagonFilePath);
                 car.CarLengthM = length;
                 car.RealWagFilePath = wagonFilePath;
                 Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("Missing car, have substituted with other one."));

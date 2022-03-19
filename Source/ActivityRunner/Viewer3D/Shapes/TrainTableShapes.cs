@@ -42,15 +42,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             if (viewer.Simulator.Route.DefaultTurntableSMS != null)
             {
-                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultTurntableSMS);
+                string soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultTurntableSMS);
                 if (File.Exists(soundPath))
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    Sound = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
-                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultTurntableSMS)))
+                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.Route.DefaultTurntableSMS)))
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    Sound = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
                 else
@@ -140,17 +140,17 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     break;
                 }
             }
-            if (viewer.Simulator.Route.DefaultTurntableSMS != null)
+            if (Simulator.Instance.Route.DefaultTurntableSMS != null)
             {
-                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultTurntableSMS);
+                string soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultTurntableSMS);
                 if (File.Exists(soundPath))
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    Sound = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
-                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultTurntableSMS)))
+                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.Route.DefaultTurntableSMS)))
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    Sound = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
                 else

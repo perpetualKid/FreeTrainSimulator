@@ -71,15 +71,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Locomotive.CabSoundFileName != null)
                 LoadCarSound(Path.GetDirectoryName(Locomotive.WagFilePath), Locomotive.CabSoundFileName);
 
-            //Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, Viewer));
-
             if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
                 foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
                 {
                     try
                     {
                         Viewer.SoundProcess.AddSoundSources(script, new List<SoundSourceBase>() {
-                            new SoundSource(Viewer, Locomotive, Locomotive.TrainControlSystem.Sounds[script])});
+                            new SoundSource(Locomotive, Locomotive.TrainControlSystem.Sounds[script])});
                     }
                     catch (Exception error)
                     {
@@ -2137,7 +2135,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             break;
                         if (!Locomotive.HasSmoothStruc)
                         {
-                            index = Locomotive.DynamicBrakeController != null ? Locomotive.DynamicBrakeController.CurrentNotch : 0;
+                            index = Locomotive.DynamicBrakeController.CurrentNotch;
                         }
                         else
                             index = PercentToIndex(dynBrakePercent);
@@ -2725,7 +2723,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Control.ControlType == CabViewControlType.Clock)
             {
                 // Clock is drawn specially.
-                var clockSeconds = Locomotive.Simulator.ClockTime;
+                var clockSeconds = Viewer.Simulator.ClockTime;
                 var hour = (int)(clockSeconds / 3600) % 24;
                 var minute = (int)(clockSeconds / 60) % 60;
                 var seconds = (int)clockSeconds % 60;
@@ -2798,7 +2796,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
-                    var clockSeconds = Locomotive.Simulator.ClockTime;
+                    var clockSeconds = Viewer.Simulator.ClockTime;
                     var hour = (int)(clockSeconds / 3600) % 24;
                     var minute = (int)(clockSeconds / 60) % 60;
                     var seconds = (int)clockSeconds % 60;
@@ -2874,7 +2872,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
-                    var clockSeconds = Locomotive.Simulator.ClockTime;
+                    var clockSeconds = Viewer.Simulator.ClockTime;
                     var hour = (int)(clockSeconds / 3600) % 24;
                     var minute = (int)(clockSeconds / 60) % 60;
                     var seconds = (int)clockSeconds % 60;
@@ -3277,7 +3275,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     Trace.TraceInformation($"Ignored missing {imageName} using default. You can copy the {imageName} from OR\'s AddOns folder to {globalText}, or place it under {TrainCarShape.SharedShape.ReferencePath}");
                 }
-                material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Viewer.Simulator, Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
+                material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
             }
             else
             {
@@ -3285,9 +3283,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy the " + imageName + " from OR\'s AddOns folder to " + globalText +
                         ", or place it under " + TrainCarShape.SharedShape.ReferencePath);
-                    material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Viewer.Simulator, Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
+                    material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
                 }
-                else material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Viewer.Simulator, Helpers.TextureFlags.None, TrainCarShape.SharedShape.ReferencePath + @"\", imageName), (int)(options), 0);
+                else material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, TrainCarShape.SharedShape.ReferencePath + @"\", imageName), (int)(options), 0);
             }
 
             return material;

@@ -289,6 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             Viewer = new Viewer(simulator, Game);
+            Viewer.Initialize();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
@@ -379,7 +380,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
-                    outf.Write(Simulation.Physics.Train.NumOfCouplerBreaks);
+                    outf.Write(Viewer.PlayerTrain.NumOfCouplerBreaks);
                     outf.Write(Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
                     outf.Write(Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned);
@@ -388,7 +389,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Simulator.Instance.DebriefEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
-                    outf.Write(simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
+                    outf.Write(simulator.PlayerLocomotive.DistanceTravelled + Popups.HelpWindow.DbfEvalDistanceTravelled);
                 }
             }
         }
@@ -418,6 +419,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
+                    Viewer.Initialize();
                     if (MultiPlayerManager.IsMultiPlayer())
                     {
                         if (ActivityType == ActivityType.Activity)
@@ -450,7 +452,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS = infDbfEval.ReadDouble();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving = infDbfEval.ReadInt32();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped = infDbfEval.ReadInt32();
-                            Simulation.Physics.Train.NumOfCouplerBreaks = infDbfEval.ReadInt32();
+                            Viewer.PlayerTrain.NumOfCouplerBreaks = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned = infDbfEval.ReadInt32();
@@ -512,6 +514,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
 
             // Load command log to replay
@@ -585,6 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
             else
             {
@@ -599,6 +603,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
+                    Viewer.Initialize();
                     Viewer.Restore(inf);
                 }
             }
@@ -645,6 +650,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(Viewer));

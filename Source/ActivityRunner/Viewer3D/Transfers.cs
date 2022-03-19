@@ -40,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TransferShape(TransferObject transfer, in WorldPosition position)
             : base(null, RemoveRotation(position), ShapeFlags.AutoZBias)
         {
-            Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(viewer.Simulator, transfer.FileName));
+            Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(transfer.FileName));
             Primitive = new TransferPrimitive(viewer, transfer.Width, transfer.Height, position);
             Radius = (float)Math.Sqrt(transfer.Width * transfer.Width + transfer.Height * transfer.Height) / 2;
         }

@@ -44,8 +44,8 @@
 	<ItemGroup>
 		<PackageReference Include="EmbedIO" Version="3.4.3" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-		<PackageReference Include="GetText.NET" Version="1.0.5" />
-		<PackageReference Include="GetText.NET.WindowsForms" Version="1.0.5" />
+		<PackageReference Include="GetText.NET" Version="1.1.4" />
+		<PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
 		<PackageReference Include="OpenAL-Soft" Version="1.16.0">
 			<GeneratePathProperty>True</GeneratePathProperty>
 		</PackageReference>

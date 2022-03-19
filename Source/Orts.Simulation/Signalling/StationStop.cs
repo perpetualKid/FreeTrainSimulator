@@ -448,7 +448,7 @@ namespace Orts.Simulation.Signalling
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
                             if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
+                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;
@@ -465,7 +465,7 @@ namespace Orts.Simulation.Signalling
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
                             if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
+                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;

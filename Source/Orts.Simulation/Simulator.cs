@@ -122,6 +122,7 @@ namespace Orts.Simulation
 
         public UserSettings Settings { get; }
 
+        public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
 
         // Primary Simulator Data 
@@ -257,8 +258,8 @@ namespace Orts.Simulation
                 roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
             }
 
-            bool useMetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, useMetricUnits, new RuntimeResolver());
+            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
@@ -1047,7 +1048,7 @@ namespace Orts.Simulation
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(this, wagonFilePath);
+                    TrainCar car = RollingStock.Load(wagonFilePath);
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
@@ -1226,7 +1227,7 @@ namespace Orts.Simulation
 
                         try // Load could fail if file has bad data.
                         {
-                            TrainCar car = RollingStock.Load(this, wagonFilePath);
+                            TrainCar car = RollingStock.Load(wagonFilePath);
                             car.Flipped = !wagon.Flip;
                             car.UiD = wagon.UiD;
                             car.CarID = activityObject.ID + " - " + car.UiD;

@@ -138,6 +138,13 @@ namespace Orts.Common
         Trailing,
     }
 
+    public enum CurveDirection
+    { 
+        Straight,
+        Left,
+        Right,
+    }
+
     public enum CabSetting
     {
         Name,       // name of control
@@ -718,7 +725,6 @@ namespace Orts.Common
         [Description("Turntable")] TurnTable,
         [Description("Unknown")] Undefined,
     }
-
 
     public enum TCSEvent
     {

@@ -2155,7 +2155,7 @@ namespace Orts.Simulation.Timetables
                     validStop = true;
                     AIActionItem newAction = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                     newAction.SetParam(distancesM[1], 0.0f, distancesM[0], DistanceTravelledM);
-                    requiredActions.InsertAction(newAction);
+                    RequiredActions.InsertAction(newAction);
                 }
             }
         }
@@ -5765,7 +5765,7 @@ namespace Orts.Simulation.Timetables
 
                         // remove end-of-route action and recreate it as it may be altered on approach to moving table
                         DistanceTravelledItem removeAction = null;
-                        foreach (DistanceTravelledItem thisAction in requiredActions)
+                        foreach (DistanceTravelledItem thisAction in RequiredActions)
                         {
                             if (thisAction.GetType() == typeof(AIActionItem))
                             {
@@ -5778,7 +5778,7 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        if (removeAction != null) requiredActions.Remove(removeAction);
+                        if (removeAction != null) RequiredActions.Remove(removeAction);
 
                         // set new end of route action
                         SetEndOfRouteAction();
@@ -8092,7 +8092,7 @@ namespace Orts.Simulation.Timetables
             ActivateTriggeredTrain(TriggerActivationType.Dispose, -1);
 
             // check if any outstanding moving table actions
-            List<DistanceTravelledItem> reqActions = requiredActions.GetActions(0.0f, typeof(ClearMovingTableAction));
+            List<DistanceTravelledItem> reqActions = RequiredActions.GetActions(0.0f, typeof(ClearMovingTableAction));
             foreach (DistanceTravelledItem thisAction in reqActions)
             {
                 ClearMovingTable();
@@ -10303,7 +10303,7 @@ namespace Orts.Simulation.Timetables
                     bool inConsist = false;
 
                     // check if front must be detached
-                    if (detachConsist.Contains(Cars[0].OrgConsist))
+                    if (detachConsist.Contains(Cars[0].OrgiginalConsist))
                     {
                         inConsist = true;
                         frontpos = true;
@@ -10312,7 +10312,7 @@ namespace Orts.Simulation.Timetables
 
                         while (nextunit < Cars.Count && inConsist)
                         {
-                            if (detachConsist.Contains(Cars[nextunit].OrgConsist))
+                            if (detachConsist.Contains(Cars[nextunit].OrgiginalConsist))
                             {
                                 iunits++;
                                 nextunit++;
@@ -10323,7 +10323,7 @@ namespace Orts.Simulation.Timetables
                             }
                         }
                     }
-                    else if (detachConsist.Contains(Cars[Cars.Count - 1].OrgConsist))
+                    else if (detachConsist.Contains(Cars[Cars.Count - 1].OrgiginalConsist))
                     {
                         inConsist = true;
                         frontpos = false;
@@ -10332,7 +10332,7 @@ namespace Orts.Simulation.Timetables
 
                         while (nextunit >= 0 && inConsist)
                         {
-                            if (detachConsist.Contains(Cars[nextunit].OrgConsist))
+                            if (detachConsist.Contains(Cars[nextunit].OrgiginalConsist))
                             {
                                 iunits++;
                                 nextunit--;

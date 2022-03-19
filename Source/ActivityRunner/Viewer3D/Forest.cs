@@ -50,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D
             MaximumCenterlineOffset = Viewer.Simulator.Route.ForestClearDistance;
             CheckRoadsToo = Viewer.Simulator.Route.RemoveForestTreesFromRoads;
 
-            Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(viewer.Simulator, forest.TreeTexture));
+            Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(forest.TreeTexture));
             Primitive = new ForestPrimitive(Viewer, forest, position, MaximumCenterlineOffset, CheckRoadsToo);
         }
 

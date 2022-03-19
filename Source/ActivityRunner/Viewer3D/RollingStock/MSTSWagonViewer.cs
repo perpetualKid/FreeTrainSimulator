@@ -31,7 +31,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -127,12 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (emitter.Key.Equals("heatingsteamboilerfx", StringComparison.OrdinalIgnoreCase))
                 {
                     HeatingSteamBoiler.AddRange(emitter.Value);
-                    // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
-                    if (!car.IsTrainHeatingBoilerInitialised && !car.HeatingBoilerSet)
-                    {
-                        car.HeatingBoilerSet = true;
-                        car.IsTrainHeatingBoilerInitialised = true;
-                    }
+                    car.InitializeBoilerHeating();
                 }
 
                 foreach (var drawer in HeatingSteamBoiler)
@@ -246,8 +240,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
-
-                car.HasFreightAnim = true;
                 FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
@@ -268,46 +260,46 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Initialise Coupler shapes 
-            if (car.FrontCouplerShapeFileName != null)
+            if (car.FrontCouplerAnimation != null)
             {
-                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontCouplerOpenShapeFileName != null)
+            if (car.FrontCouplerOpenAnimation != null)
             {
-                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerShapeFileName != null)
+            if (car.RearCouplerAnimation != null)
             {
-                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerOpenShapeFileName != null)
+            if (car.RearCouplerOpenAnimation != null)
             {
-                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
             // Initialise air hose shapes
 
-            if (car.FrontAirHoseShapeFileName != null)
+            if (car.FrontAirHoseAnimation != null)
             {
-                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontAirHoseDisconnectedShapeFileName != null)
+            if (car.FrontAirHoseDisconnectedAnimation != null)
             {
-                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseShapeFileName != null)
+            if (car.RearAirHoseAnimation != null)
             {
-                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseDisconnectedShapeFileName != null)
+            if (car.RearAirHoseDisconnectedAnimation != null)
             {
-                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
 
@@ -332,7 +324,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             LoadCarSounds(wagonFolderSlash);
             //if (!(MSTSWagon is MSTSLocomotive))
             //    LoadTrackSounds();
-            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, Viewer));
+            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, this));
 
             // Determine if it has first pantograph. So we can match unnamed panto parts correctly
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
@@ -450,8 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (matrixName.Length == 6)
                 {
-                    int id = 1;
-                    _ = int.TryParse(matrixName.AsSpan(5), out id);
+                    _ = int.TryParse(matrixName.AsSpan(5), out int id);
                     Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
@@ -720,7 +711,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             float AnimationWheelRadiusM = 0.0f; // Radius of non driven wheels
             float AnimationDriveWheelRadiusM = 0.0f; // Radius of driven wheels
 
-            if (MSTSWagon.IsDriveable && Viewer.Settings.UseAdvancedAdhesion && !MSTSWagon.Simulator.Settings.SimpleControlPhysics)
+            if (MSTSWagon.IsDriveable && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
             {
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
@@ -798,20 +789,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // truck angle animation
             foreach (var p in Car.Parts)
             {
-                if (p.iMatrix <= 0)
+                if (p.Matrix <= 0)
                     continue;
                 Matrix m = Matrix.Identity;
-                m.Translation = TrainCarShape.SharedShape.Matrices[p.iMatrix].Translation;
+                m.Translation = TrainCarShape.SharedShape.Matrices[p.Matrix].Translation;
                 m.M11 = p.Cos;
                 m.M13 = p.Sin;
                 m.M31 = -p.Sin;
                 m.M33 = p.Cos;
 
                 // To cancel out any vibration, apply the inverse here. If no vibration is present, this matrix will be Matrix.Identity.
-                TrainCarShape.XNAMatrices[p.iMatrix] = Car.VibrationInverseMatrix * m;
+                TrainCarShape.XNAMatrices[p.Matrix] = Car.VibrationInverseMatrix * m;
             }
 
-            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Car.Simulator.Settings.SimpleControlPhysics)
+            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Viewer.Settings.SimpleControlPhysics)
                 // Place the coupler in the centre of the car
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
             {
@@ -915,7 +906,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Get the current height above "sea level" for the relevant car
-            Car.CarHeightAboveSeaLevelM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
+            Car.CarHeightAboveSeaLevel = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
@@ -959,9 +950,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontCouplerAnimWidthM,
-                    Y = Car.FrontCouplerAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
+                    X = Car.FrontCouplerAnimation.Width,
+                    Y = Car.FrontCouplerAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -973,7 +964,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarAhead != null) // Display animated coupler if there is a car infront of this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     // If the car ahead does not have an animated coupler then location values will be zero for car ahaead, and no coupler will display. Hence do not correct coupler location 
                     if (Car.CarAhead.RearCouplerLocation != Vector3.Zero)
@@ -987,8 +978,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (absXc > 0.005 || absYc > 0.005 || absZc > 0.005)
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
-                            tileX = Car.CarAhead.RearCouplerLocationTileX;
-                            tileZ = Car.CarAhead.RearCouplerLocationTileZ;
+                            tileX = Car.CarAhead.WorldPosition.TileX;
+                            tileZ = Car.CarAhead.WorldPosition.TileZ;
                         }
                     }
                     couplerShape = FrontCouplerShape;
@@ -1010,9 +1001,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearCouplerAnimWidthM,
-                    Y = Car.RearCouplerAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearCouplerAnimation.Width,
+                    Y = Car.RearCouplerAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -1023,12 +1014,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     couplerShape = RearCouplerShape;
                     Car.RearCouplerLocation = couplerPosition.Translation;
-                    Car.RearCouplerLocationTileX = Car.WorldPosition.TileX;
-                    Car.RearCouplerLocationTileZ = Car.WorldPosition.TileZ;
 
                 }
                 else if (RearCouplerOpenShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
@@ -1047,9 +1036,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontAirHoseAnimWidthM,
-                    Y = Car.FrontAirHoseAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
+                    X = Car.FrontAirHoseAnimation.Width,
+                    Y = Car.FrontAirHoseAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
                 };
 
                 if (Car.CarAhead != null) // Display animated coupler if there is a car behind this car
@@ -1093,9 +1082,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearAirHoseAnimWidthM,
-                    Y = Car.RearAirHoseAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearAirHoseAnimation.Width,
+                    Y = Car.RearAirHoseAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
@@ -1243,7 +1232,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             try
             {
-                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(Viewer, MSTSWagon, smsFilePath));
+                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, smsFilePath));
             }
             catch (Exception error)
             {
@@ -1282,7 +1271,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Trace.TraceWarning("Cannot find track sound file {0}", filename);
                 return;
             }
-            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(Viewer, MSTSWagon, path));
+            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, path));
         }
 
         internal override void Mark()

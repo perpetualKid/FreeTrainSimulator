@@ -936,7 +936,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            if (Receiver.Camera.AttachedCar.PassengerViewpoints.Count == 1)
+            if (Receiver.Camera.AttachedCar.PassengerViewpoints?.Count == 1)
                 Receiver.PassengerCamera.SwitchSideCameraCar(Receiver.Camera.AttachedCar);
             else Receiver.PassengerCamera.ChangePassengerViewPoint(Receiver.Camera.AttachedCar);
             // Report();

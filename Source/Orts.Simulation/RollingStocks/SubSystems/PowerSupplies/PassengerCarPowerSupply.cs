@@ -32,7 +32,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public class ScriptedPassengerCarPowerSupply : IPassengerCarPowerSupply, ISubSystem<ScriptedPassengerCarPowerSupply>
     {
         public readonly MSTSWagon Wagon;
-        protected Simulator Simulator => Wagon.Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
         protected Train Train => Wagon.Train;
         protected Pantographs Pantographs => Wagon.Pantographs;
         protected int CarId;
@@ -304,7 +304,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script.ClockTime = () => (float)Simulator.ClockTime;
             Script.GameTime = () => (float)Simulator.GameTime;
             Script.PreUpdate = () => Simulator.PreUpdate;
-            Script.DistanceM = () => Wagon.DistanceM;
+            Script.DistanceM = () => Wagon.DistanceTravelled;
             Script.SpeedMpS = () => Math.Abs(Wagon.SpeedMpS);
             Script.Confirm = Simulator.Confirmer.Confirm;
             Script.Message = Simulator.Confirmer.Message;
@@ -328,8 +328,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script.AirConditioningPowerW = () => AirConditioningPowerW;
             Script.AirConditioningYield = () => AirConditioningYield;
             Script.PowerOnDelayS = () => PowerOnDelayS;
-            Script.DesiredTemperatureC = () => Wagon.DesiredCompartmentTempSetpointC;
-            Script.InsideTemperatureC = () => Wagon.CarInsideTempC;
+            Script.DesiredTemperatureC = () => (float)Wagon.DesiredCompartmentTempSetpointC;
+            Script.InsideTemperatureC = () => (float)Wagon.CarInsideTempC;
             Script.OutsideTemperatureC = () => Wagon.CarOutsideTempC;
 
             // AbstractPowerSupply setters

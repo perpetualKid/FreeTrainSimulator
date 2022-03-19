@@ -1125,7 +1125,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgConsist = train.ForcedConsistName;
+                        car.OrgiginalConsist = train.ForcedConsistName;
                     }
                 }
 
@@ -2293,7 +2293,7 @@ namespace Orts.Simulation.Timetables
 
             // clear approach route
             parentTrain.RemoveFromTrack();
-            foreach (DistanceTravelledItem thisAction in parentTrain.requiredActions)
+            foreach (DistanceTravelledItem thisAction in parentTrain.RequiredActions)
             {
                 if (thisAction is ClearSectionItem)
                 {
@@ -2446,7 +2446,7 @@ namespace Orts.Simulation.Timetables
 
             // create action for clearing turntable
             ClearMovingTableAction newAction = new ClearMovingTableAction(clearingDistanceM, originalTrainMaxSpeedMpS);
-            parentTrain.requiredActions.InsertAction(newAction);
+            parentTrain.RequiredActions.InsertAction(newAction);
         }
 
         //================================================================================================//

@@ -190,7 +190,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public class Pantograph : ISubSystem<Pantograph>
     {
         private readonly MSTSWagon Wagon;
-        protected Simulator Simulator => Wagon.Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
 
         public PantographState State { get; private set; }
         public float DelayS { get; private set; }
