@@ -944,10 +944,10 @@ namespace Orts.Simulation.RollingStocks
                     if (CurrentCurveRadius != 0 && CarBehind.CurrentCurveRadius == 0)
                     {
                         wagonRearCouplerAngle += 0.0006;
-                        wagonRearCouplerAngle = Math.Clamp(wagonRearCouplerAngle, 0, finalWagonRearCouplerAngleRad);
+                        wagonRearCouplerAngle = (finalWagonRearCouplerAngleRad < 0) ? Math.Clamp(wagonRearCouplerAngle, finalWagonRearCouplerAngleRad, 0) : Math.Clamp(wagonRearCouplerAngle, 0, finalWagonRearCouplerAngleRad);
 
                         CarBehind.wagonFrontCouplerAngle += 0.0006;
-                        CarBehind.wagonFrontCouplerAngle = Math.Clamp(CarBehind.wagonFrontCouplerAngle, 0, finalWagonFrontCouplerAngleRad);
+                        CarBehind.wagonFrontCouplerAngle = finalWagonFrontCouplerAngleRad < 0 ? Math.Clamp(CarBehind.wagonFrontCouplerAngle, finalWagonFrontCouplerAngleRad, 0) : Math.Clamp(CarBehind.wagonFrontCouplerAngle, 0, finalWagonFrontCouplerAngleRad);
 
                     }
                     else if (CurrentCurveRadius != 0 && CarBehind.CurrentCurveRadius != 0) // both cars on the curve
