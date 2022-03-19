@@ -236,7 +236,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HUDBrakeSkid { get; internal set; }
 
         public float BrakeShoeCoefficientFriction { get; private set; } = 1.0f; // Brake Shoe coefficient - for simple adhesion model set to 1
-        
+
         private float brakeShoeCoefficientFrictionAdjFactor = 1.0f; // Factor to adjust Brake force by - based upon changing friction coefficient with speed, will change when wheel goes into skid
         private float brakeShoeRetardCoefficientFrictionAdjFactor = 1.0f; // Factor of adjust Retard Brake force by - independent of skid
         private float defaultBrakeShoeCoefficientFriction;  // A default value of brake shoe friction is no user settings are present.
@@ -862,18 +862,18 @@ namespace Orts.Simulation.RollingStocks
             // calculate some default values based upon the length of the car specified in the "Size" statement. This value may however be inaccurate, and sets the "visual" distance for placement of the 
             // animated coupler. So often it is a good idea to add the values in the WAG file.
 
-            double overhangThisCar = 0.5 * (CarBodyLength - CarBogieCentreLength); // Vehicle overhang - B
-            double bogieDistanceThisCar = 0.5 * CarBogieCentreLength; // 0.5 * distance between bogie centres - A
-            double couplerDistanceThisCar = 0.5 * (CarCouplerFaceLength - CarBodyLength);
+            double overhangThisCar = (CarBodyLength - CarBogieCentreLength) / 2; // Vehicle overhang - B
+            double bogieDistanceThisCar = CarBogieCentreLength / 2; // 0.5 * distance between bogie centres - A
+            double couplerDistanceThisCar = (CarCouplerFaceLength - CarBodyLength) / 2;
 
             double overhangBehindCar = 2.545;  // Vehicle overhang - B
             double bogieDistanceBehindCar = 8.23;  // 0.5 * distance between bogie centres - A
-            double couplerDistanceBehindCar = 0.5 * (CarCouplerFaceLength - CarBodyLength);
+            double couplerDistanceBehindCar = (CarCouplerFaceLength - CarBodyLength) / 2;
             if (CarBehind != null)
             {
-                overhangBehindCar = 0.5 * (CarBehind.CarBodyLength - CarBehind.CarBogieCentreLength);  // Vehicle overhang - B
-                bogieDistanceBehindCar = 0.5 * CarBehind.CarBogieCentreLength;  // 0.5 * distance between bogie centres - A
-                couplerDistanceBehindCar = 0.5 * (CarBehind.CarCouplerFaceLength - CarBehind.CarBodyLength);
+                overhangBehindCar = (CarBehind.CarBodyLength - CarBehind.CarBogieCentreLength) / 2;  // Vehicle overhang - B
+                bogieDistanceBehindCar = CarBehind.CarBogieCentreLength / 2;  // 0.5 * distance between bogie centres - A
+                couplerDistanceBehindCar = (CarBehind.CarCouplerFaceLength - CarBehind.CarBodyLength) / 2;
             }
 
             double couplerAlphaAngle;
@@ -888,7 +888,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (couplerDistanceM == 0)
             {
-                couplerDistanceM = 0.0001f; // Stop couplerDistance equalling zero as this causes NaN calculations in following calculations.
+                couplerDistanceM = 0.0001; // Stop couplerDistance equalling zero as this causes NaN calculations in following calculations.
             }
 
             double BogieCentresAdjVehiclesM = overhangThisCar + overhangBehindCar + couplerDistanceM; // L value = Overhangs + Coupler spacing - D
@@ -943,7 +943,7 @@ namespace Orts.Simulation.RollingStocks
                     // If first car is starting to turn then slowly increase coupler angle to the maximum value expected
                     if (CurrentCurveRadius != 0 && CarBehind.CurrentCurveRadius == 0)
                     {
-                        wagonRearCouplerAngle += 0.0006f;
+                        wagonRearCouplerAngle += 0.0006;
                         wagonRearCouplerAngle = Math.Clamp(wagonRearCouplerAngle, 0, finalWagonRearCouplerAngleRad);
 
                         CarBehind.wagonFrontCouplerAngle += 0.0006;
@@ -961,11 +961,11 @@ namespace Orts.Simulation.RollingStocks
                     // If first car is still on straight, and last car is still on the curve, then slowly decrease coupler angle so that it is "straight" again
                     else if (CurrentCurveRadius == 0 && CarBehind.CurrentCurveRadius != 0)
                     {
-                        wagonRearCouplerAngle -= 0.0006f;
-                        wagonRearCouplerAngle = Math.Clamp(wagonRearCouplerAngle, 0, finalWagonRearCouplerAngleRad);
+                        wagonRearCouplerAngle -= 0.0006;
+                        wagonRearCouplerAngle = (finalWagonRearCouplerAngleRad < 0) ? Math.Clamp(wagonRearCouplerAngle, finalWagonRearCouplerAngleRad, 0) : Math.Clamp(wagonRearCouplerAngle, 0, finalWagonRearCouplerAngleRad);
 
-                        CarBehind.wagonFrontCouplerAngle -= 0.0006f;
-                        CarBehind.wagonFrontCouplerAngle = Math.Clamp(CarBehind.wagonFrontCouplerAngle, 0, finalWagonFrontCouplerAngleRad);
+                        CarBehind.wagonFrontCouplerAngle -= 0.0006;
+                        CarBehind.wagonFrontCouplerAngle = finalWagonFrontCouplerAngleRad < 0 ? Math.Clamp(CarBehind.wagonFrontCouplerAngle, finalWagonFrontCouplerAngleRad, 0) : Math.Clamp(CarBehind.wagonFrontCouplerAngle, 0, finalWagonFrontCouplerAngleRad);
                     }
 
                     // Set direction of coupler angle depending upon whether curve is left or right handed. Coupler angle will be +ve or -ve with relation to the car as a reference frame.
@@ -2749,7 +2749,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                BrakeForceN = brakeForce* brakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
+                BrakeForceN = brakeForce * brakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
             }
         }
 
