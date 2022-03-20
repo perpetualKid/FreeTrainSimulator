@@ -152,7 +152,7 @@ namespace Orts.Menu
             checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
             checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
             checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
-            checkBoxNoDieselEngineStart.Checked = !this.settings.DieselEngineStart;
+            checkBoxDieselEngineStart.Checked = this.settings.DieselEngineStart;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -325,7 +325,7 @@ namespace Orts.Menu
             settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
             settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
-            settings.DieselEngineStart = !checkBoxNoDieselEngineStart.Checked;
+            settings.DieselEngineStart = checkBoxDieselEngineStart.Checked;
 
             // Keyboard tab
             // These are edited live.

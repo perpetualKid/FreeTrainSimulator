@@ -17,6 +17,7 @@ namespace Orts.Menu
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OptionsForm));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
@@ -92,7 +93,9 @@ namespace Orts.Menu
             this.checkDynamicShadows = new System.Windows.Forms.CheckBox();
             this.checkWire = new System.Windows.Forms.CheckBox();
             this.tabPageSimulation = new System.Windows.Forms.TabPage();
-            this.checkBoxNoDieselEngineStart = new System.Windows.Forms.CheckBox();
+            this.checkConnectPower = new System.Windows.Forms.CheckBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.checkBoxDieselEngineStart = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkUseLocationPassingPaths = new System.Windows.Forms.CheckBox();
             this.checkDoorsAITrains = new System.Windows.Forms.CheckBox();
@@ -359,7 +362,7 @@ namespace Orts.Menu
             this.checkConfirmations.AutoSize = true;
             this.checkConfirmations.Location = new System.Drawing.Point(31, 51);
             this.checkConfirmations.Name = "checkConfirmations";
-            this.checkConfirmations.Size = new System.Drawing.Size(185, 19);
+            this.checkConfirmations.Size = new System.Drawing.Size(175, 19);
             this.checkConfirmations.TabIndex = 4;
             this.checkConfirmations.Text = "Show Control confirmations";
             this.checkConfirmations.UseVisualStyleBackColor = true;
@@ -439,12 +442,12 @@ namespace Orts.Menu
             this.pbEnableWebServer.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
             this.pbEnableWebServer.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // pbDisableTcsScripts
+            // pbEnableTcsScripts
             // 
-            this.pbEnableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.Image")));
-            this.pbEnableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.InitialImage")));
+            this.pbEnableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbEnableTcsScripts.Image")));
+            this.pbEnableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbEnableTcsScripts.InitialImage")));
             this.pbEnableTcsScripts.Location = new System.Drawing.Point(7, 274);
-            this.pbEnableTcsScripts.Name = "pbDisableTcsScripts";
+            this.pbEnableTcsScripts.Name = "pbEnableTcsScripts";
             this.pbEnableTcsScripts.Size = new System.Drawing.Size(18, 18);
             this.pbEnableTcsScripts.TabIndex = 41;
             this.pbEnableTcsScripts.TabStop = false;
@@ -635,12 +638,12 @@ namespace Orts.Menu
             this.checkSpeedMonitor.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
             this.checkSpeedMonitor.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // checkDisableTCSScripts
+            // checkEnableTCSScripts
             // 
             this.checkEnableTCSScripts.AutoSize = true;
             this.checkEnableTCSScripts.Location = new System.Drawing.Point(31, 274);
-            this.checkEnableTCSScripts.Name = "checkDisableTCSScripts";
-            this.checkEnableTCSScripts.Size = new System.Drawing.Size(123, 19);
+            this.checkEnableTCSScripts.Name = "checkEnableTCSScripts";
+            this.checkEnableTCSScripts.Size = new System.Drawing.Size(120, 19);
             this.checkEnableTCSScripts.TabIndex = 13;
             this.checkEnableTCSScripts.Text = "Enable TCS scripts";
             this.checkEnableTCSScripts.UseVisualStyleBackColor = true;
@@ -1253,7 +1256,9 @@ namespace Orts.Menu
             // 
             // tabPageSimulation
             // 
-            this.tabPageSimulation.Controls.Add(this.checkBoxNoDieselEngineStart);
+            this.tabPageSimulation.Controls.Add(this.checkConnectPower);
+            this.tabPageSimulation.Controls.Add(this.label40);
+            this.tabPageSimulation.Controls.Add(this.checkBoxDieselEngineStart);
             this.tabPageSimulation.Controls.Add(this.groupBox1);
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
@@ -1270,22 +1275,44 @@ namespace Orts.Menu
             this.tabPageSimulation.Text = "Simulation";
             this.tabPageSimulation.UseVisualStyleBackColor = true;
             // 
-            // checkBoxNoDieselEngineStart
+            // checkConnectPower
             // 
-            this.checkBoxNoDieselEngineStart.AutoSize = true;
-            this.checkBoxNoDieselEngineStart.Location = new System.Drawing.Point(6, 238);
-            this.checkBoxNoDieselEngineStart.Name = "checkBoxNoDieselEngineStart";
-            this.checkBoxNoDieselEngineStart.Size = new System.Drawing.Size(195, 17);
-            this.checkBoxNoDieselEngineStart.TabIndex = 9;
-            this.checkBoxNoDieselEngineStart.Text = "Diesel engines stopped after startup";
-            this.checkBoxNoDieselEngineStart.UseVisualStyleBackColor = true;
+            this.checkConnectPower.AutoSize = true;
+            this.checkConnectPower.Checked = true;
+            this.checkConnectPower.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkConnectPower.Enabled = false;
+            this.checkConnectPower.Location = new System.Drawing.Point(6, 263);
+            this.checkConnectPower.Name = "checkConnectPower";
+            this.checkConnectPower.Size = new System.Drawing.Size(154, 19);
+            this.checkConnectPower.TabIndex = 10;
+            this.checkConnectPower.Text = "Electric - connect power";
+            this.checkConnectPower.UseVisualStyleBackColor = true;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(6, 169);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(81, 15);
+            this.label40.TabIndex = 10;
+            this.label40.Text = "At game start,";
+            // 
+            // checkBoxDieselEngineStart
+            // 
+            this.checkBoxDieselEngineStart.AutoSize = true;
+            this.checkBoxDieselEngineStart.Location = new System.Drawing.Point(6, 238);
+            this.checkBoxDieselEngineStart.Name = "checkBoxDieselEngineStart";
+            this.checkBoxDieselEngineStart.Size = new System.Drawing.Size(130, 19);
+            this.checkBoxDieselEngineStart.TabIndex = 9;
+            this.checkBoxDieselEngineStart.Text = "Diesel - run engines";
+            this.checkBoxDieselEngineStart.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.checkUseLocationPassingPaths);
             this.groupBox1.Controls.Add(this.checkDoorsAITrains);
             this.groupBox1.Controls.Add(this.checkForcedRedAtStationStops);
-            this.groupBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.groupBox1.Location = new System.Drawing.Point(346, 6);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(290, 166);
@@ -1296,7 +1323,7 @@ namespace Orts.Menu
             // checkUseLocationPassingPaths
             // 
             this.checkUseLocationPassingPaths.AutoSize = true;
-            this.checkUseLocationPassingPaths.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkUseLocationPassingPaths.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkUseLocationPassingPaths.Location = new System.Drawing.Point(6, 70);
             this.checkUseLocationPassingPaths.Name = "checkUseLocationPassingPaths";
             this.checkUseLocationPassingPaths.Size = new System.Drawing.Size(239, 19);
@@ -1307,7 +1334,7 @@ namespace Orts.Menu
             // checkDoorsAITrains
             // 
             this.checkDoorsAITrains.AutoSize = true;
-            this.checkDoorsAITrains.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkDoorsAITrains.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkDoorsAITrains.Location = new System.Drawing.Point(6, 46);
             this.checkDoorsAITrains.Name = "checkDoorsAITrains";
             this.checkDoorsAITrains.Size = new System.Drawing.Size(179, 19);
@@ -1318,7 +1345,7 @@ namespace Orts.Menu
             // checkForcedRedAtStationStops
             // 
             this.checkForcedRedAtStationStops.AutoSize = true;
-            this.checkForcedRedAtStationStops.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkForcedRedAtStationStops.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkForcedRedAtStationStops.Location = new System.Drawing.Point(6, 22);
             this.checkForcedRedAtStationStops.Name = "checkForcedRedAtStationStops";
             this.checkForcedRedAtStationStops.Size = new System.Drawing.Size(165, 19);
@@ -1331,15 +1358,15 @@ namespace Orts.Menu
             this.checkHotStart.AutoSize = true;
             this.checkHotStart.Location = new System.Drawing.Point(6, 189);
             this.checkHotStart.Name = "checkHotStart";
-            this.checkHotStart.Size = new System.Drawing.Size(169, 19);
+            this.checkHotStart.Size = new System.Drawing.Size(148, 19);
             this.checkHotStart.TabIndex = 8;
-            this.checkHotStart.Text = "Steam locomotive hot start";
+            this.checkHotStart.Text = "Steam - pre-heat boiler";
             this.checkHotStart.UseVisualStyleBackColor = true;
             // 
             // checkSimpleControlPhysics
             // 
             this.checkSimpleControlPhysics.AutoSize = true;
-            this.checkSimpleControlPhysics.Location = new System.Drawing.Point(6, 212);
+            this.checkSimpleControlPhysics.Location = new System.Drawing.Point(6, 213);
             this.checkSimpleControlPhysics.Name = "checkSimpleControlPhysics";
             this.checkSimpleControlPhysics.Size = new System.Drawing.Size(170, 19);
             this.checkSimpleControlPhysics.TabIndex = 8;
@@ -1572,7 +1599,7 @@ namespace Orts.Menu
             this.groupBoxReverseRDLevers.Controls.Add(this.checkReverseAutoBrake);
             this.groupBoxReverseRDLevers.Controls.Add(this.checkReverseThrottle);
             this.groupBoxReverseRDLevers.Controls.Add(this.checkReverseReverser);
-            this.groupBoxReverseRDLevers.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.groupBoxReverseRDLevers.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.groupBoxReverseRDLevers.Location = new System.Drawing.Point(6, 18);
             this.groupBoxReverseRDLevers.Name = "groupBoxReverseRDLevers";
             this.groupBoxReverseRDLevers.Size = new System.Drawing.Size(318, 150);
@@ -1583,7 +1610,7 @@ namespace Orts.Menu
             // checkFullRangeThrottle
             // 
             this.checkFullRangeThrottle.AutoSize = true;
-            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkFullRangeThrottle.Location = new System.Drawing.Point(7, 119);
             this.checkFullRangeThrottle.Name = "checkFullRangeThrottle";
             this.checkFullRangeThrottle.Size = new System.Drawing.Size(125, 19);
@@ -1595,7 +1622,7 @@ namespace Orts.Menu
             // checkReverseIndependentBrake
             // 
             this.checkReverseIndependentBrake.AutoSize = true;
-            this.checkReverseIndependentBrake.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkReverseIndependentBrake.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkReverseIndependentBrake.Location = new System.Drawing.Point(7, 88);
             this.checkReverseIndependentBrake.Name = "checkReverseIndependentBrake";
             this.checkReverseIndependentBrake.Size = new System.Drawing.Size(219, 19);
@@ -1606,7 +1633,7 @@ namespace Orts.Menu
             // checkReverseAutoBrake
             // 
             this.checkReverseAutoBrake.AutoSize = true;
-            this.checkReverseAutoBrake.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkReverseAutoBrake.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkReverseAutoBrake.Location = new System.Drawing.Point(7, 65);
             this.checkReverseAutoBrake.Name = "checkReverseAutoBrake";
             this.checkReverseAutoBrake.Size = new System.Drawing.Size(178, 19);
@@ -1617,7 +1644,7 @@ namespace Orts.Menu
             // checkReverseThrottle
             // 
             this.checkReverseThrottle.AutoSize = true;
-            this.checkReverseThrottle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkReverseThrottle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkReverseThrottle.Location = new System.Drawing.Point(7, 42);
             this.checkReverseThrottle.Name = "checkReverseThrottle";
             this.checkReverseThrottle.Size = new System.Drawing.Size(161, 19);
@@ -1628,7 +1655,7 @@ namespace Orts.Menu
             // checkReverseReverser
             // 
             this.checkReverseReverser.AutoSize = true;
-            this.checkReverseReverser.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.checkReverseReverser.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.checkReverseReverser.Location = new System.Drawing.Point(7, 20);
             this.checkReverseReverser.Name = "checkReverseReverser";
             this.checkReverseReverser.Size = new System.Drawing.Size(164, 19);
@@ -1995,20 +2022,28 @@ namespace Orts.Menu
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridViewContent.ColumnHeadersHeight = 29;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2112,7 +2147,7 @@ namespace Orts.Menu
             // labelCurrentVersion
             // 
             this.labelCurrentVersion.AutoSize = true;
-            this.labelCurrentVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.labelCurrentVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.labelCurrentVersion.Location = new System.Drawing.Point(305, 343);
             this.labelCurrentVersion.Name = "labelCurrentVersion";
             this.labelCurrentVersion.Size = new System.Drawing.Size(25, 15);
@@ -2224,7 +2259,7 @@ namespace Orts.Menu
             // labelAvailableVersion
             // 
             this.labelAvailableVersion.AutoSize = true;
-            this.labelAvailableVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.labelAvailableVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.labelAvailableVersion.Location = new System.Drawing.Point(305, 321);
             this.labelAvailableVersion.Name = "labelAvailableVersion";
             this.labelAvailableVersion.Size = new System.Drawing.Size(25, 15);
@@ -2824,7 +2859,7 @@ namespace Orts.Menu
             this.Controls.Add(this.tabOptions);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOK);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -3081,7 +3116,7 @@ namespace Orts.Menu
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
         private System.Windows.Forms.CheckBox checkUseLocationPassingPaths;
         private System.Windows.Forms.Label labelMSAACount;
-        private System.Windows.Forms.CheckBox checkBoxNoDieselEngineStart;
+        private System.Windows.Forms.CheckBox checkBoxDieselEngineStart;
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
@@ -3113,5 +3148,7 @@ namespace Orts.Menu
         private System.Windows.Forms.PictureBox pbMapWindow;
         private System.Windows.Forms.PictureBox pbControlConfirmations;
         private System.Windows.Forms.PictureBox pbAlerter;
+        private System.Windows.Forms.CheckBox checkConnectPower;
+        private System.Windows.Forms.Label label40;
     }
 }
