@@ -148,11 +148,11 @@ namespace Orts.Menu
             numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
             checkBreakCouplers.Checked = this.settings.BreakCouplers;
             checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
-            checkHotStart.Checked = this.settings.HotStart;
+            checkBoilerPreheated.Checked = this.settings.HotStart;
             checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
             checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
             checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
-            checkBoxDieselEngineStart.Checked = this.settings.DieselEngineStart;
+            checkDieselEnginesStarted.Checked = this.settings.DieselEngineStart;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -321,11 +321,11 @@ namespace Orts.Menu
             settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
             settings.BreakCouplers = checkBreakCouplers.Checked;
             settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
-            settings.HotStart = checkHotStart.Checked;
+            settings.HotStart = checkBoilerPreheated.Checked;
             settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
             settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
-            settings.DieselEngineStart = checkBoxDieselEngineStart.Checked;
+            settings.DieselEngineStart = checkDieselEnginesStarted.Checked;
 
             // Keyboard tab
             // These are edited live.

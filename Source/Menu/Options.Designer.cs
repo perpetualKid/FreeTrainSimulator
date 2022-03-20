@@ -93,14 +93,14 @@ namespace Orts.Menu
             this.checkDynamicShadows = new System.Windows.Forms.CheckBox();
             this.checkWire = new System.Windows.Forms.CheckBox();
             this.tabPageSimulation = new System.Windows.Forms.TabPage();
-            this.checkConnectPower = new System.Windows.Forms.CheckBox();
+            this.checkElectricPowerConnected = new System.Windows.Forms.CheckBox();
             this.label40 = new System.Windows.Forms.Label();
-            this.checkBoxDieselEngineStart = new System.Windows.Forms.CheckBox();
+            this.checkDieselEnginesStarted = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkUseLocationPassingPaths = new System.Windows.Forms.CheckBox();
             this.checkDoorsAITrains = new System.Windows.Forms.CheckBox();
             this.checkForcedRedAtStationStops = new System.Windows.Forms.CheckBox();
-            this.checkHotStart = new System.Windows.Forms.CheckBox();
+            this.checkBoilerPreheated = new System.Windows.Forms.CheckBox();
             this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
             this.labelAdhesionMovingAverageFilterSize = new System.Windows.Forms.Label();
@@ -1256,11 +1256,11 @@ namespace Orts.Menu
             // 
             // tabPageSimulation
             // 
-            this.tabPageSimulation.Controls.Add(this.checkConnectPower);
+            this.tabPageSimulation.Controls.Add(this.checkElectricPowerConnected);
             this.tabPageSimulation.Controls.Add(this.label40);
-            this.tabPageSimulation.Controls.Add(this.checkBoxDieselEngineStart);
+            this.tabPageSimulation.Controls.Add(this.checkDieselEnginesStarted);
             this.tabPageSimulation.Controls.Add(this.groupBox1);
-            this.tabPageSimulation.Controls.Add(this.checkHotStart);
+            this.tabPageSimulation.Controls.Add(this.checkBoilerPreheated);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
             this.tabPageSimulation.Controls.Add(this.checkCurveSpeedDependent);
             this.tabPageSimulation.Controls.Add(this.labelAdhesionMovingAverageFilterSize);
@@ -1277,16 +1277,16 @@ namespace Orts.Menu
             // 
             // checkConnectPower
             // 
-            this.checkConnectPower.AutoSize = true;
-            this.checkConnectPower.Checked = true;
-            this.checkConnectPower.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkConnectPower.Enabled = false;
-            this.checkConnectPower.Location = new System.Drawing.Point(6, 263);
-            this.checkConnectPower.Name = "checkConnectPower";
-            this.checkConnectPower.Size = new System.Drawing.Size(154, 19);
-            this.checkConnectPower.TabIndex = 10;
-            this.checkConnectPower.Text = "Electric - connect power";
-            this.checkConnectPower.UseVisualStyleBackColor = true;
+            this.checkElectricPowerConnected.AutoSize = true;
+            this.checkElectricPowerConnected.Checked = true;
+            this.checkElectricPowerConnected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkElectricPowerConnected.Enabled = false;
+            this.checkElectricPowerConnected.Location = new System.Drawing.Point(6, 263);
+            this.checkElectricPowerConnected.Name = "checkConnectPower";
+            this.checkElectricPowerConnected.Size = new System.Drawing.Size(154, 19);
+            this.checkElectricPowerConnected.TabIndex = 10;
+            this.checkElectricPowerConnected.Text = "Electric - connect power";
+            this.checkElectricPowerConnected.UseVisualStyleBackColor = true;
             // 
             // label40
             // 
@@ -1299,13 +1299,13 @@ namespace Orts.Menu
             // 
             // checkBoxDieselEngineStart
             // 
-            this.checkBoxDieselEngineStart.AutoSize = true;
-            this.checkBoxDieselEngineStart.Location = new System.Drawing.Point(6, 238);
-            this.checkBoxDieselEngineStart.Name = "checkBoxDieselEngineStart";
-            this.checkBoxDieselEngineStart.Size = new System.Drawing.Size(130, 19);
-            this.checkBoxDieselEngineStart.TabIndex = 9;
-            this.checkBoxDieselEngineStart.Text = "Diesel - run engines";
-            this.checkBoxDieselEngineStart.UseVisualStyleBackColor = true;
+            this.checkDieselEnginesStarted.AutoSize = true;
+            this.checkDieselEnginesStarted.Location = new System.Drawing.Point(6, 238);
+            this.checkDieselEnginesStarted.Name = "checkBoxDieselEngineStart";
+            this.checkDieselEnginesStarted.Size = new System.Drawing.Size(130, 19);
+            this.checkDieselEnginesStarted.TabIndex = 9;
+            this.checkDieselEnginesStarted.Text = "Diesel - run engines";
+            this.checkDieselEnginesStarted.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
@@ -1355,13 +1355,13 @@ namespace Orts.Menu
             // 
             // checkHotStart
             // 
-            this.checkHotStart.AutoSize = true;
-            this.checkHotStart.Location = new System.Drawing.Point(6, 189);
-            this.checkHotStart.Name = "checkHotStart";
-            this.checkHotStart.Size = new System.Drawing.Size(148, 19);
-            this.checkHotStart.TabIndex = 8;
-            this.checkHotStart.Text = "Steam - pre-heat boiler";
-            this.checkHotStart.UseVisualStyleBackColor = true;
+            this.checkBoilerPreheated.AutoSize = true;
+            this.checkBoilerPreheated.Location = new System.Drawing.Point(6, 189);
+            this.checkBoilerPreheated.Name = "checkHotStart";
+            this.checkBoilerPreheated.Size = new System.Drawing.Size(148, 19);
+            this.checkBoilerPreheated.TabIndex = 8;
+            this.checkBoilerPreheated.Text = "Steam - pre-heat boiler";
+            this.checkBoilerPreheated.UseVisualStyleBackColor = true;
             // 
             // checkSimpleControlPhysics
             // 
@@ -3030,7 +3030,7 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkDistantMountains;
         private System.Windows.Forms.CheckBox checkAlerterExternal;
         private System.Windows.Forms.CheckBox checkCurveSpeedDependent;
-        private System.Windows.Forms.CheckBox checkHotStart;
+        private System.Windows.Forms.CheckBox checkBoilerPreheated;
         private System.Windows.Forms.CheckBox checkSimpleControlPhysics;
         private System.Windows.Forms.CheckBox checkVerticalSync;
         private System.Windows.Forms.ComboBox comboPressureUnit;
@@ -3116,7 +3116,7 @@ namespace Orts.Menu
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
         private System.Windows.Forms.CheckBox checkUseLocationPassingPaths;
         private System.Windows.Forms.Label labelMSAACount;
-        private System.Windows.Forms.CheckBox checkBoxDieselEngineStart;
+        private System.Windows.Forms.CheckBox checkDieselEnginesStarted;
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
@@ -3148,7 +3148,7 @@ namespace Orts.Menu
         private System.Windows.Forms.PictureBox pbMapWindow;
         private System.Windows.Forms.PictureBox pbControlConfirmations;
         private System.Windows.Forms.PictureBox pbAlerter;
-        private System.Windows.Forms.CheckBox checkConnectPower;
+        private System.Windows.Forms.CheckBox checkElectricPowerConnected;
         private System.Windows.Forms.Label label40;
     }
 }
