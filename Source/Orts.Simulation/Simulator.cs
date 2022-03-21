@@ -219,6 +219,7 @@ namespace Orts.Simulation
         public event EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
         public event EventHandler RequestTTDetachWindow;
 
+        public float TimetableLoadedFraction = 0.0f;    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
         public Simulator(UserSettings settings, string activityPath)
         {
             Instance = this;

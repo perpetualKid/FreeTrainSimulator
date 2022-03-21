@@ -20,7 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
             return new LoadingScreenMaterial(game);
         }
 
-        protected override VertexPositionTexture[] GetVerticies(Game game)
+        protected override VertexPositionTexture[] GetVertices(Game game)
         {
             float w, h;
 

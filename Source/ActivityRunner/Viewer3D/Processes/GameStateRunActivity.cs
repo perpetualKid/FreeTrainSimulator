@@ -75,6 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private LoadingPrimitive loading;
         private LoadingScreenPrimitive loadingScreen;
         private LoadingBarPrimitive loadingBar;
+        private TimetableLoadingBarPrimitive timetableLoadingBar;
         private Matrix loadingMatrix = Matrix.Identity;
 
         private static readonly string separatorLine = new string('-', 80);
@@ -103,6 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             loading.Dispose();
             loadingScreen.Dispose();
             loadingBar.Dispose();
+            timetableLoadingBar.Dispose();
             base.Dispose(disposing);
         }
 
@@ -125,6 +127,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 loadingBar.Material.shader.LoadingPercent = loadedPercent;
                 frame.AddPrimitive(loadingBar.Material, loadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
+            if (simulator != null && simulator.TimetableMode && timetableLoadingBar != null && simulator.TimetableLoadedFraction < 0.99f)    // 0.99 to hide loading bar at end of timetable pre-run
+            {
+                timetableLoadingBar.Material.shader.LoadingPercent = simulator.TimetableLoadedFraction;
+                frame.AddPrimitive(timetableLoadingBar.Material, timetableLoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
+            }
 
             base.Update(frame, gameTime);
         }
@@ -136,6 +143,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 loading = new LoadingPrimitive(Game);
             if (loadingBar == null)
                 loadingBar = new LoadingBarPrimitive(Game);
+            if (timetableLoadingBar == null)
+                timetableLoadingBar = new TimetableLoadingBarPrimitive(Game);
 
             // No action, check for data; for now assume any data is good data.
             if (actionType == ActionType.None && data.Any())

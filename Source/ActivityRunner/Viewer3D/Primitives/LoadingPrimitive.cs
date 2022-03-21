@@ -20,7 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
         public LoadingPrimitive(Game game)
         {
             Material = GetMaterial(game);
-            var verticies = GetVerticies(game);
+            var verticies = GetVertices(game);
             VertexBuffer = new VertexBuffer(game.GraphicsDevice, typeof(VertexPositionTexture), verticies.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(verticies);
         }
@@ -30,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
             return new LoadingMaterial(game);
         }
 
-        protected virtual VertexPositionTexture[] GetVerticies(Game game)
+        protected virtual VertexPositionTexture[] GetVertices(Game game)
         {
             var dd = (float)Material.TextureWidth / 2;
             return new[] {
