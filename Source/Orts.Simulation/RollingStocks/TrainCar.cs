@@ -1353,14 +1353,12 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateCurveSpeedLimit()
         {
             float s = AbsSpeedMpS; // speed of train
-            var train = simulator.PlayerLocomotive.Train;//Debrief Eval
+            Train train = simulator.PlayerLocomotive.Train;//Debrief Eval
 
             // get curve radius
 
             if (curveSpeedDependent || curveResistanceDependent)  // Function enabled by menu selection for either curve resistance or curve speed limit
             {
-
-
                 if (CurrentCurveRadius > 0)  // only check curve speed if it is a curve
                 {
                     float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
@@ -1369,7 +1367,6 @@ namespace Orts.Simulation.RollingStocks
                     if (simulator.Route.SuperElevationHgtpRadiusM != null)
                     {
                         superelevation = (float)simulator.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
-
                     }
                     else
                     {
@@ -1383,13 +1380,11 @@ namespace Orts.Simulation.RollingStocks
                                 // SE = ((TrackGauge x Velocity^2 ) / Gravity x curve radius)
 
                                 superelevation = (float)(trackGauge * speedLimit * speedLimit) / (gravitationalAcceleration * CurrentCurveRadius);
-
                             }
                             else
                             {
                                 superelevation = 0.0254f;  // Assume minimal superelevation if conventional mixed route
                             }
-
                         }
                         // Set Superelevation value - based upon standard figures
                         else if (CurrentCurveRadius <= 2000 & CurrentCurveRadius > 1600)
@@ -2052,24 +2047,23 @@ namespace Orts.Simulation.RollingStocks
             if (WheelAxlesLoaded || wheelHasBeenSet)
                 return;
 
+            if (string.IsNullOrEmpty(wheels))
+                throw new ArgumentNullException(nameof(wheels));
+
             // Currently looking for rolling stock that has more than 3 axles on a bogie.  This is rare, but some models are like this.
             // In this scenario, bogie1 contains 2 sets of axles.  One of them for bogie2.  Both bogie2 axles must be removed.
             // For the time being, the only rail-car that was having issues had 4 axles on one bogie. The second set of axles had a bogie index of 2 and both had to be dropped for the rail-car to operate under OR.
             if (Parts.Count > 0 && bogie1Axles == 4 || bogie2Axles == 4) // 1 bogie will have a Parts.Count of 2.
             {
-                if (Parts.Count == 2)
-                    if (parentMatrix == Parts[1].Matrix && wheels.Length == 8)
-                        if (bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
-                            return;
+                if (Parts.Count == 2 && parentMatrix == Parts[1].Matrix && wheels.Length == 8 && bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
+                    return;
 
                 if (Parts.Count == 3)
                 {
-                    if (parentMatrix == Parts[1].Matrix && wheels.Length == 8)
-                        if (bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
-                            return;
-                    if (parentMatrix == Parts[2].Matrix && wheels.Length == 8)
-                        if (bogie2Axles == 4 && bogieID == 1) // This test is strictly testing for and leaving out axles meant for a Bogie1 assignment.
-                            return;
+                    if (parentMatrix == Parts[1].Matrix && wheels.Length == 8 && bogie1Axles == 4 && bogieID == 2) // This test is strictly testing for and leaving out axles meant for a Bogie2 assignment.
+                        return;
+                    if (parentMatrix == Parts[2].Matrix && wheels.Length == 8 && bogie2Axles == 4 && bogieID == 1) // This test is strictly testing for and leaving out axles meant for a Bogie1 assignment.
+                        return;
                 }
 
             }
@@ -2280,36 +2274,28 @@ namespace Orts.Simulation.RollingStocks
 
                 WheelAxles.Sort(WheelAxles[0]);
             }
-
-
-#if DEBUG_WHEELS
-            Trace.WriteLine(WagFilePath);
-            Trace.WriteLine("  length {0,10:F4}", LengthM);
-            Trace.WriteLine("  articulated {0}/{1}", articulatedFront, articulatedRear);
-            foreach (var w in WheelAxles)
-                Trace.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
-            foreach (var p in Parts)
-                Trace.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
-#endif
         } // end SetUpWheelsArticulation()
 
         public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
         {
-            for (var j = 0; j < Parts.Count; j++)
+            if (null == traveller)
+                throw new ArgumentNullException(nameof(traveller));
+
+            for (int j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();
-            var tileX = traveller.TileX;
-            var tileZ = traveller.TileZ;
+            int tileX = traveller.TileX;
+            int tileZ = traveller.TileZ;
             if (Flipped == backToFront)
             {
-                var o = -CarLengthM / 2 - centreOfGravityM.Z;
-                for (var k = 0; k < WheelAxles.Count; k++)
+                float o = -CarLengthM / 2 - centreOfGravityM.Z;
+                for (int k = 0; k < WheelAxles.Count; k++)
                 {
-                    var d = WheelAxles[k].OffsetM - o;
+                    float d = WheelAxles[k].OffsetM - o;
                     o = WheelAxles[k].OffsetM;
                     traveller.Move(d);
-                    var x = traveller.X + 2048 * (traveller.TileX - tileX);
-                    var y = traveller.Y;
-                    var z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
+                    float x = traveller.X + 2048 * (traveller.TileX - tileX);
+                    float y = traveller.Y;
+                    float z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 - centreOfGravityM.Z - o;
@@ -2317,15 +2303,15 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                var o = CarLengthM / 2 - centreOfGravityM.Z;
-                for (var k = WheelAxles.Count - 1; k >= 0; k--)
+                float o = CarLengthM / 2 - centreOfGravityM.Z;
+                for (int k = WheelAxles.Count - 1; k >= 0; k--)
                 {
-                    var d = o - WheelAxles[k].OffsetM;
+                    float d = o - WheelAxles[k].OffsetM;
                     o = WheelAxles[k].OffsetM;
                     traveller.Move(d);
-                    var x = traveller.X + 2048 * (traveller.TileX - tileX);
-                    var y = traveller.Y;
-                    var z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
+                    float x = traveller.X + 2048 * (traveller.TileX - tileX);
+                    float y = traveller.Y;
+                    float z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 + centreOfGravityM.Z + o;
@@ -2436,7 +2422,7 @@ namespace Orts.Simulation.RollingStocks
             { prevElev += 40f; return; }//avoid the first two updates as they are not valid
 
             // Because the traveler is at the FRONT of the TrainCar, smooth the super-elevation out with the rear.
-            var z = traveller.GetSuperElevation(-CarLengthM);
+            float z = traveller.GetSuperElevation(-CarLengthM);
             if (Flipped)
                 z *= -1;
             // TODO This is a hack until we fix the super-elevation code as described in http://www.elvastower.com/forums/index.php?/topic/28751-jerky-superelevation-effect/
@@ -2555,7 +2541,7 @@ namespace Orts.Simulation.RollingStocks
                 // Add new vibrations every track vector section which changes the curve radius.
                 if (VibrationTrackVectorSection != traveler.TrackVectorSectionIndex)
                 {
-                    var curvaturepM = MathHelper.Clamp(traveler.GetCurvature(), -VibrationMaximumCurvaturepM, VibrationMaximumCurvaturepM);
+                    float curvaturepM = MathHelper.Clamp(traveler.GetCurvature(), -VibrationMaximumCurvaturepM, VibrationMaximumCurvaturepM);
                     if (VibrationTrackCurvaturepM != curvaturepM)
                     {
                         // Use the difference in curvature to determine the strength of the vibration caused.
