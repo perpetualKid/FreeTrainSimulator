@@ -44,6 +44,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Sound;
@@ -329,8 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 else
                 {
-                    TrainCarViewer carAhead = viewer.World.Trains.Cars[Car.Train.Cars[carIndex - carIncrement]];
-                    if (carAhead.TrackSoundLocation != WorldLocation.None)
+                    if (viewer.World.Trains.Cars.TryGetValue(Car.Train.Cars[carIndex - carIncrement], out TrainCarViewer carAhead) && carAhead.TrackSoundLocation != WorldLocation.None)
                     {
                         if ((curTrackSoundType == wagonViewer.TrackSoundType || stateChange) && wagonViewer.TrackSoundType != carAhead.TrackSoundType)
                         {
