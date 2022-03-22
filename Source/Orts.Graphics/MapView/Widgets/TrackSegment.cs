@@ -111,28 +111,69 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class PathSegment : TrackSegment
     {
-        private readonly double startOffsetDeg;
+        private readonly float startOffsetDeg;
 
-        public PathSegment(TrackSegment source, float startOffset, float endOffset = 0) : base(source)
+        public PathSegment(TrackSegment source, float remainingLength, float startOffset, bool reverse) : base(source)
         {
-            if (startOffset == 0 && endOffset == 0)//full path segment
+            if (startOffset == 0 && remainingLength >= Length)//full path segment
                 return;
 
             if (Curved)
             {
                 int sign = Math.Sign(Angle);
-                startOffsetDeg = sign * MathHelper.ToDegrees(startOffset);
-                Angle = endOffset == 0 ? (float)(Angle - startOffsetDeg) : sign * MathHelper.ToDegrees(endOffset - startOffset);
+                float remainingDeg = MathHelper.ToDegrees(remainingLength / Radius) * sign;
+
+                if (reverse)
+                {
+                    if (startOffset != 0)
+                        Angle = MathHelper.ToDegrees(startOffset) * sign;
+                    if (Math.Abs(remainingDeg) < Math.Abs(Angle))
+                    {
+                        startOffsetDeg = Angle - remainingDeg;
+                        Angle = remainingDeg;
+                    }
+                }
+                else
+                {
+                    startOffsetDeg = sign * MathHelper.ToDegrees(startOffset);
+                    Angle -= startOffsetDeg;
+                    if (Math.Abs(remainingDeg) < Math.Abs(Angle))
+                        Angle = remainingDeg;
+                }
+                Length = Radius * MathHelper.ToRadians(Angle) * sign;
             }
             else
             {
+                float endOffset = 0;
+                if (reverse)
+                {
+                    if (startOffset == 0)
+                        startOffset = Length;
+                    else
+                        Length = startOffset;
+                    if (remainingLength < startOffset)
+                    {
+                        endOffset = startOffset - remainingLength;
+                        Length = remainingLength;
+                    }
+                    (startOffset, endOffset) = (endOffset, startOffset);
+                }
+                else
+                {
+                    Length -= startOffset;
+                    if (remainingLength + startOffset < Length)
+                    {
+                        endOffset = remainingLength + startOffset;
+                        Length = remainingLength;
+                    }
+                }
+
                 double dx = vectorEnd.X - location.X;
                 double dy = vectorEnd.Y - location.Y;
                 double scale = startOffset / source.Length;
                 location = new PointD(location.X + dx * scale, location.Y + dy * scale);
                 scale = endOffset / source.Length;
                 vectorEnd = new PointD(location.X + dx * scale, location.Y + dy * scale);
-                Length = endOffset == 0 ? Length - startOffset : endOffset - startOffset;
             }
         }
 

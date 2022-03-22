@@ -136,26 +136,23 @@ namespace Orts.Graphics.MapView
         // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
-            float length = 0;
+            float remainingPathLength = 20;
             PathSegments.Clear();
             if (null == TrackNodeSegments)
                 return;
             Traveller traveller = new Traveller(trainTraveller);
             if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
             {
-                if (traveller.Direction == Direction.Backward)
-                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], 0, traveller.TrackSectionOffset));
-                else
-                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], traveller.TrackSectionOffset));
-                length += PathSegments[^1].Length - traveller.TrackSectionOffset;
+                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
+                remainingPathLength -= PathSegments[^1].Length;
             }
-            while (traveller.TrackNodeType != TrackNodeType.End && length < 500)
+            while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
             {
                 traveller.NextSection();
                 if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
                 {
-                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], 0, 0));
-                    length += PathSegments[^1].Length;
+                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
+                    remainingPathLength -= PathSegments[^1].Length;
                 }
             }
         }
