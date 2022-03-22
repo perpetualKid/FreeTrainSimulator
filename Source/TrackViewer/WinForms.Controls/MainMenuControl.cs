@@ -36,35 +36,37 @@ namespace Orts.TrackViewer.WinForms.Controls
             SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrack], ColorSetting.RoadTrack);
             SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrackEnd], ColorSetting.RoadTrackEnd);
 
+            SetupColorComboBoxMenuItem(pathTrackColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PathTrack], ColorSetting.PathTrack);
+
             SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
             SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
 
-            SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, TrackViewerViewSettings.Tracks);
-            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, TrackViewerViewSettings.EndsNodes);
-            SetupVisibilityMenuItem(trackJunctionNodesVisibleToolStripMenuItem, TrackViewerViewSettings.JunctionNodes);
-            SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, TrackViewerViewSettings.CrossOvers);
-            SetupVisibilityMenuItem(trackLevelCrossingsVisibleToolStripMenuItem, TrackViewerViewSettings.LevelCrossings);
+            SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapViewItemSettings.Tracks);
+            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapViewItemSettings.EndsNodes);
+            SetupVisibilityMenuItem(trackJunctionNodesVisibleToolStripMenuItem, MapViewItemSettings.JunctionNodes);
+            SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, MapViewItemSettings.CrossOvers);
+            SetupVisibilityMenuItem(trackLevelCrossingsVisibleToolStripMenuItem, MapViewItemSettings.LevelCrossings);
 
-            SetupVisibilityMenuItem(roadSegmentsVisibleToolStripMenuItem, TrackViewerViewSettings.Roads);
-            SetupVisibilityMenuItem(roadEndNodesVisibleToolStripMenuItem, TrackViewerViewSettings.RoadEndNodes);
-            SetupVisibilityMenuItem(roadLevelCrossingsVisibleToolStripMenuItem, TrackViewerViewSettings.RoadCrossings);
-            SetupVisibilityMenuItem(roadCarSpawnersVisibleToolStripMenuItem, TrackViewerViewSettings.CarSpawners);
+            SetupVisibilityMenuItem(roadSegmentsVisibleToolStripMenuItem, MapViewItemSettings.Roads);
+            SetupVisibilityMenuItem(roadEndNodesVisibleToolStripMenuItem, MapViewItemSettings.RoadEndNodes);
+            SetupVisibilityMenuItem(roadLevelCrossingsVisibleToolStripMenuItem, MapViewItemSettings.RoadCrossings);
+            SetupVisibilityMenuItem(roadCarSpawnersVisibleToolStripMenuItem, MapViewItemSettings.CarSpawners);
 
-            SetupVisibilityMenuItem(primarySignalsVisibleToolStripMenuItem, TrackViewerViewSettings.Signals);
-            SetupVisibilityMenuItem(otherSignalsVisibleToolStripMenuItem, TrackViewerViewSettings.OtherSignals);
-            SetupVisibilityMenuItem(platformsVisibleToolStripMenuItem, TrackViewerViewSettings.Platforms);
-            SetupVisibilityMenuItem(platformNamesVisibleToolStripMenuItem, TrackViewerViewSettings.PlatformNames);
-            SetupVisibilityMenuItem(platformStationsVisibleToolStripMenuItem, TrackViewerViewSettings.PlatformStations);
-            SetupVisibilityMenuItem(sidingsVisibleToolStripMenuItem, TrackViewerViewSettings.Sidings);
-            SetupVisibilityMenuItem(sidingNamesVisibleToolStripMenuItem, TrackViewerViewSettings.SidingNames);
-            SetupVisibilityMenuItem(speedpostsVisibleToolStripMenuItem, TrackViewerViewSettings.SpeedPosts);
-            SetupVisibilityMenuItem(milepostsVisibleToolStripMenuItem, TrackViewerViewSettings.MilePosts);
-            SetupVisibilityMenuItem(hazardsVisibleToolStripMenuItem, TrackViewerViewSettings.Hazards);
-            SetupVisibilityMenuItem(pickupsVisibleToolStripMenuItem, TrackViewerViewSettings.Pickups);
-            SetupVisibilityMenuItem(soundRegionsVisibleToolStripMenuItem, TrackViewerViewSettings.SoundRegions);
+            SetupVisibilityMenuItem(primarySignalsVisibleToolStripMenuItem, MapViewItemSettings.Signals);
+            SetupVisibilityMenuItem(otherSignalsVisibleToolStripMenuItem, MapViewItemSettings.OtherSignals);
+            SetupVisibilityMenuItem(platformsVisibleToolStripMenuItem, MapViewItemSettings.Platforms);
+            SetupVisibilityMenuItem(platformNamesVisibleToolStripMenuItem, MapViewItemSettings.PlatformNames);
+            SetupVisibilityMenuItem(platformStationsVisibleToolStripMenuItem, MapViewItemSettings.PlatformStations);
+            SetupVisibilityMenuItem(sidingsVisibleToolStripMenuItem, MapViewItemSettings.Sidings);
+            SetupVisibilityMenuItem(sidingNamesVisibleToolStripMenuItem, MapViewItemSettings.SidingNames);
+            SetupVisibilityMenuItem(speedpostsVisibleToolStripMenuItem, MapViewItemSettings.SpeedPosts);
+            SetupVisibilityMenuItem(milepostsVisibleToolStripMenuItem, MapViewItemSettings.MilePosts);
+            SetupVisibilityMenuItem(hazardsVisibleToolStripMenuItem, MapViewItemSettings.Hazards);
+            SetupVisibilityMenuItem(pickupsVisibleToolStripMenuItem, MapViewItemSettings.Pickups);
+            SetupVisibilityMenuItem(soundRegionsVisibleToolStripMenuItem, MapViewItemSettings.SoundRegions);
 
-            SetupVisibilityMenuItem(tileGidVisibleToolStripMenuItem, TrackViewerViewSettings.Grid);
+            SetupVisibilityMenuItem(tileGidVisibleToolStripMenuItem, MapViewItemSettings.Grid);
 
             LoadLanguage(languageSelectionComboBoxMenuItem.ComboBox);
             languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
@@ -76,7 +78,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             menuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
         }
 
-        private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, TrackViewerViewSettings setting)
+        private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, MapViewItemSettings setting)
         {
             menuItem.Tag = setting;
             menuItem.Checked = (parent.Settings.ViewSettings & setting) == setting;
@@ -102,7 +104,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         {
             if (sender is ToolStripMenuItem menuItem)
             {
-                parent.UpdateItemVisibilityPreference((TrackViewerViewSettings)menuItem.Tag, menuItem.Checked);
+                parent.UpdateItemVisibilityPreference((MapViewItemSettings)menuItem.Tag, menuItem.Checked);
                 if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
                     SetupVisibilityParentMenuItem(parentItem);
             }
@@ -283,7 +285,7 @@ namespace Orts.TrackViewer.WinForms.Controls
                 foreach (ToolStripMenuItem item in menuItem.DropDownItems)
                 {
                     item.Checked = menuItem.Checked;
-                    parent.UpdateItemVisibilityPreference((TrackViewerViewSettings)item.Tag, item.Checked);
+                    parent.UpdateItemVisibilityPreference((MapViewItemSettings)item.Tag, item.Checked);
                 }
 
             }

@@ -75,6 +75,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "Olive",        // RoadTrack
             "ForestGreen",  // RoadTrackEnd
             "DeepPink",     // RoadLevelCrossing
+            "Gold",       // PathTrack
+            "Gold",       // PathTrackEnd
+            "Gold",       // PathTrackIntermediate
+            "Gold",       // PathJunction
+            "Gold",       // PathReversal
             "White",        // RoadCarSpawner
             "White",        // SignalItem
             "Navy",         // PlatformItem
@@ -213,7 +218,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
-            content.UpdateItemVisiblity(TrackViewerViewSettings.All);
+            content.UpdateItemVisiblity(MapViewItemSettings.All);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);

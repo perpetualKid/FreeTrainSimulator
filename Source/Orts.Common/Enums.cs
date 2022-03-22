@@ -897,7 +897,7 @@ namespace Orts.Common
     }
 
     [Flags]
-    public enum TrackViewerViewSettings
+    public enum MapViewItemSettings
     {
         None            = 0x0,
         Tracks          = 0x1 << 0,
@@ -922,11 +922,17 @@ namespace Orts.Common
         Pickups         = 0x1 << 19,
         SoundRegions    = 0x1 << 20,
         Grid            = 0x1 << 21,
+        Paths           = 0x1 << 22,
+        PathEnds        = 0x1 << 23,
+        PathIntermediates = 0x1 << 24,
+        PathJunctions   = 0x1 << 25,
+        PathReversals   = 0x1 << 26,
 
         AllTracks = Tracks | EndsNodes | JunctionNodes | LevelCrossings | CrossOvers,
         AllRoads = Roads | RoadEndNodes | RoadCrossings | CarSpawners,
+        AllPaths = Paths | PathEnds | PathIntermediates | PathJunctions | PathReversals,
         AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,
-        All = AllTracks | AllRoads | AllTrackItems | Grid
+        All = AllTracks | AllRoads | AllPaths | AllTrackItems | Grid
     }
 
     public enum TrainType

@@ -78,8 +78,8 @@ namespace Orts.TrackViewer.Settings
         [Default(true)]
         public bool RestoreLastView { get; set; }
 
-        [Default(TrackViewerViewSettings.All)]
-        public TrackViewerViewSettings ViewSettings { get; set; }
+        [Default(MapViewItemSettings.All)]
+        public MapViewItemSettings ViewSettings { get; set; }
 
         [Default("{Application} Log.txt")]
         public string LogFilename { get; set; }
@@ -94,6 +94,11 @@ namespace Orts.TrackViewer.Settings
             nameof(ColorSetting.RoadTrack)+"=Olive",
             nameof(ColorSetting.RoadTrackEnd)+"=ForestGreen",
             nameof(ColorSetting.RoadLevelCrossing)+"=DeepPink",
+            nameof(ColorSetting.PathTrack)+"=Gold",
+            nameof(ColorSetting.PathTrackEnd)+"=Gold",
+            nameof(ColorSetting.PathTrackIntermediate)+"=Gold",
+            nameof(ColorSetting.PathJunction)+"=Gold",
+            nameof(ColorSetting.PathReversal)+"=Gold",
             nameof(ColorSetting.RoadCarSpawner)+"=White",
             nameof(ColorSetting.SignalItem)+"=White",
             nameof(ColorSetting.PlatformItem)+"=Navy",

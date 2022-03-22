@@ -52,7 +52,7 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            if ((viewSettings & TrackViewerViewSettings.Tracks) == TrackViewerViewSettings.Tracks)
+            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
             {
                 foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -60,7 +60,7 @@ namespace Orts.Graphics.MapView
                         segment.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.EndsNodes) == TrackViewerViewSettings.EndsNodes)
+            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
             {
                 foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -68,7 +68,7 @@ namespace Orts.Graphics.MapView
                         endNode.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.JunctionNodes) == TrackViewerViewSettings.JunctionNodes)
+            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
             {
                 foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -169,8 +169,6 @@ namespace Orts.Graphics.MapView
             {
                 ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
             }
-
-            PointWidget.OverrideColorVariation<PathSegment>(ColorVariation.Highlight, Color.Red);
         }
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;

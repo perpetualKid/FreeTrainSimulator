@@ -89,7 +89,7 @@ namespace Orts.TrackViewer
         private Color BackgroundColor;
 
         #region preferences
-        private TrackViewerViewSettings viewSettings;
+        private MapViewItemSettings viewSettings;
 
         #endregion
 
@@ -206,7 +206,7 @@ namespace Orts.TrackViewer
             }
         }
 
-        internal void UpdateItemVisibilityPreference(TrackViewerViewSettings setting, bool enabled)
+        internal void UpdateItemVisibilityPreference(MapViewItemSettings setting, bool enabled)
         {
             viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
             contentArea?.Content.UpdateItemVisiblity(viewSettings);
