@@ -214,7 +214,7 @@ namespace Orts.Graphics.MapView
             UpdateScaleAt(WindowSize / PointOverTwo, steps);
         }
 
-        public void UpdateScaleAbsolut(double scale)
+        public void UpdateScaleAbsolute(double scale)
         {
             if (scale < scaleMin)
                 scale = scaleMin;

@@ -15,7 +15,7 @@ namespace Orts.Formats.Msts.Models
             // is parsed. 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("uid", ()=> { UiD = stf.ReadUIntBlock(null); }),
-                new STFReader.TokenProcessor("sidingitem", ()=> { Add(new WorkOrderWagon(UiD, Convert.ToInt32(stf.ReadUIntBlock(null)))); }),
+                new STFReader.TokenProcessor("sidingitem", ()=> { Add(new WorkOrderWagon(UiD, (int)(stf.ReadUIntBlock(null)))); }),
                 new STFReader.TokenProcessor("description", ()=> { this[Count-1].Description = stf.ReadStringBlock(""); }),
             });
         }

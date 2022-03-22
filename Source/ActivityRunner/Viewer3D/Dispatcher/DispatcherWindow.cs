@@ -75,7 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "Olive",        // RoadTrack
             "ForestGreen",  // RoadTrackEnd
             "DeepPink",     // RoadLevelCrossing
-            "Gold",       // PathTrack
+            "OrangeRed",       // PathTrack
             "Gold",       // PathTrackEnd
             "Gold",       // PathTrackIntermediate
             "Gold",       // PathJunction
@@ -238,7 +238,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
-            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
+            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolute(1.5); });
             userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>

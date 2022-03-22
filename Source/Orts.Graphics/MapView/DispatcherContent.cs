@@ -81,10 +81,10 @@ namespace Orts.Graphics.MapView
                 if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
                     trackItem.Draw(ContentArea);
             }
-            foreach (TrackSegment segment in PathSegments)
+            foreach (PathSegment segment in PathSegments)
             {
                 if (ContentArea.InsideScreenArea(segment))
-                    segment.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+                    segment.Draw(ContentArea, ColorVariation.None, 1.5);
             }
             if (null != Trains)
             {
@@ -136,7 +136,7 @@ namespace Orts.Graphics.MapView
         // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
-            float remainingPathLength = 20;
+            float remainingPathLength = 2000;
             PathSegments.Clear();
             if (null == TrackNodeSegments)
                 return;

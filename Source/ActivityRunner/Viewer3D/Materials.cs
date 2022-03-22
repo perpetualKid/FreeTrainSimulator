@@ -78,7 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (File.Exists(aceTexture))
                             {
                                 texture = AceFile.Texture2DFromFile(GraphicsDevice, aceTexture);
-                                Trace.TraceWarning("Required texture {1} not existing; using existing texture {2}", path, aceTexture);
+                                Trace.TraceWarning($"Required texture {path} not existing; using existing texture {aceTexture}");
                             }
                             else texture = defaultTexture;
                         }
