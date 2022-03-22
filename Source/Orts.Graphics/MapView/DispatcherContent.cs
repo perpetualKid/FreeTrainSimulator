@@ -34,7 +34,7 @@ namespace Orts.Graphics.MapView
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
 
-        internal List<TrackSegment> PathSegments { get; } = new List<TrackSegment>();
+        internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
         public DispatcherContent(Game game) :
             base(game)
@@ -84,7 +84,7 @@ namespace Orts.Graphics.MapView
             foreach (TrackSegment segment in PathSegments)
             {
                 if (ContentArea.InsideScreenArea(segment))
-                    segment.Draw(ContentArea, ColorVariation.Highlight, 2);
+                    segment.Draw(ContentArea, ColorVariation.Highlight, 1.5);
             }
             if (null != Trains)
             {
@@ -143,15 +143,18 @@ namespace Orts.Graphics.MapView
             Traveller traveller = new Traveller(trainTraveller);
             if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
             {
-                PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
-                length += PathSegments[^1].Length;
+                if (traveller.Direction == Direction.Backward)
+                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], 0, traveller.TrackSectionOffset));
+                else
+                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], traveller.TrackSectionOffset));
+                length += PathSegments[^1].Length - traveller.TrackSectionOffset;
             }
-            while (traveller.TrackNodeType != TrackNodeType.End && length < 5000)
+            while (traveller.TrackNodeType != TrackNodeType.End && length < 500)
             {
                 traveller.NextSection();
                 if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
                 {
-                    PathSegments.Add(trackSegments[traveller.TrackVectorSectionIndex]);
+                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], 0, 0));
                     length += PathSegments[^1].Length;
                 }
             }
@@ -167,7 +170,7 @@ namespace Orts.Graphics.MapView
                 ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
             }
 
-            PointWidget.OverrideColorVariation<TrackSegment>(ColorVariation.Highlight, Color.Red);
+            PointWidget.OverrideColorVariation<PathSegment>(ColorVariation.Highlight, Color.Red);
         }
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
