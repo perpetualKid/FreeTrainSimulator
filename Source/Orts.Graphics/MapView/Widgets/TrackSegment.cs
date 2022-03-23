@@ -145,6 +145,7 @@ namespace Orts.Graphics.MapView.Widgets
                     if (Math.Abs(remainingDeg) < Math.Abs(Angle))
                         Angle = remainingDeg;
                 }
+                Angle += 0.05f * sign;  // there seems to be a small rounding error somewhere leading to tiny gap in some cases
                 Length = Radius * MathHelper.ToRadians(Angle) * sign;
             }
             else
