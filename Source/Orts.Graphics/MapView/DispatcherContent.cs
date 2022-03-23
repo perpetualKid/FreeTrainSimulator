@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -149,10 +150,25 @@ namespace Orts.Graphics.MapView
             while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
             {
                 traveller.NextSection();
-                if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                switch (traveller.TrackNodeType)
                 {
-                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
-                    remainingPathLength -= PathSegments[^1].Length;
+                    case TrackNodeType.Track:
+                        if (TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                        {
+                            PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
+                            remainingPathLength -= PathSegments[^1].Length;
+                        }
+                        break;
+                    case TrackNodeType.Junction:
+                        TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
+                        //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
+                        Debug.Assert(junctionNode.InPins == 1);
+                        if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + junctionNode.SelectedRoute].Link != PathSegments[^1].TrackNodeIndex)
+                        {
+                            PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
+                            return;
+                        }
+                        break;
                 }
             }
         }

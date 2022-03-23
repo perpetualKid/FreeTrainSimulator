@@ -246,7 +246,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
             });
-            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, MoveTrainInPath);
+//            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
             debugInfo = new CommonDebugInfo(contentArea);
@@ -274,19 +274,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             if (followTrain)
                 content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             base.Update(gameTime);
-        }
-
-        private void MoveTrainInPath()
-        {
-            Train train = Simulator.Instance.Trains[0];
-            Traveller traveller = new Traveller(train.FrontTDBTraveller);
-            //Trace.WriteLine($"{traveller.TrackNode.Index} {traveller.TrackVectorSectionIndex} {traveller.TrackNode.GetType().Name } {traveller.TrackNodeOffset}");
-            //while (traveller.TrackNodeType != TrackNodeType.End)
-            //{
-            //    traveller.NextSection();
-            //    Trace.WriteLine($"{traveller.TrackNode.Index} {traveller.TrackVectorSectionIndex} {traveller.TrackNode.GetType().Name } {traveller.TrackNodeOffset}");
-            //}
-            float result = traveller.Move(5000);
         }
 
         #region window size/position handling

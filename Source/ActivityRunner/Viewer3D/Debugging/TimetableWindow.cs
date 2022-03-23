@@ -586,8 +586,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     || y < -margin2)
                     continue;
 
-                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB);
-
                 // pen | train | Values for a good presentation
                 //  1		10
                 //  2       12
@@ -684,13 +682,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             {
                 ShowTrainNameAndState(g, scaledTrain, t, trainName);
             }
-        }
-
-        private bool IsActiveTrain(Simulation.AIs.AITrain t)
-        {
-            if (t == null)
-                return false;
-            return (t.MovementState != AiMovementState.Static && (t.TrainType != TrainType.AiIncorporated || !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
         }
 
         private void ShowTrainNameAndState(System.Drawing.Graphics g, PointF scaledItem, Train t, string trainName)
