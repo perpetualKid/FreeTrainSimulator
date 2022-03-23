@@ -31,7 +31,6 @@ using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 
 using Color = System.Drawing.Color;
 
@@ -176,14 +175,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             {
                 switch (item)
                 {
-                    case SignalItem signalItem:
-                        if (signalItem.SignalObject >= 0 && signalItem.SignalObject < Simulator.Instance.SignalEnvironment.Signals.Count)
-                        {
-                            Signal s = Simulator.Instance.SignalEnvironment.Signals[signalItem.SignalObject];
-                            if (s != null && s.IsSignal && s.SignalNormal())
-                                signals.Add(new SignalWidget(signalItem, s));
-                        }
-                        break;
                     case SidingItem sidingItem:
                         // Sidings have 2 ends but are not always listed in pairs in the *.tdb file
                         // Neither are their names unique (e.g. Bernina Bahn).
@@ -308,9 +299,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     // Keep widgetWidth <= 15 pixels
                     var widgetWidth = Math.Min(penWidth * 6, 15);
-
-                    // Draw signals on top of path so they are easier to see.
-                    ShowSignals(g, scaledB, widgetWidth);
 
                     // Draw switches
                     switchItemsDrawn.Clear();
@@ -447,48 +435,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 sw.Location2D.X = scaledItem.X;
                 sw.Location2D.Y = scaledItem.Y;
                 switchItemsDrawn.Add(sw);
-            }
-        }
-
-        private void ShowSignals(System.Drawing.Graphics g, PointF scaledB, float width)
-        {
-            foreach (var s in signals)
-            {
-                if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
-                    continue;
-                var x = (s.Location.X - subX) * xScale;
-                var y = pbCanvas.Height - (s.Location.Y - subY) * yScale;
-                if (x < 0 || y < 0)
-                    continue;
-
-                var scaledItem = new PointF() { X = x, Y = y };
-                s.Location2D.X = scaledItem.X;
-                s.Location2D.Y = scaledItem.Y;
-                if (s.Signal.SignalNormal())
-                {
-                    var color = Brushes.Lime; // bright colour for readability
-                    var pen = greenPen;
-                    if (s.IsProceed == 0)
-                    {
-                    }
-                    else if (s.IsProceed == 1)
-                    {
-                        color = Brushes.Yellow; // bright colour for readbility
-                        pen = orangePen;
-                    }
-                    else
-                    {
-                        color = Brushes.Red;
-                        pen = redPen;
-                    }
-                    g.FillEllipse(color, DispatchViewer.GetRect(scaledItem, width));
-                    if (s.hasDir)
-                    {
-                        scaledB.X = (s.Dir.X - subX) * xScale;
-                        scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
-                        g.DrawLine(pen, scaledItem, scaledB);
-                    }
-                }
             }
         }
 

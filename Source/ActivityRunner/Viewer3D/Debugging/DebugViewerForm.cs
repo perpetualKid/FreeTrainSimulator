@@ -76,8 +76,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private string name = "";
         private List<SwitchWidget> switchItemsDrawn;
 
-        public SwitchWidget SwitchPickedItem { get; }
-        public SignalWidget SignalPickedItem { get; }
         private ImageList imageList1;
         private List<Train> selectedTrainList;
         /// <summary>
@@ -300,7 +298,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private bool Inited;
         private List<LineSegment> segments = new List<LineSegment>();
         private List<SwitchWidget> switches;
-        private List<SignalWidget> signals = new List<SignalWidget>();
         private List<SidingWidget> sidings = new List<SidingWidget>();
         private List<PlatformWidget> platforms = new List<PlatformWidget>();
 
@@ -689,43 +686,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				 }
 #endif
                     switchItemsDrawn.Add(sw);
-                }
-
-                foreach (var s in signals)
-                {
-                    if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
-                        continue;
-                    scaledItem = new PointF((s.Location.X - subX) * xScale, pbCanvas.Height - (s.Location.Y - subY) * yScale);
-                    if (scaledItem.X < 0 || scaledItem.X > IM_Width || scaledItem.Y > IM_Height || scaledItem.Y < 0)
-                        continue;
-
-                    s.Location2D.X = scaledItem.X;
-                    s.Location2D.Y = scaledItem.Y;
-                    if (s.Signal.SignalNormal())//only show nor
-                    {
-                        var color = Brushes.Green;
-                        var pen = greenPen;
-                        if (s.IsProceed == 0)
-                        {
-                        }
-                        else if (s.IsProceed == 1)
-                        {
-                            color = Brushes.Orange;
-                            pen = orangePen;
-                        }
-                        else
-                        {
-                            color = Brushes.Red;
-                            pen = redPen;
-                        }
-                        g.FillEllipse(color, GetRect(scaledItem, width));
-                        if (s.hasDir)
-                        {
-                            scaledB.X = (s.Dir.X - subX) * xScale;
-                            scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
-                            g.DrawLine(pen, scaledItem, scaledB);
-                        }
-                    }
                 }
 
                 if (true/*showPlayerTrain.Checked*/)
@@ -1703,91 +1663,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         #endregion
     }
-
-    #region SignalWidget
-    /// <summary>
-    /// Defines a signal being drawn in a 2D view.
-    /// </summary>
-    public class SignalWidget : ItemWidget
-    {
-        public TrackItem Item;
-        /// <summary>
-        /// The underlying signal object as referenced by the TrItem.
-        /// </summary>
-        public Signal Signal;
-
-        public PointF Dir;
-        public bool hasDir;
-        /// <summary>
-        /// For now, returns true if any of the signal heads shows any "clear" aspect.
-        /// This obviously needs some refinement.
-        /// </summary>
-        public int IsProceed
-        {
-            get
-            {
-                int returnValue = 2;
-
-                foreach (var head in Signal.SignalHeads)
-                {
-                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
-                        head.SignalIndicationState == SignalAspectState.Clear_2)
-                    {
-                        returnValue = 0;
-                    }
-                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
-                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
-                    {
-                        returnValue = 1;
-                    }
-                }
-
-                return returnValue;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public SignalWidget(SignalItem item, Signal signal)
-        {
-            Item = item;
-            Signal = signal;
-            hasDir = false;
-            Location = VectorFromLocation(item.Location);
-            try
-            {
-                var node = RuntimeData.Instance.TrackDB.TrackNodes[signal.TrackNode];
-                Vector2 v2;
-                if (node is TrackVectorNode trackVectorNode)
-                {
-                    var ts = trackVectorNode.TrackVectorSections[0];
-                    v2 = VectorFromLocation(ts.Location);
-                }
-                else if (node is TrackJunctionNode)
-                {
-                    var ts = node.UiD;
-                    v2 = VectorFromLocation(ts.Location);
-                }
-                else
-                    throw new Exception();
-                var v1 = new Vector2(Location.X, Location.Y);
-                var v3 = v1 - v2;
-                v3.Normalize();
-                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 12f : -12f);
-                Dir.X = v2.X;
-                Dir.Y = v2.Y;
-                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
-                Location.X = v2.X;
-                Location.Y = v2.Y;
-                hasDir = true;
-            }
-            catch { }
-        }
-    }
-    #endregion
 
     #region SwitchWidget
     /// <summary>
