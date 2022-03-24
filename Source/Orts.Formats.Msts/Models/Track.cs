@@ -666,7 +666,7 @@ namespace Orts.Formats.Msts.Models
         public int ShapeIndex { get; private set; }
 
         /// <summary>The angle of this junction</summary>
-        private float angle = float.MaxValue;
+        private float angle = float.NaN;
 
         internal TrackJunctionNode(STFReader stf, int index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 3)
@@ -690,11 +690,11 @@ namespace Orts.Formats.Msts.Models
         {
             get
             {
-                if (angle != float.MaxValue)
+                if (!float.IsNaN(angle))
                     return angle;
 
-                try //so many things can be in conflict for trackshapes, tracksections etc.
-                {
+                //try //so many things can be in conflict for trackshapes, tracksections etc.
+                //{
                     TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
                     SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
@@ -716,10 +716,10 @@ namespace Orts.Formats.Msts.Models
                             }
                         }
                     }
-                }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch (Exception) { }
-#pragma warning restore CA1031 // Do not catch general exception types
+//                }
+//#pragma warning disable CA1031 // Do not catch general exception types
+//                catch (Exception) { }
+//#pragma warning restore CA1031 // Do not catch general exception types
                 return angle;
             }
         }

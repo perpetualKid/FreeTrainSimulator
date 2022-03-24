@@ -74,7 +74,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private float yScale = 1; // pixels / metre 
 
         private string name = "";
-        private List<SwitchWidget> switchItemsDrawn;
 
         private ImageList imageList1;
         private List<Train> selectedTrainList;
@@ -223,9 +222,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 loaded = true;
                 Localizer.Localize(this, Viewer.Catalog);
             }
-
-            switchItemsDrawn = new List<SwitchWidget>();
-            switches = new List<SwitchWidget>();
             for (int i = 0; i < nodes.Count; i++)
             {
                 if (nodes[i] is TrackEndNode)
@@ -279,7 +275,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             continue;
                         segments.Add(new LineSegment(B, A, item));
                     }
-                    switches.Add(new SwitchWidget(trackJunctionNode));
                 }
             }
 
@@ -297,7 +292,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private bool Inited;
         private List<LineSegment> segments = new List<LineSegment>();
-        private List<SwitchWidget> switches;
         private List<SidingWidget> sidings = new List<SidingWidget>();
         private List<PlatformWidget> platforms = new List<PlatformWidget>();
 
@@ -654,40 +648,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                 }
 
-                switchItemsDrawn.Clear();
                 PointF scaledItem = new PointF();
-                var width = 6f * p.Width;
-                if (width > 15)
-                    width = 15;//not to make it too large
-                for (var i = 0; i < switches.Count; i++)
-                {
-                    SwitchWidget sw = switches[i];
-
-                    scaledItem = new PointF((sw.Location.X - subX) * xScale, pbCanvas.Height - (sw.Location.Y - subY) * yScale);
-
-                    if (scaledItem.X < 0 || scaledItem.X > IM_Width || scaledItem.Y > IM_Height || scaledItem.Y < 0)
-                        continue;
-
-                    if (sw.Item.SelectedRoute == sw.main)
-                        g.FillEllipse(Brushes.Black, GetRect(scaledItem, width));
-                    else
-                        g.FillEllipse(Brushes.Gray, GetRect(scaledItem, width));
-
-                    //g.DrawString("" + sw.Item.TrJunctionNode.SelectedRoute, trainFont, trainBrush, scaledItem);
-
-                    sw.Location2D.X = scaledItem.X;
-                    sw.Location2D.Y = scaledItem.Y;
-#if false
-				 if (sw.main == sw.Item.TrJunctionNode.SelectedRoute)
-				 {
-					 scaledA.X = ((float)sw.mainEnd.X - minX - ViewWindow.X) * xScale; scaledA.Y = pictureBox1.Height - ((float)sw.mainEnd.Y - minY - ViewWindow.Y) * yScale;
-					 g.DrawLine(redPen, scaledA, scaledItem);
-
-				 }
-#endif
-                    switchItemsDrawn.Add(sw);
-                }
-
                 if (true/*showPlayerTrain.Checked*/)
                 {
 
@@ -1663,34 +1624,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         #endregion
     }
-
-    #region SwitchWidget
-    /// <summary>
-    /// Defines a signal being drawn in a 2D view.
-    /// </summary>
-    public class SwitchWidget : ItemWidget
-    {
-        public TrackJunctionNode Item;
-        public int main;
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public SwitchWidget(TrackJunctionNode item)
-        {
-            Item = item;
-            var TS = RuntimeData.Instance.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
-
-            if (TS != null)
-            { main = TS.MainRoute; }
-            else
-                main = 0;
-            Location = VectorFromLocation(Item.UiD.Location);
-        }
-    }
-
-    #endregion
 
     #region ItemWidget
     public abstract class ItemWidget

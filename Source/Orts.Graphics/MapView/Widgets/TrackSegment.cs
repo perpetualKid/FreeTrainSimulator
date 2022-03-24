@@ -21,16 +21,11 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly int TrackNodeIndex;
         internal readonly int TrackVectorSectionIndex;
 
-
-        internal readonly int TrackSectionIndex;
-
         public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
-
-            TrackSectionIndex = trackSection.SectionIndex;
 
             if (trackSection.Curved)
             {

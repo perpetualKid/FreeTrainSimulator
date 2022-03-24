@@ -297,13 +297,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     // Draw trains and path
                     DrawTrains(g, scaledA, scaledB);
 
-                    // Keep widgetWidth <= 15 pixels
-                    var widgetWidth = Math.Min(penWidth * 6, 15);
-
-                    // Draw switches
-                    switchItemsDrawn.Clear();
-                    ShowSwitches(g, widgetWidth);
-
                     // Draw labels for sidings and platforms last so they go on top for readability
                     CleanTextCells();  // Empty the listing of labels ready for adding labels again
                     ShowPlatformLabels(g); // Platforms take priority over sidings and signal states
@@ -411,30 +404,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
                 else
                     g.DrawLine(p, scaledA, scaledB);
-            }
-        }
-
-        private void ShowSwitches(System.Drawing.Graphics g, float width)
-        {
-            for (var i = 0; i < switches.Count; i++)
-            {
-                SwitchWidget sw = switches[i];
-
-                var x = (sw.Location.X - subX) * xScale;
-                var y = pbCanvas.Height - (sw.Location.Y - subY) * yScale;
-                if (x < 0 || y < 0)
-                    continue;
-
-                var scaledItem = new PointF() { X = x, Y = y };
-
-                if (sw.Item.SelectedRoute == sw.main)
-                    g.FillEllipse(Brushes.Black, DispatchViewer.GetRect(scaledItem, width));
-                else
-                    g.FillEllipse(Brushes.Gray, DispatchViewer.GetRect(scaledItem, width));
-
-                sw.Location2D.X = scaledItem.X;
-                sw.Location2D.Y = scaledItem.Y;
-                switchItemsDrawn.Add(sw);
             }
         }
 
