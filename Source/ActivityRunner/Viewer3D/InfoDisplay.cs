@@ -239,7 +239,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data(LogSpeed(viewer.PlayerLocomotive.SpeedMpS));
                         dataLog.Data(LogSpeed(viewer.PlayerTrain.AllowedMaxSpeedMpS));
 
-                        dataLog.Data($"{viewer.PlayerLocomotive.DistanceM:F0}");
+                        dataLog.Data($"{viewer.PlayerLocomotive.DistanceTravelled:F0}");
                         dataLog.Data($"{viewer.PlayerLocomotive.GravityForceN:F0}");
 
                         if ((viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeController != null)

@@ -90,9 +90,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             DebugType = "1P";
 
             // Force graduated releasable brakes. Workaround for MSTS with bugs preventing to set eng/wag files correctly for this.
-            (Car as MSTSWagon).DistributorPresent |= Car.Simulator.Settings.GraduatedRelease;
+            (Car as MSTSWagon).DistributorPresent |= Simulator.Instance.Settings.GraduatedRelease;
 
-            if (Car.Simulator.Settings.RetainersOnAllCars && !(Car is MSTSLocomotive))
+            if (Simulator.Instance.Settings.RetainersOnAllCars && !(Car is MSTSLocomotive))
                 (Car as MSTSWagon).RetainerPositions = 4;
         }
 
@@ -101,25 +101,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return HandbrakePercent > 0;
         }
 
-        public override void InitializeFromCopy(BrakeSystem copy)
+        public override void InitializeFromCopy(BrakeSystem source)
         {
-            AirSinglePipe thiscopy = (AirSinglePipe)copy;
-            MaxCylPressurePSI = thiscopy.MaxCylPressurePSI;
-            AuxCylVolumeRatio = thiscopy.AuxCylVolumeRatio;
-            AuxBrakeLineVolumeRatio = thiscopy.AuxBrakeLineVolumeRatio;
-            EmergResVolumeM3 = thiscopy.EmergResVolumeM3;
-            BrakePipeVolumeM3 = thiscopy.BrakePipeVolumeM3;
-            RetainerPressureThresholdPSI = thiscopy.RetainerPressureThresholdPSI;
-            ReleaseRatePSIpS = thiscopy.ReleaseRatePSIpS;
-            MaxReleaseRatePSIpS = thiscopy.MaxReleaseRatePSIpS;
-            MaxApplicationRatePSIpS = thiscopy.MaxApplicationRatePSIpS;
-            MaxAuxilaryChargingRatePSIpS = thiscopy.MaxAuxilaryChargingRatePSIpS;
-            BrakeInsensitivityPSIpS = thiscopy.BrakeInsensitivityPSIpS;
-            EmergResChargingRatePSIpS = thiscopy.EmergResChargingRatePSIpS;
-            EmergAuxVolumeRatio = thiscopy.EmergAuxVolumeRatio;
-            TwoPipes = thiscopy.TwoPipes;
-            NoMRPAuxResCharging = thiscopy.NoMRPAuxResCharging;
-            HoldingValve = thiscopy.HoldingValve;
+            AirSinglePipe singlePipe = source as AirSinglePipe ?? throw new InvalidCastException(nameof(source));
+            MaxCylPressurePSI = singlePipe.MaxCylPressurePSI;
+            AuxCylVolumeRatio = singlePipe.AuxCylVolumeRatio;
+            AuxBrakeLineVolumeRatio = singlePipe.AuxBrakeLineVolumeRatio;
+            EmergResVolumeM3 = singlePipe.EmergResVolumeM3;
+            BrakePipeVolumeM3 = singlePipe.BrakePipeVolumeM3;
+            RetainerPressureThresholdPSI = singlePipe.RetainerPressureThresholdPSI;
+            ReleaseRatePSIpS = singlePipe.ReleaseRatePSIpS;
+            MaxReleaseRatePSIpS = singlePipe.MaxReleaseRatePSIpS;
+            MaxApplicationRatePSIpS = singlePipe.MaxApplicationRatePSIpS;
+            MaxAuxilaryChargingRatePSIpS = singlePipe.MaxAuxilaryChargingRatePSIpS;
+            BrakeInsensitivityPSIpS = singlePipe.BrakeInsensitivityPSIpS;
+            EmergResChargingRatePSIpS = singlePipe.EmergResChargingRatePSIpS;
+            EmergAuxVolumeRatio = singlePipe.EmergAuxVolumeRatio;
+            TwoPipes = singlePipe.TwoPipes;
+            NoMRPAuxResCharging = singlePipe.NoMRPAuxResCharging;
+            HoldingValve = singlePipe.HoldingValve;
         }
 
         // Get the brake BC & BP for EOT conditions
@@ -305,11 +305,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
         {
             // reducing size of Emergency Reservoir for short (fake) cars
-            if (Car.Simulator.Settings.CorrectQuestionableBrakingParams && Car.CarLengthM <= 1)
+            if (Simulator.Instance.Settings.CorrectQuestionableBrakingParams && Car.CarLengthM <= 1)
             EmergResVolumeM3 = Math.Min (0.02f, EmergResVolumeM3);
 
             // In simple brake mode set emergency reservoir volume, override high volume values to allow faster brake release.
-            if (Car.Simulator.Settings.SimpleControlPhysics && EmergResVolumeM3 > 2.0)
+            if (Simulator.Instance.Settings.SimpleControlPhysics && EmergResVolumeM3 > 2.0)
                 EmergResVolumeM3 = 0.7f;
 
             BrakeLine1PressurePSI = Car.Train.EqualReservoirPressurePSIorInHg;
@@ -556,7 +556,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 {
                     // WSP dump valve stops
                     Car.WheelBrakeSlideProtectionActive = false;
-                    Car.WheelBrakeSlideProtectionTimerS = Car.wheelBrakeSlideTimerResetValueS; // Reset WSP timer if 
+                    Car.WheelBrakeSlideProtectionTimerS = Car.WheelBrakeSlideTimerResetValueS; // Reset WSP timer if 
                 }
 
             }
@@ -592,16 +592,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     f = Car.MaxHandbrakeForceN * HandbrakePercent / 100;
             }
             else f = Math.Max(Car.MaxBrakeForceN, Car.MaxHandbrakeForceN / 2); 
-            Car.BrakeRetardForceN = f * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
-            if (Car.BrakeSkid) // Test to see if wheels are skiding to excessive brake force
-            {
-                Car.BrakeForceN = f * Car.SkidFriction;   // if excessive brakeforce, wheel skids, and loses adhesion
-            }
-            else
-            {
-                Car.BrakeForceN = f * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
-            }
-
+            Car.SetBrakeForce(f);
             // sound trigger checking runs every half second, to avoid the problems caused by the jumping BrakeLine1PressurePSI value, and also saves cpu time :)
             if (SoundTriggerCounter >= 0.5f)
             {

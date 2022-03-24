@@ -41,6 +41,7 @@ namespace Orts.Formats.Msts.Models
                     Radius = b;
                     Angle = MathHelper.ToDegrees(a);
                     Curved = true;
+                    Length = Radius * Math.Abs(a);
                 }
                 stf.SkipRestOfBlock();
             }
@@ -109,6 +110,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             Radius = stf.ReadFloat(STFReader.Units.Distance, null);
             Angle = stf.ReadFloat(STFReader.Units.None, null);
+            Length = Radius * Math.Abs(MathHelper.ToRadians(Angle));
             stf.SkipRestOfBlock();
         }
     }
@@ -345,7 +347,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Array of all Track Items (TrItem) in the track database
         /// </summary>
-        public List<TrackItem> TrackItems { get; private set; }
+        public List<TrackItem> TrackItems { get; } = new List<TrackItem>();
 #pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
@@ -376,7 +378,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrItems = stf.ReadInt(null);
-                    TrackItems = new List<TrackItem>(numberOfTrItems);
+                    TrackItems.Capacity = numberOfTrItems;
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems.Add(new CrossoverItem(stf, TrackItems.Count)); }),
                         new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems.Add(new SignalItem(stf, TrackItems.Count)); }),
@@ -405,18 +407,11 @@ namespace Orts.Formats.Msts.Models
 
             int i = TrackItems?.Count ?? 0;
             foreach (TrackItem item in trackItems)
-            { 
+            {
                 item.TrackItemId = i++;
             }
 
-            if (TrackItems == null)
-            {
-                TrackItems = new List<TrackItem>(trackItems);
-            }
-            else
-            {
-                TrackItems.AddRange(trackItems);
-            }
+            TrackItems.AddRange(trackItems);
         }
 
         /// <summary>

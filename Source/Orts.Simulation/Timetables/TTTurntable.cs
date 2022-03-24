@@ -760,25 +760,12 @@ namespace Orts.Simulation.Timetables
 
             for (int iVector = firstIndex; iVector <= LastIndex; iVector++)
             {
-                float thisLength = 0.0f;
-
                 TrackVectorSection thisVector = vectors[iVector];
 
-                if (RuntimeData.Instance.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
+                if (RuntimeData.Instance.TSectionDat.TrackSections.TryGetValue(thisVector.SectionIndex, out TrackSection ts))
                 {
-                    TrackSection TS = RuntimeData.Instance.TSectionDat.TrackSections[thisVector.SectionIndex];
-
-                    if (TS.Curved)
-                    {
-                        thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
-                    }
-                    else
-                    {
-                        thisLength = TS.Length;
-                    }
+                    returnLength += ts.Length;
                 }
-
-                returnLength += thisLength;
             }
 
             return (returnLength);
@@ -1138,7 +1125,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgConsist = train.ForcedConsistName;
+                        car.OrgiginalConsist = train.ForcedConsistName;
                     }
                 }
 
@@ -2306,7 +2293,7 @@ namespace Orts.Simulation.Timetables
 
             // clear approach route
             parentTrain.RemoveFromTrack();
-            foreach (DistanceTravelledItem thisAction in parentTrain.requiredActions)
+            foreach (DistanceTravelledItem thisAction in parentTrain.RequiredActions)
             {
                 if (thisAction is ClearSectionItem)
                 {
@@ -2459,7 +2446,7 @@ namespace Orts.Simulation.Timetables
 
             // create action for clearing turntable
             ClearMovingTableAction newAction = new ClearMovingTableAction(clearingDistanceM, originalTrainMaxSpeedMpS);
-            parentTrain.requiredActions.InsertAction(newAction);
+            parentTrain.RequiredActions.InsertAction(newAction);
         }
 
         //================================================================================================//

@@ -75,6 +75,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "Olive",        // RoadTrack
             "ForestGreen",  // RoadTrackEnd
             "DeepPink",     // RoadLevelCrossing
+            "OrangeRed",       // PathTrack
+            "Gold",       // PathTrackEnd
+            "Gold",       // PathTrackIntermediate
+            "Gold",       // PathJunction
+            "Gold",       // PathReversal
             "White",        // RoadCarSpawner
             "White",        // SignalItem
             "Navy",         // PlatformItem
@@ -207,9 +212,13 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            Components.Add(scaleRuler);
+            Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
+
             content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
-            content.UpdateItemVisiblity(TrackViewerViewSettings.All);
+            content.UpdateItemVisiblity(MapViewItemSettings.All);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);
@@ -229,7 +238,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
-            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolut(3); });
+            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolute(1.5); });
             userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
@@ -237,11 +246,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, MoveTrainInPath);
             #endregion
-
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
-            Components.Add(scaleRuler);
-            Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
             debugInfo = new CommonDebugInfo(contentArea);
         }
@@ -264,9 +270,23 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 }
             }
             content.UpdateTrainPositions(trainCars);
+            content.UpdateTrainPath(Simulator.Instance.Trains[0].FrontTDBTraveller);
             if (followTrain)
                 content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             base.Update(gameTime);
+        }
+
+        private void MoveTrainInPath()
+        {
+            Train train = Simulator.Instance.Trains[0];
+            Traveller traveller = new Traveller(train.FrontTDBTraveller);
+            //Trace.WriteLine($"{traveller.TrackNode.Index} {traveller.TrackVectorSectionIndex} {traveller.TrackNode.GetType().Name } {traveller.TrackNodeOffset}");
+            //while (traveller.TrackNodeType != TrackNodeType.End)
+            //{
+            //    traveller.NextSection();
+            //    Trace.WriteLine($"{traveller.TrackNode.Index} {traveller.TrackVectorSectionIndex} {traveller.TrackNode.GetType().Name } {traveller.TrackNodeOffset}");
+            //}
+            float result = traveller.Move(5000);
         }
 
         #region window size/position handling

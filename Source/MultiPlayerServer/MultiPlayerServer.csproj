@@ -1,18 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-	  <Description>Open Rails Multiplayer Server</Description>
-	  <AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
-	  <OutputPath>..\..\Program</OutputPath>
-	  <ApplicationIcon>..\Orts.ico</ApplicationIcon>
-	  <RootNamespace>Orts.MultiPlayerServer</RootNamespace>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-  </ItemGroup>
-
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<Description>Open Rails Multiplayer Server</Description>
+		<AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<RootNamespace>Orts.MultiPlayerServer</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+	</ItemGroup>
 </Project>

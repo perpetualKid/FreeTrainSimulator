@@ -116,6 +116,21 @@ namespace Orts.Graphics.MapView
                 case ColorSetting.RoadTrackEnd:
                     PointWidget.UpdateColor<RoadEndSegment>(color);
                     break;
+                case ColorSetting.PathTrack:
+                    PointWidget.UpdateColor<PathSegment>(color);
+                    break;
+                case ColorSetting.PathTrackEnd:
+                    PointWidget.UpdateColor<PathEndTrackItem>(color);
+                    break;
+                case ColorSetting.PathTrackIntermediate:
+                    PointWidget.UpdateColor<PathIntermediateTrackItem>(color);
+                    break;
+                case ColorSetting.PathJunction:
+                    PointWidget.UpdateColor<PathJunctionTrackItem>(color);
+                    break;
+                case ColorSetting.PathReversal:
+                    PointWidget.UpdateColor<PathReversalTrackItem>(color);
+                    break;
                 case ColorSetting.PlatformItem:
                     PointWidget.UpdateColor<PlatformTrackItem>(color);
                     break;
@@ -199,7 +214,7 @@ namespace Orts.Graphics.MapView
             UpdateScaleAt(WindowSize / PointOverTwo, steps);
         }
 
-        public void UpdateScaleAbsolut(double scale)
+        public void UpdateScaleAbsolute(double scale)
         {
             if (scale < scaleMin)
                 scale = scaleMin;

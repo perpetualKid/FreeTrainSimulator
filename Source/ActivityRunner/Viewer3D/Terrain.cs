@@ -226,10 +226,10 @@ namespace Orts.ActivityRunner.Viewer3D
             var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
             var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Count > 1)
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + 
-                    $"\0{Helpers.GetTerrainTextureFile(viewer.Simulator, ts[1].FileName)}{(uv[1].D != 0 && uv[1].D != 32 ? $"\0{uv[1].D}" : "")}");
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + 
+                    $"\0{Helpers.GetTerrainTextureFile(ts[1].FileName)}{(uv[1].D != 0 && uv[1].D != 32 ? $"\0{uv[1].D}" : "")}");
             else
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, "microtex.ace"));
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile("microtex.ace"));
 
             if (SharedPatchIndexBuffer == null)
                 SetupSharedData(Viewer.RenderProcess.GraphicsDevice);
@@ -562,7 +562,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TerrainSharedMaterial : TerrainMaterial
     {
         public TerrainSharedMaterial(Viewer viewer, string terrainTexture)
-            : base(viewer, terrainTexture, Helpers.IsSnow(viewer.Simulator) ? SharedMaterialManager.DefaultSnowTexture : SharedMaterialManager.MissingTexture)
+            : base(viewer, terrainTexture, Helpers.IsSnow() ? SharedMaterialManager.DefaultSnowTexture : SharedMaterialManager.MissingTexture)
         {
         }
 
@@ -576,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TerrainSharedDistantMountain : TerrainMaterial
     {
         public TerrainSharedDistantMountain(Viewer viewer, string terrainTexture)
-            : base(viewer, terrainTexture, Helpers.IsSnow(viewer.Simulator) ? SharedMaterialManager.DefaultDMSnowTexture : SharedMaterialManager.MissingTexture)
+            : base(viewer, terrainTexture, Helpers.IsSnow() ? SharedMaterialManager.DefaultDMSnowTexture : SharedMaterialManager.MissingTexture)
         {
         }
 

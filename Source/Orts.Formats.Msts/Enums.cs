@@ -104,13 +104,20 @@ namespace Orts.Formats.Msts
     #endregion
 
     #region Path
+    public enum TrackNodeType
+    { 
+        Track,
+        Junction,
+        End,
+    }
+
     // This relates to TrPathFlags, which is not always present in .pat file
     // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
     // Bit 1 - waiting point (2/x2)
     // Bit 2 - intermediate point between switches (4/x4)
     // Bit 3 - 'other exit' is used (8/x8)
     // Bit 4 - 'optional Route' active (16/x10)
-     [Flags]
+    [Flags]
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum PathFlags
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
@@ -571,21 +578,21 @@ namespace Orts.Formats.Msts
     /// </summary>
     public enum PickupType
     {
-        [Description("none")]               None = 0,
-        [Description("freight-grain")]      FreightGrain = 1,
-        [Description("freight-coal")]       FreightCoal = 2,
-        [Description("freight-gravel")]     FreightGravel = 3,
-        [Description("freight-sand")]       FreightSand = 4,
-        [Description("water")]              FuelWater = 5,
-        [Description("coal")]               FuelCoal = 6,
-        [Description("diesel oil")]         FuelDiesel = 7,
-        [Description("wood")]               FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
-        [Description("sand")]               FuelSand = 9,  // New to OR
-        [Description("freight-general")]    FreightGeneral = 10, // New to OR
-        [Description("freight-livestock")]  FreightLivestock = 11,  // New to OR
-        [Description("freight-fuel")]       FreightFuel = 12,  // New to OR
-        [Description("freight-milk")]       FreightMilk = 13,   // New to OR
-        [Description("mail")]               SpecialMail = 14  // New to OR
+        [Description("none")] None = 0,
+        [Description("freight-grain")] FreightGrain = 1,
+        [Description("freight-coal")] FreightCoal = 2,
+        [Description("freight-gravel")] FreightGravel = 3,
+        [Description("freight-sand")] FreightSand = 4,
+        [Description("water")] FuelWater = 5,
+        [Description("coal")] FuelCoal = 6,
+        [Description("diesel oil")] FuelDiesel = 7,
+        [Description("wood")] FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
+        [Description("sand")] FuelSand = 9,  // New to OR
+        [Description("freight-general")] FreightGeneral = 10, // New to OR
+        [Description("freight-livestock")] FreightLivestock = 11,  // New to OR
+        [Description("freight-fuel")] FreightFuel = 12,  // New to OR
+        [Description("freight-milk")] FreightMilk = 13,   // New to OR
+        [Description("mail")] SpecialMail = 14  // New to OR
     }
     #endregion
 
@@ -593,6 +600,7 @@ namespace Orts.Formats.Msts
 
     #endregion
 
+    #region Train Car and Engines
     public enum EngineType
     {
         Unknown,
@@ -626,6 +634,20 @@ namespace Orts.Formats.Msts
         Heated,
         PowerVan,
     }
-
+    #endregion
+    public enum BrakeSystemType
+    {
+        ManualBraking,
+        AirPiped,
+        AirTwinPipe,
+        AirSinglePipe,
+        VacuumPiped,
+        VacuumSinglePipe,
+        VacuumTwinPipe,
+        StraightVacuumSinglePipe,
+        Ecp,
+        Ep, 
+        Sme,
+    }
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

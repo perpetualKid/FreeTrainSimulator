@@ -597,7 +597,7 @@ namespace ORTS.TrackViewer.Drawing
             TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return resultList;
 
-            float trackSectionLength = DrawTrackDB.GetLength(trackSection);
+            float trackSectionLength = trackSection.Length;
             
             // We want to make sure all tiles that a track crosses are noted.
             // To do this, we make a box around the track (straight or curved), and for all locations of that box
@@ -1101,15 +1101,6 @@ namespace ORTS.TrackViewer.Drawing
         #endregion
 
         #region Utilities
-        /// <summary>
-        /// Returns length of a tracksection. 
-        /// </summary>
-        /// <remarks>Same method as in Traveller.cs, but that one is not public</remarks>
-        public static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
-        }
-
         /// <summary>
         /// return a single location that can be used to zoom around a track vector node
         /// </summary>

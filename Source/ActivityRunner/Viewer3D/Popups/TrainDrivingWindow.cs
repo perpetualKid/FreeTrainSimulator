@@ -785,7 +785,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             InfoToLabel(string.Empty, Viewer.Catalog.GetString("Speed"),
-                FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Owner.Viewer.PlayerLocomotive.IsMetric) +
+                FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits) +
                 (ThisInfo.Speed < ThisInfo.AllowedSpeed - 1.0f ? "!??" :        // White
                 ThisInfo.Speed < ThisInfo.AllowedSpeed + 0.0f ? "?!!" :         // PaleGreen
                 ThisInfo.Speed < ThisInfo.AllowedSpeed + 5.0f ? "!!?" : "!!!"), "", false);// Orange : Red

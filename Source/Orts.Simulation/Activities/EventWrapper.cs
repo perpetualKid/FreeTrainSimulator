@@ -25,6 +25,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
 using Orts.Formats.Msts;
 using Orts.Common.Position;
+using Orts.Common;
 
 namespace Orts.Simulation.Activities
 {

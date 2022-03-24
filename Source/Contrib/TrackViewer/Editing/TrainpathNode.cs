@@ -773,7 +773,7 @@ namespace ORTS.TrackViewer.Editing
                 TrackSection trackSection = TsectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {
-                    distanceFromStart += DrawTrackDB.GetLength(trackSection);
+                    distanceFromStart += trackSection.Length;
                 }
             }
             return distanceFromStart;

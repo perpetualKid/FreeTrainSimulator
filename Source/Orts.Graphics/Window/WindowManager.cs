@@ -203,7 +203,7 @@ namespace Orts.Graphics.Window
             }
             if (mouseActiveWindow == window)
                 mouseActiveWindow = null;
-            List<WindowBase> updatedWindowList = windows.ToList();
+            List<WindowBase> updatedWindowList = windows;
             if (updatedWindowList.Remove(window))
             {
                 windows = updatedWindowList;
@@ -294,7 +294,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     if (mouseActiveWindow != windows.Last())
                     {
-                        List<WindowBase> updatedWindowList = windows.ToList();
+                        List<WindowBase> updatedWindowList = windows;
                         if (updatedWindowList.Remove(mouseActiveWindow))
                         {
                             updatedWindowList.Add(mouseActiveWindow);
@@ -323,7 +323,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     if (modalWindow == null && mouseActiveWindow != windows.Last())
                     {
-                        List<WindowBase> updatedWindowList = windows.ToList();
+                        List<WindowBase> updatedWindowList = windows;
                         if (updatedWindowList.Remove(mouseActiveWindow))
                         {
                             updatedWindowList.Add(mouseActiveWindow);

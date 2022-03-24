@@ -32,7 +32,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.MainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tempfoldertoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemRoutes = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -93,11 +92,11 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.speedpostColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.speedpostColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.patheditortoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pathTrackColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pathTrackColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -108,7 +107,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.fileToolStripMenuItem,
             this.viewToolStripMenuItem,
             this.preferencesToolStripMenuItem,
-            this.patheditortoolStripMenuItem,
             this.helpToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
@@ -122,7 +120,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripSeparator1,
-            this.tempfoldertoolStripMenuItem,
             this.menuItemFolder,
             this.menuItemRoutes,
             this.toolStripSeparator2,
@@ -134,36 +131,29 @@ namespace Orts.TrackViewer.WinForms.Controls
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
-            // 
-            // tempfoldertoolStripMenuItem
-            // 
-            this.tempfoldertoolStripMenuItem.Name = "tempfoldertoolStripMenuItem";
-            this.tempfoldertoolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.tempfoldertoolStripMenuItem.Text = "Select Temp Folder";
-            this.tempfoldertoolStripMenuItem.Click += new System.EventHandler(this.tempfoldertoolStripMenuItem_Click);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(172, 6);
             // 
             // menuItemFolder
             // 
             this.menuItemFolder.Name = "menuItemFolder";
-            this.menuItemFolder.Size = new System.Drawing.Size(180, 22);
+            this.menuItemFolder.Size = new System.Drawing.Size(175, 22);
             this.menuItemFolder.Text = "Select Route Folder";
             // 
             // menuItemRoutes
             // 
             this.menuItemRoutes.Name = "menuItemRoutes";
-            this.menuItemRoutes.Size = new System.Drawing.Size(180, 22);
+            this.menuItemRoutes.Size = new System.Drawing.Size(175, 22);
             this.menuItemRoutes.Text = "Select Route";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(172, 6);
             // 
             // menuItemQuit
             // 
             this.menuItemQuit.Name = "menuItemQuit";
-            this.menuItemQuit.Size = new System.Drawing.Size(180, 22);
+            this.menuItemQuit.Size = new System.Drawing.Size(175, 22);
             this.menuItemQuit.Text = "Quit (Q)";
             this.menuItemQuit.Click += new System.EventHandler(this.MenuItemQuit_Click);
             // 
@@ -408,6 +398,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.railLevelCrossingColorToolStripMenuItem,
             this.roadTrackColorToolStripMenuItem,
             this.roadTrackEndColorToolStripMenuItem,
+            this.pathTrackColorToolStripMenuItem,
             this.platformTextColorToolStripMenuItem,
             this.sidingColorToolStripMenuItem,
             this.speedpostColorToolStripMenuItem,
@@ -613,20 +604,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(210, 6);
             // 
-            // patheditortoolStripMenuItem
-            // 
-            this.patheditortoolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.loadPathToolStripMenuItem});
-            this.patheditortoolStripMenuItem.Name = "patheditortoolStripMenuItem";
-            this.patheditortoolStripMenuItem.Size = new System.Drawing.Size(79, 20);
-            this.patheditortoolStripMenuItem.Text = "Path-Editor";
-            // 
-            // loadPathToolStripMenuItem
-            // 
-            this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-            this.loadPathToolStripMenuItem.Text = "Load Path";
-            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -649,6 +626,21 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // pathTrackColorToolStripMenuItem
+            // 
+            this.pathTrackColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.pathTrackColorToolStripComboBoxMenuItem});
+            this.pathTrackColorToolStripMenuItem.Name = "pathTrackColorToolStripMenuItem";
+            this.pathTrackColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.pathTrackColorToolStripMenuItem.Text = "Path Color";
+            // 
+            // pathTrackColorToolStripComboBoxMenuItem
+            // 
+            this.pathTrackColorToolStripComboBoxMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.pathTrackColorToolStripComboBoxMenuItem.MaxDropDownItems = 24;
+            this.pathTrackColorToolStripComboBoxMenuItem.Name = "pathTrackColorToolStripComboBoxMenuItem";
+            this.pathTrackColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
             // 
             // MainMenuControl
             // 
@@ -735,8 +727,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.ToolStripMenuItem patheditortoolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem tempfoldertoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pathTrackColorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripComboBox pathTrackColorToolStripComboBoxMenuItem;
     }
 }

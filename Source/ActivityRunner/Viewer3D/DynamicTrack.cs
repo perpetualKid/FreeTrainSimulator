@@ -816,7 +816,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static void LoadMaterial(Viewer viewer, LODItem lod)
         {
             var options = Helpers.EncodeMaterialOptions(lod);
-            lod.LODMaterial = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, (Helpers.TextureFlags)lod.ESD_Alternative_Texture, lod.TexName), (int)options, lod.MipMapLevelOfDetailBias);
+            lod.LODMaterial = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile((Helpers.TextureFlags)lod.ESD_Alternative_Texture, lod.TexName), (int)options, lod.MipMapLevelOfDetailBias);
         }
 
         public void Mark()

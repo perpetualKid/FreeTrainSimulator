@@ -100,8 +100,8 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var car in cars.Values)
             {
                 car.Mark();
-                if (car.lightDrawer != null)
-                    car.lightDrawer.Mark();
+                if (car.LightDrawer != null)
+                    car.LightDrawer.Mark();
             }
             CABTextureManager.Mark(Viewer);
         }
@@ -139,8 +139,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 car.PrepareFrame(frame, elapsedTime);
             // Do the lights separately for proper alpha sorting
             foreach (var car in cars.Values)
-                if (car.lightDrawer != null)
-                    car.lightDrawer.PrepareFrame(frame, elapsedTime);
+                if (car.LightDrawer != null)
+                    car.LightDrawer.PrepareFrame(frame, elapsedTime);
         }
 
         private TrainCarViewer LoadCar(TrainCar car)
@@ -153,7 +153,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 car is MSTSLocomotive ? new MSTSLocomotiveViewer(Viewer, car as MSTSLocomotive) :
                 car is MSTSWagon ? new MSTSWagonViewer(Viewer, car as MSTSWagon) :
                 null;
-            carViewer.lightDrawer = new LightViewer(Viewer, car);
             return carViewer;
         }
 

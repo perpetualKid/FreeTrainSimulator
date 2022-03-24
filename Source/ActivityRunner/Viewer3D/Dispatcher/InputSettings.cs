@@ -29,6 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             UserCommands[UserCommand.DisplayDebugScreen] = new UserCommandModifiableKeyInput(Keys.F5, windowTab);
             UserCommands[UserCommand.DisplaySignalStateWindow] = new UserCommandKeyInput(Keys.F12);
             UserCommands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(Keys.F1, windowTab);
+            UserCommands[UserCommand.DebugStep] = new UserCommandKeyInput(Keys.F10);
         }
     }
 }

@@ -34,6 +34,8 @@ namespace Orts.Graphics.MapView
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
 
+        internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
+
         public DispatcherContent(Game game) :
             base(game)
         {
@@ -50,7 +52,7 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            if ((viewSettings & TrackViewerViewSettings.Tracks) == TrackViewerViewSettings.Tracks)
+            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
             {
                 foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -58,7 +60,7 @@ namespace Orts.Graphics.MapView
                         segment.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.EndsNodes) == TrackViewerViewSettings.EndsNodes)
+            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
             {
                 foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -66,7 +68,7 @@ namespace Orts.Graphics.MapView
                         endNode.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.JunctionNodes) == TrackViewerViewSettings.JunctionNodes)
+            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
             {
                 foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -79,13 +81,17 @@ namespace Orts.Graphics.MapView
                 if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
                     trackItem.Draw(ContentArea);
             }
+            foreach (PathSegment segment in PathSegments)
+            {
+                if (ContentArea.InsideScreenArea(segment))
+                    segment.Draw(ContentArea, ColorVariation.None, 1.5);
+            }
             if (null != Trains)
             {
                 foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
                     trainCar.Draw(ContentArea);
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
-
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -127,6 +133,30 @@ namespace Orts.Graphics.MapView
             Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
+        // TODO 20220311 PoC code
+        public void UpdateTrainPath(Traveller trainTraveller)
+        {
+            float remainingPathLength = 2000;
+            PathSegments.Clear();
+            if (null == TrackNodeSegments)
+                return;
+            Traveller traveller = new Traveller(trainTraveller);
+            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
+            {
+                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
+                remainingPathLength -= PathSegments[^1].Length;
+            }
+            while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
+            {
+                traveller.NextSection();
+                if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                {
+                    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
+                    remainingPathLength -= PathSegments[^1].Length;
+                }
+            }
+        }
+
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
         {
             if (null == colorPreferences)
@@ -165,11 +195,12 @@ namespace Orts.Graphics.MapView
                         endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -190,7 +221,7 @@ namespace Orts.Graphics.MapView
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
+            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
             Tiles = new TileIndexedList<GridTile, Tile>(
                 TrackSegments.Select(d => d.Tile as ITile).Distinct()

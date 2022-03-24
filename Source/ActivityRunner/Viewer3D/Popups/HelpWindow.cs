@@ -557,13 +557,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Train Overturned", TrainCar.DbfEvalTrainOverturned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
-                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Simulation.Physics.Train.NumOfCouplerBreaks);
+                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", owner.Viewer.PlayerTrain.NumOfCouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", Simulator.Instance.DebriefEvalOverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 
                                 DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
-                                DbfEvalValues.Add("Distance travelled", DbfEvalDistanceTravelled + locomotive.DistanceM);
+                                DbfEvalValues.Add("Distance travelled", DbfEvalDistanceTravelled + locomotive.DistanceTravelled);
                                 DbfEvalValues.Add("Emergency applications while moving", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                                 DbfEvalValues.Add("Emergency applications while stopped", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
                                 DbfEvalValues.Add("Full Train Brake applications under 5MPH/8KMH", MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
@@ -592,7 +592,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 foreach (KeyValuePair<string, double> pair in DbfEvalValues.OrderBy(i => i.Key))
                                 {
                                     line.Add(new Label(colWidth * 4, line.RemainingHeight, Viewer.Catalog.GetString("- " + pair.Key)));
-                                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("= " + (pair.Key.Contains("Time") ? FormatStrings.FormatTime(pair.Value) : pair.Key.Contains("Activity") ? (Viewer.Catalog.GetPluralString("{0} minute", "{0} minutes", (long)playerTrain.Delay.Value.TotalMinutes)) : pair.Key.Contains("Distance") ? FormatStrings.FormatDistanceDisplay(Convert.ToSingle(pair.Value), locomotive.IsMetric) : pair.Value.ToString()))));
+                                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("= " + (pair.Key.Contains("Time") ? FormatStrings.FormatTime(pair.Value) : pair.Key.Contains("Activity") ? (Viewer.Catalog.GetPluralString("{0} minute", "{0} minutes", (long)playerTrain.Delay.Value.TotalMinutes)) : pair.Key.Contains("Distance") ? FormatStrings.FormatDistanceDisplay(Convert.ToSingle(pair.Value), Simulator.Instance.MetricUnits) : pair.Value.ToString()))));
 
                                     line = scrollbox.AddLayoutHorizontalLineOfText();
                                 }
@@ -711,11 +711,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             // var locomotive = Owner.Viewer.Simulator.PlayerLocomotive;                            
                             var cars = Owner.Viewer.PlayerTrain.Cars;
-                            bool ismetric = locomotive.IsMetric;
-                            bool isuk = locomotive.IsUK;
-                            float distancetravelled = locomotive.DistanceM + DbfEvalDistanceTravelled;
+                            bool isMetric = Simulator.Instance.MetricUnits;
+                            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
+                            float distancetravelled = locomotive.DistanceTravelled + DbfEvalDistanceTravelled;
                             //Distance travelled
-                            labeltext = "  Travelled=" + FormatStrings.FormatDistanceDisplay(distancetravelled, ismetric);
+                            labeltext = "  Travelled=" + FormatStrings.FormatDistanceDisplay(distancetravelled, isMetric);
                             outmesssage(labeltext, colWidth * 3, true, 0);
 
                             float nDieselvolume = 0, nCoalvolume = 0;
@@ -760,13 +760,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             if (FuelType == FuelTypes.DieselOil)
                             {
-                                labeltext = "  Burned Diesel=" + FormatStrings.FormatFuelVolume(nDieselburned, ismetric, isuk);
+                                labeltext = "  Burned Diesel=" + FormatStrings.FormatFuelVolume(nDieselburned, isMetric, isUK);
                                 outmesssage(labeltext, colWidth * 3, true, 0);
                             }
 
                             if (FuelType == FuelTypes.Coal)
                             {
-                                labeltext = "  Burned Coal=" + FormatStrings.FormatMass(nCoalburned, ismetric) + " (" + nCoalBurnedPerc.ToString("0.##%") + ")";
+                                labeltext = "  Burned Coal=" + FormatStrings.FormatMass(nCoalburned, isMetric) + " (" + nCoalBurnedPerc.ToString("0.##%") + ")";
                                 outmesssage(labeltext, colWidth * 3, true, 0);
                                 labeltext = "  Water consumption=" + nWaterBurnedPerc.ToString("0.##%");
                                 outmesssage(labeltext, colWidth * 3, true, 0);
@@ -923,7 +923,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             nhosebreaks = 7 * nhosebreaks;
 
                             //Coupler Breaks. -10.
-                            int ncouplerbreaks = Simulation.Physics.Train.NumOfCouplerBreaks;
+                            int ncouplerbreaks = owner.Viewer.PlayerTrain.NumOfCouplerBreaks;
                             labeltext = (lbreakcouplers ? "  Coupler breaks=" : "  Coupler overloaded=") + ncouplerbreaks;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncouplerbreaks = 10 * ncouplerbreaks;

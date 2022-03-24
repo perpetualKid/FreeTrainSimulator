@@ -39,7 +39,7 @@ namespace Orts.Formats.Msts
     {
         private readonly List<TrackNode> trackNodes;
         private Direction direction = Direction.Forward;
-        private float trackOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
+        private float trackVectorSectionOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
         private TrackVectorSection trackVectorSection;
         private TrackSection trackSection;
@@ -97,35 +97,25 @@ namespace Orts.Formats.Msts
         /// </summary>
         public float TrackNodeOffset { get { if (!lengthSet) SetLength(); return trackNodeOffset; } }
         /// <summary>
-        /// Returns whether this traveller is currently on a (section of) track node (opposed to junction, end of line).
+        /// Returns the distance down the current track vector section in meters, based on direction of travel.
         /// </summary>
-        public bool IsTrack => trackNode is TrackVectorNode;
+        public float TrackSectionOffset { get { if (!lengthSet) SetLength(); return trackVectorSectionOffset; } }
         /// <summary>
-        /// Returns whether this traveller is currently on a junction node.
+        /// Returns whether this traveller is currently on a (section of) track node, junction, or end of line.
         /// </summary>
-        public bool IsJunction => trackNode is TrackJunctionNode;
-        /// <summary>
-        /// Returns whether this traveller is currently on a end of line node.
-        /// </summary>
-        public bool IsEnd => trackNode is TrackEndNode;
-        /// <summary>
-        /// Returns whether this traveller is currently on a section of track which is curved.
-        /// </summary>
-        public bool IsTrackCurved => IsTrack && trackSection != null && trackSection.Curved;
-        /// <summary>
-        /// Returns whether this traveller is currently on a section of track which is straight.
-        /// </summary>
-        public bool IsTrackStraight => IsTrack && (trackSection == null || !trackSection.Curved);
-        /// <summary>
-        /// Returns the pin index number, for the current track node, identifying the route travelled into this track node.
-        /// </summary>
-        public int JunctionEntryPinIndex { get; private set; }
+        public TrackNodeType TrackNodeType => this.TrackNode switch
+        {
+            TrackJunctionNode _ => TrackNodeType.Junction,
+            TrackEndNode _ => TrackNodeType.End,
+            TrackVectorNode _ => TrackNodeType.Track,
+            _ => TrackNodeType.Track,
+        };
 
         private Traveller(bool roadTrackTraveller)
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes.ToList();
+            this.trackNodes = roadTrackTraveller ? RuntimeData.Instance.RoadTrackDB.TrackNodes : RuntimeData.Instance.TrackDB.TrackNodes;
         }
 
         /// <summary>
@@ -207,11 +197,11 @@ namespace Orts.Formats.Msts
         public Traveller(TrackVectorNode startTrackNode, bool roadTraveller = false)
             : this(roadTraveller)
         {
-            if (startTrackNode == null) 
+            if (startTrackNode == null)
                 throw new ArgumentException("Track node is not a vector node.", nameof(startTrackNode));
-            if (startTrackNode.TrackVectorSections == null) 
+            if (startTrackNode.TrackVectorSections == null)
                 throw new ArgumentException("Track node has no vector section data.", nameof(startTrackNode));
-            if (startTrackNode.TrackVectorSections.Length == 0) 
+            if (startTrackNode.TrackVectorSections.Length == 0)
                 throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
             TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
             if (!InitTrackNode(startTrackNode, tvs.Location))
@@ -235,13 +225,13 @@ namespace Orts.Formats.Msts
         private Traveller(TrackVectorNode startTrackNode, in WorldLocation location, bool roadTraveller = false)
             : this(roadTraveller)
         {
-            if (startTrackNode == null) 
+            if (startTrackNode == null)
                 throw new ArgumentNullException(nameof(startTrackNode));
             if (!InitTrackNode(startTrackNode, location))
             {
-                if (startTrackNode.TrackVectorSections == null) 
+                if (startTrackNode.TrackVectorSections == null)
                     throw new ArgumentException("Track node has no vector section data.", nameof(startTrackNode));
-                if (startTrackNode.TrackVectorSections.Length == 0) 
+                if (startTrackNode.TrackVectorSections.Length == 0)
                     throw new ArgumentException("Track node has no vector sections.", nameof(startTrackNode));
                 TrackVectorSection tvs = startTrackNode.TrackVectorSections[0];
                 if (!InitTrackNode(startTrackNode, tvs.Location))
@@ -308,7 +298,7 @@ namespace Orts.Formats.Msts
         /// </summary>
         public Traveller(Traveller source, bool reverseDirection = false)
         {
-            if (source == null) 
+            if (source == null)
                 throw new ArgumentNullException(nameof(source));
 
             trackNodes = source.trackNodes;
@@ -317,7 +307,7 @@ namespace Orts.Formats.Msts
             location = source.location;
             direction = reverseDirection ? source.direction.Reverse() : source.direction;
             directionVector = source.directionVector;
-            trackOffset = source.trackOffset;
+            trackVectorSectionOffset = source.trackVectorSectionOffset;
             trackNode = source.trackNode;
             TrackVectorSectionIndex = source.TrackVectorSectionIndex;
             trackVectorSection = source.trackVectorSection;
@@ -341,10 +331,10 @@ namespace Orts.Formats.Msts
 
             locationSet = lengthSet = false;
             direction = (Direction)inf.ReadByte();
-            trackOffset = inf.ReadSingle();
+            trackVectorSectionOffset = inf.ReadSingle();
             int trackNodeIndex = inf.ReadInt32();
             trackNode = trackNodes[trackNodeIndex];
-            if (IsTrack)
+            if (TrackNodeType == TrackNodeType.Track)
             {
                 TrackVectorSectionIndex = inf.ReadInt32();
                 trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
@@ -362,9 +352,9 @@ namespace Orts.Formats.Msts
                 throw new ArgumentNullException(nameof(outf));
 
             outf.Write((byte)direction);
-            outf.Write(trackOffset);
+            outf.Write(trackVectorSectionOffset);
             outf.Write(TrackNode.Index);
-            if (IsTrack)
+            if (TrackNodeType == TrackNodeType.Track)
                 outf.Write(TrackVectorSectionIndex);
         }
 
@@ -378,7 +368,7 @@ namespace Orts.Formats.Msts
         private bool InitTrackNode(TrackNode trackNode, in WorldLocation location)
         {
             TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackNode(trackNode, location);
-            if (candidate == null) 
+            if (candidate == null)
                 return false;
 
             InitFromCandidate(candidate);
@@ -395,7 +385,7 @@ namespace Orts.Formats.Msts
         {
             TrackNodeCandidate candidate = TrackNodeCandidate.TryTrackSection(location, traveller.trackVectorSection, traveller.trackSection);
 
-            if (candidate == null) 
+            if (candidate == null)
                 return false;
 
             traveller.InitFromCandidate(candidate);
@@ -414,22 +404,12 @@ namespace Orts.Formats.Msts
         }
 
         /// <summary>
-        /// Returns the distance from the traveller's current lcation, in its current direction, to the location specified
-        /// </summary>
-        /// <param name="location">Target world location</param>
-        /// <returns>f the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(in WorldLocation location)
-        {
-            return DistanceTo(new Traveller(this), null, location, float.MaxValue);
-        }
-
-        /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="location">Target location</param>
-        /// <param name="maxDistance">MAximum distance to search for specified location.</param>
+        /// <param name="maxDistance">Maximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(in WorldLocation location, float maxDistance)
+        public float DistanceTo(in WorldLocation location, float maxDistance = float.MaxValue)
         {
             return DistanceTo(new Traveller(this), null, location, maxDistance);
         }
@@ -439,20 +419,9 @@ namespace Orts.Formats.Msts
         /// </summary>
         /// <param name="trackNode">Target track node.</param>
         /// <param name="location">Target location</param>
+        /// <param name="maxDistance">Maximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, in WorldLocation location)
-        {
-            return DistanceTo(new Traveller(this), trackNode, location, float.MaxValue);
-        }
-
-        /// <summary>
-        /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
-        /// </summary>
-        /// <param name="trackNode">Target track node.</param>
-        /// <param name="location">Target location</param>
-        /// <param name="maxDistance">MAximum distance to search for specified location.</param>
-        /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, in WorldLocation location, float maxDistance)
+        public float DistanceTo(TrackNode trackNode, in WorldLocation location, float maxDistance = float.MaxValue)
         {
             return DistanceTo(new Traveller(this), trackNode, location, maxDistance);
         }
@@ -465,31 +434,31 @@ namespace Orts.Formats.Msts
             float accumulatedDistance = 0f;
             while (accumulatedDistance < maxDistance)
             {
-                if (traveller.IsTrack)
+                if (traveller.TrackNodeType == TrackNodeType.Track)
                 {
-                    float initialOffset = traveller.trackOffset;
-                    float radius = traveller.IsTrackCurved ? traveller.trackSection.Radius : 1;
+                    float initialOffset = traveller.trackVectorSectionOffset;
+                    float radius = traveller.trackSection?.Curved ?? false ? traveller.trackSection.Radius : 1;
                     if (traveller.TrackNode == trackNode || trackNode == null)
                     {
                         int direction = traveller.Direction == Direction.Forward ? 1 : -1;
                         if (InitTrackSectionSucceeded(traveller, location))
                         {
                             // If the new offset is EARLIER, the target is behind us!
-                            if (traveller.trackOffset * direction < initialOffset * direction)
+                            if (traveller.trackVectorSectionOffset * direction < initialOffset * direction)
                                 break;
                             // Otherwise, accumulate distance from offset change and we're done.
-                            accumulatedDistance += (traveller.trackOffset - initialOffset) * direction * radius;
+                            accumulatedDistance += (traveller.trackVectorSectionOffset - initialOffset) * direction * radius;
                             return accumulatedDistance;
                         }
                     }
                     // No sign of the target location in this track section, accumulate remaining track section length and continue.
-                    float length = traveller.trackSection != null ? traveller.IsTrackCurved ? Math.Abs(MathHelper.ToRadians(traveller.trackSection.Angle)) : traveller.trackSection.Length : 0;
+                    float length = traveller.trackSection != null ? traveller.trackSection.Curved ? Math.Abs(MathHelper.ToRadians(traveller.trackSection.Angle)) : traveller.trackSection.Length : 0;
                     accumulatedDistance += (traveller.Direction == Direction.Forward ? length - initialOffset : initialOffset) * radius;
                 }
                 // No sign of the target location yet, let's move on to the next track section.
                 if (!traveller.NextSection())
                     break;
-                if (traveller.IsJunction)
+                if (traveller.TrackNodeType == TrackNodeType.Junction)
                 {
                     // Junctions have no actual location but check the current traveller position against the target.
                     if (WorldLocation.GetDistanceSquared(traveller.WorldLocation, location) < 0.1)
@@ -498,7 +467,7 @@ namespace Orts.Formats.Msts
                     traveller.NextSection();
                 }
                 // If we've found the end of the track, the target isn't here.
-                if (traveller.IsEnd)
+                if (traveller.TrackNodeType == TrackNodeType.End)
                     break;
             }
             return -1;
@@ -508,7 +477,8 @@ namespace Orts.Formats.Msts
         {
             if (trackNodes[TrackNode.Index] is TrackVectorNode trackVectorNode)
                 return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
-            else return null;
+            else
+                return null;
         }
 
         /// <summary>
@@ -517,23 +487,28 @@ namespace Orts.Formats.Msts
         /// <returns><c>true</c> if the next section exists, <c>false</c> if it does not.</returns>
         public bool NextSection()
         {
-            if (IsTrack && NextVectorSection())
+            if (TrackNodeType == TrackNodeType.Track && NextVectorSection())
                 return true;
             return NextTrackNode();
         }
 
         public bool NextTrackNode()
         {
-            if (IsJunction)
-                Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins > 1);
-            else if (IsEnd)
-                Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 0);
-            else
-                Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 1);
+            switch (TrackNodeType)
+            {
+                case TrackNodeType.End:
+                    Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 0);
+                    break;
+                case TrackNodeType.Junction:
+                    Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins > 1);
+                    break;
+                default:
+                    Debug.Assert(trackNode.InPins == 1 && trackNode.OutPins == 1);
+                    break;
+            }
 
-            int oldTrackNodeIndex = TrackNode.Index;
             int pin = direction == Direction.Forward ? trackNode.InPins : 0;
-            if (IsJunction && direction == Direction.Forward)
+            if (TrackNodeType == TrackNodeType.Junction && direction == Direction.Forward)
                 pin += (trackNode as TrackJunctionNode).SelectedRoute;
             if (pin < 0 || pin >= trackNode.TrackPins.Length)
                 return false;
@@ -542,22 +517,18 @@ namespace Orts.Formats.Msts
                 return false;
 
             direction = trPin.Direction > 0 ? Direction.Forward : Direction.Backward;
-            trackOffset = 0;
+            trackVectorSectionOffset = 0;
             trackNode = trackNodes[trPin.Link];
             TrackVectorSectionIndex = -1;
             trackVectorSection = null;
             trackSection = null;
-            if (IsTrack)
+            if (TrackNodeType == TrackNodeType.Track)
             {
                 if (direction == Direction.Forward)
                     NextTrackVectorSection(0);
                 else
                     NextTrackVectorSection((trackNode as TrackVectorNode).TrackVectorSections.Length - 1);
             }
-            JunctionEntryPinIndex = -1;
-            for (int i = 0; i < trackNode.TrackPins.Length; i++)
-                if (trackNode.TrackPins[i].Link == oldTrackNodeIndex)
-                    JunctionEntryPinIndex = i;
             return true;
         }
 
@@ -568,8 +539,8 @@ namespace Orts.Formats.Msts
         public bool NextVectorSection()
         {
             TrackVectorNode tvn = trackNode as TrackVectorNode;
-            if ((direction == Direction.Forward && 
-                trackVectorSection == tvn.TrackVectorSections[^1]) || 
+            if ((direction == Direction.Forward &&
+                trackVectorSection == tvn.TrackVectorSections[^1]) ||
                 (direction == Direction.Backward && trackVectorSection == tvn.TrackVectorSections[0]))
                 return false;
             return NextTrackVectorSection(TrackVectorSectionIndex + (direction == Direction.Forward ? 1 : -1));
@@ -583,7 +554,7 @@ namespace Orts.Formats.Msts
             if (trackSection == null)
                 return false;
             locationSet = lengthSet = false;
-            trackOffset = direction == Direction.Forward ? 0 : IsTrackCurved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
+            trackVectorSectionOffset = direction == Direction.Forward ? 0 : trackSection.Curved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
             return true;
         }
 
@@ -596,7 +567,7 @@ namespace Orts.Formats.Msts
 
             TrackVectorSection tvs = trackVectorSection;
             TrackSection ts = trackSection;
-            float to = trackOffset;
+            float to = trackVectorSectionOffset;
             if (tvs == null)
             {
                 // We're on a junction or end node. Use one of the links to get location and direction information.
@@ -608,7 +579,7 @@ namespace Orts.Formats.Msts
                 ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
                 if (ts == null)
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
-                to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
+                to = pin.Direction > 0 ? -trackVectorSectionOffset : ts.Length + trackVectorSectionOffset;
             }
 
             location = tvs.Location;
@@ -659,23 +630,14 @@ namespace Orts.Formats.Msts
                 TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs[i].SectionIndex);
                 if (ts == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
-                float length = GetLength(ts);
-                trackNodeLength += length;
+                trackNodeLength += ts.Length;
                 if (i < TrackVectorSectionIndex)
-                    trackNodeOffset += length;
+                    trackNodeOffset += ts.Length;
                 else if (i == TrackVectorSectionIndex)
-                    trackNodeOffset += trackOffset * (ts.Curved ? ts.Radius : 1);
+                    trackNodeOffset += trackVectorSectionOffset * (ts.Curved ? ts.Radius : 1);
             }
             if (Direction == Direction.Backward)
                 trackNodeOffset = trackNodeLength - trackNodeOffset;
-        }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            if (trackSection == null)
-                return 0;
-
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         /// <summary>
@@ -711,7 +673,7 @@ namespace Orts.Formats.Msts
 
             float trackLength = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
             int sign = Math.Sign(trackSection.Angle) > 0 ^ direction == Direction.Backward ? -1 : 1;
-            float trackOffsetReverse = trackLength - trackOffset;
+            float trackOffsetReverse = trackLength - trackVectorSectionOffset;
 
             float startingElevation = trackVectorSection.StartElev;
             float endingElevation = trackVectorSection.EndElev;
@@ -721,11 +683,11 @@ namespace Orts.Formats.Msts
             if (elevation.AlmostEqual(0f, 0.001f))
                 return 0;
 
-            if (trackOffset < trackLength / 2)
+            if (trackVectorSectionOffset < trackLength / 2)
             {
                 // Start of the curve; if there is starting super-elevation, use max super-elevation.
                 if (startingElevation.AlmostEqual(0f, 0.001f))
-                    return elevation * trackOffset * 2 / trackLength;
+                    return elevation * trackVectorSectionOffset * 2 / trackLength;
 
                 return elevation;
             }
@@ -746,7 +708,8 @@ namespace Orts.Formats.Msts
 
         public float FindTiltedZ(float speed) //will test 1 second ahead, computed will return desired elev. only
         {
-            if (speed < 12) return 0;//no tilt if speed too low (<50km/h)
+            if (speed < 12)
+                return 0;//no tilt if speed too low (<50km/h)
             if (!(trackNode is TrackVectorNode))
                 return 0f;
             TrackVectorSection tvs = trackVectorSection;
@@ -762,13 +725,13 @@ namespace Orts.Formats.Msts
                 //maxv *= speed / 40f;
                 //if (maxv.AlmostEqual(0f, 0.001f)) maxv = 0.02f; //short curve, add some effect anyway
                 int sign = -Math.Sign(ts.Angle);
-                if ((direction == Direction.Forward ? 1 : -1) * sign > 0) 
+                if ((direction == Direction.Forward ? 1 : -1) * sign > 0)
                     desiredZ = 1f;
-                else 
+                else
                     desiredZ = -1f;
                 desiredZ *= maxv;//max elevation
             }
-            else 
+            else
                 desiredZ = 0f;
             return desiredZ;
         }
@@ -780,8 +743,7 @@ namespace Orts.Formats.Msts
         /// <returns>The remaining distance if the traveller reached the end of the track.</returns>
         public float Move(double distanceToGo)
         {
-            // TODO - must remove the trig from these calculations
-            if (double.IsNaN(distanceToGo)) 
+            if (double.IsNaN(distanceToGo))
                 distanceToGo = 0f;
             int distanceSign = Math.Sign(distanceToGo);
             distanceToGo = Math.Abs(distanceToGo);
@@ -806,34 +768,34 @@ namespace Orts.Formats.Msts
         /// <returns>The remaining distance if the traveller reached the end of the track section.</returns>
         public float MoveInSection(float distanceToGo)
         {
-            int distanceSign = Math.Sign(distanceToGo);
+            int sign = Math.Sign(distanceToGo);
             distanceToGo = Math.Abs(distanceToGo);
-            if (distanceSign < 0)
+            if (sign < 0)
                 ReverseDirection();
             distanceToGo = MoveInTrackSection(distanceToGo);
-            if (distanceSign < 0)
+            if (sign < 0)
                 ReverseDirection();
-            return distanceSign * distanceToGo;
+            return sign * distanceToGo;
         }
 
         private float MoveInTrackSection(float distanceToGo)
         {
-            if (IsJunction)
-                return distanceToGo;
-            if (!IsTrack)
-                return MoveInTrackSectionInfinite(distanceToGo);
-            if (IsTrackCurved)
-                return MoveInTrackSectionCurved(distanceToGo);
-            return MoveInTrackSectionStraight(distanceToGo);
+            return TrackNodeType switch
+            {
+                TrackNodeType.Junction => distanceToGo,
+                TrackNodeType.End => distanceToGo,
+                TrackNodeType.Track => (trackSection?.Curved ?? false) ? MoveInTrackSectionCurved(distanceToGo) : MoveInTrackSectionStraight(distanceToGo),
+                _ => MoveInTrackSectionInfinite(distanceToGo),
+            };
         }
 
         private float MoveInTrackSectionInfinite(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float distance = distanceToGo;
-            if (Direction == Direction.Backward && distance > trackOffset)
-                distance = trackOffset;
-            trackOffset += scale * distance;
+            if (Direction == Direction.Backward && distance > trackVectorSectionOffset)
+                distance = trackVectorSectionOffset;
+            trackVectorSectionOffset += sign * distance;
             trackNodeOffset += distance;
             locationSet = false;
             return distanceToGo - distance;
@@ -841,20 +803,20 @@ namespace Orts.Formats.Msts
 
         private float MoveInTrackSectionCurved(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float desiredTurnRadians = distanceToGo / trackSection.Radius;
             float sectionTurnRadians = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
             if (direction == Direction.Forward)
             {
-                if (desiredTurnRadians > sectionTurnRadians - trackOffset)
-                    desiredTurnRadians = sectionTurnRadians - trackOffset;
+                if (desiredTurnRadians > sectionTurnRadians - trackVectorSectionOffset)
+                    desiredTurnRadians = sectionTurnRadians - trackVectorSectionOffset;
             }
             else
             {
-                if (desiredTurnRadians > trackOffset)
-                    desiredTurnRadians = trackOffset;
+                if (desiredTurnRadians > trackVectorSectionOffset)
+                    desiredTurnRadians = trackVectorSectionOffset;
             }
-            trackOffset += scale * desiredTurnRadians;
+            trackVectorSectionOffset += sign * desiredTurnRadians;
             trackNodeOffset += desiredTurnRadians * trackSection.Radius;
             locationSet = false;
             return distanceToGo - desiredTurnRadians * trackSection.Radius;
@@ -862,19 +824,19 @@ namespace Orts.Formats.Msts
 
         private float MoveInTrackSectionStraight(float distanceToGo)
         {
-            int scale = Direction == Direction.Forward ? 1 : -1;
+            int sign = Direction == Direction.Forward ? 1 : -1;
             float desiredDistance = distanceToGo;
             if (direction == Direction.Forward)
             {
-                if (desiredDistance > trackSection.Length - trackOffset)
-                    desiredDistance = trackSection.Length - trackOffset;
+                if (desiredDistance > trackSection.Length - trackVectorSectionOffset)
+                    desiredDistance = trackSection.Length - trackVectorSectionOffset;
             }
             else
             {
-                if (desiredDistance > trackOffset)
-                    desiredDistance = trackOffset;
+                if (desiredDistance > trackVectorSectionOffset)
+                    desiredDistance = trackVectorSectionOffset;
             }
-            trackOffset += scale * desiredDistance;
+            trackVectorSectionOffset += sign * desiredDistance;
             trackNodeOffset += desiredDistance;
             locationSet = false;
             return distanceToGo - desiredDistance;
@@ -912,10 +874,12 @@ namespace Orts.Formats.Msts
                 return 1;
             float dx = farMe.X - other.X + 2048 * (farMe.TileX - other.TileX);
             float dz = farMe.Z - other.Z + 2048 * (farMe.TileZ - other.TileZ);
-            if (dx * dx + dz * dz > lengthMe * lengthMe) return 1;
+            if (dx * dx + dz * dz > lengthMe * lengthMe)
+                return 1;
             dx = X - farOther.X + 2048 * (TileX - farOther.TileX);
             dz = Z - farOther.Z + 2048 * (TileZ - farOther.TileZ);
-            if (dx * dx + dz * dz > lengthOther * lengthOther) return 1;
+            if (dx * dx + dz * dz > lengthOther * lengthOther)
+                return 1;
             dx = X - other.X + 2048 * (TileX - other.TileX);
             dz = Z - other.Z + 2048 * (TileZ - other.TileZ);
             float diagonal = dx * dx + dz * dz;
@@ -929,7 +893,7 @@ namespace Orts.Formats.Msts
 
         public override string ToString()
         {
-            return $"{{TrackNodeIndex={TrackNode.Index} TrackVectorSectionIndex={TrackVectorSectionIndex} Offset={trackOffset:F6}}}";
+            return $"{{TrackNodeIndex={TrackNode.Index} TrackVectorSectionIndex={TrackVectorSectionIndex} Offset={trackVectorSectionOffset:F6}}}";
         }
 
         /// <summary>
@@ -944,14 +908,14 @@ namespace Orts.Formats.Msts
             // The order might be important.
             if (candidate.TrackNode != null)
                 trackNode = candidate.TrackNode;
-            if (candidate.TrackVectorSection != null) 
+            if (candidate.TrackVectorSection != null)
                 trackVectorSection = candidate.TrackVectorSection;
-            if (candidate.TrackVectorSectionIndex >= 0) 
+            if (candidate.TrackVectorSectionIndex >= 0)
                 TrackVectorSectionIndex = candidate.TrackVectorSectionIndex;
 
             // these are always set:
             direction = Direction.Forward;
-            trackOffset = 0;
+            trackVectorSectionOffset = 0;
             locationSet = lengthSet = false;
             trackSection = candidate.TrackSection;
             if (trackSection.Curved)

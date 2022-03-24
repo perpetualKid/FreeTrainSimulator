@@ -217,7 +217,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf); }),
-                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = stf.ReadIntBlock(-1); }),
+                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (int)stf.ReadUIntBlock(null); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatchBlockEnd(); Reversible = true; }),
                 // Also support the correct spelling !

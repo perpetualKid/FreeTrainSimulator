@@ -20,8 +20,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -126,12 +128,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             PlatformFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
-            SignalFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             trainBrush = new SolidBrush(Color.Red);
             inactiveTrainBrush = new SolidBrush(Color.DarkRed);
             sidingBrush = new SolidBrush(Color.Blue);
             platformBrush = new SolidBrush(Color.DarkBlue);
-            signalBrush = new SolidBrush(Color.DarkRed);
             pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
         }
 
@@ -206,9 +206,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             // Instead create a single item which replaces the 2 platform items.
                             var replacement = new SidingWidget(item as SidingItem)
                             {
-                                Location = GetMidPoint(oldLocation, newLocation)
+                                Location = new PointF()
+                                {
+                                    X = (oldLocation.X + newLocation.X) / 2,
+                                    Y = (oldLocation.Y + newLocation.Y) / 2
+                                }
                             };
-
                             // Replace the old siding item with the replacement
                             sidings.RemoveAt(oldSidingIndex);
                             sidings.Add(replacement);
@@ -238,12 +241,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             // Instead create a single item which replaces the 2 platform items.
                             var replacement = new PlatformWidget(item as PlatformItem)
                             {
-                                Extent1 = oldLocation
-                                ,
-                                Extent2 = newLocation
-                                // Give it the right-hand location
-                                ,
-                                Location = GetRightHandPoint(oldLocation, newLocation)
+                                Extent1 = oldLocation,
+                                Extent2 = newLocation,
+                                Location = (oldLocation.X > newLocation.X) ? oldLocation : newLocation
                             };
 
                             // Replace the old platform item with the replacement
@@ -260,28 +260,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             foreach (var p in platforms)
                 if (p.Extent1.IsEmpty || p.Extent2.IsEmpty)
                     Trace.TraceWarning("Platform '{0}' is incomplete as the two ends do not match. It will not show in full in the Timetable Tab of the Map Window", p.Name);
-        }
-
-        /// <summary>
-        /// Returns the mid-point between two locations
-        /// </summary>
-        /// <param name="location"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        private PointF GetMidPoint(PointF location1, PointF location2)
-        {
-            return new PointF()
-            {
-                X = (location1.X + location2.X) / 2
-                ,
-                Y = (location1.Y + location2.Y) / 2
-            };
-        }
-
-        private PointF GetRightHandPoint(PointF location1, PointF location2)
-        {
-            return (location1.X > location2.X) ? location1 : location2;
         }
 
         private void GenerateTimetableView(bool dragging)
@@ -555,9 +533,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var margin = 30 * xScale;   //margins to determine if we want to draw a train
             var margin2 = 5000 * xScale;
 
-            //variable for drawing train path
-            var mDist = 5000f;
-
             selectedTrainList.Clear();
 
             if (simulator.TimetableMode)
@@ -611,7 +586,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     || y < -margin2)
                     continue;
 
-                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB, mDist);
+                DrawTrainPath(train, subX, subY, pathPen, g, scaledA, scaledB);
 
                 // pen | train | Values for a good presentation
                 //  1		10
@@ -679,7 +654,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // inactive loco: RGB 153,128,0
             // active car: RGB 0,204,0
             // inactive car: RGB 0,153,0
-            if (IsActiveTrain(t as Simulation.AIs.AITrain))
+            if (t.IsActive)
                 if (car is MSTSLocomotive)
                     trainPen.Color = (car == locoCar) ? Color.FromArgb(204, 170, 0) : Color.FromArgb(153, 128, 0);
                 else
@@ -702,7 +677,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             scaledTrain.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
             if (rbShowActiveTrainLabels.Checked)
             {
-                if (t is Simulation.AIs.AITrain && IsActiveTrain(t as Simulation.AIs.AITrain))
+                if (t.IsActive)
                     ShowTrainNameAndState(g, scaledTrain, t, trainName);
             }
             else
@@ -715,7 +690,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             if (t == null)
                 return false;
-            return (t.MovementState != AiMovementState.Static && !(t.TrainType == TrainType.AiIncorporated && !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
+            return (t.MovementState != AiMovementState.Static && (t.TrainType != TrainType.AiIncorporated || !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
         }
 
         private void ShowTrainNameAndState(System.Drawing.Graphics g, PointF scaledItem, Train t, string trainName)
@@ -729,7 +704,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var lastPos = trainName.LastIndexOf(":");
                     var shortName = (lastPos > 0) ? trainName.Substring(0, lastPos) : trainName;
 
-                    if (IsActiveTrain(tTTrain))
+                    if (t.IsActive)
                     {
                         if (cbShowTrainState.Checked)
                         {

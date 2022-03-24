@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using Orts.Common;
+
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 
@@ -28,7 +28,7 @@ namespace Orts.Simulation.RollingStocks
 {
     public static class RollingStock
     {
-        public static TrainCar Load(Simulator simulator, string wagFilePath, bool initialize = true)
+        public static TrainCar Load(string wagFilePath, bool initialize = true)
         {
             GenericWAGFile wagFile = SharedGenericWAGFileManager.Get(wagFilePath);
             TrainCar car;
@@ -54,7 +54,7 @@ namespace Orts.Simulation.RollingStocks
             if (!wagFile.IsEngine)
             {
                 // its an ordinary MSTS wagon
-                car = new MSTSWagon(simulator, wagFilePath);
+                car = new MSTSWagon(wagFilePath);
             }
             else
             {
@@ -65,10 +65,10 @@ namespace Orts.Simulation.RollingStocks
                 switch (wagFile.Engine.Type.ToLower())
                 {
                     // TODO complete parsing of proper car types
-                    case "electric": car = new MSTSElectricLocomotive(simulator, wagFilePath); break;
-                    case "steam": car = new MSTSSteamLocomotive(simulator, wagFilePath); break;
-                    case "diesel": car = new MSTSDieselLocomotive(simulator, wagFilePath); break;
-                    case "control": car = new MSTSControlTrailerCar(simulator, wagFilePath); break;
+                    case "electric": car = new MSTSElectricLocomotive(wagFilePath); break;
+                    case "steam": car = new MSTSSteamLocomotive(wagFilePath); break;
+                    case "diesel": car = new MSTSDieselLocomotive(wagFilePath); break;
+                    case "control": car = new MSTSControlTrailerCar(wagFilePath); break;
                     default: throw new InvalidDataException(wagFilePath + "\r\n\r\nUnknown engine type: " + wagFile.Engine.Type);
                 }
             }
@@ -109,9 +109,9 @@ namespace Orts.Simulation.RollingStocks
             wagon.Save(outf);
         }
 
-        public static TrainCar Restore(Simulator simulator, BinaryReader inf, Train train)
+        public static TrainCar Restore(BinaryReader inf, Train train)
         {
-            TrainCar car = Load(simulator, inf.ReadString(), false);
+            TrainCar car = Load(inf.ReadString(), false);
             car.Train = train;
             car.Restore(inf);
             car.Initialize();

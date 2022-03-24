@@ -88,35 +88,21 @@ namespace Orts.Formats.Msts
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
         /// <param name="trackNode">The parent trackNode of the vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackVectorNode trackNode)
+        private static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation location, TrackVectorNode trackNode)
         {
             TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
-            if (trackVectorSection == null)
+
+            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
+            if (trackSection == null)
                 return null;
-            TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, location, trackVectorSection);
+
+            TrackNodeCandidate candidate = TryTrackSection(location, trackVectorSection, trackSection);
             if (candidate == null)
                 return null;
 
             candidate.TrackVectorSectionIndex = tvsi;
             candidate.TrackVectorSection = trackVectorSection;
             return candidate;
-        }
-
-        /// <summary>
-        /// Try whether the given location is indeed on (or at least close to) the tracksection given by its index.
-        /// If it is, we return a TrackNodeCandidate object. 
-        /// </summary>
-        /// <param name="tsi">The track section index</param>
-        /// <param name="location">The location for which we want to see if it is on the tracksection</param>
-        /// <param name="trackVectorSection">The parent track vector section</param>
-        /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackSection(int tsi, in WorldLocation location, TrackVectorSection trackVectorSection)
-        {
-            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tsi);
-            if (trackSection == null)
-                return null;
-
-            return TryTrackSection(location, trackVectorSection, trackSection);
         }
 
         /// <summary>
@@ -182,8 +168,7 @@ namespace Orts.Formats.Msts
             else
                 radiansAlongCurve = (float)Math.Asin(l.Z / trackSection.Radius);
             float lon = radiansAlongCurve * trackSection.Radius;
-            float trackSectionLength = GetLength(trackSection);
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return null;
 
             return new TrackNodeCandidate(Math.Abs(lat), lon, trackSection);
@@ -221,16 +206,10 @@ namespace Orts.Formats.Msts
             (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
-            if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return null;
 
             return new TrackNodeCandidate(Math.Abs(lat), lon, trackSection);
         }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
-        }
-
     }
 }

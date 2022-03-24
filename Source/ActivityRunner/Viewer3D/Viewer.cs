@@ -322,8 +322,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
                 }
             }
-
-            Initialize();
         }
 
         public void Save(BinaryWriter outf, string fileStem)
@@ -455,7 +453,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             World = new World(this, Simulator.ClockTime);
 
-            ViewerSounds = new SoundSource(this, soundSource => new[]
+            ViewerSounds = new SoundSource(soundSource => new[]
             {
                 new SoundStream(soundSource, soundStream => new[]
                 {
@@ -1209,7 +1207,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MultiPlayerManager.Instance().Update(Simulator.GameTime);
             }
 
-            UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
@@ -1319,7 +1317,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                SoundProcess.AddSoundSource(this, new SoundSource(this, car as MSTSWagon, smsFilePath));
+                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, smsFilePath));
             }
             catch (Exception error)
             {

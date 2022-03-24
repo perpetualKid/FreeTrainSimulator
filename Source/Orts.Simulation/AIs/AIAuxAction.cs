@@ -401,10 +401,10 @@ namespace Orts.Simulation.AIs
                             {
                                 bool found = false;
                                 requiredActionsInserted = true;
-                                if ((thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting) && thisTrain.requiredActions.Count > 0)
+                                if ((thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting) && thisTrain.RequiredActions.Count > 0)
                                 {
                                     // check if action already inserted
-                                    foreach (DistanceTravelledItem item in thisTrain.requiredActions)
+                                    foreach (DistanceTravelledItem item in thisTrain.RequiredActions)
                                     {
                                         if (item is AuxActionWPItem)
                                         {
@@ -415,7 +415,7 @@ namespace Orts.Simulation.AIs
                                 }
                                 if (!found)
                                 {
-                                    thisTrain.requiredActions.InsertAction(newAction);
+                                    thisTrain.RequiredActions.InsertAction(newAction);
                                     continue;
                                     //                              ((AITrain)thisTrain).nextActionInfo = newAction; // action must be restored through required actions only
                                 }
@@ -1345,7 +1345,7 @@ namespace Orts.Simulation.AIs
                 AITrain aiTrain = thisTrain as AITrain;
                 if (!actionValid)
                 {
-                    aiTrain.requiredActions.InsertAction(this);
+                    aiTrain.RequiredActions.InsertAction(this);
                 }
                 aiTrain.EndProcessAction(actionValid, this, false);
             }
@@ -1572,7 +1572,7 @@ namespace Orts.Simulation.AIs
 
                 if (!actionValid)
                 {
-                    aiTrain.requiredActions.InsertAction(this);
+                    aiTrain.RequiredActions.InsertAction(this);
                 }
                 aiTrain.EndProcessAction(actionValid, this, false);
             }
@@ -1817,9 +1817,9 @@ namespace Orts.Simulation.AIs
                 if (((AIActSigDelegateRef)ActionRef).AssociatedWPAction != null)
                 {
                     var WPAction = ((AIActSigDelegateRef)ActionRef).AssociatedWPAction.keepIt;
-                    if (thisTrain.requiredActions.Contains(WPAction))
+                    if (thisTrain.RequiredActions.Contains(WPAction))
                     {
-                        thisTrain.requiredActions.Remove(WPAction);
+                        thisTrain.RequiredActions.Remove(WPAction);
                     }
                     if (thisTrain.AuxActionsContainer.specRequiredActions.Contains(WPAction))
                         thisTrain.AuxActionsContainer.specRequiredActions.Remove(WPAction);

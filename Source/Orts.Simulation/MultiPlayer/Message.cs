@@ -603,7 +603,7 @@ namespace Orts.Simulation.MultiPlayer
 
                                     try // Load could fail if file has bad data.
                                     {
-                                        TrainCar car = RollingStock.Load(Simulator.Instance, wagonFilePath);
+                                        TrainCar car = RollingStock.Load(wagonFilePath);
                                         car.Flipped = flipped[i] != 0;
                                         car.CarID = ids[i];
                                         var carID = car.CarID;
@@ -1245,7 +1245,7 @@ namespace Orts.Simulation.MultiPlayer
                 TrainCar car = null;
                 try
                 {
-                    car = RollingStock.Load(Simulator.Instance, wagonFilePath);
+                    car = RollingStock.Load(wagonFilePath);
                     car.CarLengthM = lengths[i];
                 }
                 catch (Exception error)
@@ -1449,7 +1449,7 @@ namespace Orts.Simulation.MultiPlayer
                     TrainCar car = FindCar(train, ids[i]);
                     try
                     {
-                        if (car == null) car = RollingStock.Load(Simulator.Instance, wagonFilePath);
+                        if (car == null) car = RollingStock.Load(wagonFilePath);
                         car.CarLengthM = lengths[i];
                     }
                     catch (Exception error)
@@ -1487,7 +1487,7 @@ namespace Orts.Simulation.MultiPlayer
                 TrainCar car = null;
                 try
                 {
-                    car = RollingStock.Load(Simulator.Instance, wagonFilePath);
+                    car = RollingStock.Load(wagonFilePath);
                     car.CarLengthM = lengths[i];
                 }
                 catch (Exception error)

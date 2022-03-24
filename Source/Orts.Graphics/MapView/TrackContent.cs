@@ -155,7 +155,7 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            if ((viewSettings & TrackViewerViewSettings.Grid) == TrackViewerViewSettings.Grid)
+            if ((viewSettings & MapViewItemSettings.Grid) == MapViewItemSettings.Grid)
             {
                 foreach (GridTile tile in Tiles.BoundingBox(bottomLeft, topRight))
                 {
@@ -163,7 +163,7 @@ namespace Orts.Graphics.MapView
                 }
                 nearestGridTile?.Draw(ContentArea, ColorVariation.Complement);
             }
-            if ((viewSettings & TrackViewerViewSettings.Tracks) == TrackViewerViewSettings.Tracks)
+            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
             {
                 foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -179,7 +179,7 @@ namespace Orts.Graphics.MapView
                     nearestTrackSegment.Draw(ContentArea, ColorVariation.Complement);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.EndsNodes) == TrackViewerViewSettings.EndsNodes)
+            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
             {
                 foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -187,7 +187,7 @@ namespace Orts.Graphics.MapView
                         endNode.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.JunctionNodes) == TrackViewerViewSettings.JunctionNodes)
+            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
             {
                 foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -195,7 +195,7 @@ namespace Orts.Graphics.MapView
                         junctionNode.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.Roads) == TrackViewerViewSettings.Roads)
+            if ((viewSettings & MapViewItemSettings.Roads) == MapViewItemSettings.Roads)
             {
                 foreach (RoadSegment segment in RoadSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -211,7 +211,7 @@ namespace Orts.Graphics.MapView
                     nearesRoadSegment.Draw(ContentArea, ColorVariation.Complement);
                 }
             }
-            if ((viewSettings & TrackViewerViewSettings.RoadEndNodes) == TrackViewerViewSettings.RoadEndNodes)
+            if ((viewSettings & MapViewItemSettings.RoadEndNodes) == MapViewItemSettings.RoadEndNodes)
             {
                 foreach (RoadEndSegment endNode in RoadEndSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -253,11 +253,12 @@ namespace Orts.Graphics.MapView
                         endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -292,11 +293,12 @@ namespace Orts.Graphics.MapView
                         roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
+                        int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index));
+                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
                         }
                         break;
                 }

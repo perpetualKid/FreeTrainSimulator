@@ -15,7 +15,7 @@ namespace Orts.Graphics.MapView
     public abstract class ContentBase : INameValueInformationProvider
     {
         private protected readonly Game game;
-        private protected TrackViewerViewSettings viewSettings = TrackViewerViewSettings.All;
+        private protected MapViewItemSettings viewSettings = MapViewItemSettings.All;
 
         public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
 
@@ -39,7 +39,7 @@ namespace Orts.Graphics.MapView
 
         public abstract Task Initialize();
 
-        public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
+        public void UpdateItemVisiblity(MapViewItemSettings viewSettings)
         {
             this.viewSettings = viewSettings;
         }

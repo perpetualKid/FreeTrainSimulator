@@ -214,7 +214,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <returns>A list of <see cref="ListLabel"/>s, one per row of the popup.</returns>
         public static IEnumerable<ListLabel> TrainDrivingDisplayList(this Viewer viewer, bool normalTextMode = true)
         {
-            bool useMetric = viewer.MilepostUnitsMetric;
+            bool useMetric = Simulator.Instance.MetricUnits;
             var labels = new List<ListLabel>();
             void AddLabel(ListLabel label)
             {

@@ -179,11 +179,12 @@ namespace Orts.Simulation.RollingStocks
             set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
         }
 
-        public float CurrentLocomotiveSteamHeatBoilerWaterCapacityL
+        public double CurrentLocomotiveSteamHeatBoilerWaterCapacityL
         {
-            get { return WaterController.CurrentValue * MaximumSteamHeatBoilerWaterTankCapacityL; }
-            set { WaterController.CurrentValue = value / MaximumSteamHeatBoilerWaterTankCapacityL; }
+            get { return WaterController.CurrentValue * maximumSteamHeatBoilerWaterTankCapacityL; }
+            set { WaterController.CurrentValue = (float)(value / maximumSteamHeatBoilerWaterTankCapacityL); }
         }
+
         public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
 
         public float BoilerPressurePSI;     // Steam Gauge pressure - what the engineer sees.
@@ -230,7 +231,6 @@ namespace Orts.Simulation.RollingStocks
         public float TrackSanderSandConsumptionM3pS = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
 
         // Vacuum Braking parameters
-        private static readonly double OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
         public bool SmallSteamEjectorIsOn;
         public bool LargeSteamEjectorIsOn;
         public bool VacuumPumpOperating;
@@ -441,12 +441,20 @@ namespace Orts.Simulation.RollingStocks
 
         public float PowerReduction;
 
-        public MSTSLocomotive(Simulator simulator, string wagPath)
-            : base(simulator, wagPath)
+        public new MidpointDirection Direction
+        {
+            //TODO: following code lines have been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
+            // To achieve the same result with other means, without flipping trainset physics, the code lines probably should be changed
+            get => (IsDriveable && Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
+            set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
+        }
+
+        public MSTSLocomotive(string wagPath)
+            : base(wagPath)
         {
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
 
-            MilepostUnitsMetric = Simulator.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = simulator.Route.MilepostUnitsMetric;
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();
@@ -454,7 +462,7 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.DampingNs = MassKG / 1000.0f;
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
             LocomotiveAxle.StabilityCorrection = true;
-            LocomotiveAxle.FilterMovingAverage = new Common.Calc.MovingAverage(Simulator.Settings.AdhesionMovingAverageFilterSize);
+            LocomotiveAxle.FilterMovingAverage = new MovingAverage(simulator.Settings.AdhesionMovingAverageFilterSize);
             CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
@@ -581,7 +589,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected void GetPressureUnit()
         {
-            switch (Simulator.Settings.PressureUnit)
+            switch (simulator.Settings.PressureUnit)
             {
                 default:
                 case PressureUnit.Automatic:
@@ -761,11 +769,11 @@ namespace Orts.Simulation.RollingStocks
             if (!(this is MSTSSteamLocomotive))
                 InitializeFromORTSSpecific(Path.Combine(cab3dBasePath, cvfFileName), extendedCVF);
 
-            var cabViewAngle = CabViewpoints[0].StartDirection.Y;
-            var cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
+            float cabViewAngle = CabViewpoints?[0].StartDirection.Y ?? 0;
+            CabViewType cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
 
             // only one cabview, and it looks rear; insert a void one at first place to maintain fast indexing
-            if (CabViewpoints.Count == 1 && cabViewType == CabViewType.Rear)
+            if (CabViewpoints?.Count == 1 && cabViewType == CabViewType.Rear)
                 CabViewpoints.Insert(0, new PassengerViewPoint());
 
             return new CabView3D(cvfFile, CabViewpoints, extendedCVF, cabViewType, noseAhead, shapeFilePath);
@@ -851,8 +859,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
                 case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
                 case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
 
                 case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
@@ -883,12 +891,13 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsdynamicbrakeshasautobailoff": DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true); break;
                 case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
                 case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
-                case "engine(numwheels": MSTSLocoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (MSTSLocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
-                case "engine(ortsnumberdriveaxles": LocoNumDrvAxles = stf.ReadIntBlock(null); if (LocoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(numwheels": locoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (locoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(ortsnumberdriveaxles": locoNumDrvAxles = stf.ReadIntBlock(null); if (locoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
                 case "engine(antislip": AntiSlip = stf.ReadBoolBlock(false); break;
                 case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
                 case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
                 case "engine(headout":
+                    HeadOutViewpoints ??= new List<ViewPoint>();
                     HeadOutViewpoints.Add(new ViewPoint(stf.ReadVector3Block(STFReader.Units.Distance, Vector3.Zero)));
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;
@@ -1001,8 +1010,8 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeDelayS = locoCopy.DynamicBrakeDelayS;
             MaxDynamicBrakeForceN = locoCopy.MaxDynamicBrakeForceN;
             HasSmoothStruc = locoCopy.HasSmoothStruc;
-            LocoNumDrvAxles = locoCopy.LocoNumDrvAxles;
-            MSTSLocoNumDrvWheels = locoCopy.MSTSLocoNumDrvWheels;
+            locoNumDrvAxles = locoCopy.locoNumDrvAxles;
+            locoNumDrvWheels = locoCopy.locoNumDrvWheels;
             AntiSlip = locoCopy.AntiSlip;
             VacuumPumpFitted = locoCopy.VacuumPumpFitted;
             FastVacuumExhausterFitted = locoCopy.FastVacuumExhausterFitted;
@@ -1182,7 +1191,7 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle = new Axle(inf);
             MoveParamsToAxle();
             LocomotiveAxle.FilterMovingAverage.Initialize(AverageForceN);
-            LocomotiveAxle.Reset(Simulator.GameTime, axleSpeedMpS);
+            LocomotiveAxle.Reset(simulator.GameTime, axleSpeedMpS);
         }
 
         public bool IsLeadLocomotive()
@@ -1301,20 +1310,20 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Ensure Drive Axles is set with a default value if user doesn't supply an OR value in ENG file
-            if (LocoNumDrvAxles == 0)
+            if (locoNumDrvAxles == 0)
             {
-                if (MSTSLocoNumDrvWheels != 0 && MSTSLocoNumDrvWheels < 6)
+                if (locoNumDrvWheels != 0 && locoNumDrvWheels < 6)
                 {
-                    LocoNumDrvAxles = (int)MSTSLocoNumDrvWheels;
+                    locoNumDrvAxles = (int)locoNumDrvWheels;
                 }
                 else
                 {
-                    LocoNumDrvAxles = 4; // Set 4 axles as default
+                    locoNumDrvAxles = 4; // Set 4 axles as default
                 }
 
-                if (Simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.Settings.VerboseConfigurationMessages)
                 {
-                    Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", LocoNumDrvAxles);
+                    Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", locoNumDrvAxles);
                 }
             }
 
@@ -1346,7 +1355,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    BrakePipeChargingRatePSIorInHgpS = Simulator.Settings.BrakePipeChargingRate; // Air brakes
+                    BrakePipeChargingRatePSIorInHgpS = simulator.Settings.BrakePipeChargingRate; // Air brakes
                 }
             }
             // Initialise Brake Pipe Quick Charging Rate
@@ -1420,7 +1429,7 @@ namespace Orts.Simulation.RollingStocks
                 if (MaximumMainReservoirPipePressurePSI == 0)
                 {
                     MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("AirBrakeMaxMainResPipePressure not set in ENG file, set to default pressure of {0}.", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
                     }
@@ -1435,7 +1444,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     // for a airsinglepipe system, AirBrakeMaxMainResPipePressure should be left out of ENG file, and it should be set the same as MaxMainResPressurePSI
                     MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("AirBrakeMaxMainResPipePressure is set in ENG file, but should not be normally used for AirSinglePipe system, reset to default pressure of {0}. Consider removing AirBrakeMaxMainResPipePressure parameter from ENG file", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
                     }
@@ -1458,7 +1467,7 @@ namespace Orts.Simulation.RollingStocks
                     // Convert assumed inHg value to psi
                     TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(TrainBrakeController.MaxPressurePSI));
 
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("TrainBrakeController.MaxPressurePSI is assumed to be {0} Inhg, - confirmed as a value of {1} InHg", TempMaxPressure, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI)));
                     }
@@ -1466,7 +1475,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else if (TrainBrakeController.MaxPressurePSI < 7 || TrainBrakeController.MaxPressurePSI > 13) // Outside an acceptable range (Eqiv = 15InHg to 25InHg), then convert to a fixed default
                 {
-                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.Settings.VerboseConfigurationMessages)
                     {
                         Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being incorrectly read as {0} Inhg, - set to a default value of {1} InHg", TrainBrakeController.MaxPressurePSI, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21.0f)))));
                     }
@@ -1479,17 +1488,17 @@ namespace Orts.Simulation.RollingStocks
             {
                 BrakeCutsPowerAtBrakePipePressurePSI = BrakeRestoresPowerAtBrakePipePressurePSI - 1.0f;
 
-                if (Simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.Settings.VerboseConfigurationMessages)
                 {
                     Trace.TraceInformation("BrakeCutsPowerAtBrakePipePressure is greater then BrakeRestoresPowerAtBrakePipePressurePSI, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeCutsPowerAtBrakePipePressurePSI)));
                 }
             }
 
-            if (DoesBrakeCutPower && (BrakeSystem is VacuumSinglePipe) && (BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > OneAtmospherePSI))
+            if (DoesBrakeCutPower && (BrakeSystem is VacuumSinglePipe) && (BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > Const.OneAtmospherePSI))
             {
                 BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be restored once brake pipe rises above 15 InHg
 
-                if (Simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.Settings.VerboseConfigurationMessages)
                 {
                     Trace.TraceInformation("BrakeRestoresPowerAtBrakePipePressure appears out of limits, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeRestoresPowerAtBrakePipePressurePSI)));
                 }
@@ -1538,9 +1547,9 @@ namespace Orts.Simulation.RollingStocks
         public override void InitializeMoving()
         {
             base.InitializeMoving();
-            LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS);
+            LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS);
             LocomotiveAxle.AxleSpeedMpS = SpeedMpS;
-            LocomotiveAxle.AdhesionConditions = (float)(Simulator.Settings.AdhesionFactor) * 0.01f;
+            LocomotiveAxle.AdhesionConditions = (float)(simulator.Settings.AdhesionFactor) * 0.01f;
             AdhesionFilter.Reset(0.5f);
             AverageForceN = MaxForceN * Train.MUThrottlePercent / 100;
             float maxPowerW = MaxPowerW * Train.MUThrottlePercent * Train.MUThrottlePercent / 10000;
@@ -1562,7 +1571,7 @@ namespace Orts.Simulation.RollingStocks
         /// 
         protected void CorrectBrakingParams()
         {
-            if (Simulator.Settings.CorrectQuestionableBrakingParams || Simulator.Settings.SimpleControlPhysics)
+            if (simulator.Settings.CorrectQuestionableBrakingParams || simulator.Settings.SimpleControlPhysics)
             {
                 if (!(BrakeSystem is EPBrakeSystem) && !(BrakeSystem is VacuumSinglePipe) && !(BrakeSystem is AirTwinPipe))
                 {
@@ -1595,7 +1604,7 @@ namespace Orts.Simulation.RollingStocks
                 DynamicBrakeSpeed2MpS = DynamicBrakeSpeed3MpS;
                 DynamicBrakeSpeed3MpS = temp;
             }
-            if (Simulator.Settings.CorrectQuestionableBrakingParams)
+            if (simulator.Settings.CorrectQuestionableBrakingParams)
             {
                 if (MaxDynamicBrakeForceN > 0 && MaxContinuousForceN > 0 &&
                 (MaxDynamicBrakeForceN / MaxContinuousForceN < 0.3f && MaxDynamicBrakeForceN == 20000))
@@ -1624,7 +1633,7 @@ namespace Orts.Simulation.RollingStocks
                         DynamicBrakeIntervention = DynamicBrakeController.CurrentValue;
                     else
                         DynamicBrakeIntervention = 0;
-                    DynamicBrakeCommandStartTime = Simulator.ClockTime;
+                    DynamicBrakeCommandStartTime = simulator.ClockTime;
                 }
                 if (DynamicBrake)
                 {
@@ -1780,14 +1789,14 @@ namespace Orts.Simulation.RollingStocks
                     // For notched throttle controls (e.g. Dash 9 found on Marias Pass) UpdateValue is always 0.0
                     if (ThrottleController.UpdateValue != 0.0)
                     {
-                        Simulator.Confirmer.UpdateWithPerCent(
+                        simulator.Confirmer.UpdateWithPerCent(
                             this is MSTSSteamLocomotive ? CabControl.Regulator : CabControl.Throttle,
                             ThrottleController.UpdateValue > 0 ? CabSetting.Increase : CabSetting.Decrease,
                             ThrottleController.CurrentValue * 100);
                     }
                     if (DynamicBrakeController != null && DynamicBrakeController.UpdateValue != 0.0 && DynamicBrake)
                     {
-                        Simulator.Confirmer.UpdateWithPerCent(
+                        simulator.Confirmer.UpdateWithPerCent(
                             CabControl.DynamicBrake,
                             DynamicBrakeController.UpdateValue > 0 ? CabSetting.Increase : CabSetting.Decrease,
                             DynamicBrakeController.CurrentValue * 100);
@@ -1795,7 +1804,7 @@ namespace Orts.Simulation.RollingStocks
 
 
                     // SimpleControlPhysics and if locomotive is a control car advanced adhesion will be "disabled".
-                    if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control) 
+                    if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control) 
                     {
                         AdvancedAdhesion(elapsedClockSeconds); // Use advanced adhesion model
                         AdvancedAdhesionModel = true;  // Set flag to advise advanced adhesion model is in use
@@ -1942,20 +1951,20 @@ namespace Orts.Simulation.RollingStocks
             if (IsPlayerTrain)
             {
                 if (SteamHeatController.UpdateValue > 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, CabSetting.Increase, SteamHeatController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, CabSetting.Increase, SteamHeatController.CurrentValue * 100);
                 if (SteamHeatController.UpdateValue < 0.0)
-                    Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, CabSetting.Decrease, SteamHeatController.CurrentValue * 100);
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, CabSetting.Decrease, SteamHeatController.CurrentValue * 100);
             }
 
             TrainBrakeController.Update(elapsedClockSeconds);
             if (TrainBrakeController.UpdateValue > 0.0)
             {
-                Simulator.Confirmer.Update(CabControl.TrainBrake, CabSetting.Increase, GetTrainBrakeStatus());
+                simulator.Confirmer.Update(CabControl.TrainBrake, CabSetting.Increase, GetTrainBrakeStatus());
             }
 
             if (TrainBrakeController.UpdateValue < 0.0)
             {
-                Simulator.Confirmer.Update(CabControl.TrainBrake, CabSetting.Decrease, GetTrainBrakeStatus());
+                simulator.Confirmer.Update(CabControl.TrainBrake, CabSetting.Decrease, GetTrainBrakeStatus());
             }
 
             if (EngineBrakeController != null)
@@ -1963,11 +1972,11 @@ namespace Orts.Simulation.RollingStocks
                 EngineBrakeController.Update(elapsedClockSeconds);
                 if (EngineBrakeController.UpdateValue > 0.0)
                 {
-                    Simulator.Confirmer.Update(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
+                    simulator.Confirmer.Update(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
                 }
                 if (EngineBrakeController.UpdateValue < 0.0)
                 {
-                    Simulator.Confirmer.Update(CabControl.EngineBrake, CabSetting.Decrease, GetEngineBrakeStatus());
+                    simulator.Confirmer.Update(CabControl.EngineBrake, CabSetting.Decrease, GetEngineBrakeStatus());
                 }
             }
 
@@ -1976,11 +1985,11 @@ namespace Orts.Simulation.RollingStocks
                 BrakemanBrakeController.Update(elapsedClockSeconds);
                 if (BrakemanBrakeController.UpdateValue > 0.0)
                 {
-                    Simulator.Confirmer.Update(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
+                    simulator.Confirmer.Update(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
                 }
                 if (BrakemanBrakeController.UpdateValue < 0.0)
                 {
-                    Simulator.Confirmer.Update(CabControl.BrakemanBrake, CabSetting.Decrease, GetBrakemanBrakeStatus());
+                    simulator.Confirmer.Update(CabControl.BrakemanBrake, CabSetting.Decrease, GetBrakemanBrakeStatus());
                 }
             }
 
@@ -1992,14 +2001,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!DynamicBrake)
                 {
-                    if (DynamicBrakeCommandStartTime + DynamicBrakeDelayS < Simulator.ClockTime /*|| (DynamicBrakeController != null && DynamicBrakeController.CommandStartTime + DynamicBrakeDelayS < Simulator.ClockTime)*/)
+                    if (DynamicBrakeCommandStartTime + DynamicBrakeDelayS < simulator.ClockTime /*|| (DynamicBrakeController != null && DynamicBrakeController.CommandStartTime + DynamicBrakeDelayS < Simulator.ClockTime)*/)
                     {
                         DynamicBrake = true; // Engage
                         if (IsLeadLocomotive() && DynamicBrakeController != null)
-                            Simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
+                            simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
                     }
                     else if (IsLeadLocomotive())
-                        Simulator.Confirmer.Confirm(CabControl.DynamicBrake, CabSetting.On); // Keeping status string on screen so user knows what's happening
+                        simulator.Confirmer.Confirm(CabControl.DynamicBrake, CabSetting.On); // Keeping status string on screen so user knows what's happening
                 }
                 else if (this.IsLeadLocomotive())
                 {
@@ -2033,7 +2042,7 @@ namespace Orts.Simulation.RollingStocks
                 DynamicBrake = false; // Disengage
                 DynamicBrakeForceN = 0f; // Reset dynamic brake force
                 if (IsLeadLocomotive())
-                    Simulator.Confirmer.Confirm(CabControl.DynamicBrake, CabSetting.Off);
+                    simulator.Confirmer.Confirm(CabControl.DynamicBrake, CabSetting.Off);
                 //           }
                 //            else if (IsLeadLocomotive())
                 //               Simulator.Confirmer.Confirm(CabControl.DynamicBrake, CabSetting.On); // Keeping status string on screen so user knows what's happening
@@ -2055,27 +2064,6 @@ namespace Orts.Simulation.RollingStocks
             {
                 ThrottleController.Update(elapsedClockSeconds);
             }
-
-#if INDIVIDUAL_CONTROL
-            //this train is remote controlled, with mine as a helper, so I need to send the controlling information, but not the force.
-            if (MultiPlayer.MPManager.IsMultiPlayer() && this.Train.TrainType == Train.TRAINTYPE.REMOTE && this == Program.Simulator.PlayerLocomotive)
-            {
-                //cannot control train brake as it is the remote's job to do so
-                if ((EngineBrakeController != null && EngineBrakeController.UpdateValue != 0.0) || (DynamicBrakeController != null && DynamicBrakeController.UpdateValue != 0.0) || ThrottleController.UpdateValue != 0.0)
-                {
-                    controlUpdated = true;
-                }
-                ThrottlePercent = ThrottleController.Update(elapsedClockSeconds) * 100.0f;
-                if ((DynamicBrakeController != null) && (DynamicBrakePercent >= 0)) DynamicBrakePercent = DynamicBrakeController.Update(elapsedClockSeconds) * 100.0f;
-                return; //done, will go back and send the message to the remote train controller
-            }
-
-            if (MultiPlayer.MPManager.IsMultiPlayer() && this.notificationReceived == true)
-            {
-                ThrottlePercent = ThrottleController.CurrentValue * 100.0f;
-                this.notificationReceived = false;
-            }
-#endif
         }
 
         /// <summary>
@@ -2188,7 +2176,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void ConfirmWheelslip(double elapsedClockSeconds)
         {
-            if (elapsedClockSeconds > 0 && Simulator.GameTime - LocomotiveAxle.ResetTime > 5)
+            if (elapsedClockSeconds > 0 && simulator.GameTime - LocomotiveAxle.ResetTime > 5)
             {
                 if (AdvancedAdhesionModel)
                 {
@@ -2198,7 +2186,7 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelslipState != Wheelslip.Occurring)
                         {
                             WheelslipState = Wheelslip.Occurring;
-                            Simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
+                            simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                         }
                     }
                     else
@@ -2208,7 +2196,7 @@ namespace Orts.Simulation.RollingStocks
                             if (WheelslipState != Wheelslip.Warning)
                             {
                                 WheelslipState = Wheelslip.Warning;
-                                Simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Warn1);
+                                simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Warn1);
                             }
                         }
                         else
@@ -2216,7 +2204,7 @@ namespace Orts.Simulation.RollingStocks
                             if (WheelslipState != Wheelslip.None)
                             {
                                 WheelslipState = Wheelslip.None;
-                                Simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
+                                simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                             }
                         }
                     }
@@ -2226,12 +2214,12 @@ namespace Orts.Simulation.RollingStocks
                     if (WheelSlip && (WheelslipState != Wheelslip.Occurring))
                     {
                         WheelslipState = Wheelslip.Occurring;
-                        Simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
+                        simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                     }
                     if ((!WheelSlip) && (WheelslipState != Wheelslip.None))
                     {
                         WheelslipState = Wheelslip.None;
-                        Simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
+                        simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                     }
                 }
             }
@@ -2244,7 +2232,7 @@ namespace Orts.Simulation.RollingStocks
         {
                  // Ejectors are controlled independently for the "straight_vacuum_single_pipe" brake type 
                  // Ejectors are controlled by brake control valves in Simple Physics Control
-                if (Simulator.Settings.SimpleControlPhysics && CarBrakeSystemType != "straight_vacuum_single_pipe")
+                if (simulator.Settings.SimpleControlPhysics && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 // Simple braking - control Ejector automatically based upon the brake control position
                 // Stop ejector operation if full vacuum pressure reached
                 {
@@ -2259,7 +2247,7 @@ namespace Orts.Simulation.RollingStocks
                     LargeEjectorSoundOn = false;
                 }
                 }
-                else if (!LargeEjectorControllerFitted && CarBrakeSystemType != "straight_vacuum_single_pipe") // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
+                else if (!LargeEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe) // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
                 {
                     if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release)
                     {
@@ -2292,7 +2280,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
 
-                if (SmallEjectorControllerFitted && CarBrakeSystemType != "straight_vacuum_single_pipe")
+                if (SmallEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 // Turn small ejector on if controlled from drivers controller
                 if (SmallEjectorFeedFraction > 0.05)
                 {
@@ -2451,7 +2439,7 @@ namespace Orts.Simulation.RollingStocks
         public void AdvancedAdhesion(double elapsedClockSeconds)
         {
 
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
@@ -2460,7 +2448,7 @@ namespace Orts.Simulation.RollingStocks
             //Curtius-Kniffler computation for the basic model
             //        float max0 = 1.0f;  //Adhesion conditions [N]
 
-            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)
+            if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)
             {
                 // Steam locomotive details updated in UpdateTractiveForce method, and inserted into adhesion module
                 // ****************  NB WheelSpeed updated within Steam Locomotive module at the moment - to be fixed to prevent discrepancies ******************
@@ -2518,13 +2506,13 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Check if the following few lines are required???
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
             }
 
-            if (LocoNumDrvAxles <= 0)
+            if (locoNumDrvAxles <= 0)
                 return;
 
             //Curtius-Kniffler computation
@@ -2534,7 +2522,7 @@ namespace Orts.Simulation.RollingStocks
             float max0 = DrvWheelWeightKg * 9.81f * uMax;  //Ahesion limit in [N]
             float max1;
 
-            if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow)
+            if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
@@ -2543,7 +2531,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
                     max0 *= 0.8f;
-                if (Simulator.WeatherType == WeatherType.Rain)
+                if (simulator.WeatherType == WeatherType.Rain)
                     max0 *= 0.8f;
                 else
                     max0 *= 0.7f;
@@ -2557,7 +2545,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if ((Sander) && (AbsSpeedMpS < SanderSpeedEffectUpToMpS))
                     {
-                        switch (Simulator.WeatherType)
+                        switch (simulator.WeatherType)
                         {
                             case WeatherType.Clear: max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.2f; break;
                             case WeatherType.Rain: max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.8f; break;
@@ -2568,7 +2556,7 @@ namespace Orts.Simulation.RollingStocks
                 else
                     if (Sander)
                 {
-                    switch (Simulator.WeatherType)
+                    switch (simulator.WeatherType)
                     {
                         case WeatherType.Clear: max0 *= 1.2f; break;
                         case WeatherType.Rain: max0 *= 1.8f; break;
@@ -2605,7 +2593,7 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateWaterTroughRefill(double elapsedClockSeconds, float absSpeedMpS)
         {
             // Check to see whether locomotive is to be refilled over water trough
-            if (Simulator.PlayerLocomotive == this && IsWaterScoopDown)
+            if (simulator.PlayerLocomotive == this && IsWaterScoopDown)
             {
 
 
@@ -2615,21 +2603,21 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopNotFittedFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No water scoop on this loco"));
+                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No water scoop on this loco"));
                         WaterScoopNotFittedFlag = true;
                     }
                     RefillingFromTrough = false;
                 }
                 else if (ScoopIsBroken)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken, can't refill"));
+                    simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken, can't refill"));
                     RefillingFromTrough = false;
                 }
                 else if (IsOverJunction())
                 {
                     if (!ScoopIsBroken) // Only display message first time scoop is broken
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken by junction track"));
+                        simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken by junction track"));
                     }
                     ScoopIsBroken = true;
                     RefillingFromTrough = false;
@@ -2639,7 +2627,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopOverTroughFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Scoop is not over trough, can't refill"));
+                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Scoop is not over trough, can't refill"));
                         WaterScoopOverTroughFlag = true;
                         RefillProcess.OkToRefill = false;
                         RefillProcess.ActivePickupObjectUID = 0;
@@ -2650,7 +2638,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopDirectionFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco must be moving forward."));
+                        simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco must be moving forward."));
                         WaterScoopDirectionFlag = true;
                     }
                     RefillingFromTrough = false;
@@ -2659,7 +2647,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopSlowSpeedFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
+                        simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
                                 FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
                         WaterScoopSlowSpeedFlag = true;
                         RefillProcess.OkToRefill = false;
@@ -2669,7 +2657,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else if (fraction > 1.0)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Water supply now replenished."));
+                    simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Water supply now replenished."));
                 }
                 else
                 {
@@ -2729,7 +2717,7 @@ namespace Orts.Simulation.RollingStocks
                 else
                 {
                     CurrentLocomotiveSteamHeatBoilerWaterCapacityL += WaterScoopInputAmountL; // add water if it is a steam heat boiler
-                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = MathHelper.Clamp(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, 0.0f, MaximumSteamHeatBoilerWaterTankCapacityL);
+                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = Math.Clamp(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, 0.0f, maximumSteamHeatBoilerWaterTankCapacityL);
                 }
 
                 // Calculate drag force
@@ -2796,7 +2784,7 @@ namespace Orts.Simulation.RollingStocks
             float BaseuMax = (float)(Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
             float SandingFrictionCoefficientFactor = 0.0f;
             //Set the friction coeff due to weather
-            if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow)
+            if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
@@ -2807,13 +2795,13 @@ namespace Orts.Simulation.RollingStocks
                 {
                     BaseFrictionCoefficientFactor = 0.8f;
                 }
-                if (Simulator.WeatherType == WeatherType.Rain) // Wet weather
+                if (simulator.WeatherType == WeatherType.Rain) // Wet weather
                 {
-                    if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.GamePaused)  // Adjust clear weather for precipitation presence - base friction value will be approximately between 0.15 and 0.2
+                    if (simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !simulator.GamePaused)  // Adjust clear weather for precipitation presence - base friction value will be approximately between 0.15 and 0.2
                     // ie base value between 0.8 and 1.0 (TODO) 
                     // note lowest friction will be for drizzle rain; friction will increase for precipitation both higher and lower than drizzle rail
                     {
-                        float pric = Simulator.Weather.PrecipitationIntensity * 1000;
+                        float pric = simulator.Weather.PrecipitationIntensity * 1000;
                         // precipitation will calculate a value between 0.15 (light rain) and 0.2 (heavy rain) - this will be a factor that is used to adjust the base value - assume linear value between upper and lower precipitation values
                         if (pric >= 0.5)
                             BaseFrictionCoefficientFactor = Math.Min((pric * 0.0078f + 0.45f), 0.8f); // should give a minimum value between 0.8 and 1.0
@@ -2855,9 +2843,9 @@ namespace Orts.Simulation.RollingStocks
             else // Default to Dry (Clear) weather
             {
 
-                if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.GamePaused)  // Adjust clear weather for fog presence
+                if (simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !simulator.GamePaused)  // Adjust clear weather for fog presence
                 {
-                    float fog = Simulator.Weather.FogVisibilityDistance;
+                    float fog = simulator.Weather.FogVisibilityDistance;
                     if (fog > 2000)
                     {
                         BaseFrictionCoefficientFactor = 1.0f; // if fog is not too thick don't change the friction
@@ -2903,7 +2891,7 @@ namespace Orts.Simulation.RollingStocks
             Train.WagonCoefficientFriction = WagonBaseuMax * BaseFrictionCoefficientFactor;  // Find friction coefficient factor for wagons based upon environmental conditions
             WagonCoefficientFrictionHUD = Train.WagonCoefficientFriction; // Save value for HUD display
 
-            if (EngineType == EngineType.Steam && SteamDrvWheelWeightLbs < 10000 && Simulator.WeatherType == WeatherType.Clear)
+            if (EngineType == EngineType.Steam && SteamDrvWheelWeightLbs < 10000 && simulator.WeatherType == WeatherType.Clear)
             {
                 BaseFrictionCoefficientFactor *= 0.75f;  // Dry track - static friction for vehicles with wheel weights less then 10,000lbs - u = 0.25
 
@@ -2918,8 +2906,8 @@ namespace Orts.Simulation.RollingStocks
                 BaseFrictionCoefficientFactor = 0.15f * SandingFrictionCoefficientFactor;  // Descrease friction to take into account dynamic (kinetic) friction U = 0.0525
             }
 
-            var AdhesionMultiplier = Simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
-            var AdhesionRandom = (float)(Simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (StaticRandom.NextDouble() - 0.5f));
+            var AdhesionMultiplier = simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
+            var AdhesionRandom = (float)(simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (StaticRandom.NextDouble() - 0.5f));
 
             Train.LocomotiveCoefficientFriction = BaseuMax * BaseFrictionCoefficientFactor * AdhesionMultiplier;  // Find friction coefficient factor for locomotive
             Train.LocomotiveCoefficientFriction = MathHelper.Clamp(Train.LocomotiveCoefficientFriction, 0.05f, 0.8f); // Ensure friction coefficient never exceeds a "reasonable" value
@@ -2933,7 +2921,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set adhesion conditions for other steam locomotives
-            if (EngineType == EngineType.Steam && SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
+            if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
             {
                 LocomotiveCoefficientFrictionHUD = Train.LocomotiveCoefficientFriction; // Set display value for HUD - steam
             }
@@ -2964,7 +2952,7 @@ namespace Orts.Simulation.RollingStocks
                     CurrentTrackSandBoxCapacityM3 = MathHelper.Clamp(CurrentTrackSandBoxCapacityM3, 0.0f, MaxTrackSandBoxCapacityM3);
                     if (CurrentTrackSandBoxCapacityM3 == 0.0)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Sand supply has been exhausted"));
+                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Sand supply has been exhausted"));
                     }
                 }
 
@@ -3024,9 +3012,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
-                        case MidpointDirection.N: SetDirection(MidpointDirection.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
-                        case MidpointDirection.Forward: SetDirection(MidpointDirection.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
+                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.N); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
+                        case MidpointDirection.N: SetDirection(MidpointDirection.Forward); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
+                        case MidpointDirection.Forward: SetDirection(MidpointDirection.Forward); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
                     }
                 }
             }
@@ -3040,9 +3028,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case MidpointDirection.N: SetDirection(MidpointDirection.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case MidpointDirection.Forward: SetDirection(MidpointDirection.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
+                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.Reverse); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
+                        case MidpointDirection.N: SetDirection(MidpointDirection.Reverse); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
+                        case MidpointDirection.Forward: SetDirection(MidpointDirection.N); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
                     }
                 }
             }
@@ -3056,11 +3044,11 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             if (target != null) ThrottleController.StartIncrease(target);
-            else new NotchedThrottleCommand(Simulator.Log, true);
+            else new NotchedThrottleCommand(simulator.Log, true);
 
             SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
-            CommandStartTime = Simulator.ClockTime;
+            CommandStartTime = simulator.ClockTime;
         }
 
         public void StartThrottleIncrease()
@@ -3070,7 +3058,7 @@ namespace Orts.Simulation.RollingStocks
                 if (!(CombinedControlType == CombinedControl.ThrottleDynamic
                     || CombinedControlType == CombinedControl.ThrottleAir && TrainBrakeController.CurrentValue > 0))
                 {
-                    Simulator.Confirmer.Warning(CabControl.Throttle, CabSetting.Warn1);
+                    simulator.Confirmer.Warning(CabControl.Throttle, CabSetting.Warn1);
                     return;
                 }
             }
@@ -3093,7 +3081,7 @@ namespace Orts.Simulation.RollingStocks
             else if (CombinedControlType == CombinedControl.ThrottleAir)
                 StopTrainBrakeDecrease();
             else if (ThrottleController.SmoothMax() != null)
-                new ContinuousThrottleCommand(Simulator.Log, true, ThrottleController.CurrentValue, CommandStartTime);
+                new ContinuousThrottleCommand(simulator.Log, true, ThrottleController.CurrentValue, CommandStartTime);
         }
 
         public void StartThrottleDecrease(float? target)
@@ -3102,11 +3090,11 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             if (target != null) ThrottleController.StartDecrease(target);
-            else new NotchedThrottleCommand(Simulator.Log, false);
+            else new NotchedThrottleCommand(simulator.Log, false);
 
             SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
-            CommandStartTime = Simulator.ClockTime;
+            CommandStartTime = simulator.ClockTime;
         }
 
         public void StartThrottleDecrease()
@@ -3129,7 +3117,7 @@ namespace Orts.Simulation.RollingStocks
             else if (CombinedControlType == CombinedControl.ThrottleAir)
                 StopTrainBrakeIncrease();
             if (ThrottleController.SmoothMin() != null)
-                new ContinuousThrottleCommand(Simulator.Log, false, ThrottleController.CurrentValue, CommandStartTime);
+                new ContinuousThrottleCommand(simulator.Log, false, ThrottleController.CurrentValue, CommandStartTime);
         }
 
         //Steam Heat Controller
@@ -3142,9 +3130,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartSteamHeatIncrease(float? target)
         {
-            SteamHeatController.CommandStartTime = Simulator.ClockTime;
+            SteamHeatController.CommandStartTime = simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Increase, SteamHeatController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Increase, SteamHeatController.CurrentValue * 100);
             SteamHeatController.StartIncrease(target);
             SignalEvent(TrainEvent.SteamHeatChange);
         }
@@ -3152,7 +3140,7 @@ namespace Orts.Simulation.RollingStocks
         public void StopSteamHeatIncrease()
         {
             SteamHeatController.StopIncrease();
-            new ContinuousSteamHeatCommand(Simulator.Log, 1, true, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
+            new ContinuousSteamHeatCommand(simulator.Log, 1, true, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
         }
 
         public void StartSteamHeatDecrease()
@@ -3163,7 +3151,7 @@ namespace Orts.Simulation.RollingStocks
         public void StartSteamHeatDecrease(float? target)
         {
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Decrease, SteamHeatController.CurrentValue * 100);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Decrease, SteamHeatController.CurrentValue * 100);
             SteamHeatController.StartDecrease(target);
             SignalEvent(TrainEvent.SteamHeatChange);
         }
@@ -3172,7 +3160,7 @@ namespace Orts.Simulation.RollingStocks
         {
             SteamHeatController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousSteamHeatCommand(Simulator.Log, 1, false, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
+                new ContinuousSteamHeatCommand(simulator.Log, 1, false, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
         }
 
         public void SteamHeatChangeTo(bool increase, float? target)
@@ -3200,15 +3188,15 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousSteamHeatCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
+                new ContinuousSteamHeatCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         public void ToggleWaterScoop()
         {
-            if (Simulator.PlayerLocomotive == this)
+            if (simulator.PlayerLocomotive == this)
             {
                 WaterScoopDown = !WaterScoopDown;
                 SignalEvent(TrainEvent.WaterScoopRaiseLower);
@@ -3224,7 +3212,7 @@ namespace Orts.Simulation.RollingStocks
                     WaterScoopSlowSpeedFlag = false;
                     WaterScoopDirectionFlag = false;
                 }
-                Simulator.Confirmer.Confirm(CabControl.WaterScoop, WaterScoopDown ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.WaterScoop, WaterScoopDown ? CabSetting.On : CabSetting.Off);
             }
         }
 
@@ -3268,7 +3256,7 @@ namespace Orts.Simulation.RollingStocks
                 ThrottleController.StartDecrease();
                 ThrottleController.StopDecrease();
             }
-            Simulator.Confirmer.ConfirmWithPerCent(CabControl.Throttle, ThrottleController.CurrentValue * 100);
+            simulator.Confirmer.ConfirmWithPerCent(CabControl.Throttle, ThrottleController.CurrentValue * 100);
         }
 
         public void SetThrottleValue(float value)
@@ -3278,12 +3266,12 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousThrottleCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                new ContinuousThrottleCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 SignalEvent(TrainEvent.ThrottleChange);
                 AlerterReset(TCSEvent.ThrottleChanged);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(
+                simulator.Confirmer.UpdateWithPerCent(
                     this is MSTSSteamLocomotive ? CabControl.Regulator : CabControl.Throttle,
                     oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease,
                     controller.CurrentValue * 100);
@@ -3321,7 +3309,7 @@ namespace Orts.Simulation.RollingStocks
             ThrottleController.StartDecrease(target, true);
             if (ThrottleController.NotchCount() <= 0) SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
-            CommandStartTime = Simulator.ClockTime;
+            CommandStartTime = simulator.ClockTime;
         }
 
         #endregion
@@ -3380,7 +3368,7 @@ namespace Orts.Simulation.RollingStocks
             if (GearBoxController != null)
             {
                 GearBoxController.StartIncrease();
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
                 AlerterReset(TCSEvent.GearBoxChanged);
                 SignalGearBoxChangeEvents();
             }
@@ -3405,7 +3393,7 @@ namespace Orts.Simulation.RollingStocks
             if (GearBoxController != null)
             {
                 GearBoxController.StartDecrease();
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
                 AlerterReset(TCSEvent.GearBoxChanged);
                 SignalGearBoxChangeEvents();
             }
@@ -3475,7 +3463,7 @@ namespace Orts.Simulation.RollingStocks
                 AlerterReset(TCSEvent.GearBoxChanged);
             }
             if (oldValue != controller.CurrentValue)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
         }
         #endregion
 
@@ -3492,8 +3480,8 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StartIncrease(target);
-            TrainBrakeController.CommandStartTime = Simulator.ClockTime;
-            Simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Increase, GetTrainBrakeStatus());
+            TrainBrakeController.CommandStartTime = simulator.ClockTime;
+            simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Increase, GetTrainBrakeStatus());
             SignalEvent(TrainEvent.TrainBrakeChange);
         }
 
@@ -3501,7 +3489,7 @@ namespace Orts.Simulation.RollingStocks
         {
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StopIncrease();
-            new TrainBrakeCommand(Simulator.Log, true, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
+            new TrainBrakeCommand(simulator.Log, true, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
         }
 
         public void StartTrainBrakeZero()
@@ -3518,8 +3506,8 @@ namespace Orts.Simulation.RollingStocks
         {
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StartDecrease(target, toZero);
-            TrainBrakeController.CommandStartTime = Simulator.ClockTime;
-            Simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Decrease, GetTrainBrakeStatus());
+            TrainBrakeController.CommandStartTime = simulator.ClockTime;
+            simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Decrease, GetTrainBrakeStatus());
             SignalEvent(TrainEvent.TrainBrakeChange);
         }
 
@@ -3527,7 +3515,7 @@ namespace Orts.Simulation.RollingStocks
         {
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StopDecrease();
-            new TrainBrakeCommand(Simulator.Log, false, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
+            new TrainBrakeCommand(simulator.Log, false, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
         }
 
         /// <summary>
@@ -3559,7 +3547,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override string GetTrainBrakeStatus()
         {
-            var train = Simulator.PlayerLocomotive.Train;//Debrief Eval
+            var train = simulator.PlayerLocomotive.Train;//Debrief Eval
             string s = TrainBrakeController.GetStatus();
 
 
@@ -3587,12 +3575,12 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new TrainBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                new TrainBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 SignalEvent(TrainEvent.TrainBrakeChange);
                 AlerterReset(TCSEvent.TrainBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.Update(CabControl.TrainBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetTrainBrakeStatus());
+                simulator.Confirmer.Update(CabControl.TrainBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetTrainBrakeStatus());
         }
 
         public void SetTrainBrakePercent(float percent)
@@ -3618,7 +3606,7 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             EngineBrakeController.StartIncrease(target);
-            Simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
+            simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
             SignalEvent(TrainEvent.EngineBrakeChange);
         }
 
@@ -3632,7 +3620,7 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.EngineBrakeChanged);
             EngineBrakeController.StopIncrease();
-            new EngineBrakeCommand(Simulator.Log, true, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
+            new EngineBrakeCommand(simulator.Log, true, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
         }
 
         public void StartEngineBrakeDecrease()
@@ -3647,8 +3635,8 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.EngineBrakeChanged);
             EngineBrakeController.StartDecrease(target);
-            EngineBrakeController.CommandStartTime = Simulator.ClockTime; // Remember when the command was issued
-            Simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
+            EngineBrakeController.CommandStartTime = simulator.ClockTime; // Remember when the command was issued
+            simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
             SignalEvent(TrainEvent.EngineBrakeChange);
         }
 
@@ -3662,7 +3650,7 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.EngineBrakeChanged);
             EngineBrakeController.StopDecrease();
-            new EngineBrakeCommand(Simulator.Log, false, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
+            new EngineBrakeCommand(simulator.Log, false, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
         }
 
         public void EngineBrakeChangeTo(bool increase, float? target)
@@ -3690,12 +3678,12 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new EngineBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                new EngineBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 SignalEvent(TrainEvent.EngineBrakeChange);
                 AlerterReset(TCSEvent.EngineBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.Update(CabControl.EngineBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetEngineBrakeStatus());
+                simulator.Confirmer.Update(CabControl.EngineBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetEngineBrakeStatus());
         }
 
         public void SetEngineBrakePercent(float percent)
@@ -3758,7 +3746,7 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             BrakemanBrakeController.StartIncrease(target);
-            Simulator.Confirmer.Confirm(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
+            simulator.Confirmer.Confirm(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
             //            SignalEvent(Event.EngineBrakeChange);
         }
 
@@ -3772,7 +3760,7 @@ namespace Orts.Simulation.RollingStocks
 
             //   AlerterReset(TCSEvent.BrakemanBrakeChanged);
             BrakemanBrakeController.StopIncrease();
-            new BrakemanBrakeCommand(Simulator.Log, true, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
+            new BrakemanBrakeCommand(simulator.Log, true, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
         }
 
         public void StartBrakemanBrakeDecrease()
@@ -3787,8 +3775,8 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.BrakemanBrakeChanged);
             BrakemanBrakeController.StartDecrease(target);
-            BrakemanBrakeController.CommandStartTime = Simulator.ClockTime; // Remember when the command was issued
-            Simulator.Confirmer.Confirm(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
+            BrakemanBrakeController.CommandStartTime = simulator.ClockTime; // Remember when the command was issued
+            simulator.Confirmer.Confirm(CabControl.BrakemanBrake, CabSetting.Increase, GetBrakemanBrakeStatus());
             //   SignalEvent(Event.BrakemanBrakeChange);
         }
 
@@ -3802,7 +3790,7 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.BrakemanBrakeChanged);
             BrakemanBrakeController.StopDecrease();
-            new BrakemanBrakeCommand(Simulator.Log, false, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
+            new BrakemanBrakeCommand(simulator.Log, false, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
         }
 
         public void BrakemanBrakeChangeTo(bool increase, float? target)
@@ -3830,12 +3818,12 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new BrakemanBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                new BrakemanBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 //   SignalEvent(Event.BrakemanBrakeChange);
                 AlerterReset(TCSEvent.BrakemanBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.Update(CabControl.BrakemanBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetBrakemanBrakeStatus());
+                simulator.Confirmer.Update(CabControl.BrakemanBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, GetBrakemanBrakeStatus());
         }
 
         public void SetBrakemanBrakePercent(float percent)
@@ -3877,7 +3865,7 @@ namespace Orts.Simulation.RollingStocks
                 if (!HasSmoothStruc)
                 {
                     StopDynamicBrakeIncrease();
-                    Simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
                 }
             }
         }
@@ -3888,7 +3876,7 @@ namespace Orts.Simulation.RollingStocks
             if (CanUseDynamicBrake())
             {
                 DynamicBrakeController.StopIncrease();
-                new DynamicBrakeCommand(Simulator.Log, true, DynamicBrakeController.CurrentValue, DynamicBrakeController.CommandStartTime);
+                new DynamicBrakeCommand(simulator.Log, true, DynamicBrakeController.CurrentValue, DynamicBrakeController.CommandStartTime);
             }
         }
 
@@ -3914,7 +3902,7 @@ namespace Orts.Simulation.RollingStocks
                 if (!HasSmoothStruc)
                 {
                     StopDynamicBrakeDecrease();
-                    Simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.DynamicBrake, DynamicBrakeController.CurrentValue * 100);
                 }
             }
         }
@@ -3925,7 +3913,7 @@ namespace Orts.Simulation.RollingStocks
             if (CanUseDynamicBrake())
             {
                 DynamicBrakeController.StopDecrease();
-                new DynamicBrakeCommand(Simulator.Log, false, DynamicBrakeController.CurrentValue, DynamicBrakeController.CommandStartTime);
+                new DynamicBrakeCommand(simulator.Log, false, DynamicBrakeController.CurrentValue, DynamicBrakeController.CommandStartTime);
             }
         }
 
@@ -3964,12 +3952,12 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new DynamicBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                new DynamicBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 SignalEvent(TrainEvent.DynamicBrakeChange);
                 AlerterReset(TCSEvent.DynamicBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.DynamicBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, DynamicBrakeController.CurrentValue * 100);
+                simulator.Confirmer.UpdateWithPerCent(CabControl.DynamicBrake, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, DynamicBrakeController.CurrentValue * 100);
         }
 
         public void SetDynamicBrakePercent(float percent)
@@ -3995,14 +3983,14 @@ namespace Orts.Simulation.RollingStocks
             if (toState && !DynamicBrake && DynamicBrakePercent < 0)
             {
                 DynamicBrakePercent = 0;
-                DynamicBrakeController.CommandStartTime = Simulator.ClockTime;
+                DynamicBrakeController.CommandStartTime = simulator.ClockTime;
                 StopDynamicBrakeIncrease();
             }
             else if (!toState && DynamicBrake && DynamicBrakePercent > -1 && DynamicBrakeIntervention < 0)
             {
                 SignalEvent(TrainEvent.DynamicBrakeOff);
                 DynamicBrakePercent = -1;
-                DynamicBrakeController.CommandStartTime = Simulator.ClockTime;
+                DynamicBrakeController.CommandStartTime = simulator.ClockTime;
                 StopDynamicBrakeIncrease();
             }
         }
@@ -4061,19 +4049,19 @@ namespace Orts.Simulation.RollingStocks
             if (apply)
             {
                 Train.SetHandbrakePercent(100);
-                Simulator.Confirmer.Confirm(CabControl.Handbrake, CabSetting.On);
+                simulator.Confirmer.Confirm(CabControl.Handbrake, CabSetting.On);
             }
             else
             {
                 Train.SetHandbrakePercent(0);
-                Simulator.Confirmer.Confirm(CabControl.Handbrake, CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.Handbrake, CabSetting.Off);
             }
         }
 
         public void SetTrainRetainers(bool apply)
         {
             Train.SetRetainers(apply);
-            Simulator.Confirmer.ConfirmWithPerCent(CabControl.Retainers, CabSetting.Increase, Train.RetainerPercent, (int)CabSetting.Range1 + (int)Train.RetainerSetting);
+            simulator.Confirmer.ConfirmWithPerCent(CabControl.Retainers, CabSetting.Increase, Train.RetainerPercent, (int)CabSetting.Range1 + (int)Train.RetainerSetting);
         }
 
         public void BrakeHoseConnect(bool apply)
@@ -4081,12 +4069,12 @@ namespace Orts.Simulation.RollingStocks
             if (apply)
             {
                 Train.ConnectBrakeHoses();
-                Simulator.Confirmer.Confirm(CabControl.BrakeHose, CabSetting.On);
+                simulator.Confirmer.Confirm(CabControl.BrakeHose, CabSetting.On);
             }
             else
             {
                 Train.DisconnectBrakes();
-                Simulator.Confirmer.Confirm(CabControl.BrakeHose, CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.BrakeHose, CabSetting.Off);
             }
         }
 
@@ -4097,7 +4085,7 @@ namespace Orts.Simulation.RollingStocks
 
             CabLightOn = !CabLightOn;
             SignalEvent(TrainEvent.CabLightSwitchToggle);
-            Simulator.Confirmer.Confirm(CabControl.CabLight, CabLightOn ? CabSetting.On : CabSetting.Off);
+            simulator.Confirmer.Confirm(CabControl.CabLight, CabLightOn ? CabSetting.On : CabSetting.Off);
         }
 
 
@@ -4112,7 +4100,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (!string.IsNullOrEmpty(OnLineCabRadioURL))
             { }
-            if (Simulator.PlayerLocomotive == this) Simulator.Confirmer.Confirm(CabControl.CabRadio, CabRadioOn ? CabSetting.On : CabSetting.Off);
+            if (simulator.PlayerLocomotive == this) simulator.Confirmer.Confirm(CabControl.CabRadio, CabRadioOn ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleWipers(bool newState)
@@ -4125,7 +4113,7 @@ namespace Orts.Simulation.RollingStocks
             if (bailOff != BailOff)
             {
                 BailOff = bailOff;
-                Simulator.Confirmer.Confirm(CabControl.BailOff, bailOff ? CabSetting.On : CabSetting.Off);
+                simulator.Confirmer.Confirm(CabControl.BailOff, bailOff ? CabSetting.On : CabSetting.Off);
             }
         }
 
@@ -4169,7 +4157,7 @@ namespace Orts.Simulation.RollingStocks
                         OdometerResetPositionM = Train.DistanceTravelledM + Train.Length;
                 }
 
-                Simulator.Confirmer.Confirm(CabControl.Odometer, CabSetting.On);
+                simulator.Confirmer.Confirm(CabControl.Odometer, CabSetting.On);
             }
             OdometerResetButtonPressed = targetState;
         }
@@ -4181,7 +4169,7 @@ namespace Orts.Simulation.RollingStocks
 
             OdometerCountingUp = !OdometerCountingUp;
 
-            Simulator.Confirmer.Confirm(CabControl.Odometer, OdometerCountingUp ? CabSetting.Increase : CabSetting.Decrease);
+            simulator.Confirmer.Confirm(CabControl.Odometer, OdometerCountingUp ? CabSetting.Increase : CabSetting.Decrease);
         }
 
         public override bool GetCabFlipped()
@@ -4209,22 +4197,22 @@ namespace Orts.Simulation.RollingStocks
         {
             switch (evt)
             {
-                case TrainEvent.VigilanceAlarmOn: { AlerterSnd = true; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
-                case TrainEvent.VigilanceAlarmOff: { AlerterSnd = false; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
+                case TrainEvent.VigilanceAlarmOn: { AlerterSnd = true; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
+                case TrainEvent.VigilanceAlarmOff: { AlerterSnd = false; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
                 case TrainEvent.BellOn:
                 case TrainEvent.BellOff:
-                    if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null)
-                        Simulator.Confirmer.Confirm(CabControl.Bell, Bell ? CabSetting.On : CabSetting.Off);
+                    if (this == simulator.PlayerLocomotive && simulator.Confirmer != null)
+                        simulator.Confirmer.Confirm(CabControl.Bell, Bell ? CabSetting.On : CabSetting.Off);
                     break;
                 case TrainEvent.HornOn:
                 case TrainEvent.HornOff:
-                    if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null)
-                        Simulator.Confirmer.Confirm(this is MSTSSteamLocomotive ? CabControl.Whistle : CabControl.Horn, Horn ? CabSetting.On : CabSetting.Off);
+                    if (this == simulator.PlayerLocomotive && simulator.Confirmer != null)
+                        simulator.Confirmer.Confirm(this is MSTSSteamLocomotive ? CabControl.Whistle : CabControl.Horn, Horn ? CabSetting.On : CabSetting.Off);
                     break;
-                case TrainEvent.SanderOn: { Sander = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
-                case TrainEvent.SanderOff: { Sander = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
-                case TrainEvent.WiperOn: { Wiper = true; if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
-                case TrainEvent.WiperOff: { Wiper = false; if (this == Simulator.PlayerLocomotive) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
+                case TrainEvent.SanderOn: { Sander = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
+                case TrainEvent.SanderOff: { Sander = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
+                case TrainEvent.WiperOn: { Wiper = true; if (this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
+                case TrainEvent.WiperOff: { Wiper = false; if (this == simulator.PlayerLocomotive) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
 
                 // <CJComment> The "H" key doesn't call these SignalEvents yet. </CJComment>
                 case TrainEvent.HeadlightOff: { Headlight = 0; break; }
@@ -4235,10 +4223,10 @@ namespace Orts.Simulation.RollingStocks
                 case TrainEvent.CompressorOff: { CompressorIsOn = false; break; }
 
                 //Vacuum exhauster event only triggered if vacuum exhauster engine control fitted.
-                case TrainEvent.VacuumExhausterOn: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
-                case TrainEvent.VacuumExhausterOff: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
+                case TrainEvent.VacuumExhausterOn: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
+                case TrainEvent.VacuumExhausterOff: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
 
-                case TrainEvent.ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
+                case TrainEvent.ResetWheelSlip: { LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
                 case TrainEvent.TrainBrakePressureDecrease:
                 case TrainEvent.TrainBrakePressureIncrease:
                     {
@@ -4789,7 +4777,7 @@ namespace Orts.Simulation.RollingStocks
 
                 case CabViewControlType.Alerter_Display:
                     {
-                        if (Simulator.Settings.Alerter)
+                        if (simulator.Settings.Alerter)
                         {
                             if (TrainControlSystem.VigilanceEmergency)
                                 data = 2;
@@ -4984,13 +4972,13 @@ namespace Orts.Simulation.RollingStocks
                             var dieselLoco = car as MSTSDieselLocomotive;
                             if (dieselLoco != null && dieselLoco.AcceptMUSignals)
                             {
-                                if (car == Simulator.PlayerLocomotive && dieselLoco.DieselEngines.Count > 1)
+                                if (car == simulator.PlayerLocomotive && dieselLoco.DieselEngines.Count > 1)
                                 {
                                     data = (dieselLoco.DieselEngines[1].State == DieselEngineState.Running ||
                                         dieselLoco.DieselEngines[1].State == DieselEngineState.Starting) ? 1 : 0;
                                     break;
                                 }
-                                else if (car != Simulator.PlayerLocomotive)
+                                else if (car != simulator.PlayerLocomotive)
                                 {
                                     data = (dieselLoco.DieselEngines[0].State == DieselEngineState.Running ||
                                         dieselLoco.DieselEngines[0].State == DieselEngineState.Starting) ? 1 : 0;
@@ -5046,19 +5034,19 @@ namespace Orts.Simulation.RollingStocks
                     data = Wiper ? 1 : 0;
                     break;
                 case CabViewControlType.Orts_HourDial:
-                    float hour = (float)(Simulator.ClockTime / 3600) % 12;
+                    float hour = (float)(simulator.ClockTime / 3600) % 12;
                     if (hour < 0)
                         hour += 12;
                     data = hour;
                     break;
                 case CabViewControlType.Orts_MinuteDial:
-                    float minute = (float)(Simulator.ClockTime / 60) % 60;
+                    float minute = (float)(simulator.ClockTime / 60) % 60;
                     if (minute < 0)
                         minute += 60;
                     data = minute;
                     break;
                 case CabViewControlType.Orts_SecondDial:
-                    int seconds = (int)Simulator.ClockTime % 60;
+                    int seconds = (int)simulator.ClockTime % 60;
                     if (seconds < 0)
                         seconds += 60;
                     data = seconds;

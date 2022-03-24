@@ -50,17 +50,22 @@ namespace Orts.Graphics.MapView.Widgets
         {
             SetColors<T>(color);
         }
+
+        internal static void OverrideColorVariation<T>(ColorVariation colorVariation, Color color) where T : PointWidget
+        {
+            WidgetCache<T>.colors[colorVariation] = color;
+        }
     }
 
     internal abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
     {
-        private protected PointD vector;
+        private protected PointD vectorEnd;
 
         private protected Tile otherTile;
 
         public ref readonly Tile OtherTile => ref otherTile;
 
-        internal ref readonly PointD Vector => ref vector;
+        internal ref readonly PointD Vector => ref vectorEnd;
 
     }
 }

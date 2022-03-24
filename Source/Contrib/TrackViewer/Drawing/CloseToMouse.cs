@@ -404,7 +404,7 @@ namespace ORTS.TrackViewer.Drawing
             }
 
 
-            float trackSectionLength = DrawTrackDB.GetLength(trackSection);
+            float trackSectionLength = trackSection.Length;
             if (lon < 0)
             {   // distance from start of track
                 return new DistanceLon(lat * lat + lon * lon, 0);

@@ -25,12 +25,18 @@
     public interface ISignal
     { 
         SignalState State { get; set; }
-
         public bool CallOnEnabled { get; }
     }
 
     public interface IJunction
     {
         SwitchState State { get; set; }
+    }
+
+    public interface ITrain
+    { 
+        string Name { get; }
+        int Number { get; }
+        TrainType TrainType { get; }
     }
 }
