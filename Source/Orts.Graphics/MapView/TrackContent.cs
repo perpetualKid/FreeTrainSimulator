@@ -260,8 +260,7 @@ namespace Orts.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        connectedVectorNode = trackDB.TrackNodes[trackJunctionNode.TrackPins[0].Link] as TrackVectorNode;
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
                         break;
                 }
             }

@@ -167,6 +167,7 @@ namespace Orts.Graphics.MapView.Widgets
                 else
                 {
                     Length -= startOffset;
+                    endOffset = Length;
                     if (remainingLength + startOffset < Length)
                     {
                         endOffset = remainingLength + startOffset;

@@ -185,7 +185,7 @@ namespace Orts.Graphics.MapView
         }
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
-        public IJunction SwitchSelected => (nearestDispatchItem as JunctionSegment)?.Junction;
+        public IJunction SwitchSelected => (nearestDispatchItem as ActiveJunctionSegment)?.Junction;
 
         private void AddTrackSegments()
         {
@@ -196,7 +196,7 @@ namespace Orts.Graphics.MapView
 
             List<TrackSegment> trackSegments = new List<TrackSegment>();
             List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
-            List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
+            List<ActiveJunctionSegment> junctionSegments = new List<ActiveJunctionSegment>();
             List<TrackSegment> roadSegments = new List<TrackSegment>();
             List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
             foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
@@ -218,8 +218,12 @@ namespace Orts.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        connectedVectorNode = trackDB.TrackNodes[trackJunctionNode.TrackPins[0].Link] as TrackVectorNode;
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
+                        foreach(TrackPin pin in trackJunctionNode.TrackPins)
+                        {
+                            vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
+                        }
+                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             }

@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "CornSilk",     // Background
             "DimGray",      // RailTrack
             "BlueViolet",   // RailTrackEnd
-            "DarkMagenta",  // RailTrackJunction
+            "LightGray",  // RailTrackJunction
             "Firebrick",    // RailTrackCrossing
             "Crimson",      // RailLevelCrossing
             "Olive",        // RoadTrack
