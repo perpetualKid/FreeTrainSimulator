@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -15,7 +16,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal readonly float Direction;
 
-        public TrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections)
+        public TrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections)
         {
             ref readonly WorldLocation location = ref trackEndNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
@@ -33,13 +34,15 @@ namespace Orts.Graphics.MapView.Widgets
             else
             {
                 //find angle at end of vector node
-                TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
-                Direction = tvs.Direction.Y;
+                TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
+                Direction = trackVectorSection.Direction.Y;
                 // try to get even better in case the last section is curved
-                TrackSection section = sections.TryGet(tvs.SectionIndex);
-                if (section != null && section.Curved)
+                TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
+                if (null == trackSection)
+                    throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
+                if (trackSection.Curved)
                 {
-                    Direction += MathHelper.ToRadians(section.Angle);
+                    Direction += MathHelper.ToRadians(trackSection.Angle);
                 }
             }
             Direction -= MathHelper.PiOver2;

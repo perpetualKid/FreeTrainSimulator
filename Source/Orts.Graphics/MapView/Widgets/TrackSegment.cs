@@ -4,6 +4,7 @@ using System;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
 
@@ -21,12 +22,16 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly int TrackNodeIndex;
         internal readonly int TrackVectorSectionIndex;
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
 
+            TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
+
+            if (null == trackSection)
+                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
             if (trackSection.Curved)
             {
                 Angle = trackSection.Angle;
@@ -92,8 +97,8 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadSegment : TrackSegment
     {
-        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, int trackNodeIndex, int trackVectorSectionIndex) :
-            base(trackVectorSection, trackSection, trackNodeIndex, trackVectorSectionIndex)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
+            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
         {
         }
 

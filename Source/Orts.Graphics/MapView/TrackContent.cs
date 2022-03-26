@@ -16,7 +16,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView
 {
-    public class TrackContent: ContentBase
+    public class TrackContent : ContentBase
     {
         #region nearest items
         private GridTile nearestGridTile;
@@ -256,20 +256,12 @@ namespace Orts.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
-                            if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
+                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
-                        {
-                            if (trackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
-                            {
-                                TrackVectorSection item = pin.Direction == Common.TrackDirection.Reverse ? vectorNode.TrackVectorSections.First() : vectorNode.TrackVectorSections.Last();
-                            }
-                        }
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
+                        connectedVectorNode = trackDB.TrackNodes[trackJunctionNode.TrackPins[0].Link] as TrackVectorNode;
+                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                 }
             }
@@ -296,9 +288,7 @@ namespace Orts.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
-                            if (trackSection != null)
-                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
+                            roadSegments.Add(new RoadSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
                         }
                         break;
                 }
