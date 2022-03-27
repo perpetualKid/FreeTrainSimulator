@@ -624,7 +624,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
 
             //Update axle force ( = k * loadTorqueNm)
-            axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2);
+            axleForceN = (float)(AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2));
 
             // The Axle module subtracts brake force from the motive force for calculation purposes. However brake force is already taken into account in the braking module.
             // And thus there is a duplication of the braking effect in OR. To compensate for this, after the slip characteristics have been calculated, the output of the axle module
@@ -653,7 +653,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 else
                 {
                     totalAxleForceN = 0;
-                    frictionalForceN = Math.Abs(motiveAxleForceN);
+                    frictionalForceN -= Math.Abs(motiveAxleForceN);
                 }
             }
             float prevSpeedMpS = axleSpeedMpS;
@@ -751,22 +751,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <param name="K">Slip speed correction. If is set K = 0 then K = 0.7 is used</param>
         /// <param name="conditions">Relative weather conditions, usually from 0.2 to 1.0</param>
         /// <returns>Relative force transmitted to the rail</returns>
-        public float SlipCharacteristics(float slipSpeed, float speed, float K, float conditions, float Adhesion2)
+        private double SlipCharacteristics(float slipSpeedMpS, float speedMpS, float K, float conditions, float Adhesion2)
         {
-            speed = Math.Abs(3.6f * speed);
-            float umax = (CurtiusKnifflerA / (speed + CurtiusKnifflerB) + CurtiusKnifflerC);// *Adhesion2 / 0.331455f; // Curtius - Kniffler equation
+            double speedKpH = Math.Abs(Speed.MeterPerSecond.ToKpH(speedMpS));
+            double umax = (CurtiusKnifflerA / (speedKpH + CurtiusKnifflerB) + CurtiusKnifflerC);// *Adhesion2 / 0.331455f; // Curtius - Kniffler equation
             umax *= conditions;
             if (K == 0.0)
                 K = 1;
-            slipSpeed *= 3.6f;
-            float x = Math.Abs(slipSpeed * umax / K);
-            float sqrt3 = (float)Math.Sqrt(3);
+            double slipSpeedKpH = Speed.MeterPerSecond.ToKpH(slipSpeedMpS);
+            double x = Math.Abs(slipSpeedKpH * umax / K);
+            double sqrt3 = (float)Math.Sqrt(3);
             if (x > sqrt3)
             {
                 float inftyFactor = 0.4f; // At infinity, adhesion is 40% of maximum
-                return Math.Sign(slipSpeed) * umax * ((sqrt3 / 2 - inftyFactor) * (float)Math.Exp((sqrt3 - x) / (2 * sqrt3 - 4 * inftyFactor)) + inftyFactor);
+                return Math.Sign(slipSpeedKpH) * umax * ((sqrt3 / 2 - inftyFactor) * (float)Math.Exp((sqrt3 - x) / (2 * sqrt3 - 4 * inftyFactor)) + inftyFactor);
             }
-            return 2.0f * K * umax * umax * (slipSpeed / (umax * umax * slipSpeed * slipSpeed + K * K));
+            return 2.0f * K * umax * umax * (slipSpeedKpH / (umax * umax * slipSpeedKpH * slipSpeedKpH + K * K));
         }
 
         /// <summary>
