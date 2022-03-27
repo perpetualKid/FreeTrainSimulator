@@ -3204,7 +3204,7 @@ namespace Orts.Simulation.RollingStocks
 
 
             // Test to see if loco wheel is slipping or skidding due to brake application
-            if (WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))   
+            if ((EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared) && WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))   
             {
 
                 WheelStopSlipTimeS = 0; // Reset stop slip time if wheel slip starts
@@ -3229,7 +3229,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 WheelSlipTimeS = 0; // Reset slip time if wheel slip stops
 
-                if (SlipFrictionCoefficientFactor < BaseFrictionCoefficientFactor && SlipFrictionCoefficientFactor != 0) // Once these two are equal then assume that wheels have stopped slipping.
+                if ((EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared) && SlipFrictionCoefficientFactor < BaseFrictionCoefficientFactor && SlipFrictionCoefficientFactor != 0) // Once these two are equal then assume that wheels have stopped slipping.
                 {
                     //                    Trace.TraceInformation("SlipFriction {0} Base {1}", SlipFrictionCoefficientFactor, BaseFrictionCoefficientFactor);
                     // Exponential curve is used to transition between dynamic friction and static friction when wheel stops slipping
