@@ -1,8 +1,12 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -10,14 +14,35 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackSegment : VectorWidget
+    internal class TrackSegment : VectorWidget, INameValueInformationProvider
     {
+        [ThreadStatic]
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Track Node Information"] = null, ["Node Type"] = "Track Vector Section" };
+        private protected static Dictionary<string, FormatOption> formattingOptions = new Dictionary<string, FormatOption>() { ["Track Node Information"] = FormatOption.Bold };
+
         internal readonly bool Curved;
 
         internal readonly float Direction;
         internal float Length { get; private protected set; }
         internal float Angle { get; private protected set; }
         internal float Radius { get; private protected set; }
+
+        public NameValueCollection DebugInfo
+        {
+            get
+            {
+                debugInformation["Track Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Track Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Length"] = $"{Length:F1}m";
+                debugInformation["Direction"] = $"{Direction:F3}º";
+                debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : null;
+                debugInformation["Angle"] = Curved ? $"{Angle:F3}º" : null;
+                return debugInformation;
+            }
+        }
+
+        public Dictionary<string, FormatOption> FormattingOptions => formattingOptions;
 
         internal readonly int TrackNodeIndex;
         internal readonly int TrackVectorSectionIndex;
@@ -196,7 +221,7 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class BrokenPathSegment : PathSegment
     {
-        public BrokenPathSegment(in WorldLocation location): base()
+        public BrokenPathSegment(in WorldLocation location) : base()
         {
             base.location = PointD.FromWorldLocation(location);
         }

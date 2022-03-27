@@ -1,10 +1,12 @@
 ﻿
 using System.Collections.Generic;
+using System.Collections.Specialized;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -12,9 +14,10 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class JunctionSegment : PointWidget
+    internal class JunctionSegment : PointWidget, INameValueInformationProvider
     {
         private const int diameter = 3;
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction Node"};
 
         public JunctionSegment(TrackJunctionNode junctionNode)
         {
@@ -23,6 +26,10 @@ namespace Orts.Graphics.MapView.Widgets
             base.location = PointD.FromWorldLocation(location);
             base.tile = new Tile(location.TileX, location.TileZ);
         }
+
+        public NameValueCollection DebugInfo { get; } = debugInformation;
+
+        public Dictionary<string, FormatOption> FormattingOptions => null;
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {

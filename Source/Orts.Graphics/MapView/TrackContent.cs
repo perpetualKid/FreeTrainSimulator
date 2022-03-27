@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -26,6 +28,7 @@ namespace Orts.Graphics.MapView
         #endregion
 
         private readonly InsetComponent insetComponent;
+        private readonly TrackNodeInfoProxy trackNodeInfo = new TrackNodeInfoProxy();
 
         internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
         internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
@@ -40,8 +43,11 @@ namespace Orts.Graphics.MapView
         public TrackContent(Game game) :
             base(game)
         {
+            FormattingOptions.Add("Route Information", FormatOption.Bold);
+            DebugInfo.Add("Route Information", null);
             DebugInfo["Route Name"] = RuntimeData.Instance.RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
+            TrackNodeInfo = trackNodeInfo;
         }
 
         public override async Task Initialize()
@@ -151,6 +157,7 @@ namespace Orts.Graphics.MapView
                     distance = itemDistance;
                 }
             }
+            trackNodeInfo.Source = nearestTrackSegment;
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
@@ -336,5 +343,13 @@ namespace Orts.Graphics.MapView
             TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.Create(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
         }
 
+        private protected class TrackNodeInfoProxy : TrackNodeInfoProxyBase
+        {
+            internal INameValueInformationProvider Source;
+
+            public override NameValueCollection DebugInfo => Source?.DebugInfo;
+
+            public override Dictionary<string, FormatOption> FormattingOptions => Source?.FormattingOptions;
+        }
     }
 }

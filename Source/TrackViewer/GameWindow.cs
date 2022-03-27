@@ -45,7 +45,6 @@ namespace Orts.TrackViewer
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private readonly Point clientRectangleOffset;
-        private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
 
@@ -169,7 +168,6 @@ namespace Orts.TrackViewer
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
-            centerPoint = new Vector2(Window.ClientBounds.Size.X / 2, Window.ClientBounds.Size.Y / 2);
             if (syncing)
                 return;
             if (currentScreenMode == ScreenMode.Windowed)
@@ -426,6 +424,7 @@ namespace Orts.TrackViewer
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
+                debugWindow.SetInformationProvider(DebugScreenInformation.TrackNode, ContentArea?.Content?.TrackNodeInfo);
                 OnContentAreaChanged += GameWindow_OnContentAreaChanged;
                 return debugWindow;
             }));
@@ -463,6 +462,7 @@ namespace Orts.TrackViewer
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
             (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
+            (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.TrackNode, ContentArea?.Content?.TrackNodeInfo);
         }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
@@ -575,6 +575,11 @@ namespace Orts.TrackViewer
 
             public GraphicsDebugInfo()
             {
+                FormattingOptions = new Dictionary<string, FormatOption>
+                {
+                    { "GPU Information", FormatOption.Bold }
+                };
+                DebugInfo.Add("GPU Information", null);
                 DebugInfo.Add("Clear Calls", null);
                 DebugInfo.Add("Draw Calls", null);
                 DebugInfo.Add("Primitives", null);

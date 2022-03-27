@@ -16,6 +16,7 @@ namespace Orts.TrackViewer.PopupWindows
         Common,
         Graphics,
         Route,
+        TrackNode,
     }
 
     public class DebugScreen : OverlayWindowBase
@@ -33,6 +34,7 @@ namespace Orts.TrackViewer.PopupWindows
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
+            currentProvider[DebugScreenInformation.TrackNode] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
             UpdateBackgroundColor(backgroundColor);
         }
 

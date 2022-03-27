@@ -27,7 +27,9 @@ namespace Orts.Graphics.MapView
 
         public NameValueCollection DebugInfo { get; } = new NameValueCollection();
 
-        public Dictionary<string, FormatOption> FormattingOptions { get; }
+        public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
+
+        public INameValueInformationProvider TrackNodeInfo { get; private protected set; }
 
         protected ContentBase(Game game)
         {
@@ -47,5 +49,12 @@ namespace Orts.Graphics.MapView
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
 
         internal abstract void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight);
+
+        private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
+        {
+            public abstract NameValueCollection DebugInfo { get; }
+
+            public abstract Dictionary<string, FormatOption> FormattingOptions { get; }
+        }
     }
 }
