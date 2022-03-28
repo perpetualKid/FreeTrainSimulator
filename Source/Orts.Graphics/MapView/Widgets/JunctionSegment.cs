@@ -1,6 +1,8 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
@@ -17,7 +19,11 @@ namespace Orts.Graphics.MapView.Widgets
     internal class JunctionSegment : PointWidget, INameValueInformationProvider
     {
         private const int diameter = 3;
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction Node"};
+        [ThreadStatic]
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Track Node Information"] = null, ["Node Type"] = "Track Junction" };
+        private protected static Dictionary<string, FormatOption> formattingOptions = new Dictionary<string, FormatOption>() { ["Track Node Information"] = FormatOption.Bold };
+
+        internal readonly int TrackNodeIndex;
 
         public JunctionSegment(TrackJunctionNode junctionNode)
         {
@@ -25,11 +31,19 @@ namespace Orts.Graphics.MapView.Widgets
             ref readonly WorldLocation location = ref junctionNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
             base.tile = new Tile(location.TileX, location.TileZ);
+            TrackNodeIndex = junctionNode.Index;
         }
 
-        public NameValueCollection DebugInfo { get; } = debugInformation;
+        public NameValueCollection DebugInfo
+        {
+            get
+            {
+                debugInformation["Track Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                return debugInformation;
+            }
+        }
 
-        public Dictionary<string, FormatOption> FormattingOptions => null;
+        public Dictionary<string, FormatOption> FormattingOptions => formattingOptions;
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {

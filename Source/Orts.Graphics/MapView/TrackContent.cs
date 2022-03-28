@@ -24,7 +24,10 @@ namespace Orts.Graphics.MapView
         private GridTile nearestGridTile;
         private TrackItemBase nearestTrackItem;
         private TrackSegment nearestTrackSegment;
-        private RoadSegment nearesRoadSegment;
+        private JunctionSegment nearestJunctionNode;
+        private TrackEndSegment nearestTrackEndSegment;
+        private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
+        private RoadSegment nearestRoadSegment;
         #endregion
 
         private readonly InsetComponent insetComponent;
@@ -137,15 +140,64 @@ namespace Orts.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            distance = double.MaxValue;
-            foreach (TrackSegment trackSegment in TrackSegments[nearestGridTile.Tile])
+            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
             {
-                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
-                if (itemDistance < distance)
+                distance = double.MaxValue;
+                foreach (TrackSegment trackSegment in TrackSegments[nearestGridTile.Tile])
                 {
-                    nearestTrackSegment = trackSegment;
-                    distance = itemDistance;
+                    double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                    if (itemDistance < distance)
+                    {
+                        nearestTrackSegment = trackSegment;
+                        distance = itemDistance;
+                    }
                 }
+                if (distance < 100)
+                {
+                    nearestSegmentForStatus = (distance, nearestTrackSegment);
+                }
+                else
+                    nearestTrackSegment = null;
+            }
+            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
+            {
+                distance = double.MaxValue;
+                foreach (JunctionSegment junctionSegment in JunctionSegments[nearestGridTile.Tile])
+                {
+                    double itemDistance = position.DistanceSquared(junctionSegment.Location);
+                    if (itemDistance < distance)
+                    {
+                        nearestJunctionNode = junctionSegment;
+                        distance = itemDistance;
+                    }
+                }
+                if (distance < 100)
+                {
+                    if (distance < 1 || distance < nearestSegmentForStatus.distance)
+                        nearestSegmentForStatus = (distance, nearestJunctionNode);
+                }
+                else
+                    nearestJunctionNode = null;
+            }
+            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
+            {
+                distance = double.MaxValue;
+                foreach (TrackEndSegment endSegment in TrackEndSegments[nearestGridTile.Tile])
+                {
+                    double itemDistance = position.DistanceSquared(endSegment.Location);
+                    if (itemDistance < distance)
+                    {
+                        nearestTrackEndSegment = endSegment;
+                        distance = itemDistance;
+                    }
+                }
+                if (distance < 100)
+                {
+                    if (distance < 1 || distance < nearestSegmentForStatus.distance)
+                        nearestSegmentForStatus = (distance, nearestTrackEndSegment);
+                }
+                else
+                    nearestTrackEndSegment = null;
             }
             distance = double.MaxValue;
             foreach (RoadSegment trackSegment in RoadSegments[nearestGridTile.Tile])
@@ -153,11 +205,11 @@ namespace Orts.Graphics.MapView
                 double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
                 if (itemDistance < distance)
                 {
-                    nearesRoadSegment = trackSegment;
+                    nearestRoadSegment = trackSegment;
                     distance = itemDistance;
                 }
             }
-            trackNodeInfo.Source = nearestTrackSegment;
+            trackNodeInfo.Source = nearestSegmentForStatus.statusItem;
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
@@ -193,6 +245,8 @@ namespace Orts.Graphics.MapView
                     if (ContentArea.InsideScreenArea(endNode))
                         endNode.Draw(ContentArea);
                 }
+                if (nearestTrackEndSegment != null)
+                    nearestTrackEndSegment.Draw(ContentArea, ColorVariation.ComplementHighlight, 1.5);
             }
             if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
             {
@@ -201,6 +255,8 @@ namespace Orts.Graphics.MapView
                     if (ContentArea.InsideScreenArea(junctionNode))
                         junctionNode.Draw(ContentArea);
                 }
+                if (nearestJunctionNode != null)
+                    nearestJunctionNode.Draw(ContentArea, ColorVariation.ComplementHighlight, 1.5);
             }
             if ((viewSettings & MapViewItemSettings.Roads) == MapViewItemSettings.Roads)
             {
@@ -209,13 +265,13 @@ namespace Orts.Graphics.MapView
                     if (ContentArea.InsideScreenArea(segment))
                         segment.Draw(ContentArea);
                 }
-                if (nearesRoadSegment != null)
+                if (nearestRoadSegment != null)
                 {
-                    foreach (RoadSegment segment in RoadTrackNodeSegments[nearesRoadSegment.TrackNodeIndex])
+                    foreach (RoadSegment segment in RoadTrackNodeSegments[nearestRoadSegment.TrackNodeIndex])
                     {
                         segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                     }
-                    nearesRoadSegment.Draw(ContentArea, ColorVariation.Complement);
+                    nearestRoadSegment.Draw(ContentArea, ColorVariation.Complement);
                 }
             }
             if ((viewSettings & MapViewItemSettings.RoadEndNodes) == MapViewItemSettings.RoadEndNodes)

@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
 
@@ -36,8 +35,8 @@ namespace Orts.Graphics.MapView.Widgets
                 debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Length"] = $"{Length:F1}m";
                 debugInformation["Direction"] = $"{Direction:F3}º";
-                debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : null;
-                debugInformation["Angle"] = Curved ? $"{Angle:F3}º" : null;
+                debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
+                debugInformation["Angle"] = Curved ? $"{Angle:F3}º" : "n/a";
                 return debugInformation;
             }
         }
