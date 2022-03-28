@@ -403,6 +403,11 @@ namespace Orts.TrackViewer
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[WindowType.HelpWindow].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[WindowType.TrackNodeInfoWindow].ToggleVisibility();
+            });
             #endregion
 
             #region popup windows
@@ -424,8 +429,7 @@ namespace Orts.TrackViewer
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
-                debugWindow.SetInformationProvider(DebugScreenInformation.TrackNode, ContentArea?.Content?.TrackNodeInfo);
-                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+                OnContentAreaChanged += debugWindow.GameWindow_OnContentAreaChanged;
                 return debugWindow;
             }));
 
@@ -439,6 +443,12 @@ namespace Orts.TrackViewer
             {
                 HelpWindow helpWindow = new HelpWindow(windowManager, Settings.WindowLocations[WindowType.HelpWindow].ToPoint());
                 return helpWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<WindowBase>(() =>
+            {
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.TrackNodeInfoWindow].ToPoint());
+                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                return trackInfoWindow;
             }));
             #endregion
 
@@ -457,12 +467,6 @@ namespace Orts.TrackViewer
                         windowManager[windowType].Open();
                 }
             }
-        }
-
-        private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
-        {
-            (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
-            (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.TrackNode, ContentArea?.Content?.TrackNodeInfo);
         }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)

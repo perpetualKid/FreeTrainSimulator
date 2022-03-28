@@ -15,8 +15,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal class TrackEndSegment: PointWidget, INameValueInformationProvider
     {
         [ThreadStatic]
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Track Node Information"] = null, ["Node Type"] = "Track End Node" };
-        private protected static Dictionary<string, FormatOption> formattingOptions = new Dictionary<string, FormatOption>() { ["Track Node Information"] = FormatOption.Bold };
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
         protected const int Length = 2;
@@ -66,7 +65,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public Dictionary<string, FormatOption> FormattingOptions => formattingOptions;
+        public Dictionary<string, FormatOption> FormattingOptions => null;
 
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

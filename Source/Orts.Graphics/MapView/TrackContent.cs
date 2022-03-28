@@ -125,6 +125,7 @@ namespace Orts.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
+            nearestSegmentForStatus = (float.NaN, null);
             IEnumerable<ITileCoordinate<Tile>> result = Tiles.FindNearest(position, bottomLeft, topRight);
             if (result.First() != nearestGridTile)
             {

@@ -20,8 +20,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private const int diameter = 3;
         [ThreadStatic]
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Track Node Information"] = null, ["Node Type"] = "Track Junction" };
-        private protected static Dictionary<string, FormatOption> formattingOptions = new Dictionary<string, FormatOption>() { ["Track Node Information"] = FormatOption.Bold };
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
 
         internal readonly int TrackNodeIndex;
 
@@ -38,12 +37,12 @@ namespace Orts.Graphics.MapView.Widgets
         {
             get
             {
-                debugInformation["Track Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
                 return debugInformation;
             }
         }
 
-        public Dictionary<string, FormatOption> FormattingOptions => formattingOptions;
+        public Dictionary<string, FormatOption> FormattingOptions => null;
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {

@@ -7,5 +7,6 @@
         DebugScreen,
         LocationWindow,
         HelpWindow,
+        TrackNodeInfoWindow,
     }
 }

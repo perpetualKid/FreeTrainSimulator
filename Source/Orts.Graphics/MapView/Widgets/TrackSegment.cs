@@ -16,8 +16,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal class TrackSegment : VectorWidget, INameValueInformationProvider
     {
         [ThreadStatic]
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Track Node Information"] = null, ["Node Type"] = "Track Vector Section" };
-        private protected static Dictionary<string, FormatOption> formattingOptions = new Dictionary<string, FormatOption>() { ["Track Node Information"] = FormatOption.Bold };
+        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
 
         internal readonly bool Curved;
 
@@ -30,8 +29,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             get
             {
-                debugInformation["Track Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
-                debugInformation["Track Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Length"] = $"{Length:F1}m";
                 debugInformation["Direction"] = $"{Direction:F3}º";
@@ -41,7 +40,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public Dictionary<string, FormatOption> FormattingOptions => formattingOptions;
+        public Dictionary<string, FormatOption> FormattingOptions => null;
 
         internal readonly int TrackNodeIndex;
         internal readonly int TrackVectorSectionIndex;

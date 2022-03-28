@@ -229,7 +229,7 @@ namespace Orts.Graphics.MapView.Widgets
         public SidingTrackItem(SidingItem source) : base(source)
         {
             sidingName = source.ItemName;
-            Id = (int)source.TrackItemId;
+            Id = source.TrackItemId;
             linkedId = source.LinkedSidingId;
             Size = 5f;
         }

@@ -118,6 +118,7 @@ namespace Orts.TrackViewer.Settings
             nameof(WindowType.DebugScreen) + "=0,0",
             nameof(WindowType.LocationWindow) + "=100,100",
             nameof(WindowType.HelpWindow) + "=10,90",
+            nameof(WindowType.TrackNodeInfoWindow) + "=10,70",
         })]
         public EnumArray<int[], WindowType> WindowLocations { get; set; }
 
@@ -128,6 +129,7 @@ namespace Orts.TrackViewer.Settings
             nameof(WindowType.DebugScreen) + "=False",
             nameof(WindowType.LocationWindow) + "=False",
             nameof(WindowType.HelpWindow) + "=True",
+            nameof(WindowType.TrackNodeInfoWindow) + "=True",
         })]
         public EnumArray<bool, WindowType> WindowStatus { get; set; }
 

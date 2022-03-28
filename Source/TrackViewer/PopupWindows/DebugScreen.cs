@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
@@ -16,7 +17,6 @@ namespace Orts.TrackViewer.PopupWindows
         Common,
         Graphics,
         Route,
-        TrackNode,
     }
 
     public class DebugScreen : OverlayWindowBase
@@ -34,7 +34,6 @@ namespace Orts.TrackViewer.PopupWindows
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
-            currentProvider[DebugScreenInformation.TrackNode] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
             UpdateBackgroundColor(backgroundColor);
         }
 
@@ -45,6 +44,11 @@ namespace Orts.TrackViewer.PopupWindows
                 layout?.Add(item);
             }
             return base.Layout(layout, headerScaling);
+        }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            currentProvider[DebugScreenInformation.Route].InformationProvider = e.ContentArea?.Content;
         }
 
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)
