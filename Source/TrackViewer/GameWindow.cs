@@ -414,6 +414,7 @@ namespace Orts.TrackViewer
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
+            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager);
             windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
             {
                 QuitWindow quitWindow = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());

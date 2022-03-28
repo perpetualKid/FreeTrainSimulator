@@ -310,7 +310,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show($"{RuntimeInfo.ApplicationName} {VersionInfo.FullVersion}", $"{RuntimeInfo.ApplicationName}");
+            parent.ShowAboutWindow();
         }
 
         private void TakeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)

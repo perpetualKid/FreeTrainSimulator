@@ -169,6 +169,12 @@ namespace Orts.Graphics.Window
 
         internal bool OpenWindow(WindowBase window)
         {
+            if (modalWindow != null)
+            {
+                mouseActiveWindow = modalWindow;
+                return false;
+            }
+
             if (!WindowOpen(window))
             {
                 SuppressDrawing = false;
@@ -330,7 +336,7 @@ namespace Orts.Graphics.Window
                             windows = updatedWindowList;
                         }
                     }
-                    else if (modalWindow != null &&  mouseActiveWindow != modalWindow)
+                    else if (modalWindow != null && mouseActiveWindow != modalWindow)
                     {
                         mouseActiveWindow.FocusLost();
                         mouseActiveWindow = null;
