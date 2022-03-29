@@ -114,6 +114,7 @@ namespace Orts.TrackViewer.Settings
         [Default(new string[]
         {
             nameof(WindowType.QuitWindow) + "=50,50",
+            nameof(WindowType.AboutWindow) + "=50,50",
             nameof(WindowType.StatusWindow) + "=50,50",
             nameof(WindowType.DebugScreen) + "=0,0",
             nameof(WindowType.LocationWindow) + "=100,100",
@@ -125,6 +126,7 @@ namespace Orts.TrackViewer.Settings
         [Default(new string[]
         {
             nameof(WindowType.QuitWindow) + "=False",
+            nameof(WindowType.AboutWindow) + "=False",
             nameof(WindowType.StatusWindow) + "=False",
             nameof(WindowType.DebugScreen) + "=False",
             nameof(WindowType.LocationWindow) + "=False",

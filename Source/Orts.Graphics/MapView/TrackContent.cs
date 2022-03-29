@@ -146,7 +146,7 @@ namespace Orts.Graphics.MapView
                 distance = double.MaxValue;
                 foreach (TrackSegment trackSegment in TrackSegments[nearestGridTile.Tile])
                 {
-                    double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                    double itemDistance = trackSegment.DistanceSquared(position);
                     if (itemDistance < distance)
                     {
                         nearestTrackSegment = trackSegment;
@@ -203,7 +203,7 @@ namespace Orts.Graphics.MapView
             distance = double.MaxValue;
             foreach (RoadSegment trackSegment in RoadSegments[nearestGridTile.Tile])
             {
-                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                double itemDistance = trackSegment.DistanceSquared(position);
                 if (itemDistance < distance)
                 {
                     nearestRoadSegment = trackSegment;

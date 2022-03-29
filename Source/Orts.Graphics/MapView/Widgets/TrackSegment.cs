@@ -33,7 +33,7 @@ namespace Orts.Graphics.MapView.Widgets
                 debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Length"] = $"{Length:F1}m";
-                debugInformation["Direction"] = $"{Direction:F3}º";
+                debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction - MathHelper.PiOver2)):F3}º";
                 debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
                 debugInformation["Angle"] = Curved ? $"{Angle:F3}º" : "n/a";
                 return debugInformation;
@@ -116,6 +116,35 @@ namespace Orts.Graphics.MapView.Widgets
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
+
+        #region math
+        public virtual double DistanceSquared(in PointD point)
+        {
+            double result = double.NaN;
+            //if (Curved)
+            //{
+
+            //}
+            //else
+            {
+                double distanceSquared = vectorEnd.DistanceSquared(location);
+                if (distanceSquared < double.Epsilon)
+                {
+                    // It's a point not a line segment.
+                    return point.DistanceSquared(location);
+                }
+                // Calculate the t that minimizes the distance.
+                double t = (point - location).DotProduct(vectorEnd - location) / distanceSquared;
+
+                // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN
+                // (else if needed should return the distance from either start or end point)
+                if (t < 0 || t > 1)
+                    return double.NaN;
+                return point.DistanceSquared(location + (vectorEnd - location) * t);
+            }
+            return result;
+        }
+        #endregion
     }
 
     internal class RoadSegment : TrackSegment

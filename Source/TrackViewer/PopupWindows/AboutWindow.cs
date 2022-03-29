@@ -10,8 +10,8 @@ namespace Orts.TrackViewer.PopupWindows
 {
     internal class AboutWindow : WindowBase
     {
-        public AboutWindow(WindowManager owner) : 
-            base(owner, "About", new Point(50, 50), new Point(180, 64))
+        public AboutWindow(WindowManager owner, Point location) : 
+            base(owner, "About", location, new Point(180, 64))
         {
             Modal = true;
             ZOrder = 100;
