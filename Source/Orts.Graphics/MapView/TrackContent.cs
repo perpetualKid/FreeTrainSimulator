@@ -201,13 +201,16 @@ namespace Orts.Graphics.MapView
                     nearestTrackEndSegment = null;
             }
             distance = double.MaxValue;
-            foreach (RoadSegment trackSegment in RoadSegments[nearestGridTile.Tile])
+            if ((viewSettings & MapViewItemSettings.Roads) == MapViewItemSettings.Roads)
             {
-                double itemDistance = trackSegment.DistanceSquared(position);
-                if (itemDistance < distance)
+                foreach (RoadSegment trackSegment in RoadSegments[nearestGridTile.Tile])
                 {
-                    nearestRoadSegment = trackSegment;
-                    distance = itemDistance;
+                    double itemDistance = trackSegment.DistanceSquared(position);
+                    if (itemDistance < distance)
+                    {
+                        nearestRoadSegment = trackSegment;
+                        distance = itemDistance;
+                    }
                 }
             }
             trackNodeInfo.Source = nearestSegmentForStatus.statusItem;
