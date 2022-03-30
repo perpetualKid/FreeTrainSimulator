@@ -137,8 +137,10 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 PointD delta = point - centerPoint;
                 float angle = MathHelper.WrapAngle((float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2);
-                if (Angle < 0 && ((angle < centerToStartDirection && angle > centerToEndDirection) || angle > centerToEndDirection || angle < centerToStartDirection)
-                   || (Angle > 0 && ((angle > centerToStartDirection && angle < centerToEndDirection) || (angle > centerToStartDirection || angle < centerToEndDirection))))
+                if (Angle < 0 && ((angle < centerToStartDirection && angle > centerToEndDirection) ||
+                    (centerToStartDirection < centerToEndDirection && (angle > centerToEndDirection || angle < centerToStartDirection)))
+                   || (Angle > 0 && ((angle > centerToStartDirection && angle < centerToEndDirection) ||
+                   (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection)))))
                     return Math.Abs((centerPoint.Distance(point) - Radius) * (centerPoint.Distance(point) - Radius));
 
                 return double.NaN;
@@ -171,14 +173,14 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
-        {
-            Color drawColor = GetColor<RoadSegment>(colorVariation);
-            if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
-            else
-                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
-        }
+        //internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        //{
+        //    Color drawColor = GetColor<RoadSegment>(colorVariation);
+        //    if (Curved)
+        //        BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
+        //    else
+        //        BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+        //}
     }
 
     internal class PathSegment : TrackSegment
