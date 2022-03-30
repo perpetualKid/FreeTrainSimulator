@@ -20,10 +20,16 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal readonly bool Curved;
 
+        // Direction in Rad from -π to π from North (0) to South
         internal readonly float Direction;
         internal float Length { get; private protected set; }
+        // Angular Size (Length) of the Arc in Degree
         internal float Angle { get; private protected set; }
         internal float Radius { get; private protected set; }
+
+        private protected PointD centerPoint;
+        private protected float centerToStartDirection;
+        private protected float centerToEndDirection;
 
         public NameValueCollection DebugInfo
         {
@@ -55,6 +61,16 @@ namespace Orts.Graphics.MapView.Widgets
 
             if (null == trackSection)
                 throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
+
+            base.location = PointD.FromWorldLocation(location);
+            tile = new Tile(location.TileX, location.TileZ);
+
+            Size = trackSection.Width;
+            Curved = trackSection.Curved;
+            Direction = MathHelper.WrapAngle(trackVectorSection.Direction.Y - MathHelper.PiOver2);
+            TrackNodeIndex = trackNodeIndex;
+            TrackVectorSectionIndex = trackVectorSectionIndex;
+
             if (trackSection.Curved)
             {
                 Angle = trackSection.Angle;
@@ -69,6 +85,10 @@ namespace Orts.Graphics.MapView.Widgets
                 double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 vectorEnd = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ);
+
+                centerPoint = base.location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * Math.Sign(Angle) * Radius);
+                centerToStartDirection = MathHelper.WrapAngle(Direction - (Math.Sign(Angle) * MathHelper.PiOver2));
+                centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + MathHelper.ToRadians(Angle));
             }
             else
             {
@@ -79,14 +99,7 @@ namespace Orts.Graphics.MapView.Widgets
                 vectorEnd = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X + sinA * Length, location.TileZ * WorldLocation.TileSize + location.Location.Z + cosA * Length);
             }
 
-            base.location = PointD.FromWorldLocation(location);
-            tile = new Tile(location.TileX, location.TileZ);
             otherTile = new Tile(Tile.TileFromAbs(vectorEnd.X), Tile.TileFromAbs(vectorEnd.Y));
-            Size = trackSection.Width;
-            Curved = trackSection.Curved;
-            Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;
-            TrackNodeIndex = trackNodeIndex;
-            TrackVectorSectionIndex = trackVectorSectionIndex;
         }
 
         protected TrackSegment(TrackSegment source)
@@ -120,12 +133,18 @@ namespace Orts.Graphics.MapView.Widgets
         #region math
         public virtual double DistanceSquared(in PointD point)
         {
-            double result = double.NaN;
-            //if (Curved)
-            //{
-
-            //}
-            //else
+            if (Curved)
+            {
+                PointD delta = point - centerPoint;
+                float angle = MathHelper.WrapAngle((float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2);
+                if (Angle < 0 && (angle > centerToStartDirection || angle < centerToEndDirection)
+                   || (Angle > 0 && (angle < centerToStartDirection || angle > centerToEndDirection)))
+                {
+                    return double.NaN;
+                }
+                return Math.Abs((centerPoint.Distance(point) - Radius) * (centerPoint.Distance(point) - Radius));
+            }
+            else
             {
                 double distanceSquared = vectorEnd.DistanceSquared(location);
                 if (distanceSquared < double.Epsilon)
@@ -142,7 +161,6 @@ namespace Orts.Graphics.MapView.Widgets
                     return double.NaN;
                 return point.DistanceSquared(location + (vectorEnd - location) * t);
             }
-            return result;
         }
         #endregion
     }
