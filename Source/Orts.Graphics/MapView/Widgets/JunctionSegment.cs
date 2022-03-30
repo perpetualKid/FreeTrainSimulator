@@ -99,6 +99,8 @@ namespace Orts.Graphics.MapView.Widgets
 
         private static float GetInboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections)
         {
+            if (null == vectorNode)
+                return 0;
             if (vectorNode.TrackVectorSections.Length < 1)
                 throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");
             // find the direction angle of the facing (in) track 
