@@ -21,7 +21,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly bool Curved;
 
         // Direction in Rad from -π to π from North (0) to South
-        internal readonly float Direction;
+        internal float Direction;
         internal float Length { get; private protected set; }
         // Angular Size (Length) of the Arc in Degree
         internal float Angle { get; private protected set; }
@@ -116,6 +116,9 @@ namespace Orts.Graphics.MapView.Widgets
             TrackVectorSectionIndex = source.TrackVectorSectionIndex;
             Angle = source.Angle;
             Radius = source.Radius;
+            centerPoint = source.centerPoint;
+            centerToStartDirection = source.centerToStartDirection;
+            centerToEndDirection = source.centerToEndDirection;
         }
 
         private protected TrackSegment()

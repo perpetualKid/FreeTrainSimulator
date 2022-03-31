@@ -227,6 +227,14 @@ namespace Orts.Graphics.MapView
                 }
                 nearestGridTile?.Draw(ContentArea, ColorVariation.Complement);
             }
+            if ((viewSettings & MapViewItemSettings.Platforms) == MapViewItemSettings.Platforms)
+            {
+                foreach (PlatformPath platform in Platforms.BoundingBox(bottomLeft, topRight))
+                {
+                    if (ContentArea.InsideScreenArea(platform))
+                        platform.Draw(ContentArea);
+                }
+            }
             if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
             {
                 foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
@@ -285,14 +293,6 @@ namespace Orts.Graphics.MapView
                 {
                     if (ContentArea.InsideScreenArea(endNode))
                         endNode.Draw(ContentArea);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.Platforms) == MapViewItemSettings.Platforms)
-            {
-                foreach (PlatformPath platform in Platforms.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(platform))
-                        platform.Draw(ContentArea);
                 }
             }
             foreach (TrackItemBase trackItem in TrackItems.BoundingBox(bottomLeft, topRight))
@@ -411,12 +411,14 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             List<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB);
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(trackItems                
-                .Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
+
 
             Dictionary<int, PlatformTrackItem> platformItems = trackItems.OfType<PlatformTrackItem>().ToDictionary(p => p.Id);
-
+            foreach (PlatformTrackItem trackItem in platformItems.Values)
+                trackItems.Remove(trackItem);
             Platforms = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(platformItems, TrackNodeSegments));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(trackItems
+                .Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
         }
         #endregion
 
