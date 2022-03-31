@@ -269,7 +269,7 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            SignalItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB, true));
+            SignalItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB, true));
         }
 
     }

@@ -36,7 +36,7 @@ namespace Orts.Graphics.MapView.Widgets
             TrackItemBase.font = font;
         }
 
-        public static List<TrackItemBase> Create(IList<TrackItem> trackItems)
+        public static List<TrackItemBase> CreateRoadItems(IList<TrackItem> trackItems)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
@@ -67,13 +67,12 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> Create(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
             Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
-
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
             foreach (TrackNode node in trackDb.TrackNodes)
@@ -98,7 +97,7 @@ namespace Orts.Graphics.MapView.Widgets
                         sidingItems.Add(trackSidingItem.Id, trackSidingItem);
                         break;
                     case PlatformItem platformItem:
-                        result.Add(new PlatformTrackItem(platformItem));
+                        result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
                         break;
                     case SpeedPostItem speedPostItem:
                         result.Add(new SpeedPostTrackItem(speedPostItem));
@@ -222,7 +221,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private readonly string sidingName;
         internal readonly int Id;
-        private readonly int linkedId;
+        internal readonly int LinkedId;
         private bool drawName;
         private bool shouldDrawName;
 
@@ -230,7 +229,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             sidingName = source.ItemName;
             Id = source.TrackItemId;
-            linkedId = source.LinkedSidingId;
+            LinkedId = source.LinkedSidingId;
             Size = 5f;
         }
 
@@ -261,11 +260,11 @@ namespace Orts.Graphics.MapView.Widgets
                 int sourceId = sidingItems.Keys.First();
                 SidingTrackItem source = sidingItems[sourceId];
                 sidingItems.Remove(sourceId);
-                if (sidingItems.TryGetValue(source.linkedId, out SidingTrackItem target))
+                if (sidingItems.TryGetValue(source.LinkedId, out SidingTrackItem target))
                 {
-                    if (target.linkedId != source.Id)
+                    if (target.LinkedId != source.Id)
                     {
-                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {source.Id} to target {source.linkedId} vs Target id {target.Id} to source {target.linkedId}.");
+                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {source.Id} to target {source.LinkedId} vs Target id {target.Id} to source {target.LinkedId}.");
                     }
                     sidingItems.Remove(target.Id);
                     result.Add(target);
@@ -274,7 +273,7 @@ namespace Orts.Graphics.MapView.Widgets
                 }
                 else
                 {
-                    Trace.TraceWarning($"Linked Siding Item {source.linkedId} for Siding Item {source.Id} not found.");
+                    Trace.TraceWarning($"Linked Siding Item {source.LinkedId} for Siding Item {source.Id} not found.");
                 }
                 result.Add(source);
             }
@@ -291,13 +290,51 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly string stationName;
         private bool shouldDrawName;
         private bool shouldDrawStationName;
+        internal readonly int Id;
+        internal readonly int LinkedId;
 
-        public PlatformTrackItem(PlatformItem source) :
+        internal TrackVectorNode TrackVectorNode;
+
+        public PlatformTrackItem(PlatformItem source, TrackVectorNode[] trackItemNodes) :
             base(source)
         {
+            TrackVectorNode = trackItemNodes[source.TrackItemId];
             platformName = source.ItemName;
             stationName = source.Station;
+            Id = source.TrackItemId;
+            LinkedId = source.LinkedPlatformItemId;
             Size = 7f;
+        }
+
+        /// <summary>
+        /// Link siding items which belong together pairwise so text only appears once (otherwise text is mostly overlapping since siding items are too close to each other
+        /// </summary>
+        internal static List<PlatformTrackItem> LinkPlatformItems(Dictionary<int, PlatformTrackItem> platformItems)
+        {
+            List<PlatformTrackItem> result = new List<PlatformTrackItem>();
+
+            while (platformItems.Count > 0)
+            {
+                int sourceId = platformItems.Keys.First();
+                PlatformTrackItem source = platformItems[sourceId];
+                platformItems.Remove(sourceId);
+                if (platformItems.TryGetValue(source.LinkedId, out PlatformTrackItem target))
+                {
+                    if (target.LinkedId != source.Id)
+                    {
+                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {source.Id} to target {source.LinkedId} vs Target id {target.Id} to source {target.LinkedId}.");
+                    }
+                    platformItems.Remove(target.Id);
+                    result.Add(target);
+                }
+                else
+                {
+                    Trace.TraceWarning($"Linked Platform Item {source.LinkedId} for Platform Item {source.Id} not found.");
+                }
+                result.Add(source);
+            }
+
+            return result;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

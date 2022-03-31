@@ -40,6 +40,7 @@ namespace Orts.Graphics.MapView
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal TileIndexedList<RoadSegment, Tile> RoadSegments { get; private set; }
         internal TileIndexedList<RoadEndSegment, Tile> RoadEndSegments { get; private set; }
+        internal TileIndexedList<PlatformPath, Tile> Platforms { get; private set; }
         internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
         internal Dictionary<int, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
@@ -286,6 +287,14 @@ namespace Orts.Graphics.MapView
                         endNode.Draw(ContentArea);
                 }
             }
+            if ((viewSettings & MapViewItemSettings.Platforms) == MapViewItemSettings.Platforms)
+            {
+                foreach (PlatformPath platform in Platforms.BoundingBox(bottomLeft, topRight))
+                {
+                    if (ContentArea.InsideScreenArea(platform))
+                        platform.Draw(ContentArea);
+                }
+            }
             foreach (TrackItemBase trackItem in TrackItems.BoundingBox(bottomLeft, topRight))
             {
                 if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem))
@@ -295,6 +304,7 @@ namespace Orts.Graphics.MapView
                 nearestTrackItem.Draw(ContentArea, ColorVariation.Highlight);
         }
 
+        #region build content database
         private void AddTrackSegments()
         {
             TrackDB trackDB = RuntimeData.Instance.TrackDB;
@@ -400,8 +410,15 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.Create(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
+            List<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB);
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(trackItems                
+                .Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
+
+            Dictionary<int, PlatformTrackItem> platformItems = trackItems.OfType<PlatformTrackItem>().ToDictionary(p => p.Id);
+
+            Platforms = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(platformItems, TrackNodeSegments));
         }
+        #endregion
 
         private protected class TrackNodeInfoProxy : TrackNodeInfoProxyBase
         {
