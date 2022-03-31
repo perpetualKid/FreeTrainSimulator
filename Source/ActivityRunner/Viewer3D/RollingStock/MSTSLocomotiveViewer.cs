@@ -1326,7 +1326,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             #region Create Control renderers
             ControlMap = new Dictionary<int, CabViewControlRenderer>();
-            int[] count = new int[256];//enough to hold all types, count the occurence of each type
+            int[] count = new int[EnumExtension.GetLength<CabViewControlType>()];//enough to hold all types, count the occurence of each type
             var i = 0;
             bool firstOne = true;
             foreach (var cabView in car.CabViewList)
