@@ -41,8 +41,9 @@ namespace Orts.Graphics.MapView
         internal TileIndexedList<RoadSegment, Tile> RoadSegments { get; private set; }
         internal TileIndexedList<RoadEndSegment, Tile> RoadEndSegments { get; private set; }
         internal TileIndexedList<PlatformPath, Tile> Platforms { get; private set; }
+
         internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
-        internal Dictionary<int, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<RoadSegment>> RoadTrackNodeSegments { get; private set; }
 
         public TrackContent(Game game) :
             base(game)
@@ -316,8 +317,8 @@ namespace Orts.Graphics.MapView
             List<TrackSegment> trackSegments = new List<TrackSegment>();
             List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
             List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
-            List<TrackSegment> roadSegments = new List<TrackSegment>();
-            List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
+            List<RoadSegment> roadSegments = new List<RoadSegment>();
+            List<RoadEndSegment> roadEndSegments = new List<RoadEndSegment>();
             foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
                 if (null == trackSectionsFile)
@@ -411,7 +412,6 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             List<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB);
-
 
             Dictionary<int, PlatformTrackItem> platformItems = trackItems.OfType<PlatformTrackItem>().ToDictionary(p => p.Id);
             foreach (PlatformTrackItem trackItem in platformItems.Values)

@@ -30,74 +30,76 @@ namespace Orts.Graphics.MapView.Widgets
             stationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
             midPoint = base.Location + (vectorEnd - base.location) / 2.0;
 
+            ref readonly PointD startLocation = ref start.Location;
+            ref readonly PointD endLocation = ref end.Location;
+
+            TrackSegment startSegment;
+            TrackSegment endSegment;
+            List<TrackSegment> segments;
+
             // simple case, both are on the same tracknode
             if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
             {
-                if (!trackNodeSegments.TryGetValue(start.TrackVectorNode.Index, out List<TrackSegment> segments))
+                if (!trackNodeSegments.TryGetValue(start.TrackVectorNode.Index, out segments))
                     throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
-                TrackSegment startSegment = null;
-                TrackSegment endSegment = null;
-                ref readonly PointD startLocation = ref start.Location;
-                ref readonly PointD endLocation = ref end.Location;
-                foreach (TrackSegment segment in segments)
-                {
-                    //find the start vector section
-                    if (segment.DistanceSquared(startLocation) < 1)
-                    {
-                        startSegment = segment;
-                        if (null != endSegment)
-                            break;
-                    }
-                    //find the end vector section
-                    if (segment.DistanceSquared(endLocation) < 1)
-                    {
-                        endSegment = segment;
-                        if (null != startSegment)
-                            break;
-                    }
-                }
-                startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
-                endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
-                //find all vector sections in between (understanding which direction to go)
-                //build a path between the two
-                if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
-                {
-                    //start section
-                    bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                    platformPath.Add(new PlatformSegment(startSegment, startLocation, reverse ? startSegment.Location : startSegment.Vector));
-                    //interim sections
-                    for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
-                    {
-                        platformPath.Add(new PlatformSegment(segments[i]));
-                    }
-                    //end section
-                    reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                    platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
-                }
-                else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
-                {
-                    //end section
-                    bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                    platformPath.Add(new PlatformSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
-                    //interim sections
-                    for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
-                    {
-                        platformPath.Add(new PlatformSegment(segments[i]));
-                    }
-                    //start section
-                    reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                    platformPath.Add(new PlatformSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
-                }
-                //on a single track vector section
-                else
-                {
-                    platformPath.Add(new PlatformSegment(startSegment, startLocation, endLocation));
-                }
+
+                (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
             }
-            //advanced case, need to check junctions along the track
+            //advanced case, most likely it's just on the junction node due to overlap
             else
             {
-                //                throw new NotImplementedException();
+                //check if the this was close enough on the other tracknode, maybe just a rounding error
+                if (!trackNodeSegments.TryGetValue(start.TrackVectorNode.Index, out segments))
+                    throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
+                (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
+
+                if (startSegment == null || endSegment == null)
+                {
+                    if (!trackNodeSegments.TryGetValue(end.TrackVectorNode.Index, out segments))
+                        throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
+
+                    (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
+                }
+                if (startSegment == null || endSegment == null)
+                    Trace.TraceWarning($"Can't connect platform ends for Platform '{start.PlatformName}' in station '{start.StationName}'.");
+            }
+
+            startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
+            endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
+            //find all vector sections in between (understanding which direction to go)
+            //build a path between the two
+            if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
+            {
+                //start section
+                bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
+                platformPath.Add(new PlatformSegment(startSegment, startLocation, reverse ? startSegment.Location : startSegment.Vector));
+                //interim sections
+                for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
+                {
+                    platformPath.Add(new PlatformSegment(segments[i]));
+                }
+                //end section
+                reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
+                platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
+            }
+            else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
+            {
+                //end section
+                bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
+                platformPath.Add(new PlatformSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
+                //interim sections
+                for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
+                {
+                    platformPath.Add(new PlatformSegment(segments[i]));
+                }
+                //start section
+                reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
+                platformPath.Add(new PlatformSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
+            }
+            //on a single track vector section
+            else
+            {
+                platformPath.Add(new PlatformSegment(startSegment, startLocation, endLocation));
             }
         }
 
@@ -142,18 +144,42 @@ namespace Orts.Graphics.MapView.Widgets
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, stationName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
-        private static TrackSegment CheckForSegmentOverrun(TrackSegment segment, in PointD targetLocation, List<TrackSegment> trackNodeSegments)
+        private static TrackSegment CheckForSegmentOverrun(TrackSegment expectedSegment, in PointD targetLocation, List<TrackSegment> trackNodeSegments)
         {
             // seems the platform marker is placed beyond the tracknode
             // so we need to figure which end is closer to the unset marker and run the platform until there
-            if (segment == null)
+            if (expectedSegment == null)
             {
-                segment = trackNodeSegments[0];
+                expectedSegment = trackNodeSegments[0];
                 double distanceFromStart = Math.Min(trackNodeSegments[0].Location.DistanceSquared(targetLocation), trackNodeSegments[0].Vector.DistanceSquared(targetLocation));
                 if (trackNodeSegments[^1].Location.DistanceSquared(targetLocation) < distanceFromStart || trackNodeSegments[^1].Vector.DistanceSquared(targetLocation) < distanceFromStart)
-                    segment = trackNodeSegments[^1];
+                    expectedSegment = trackNodeSegments[^1];
             }
-            return segment;
+            return expectedSegment;
+        }
+
+        private static (TrackSegment startSegment, TrackSegment endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<TrackSegment> segments)
+        {
+            TrackSegment startSegment = null;
+            TrackSegment endSegment = null;
+            foreach (TrackSegment segment in segments)
+            {
+                //find the start vector section
+                if (segment.DistanceSquared(startLocation) < 1)
+                {
+                    startSegment = segment;
+                    if (null != endSegment)
+                        break;
+                }
+                //find the end vector section
+                if (segment.DistanceSquared(endLocation) < 1)
+                {
+                    endSegment = segment;
+                    if (null != startSegment)
+                        break;
+                }
+            }
+            return (startSegment, endSegment);
         }
     }
 
