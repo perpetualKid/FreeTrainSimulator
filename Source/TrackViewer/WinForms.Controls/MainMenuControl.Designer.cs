@@ -85,7 +85,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.roadTrackColorComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.roadTrackEndColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.roadTrackEndColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
-            this.platformTextColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.sidingColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
@@ -399,7 +399,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.roadTrackColorToolStripMenuItem,
             this.roadTrackEndColorToolStripMenuItem,
             this.pathTrackColorToolStripMenuItem,
-            this.platformTextColorToolStripMenuItem,
+            this.platformColorToolStripMenuItem,
             this.sidingColorToolStripMenuItem,
             this.speedpostColorToolStripMenuItem,
             this.toolStripSeparator4});
@@ -554,13 +554,13 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.roadTrackEndColorToolStripComboBoxMenuItem.Name = "roadTrackEndColorToolStripComboBoxMenuItem";
             this.roadTrackEndColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
             // 
-            // platformTextColorToolStripMenuItem
+            // platformColorToolStripMenuItem
             // 
-            this.platformTextColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.platformColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.platformColorToolStripComboBoxMenuItem});
-            this.platformTextColorToolStripMenuItem.Name = "platformTextColorToolStripMenuItem";
-            this.platformTextColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
-            this.platformTextColorToolStripMenuItem.Text = "Platform Text Color";
+            this.platformColorToolStripMenuItem.Name = "platformColorToolStripMenuItem";
+            this.platformColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.platformColorToolStripMenuItem.Text = "Platform Color";
             // 
             // platformColorToolStripComboBoxMenuItem
             // 
@@ -694,7 +694,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private System.Windows.Forms.ToolStripComboBox railJunctionColorComboBoxMenuItem;
         private System.Windows.Forms.ToolStripMenuItem railCrossingColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem railLevelCrossingColorToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem platformTextColorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem platformColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sidingColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem speedpostColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox speedpostColorToolStripComboBoxMenuItem;

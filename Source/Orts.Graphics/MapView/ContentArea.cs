@@ -134,6 +134,9 @@ namespace Orts.Graphics.MapView
                     break;
                 case ColorSetting.PlatformItem:
                     PointWidget.UpdateColor<PlatformTrackItem>(color);
+                    PointWidget.UpdateColor<PlatformPath>(color);
+                    color.A = 160;
+                    PointWidget.UpdateColor<PlatformSegment>(color);
                     break;
                 case ColorSetting.SidingItem:
                     PointWidget.UpdateColor<SidingTrackItem>(color);

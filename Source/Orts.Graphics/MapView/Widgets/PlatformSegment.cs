@@ -77,16 +77,16 @@ namespace Orts.Graphics.MapView.Widgets
                 else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
                 {
                     //end section
-                    bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                    platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Location : endSegment.Vector, endLocation));
+                    bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
+                    platformPath.Add(new PlatformSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
                     //interim sections
                     for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                     {
                         platformPath.Add(new PlatformSegment(segments[i]));
                     }
                     //start section
-                    reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                    platformPath.Add(new PlatformSegment(startSegment, startLocation, reverse ? startSegment.Vector : startSegment.Location));
+                    reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
+                    platformPath.Add(new PlatformSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
                 }
                 //on a single track vector section
                 else
@@ -137,7 +137,7 @@ namespace Orts.Graphics.MapView.Widgets
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
 
-            Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
+            Color fontColor = GetColor<PlatformPath>(colorVariation);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, platformName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, stationName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
@@ -204,8 +204,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<PlatformTrackItem>(colorVariation);
-            drawColor.A = 160;
+            Color drawColor = GetColor<PlatformSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
             else
