@@ -133,6 +133,16 @@ namespace Orts.Common.Position
             return new PointD(source.X * scalar, source.Y * scalar);
         }
 
+        public static PointD operator /(in PointD source, double scalar)
+        {
+            return Divide(source, scalar);
+        }
+
+        public static PointD Divide(in PointD source, double scalar)
+        {
+            return new PointD(source.X / scalar, source.Y / scalar);
+        }
+
         public override string ToString()
         {
             return $"{{X:{X} Y:{Y}}}";

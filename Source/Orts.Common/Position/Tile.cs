@@ -80,5 +80,10 @@ namespace Orts.Common.Position
         {
             return Convert.ToInt16(Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
+
+        public override string ToString()
+        {
+            return $"{{X:{X} Z:{Z}}}";
+        }
     }
 }

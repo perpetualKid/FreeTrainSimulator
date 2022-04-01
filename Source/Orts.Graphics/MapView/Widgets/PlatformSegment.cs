@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
+using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
@@ -13,8 +15,10 @@ namespace Orts.Graphics.MapView.Widgets
     internal class PlatformPath : VectorWidget
     {
         private static Dictionary<int, List<TrackSegment>> trackNodeSegments;
-
         private readonly List<PlatformSegment> platformPath = new List<PlatformSegment>();
+        private readonly string platformName;
+        private readonly string stationName;
+        private readonly PointD midPoint;
 
         internal PlatformPath(PlatformTrackItem start, PlatformTrackItem end)
         {
@@ -22,6 +26,9 @@ namespace Orts.Graphics.MapView.Widgets
             tile = start.Tile;
             vectorEnd = end.Location;
             otherTile = end.Tile;
+            platformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
+            stationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
+            midPoint = base.Location + (vectorEnd - base.location) / 2.0;
 
             // simple case, both are on the same tracknode
             if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
@@ -35,51 +42,62 @@ namespace Orts.Graphics.MapView.Widgets
                 foreach (TrackSegment segment in segments)
                 {
                     //find the start vector section
-                    double startDistance = segment.DistanceSquared(startLocation);
-                    if (startDistance < 0.1)
+                    if (segment.DistanceSquared(startLocation) < 1)
                     {
                         startSegment = segment;
                         if (null != endSegment)
                             break;
                     }
                     //find the end vector section
-                    double endDistance = segment.DistanceSquared(endLocation);
-                    if (endDistance < 0.1)
+                    if (segment.DistanceSquared(endLocation) < 1)
                     {
                         endSegment = segment;
                         if (null != startSegment)
                             break;
                     }
-
                 }
-                Debug.Assert(startSegment != null && endSegment != null);
+                startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
+                endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
                 //find all vector sections in between (understanding which direction to go)
                 //build a path between the two
                 if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
                 {
+                    //start section
                     bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
                     platformPath.Add(new PlatformSegment(startSegment, startLocation, reverse ? startSegment.Location : startSegment.Vector));
+                    //interim sections
                     for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                     {
                         platformPath.Add(new PlatformSegment(segments[i]));
                     }
+                    //end section
                     reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                    platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Vector: endSegment.Location, endLocation));
+                    platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
                 }
                 else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
                 {
-                    for (int i = endSegment.TrackVectorSectionIndex; i <= endSegment.TrackVectorSectionIndex; i++)
+                    //end section
+                    bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
+                    platformPath.Add(new PlatformSegment(endSegment, reverse ? endSegment.Location : endSegment.Vector, endLocation));
+                    //interim sections
+                    for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                     {
-                        //platformPath.Add(new PlatformSegment(segments[i]));
+                        platformPath.Add(new PlatformSegment(segments[i]));
                     }
+                    //start section
+                    reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
+                    platformPath.Add(new PlatformSegment(startSegment, startLocation, reverse ? startSegment.Vector : startSegment.Location));
                 }
+                //on a single track vector section
                 else
+                {
                     platformPath.Add(new PlatformSegment(startSegment, startLocation, endLocation));
+                }
             }
             //advanced case, need to check junctions along the track
             else
             {
-                throw new NotImplementedException();
+                //                throw new NotImplementedException();
             }
         }
 
@@ -118,6 +136,24 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
+
+            Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, platformName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, stationName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+        }
+
+        private static TrackSegment CheckForSegmentOverrun(TrackSegment segment, in PointD targetLocation, List<TrackSegment> trackNodeSegments)
+        {
+            // seems the platform marker is placed beyond the tracknode
+            // so we need to figure which end is closer to the unset marker and run the platform until there
+            if (segment == null)
+            {
+                segment = trackNodeSegments[0];
+                double distanceFromStart = Math.Min(trackNodeSegments[0].Location.DistanceSquared(targetLocation), trackNodeSegments[0].Vector.DistanceSquared(targetLocation));
+                if (trackNodeSegments[^1].Location.DistanceSquared(targetLocation) < distanceFromStart || trackNodeSegments[^1].Vector.DistanceSquared(targetLocation) < distanceFromStart)
+                    segment = trackNodeSegments[^1];
+            }
+            return segment;
         }
     }
 
@@ -159,33 +195,6 @@ namespace Orts.Graphics.MapView.Widgets
                 deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
                 Angle += MathHelper.ToDegrees(deltaAngle);
-                //if (Angle >= 0)
-                //{
-                //    PointD deltaStart = location - centerPoint;
-                //    float deltaAngle = MathHelper.WrapAngle((float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2);
-                //    deltaAngle = centerToStartDirection - deltaAngle;
-                //    Direction -= deltaAngle;
-                //    Angle += MathHelper.ToDegrees(deltaAngle);
-                //    PointD deltaEnd = vectorEnd - centerPoint;
-                //    deltaAngle = MathHelper.WrapAngle((float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2);
-                //    deltaAngle = deltaAngle - centerToEndDirection;
-                //    Angle += MathHelper.ToDegrees(deltaAngle);
-                //}
-                //else
-                //{
-                //    PointD deltaStart = location - centerPoint;
-                //    float deltaAngle = MathHelper.WrapAngle((float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2);
-                //    deltaAngle = centerToStartDirection - deltaAngle;
-                //    Direction -= deltaAngle;
-                //    Angle += MathHelper.ToDegrees(deltaAngle);
-
-                //    PointD deltaEnd = vectorEnd - centerPoint;
-                //    deltaAngle = MathHelper.WrapAngle((float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2);
-                //    deltaAngle = deltaAngle - centerToEndDirection;
-                //    Angle += MathHelper.ToDegrees(deltaAngle);
-
-                //}
-
             }
             else
             {

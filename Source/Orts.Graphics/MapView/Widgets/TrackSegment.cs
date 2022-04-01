@@ -57,13 +57,14 @@ namespace Orts.Graphics.MapView.Widgets
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
 
+            base.location = PointD.FromWorldLocation(location);
+            tile = new Tile(location.TileX, location.TileZ);
+
             TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
 
             if (null == trackSection)
-                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
-
-            base.location = PointD.FromWorldLocation(location);
-            tile = new Tile(location.TileX, location.TileZ);
+                return;
+//                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
 
             Size = trackSection.Width;
             Curved = trackSection.Curved;

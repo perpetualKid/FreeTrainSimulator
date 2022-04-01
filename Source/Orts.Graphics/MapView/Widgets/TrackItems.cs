@@ -286,8 +286,8 @@ namespace Orts.Graphics.MapView.Widgets
     #region PlatformTrackItem
     internal class PlatformTrackItem : TrackItemBase
     {
-        private readonly string platformName;
-        private readonly string stationName;
+        internal readonly string PlatformName;
+        internal readonly string StationName;
         private bool shouldDrawName;
         private bool shouldDrawStationName;
         internal readonly int Id;
@@ -299,42 +299,11 @@ namespace Orts.Graphics.MapView.Widgets
             base(source)
         {
             TrackVectorNode = trackItemNodes[source.TrackItemId];
-            platformName = source.ItemName;
-            stationName = source.Station;
+            PlatformName = source.ItemName;
+            StationName = source.Station;
             Id = source.TrackItemId;
             LinkedId = source.LinkedPlatformItemId;
             Size = 7f;
-        }
-
-        /// <summary>
-        /// Link siding items which belong together pairwise so text only appears once (otherwise text is mostly overlapping since siding items are too close to each other
-        /// </summary>
-        internal static List<PlatformTrackItem> LinkPlatformItems(Dictionary<int, PlatformTrackItem> platformItems)
-        {
-            List<PlatformTrackItem> result = new List<PlatformTrackItem>();
-
-            while (platformItems.Count > 0)
-            {
-                int sourceId = platformItems.Keys.First();
-                PlatformTrackItem source = platformItems[sourceId];
-                platformItems.Remove(sourceId);
-                if (platformItems.TryGetValue(source.LinkedId, out PlatformTrackItem target))
-                {
-                    if (target.LinkedId != source.Id)
-                    {
-                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {source.Id} to target {source.LinkedId} vs Target id {target.Id} to source {target.LinkedId}.");
-                    }
-                    platformItems.Remove(target.Id);
-                    result.Add(target);
-                }
-                else
-                {
-                    Trace.TraceWarning($"Linked Platform Item {source.LinkedId} for Platform Item {source.Id} not found.");
-                }
-                result.Add(source);
-            }
-
-            return result;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -342,9 +311,9 @@ namespace Orts.Graphics.MapView.Widgets
             Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
             if (shouldDrawName)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, platformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
             if (shouldDrawStationName)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, stationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         internal override bool ShouldDraw(MapViewItemSettings setting)

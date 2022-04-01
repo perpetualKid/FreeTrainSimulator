@@ -42,7 +42,6 @@ namespace Orts.Graphics.MapView
         internal SpriteBatch SpriteBatch => spriteBatch;
 
         private readonly FontManagerInstance fontManager;
-        private System.Drawing.Font currentFont;
 
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
@@ -64,6 +63,8 @@ namespace Orts.Graphics.MapView
         public Point WindowSize { get; private set; }
 
         public ref readonly PointD WorldPosition => ref worldPosition;
+
+        public System.Drawing.Font CurrentFont { get; private set; }
 
         internal ContentArea(Game game, ContentBase content) :
             base(game)
@@ -187,6 +188,7 @@ namespace Orts.Graphics.MapView
             if (double.TryParse(locationDetails[0], out double lon) && double.TryParse(locationDetails[1], out double lat) && double.TryParse(locationDetails[2], out double scale))
             {
                 Scale = scale;
+                UpdateFontSize();
                 CenterAround(new PointD(lon, lat));
             }
             SuppressDrawing = false;
@@ -206,6 +208,7 @@ namespace Orts.Graphics.MapView
             offsetY += (WindowSize.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
 
+            UpdateFontSize();
             SetBounds();
         }
 
@@ -221,6 +224,8 @@ namespace Orts.Graphics.MapView
             else if (scale > scaleMax)
                 scale = scaleMax;
             Scale = scale;
+
+            UpdateFontSize();
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -395,12 +400,13 @@ namespace Orts.Graphics.MapView
             double yScale = (double)(WindowSize.Y - screenHeightDelta) / bounds.Height;
             Scale = Math.Min(xScale, yScale);
             scaleMin = Scale * 0.75;
+            UpdateFontSize();
         }
 
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
-            DrawContent();
+            Content.Draw(bottomLeft, topRight);
             spriteBatch.End();
             base.Draw(gameTime);
             SuppressDrawing = true;
@@ -451,14 +457,12 @@ namespace Orts.Graphics.MapView
             return !outside;
         }
 
-        private void DrawContent()
+        private void UpdateFontSize()
         {
             int fontsize = MathHelper.Clamp((int)(25 * Scale), 1, 25);
-            if (fontsize != (currentFont?.Size ?? 0))
-                currentFont = fontManager[fontsize];
-            TrackItemBase.SetFont(currentFont);
-
-            Content.Draw(bottomLeft, topRight);
+            if (fontsize != (CurrentFont?.Size ?? 0))
+                CurrentFont = fontManager[fontsize];
+            TrackItemBase.SetFont(CurrentFont);
         }
 
         protected override void Dispose(bool disposing)

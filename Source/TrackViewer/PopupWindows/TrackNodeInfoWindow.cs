@@ -30,7 +30,7 @@ namespace Orts.TrackViewer.PopupWindows
             layout = layout.AddLayoutVertical();
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
-                InformationProvider = contentArea.Content.TrackNodeInfo,
+                InformationProvider = contentArea?.Content.TrackNodeInfo,
                 ColumnWidth = 100,
             };
             layout.Add(trackNodeInfoGrid);
