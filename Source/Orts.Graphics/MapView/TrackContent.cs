@@ -85,46 +85,6 @@ namespace Orts.Graphics.MapView
             }
         }
 
-        public void UpdateColor(ColorSetting setting, Color color)
-        {
-            switch (setting)
-            {
-                case ColorSetting.Background:
-                    insetComponent?.UpdateColor(color);
-                    break;
-                case ColorSetting.RailTrack:
-                    PointWidget.UpdateColor<TrackSegment>(color);
-                    break;
-                case ColorSetting.RailTrackEnd:
-                    PointWidget.UpdateColor<TrackEndSegment>(color);
-                    break;
-                case ColorSetting.RailTrackJunction:
-                    PointWidget.UpdateColor<JunctionSegment>(color);
-                    break;
-                case ColorSetting.RailTrackCrossing:
-                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
-                    break;
-                case ColorSetting.RailLevelCrossing:
-                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
-                    break;
-                case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadSegment>(color);
-                    break;
-                case ColorSetting.RoadTrackEnd:
-                    PointWidget.UpdateColor<RoadEndSegment>(color);
-                    break;
-                case ColorSetting.PlatformItem:
-                    PointWidget.UpdateColor<PlatformTrackItem>(color);
-                    break;
-                case ColorSetting.SidingItem:
-                    PointWidget.UpdateColor<SidingTrackItem>(color);
-                    break;
-                case ColorSetting.SpeedPostItem:
-                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
-                    break;
-            }
-        }
-
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
             nearestSegmentForStatus = (float.NaN, null);

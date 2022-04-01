@@ -53,14 +53,14 @@ namespace Orts.Common.Position
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
-        public IEnumerable<ITileCoordinate<T>> this[ITile tile]
+        public IEnumerable<TTileCoordinate> this[ITile tile]
 #pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             get
             {
                 if (!tiles.ContainsKey(tile))
                     yield break;
-                foreach (ITileCoordinate<T> item in tiles[tile])
+                foreach (TTileCoordinate item in tiles[tile])
                     yield return item;
             }
         }

@@ -108,8 +108,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             lblSimulationTimeText.Visible = timetableView;
             lblSimulationTime.Visible = timetableView;
             lblShow.Visible = timetableView;
-            cbShowPlatforms.Visible = timetableView;
-            cbShowPlatformLabels.Visible = timetableView;
             cbShowSidings.Visible = timetableView;
             cbShowTrainLabels.Visible = timetableView;
             cbShowTrainState.Visible = timetableView;
@@ -126,11 +124,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Name = "Timetable Window";
             trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
-            PlatformFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             trainBrush = new SolidBrush(Color.Red);
             inactiveTrainBrush = new SolidBrush(Color.DarkRed);
             sidingBrush = new SolidBrush(Color.Blue);
-            platformBrush = new SolidBrush(Color.DarkBlue);
             pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
         }
 
@@ -208,49 +204,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             sidings.Add(replacement);
                         }
                         break;
-                    case PlatformItem platformItem:
-                        // Platforms have 2 ends but are not always listed in pairs in the *.tdb file
-                        // Neither are their names unique (e.g. Bernina Bahn).
-                        // Find whether this platform is a new one or the other end of an old one.
-                        // If other end, then find the right-hand one as the location for a single label.
-                        var oldPlatformIndex = platforms.FindIndex(r => r.LinkId == item.TrackItemId && r.Name == item.ItemName);
-                        if (oldPlatformIndex < 0)
-                        {
-                            var newPlatform = new PlatformWidget(item as PlatformItem)
-                            {
-                                Extent1 = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z)
-                            };
-                            platforms.Add(newPlatform);
-                        }
-                        else
-                        {
-                            var oldPlatform = platforms[oldPlatformIndex];
-                            var oldLocation = oldPlatform.Location;
-                            var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-
-                            // Because these are structs, not classes, compiler won't let you overwrite them.
-                            // Instead create a single item which replaces the 2 platform items.
-                            var replacement = new PlatformWidget(item as PlatformItem)
-                            {
-                                Extent1 = oldLocation,
-                                Extent2 = newLocation,
-                                Location = (oldLocation.X > newLocation.X) ? oldLocation : newLocation
-                            };
-
-                            // Replace the old platform item with the replacement
-                            platforms.RemoveAt(oldPlatformIndex);
-                            platforms.Add(replacement);
-                        }
-                        break;
-
                     default:
                         break;
                 }
             }
-
-            foreach (var p in platforms)
-                if (p.Extent1.IsEmpty || p.Extent2.IsEmpty)
-                    Trace.TraceWarning("Platform '{0}' is incomplete as the two ends do not match. It will not show in full in the Timetable Tab of the Map Window", p.Name);
         }
 
         private void GenerateTimetableView(bool dragging)
@@ -285,9 +242,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 grayPen.Width = greenPen.Width = orangePen.Width = redPen.Width = penWidth;
                 pathPen.Width = penWidth * 2;
 
-                // First so track is drawn over the thicker platform line
-                DrawPlatforms(g, penWidth);
-
                 // Draw track
                 PointF scaledA, scaledB;
                 DrawTrack(g, p, out scaledA, out scaledB);
@@ -299,7 +253,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     // Draw labels for sidings and platforms last so they go on top for readability
                     CleanTextCells();  // Empty the listing of labels ready for adding labels again
-                    ShowPlatformLabels(g); // Platforms take priority over sidings and signal states
+
                     ShowSidingLabels(g);
                 }
                 DrawZoomTarget(g);
@@ -327,54 +281,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             var ct = TimeSpan.FromSeconds(Simulator.Instance.ClockTime);
             lblSimulationTime.Text = $"{ct:hh}:{ct:mm}:{ct:ss}";
-        }
-
-        private void DrawPlatforms(System.Drawing.Graphics g, int penWidth)
-        {
-            if (cbShowPlatforms.Checked)
-            {
-                // Platforms can be obtrusive, so draw in solid blue only when zoomed in and fade them as we zoom out
-                switch (penWidth)
-                {
-                    case 1:
-                        platformPen.Color = Color.FromArgb(0, 0, 255);
-                        break;
-                    case 2:
-                        platformPen.Color = Color.FromArgb(150, 150, 255);
-                        break;
-                    default:
-                        platformPen.Color = Color.FromArgb(200, 200, 255);
-                        break;
-                }
-
-                var width = grayPen.Width * 3;
-                platformPen.Width = width;
-                foreach (var p in platforms)
-                {
-                    var scaledA = new PointF((p.Extent1.X - subX) * xScale, pbCanvas.Height - (p.Extent1.Y - subY) * yScale);
-                    var scaledB = new PointF((p.Extent2.X - subX) * xScale, pbCanvas.Height - (p.Extent2.Y - subY) * yScale);
-
-                    FixForBadData(width, ref scaledA, ref scaledB, p.Extent1, p.Extent2);
-                    g.DrawLine(platformPen, scaledA, scaledB);
-                }
-            }
-        }
-
-        /// <summary>
-        /// In case of missing X,Y values, just draw a blob at the non-zero end.
-        /// </summary>
-        private void FixForBadData(float width, ref PointF scaledA, ref PointF scaledB, PointF Extent1, PointF Extent2)
-        {
-            if (Extent1.X == 0 || Extent1.Y == 0)
-            {
-                scaledA.X = scaledB.X + width;
-                scaledA.Y = scaledB.Y + width;
-            }
-            else if (Extent2.X == 0 || Extent2.Y == 0)
-            {
-                scaledB.X = scaledA.X + width;
-                scaledB.Y = scaledA.Y + width;
-            }
         }
 
         private void DrawTrack(System.Drawing.Graphics g, Pen p, out PointF scaledA, out PointF scaledB)
@@ -418,28 +324,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     scaledItem.Y = GetUnusedYLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
                     if (scaledItem.Y >= 0f) // -1 indicates no free slot to draw label
                         g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
-                }
-        }
-
-        private void ShowPlatformLabels(System.Drawing.Graphics g)
-        {
-            var platformMarginPxX = 5;
-
-            if (cbShowPlatformLabels.CheckState == System.Windows.Forms.CheckState.Checked)
-                foreach (var p in platforms)
-                {
-                    var scaledItem = new PointF();
-                    scaledItem.X = (p.Location.X - subX) * xScale + platformMarginPxX;
-                    var yPixels = pbCanvas.Height - (p.Location.Y - subY) * yScale;
-
-                    // If track is close to horizontal, then start label search 1 row down to minimise overwriting platform line.
-                    if (p.Extent1.X != p.Extent2.X
-                        && Math.Abs((p.Extent1.Y - p.Extent2.Y) / (p.Extent1.X - p.Extent2.X)) < 0.1)
-                        yPixels += DispatchViewer.spacing;
-
-                    scaledItem.Y = GetUnusedYLocation(scaledItem.X, pbCanvas.Height - (p.Location.Y - subY) * yScale, p.Name);
-                    if (scaledItem.Y >= 0f) // -1 indicates no free slot to draw label
-                        g.DrawString(p.Name, PlatformFont, platformBrush, scaledItem);
                 }
         }
 

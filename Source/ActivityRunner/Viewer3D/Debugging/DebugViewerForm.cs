@@ -87,7 +87,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private Pen trainPen = new Pen(Color.DarkGreen);
         private Pen pathPen = new Pen(Color.DeepPink);
         private Pen grayPen = new Pen(Color.Gray);
-        private Pen platformPen = new Pen(Color.Blue);
 
         //the train selected by leftclicking the mouse
         public Train PickedTrain;
@@ -184,10 +183,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private Font trainFont;
         private Font sidingFont;
-        private Font PlatformFont;
         private SolidBrush trainBrush;
         private SolidBrush sidingBrush;
-        private SolidBrush platformBrush;
         private SolidBrush inactiveTrainBrush;
 
         private double lastUpdateTime;
@@ -293,7 +290,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private bool Inited;
         private List<LineSegment> segments = new List<LineSegment>();
         private List<SidingWidget> sidings = new List<SidingWidget>();
-        private List<PlatformWidget> platforms = new List<PlatformWidget>();
 
         /// <summary>
         /// Initialises the picturebox and the image it contains. 
@@ -655,8 +651,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     CleanVerticalCells();//clean the drawing area for text of sidings and platforms
                     foreach (var sw in sidings)
                         scaledItem = DrawSiding(g, scaledItem, sw);
-                    foreach (var pw in platforms)
-                        scaledItem = DrawPlatform(g, scaledItem, pw);
 
                     var margin = 30 * xScale;//margins to determine if we want to draw a train
                     var margin2 = 5000 * xScale;
@@ -802,17 +796,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         private PointF DrawSiding(System.Drawing.Graphics g, PointF scaledItem, SidingWidget s)
-        {
-            scaledItem.X = (s.Location.X - subX) * xScale;
-            scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
-            if (scaledItem.Y >= 0f) //if we need to draw the siding names
-            {
-
-                g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
-            }
-            return scaledItem;
-        }
-        private PointF DrawPlatform(System.Drawing.Graphics g, PointF scaledItem, PlatformWidget s)
         {
             scaledItem.X = (s.Location.X - subX) * xScale;
             scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
@@ -1737,40 +1720,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
         }
     }
-
-    public struct PlatformWidget
-    {
-        public int Id;
-        public PointF Location;
-        public string Name;
-        public PointF Extent1;
-        public PointF Extent2;
-        public int LinkId;
-        public string Station;
-
-        /// <summary>
-        /// The underlying track item.
-        /// </summary>
-		public PlatformItem Item;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-		public PlatformWidget(PlatformItem item)
-        {
-            Id = item.TrackItemId;
-            LinkId = item.LinkedPlatformItemId;
-            Item = item;
-            Name = item.ItemName;
-            Station = item.Station;
-            Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-            Extent1 = default(PointF);
-            Extent2 = default(PointF);
-        }
-    }
-
     #endregion
 
     public class DebugVector
