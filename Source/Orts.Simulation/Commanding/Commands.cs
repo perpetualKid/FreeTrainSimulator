@@ -2265,10 +2265,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver?.Train?.EndOfTrainDevice != null)
-            {
-                Receiver.Train.EndOfTrainDevice.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
-            }
+                Receiver.Train.EndOfTrainDevice?.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
         }
     }
 

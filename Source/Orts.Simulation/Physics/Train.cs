@@ -800,10 +800,6 @@ namespace Orts.Simulation.Physics
             InitialSpeed = inf.ReadSingle();
             IsPathless = inf.ReadBoolean();
 
-            /*           var hasEOT = inf.ReadInt32();
-           if (hasEOT == 1)
-               EOT = new EOT(inf, this);*/
-
             if (TrainType != TrainType.Remote)
             {
                 // restore leadlocomotive
@@ -1064,13 +1060,6 @@ namespace Orts.Simulation.Physics
             // Save initial speed
             outf.Write(InitialSpeed);
             outf.Write(IsPathless);
-            /*           if (EOT != null)
-                       {
-                           outf.Write(1);
-                           EOT.Save(outf);
-                       }
-                       else
-                           outf.Write(-1);*/
         }
 
         private void SaveCars(BinaryWriter outf)

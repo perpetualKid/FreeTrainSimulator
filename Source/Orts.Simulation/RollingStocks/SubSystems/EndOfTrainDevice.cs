@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -65,11 +66,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float CommTestDelayS { get; protected set; } = 5f;
         public float LocalTestDelayS { get; protected set; } = 25f;
 
-        public static Random IDRandom { get; } = new Random();
-        public int ID;
-        public EoTState State;
-        public bool EOTEmergencyBrakingOn;
-        public EndOfTrainLevel EOTLevel;
+        private static readonly Random IDRandom = new Random();
+        public int ID { get; private set; }
+        public EoTState State { get; set; }
+        public bool EOTEmergencyBrakingOn { get; private set; }
+        private EndOfTrainLevel level;
 
         private protected Timer delayTimer;
 
@@ -80,25 +81,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             ID = IDRandom.Next(0, 99999);
             delayTimer = new Timer(this);
         }
-
-        /*        public EOT(MSTSLocomotive.EOTenabled eotEnabled, bool armed, Train train)
-                {
-                    Train = train;
-                    EOTState = EOTstate.Disarmed;
-                    EOTType = eotEnabled;
-                    ID = IDRandom.Next(0, 99999);
-                    if (armed)
-                        EOTState = EOTstate.Armed;
-                    DelayTimer = new Timer(this);
-                }*/
-
-        /*       public EOT(BinaryReader inf, Train train)
-               {
-                   Train = train;
-                   ID = inf.ReadInt32();
-                   EOTState = (EOTstate)(inf.ReadInt32());
-                   DelayTimer = new Timer(this);
-               }*/
 
         public override void Initialize()
         {
@@ -113,7 +95,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public void InitializeLevel()
         {
-            switch (EOTLevel)
+            switch (level)
             {
                 case EndOfTrainLevel.OneWay:
                     State = EoTState.Armed;
@@ -152,7 +134,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     }
                     break;
                 case EoTState.Armed:
-                    if (EOTLevel == EndOfTrainLevel.TwoWay)
+                    if (level == EndOfTrainLevel.TwoWay)
                     {
                         if (delayTimer == null)
                             delayTimer = new Timer(this);
@@ -182,14 +164,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 case "ortseot(level":
                     stf.MustMatch("(");
                     var eotLevel = stf.ReadString();
-                    try
-                    {
-                        EOTLevel = (EndOfTrainLevel)Enum.Parse(typeof(EndOfTrainLevel), eotLevel.First().ToString().ToUpper() + eotLevel.Substring(1));
-                    }
-                    catch
-                    {
+                    if (!EnumExtension.GetValue(eotLevel, out level))
                         STFException.TraceWarning(stf, "Skipped unknown EOT Level " + eotLevel);
-                    }
                     break;
                 default:
                     base.Parse(lowercasetoken, stf);
@@ -218,7 +194,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             base.Copy(source);
             EndOfTrainDevice eotcopy = (EndOfTrainDevice)source;
-            EOTLevel = eotcopy.EOTLevel;
+            level = eotcopy.level;
         }
 
         public float GetDataOf(CabViewControl cvc)
@@ -242,7 +218,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public void CommTest()
         {
             if (State == EoTState.Disarmed &&
-                (EOTLevel == EndOfTrainLevel.OneWay || EOTLevel == EndOfTrainLevel.TwoWay))
+                (level == EndOfTrainLevel.OneWay || level == EndOfTrainLevel.TwoWay))
             {
                 if (delayTimer == null)
                     delayTimer = new Timer(this);
