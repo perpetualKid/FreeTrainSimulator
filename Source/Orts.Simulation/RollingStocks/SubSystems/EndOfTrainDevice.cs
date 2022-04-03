@@ -185,6 +185,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             ID = inf.ReadInt32();
             State = (EoTState)(inf.ReadInt32());
             delayTimer = new Timer(this);
+            switch (State)
+            {
+                case EoTState.CommTestOn:
+                    // restart timer
+                    delayTimer.Setup(CommTestDelayS);
+                    delayTimer.Start();
+                    break;
+                case EoTState.LocalTestOn:
+                    // restart timer
+                    delayTimer.Setup(LocalTestDelayS);
+                    delayTimer.Start();
+                    break;
+                default:
+                    break;
+            }
             base.Restore(inf);
             if (Train != null)
                 Train.EndOfTrainDevice = this;
