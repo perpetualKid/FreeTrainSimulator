@@ -61,7 +61,7 @@ namespace Orts.Graphics.MapView
                         segment.Draw(ContentArea);
                 }
             }
-            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
+            if ((viewSettings & MapViewItemSettings.EndNodes) == MapViewItemSettings.EndNodes)
             {
                 foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
                 {
@@ -79,7 +79,7 @@ namespace Orts.Graphics.MapView
             }
             foreach (TrackItemBase trackItem in SignalItems.BoundingBox(bottomLeft, topRight))
             {
-                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
+//                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
                     trackItem.Draw(ContentArea);
             }
             foreach (PathSegment segment in PathSegments)

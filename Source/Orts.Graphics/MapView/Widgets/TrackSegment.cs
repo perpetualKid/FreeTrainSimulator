@@ -135,7 +135,7 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         #region math
-        public virtual double DistanceSquared(in PointD point)
+        public override double DistanceSquared(in PointD point)
         {
             if (Curved)
             {

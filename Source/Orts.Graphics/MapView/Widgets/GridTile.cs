@@ -6,7 +6,7 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class GridTile: PointWidget, ITileCoordinate<Tile>
+    internal class GridTile: VectorWidget, ITileCoordinate<Tile>
     {
         private readonly PointD lowerLeft;
         private readonly PointD upperLeft;
@@ -30,6 +30,7 @@ namespace Orts.Graphics.MapView.Widgets
             lowerRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, -1024));
             upperRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, 1024));
             location = lowerLeft;
+            vectorEnd = upperRight;
 
         }
 
@@ -40,6 +41,11 @@ namespace Orts.Graphics.MapView.Widgets
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+        }
+
+        public override double DistanceSquared(in PointD point)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

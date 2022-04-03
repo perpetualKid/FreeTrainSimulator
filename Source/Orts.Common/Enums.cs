@@ -901,7 +901,7 @@ namespace Orts.Common
     {
         None            = 0x0,
         Tracks          = 0x1 << 0,
-        EndsNodes       = 0x1 << 1,
+        EndNodes        = 0x1 << 1,
         JunctionNodes   = 0x1 << 2,
         LevelCrossings  = 0x1 << 3,
         CrossOvers      = 0x1 << 4,
@@ -928,7 +928,7 @@ namespace Orts.Common
         PathJunctions   = 0x1 << 25,
         PathReversals   = 0x1 << 26,
 
-        AllTracks = Tracks | EndsNodes | JunctionNodes | LevelCrossings | CrossOvers,
+        AllTracks = Tracks | EndNodes | JunctionNodes | LevelCrossings | CrossOvers,
         AllRoads = Roads | RoadEndNodes | RoadCrossings | CarSpawners,
         AllPaths = Paths | PathEnds | PathIntermediates | PathJunctions | PathReversals,
         AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,

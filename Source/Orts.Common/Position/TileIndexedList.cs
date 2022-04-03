@@ -5,7 +5,22 @@ using System.Linq;
 
 namespace Orts.Common.Position
 {
-    public class TileIndexedList<TTileCoordinate, T> : IEnumerable<TTileCoordinate> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
+    public interface ITileIndexedList<out TTileCoordinate, T> : IEnumerable<TTileCoordinate> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
+    {
+        int Count { get; }
+
+        int ItemCount { get; }
+
+        IEnumerable<TTileCoordinate> BoundingBox(ITile bottomLeft, ITile topRight);
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
+        IEnumerable<TTileCoordinate> this[ITile tile] { get; }
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
+        IEnumerable<TTileCoordinate> FindNearest(PointD position);
+        IEnumerable<TTileCoordinate> FindNearest(PointD position, ITile bottomLeft, ITile topRight);
+
+    }
+
+    public class TileIndexedList<TTileCoordinate, T> : ITileIndexedList<TTileCoordinate, T> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
     {
         private readonly SortedList<ITile, List<TTileCoordinate>> tiles;
         private readonly List<ITile> sortedIndexes;
@@ -14,7 +29,7 @@ namespace Orts.Common.Position
 
         public int ItemCount { get; }
 
-        public IList<TTileCoordinate> this[int index] { get => tiles[sortedIndexes[index]]; set => throw new InvalidOperationException(); }
+        public IList<TTileCoordinate> this[int index] { get => tiles[sortedIndexes[index]]; }
 
         public TileIndexedList(IEnumerable<TTileCoordinate> data)
         {
@@ -91,7 +106,7 @@ namespace Orts.Common.Position
                     yield break;
             }
 
-            while (key.CompareTo(end) <=0)
+            while (key.CompareTo(end) <= 0)
             {
                 foreach (TTileCoordinate item in tiles[key])
                     yield return item;

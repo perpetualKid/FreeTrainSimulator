@@ -14,8 +14,46 @@ namespace Orts.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {
+        private protected enum ContentItemType
+        {
+            // types should be placed in the order they are drawn (overlap), top level last
+            // and *MUST* be same name (string) as in Orts.Common.MapViewItemSettings
+            Grid,
+            Platforms,
+            Sidings,
+            MilePosts,
+            SpeedPosts,
+            Signals,
+            OtherSignals,
+            Tracks,
+            EndNodes,
+            JunctionNodes,
+            CrossOvers,
+            Roads,
+            RoadEndNodes,
+            RoadCrossings,
+            LevelCrossings,
+                Hazards,
+            CarSpawners,
+            Pickups,
+            SoundRegions,
+            SidingNames,
+            PlatformNames,
+            PlatformStations,
+            Paths,
+            PathEnds,
+            PathIntermediates,
+            PathJunctions,
+            PathReversals,
+
+        }
+
         private protected readonly Game game;
         private protected MapViewItemSettings viewSettings = MapViewItemSettings.All;
+
+        private protected readonly EnumArray<bool, ContentItemType> contentItemsSettings = new EnumArray<bool, ContentItemType>(true);
+        private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, ContentItemType> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, ContentItemType>();
+        private protected readonly EnumArray<ITileCoordinate<Tile>, ContentItemType> nearestItems = new EnumArray<ITileCoordinate<Tile>, ContentItemType>();
 
         public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
 
@@ -44,6 +82,12 @@ namespace Orts.Graphics.MapView
         public void UpdateItemVisiblity(MapViewItemSettings viewSettings)
         {
             this.viewSettings = viewSettings;
+
+            foreach(ContentItemType itemType in EnumExtension.GetValues<ContentItemType>())
+            {
+                EnumExtension.GetValue(itemType.ToString(), out MapViewItemSettings setting);
+                contentItemsSettings[itemType] = (viewSettings & setting) == setting;
+            }
         }
 
         internal abstract void Draw(ITile bottomLeft, ITile topRight);

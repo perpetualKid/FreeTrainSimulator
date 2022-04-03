@@ -43,7 +43,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapViewItemSettings.Tracks);
-            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapViewItemSettings.EndsNodes);
+            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapViewItemSettings.EndNodes);
             SetupVisibilityMenuItem(trackJunctionNodesVisibleToolStripMenuItem, MapViewItemSettings.JunctionNodes);
             SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, MapViewItemSettings.CrossOvers);
             SetupVisibilityMenuItem(trackLevelCrossingsVisibleToolStripMenuItem, MapViewItemSettings.LevelCrossings);
