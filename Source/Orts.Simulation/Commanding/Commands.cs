@@ -2214,10 +2214,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver?.Train?.EndOfTrainDevice != null)
-            {
-                Receiver.Train.EndOfTrainDevice.Disarm();
-            }
+                Receiver?.Train?.EndOfTrainDevice?.Disarm();
         }
     }
 
