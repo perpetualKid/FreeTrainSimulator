@@ -444,8 +444,6 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.DriveType = AxleDriveType.ForceDriven;
             LocomotiveAxle.DampingNs = MassKG / 1000.0f;
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
-            LocomotiveAxle.StabilityCorrection = true;
-            LocomotiveAxle.FilterMovingAverage = new MovingAverage(simulator.Settings.AdhesionMovingAverageFilterSize);
             CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
@@ -1436,7 +1434,6 @@ namespace Orts.Simulation.RollingStocks
 
             LocomotiveAxle = new Axle(inf);
             MoveParamsToAxle();
-            LocomotiveAxle.FilterMovingAverage.Initialize(AverageForceN);
             LocomotiveAxle.Reset(simulator.GameTime, axleSpeedMpS);
         }
 
@@ -1800,7 +1797,6 @@ namespace Orts.Simulation.RollingStocks
             float maxPowerW = MaxPowerW * Train.MUThrottlePercent * Train.MUThrottlePercent / 10000;
             if (AverageForceN * SpeedMpS > maxPowerW)
                 AverageForceN = maxPowerW / SpeedMpS;
-            LocomotiveAxle.FilterMovingAverage.Initialize(AverageForceN);
             LocomotivePowerSupply?.InitializeMoving();
             if (Train.IsActualPlayerTrain)
             {
@@ -2670,9 +2666,10 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;                //Set the train speed of the axle mod
                 // The axle calculations must have a lower update interval to be accurate and stable
-                int integrationSteps = (int)Math.Max(elapsedClockSeconds / (LocomotiveAxle.InertiaKgm2 / MaxPowerW / 5.0f), 1);
+                int integrationSteps = (int)Math.Max(elapsedClockSeconds / (LocomotiveAxle.InertiaKgm2 / MaxForceN / 5), 1);
+                LocomotiveAxle.NumOfSubstepsPS = integrationSteps;
                 float avgAxleOutForceN=0;
-                for (int i=0; i< integrationSteps; i++)
+                for (int i=0; i < integrationSteps; i++)
                 {
                     LocomotiveAxle.Update(elapsedClockSeconds/ integrationSteps); //Main updater of the axle model
                     avgAxleOutForceN += LocomotiveAxle.CompensatedAxleForceN; //Get the Axle force and use it for the motion (use compensated value as it is independent of brake force)
@@ -5737,8 +5734,7 @@ namespace Orts.Simulation.RollingStocks
                             this["Conditions"] = $"{locomotive.LocomotiveAxle.AdhesionConditions * 100.0f:F0}%";
                             this["Axle drive force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.DriveForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.DriveForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
                             this["Axle brake force"] = FormatStrings.FormatForce(locomotive.LocomotiveAxle.BrakeRetardForceN, metricUnits);
-                            this["Number of substeps"] = $"{locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS:F0} (filtered by {locomotive.LocomotiveAxle.FilterMovingAverage.Size:F0})";
-                            this["Solver"] = $"{locomotive.LocomotiveAxle.AxleRevolutionsInt.Method}";
+                            this["Number of substeps"] = $"{locomotive.LocomotiveAxle.NumOfSubstepsPS:F0}";
                             this["Stability correction"] = $"{locomotive.LocomotiveAxle.AdhesionK:F0}";
                             this["Axle out force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.AxleForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.AxleForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
                             this["Comp Axle out force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.CompensatedAxleForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.CompensatedAxleForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";

@@ -298,7 +298,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             graphMotiveForce.AddSample(locomotive.MotiveForceN / locomotive.MaxForceN);
                         }
-                        graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)locomotive.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
+                        graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.NumOfSubstepsPS);
                         break;
                 }
             }
