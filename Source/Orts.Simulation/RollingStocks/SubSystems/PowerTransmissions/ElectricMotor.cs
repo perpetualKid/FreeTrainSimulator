@@ -16,69 +16,61 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
     public class ElectricMotor
     {
-        protected float developedTorqueNm;
-        public float DevelopedTorqueNm { get { return developedTorqueNm; } }
-
-        protected float loadTorqueNm;
-        public float LoadTorqueNm { set { loadTorqueNm = value; } get { return loadTorqueNm; } }
-
-        protected float frictionTorqueNm;
-        public float FrictionTorqueNm { set { frictionTorqueNm = Math.Abs(value); } get { return frictionTorqueNm; } }
-
+        private protected float powerLossesW;
+        private float frictionTorqueNm;
         private float inertiaKgm2;
+        private float axleDiameterM;
+        private float transmissionRatio;
+
+        public float DevelopedTorqueNm { get; set; }
+
+        public float LoadTorqueNm { get; set; }
+
+        public float FrictionTorqueNm 
+        { 
+            get => frictionTorqueNm; 
+            set { frictionTorqueNm = Math.Abs(value); } 
+        }
+
         public float InertiaKgm2
         {
+            get => inertiaKgm2;
             set
             {
                 if (value <= 0.0)
                     throw new NotSupportedException("Inertia must be greater than 0");
                 inertiaKgm2 = value;
             }
-            get
-            {
-                return inertiaKgm2; 
-            }
         }
 
-        protected float revolutionsRad;
-        public float RevolutionsRad { get { return revolutionsRad; } set { revolutionsRad = value; } }
+        public float RevolutionsRad { get; set; }
 
-        protected float temperatureK;
-        public float TemperatureK { get { return temperatureK; } }
+        public float TemperatureK { get; }
 
-        private Integrator tempIntegrator = new Integrator();
+        //private Integrator tempIntegrator = new Integrator();
 
         public float ThermalCoeffJ_m2sC { set; get; }
         public float SpecificHeatCapacityJ_kg_C { set; get; }
         public float SurfaceM { set; get; }
         public float WeightKg { set; get; }
-
-        protected float powerLossesW;
-
         public float CoolingPowerW { set; get; }
 
-        private float transmissionRatio;
         public float TransmissionRatio
         {
+            get => transmissionRatio;
             set
             {
                 if (value <= 0.0)
                     throw new NotSupportedException("Transmission ratio must be greater than zero");
                 transmissionRatio = value;
             }
-            get
-            {
-                return transmissionRatio;
-            }
         }
 
-        private float axleDiameterM;
         public float AxleDiameterM
         {
             set
@@ -87,23 +79,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     throw new NotSupportedException("Axle diameter must be greater than zero");
                 axleDiameterM = value;
             }
-            get
-            {
-                return axleDiameterM;
-            }
+            get => axleDiameterM;
         }
 
-        public Axle AxleConnected;
+        public Axle AxleConnected { get; set; }
 
         public ElectricMotor()
         {
-            developedTorqueNm = 0.0f;
-            loadTorqueNm = 0.0f;
-            inertiaKgm2 = 1.0f;
-            revolutionsRad = 0.0f;
-            axleDiameterM = 1.0f;
-            transmissionRatio = 1.0f;
-            temperatureK = 0.0f;
+            DevelopedTorqueNm = 0.0f;
+            LoadTorqueNm = 0.0f;
+            InertiaKgm2 = 1.0f;
+            RevolutionsRad = 0.0f;
+            AxleDiameterM = 1.0f;
+            TransmissionRatio = 1.0f;
+            TemperatureK = 0.0f;
             ThermalCoeffJ_m2sC = 50.0f;
             SpecificHeatCapacityJ_kg_C = 40.0f;
             SurfaceM = 2.0f;
@@ -115,13 +104,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             //revolutionsRad += timeSpan / inertiaKgm2 * (developedTorqueNm + loadTorqueNm + (revolutionsRad == 0.0 ? 0.0 : frictionTorqueNm));
             //if (revolutionsRad < 0.0)
             //    revolutionsRad = 0.0;
-            temperatureK = (float)tempIntegrator.Integrate(timeSpan, 1.0/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
+            //temperatureK = (float)tempIntegrator.Integrate(timeSpan, 1.0/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
 
         }
 
         public virtual void Reset()
         {
-            revolutionsRad = 0.0f;
+            RevolutionsRad = 0.0f;
         }
     }
 }

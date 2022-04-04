@@ -440,10 +440,7 @@ namespace Orts.Simulation.RollingStocks
 
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
-            LocomotiveAxle = new Axle();
-            LocomotiveAxle.DriveType = AxleDriveType.ForceDriven;
-            LocomotiveAxle.DampingNs = MassKG / 1000.0f;
-            LocomotiveAxle.FrictionN = MassKG / 100.0f;
+            LocomotiveAxle = new Axle(AxleDriveType.ForceDriven, MassKG / 1000.0f, MassKG / 100.0f);
             CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
@@ -2658,6 +2655,12 @@ namespace Orts.Simulation.RollingStocks
                 //LocomotiveAxle.AxleRevolutionsInt.MinStep = LocomotiveAxle.InertiaKgm2 / MaxPowerW / 5.0f;
                 LocomotiveAxle.AxleDiameterM = 2 * DriverWheelRadiusM;
 
+                // Antislip
+                /*float umax = (LocomotiveAxle.CurtiusKnifflerA / (MpS.ToKpH(Math.Abs(SpeedMpS)) + LocomotiveAxle.CurtiusKnifflerB) + LocomotiveAxle.CurtiusKnifflerC); // Curtius - Kniffler equation
+                umax *= LocomotiveAxle.AdhesionConditions;
+                MotiveForceN = Math.Sign(MotiveForceN) * Math.Min(umax * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN));
+                if (LocomotiveAxle.IsWheelSlip) MotiveForceN = 0;*/
+
                 //Set axle model parameters
 
                 // Inputs
@@ -2665,9 +2668,10 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.AxleWeightN = 9.81f * DrvWheelWeightKg;  //will be computed each time considering the tilting
                 LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;                //Set the train speed of the axle mod
+
                 // The axle calculations must have a lower update interval to be accurate and stable
-                int integrationSteps = (int)Math.Max(elapsedClockSeconds / (LocomotiveAxle.InertiaKgm2 / MaxForceN / 5), 1);
-                LocomotiveAxle.NumOfSubstepsPS = integrationSteps;
+                int integrationSteps = 1; //(int)Math.Max(elapsedClockSeconds / (LocomotiveAxle.InertiaKgm2 / MaxForceN / 5), 1);
+                //LocomotiveAxle.NumOfSubstepsPS = integrationSteps;
                 float avgAxleOutForceN=0;
                 for (int i=0; i < integrationSteps; i++)
                 {

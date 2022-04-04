@@ -21,7 +21,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     public class SeriesMotor : ElectricMotor
     {
         private float armatureResistanceOhms;
-        public float ArmatureResistanceOhms 
+        private float fieldResistanceOhms;
+        private float shuntResistorOhms;
+        private float shuntRatio;
+
+        public float ArmatureResistanceOhms
         {
             set
             {
@@ -29,12 +33,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
             get
             {
-                return armatureResistanceOhms * (235.0f + temperatureK) / (235.0f + 20.0f);
+                return armatureResistanceOhms * (235.0f + TemperatureK) / (235.0f + 20.0f);
             }
         }
+
         public float ArmatureInductanceH { set; get; }
 
-        private float fieldResistanceOhms;
         public float FieldResistanceOhms
         {
             set
@@ -43,34 +47,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
             get
             {
-                return fieldResistanceOhms * (235.0f + temperatureK) / (235.0f + 20.0f);
+                return fieldResistanceOhms * (235.0f + TemperatureK) / (235.0f + 20.0f);
             }
         }
         public float FieldInductance { set; get; }
 
         public bool Compensated { set; get; }
 
-        private float armatureCurrentA;
-        public float ArmatureCurrentA { get { return armatureCurrentA; } }
+        public float ArmatureCurrentA { get; private set; }
 
-        private float fieldCurrentA;
-        public float FieldCurrentA { get { return fieldCurrentA; } }
-
+        public float FieldCurrentA { get; private set; }
 
         public float TerminalVoltageV { set; get; }
 
-        public float ArmatureVoltageV
-        {
-            get
-            {
-                return armatureCurrentA * ArmatureResistanceOhms + backEMFvoltageV;
-            }
-        }
-
+        public float ArmatureVoltageV => ArmatureCurrentA * ArmatureResistanceOhms + BackEMFvoltageV;
+        
         public float StartingResistorOhms { set; get; }
+        
         public float AdditionalResistanceOhms { set; get; }
 
-        private float shuntResistorOhms;
         public float ShuntResistorOhms
         {
             set
@@ -85,14 +80,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
             get
             {
-                if (shuntResistorOhms == 0.0f)
-                    return float.PositiveInfinity;
-                else
-                    return shuntResistorOhms;
+                return shuntResistorOhms == 0.0f ? float.PositiveInfinity : shuntResistorOhms;
             }
         }
 
-        private float shuntRatio;
         public float ShuntPercent
         {
             set
@@ -101,63 +92,54 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
             get
             {
-                if (shuntResistorOhms == 0.0f)
-                    return shuntRatio * 100.0f;
-                else
-                    return 1.0f - shuntResistorOhms / (FieldResistanceOhms + shuntResistorOhms);
+                return shuntResistorOhms == 0.0f ? shuntRatio * 100.0f : 1.0f - shuntResistorOhms / (FieldResistanceOhms + shuntResistorOhms);
             }
         }
 
-        private float backEMFvoltageV;
-        public float BackEMFvoltageV { get { return backEMFvoltageV; } }
+        public float BackEMFvoltageV { get; private set; }
 
         public float MotorConstant { set; get; }
 
         private float fieldWb;
 
-        public float NominalRevolutionsRad;
-        public float NominalVoltageV;
-        public float NominalCurrentA;
+        private readonly float nominalRevolutionsRad;
+        private readonly float nominalVoltageV;
+        private readonly float nominalCurrentA;
 
-        public float UpdateField()
+        private float UpdateField()
         {
-            float temp = 0.0f;
-            temp = (NominalVoltageV - (ArmatureResistanceOhms + FieldResistanceOhms) * NominalCurrentA) / (NominalRevolutionsRad);
-            if (fieldCurrentA <= NominalCurrentA)
-                fieldWb = temp * fieldCurrentA / NominalCurrentA;
-            else
-                fieldWb = temp;
+            float temp = (nominalVoltageV - (ArmatureResistanceOhms + FieldResistanceOhms) * nominalCurrentA) / nominalRevolutionsRad;
+            fieldWb = FieldCurrentA <= nominalCurrentA ? temp * FieldCurrentA / nominalCurrentA : temp;
             temp *= (1.0f - shuntRatio);
             return temp;
         }
 
-
         public SeriesMotor()
         {
-            NominalCurrentA = 1000.0f;
-            NominalRevolutionsRad = 300.0f;
-            NominalVoltageV = 1500.0f;
+            nominalCurrentA = 1000.0f;
+            nominalRevolutionsRad = 300.0f;
+            nominalVoltageV = 1500.0f;
         }
+
         public SeriesMotor(float nomCurrentA, float nomVoltageV, float nomRevolutionsRad)
         {
-            NominalCurrentA = nomCurrentA;
-            NominalVoltageV = nomVoltageV;
-            NominalRevolutionsRad = nomRevolutionsRad;
+            nominalCurrentA = nomCurrentA;
+            nominalVoltageV = nomVoltageV;
+            nominalRevolutionsRad = nomRevolutionsRad;
         }
 
         public override void Update(double timeSpan)
         {
-            if (shuntResistorOhms == 0.0f)
-                armatureCurrentA = fieldCurrentA / (1.0f - shuntRatio);
-            else
-                armatureCurrentA = (FieldResistanceOhms + ShuntResistorOhms) / ShuntResistorOhms * fieldCurrentA;
-            if ((backEMFvoltageV * fieldCurrentA) >= 0.0f)
+            ArmatureCurrentA = shuntResistorOhms == 0.0f
+                ? FieldCurrentA / (1.0f - shuntRatio)
+                : (FieldResistanceOhms + ShuntResistorOhms) / ShuntResistorOhms * FieldCurrentA;
+            if ((BackEMFvoltageV * FieldCurrentA) >= 0.0f)
             {
-                fieldCurrentA += (float)timeSpan / FieldInductance *
+                FieldCurrentA += (float)timeSpan / FieldInductance *
                     (TerminalVoltageV
-                        - backEMFvoltageV
-                        - ArmatureResistanceOhms * armatureCurrentA
-                        - FieldResistanceOhms * (1.0f - shuntRatio) * fieldCurrentA
+                        - BackEMFvoltageV
+                        - ArmatureResistanceOhms * ArmatureCurrentA
+                        - FieldResistanceOhms * (1.0f - shuntRatio) * FieldCurrentA
                         - ArmatureCurrentA * StartingResistorOhms
                         - ArmatureCurrentA * AdditionalResistanceOhms
                     //- ((fieldCurrentA == 0.0) ? 0.0 : 2.0)            //voltage drop on brushes
@@ -165,15 +147,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
             else
             {
-                fieldCurrentA = 0.0f;
-            }          
+                FieldCurrentA = 0.0f;
+            }
 
             UpdateField();
-            backEMFvoltageV = RevolutionsRad * fieldWb;
-            developedTorqueNm = fieldWb * armatureCurrentA -(frictionTorqueNm * revolutionsRad /NominalRevolutionsRad * revolutionsRad/NominalRevolutionsRad);
+            BackEMFvoltageV = RevolutionsRad * fieldWb;
+            DevelopedTorqueNm = fieldWb * ArmatureCurrentA - (FrictionTorqueNm * RevolutionsRad / nominalRevolutionsRad * RevolutionsRad / nominalRevolutionsRad);
 
-            powerLossesW = ArmatureResistanceOhms * armatureCurrentA * armatureCurrentA +
-                           FieldResistanceOhms * fieldCurrentA * fieldCurrentA;
+            powerLossesW = ArmatureResistanceOhms * ArmatureCurrentA * ArmatureCurrentA +
+                           FieldResistanceOhms * FieldCurrentA * FieldCurrentA;
 
             //temperatureK += timeSpan * ThermalCoeffJ_m2sC * SurfaceM / (SpecificHeatCapacityJ_kg_C * WeightKg)
             //    * ((powerLossesW - CoolingPowerKW) / (SpecificHeatCapacityJ_kg_C * WeightKg) - temperatureK);
@@ -182,8 +164,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
         public override void Reset()
         {
-            fieldCurrentA = 0.0f;
-            armatureCurrentA = 0.0f;
+            FieldCurrentA = 0.0f;
+            ArmatureCurrentA = 0.0f;
             fieldWb = 0.0f;
             base.Reset();
         }
