@@ -30,17 +30,17 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Current state of the circuit breaker
         /// </summary>
-        public Func<TractionCutOffRelayState> CurrentState;
+        public Func<TractionCutOffRelayState> CurrentState { get; set; }
 
         /// <summary>
         /// Sets the current state of the circuit breaker
         /// </summary>
-        public Action<TractionCutOffRelayState> SetCurrentState;
+        public Action<TractionCutOffRelayState> SetCurrentState { get; set; }
 
         /// <summary>
         /// Current state of the circuit breaker
         /// Only available on dual mode locomotives
         /// </summary>
-        public Func<CircuitBreakerState> CurrentCircuitBreakerState;
+        public Func<CircuitBreakerState> CurrentCircuitBreakerState { get; set; }
     }
 }

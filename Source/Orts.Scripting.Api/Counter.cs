@@ -12,7 +12,7 @@ namespace Orts.Scripting.Api
     public abstract class Counter
     {
         private double endValue;
-        protected Func<double> CurrentValue;
+        protected Func<double> CurrentValue { get; set; }
 
         public double AlarmValue { get; private set; }
         public double RemainingValue { get { return endValue - CurrentValue(); } }
@@ -52,7 +52,7 @@ namespace Orts.Scripting.Api
     public class Blinker
     {
         private double StartValue;
-        protected Func<double> CurrentValue;
+        protected Func<double> CurrentValue { get; set; }
 
         public float FrequencyHz { get; private set; }
         public bool Started { get; private set; }

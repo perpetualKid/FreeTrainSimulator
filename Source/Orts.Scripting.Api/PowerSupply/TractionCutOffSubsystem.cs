@@ -29,68 +29,68 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Locomotive's power supply type
         /// </summary>
-        public Func<PowerSupplyType> SupplyType;
+        public Func<PowerSupplyType> SupplyType { get; set; }
         /// <summary>
         /// Current state of the pantograph
         /// </summary>
-        public Func<PantographState> CurrentPantographState;
+        public Func<PantographState> CurrentPantographState { get; set; }
         /// <summary>
         /// Current state of the diesel engine
         /// </summary>
-        public Func<DieselEngineState> CurrentDieselEngineState;
+        public Func<DieselEngineState> CurrentDieselEngineState { get; set; }
         /// <summary>
         /// Current state of the power supply
         /// </summary>
-        public Func<PowerSupplyState> CurrentPowerSupplyState;
+        public Func<PowerSupplyState> CurrentPowerSupplyState { get; set; }
         /// <summary>
         /// Driver's circuit breaker closing order
         /// </summary>
-        public Func<bool> DriverClosingOrder;
+        public Func<bool> DriverClosingOrder { get; set; }
         /// <summary>
         /// Driver's circuit breaker closing authorization
         /// </summary>
-        public Func<bool> DriverClosingAuthorization;
+        public Func<bool> DriverClosingAuthorization { get; set; }
         /// <summary>
         /// Driver's circuit breaker opening order
         /// </summary>
-        public Func<bool> DriverOpeningOrder;
+        public Func<bool> DriverOpeningOrder { get; set; }
         /// <summary>
         /// TCS' circuit breaker closing authorization
         /// </summary>
-        public Func<bool> TCSClosingAuthorization;
+        public Func<bool> TCSClosingAuthorization { get; set; }
         /// <summary>
         /// Circuit breaker closing authorization
         /// </summary>
-        public Func<bool> ClosingAuthorization;
+        public Func<bool> ClosingAuthorization { get; set; }
         /// <summary>
         /// True if low voltage power supply is switched on.
         /// </summary>
-        public Func<bool> IsLowVoltagePowerSupplyOn;
+        public Func<bool> IsLowVoltagePowerSupplyOn { get; set; }
         /// <summary>
         /// True if cab power supply is switched on.
         /// </summary>
-        public Func<bool> IsCabPowerSupplyOn;
+        public Func<bool> IsCabPowerSupplyOn { get; set; }
         /// <summary>
         /// Delay before circuit breaker closing
         /// </summary>
-        public Func<float> ClosingDelayS;
+        public Func<float> ClosingDelayS { get; set; }
 
         /// <summary>
         /// Sets the driver's circuit breaker closing order
         /// </summary>
-        public Action<bool> SetDriverClosingOrder;
+        public Action<bool> SetDriverClosingOrder { get; set; }
         /// <summary>
         /// Sets the driver's circuit breaker closing authorization
         /// </summary>
-        public Action<bool> SetDriverClosingAuthorization;
+        public Action<bool> SetDriverClosingAuthorization { get; set; }
         /// <summary>
         /// Sets the driver's circuit breaker opening order
         /// </summary>
-        public Action<bool> SetDriverOpeningOrder;
+        public Action<bool> SetDriverOpeningOrder { get; set; }
         /// <summary>
         /// Sets the circuit breaker closing authorization
         /// </summary>
-        public Action<bool> SetClosingAuthorization;
+        public Action<bool> SetClosingAuthorization { get; set; }
 
         /// <summary>
         /// Called once at initialization time.

@@ -29,99 +29,99 @@ namespace Orts.Scripting.Api.Etcs
         /// <summary>
         /// True if the DMI is active and will be shown
         /// </summary>
-        public bool DMIActive = true;
+        public bool DMIActive { get; set; } = true;
         /// <summary>
         /// Current operating level
         /// </summary>
-        public Level CurrentLevel;
+        public Level CurrentLevel { get; set; }
         /// <summary>
         /// Current ETCS supervision mode
         /// </summary>
-        public Mode CurrentMode = Mode.FS;
+        public Mode CurrentMode { get; set; } = Mode.FS;
         /// <summary>
         /// If mode is NTC, specific name of the NTC. Not used yet
         /// </summary>
-        public string NTCMode;
+        public string NTCMode { get; set; }
 
         // Speed and distance monitoring
         /// <summary>
         /// True if the speedometer (needle and gauges) are to be shown
         /// </summary>
-        public bool SpeedAreaShown = true;
+        public bool SpeedAreaShown { get; set; } = true;
         /// <summary>
         /// Permitted speed to be shown in the circular speed gauge
         /// </summary>
-        public float AllowedSpeedMpS;
+        public float AllowedSpeedMpS { get; set; }
         /// <summary>
         /// Intervention speed at which brakes will be applied
         /// </summary>
-        public float InterventionSpeedMpS;
+        public float InterventionSpeedMpS { get; set; }
         /// <summary>
         /// Target speed limit to be displayed, if any
         /// </summary>
-        public float? TargetSpeedMpS;
+        public float? TargetSpeedMpS { get; set; }
         /// <summary>
         /// Distance to the speed reduction being displayed, if any
         /// </summary>
-        public float? TargetDistanceM;
+        public float? TargetDistanceM { get; set; }
         /// <summary>
         /// Speed at which the train is allowed to approach to a zero target
         /// </summary>
-        public float? ReleaseSpeedMpS;
+        public float? ReleaseSpeedMpS { get; set; }
         /// <summary>
         /// Visual indication for the driver to help him follow the braking curve with reduced adheasion conditions.
         /// It is shown as a grey/white square at the top left corner of the DMI while in CSM.
         /// </summary>
-        public float? TimeToIndicationS;
+        public float? TimeToIndicationS { get; set; }
         /// <summary>
         /// Visual indication for the driver to help him follow the permitted speed curve.
         /// It is shown as a yellow, orange or red square at the top left corner of the DMI while in TSM.
         /// </summary>
-        public float? TimeToPermittedS;
+        public float? TimeToPermittedS { get; set; }
         /// <summary>
         /// Current speed monitoring status, either ceiling speed, target speed or release speed
         /// </summary>
-        public Monitor CurrentMonitor;
+        public Monitor CurrentMonitor { get; set; }
         /// <summary>
         /// Determines the color of the needle and circular speed gauge, depending on train speed
         /// </summary>
-        public SupervisionStatus CurrentSupervisionStatus;
+        public SupervisionStatus CurrentSupervisionStatus { get; set; }
 
         // Planning information
         /// <summary>
         /// Set to true to display planning area
         /// </summary>
-        public bool PlanningAreaShown;
+        public bool PlanningAreaShown { get; set; }
         /// <summary>
         /// List of targets to be shown in the planning area.
         /// First target must be current speed limit, with distance = 0
         /// It will also be used to draw the planning area speed profile (PASP)
         /// </summary>
-        public readonly List<PlanningTarget> SpeedTargets = new List<PlanningTarget>();
+        public List<PlanningTarget> SpeedTargets { get; } = new List<PlanningTarget>();
         /// <summary>
         /// Target with the closest distance to indication.
         /// Its speed limit will be shown in yellow in the planning area
         /// </summary>
-        public PlanningTarget? IndicationMarkerTarget;
+        public PlanningTarget? IndicationMarkerTarget { get; set; }
         /// <summary>
         /// Distance to the point where the monitoring status will change to either TSM or RSM from CSM
         /// Will be shown as a yellow horizontal line in the planning area
         /// </summary>
-        public float? IndicationMarkerDistanceM;
+        public float? IndicationMarkerDistanceM { get; set; }
         /// <summary>
         /// Gradient of the track ahead of the train, to be shown in planning area
         /// First gradient must be with distance = 0
         /// At the point where the gradient profile ends a target must be inserted with any value, to mark the end of the profile
         /// </summary>
-        public readonly List<GradientProfileElement> GradientProfile = new List<GradientProfileElement>();
+        public List<GradientProfileElement> GradientProfile { get; } = new List<GradientProfileElement>();
         /// <summary>
         /// Orders and announcements ahead to be displayed in the planning area
         /// </summary>
-        public readonly List<PlanningTrackCondition> PlanningTrackConditions = new List<PlanningTrackCondition>();
+        public List<PlanningTrackCondition> PlanningTrackConditions { get; } = new List<PlanningTrackCondition>();
         /// <summary>
         /// True if the text message area shall be displayed
         /// </summary>
-        public bool TextMessageAreaShown;
+        public bool TextMessageAreaShown { get; set; }
         /// <summary>
         /// Legacy variable. Please use TextMessageAreaShown instead
         /// </summary>
@@ -129,7 +129,7 @@ namespace Orts.Scripting.Api.Etcs
         /// <summary>
         /// List of text messages to be displayed in text area. Do not rely on the order, as the DMI will reorder the list.
         /// </summary>
-        public readonly List<TextMessage> TextMessages = new List<TextMessage>();
+        public List<TextMessage> TextMessages { get; } = new List<TextMessage>();
         /* TODO: Interface between DMI and TCS for displaying menus to be defined in the future
         /// <summary>
         /// List of menu items to be shown
@@ -250,10 +250,10 @@ namespace Orts.Scripting.Api.Etcs
 
     public struct PlanningTrackCondition
     {
-        public readonly TrackConditionType Type;
-        public float DistanceToTrainM;
-        public readonly bool YellowColour;
-        public TractionSystem? TractionSystem;
+        public TrackConditionType Type { get; }
+        public float DistanceToTrainM { get; set; }
+        public bool YellowColour { get; }
+        public TractionSystem? TractionSystem { get; set; }
 
         public PlanningTrackCondition(TrackConditionType type, bool isYellowColour, float distanceToTrainM)
         {
@@ -274,8 +274,8 @@ namespace Orts.Scripting.Api.Etcs
 
     public struct PlanningTarget
     {
-        public float DistanceToTrainM;
-        public readonly float TargetSpeedMpS;
+        public float DistanceToTrainM { get; set; }
+        public float TargetSpeedMpS { get; }
         public PlanningTarget(float distanceToTrainM, float targetSpeedMpS)
         {
             DistanceToTrainM = distanceToTrainM;
@@ -284,8 +284,8 @@ namespace Orts.Scripting.Api.Etcs
     }
     public struct GradientProfileElement
     {
-        public float DistanceToTrainM;
-        public int GradientPerMille;
+        public float DistanceToTrainM { get; set; }
+        public int GradientPerMille { get; set; }
         public GradientProfileElement(float distanceToTrainM, int gradientPerMille)
         {
             DistanceToTrainM = distanceToTrainM;
@@ -440,20 +440,20 @@ namespace Orts.Scripting.Api.Etcs
     {
         public Func<Dictionary<string, string>, List<string>> GetConflictingVariables;
     }
+
     public class DMIDataEntryDefinition : DMISubwindowDefinition
     {
-        public readonly List<DMIDataEntryValue> Fields;
-        public readonly List<DMIVariableCrossCheck> TechnicalCrossChecks;
-        public readonly List<DMIVariableCrossCheck> OperationalCrossChecks;
-        public readonly bool FullScreen;
+        public List<DMIDataEntryValue> Fields { get; }
+        public List<DMIVariableCrossCheck> TechnicalCrossChecks { get; }
+        public List<DMIVariableCrossCheck> OperationalCrossChecks { get; }
+        public bool FullScreen { get; }
+
         public DMIDataEntryDefinition(string windowTitle, List<DMIDataEntryValue> fields, bool fullscreen, List<DMIVariableCrossCheck> technicalCrossChecks = null, List<DMIVariableCrossCheck> operationalCrossChecks = null) : base(windowTitle)
         {
             Fields = fields;
             FullScreen = fullscreen;
-            TechnicalCrossChecks = technicalCrossChecks;
-            OperationalCrossChecks = operationalCrossChecks;
-            if (TechnicalCrossChecks == null) TechnicalCrossChecks = new List<DMIVariableCrossCheck>();
-            if (OperationalCrossChecks == null) OperationalCrossChecks = new List<DMIVariableCrossCheck>();
+            TechnicalCrossChecks = technicalCrossChecks ?? new List<DMIVariableCrossCheck>();
+            OperationalCrossChecks = operationalCrossChecks ?? new List<DMIVariableCrossCheck>();
         }
     }
 }
