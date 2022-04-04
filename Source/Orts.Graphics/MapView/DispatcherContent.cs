@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,18 +20,14 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
+        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals};
+
         private readonly InsetComponent insetComponent;
 
         #region nearest items
-        private GridTile nearestGridTile;
         private PointWidget nearestDispatchItem;
         #endregion
 
-        internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
-        internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
-        internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
-        internal TileIndexedList<TrackItemBase, Tile> SignalItems { get; private set; }
-        internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
@@ -53,34 +50,20 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            //if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
-            //{
-            //    foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
-            //    {
-            //        if (ContentArea.InsideScreenArea(segment))
-            //            segment.Draw(ContentArea);
-            //    }
-            //}
-            //if ((viewSettings & MapViewItemSettings.EndNodes) == MapViewItemSettings.EndNodes)
-            //{
-            //    foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
-            //    {
-            //        if (ContentArea.InsideScreenArea(endNode))
-            //            endNode.Draw(ContentArea);
-            //    }
-            //}
-            //if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
-            //{
-            //    foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
-            //    {
-            //        if (ContentArea.InsideScreenArea(junctionNode) && junctionNode != nearestDispatchItem)
-            //            junctionNode.Draw(ContentArea);
-            //    }
-            //}
-            foreach (TrackItemBase trackItem in SignalItems.BoundingBox(bottomLeft, topRight))
+            foreach (MapViewItemSettings MapViewItemSettings in drawItems) // EnumExtension.GetValues<MapViewItemSettings>())
             {
-//                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)
-                    trackItem.Draw(ContentArea);
+                if (viewSettings[MapViewItemSettings] && contentItems[MapViewItemSettings] != null)
+                {
+                    foreach (ITileCoordinate<Tile> item in contentItems[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    {
+                        // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
+                        // but the performance impact/overhead seems invariant
+                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
+                            (vectorwidget).Draw(ContentArea);
+                        else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
+                            (pointWidget).Draw(ContentArea);
+                    }
+                }
             }
             foreach (PathSegment segment in PathSegments)
             {
@@ -97,14 +80,15 @@ namespace Orts.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
-            IEnumerable<ITileCoordinate<Tile>> result = Tiles.FindNearest(position, bottomLeft, topRight);
-            if (result.First() != nearestGridTile)
+            GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
+            if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
             {
-                nearestGridTile = result.First() as GridTile;
+                nearestItems[MapViewItemSettings.Grid] = nearestGridTile;
             }
+
             double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;
-            foreach (JunctionSegment junction in JunctionSegments[nearestGridTile.Tile])
+            foreach (JunctionSegment junction in contentItems[MapViewItemSettings.JunctionNodes][nearestGridTile.Tile])
             {
                 double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -113,7 +97,7 @@ namespace Orts.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            foreach (SignalTrackItem signal in SignalItems[nearestGridTile.Tile])
+            foreach (SignalTrackItem signal in contentItems[MapViewItemSettings.Signals][nearestGridTile.Tile])
             {
                 double itemDistance = signal.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -192,14 +176,13 @@ namespace Orts.Graphics.MapView
             TrackDB trackDB = RuntimeData.Instance.TrackDB;
             TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
 
-            double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+            ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
+            ConcurrentBag<TrackEndSegment> endSegments = new ConcurrentBag<TrackEndSegment>();
+            ConcurrentBag<JunctionSegment> junctionSegments = new ConcurrentBag<JunctionSegment>();
+            ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
+            ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
-            List<TrackSegment> trackSegments = new List<TrackSegment>();
-            List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
-            List<ActiveJunctionSegment> junctionSegments = new List<ActiveJunctionSegment>();
-            List<TrackSegment> roadSegments = new List<TrackSegment>();
-            List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
-            foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
+            Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
                 if (null == trackSectionsFile)
                     throw new ArgumentNullException(nameof(trackSectionsFile));
@@ -219,57 +202,37 @@ namespace Orts.Graphics.MapView
                         break;
                     case TrackJunctionNode trackJunctionNode:
                         List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
-                        foreach(TrackPin pin in trackJunctionNode.TrackPins)
+                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
                         {
                             vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
                         }
                         junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
-            }
+            });
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
-            TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
+            contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
+            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
+            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
             TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
-            Tiles = new TileIndexedList<GridTile, Tile>(
-                TrackSegments.Select(d => d.Tile as ITile).Distinct()
-                .Union(TrackEndSegments.Select(d => d.Tile as ITile).Distinct())
+            contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
+                contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
+                .Union(contentItems[MapViewItemSettings.EndNodes].Select(d => d.Tile as ITile).Distinct())
                 .Select(t => new GridTile(t)));
 
-            if (Tiles.Count == 1)
-            {
-                foreach (TrackEndSegment trackEndSegment in TrackEndSegments)
-                {
-                    minX = Math.Min(minX, trackEndSegment.Location.X);
-                    minY = Math.Min(minY, trackEndSegment.Location.Y);
-                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
-                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
-                }
-            }
-            else
-            {
-                minX = Math.Min(minX, Tiles[0][0].Tile.X);
-                maxX = Math.Max(maxX, Tiles[^1][0].Tile.X);
-                foreach (GridTile tile in Tiles)
-                {
-                    minY = Math.Min(minY, tile.Tile.Z);
-                    maxY = Math.Max(maxY, tile.Tile.Z);
-                }
-                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-            }
-            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+            InitializeBounds();
         }
 
         private void AddTrackItems()
         {
-            SignalItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB, true));
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+
+            contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
+            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments));
+
         }
 
     }

@@ -80,22 +80,22 @@ namespace Orts.Graphics.MapView
                 nearestItems[MapViewItemSettings.Grid] = nearestGridTile;
             }
 
-            foreach (MapViewItemSettings MapViewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
             {
                 double distance = double.MaxValue;
-                if (MapViewItemSettings == MapViewItemSettings.Grid)
+                if (viewItemSettings == MapViewItemSettings.Grid)
                     //already drawn above
                     continue;
-                if (viewSettings[MapViewItemSettings] && contentItems[MapViewItemSettings] != null)
+                if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         if (item is VectorWidget vectorWidget)
                         {
                             double itemDistance = vectorWidget.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[MapViewItemSettings] = vectorWidget;
+                                nearestItems[viewItemSettings] = vectorWidget;
                                 distance = itemDistance;
                             }
                         }
@@ -104,7 +104,7 @@ namespace Orts.Graphics.MapView
                             double itemDistance = pointWidget.Location.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[MapViewItemSettings] = pointWidget;
+                                nearestItems[viewItemSettings] = pointWidget;
                                 distance = itemDistance;
                             }
                         }
@@ -113,21 +113,21 @@ namespace Orts.Graphics.MapView
                 if (distance < 100)
                 {
                     if (distance < 1 || distance < nearestSegmentForStatus.distance)
-                        nearestSegmentForStatus = (distance, nearestItems[MapViewItemSettings] as INameValueInformationProvider);
+                        nearestSegmentForStatus = (distance, nearestItems[viewItemSettings] as INameValueInformationProvider);
                 }
                 else
-                    nearestItems[MapViewItemSettings] = null;
+                    nearestItems[viewItemSettings] = null;
             }
             trackNodeInfo.Source = nearestSegmentForStatus.statusItem;
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            foreach (MapViewItemSettings MapViewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[MapViewItemSettings] && contentItems[MapViewItemSettings] != null)
+                if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
@@ -153,13 +153,13 @@ namespace Orts.Graphics.MapView
                 }
             }
 
-            foreach (MapViewItemSettings MapViewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[MapViewItemSettings] && nearestItems[MapViewItemSettings] != null)
+                if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
                 {
-                    if (nearestItems[MapViewItemSettings] is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
+                    if (nearestItems[viewItemSettings] is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
                         (vectorwidget).Draw(ContentArea, ColorVariation.Complement);
-                    else if (nearestItems[MapViewItemSettings] is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
+                    else if (nearestItems[viewItemSettings] is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
                         (pointWidget).Draw(ContentArea, ColorVariation.Complement);
                 }
             }
@@ -176,8 +176,6 @@ namespace Orts.Graphics.MapView
             TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
             if (null == trackSectionsFile)
                 throw new ArgumentNullException(nameof(trackSectionsFile));
-
-            double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<TrackEndSegment> endSegments = new ConcurrentBag<TrackEndSegment>();
@@ -243,33 +241,7 @@ namespace Orts.Graphics.MapView
                 .Union(contentItems[MapViewItemSettings.RoadEndNodes].Select(d => d.Tile as ITile).Distinct())
                 .Select(t => new GridTile(t)));
 
-            // if there is only one tile, limit the dimensions to the extend of the track within that tile
-            if (contentItems[MapViewItemSettings.Grid].Count == 1)
-            {
-                foreach (TrackEndSegment trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
-                {
-                    minX = Math.Min(minX, trackEndSegment.Location.X);
-                    minY = Math.Min(minY, trackEndSegment.Location.Y);
-                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
-                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
-                }
-            }
-            // find the min tile (lower/left) and max (upper/right) as boundaries
-            else
-            {
-                minX = Math.Min(minX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[0][0].Tile.X);
-                maxX = Math.Max(maxX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[^1][0].Tile.X);
-                foreach (GridTile tile in contentItems[MapViewItemSettings.Grid])
-                {
-                    minY = Math.Min(minY, tile.Tile.Z);
-                    maxY = Math.Max(maxY, tile.Tile.Z);
-                }
-                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-            }
-            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+            InitializeBounds();
         }
 
         private void AddTrackItems()

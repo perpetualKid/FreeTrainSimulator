@@ -9,6 +9,7 @@ using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
+using Orts.Graphics.MapView.Widgets;
 
 namespace Orts.Graphics.MapView
 {
@@ -57,6 +58,38 @@ namespace Orts.Graphics.MapView
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
 
         internal abstract void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight);
+
+        private protected void InitializeBounds()
+        {
+            double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+
+            // if there is only one tile, limit the dimensions to the extend of the track within that tile
+            if (contentItems[MapViewItemSettings.Grid].Count == 1)
+            {
+                foreach (TrackEndSegment trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
+                {
+                    minX = Math.Min(minX, trackEndSegment.Location.X);
+                    minY = Math.Min(minY, trackEndSegment.Location.Y);
+                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
+                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
+                }
+            }
+            else
+            {
+                minX = Math.Min(minX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[0][0].Tile.X);
+                maxX = Math.Max(maxX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[^1][0].Tile.X);
+                foreach (GridTile tile in contentItems[MapViewItemSettings.Grid])
+                {
+                    minY = Math.Min(minY, tile.Tile.Z);
+                    maxY = Math.Max(maxY, tile.Tile.Z);
+                }
+                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
+                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
+                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
+                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
+            }
+            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+        }
 
         private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
         {
