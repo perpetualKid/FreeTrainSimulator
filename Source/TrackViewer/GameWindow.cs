@@ -87,11 +87,6 @@ namespace Orts.TrackViewer
 
         private Color BackgroundColor;
 
-        #region preferences
-        private MapViewItemSettings viewSettings;
-
-        #endregion
-
         internal Catalog Catalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
         private readonly string windowTitle
@@ -206,8 +201,7 @@ namespace Orts.TrackViewer
 
         internal void UpdateItemVisibilityPreference(MapViewItemSettings setting, bool enabled)
         {
-            viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
-            contentArea?.Content.UpdateItemVisiblity(viewSettings);
+            Settings.ViewSettings[setting] = enabled;
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -236,8 +230,6 @@ namespace Orts.TrackViewer
             }
 
             BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
-            viewSettings = Settings.ViewSettings;
-
         }
 
         private void SaveSettings()
@@ -259,7 +251,6 @@ namespace Orts.TrackViewer
                     Settings.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
-            Settings.ViewSettings = viewSettings;
             if (null != contentArea)
             {
                 string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };

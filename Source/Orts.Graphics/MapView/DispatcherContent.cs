@@ -53,30 +53,30 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
-            {
-                foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(segment))
-                        segment.Draw(ContentArea);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.EndNodes) == MapViewItemSettings.EndNodes)
-            {
-                foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(endNode))
-                        endNode.Draw(ContentArea);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
-            {
-                foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(junctionNode) && junctionNode != nearestDispatchItem)
-                        junctionNode.Draw(ContentArea);
-                }
-            }
+            //if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
+            //{
+            //    foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
+            //    {
+            //        if (ContentArea.InsideScreenArea(segment))
+            //            segment.Draw(ContentArea);
+            //    }
+            //}
+            //if ((viewSettings & MapViewItemSettings.EndNodes) == MapViewItemSettings.EndNodes)
+            //{
+            //    foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
+            //    {
+            //        if (ContentArea.InsideScreenArea(endNode))
+            //            endNode.Draw(ContentArea);
+            //    }
+            //}
+            //if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
+            //{
+            //    foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
+            //    {
+            //        if (ContentArea.InsideScreenArea(junctionNode) && junctionNode != nearestDispatchItem)
+            //            junctionNode.Draw(ContentArea);
+            //    }
+            //}
             foreach (TrackItemBase trackItem in SignalItems.BoundingBox(bottomLeft, topRight))
             {
 //                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem) && trackItem != nearestDispatchItem)

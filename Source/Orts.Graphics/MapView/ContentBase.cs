@@ -14,46 +14,11 @@ namespace Orts.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {
-        private protected enum ContentItemType
-        {
-            // types should be placed in the order they are drawn (overlap), top level last
-            // and *MUST* be same name (string) as in Orts.Common.MapViewItemSettings
-            Grid,
-            Platforms,
-            Sidings,
-            MilePosts,
-            SpeedPosts,
-            Signals,
-            OtherSignals,
-            Tracks,
-            EndNodes,
-            JunctionNodes,
-            CrossOvers,
-            Roads,
-            RoadEndNodes,
-            RoadCrossings,
-            LevelCrossings,
-                Hazards,
-            CarSpawners,
-            Pickups,
-            SoundRegions,
-            SidingNames,
-            PlatformNames,
-            PlatformStations,
-            Paths,
-            PathEnds,
-            PathIntermediates,
-            PathJunctions,
-            PathReversals,
-
-        }
-
         private protected readonly Game game;
-        private protected MapViewItemSettings viewSettings = MapViewItemSettings.All;
+        private protected EnumArray<bool, MapViewItemSettings> viewSettings = new EnumArray<bool, MapViewItemSettings>(true);
 
-        private protected readonly EnumArray<bool, ContentItemType> contentItemsSettings = new EnumArray<bool, ContentItemType>(true);
-        private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, ContentItemType> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, ContentItemType>();
-        private protected readonly EnumArray<ITileCoordinate<Tile>, ContentItemType> nearestItems = new EnumArray<ITileCoordinate<Tile>, ContentItemType>();
+        private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings>();
+        private protected readonly EnumArray<ITileCoordinate<Tile>, MapViewItemSettings> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapViewItemSettings>();
 
         public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
 
@@ -79,15 +44,14 @@ namespace Orts.Graphics.MapView
 
         public abstract Task Initialize();
 
-        public void UpdateItemVisiblity(MapViewItemSettings viewSettings)
+        public void UpdateItemVisiblity(MapViewItemSettings setting, bool value)
         {
-            this.viewSettings = viewSettings;
+            this.viewSettings[setting] = value;
+        }
 
-            foreach(ContentItemType itemType in EnumExtension.GetValues<ContentItemType>())
-            {
-                EnumExtension.GetValue(itemType.ToString(), out MapViewItemSettings setting);
-                contentItemsSettings[itemType] = (viewSettings & setting) == setting;
-            }
+        public void InitializeItemVisiblity(EnumArray<bool, MapViewItemSettings> settings)
+        {
+            this.viewSettings = settings;
         }
 
         internal abstract void Draw(ITile bottomLeft, ITile topRight);

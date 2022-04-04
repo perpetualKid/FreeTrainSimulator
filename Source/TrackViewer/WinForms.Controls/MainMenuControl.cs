@@ -81,7 +81,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, MapViewItemSettings setting)
         {
             menuItem.Tag = setting;
-            menuItem.Checked = (parent.Settings.ViewSettings & setting) == setting;
+            menuItem.Checked = parent.Settings.ViewSettings[setting];
             menuItem.Click += VisibilitySettingToolStripMenuItem_Click;
             if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
                 SetupVisibilityParentMenuItem(parentItem);
