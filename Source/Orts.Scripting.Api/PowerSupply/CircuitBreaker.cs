@@ -12,19 +12,19 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Current state of the circuit breaker
         /// </summary>
-        public Func<CircuitBreakerState> CurrentState;
+        public Func<CircuitBreakerState> CurrentState { get; set; }
         /// <summary>
         /// TCS' circuit breaker closing order
         /// </summary>
-        public Func<bool> TCSClosingOrder;
+        public Func<bool> TCSClosingOrder { get; set; }
         /// <summary>
         /// TCS' circuit breaker opening order
         /// </summary>
-        public Func<bool> TCSOpeningOrder;
+        public Func<bool> TCSOpeningOrder { get; set; }
 
         /// <summary>
         /// Sets the current state of the circuit breaker
         /// </summary>
-        public Action<CircuitBreakerState> SetCurrentState;
+        public Action<CircuitBreakerState> SetCurrentState { get; set; }
     }
 }
