@@ -303,19 +303,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         /// <summary>
-        /// Axle force value, covered by AxleForceN interface, in Newtons
-        /// </summary>
-        private float axleForceN;
-        /// <summary>
         /// Read only axle force value, in Newtons
         /// </summary>
-        public float AxleForceN
-        {
-            get
-            {
-                return axleForceN;
-            }
-        }
+        public float AxleForceN { get; private set; }
 
         /// <summary>
         /// Compensated Axle force value, this provided the motive force equivalent excluding brake force, in Newtons
@@ -522,7 +512,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             previousSlipPercent = inf.ReadSingle();
             previousSlipSpeedMpS = inf.ReadSingle();
-            axleForceN = inf.ReadSingle();
+            AxleForceN = inf.ReadSingle();
             adhesionK = inf.ReadSingle();
             AdhesionConditions = inf.ReadSingle();
             frictionN = inf.ReadSingle();
@@ -537,7 +527,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             outf.Write(previousSlipPercent);
             outf.Write(previousSlipSpeedMpS);
-            outf.Write(axleForceN);
+            outf.Write(AxleForceN);
             outf.Write(adhesionK);
             outf.Write(AdhesionConditions);
             outf.Write(frictionN);
@@ -547,33 +537,41 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public double GetSpeedVariation(double axleSpeedMpS)
         {
             //Update axle force ( = k * loadTorqueNm)
-            axleForceN = (float)(AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2));
+            double axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2);
 
-            float motiveAxleForceN = -axleForceN;
+            double motiveAxleForceN = -axleForceN - frictionN * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
             if (driveType == AxleDriveType.ForceDriven)
                 motiveAxleForceN += driveForceN * transmissionEfficiency;
             else if (driveType == AxleDriveType.MotorDriven)
                 motiveAxleForceN += motor.DevelopedTorqueNm * transmissionEfficiency * AxleDiameterM / 2;
 
-            float frictionalForceN = BrakeRetardForceN
-                //                + SlipDerivationMpSS * dampingNs
-                + Math.Abs(AxleSpeedMpS - TrainSpeedMpS) * frictionN; // Dissipative forces: they will never increase wheel speed
-            float totalAxleForceN = motiveAxleForceN - Math.Sign(axleSpeedMpS) * frictionalForceN;
-            if (axleSpeedMpS == 0)
+            // Dissipative forces: they will never increase wheel speed
+            double frictionalForceN = BrakeRetardForceN;
+            // + slipDerivationMpSS * dampingNs TODO: Integrator does not allow derivatives of integration variable, is damping required?
+
+            double totalAxleForceN = motiveAxleForceN - Math.Sign(axleSpeedMpS) * frictionalForceN;
+            if (Math.Abs(axleSpeedMpS) < 0.01f)
             {
+                if (Math.Abs(TrainSpeedMpS) < 0.01f)
+                    frictionalForceN += frictionN; // Set a starting friction to avoid oscillations at standstill. Maybe Davis A should go here?
                 if (motiveAxleForceN > frictionalForceN)
                     totalAxleForceN = motiveAxleForceN - frictionalForceN;
                 else if (motiveAxleForceN < -frictionalForceN)
                     totalAxleForceN = motiveAxleForceN + frictionalForceN;
                 else if (motiveAxleForceN < -frictionalForceN)
                     totalAxleForceN = motiveAxleForceN + frictionalForceN;
+                if (motiveAxleForceN > frictionalForceN)
+                    totalAxleForceN = motiveAxleForceN - frictionalForceN;
+                else if (motiveAxleForceN < -frictionalForceN)
+                    totalAxleForceN = motiveAxleForceN + frictionalForceN;
                 else
                 {
                     totalAxleForceN = 0;
+                    axleForceN = 0;
                     frictionalForceN -= Math.Abs(motiveAxleForceN);
                 }
             }
-            avgAxleForce += axleForceN;
+            avgAxleForce += (float)axleForceN;
             times++;
             return totalAxleForceN * axleDiameterM * axleDiameterM / 4 / totalInertiaKgm2;
         }
@@ -591,7 +589,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             times = 0;
             avgAxleForce = 0;
             axleSpeedMpS = (float)AxleRevolutionsInt.Integrate(timeSpan, GetSpeedVariation);
-            if (times > 0) axleForceN = avgAxleForce / times;
+            if (times > 0)
+                AxleForceN = avgAxleForce / times;
             // TODO: around zero wheel speed calculations become unstable
             // Near-zero regime will probably need further corrections
             if ((prevSpeedMpS > 0 && axleSpeedMpS <= 0) || (prevSpeedMpS < 0 && axleSpeedMpS >= 0))
@@ -605,9 +604,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             // And thus there is a duplication of the braking effect in OR. To compensate for this, after the slip characteristics have been calculated, the output of the axle module
             // has the brake force "added" back in to give the appropriate motive force output for the locomotive. Braking force is handled separately.
             // Hence CompensatedAxleForce is the actual output force on the axle. 
-            if (axleSpeedMpS > 0) CompensatedAxleForceN = axleForceN + BrakeRetardForceN;
-            else if (axleSpeedMpS < 0) CompensatedAxleForceN = axleForceN - BrakeRetardForceN;
-            else CompensatedAxleForceN = 0;
+            if (TrainSpeedMpS > 0.01f)
+                CompensatedAxleForceN = AxleForceN + BrakeRetardForceN;
+            else if (TrainSpeedMpS < -0.01f)
+                CompensatedAxleForceN = AxleForceN - BrakeRetardForceN;
+            else
+                CompensatedAxleForceN = AxleForceN;
 
             if (driveType == AxleDriveType.MotorDriven)
             {
