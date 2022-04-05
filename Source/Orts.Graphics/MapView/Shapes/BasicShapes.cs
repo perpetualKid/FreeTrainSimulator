@@ -181,8 +181,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="radius">Radius of the circle to which the arc belongs. Positive means curving left</param>
         /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
         /// <param name="arcDegrees">Number of degrees in the arc (360 would be full circle)</param>
-        /// <param name="arcDegreesOffset">Instead of starting at 0 degrees in the circle, offset allows to start at a different position</param>
-        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, double arcDegreesOffset, SpriteBatch spriteBatch = null)
+        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, SpriteBatch spriteBatch = null)
         {
             // Positive arcDegree means curving to the left, negative arcDegree means curving to the right
             int sign = - Math.Sign(arcDegrees);
@@ -209,13 +208,6 @@ namespace Orts.Graphics.MapView.Shapes
             int arcStepsRemaining = (int)(Math.Round(arcDegrees / minAngleDegree));
             // amount of minAngleDegrees we cover per straight line:
             int arcStepsPerLine = (int)Math.Ceiling(arcDegrees / (minAngleDegree * numberStraightLines));
-
-            // Add offset in angles
-            if (arcDegreesOffset != 0f)
-            {
-                angle += arcDegreesOffset * Math.PI / 180.0;
-                centerToPointDirection = sign * new Vector2(-(float)Math.Sin(angle), (float)Math.Cos(angle));
-            }
 
             // All straight lines that we draw will be titled by half of the arc that is should cover.
             angle += -sign * arcStepsPerLine * minAngleRad / 2;

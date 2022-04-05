@@ -125,11 +125,118 @@ namespace Orts.Graphics.MapView.Widgets
         private protected TrackSegment()
         { }
 
+        private protected TrackSegment(TrackSegment source, float remainingLength, float startOffset, bool reverse) : this(source)
+        {
+            if (startOffset == 0 && remainingLength >= Length)//full path segment
+                return;
+            //remainingLength is in m down the track, startOffset is either in m for straight, or in Rad for Curved
+            if (Curved)
+            {
+                int sign = Math.Sign(Angle);
+                float remainingArc = remainingLength / Radius * sign;
+                float remainingDeg = MathHelper.ToDegrees(remainingArc);
+
+                if (reverse)
+                {
+                    if (startOffset != 0)
+                        Angle = MathHelper.ToDegrees(startOffset) * sign;
+                    if (Math.Abs(remainingDeg) < Math.Abs(Angle))
+                    {
+                        Direction += MathHelper.ToRadians(Angle) - remainingArc;
+                        Angle = MathHelper.ToDegrees(remainingArc);
+                        location = centerPoint + new PointD(-sign * Math.Cos(Direction + MathHelper.PiOver2) * Radius, sign * Math.Sin(Direction + MathHelper.PiOver2) * Radius);
+                    }
+                }
+                else
+                {
+                    Direction += sign * startOffset;
+                    location = centerPoint + new PointD(-sign * Math.Cos(Direction + MathHelper.PiOver2) * Radius, sign * Math.Sin(Direction + MathHelper.PiOver2) * Radius);
+                    Angle -= sign * MathHelper.ToDegrees(startOffset);
+                    if (Math.Abs(remainingDeg) < Math.Abs(Angle))
+                        Angle = remainingDeg;
+                }
+                Angle += 0.05f * sign;  // there seems to be a small rounding error somewhere leading to tiny gap in some cases
+                Length = Radius * MathHelper.ToRadians(Angle) * sign;
+            }
+            else
+            {
+                float endOffset = 0;
+                if (reverse)
+                {
+                    if (startOffset == 0)
+                        startOffset = Length;
+                    else
+                        Length = startOffset;
+                    if (remainingLength < startOffset)
+                    {
+                        endOffset = startOffset - remainingLength;
+                        Length = remainingLength;
+                    }
+                    (startOffset, endOffset) = (endOffset, startOffset);
+                }
+                else
+                {
+                    Length -= startOffset;
+                    endOffset = Length;
+                    if (remainingLength + startOffset < Length)
+                    {
+                        endOffset = remainingLength + startOffset;
+                        Length = remainingLength;
+                    }
+                }
+
+                double dx = vectorEnd.X - location.X;
+                double dy = vectorEnd.Y - location.Y;
+                double scale = startOffset / source.Length;
+                location = new PointD(location.X + dx * scale, location.Y + dy * scale);
+                scale = endOffset / source.Length;
+                vectorEnd = new PointD(location.X + dx * scale, location.Y + dy * scale);
+            }
+        }
+
+        private protected TrackSegment(TrackSegment source, in PointD start, in PointD end) : this(source)
+        {
+            bool reverse = false;
+
+            //figure which end is closer to start vs end
+            if (start.DistanceSquared(location) > start.DistanceSquared(vectorEnd) && end.DistanceSquared(location) < end.DistanceSquared(vectorEnd))
+                reverse = true;
+
+            if (reverse)
+            {
+                location = end;
+                vectorEnd = start;
+            }
+            else
+            {
+                location = start;
+                vectorEnd = end;
+            }
+
+            if (Curved)
+            {
+                PointD deltaStart = location - centerPoint;
+                float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
+                Direction -= deltaAngle;
+                Angle += MathHelper.ToDegrees(deltaAngle);
+                PointD deltaEnd = vectorEnd - centerPoint;
+                deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
+                Angle += MathHelper.ToDegrees(deltaAngle);
+            }
+            else
+            {
+                Length = (float)end.Distance(start);
+            }
+        }
+
+
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = GetColor<TrackSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
@@ -181,7 +288,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = GetColor<RoadSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }

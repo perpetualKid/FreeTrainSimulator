@@ -196,49 +196,16 @@ namespace Orts.Graphics.MapView.Widgets
             Size = 3;
         }
 
-        public PlatformSegment(TrackSegment source, in PointD start, in PointD end) : base(source)
+        public PlatformSegment(TrackSegment source, in PointD start, in PointD end) : base(source, start, end)
         {
-            bool reverse = false;
-
-            //figure which end is closer to start vs end
-            if (start.DistanceSquared(location) > start.DistanceSquared(vectorEnd) && end.DistanceSquared(location) < end.DistanceSquared(vectorEnd))
-                reverse = true;
-
-            if (reverse)
-            {
-                location = end;
-                vectorEnd = start;
-            }
-            else
-            {
-                location = start;
-                vectorEnd = end;
-            }
-
             Size = 3;
-            if (Curved)
-            {
-                PointD deltaStart = location - centerPoint;
-                float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
-                deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
-                Direction -= deltaAngle;
-                Angle += MathHelper.ToDegrees(deltaAngle);
-                PointD deltaEnd = vectorEnd - centerPoint;
-                deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
-                deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
-                Angle += MathHelper.ToDegrees(deltaAngle);
-            }
-            else
-            {
-                Length = (float)end.Distance(start);
-            }
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = GetColor<PlatformSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }

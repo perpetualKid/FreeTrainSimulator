@@ -43,7 +43,6 @@ namespace Orts.Graphics.MapView.Widgets
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
 
             foreach (TrackItem trackItem in trackItems)
             {
@@ -63,8 +62,6 @@ namespace Orts.Graphics.MapView.Widgets
                         break;
                 }
             }
-
-            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
 
             return result;
         }
@@ -214,38 +211,6 @@ namespace Orts.Graphics.MapView.Widgets
             Color drawColor = GetColor<SidingTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-        }
-
-        /// <summary>
-        /// Link siding items which belong together pairwise so text only appears once (otherwise text is mostly overlapping since siding items are too close to each other
-        /// </summary>
-        internal static List<SidingTrackItem> LinkSidingItems(Dictionary<int, SidingTrackItem> sidingItems)
-        {
-            List<SidingTrackItem> result = new List<SidingTrackItem>();
-
-            while (sidingItems.Count > 0)
-            {
-                int sourceId = sidingItems.Keys.First();
-                SidingTrackItem source = sidingItems[sourceId];
-                sidingItems.Remove(sourceId);
-                if (sidingItems.TryGetValue(source.LinkedId, out SidingTrackItem target))
-                {
-                    if (target.LinkedId != source.Id)
-                    {
-                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {source.Id} to target {source.LinkedId} vs Target id {target.Id} to source {target.LinkedId}.");
-                    }
-                    sidingItems.Remove(target.Id);
-                    result.Add(target);
-                    // TODO 20210115 maybe resulting location of text should be in the middle between the two linked siding items
-                }
-                else
-                {
-                    Trace.TraceWarning($"Linked Siding Item {source.LinkedId} for Siding Item {source.Id} not found.");
-                }
-                result.Add(source);
-            }
-
-            return result;
         }
     }
     #endregion
