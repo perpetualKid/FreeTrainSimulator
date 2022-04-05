@@ -591,9 +591,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             times = 0;
             avgAxleForce = 0;
             axleSpeedMpS = (float)AxleRevolutionsInt.Integrate(timeSpan, GetSpeedVariation);
-            axleForceN = avgAxleForce / times;
-            if ((prevSpeedMpS > 0 && axleSpeedMpS <= 0/* && motiveAxleForceN > -frictionalForceN*/) || (prevSpeedMpS < 0 && axleSpeedMpS >= 0/* && motiveAxleForceN < frictionalForceN*/))
-
+            if (times > 0) axleForceN = avgAxleForce / times;
+            // TODO: around zero wheel speed calculations become unstable
+            // Near-zero regime will probably need further corrections
+            if ((prevSpeedMpS > 0 && axleSpeedMpS <= 0) || (prevSpeedMpS < 0 && axleSpeedMpS >= 0))
             {
                 Reset();
             }
