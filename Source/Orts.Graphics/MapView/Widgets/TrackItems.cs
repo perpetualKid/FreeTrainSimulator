@@ -74,7 +74,6 @@ namespace Orts.Graphics.MapView.Widgets
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
             foreach (TrackNode node in trackDb.TrackNodes)
@@ -95,8 +94,7 @@ namespace Orts.Graphics.MapView.Widgets
                 switch (trackItem)
                 {
                     case SidingItem sidingItem:
-                        SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
-                        sidingItems.Add(trackSidingItem.Id, trackSidingItem);
+                        result.Add(new SidingTrackItem(sidingItem, trackItemNodes));
                         break;
                     case PlatformItem platformItem:
                         result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
@@ -138,9 +136,6 @@ namespace Orts.Graphics.MapView.Widgets
                         break;
                 }
             }
-
-            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
-
             return result;
         }
     }
@@ -199,13 +194,16 @@ namespace Orts.Graphics.MapView.Widgets
     #region SidingTrackItem
     internal class SidingTrackItem : TrackItemBase
     {
-        private readonly string sidingName;
+        internal readonly string SidingName;
         internal readonly int Id;
         internal readonly int LinkedId;
 
-        public SidingTrackItem(SidingItem source) : base(source)
+        internal TrackVectorNode TrackVectorNode;
+
+        public SidingTrackItem(SidingItem source, TrackVectorNode[] trackItemNodes) : base(source)
         {
-            sidingName = source.ItemName;
+            TrackVectorNode = trackItemNodes[source.TrackItemId];
+            SidingName = source.ItemName;
             Id = source.TrackItemId;
             LinkedId = source.LinkedSidingId;
             Size = 5f;
@@ -213,10 +211,9 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<SidingTrackItem>(colorVariation);
-            Color drawColor = GetColor<SidingTrackItem>(colorVariation.Next().Next());
+            Color drawColor = GetColor<SidingTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, sidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         /// <summary>
@@ -276,10 +273,10 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
-            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            Color drawColor = GetColor<PlatformTrackItem>(colorVariation);
+            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion

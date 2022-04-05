@@ -926,6 +926,7 @@ namespace Orts.Common
         PathIntermediates,
         PathJunctions,
         PathReversals,
+        Empty,
     }
 
     public enum TrainType

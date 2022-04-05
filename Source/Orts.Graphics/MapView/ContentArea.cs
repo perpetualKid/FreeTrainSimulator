@@ -140,6 +140,9 @@ namespace Orts.Graphics.MapView
                     break;
                 case ColorSetting.SidingItem:
                     PointWidget.UpdateColor<SidingTrackItem>(color);
+                    PointWidget.UpdateColor<SidingPath>(color);
+                    color.A = 160;
+                    PointWidget.UpdateColor<SidingSegment>(color);
                     break;
                 case ColorSetting.SpeedPostItem:
                     PointWidget.UpdateColor<SpeedPostTrackItem>(color);
