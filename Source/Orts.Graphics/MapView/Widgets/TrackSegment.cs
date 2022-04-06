@@ -39,9 +39,9 @@ namespace Orts.Graphics.MapView.Widgets
                 debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                 debugInformation["Length"] = $"{Length:F1}m";
-                debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction - MathHelper.PiOver2)):F3}º";
+                debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction - MathHelper.PiOver2)):F1}º";
                 debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
-                debugInformation["Angle"] = Curved ? $"{Angle:F3}º" : "n/a";
+                debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
                 return debugInformation;
             }
         }
@@ -74,7 +74,7 @@ namespace Orts.Graphics.MapView.Widgets
 
             if (trackSection.Curved)
             {
-                Angle = trackSection.Angle;
+                Angle = MathHelper.ToRadians(trackSection.Angle);
                 Radius = trackSection.Radius;
                 Length = trackSection.Length;
 
@@ -89,7 +89,7 @@ namespace Orts.Graphics.MapView.Widgets
 
                 centerPoint = base.location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * Math.Sign(Angle) * Radius);
                 centerToStartDirection = MathHelper.WrapAngle(Direction - (Math.Sign(Angle) * MathHelper.PiOver2));
-                centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + MathHelper.ToRadians(Angle));
+                centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
             }
             else
             {
@@ -139,11 +139,11 @@ namespace Orts.Graphics.MapView.Widgets
                 if (reverse)
                 {
                     if (startOffset != 0)
-                        Angle = MathHelper.ToDegrees(startOffset) * sign;
+                        Angle = startOffset * sign;
                     if (Math.Abs(remainingDeg) < Math.Abs(Angle))
                     {
-                        Direction += MathHelper.ToRadians(Angle) - remainingArc;
-                        Angle = MathHelper.ToDegrees(remainingArc);
+                        Direction += Angle - remainingArc;
+                        Angle = remainingArc;
                         location = centerPoint + new PointD(-sign * Math.Cos(Direction + MathHelper.PiOver2) * Radius, sign * Math.Sin(Direction + MathHelper.PiOver2) * Radius);
                     }
                 }
@@ -151,12 +151,12 @@ namespace Orts.Graphics.MapView.Widgets
                 {
                     Direction += sign * startOffset;
                     location = centerPoint + new PointD(-sign * Math.Cos(Direction + MathHelper.PiOver2) * Radius, sign * Math.Sin(Direction + MathHelper.PiOver2) * Radius);
-                    Angle -= sign * MathHelper.ToDegrees(startOffset);
+                    Angle -= sign * startOffset;
                     if (Math.Abs(remainingDeg) < Math.Abs(Angle))
                         Angle = remainingDeg;
                 }
-                Angle += 0.05f * sign;  // there seems to be a small rounding error somewhere leading to tiny gap in some cases
-                Length = Radius * MathHelper.ToRadians(Angle) * sign;
+                Angle += 0.01f * sign;  // there seems to be a small rounding error somewhere leading to tiny gap in some cases
+                Length = Radius * Angle * sign;
             }
             else
             {
@@ -219,11 +219,11 @@ namespace Orts.Graphics.MapView.Widgets
                 float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
                 Direction -= deltaAngle;
-                Angle += MathHelper.ToDegrees(deltaAngle);
+                Angle += deltaAngle;
                 PointD deltaEnd = vectorEnd - centerPoint;
                 deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
-                Angle += MathHelper.ToDegrees(deltaAngle);
+                Angle += deltaAngle;
             }
             else
             {

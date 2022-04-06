@@ -18,9 +18,9 @@ namespace Orts.Graphics.MapView.Shapes
         private readonly EnumArray<Texture2D, BasicTextureType> basicHighlightTextures = new EnumArray<Texture2D, BasicTextureType>();
         private readonly EnumArray<Vector2, BasicTextureType> textureOffsets = new EnumArray<Vector2, BasicTextureType>();
 
-        private const double minAngleDegree = 0.1f; // we do not care for angles smaller than 0.1 degrees
+        private const double minAngleDegree = 0.1; // we do not care for angles smaller than 0.1 degrees
         private const double maxAngleDegree = 90; // allows for drawing up to 90 degree arcs
-        private const double minAngleRad = minAngleDegree * Math.PI / 180.0; // minAngleDegree but in radians.
+        private const double minAngle = 0.1 * Math.PI / 180.0; // don't care for angles smaller than 0.1 degrees
         private static readonly double[] cosTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // table with precalculated Cosine values: cosTable[numberDrawn] = cos(numberDrawn * 0.1degrees)
         private static readonly double[] sinTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // similar
 
@@ -180,12 +180,12 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="point">Vector to the first point of the line</param>
         /// <param name="radius">Radius of the circle to which the arc belongs. Positive means curving left</param>
         /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
-        /// <param name="arcDegrees">Number of degrees in the arc (360 would be full circle)</param>
-        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, SpriteBatch spriteBatch = null)
+        /// <param name="arcSize">Arc size in Radian (2Pi would be full circle)</param>
+        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcSize, SpriteBatch spriteBatch = null)
         {
             // Positive arcDegree means curving to the left, negative arcDegree means curving to the right
-            int sign = - Math.Sign(arcDegrees);
-            arcDegrees = Math.Abs(arcDegrees);
+            int sign = -Math.Sign(arcSize);
+            arcSize = Math.Abs(arcSize);
 
             // We will draw an arc as a succession of straight lines. We do this in a way that reduces the amount
             // of goniometric calculations needed.
@@ -197,7 +197,7 @@ namespace Orts.Graphics.MapView.Shapes
             // To determine the amount of straight lines we need to calculate we first 
             // determine then lenght of the arc, and divide that by the maximum we allow;
             // All angles go in steps of minAngleDegree
-            double arcLength = radius * arcDegrees * Math.PI / 180.0;
+            double arcLength = radius * arcSize;
             // We draw straight lines. The error in the middle of the line is: error = radius - radius*cos(alpha/2).
             // Here alpha is the angle drawn for a single arc-segment. Approximately error ~ radius * alpha^2/8.
             // The amount of pixels in the line is about L ~ radius * alpha => L ~ sqrt(8 * radius * error). 
@@ -205,19 +205,19 @@ namespace Orts.Graphics.MapView.Shapes
             double maxStraightPixels = Math.Sqrt(4 * radius);
             double numberStraightLines = Math.Ceiling(arcLength / maxStraightPixels);
             // amount of minAngleDegrees we need to cover: 
-            int arcStepsRemaining = (int)(Math.Round(arcDegrees / minAngleDegree));
+            int arcStepsRemaining = (int)Math.Round(arcSize / minAngle);
             // amount of minAngleDegrees we cover per straight line:
-            int arcStepsPerLine = (int)Math.Ceiling(arcDegrees / (minAngleDegree * numberStraightLines));
+            int arcStepsPerLine = (int)Math.Ceiling(arcSize / (minAngle * numberStraightLines));
 
             // All straight lines that we draw will be titled by half of the arc that is should cover.
-            angle += -sign * arcStepsPerLine * minAngleRad / 2;
+            angle += -sign * arcStepsPerLine * minAngle / 2;
 
             // while we still have some arc steps to cover
             while (arcStepsRemaining > 0)
             {
                 int arcSteps = Math.Min(arcStepsRemaining, arcStepsPerLine); //angle steps we cover in this line
                 point = center + centerToPointDirection * (float)(radius - sign * width / 2.0);  // correct for width of line
-                double length = radius * arcSteps * minAngleRad + 1; // the +1 to prevent white lines in between arc sections
+                double length = radius * arcSteps * minAngle + 1; // the +1 to prevent white lines in between arc sections
 
                 (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
 
@@ -226,7 +226,7 @@ namespace Orts.Graphics.MapView.Shapes
 
                 if (arcStepsRemaining > 0)
                 {
-                    angle -= sign * arcSteps * minAngleRad;
+                    angle -= sign * arcSteps * minAngle;
                     //Rotate the centerToPointDirection, and calculate new point
                     centerToPointDirection = new Vector2(
                              (float)(cosTable[arcSteps] * centerToPointDirection.X + sign * sinTable[arcSteps] * centerToPointDirection.Y),
@@ -280,8 +280,8 @@ namespace Orts.Graphics.MapView.Shapes
         {
             for (int i = 0; i < cosTable.Length; i++)
             {
-                cosTable[i] = Math.Cos(i * minAngleRad);
-                sinTable[i] = Math.Sin(i * minAngleRad);
+                cosTable[i] = Math.Cos(i * minAngle);
+                sinTable[i] = Math.Sin(i * minAngle);
             }
         }
         #endregion
