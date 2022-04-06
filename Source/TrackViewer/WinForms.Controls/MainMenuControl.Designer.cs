@@ -85,8 +85,9 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.roadTrackColorComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.roadTrackEndColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.roadTrackEndColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
-            this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pathTrackColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathTrackColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
+            this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.sidingColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
