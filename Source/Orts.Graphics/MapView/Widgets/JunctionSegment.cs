@@ -19,7 +19,6 @@ namespace Orts.Graphics.MapView.Widgets
     internal class JunctionSegment : PointWidget, INameValueInformationProvider
     {
         private const int diameter = 3;
-        [ThreadStatic]
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
 
         internal readonly int TrackNodeIndex;

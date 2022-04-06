@@ -15,8 +15,8 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackSegment : VectorWidget, INameValueInformationProvider
     {
-        [ThreadStatic]
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
+        private protected static int debugInfoHash;
 
         internal readonly bool Curved;
 
@@ -31,17 +31,23 @@ namespace Orts.Graphics.MapView.Widgets
         private protected float centerToStartDirection;
         private protected float centerToEndDirection;
 
-        public NameValueCollection DebugInfo
+        public virtual NameValueCollection DebugInfo
         {
             get
             {
-                debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
-                debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
-                debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
-                debugInformation["Length"] = $"{Length:F1}m";
-                debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction - MathHelper.PiOver2)):F1}º";
-                debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
-                debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
+                int hash = HashCode.Combine(TrackNodeIndex, TrackVectorSectionIndex);
+                if (hash != debugInfoHash)
+                {
+                    debugInformation["Segment Type"] = "Rail Track";
+                    debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                    debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
+                    debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
+                    debugInformation["Length"] = $"{Length:F1}m";
+                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction - MathHelper.PiOver2)):F1}º";
+                    debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
+                    debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
+                    debugInfoHash = hash;
+                }
                 return debugInformation;
             }
         }
@@ -279,6 +285,16 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadSegment : TrackSegment
     {
+        public override NameValueCollection DebugInfo
+        {
+            get 
+            {
+                NameValueCollection result = base.DebugInfo;
+                result["Segment Type"] = "Road";
+                return result;
+            }
+        }
+
         public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
             base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
         {

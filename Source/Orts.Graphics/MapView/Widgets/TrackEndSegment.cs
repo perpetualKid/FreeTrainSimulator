@@ -14,7 +14,6 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackEndSegment: PointWidget, INameValueInformationProvider
     {
-        [ThreadStatic]
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
@@ -56,11 +55,12 @@ namespace Orts.Graphics.MapView.Widgets
             TrackNodeIndex = trackEndNode.Index;
         }
 
-        public NameValueCollection DebugInfo
+        public virtual NameValueCollection DebugInfo
         {
             get
             {
-                debugInformation["Track Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
+                debugInformation["Segment Type"] = "Rail Track";
+                debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
                 return debugInformation;
             }
         }
@@ -77,6 +77,16 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadEndSegment : TrackEndSegment
     {
+        public override NameValueCollection DebugInfo
+        {
+            get
+            {
+                NameValueCollection result = base.DebugInfo;
+                result["Segment Type"] = "Road";
+                return result;
+            }
+        }
+
         public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) : 
             base(trackEndNode, connectedVectorNode, sections)
         {
