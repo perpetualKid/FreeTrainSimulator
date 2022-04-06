@@ -34,7 +34,6 @@ using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
@@ -75,10 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private float yScale = 1; // pixels / metre 
 
         private string name = "";
-        private List<SwitchWidget> switchItemsDrawn;
 
-        public SwitchWidget SwitchPickedItem { get; }
-        public SignalWidget SignalPickedItem { get; }
         private ImageList imageList1;
         private List<Train> selectedTrainList;
         /// <summary>
@@ -91,7 +87,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private Pen trainPen = new Pen(Color.DarkGreen);
         private Pen pathPen = new Pen(Color.DeepPink);
         private Pen grayPen = new Pen(Color.Gray);
-        private Pen platformPen = new Pen(Color.Blue);
 
         //the train selected by leftclicking the mouse
         public Train PickedTrain;
@@ -188,10 +183,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private Font trainFont;
         private Font sidingFont;
-        private Font PlatformFont;
         private SolidBrush trainBrush;
         private SolidBrush sidingBrush;
-        private SolidBrush platformBrush;
         private SolidBrush inactiveTrainBrush;
 
         private double lastUpdateTime;
@@ -226,9 +219,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 loaded = true;
                 Localizer.Localize(this, Viewer.Catalog);
             }
-
-            switchItemsDrawn = new List<SwitchWidget>();
-            switches = new List<SwitchWidget>();
             for (int i = 0; i < nodes.Count; i++)
             {
                 if (nodes[i] is TrackEndNode)
@@ -282,7 +272,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             continue;
                         segments.Add(new LineSegment(B, A, item));
                     }
-                    switches.Add(new SwitchWidget(trackJunctionNode));
                 }
             }
 
@@ -300,10 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private bool Inited;
         private List<LineSegment> segments = new List<LineSegment>();
-        private List<SwitchWidget> switches;
-        private List<SignalWidget> signals = new List<SignalWidget>();
         private List<SidingWidget> sidings = new List<SidingWidget>();
-        private List<PlatformWidget> platforms = new List<PlatformWidget>();
 
         /// <summary>
         /// Initialises the picturebox and the image it contains. 
@@ -658,85 +644,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                 }
 
-                switchItemsDrawn.Clear();
                 PointF scaledItem = new PointF();
-                var width = 6f * p.Width;
-                if (width > 15)
-                    width = 15;//not to make it too large
-                for (var i = 0; i < switches.Count; i++)
-                {
-                    SwitchWidget sw = switches[i];
-
-                    scaledItem = new PointF((sw.Location.X - subX) * xScale, pbCanvas.Height - (sw.Location.Y - subY) * yScale);
-
-                    if (scaledItem.X < 0 || scaledItem.X > IM_Width || scaledItem.Y > IM_Height || scaledItem.Y < 0)
-                        continue;
-
-                    if (sw.Item.SelectedRoute == sw.main)
-                        g.FillEllipse(Brushes.Black, GetRect(scaledItem, width));
-                    else
-                        g.FillEllipse(Brushes.Gray, GetRect(scaledItem, width));
-
-                    //g.DrawString("" + sw.Item.TrJunctionNode.SelectedRoute, trainFont, trainBrush, scaledItem);
-
-                    sw.Location2D.X = scaledItem.X;
-                    sw.Location2D.Y = scaledItem.Y;
-#if false
-				 if (sw.main == sw.Item.TrJunctionNode.SelectedRoute)
-				 {
-					 scaledA.X = ((float)sw.mainEnd.X - minX - ViewWindow.X) * xScale; scaledA.Y = pictureBox1.Height - ((float)sw.mainEnd.Y - minY - ViewWindow.Y) * yScale;
-					 g.DrawLine(redPen, scaledA, scaledItem);
-
-				 }
-#endif
-                    switchItemsDrawn.Add(sw);
-                }
-
-                foreach (var s in signals)
-                {
-                    if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
-                        continue;
-                    scaledItem = new PointF((s.Location.X - subX) * xScale, pbCanvas.Height - (s.Location.Y - subY) * yScale);
-                    if (scaledItem.X < 0 || scaledItem.X > IM_Width || scaledItem.Y > IM_Height || scaledItem.Y < 0)
-                        continue;
-
-                    s.Location2D.X = scaledItem.X;
-                    s.Location2D.Y = scaledItem.Y;
-                    if (s.Signal.SignalNormal())//only show nor
-                    {
-                        var color = Brushes.Green;
-                        var pen = greenPen;
-                        if (s.IsProceed == 0)
-                        {
-                        }
-                        else if (s.IsProceed == 1)
-                        {
-                            color = Brushes.Orange;
-                            pen = orangePen;
-                        }
-                        else
-                        {
-                            color = Brushes.Red;
-                            pen = redPen;
-                        }
-                        g.FillEllipse(color, GetRect(scaledItem, width));
-                        if (s.hasDir)
-                        {
-                            scaledB.X = (s.Dir.X - subX) * xScale;
-                            scaledB.Y = pbCanvas.Height - (s.Dir.Y - subY) * yScale;
-                            g.DrawLine(pen, scaledItem, scaledB);
-                        }
-                    }
-                }
-
                 if (true/*showPlayerTrain.Checked*/)
                 {
 
                     CleanVerticalCells();//clean the drawing area for text of sidings and platforms
                     foreach (var sw in sidings)
                         scaledItem = DrawSiding(g, scaledItem, sw);
-                    foreach (var pw in platforms)
-                        scaledItem = DrawPlatform(g, scaledItem, pw);
 
                     var margin = 30 * xScale;//margins to determine if we want to draw a train
                     var margin2 = 5000 * xScale;
@@ -819,7 +733,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                                 else
                                     g.FillRectangle(Brushes.DarkGreen, GetRect(scaledItem, 15f));
                                 scaledItem.Y -= 25;
-                                DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB);
                             }
                             g.DrawString(name, trainFont, trainBrush, scaledItem);
                             continue;
@@ -829,10 +742,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         scaledItem = new PointF((loc.TileX * 2048 + loc.Location.X - subX) * xScale, pbCanvas.Height - (loc.TileZ * 2048 + loc.Location.Z - subY) * yScale);
                         if (scaledItem.X < -margin2 || scaledItem.X > IM_Width + margin2 || scaledItem.Y > IM_Height + margin2 || scaledItem.Y < -margin2)
                             continue;
-
-                        //train quit will not draw path, others will draw it
-                        if (drawRed <= ValidTrain)
-                            DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB);
 
                         trainPen.Color = Color.DarkGreen;
                         foreach (var car in t.Cars)
@@ -887,17 +796,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         private PointF DrawSiding(System.Drawing.Graphics g, PointF scaledItem, SidingWidget s)
-        {
-            scaledItem.X = (s.Location.X - subX) * xScale;
-            scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
-            if (scaledItem.Y >= 0f) //if we need to draw the siding names
-            {
-
-                g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
-            }
-            return scaledItem;
-        }
-        private PointF DrawPlatform(System.Drawing.Graphics g, PointF scaledItem, PlatformWidget s)
         {
             scaledItem.X = (s.Location.X - subX) * xScale;
             scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
@@ -979,224 +877,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     return -1f;
             }
             return position * spacing;
-        }
-
-        private const float SignalWarningDistance = 500;
-        private const float DisplaySegmentLength = 10;
-        private const float MaximumSectionDistance = 10000;
-        private Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry> Cache = new Dictionary<int, SignallingDebugWindow.TrackSectionCacheEntry>();
-
-        private SignallingDebugWindow.TrackSectionCacheEntry GetCacheEntry(Traveller position)
-        {
-            SignallingDebugWindow.TrackSectionCacheEntry rv;
-            if (Cache.TryGetValue(position.TrackNode.Index, out rv) && (rv.Direction == position.Direction))
-                return rv;
-            Cache[position.TrackNode.Index] = rv = new SignallingDebugWindow.TrackSectionCacheEntry()
-            {
-                Direction = position.Direction,
-                Length = 0,
-                Objects = new List<SignallingDebugWindow.TrackSectionObject>(),
-            };
-            var nodeIndex = position.TrackNode.Index;
-            var trackNode = new Traveller(position);
-            while (true)
-            {
-                rv.Length += MaximumSectionDistance - trackNode.MoveInSection(MaximumSectionDistance);
-                if (!trackNode.NextSection())
-                    break;
-                switch (trackNode.TrackNodeType)
-                {
-                    case TrackNodeType.End:
-                        rv.Objects.Add(new SignallingDebugWindow.TrackSectionEndOfLine() { Distance = rv.Length });
-                        break;
-                    case TrackNodeType.Junction:
-                        rv.Objects.Add(new SignallingDebugWindow.TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TrackNode as TrackJunctionNode, NodeIndex = nodeIndex });
-                        break;
-                    default:
-                        rv.Objects.Add(new SignallingDebugWindow.TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
-                        break;
-                }
-                if (trackNode.TrackNode.Index != nodeIndex)
-                    break;
-            }
-
-            rv.Objects = rv.Objects.OrderBy(tso => tso.Distance).ToList();
-            return rv;
-        }
-
-        private const int MaximumPathDistance = 5000;
-
-        //draw the train path if it is within the window
-        private void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB)
-        {
-            bool ok = false;
-            if (train == simulator.PlayerLocomotive.Train)
-                ok = true;
-            if (MultiPlayerManager.IsMultiPlayer())
-            {
-                if (MultiPlayerManager.OnlineTrains.FindTrain(train))
-                    ok = true;
-            }
-            if (train.FirstCar != null & train.FirstCar.CarID.Contains("AI"))
-                ok = true; //AI train
-            if (Math.Abs(train.SpeedMpS) > 0.001)
-                ok = true;
-            if (ok == false)
-                return;
-
-            var position = train.MUDirection != MidpointDirection.Reverse ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
-            var caches = new List<SignallingDebugWindow.TrackSectionCacheEntry>();
-            // Work backwards until we end up on a different track section.
-            var cacheNode = new Traveller(position);
-            cacheNode.ReverseDirection();
-            var initialNodeOffsetCount = 0;
-            while (cacheNode.TrackNode.Index == position.TrackNode.Index && cacheNode.NextSection())
-                initialNodeOffsetCount++;
-            // Now do it again, but don't go the last track section (because it is from a different track node).
-            cacheNode = new Traveller(position);
-            cacheNode.ReverseDirection();
-            for (var i = 1; i < initialNodeOffsetCount; i++)
-                cacheNode.NextSection();
-            // Push the location right up to the end of the section.
-            cacheNode.MoveInSection(MaximumPathDistance);
-            // Now back facing the right way, calculate the distance to the train location.
-            cacheNode.ReverseDirection();
-            var initialNodeOffset = cacheNode.DistanceTo(position.WorldLocation);
-            // Go and collect all the cache entries for the visible range of vector nodes (straights, curves).
-            var totalDistance = 0f;
-            while (cacheNode.TrackNodeType != TrackNodeType.End && totalDistance - initialNodeOffset < MaximumPathDistance)
-            {
-                if (cacheNode.TrackNodeType == TrackNodeType.Track)
-                {
-                    var cache = GetCacheEntry(cacheNode);
-                    cache.Age = 0;
-                    caches.Add(cache);
-                    totalDistance += cache.Length;
-                }
-                var nodeIndex = cacheNode.TrackNode.Index;
-                while (cacheNode.TrackNode.Index == nodeIndex && cacheNode.NextSection())
-                    ;
-            }
-
-            var switchErrorDistance = initialNodeOffset + MaximumPathDistance + SignalWarningDistance;
-            var signalErrorDistance = initialNodeOffset + MaximumPathDistance + SignalWarningDistance;
-            var currentDistance = 0f;
-            foreach (var cache in caches)
-            {
-                foreach (var obj in cache.Objects)
-                {
-                    var objDistance = currentDistance + obj.Distance;
-                    if (objDistance < initialNodeOffset)
-                        continue;
-
-                    var switchObj = obj as SignallingDebugWindow.TrackSectionSwitch;
-                    if (switchObj != null)
-                    {
-                        for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
-                        {
-                            if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex)
-                            {
-                                if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
-                                    switchErrorDistance = objDistance;
-                                break;
-                            }
-                        }
-                        if (switchErrorDistance < MaximumPathDistance)
-                            break;
-                    }
-
-                }
-                if (switchErrorDistance < MaximumPathDistance || signalErrorDistance < MaximumPathDistance)
-                    break;
-                currentDistance += cache.Length;
-            }
-
-            var currentPosition = new Traveller(position);
-            currentPosition.Move(-initialNodeOffset);
-            currentDistance = 0;
-
-            foreach (var cache in caches)
-            {
-                var lastObjDistance = 0f;
-                foreach (var obj in cache.Objects)
-                {
-                    var objDistance = currentDistance + obj.Distance;
-
-                    for (var step = lastObjDistance; step < obj.Distance; step += DisplaySegmentLength)
-                    {
-                        var stepDistance = currentDistance + step;
-                        var stepLength = DisplaySegmentLength > obj.Distance - step ? obj.Distance - step : DisplaySegmentLength;
-                        var previousLocation = currentPosition.WorldLocation;
-                        currentPosition.Move(stepLength);
-                        if (stepDistance + stepLength >= initialNodeOffset && stepDistance <= initialNodeOffset + MaximumPathDistance)
-                        {
-                            var currentLocation = currentPosition.WorldLocation;
-                            scaledA.X = (previousLocation.TileX * 2048 + previousLocation.Location.X - subX) * xScale;
-                            scaledA.Y = pbCanvas.Height - (previousLocation.TileZ * 2048 + previousLocation.Location.Z - subY) * yScale;
-                            scaledB.X = (currentLocation.TileX * 2048 + currentLocation.Location.X - subX) * xScale;
-                            scaledB.Y = pbCanvas.Height - (currentPosition.TileZ * 2048 + currentPosition.Location.Z - subY) * yScale;
-                            g.DrawLine(pathPen, scaledA, scaledB);
-                        }
-                    }
-                    lastObjDistance = obj.Distance;
-
-                    if (objDistance >= switchErrorDistance)
-                        break;
-                }
-                currentDistance += cache.Length;
-                if (currentDistance >= switchErrorDistance)
-                    break;
-
-            }
-
-            currentPosition = new Traveller(position);
-            currentPosition.Move(-initialNodeOffset);
-            currentDistance = 0;
-            foreach (var cache in caches)
-            {
-                var lastObjDistance = 0f;
-                foreach (var obj in cache.Objects)
-                {
-                    currentPosition.Move(obj.Distance - lastObjDistance);
-                    lastObjDistance = obj.Distance;
-
-                    var objDistance = currentDistance + obj.Distance;
-                    if (objDistance < initialNodeOffset || objDistance > initialNodeOffset + MaximumPathDistance)
-                        continue;
-
-                    var switchObj = obj as SignallingDebugWindow.TrackSectionSwitch;
-                    if (switchObj != null)
-                    {
-                        for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
-                        {
-                            if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex && pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
-                            {
-                                foreach (var sw in switchItemsDrawn)
-                                {
-                                    if (sw.Item == switchObj.JunctionNode)
-                                    {
-                                        var r = 6 * greenPen.Width;
-                                        g.DrawLine(pathPen, new PointF(sw.Location2D.X - r, sw.Location2D.Y - r), new PointF(sw.Location2D.X + r, sw.Location2D.Y + r));
-                                        g.DrawLine(pathPen, new PointF(sw.Location2D.X - r, sw.Location2D.Y + r), new PointF(sw.Location2D.X + r, sw.Location2D.Y - r));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (objDistance >= switchErrorDistance)
-                        break;
-                }
-                currentDistance += cache.Length;
-                if (currentDistance >= switchErrorDistance)
-                    break;
-            }
-            // Clean up any cache entries who haven't been using for 30 seconds.
-            var oldCaches = Cache.Where(kvp => kvp.Value.Age > 30 * 4).ToArray();
-            foreach (var oldCache in oldCaches)
-                Cache.Remove(oldCache.Key);
-
         }
         #endregion
 
@@ -1928,119 +1608,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         #endregion
     }
 
-    #region SignalWidget
-    /// <summary>
-    /// Defines a signal being drawn in a 2D view.
-    /// </summary>
-    public class SignalWidget : ItemWidget
-    {
-        public TrackItem Item;
-        /// <summary>
-        /// The underlying signal object as referenced by the TrItem.
-        /// </summary>
-        public Signal Signal;
-
-        public PointF Dir;
-        public bool hasDir;
-        /// <summary>
-        /// For now, returns true if any of the signal heads shows any "clear" aspect.
-        /// This obviously needs some refinement.
-        /// </summary>
-        public int IsProceed
-        {
-            get
-            {
-                int returnValue = 2;
-
-                foreach (var head in Signal.SignalHeads)
-                {
-                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
-                        head.SignalIndicationState == SignalAspectState.Clear_2)
-                    {
-                        returnValue = 0;
-                    }
-                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
-                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
-                    {
-                        returnValue = 1;
-                    }
-                }
-
-                return returnValue;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public SignalWidget(SignalItem item, Signal signal)
-        {
-            Item = item;
-            Signal = signal;
-            hasDir = false;
-            Location = VectorFromLocation(item.Location);
-            try
-            {
-                var node = RuntimeData.Instance.TrackDB.TrackNodes[signal.TrackNode];
-                Vector2 v2;
-                if (node is TrackVectorNode trackVectorNode)
-                {
-                    var ts = trackVectorNode.TrackVectorSections[0];
-                    v2 = VectorFromLocation(ts.Location);
-                }
-                else if (node is TrackJunctionNode)
-                {
-                    var ts = node.UiD;
-                    v2 = VectorFromLocation(ts.Location);
-                }
-                else
-                    throw new Exception();
-                var v1 = new Vector2(Location.X, Location.Y);
-                var v3 = v1 - v2;
-                v3.Normalize();
-                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 12f : -12f);
-                Dir.X = v2.X;
-                Dir.Y = v2.Y;
-                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
-                Location.X = v2.X;
-                Location.Y = v2.Y;
-                hasDir = true;
-            }
-            catch { }
-        }
-    }
-    #endregion
-
-    #region SwitchWidget
-    /// <summary>
-    /// Defines a signal being drawn in a 2D view.
-    /// </summary>
-    public class SwitchWidget : ItemWidget
-    {
-        public TrackJunctionNode Item;
-        public int main;
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public SwitchWidget(TrackJunctionNode item)
-        {
-            Item = item;
-            var TS = RuntimeData.Instance.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
-
-            if (TS != null)
-            { main = TS.MainRoute; }
-            else
-                main = 0;
-            Location = VectorFromLocation(Item.UiD.Location);
-        }
-    }
-
-    #endregion
-
     #region ItemWidget
     public abstract class ItemWidget
     {
@@ -2153,40 +1720,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
         }
     }
-
-    public struct PlatformWidget
-    {
-        public int Id;
-        public PointF Location;
-        public string Name;
-        public PointF Extent1;
-        public PointF Extent2;
-        public int LinkId;
-        public string Station;
-
-        /// <summary>
-        /// The underlying track item.
-        /// </summary>
-		public PlatformItem Item;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-		public PlatformWidget(PlatformItem item)
-        {
-            Id = item.TrackItemId;
-            LinkId = item.LinkedPlatformItemId;
-            Item = item;
-            Name = item.ItemName;
-            Station = item.Station;
-            Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-            Extent1 = default(PointF);
-            Extent2 = default(PointF);
-        }
-    }
-
     #endregion
 
     public class DebugVector

@@ -29,36 +29,36 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Current state of the diesel engine
         /// </summary>
-        public Func<DieselEngineState> CurrentDieselEngineState;
+        public Func<DieselEngineState> CurrentDieselEngineState { get; set; }
         /// <summary>
         /// Current state of the circuit breaker
         /// </summary>
-        public Func<TractionCutOffRelayState> CurrentTractionCutOffRelayState;
+        public Func<TractionCutOffRelayState> CurrentTractionCutOffRelayState { get; set; }
         /// <summary>
         /// Driver's closing order of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverClosingOrder;
+        public Func<bool> TractionCutOffRelayDriverClosingOrder { get; set; }
         /// <summary>
         /// Driver's opening order of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverOpeningOrder;
+        public Func<bool> TractionCutOffRelayDriverOpeningOrder { get; set; }
         /// <summary>
         /// Driver's closing authorization of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverClosingAuthorization;
+        public Func<bool> TractionCutOffRelayDriverClosingAuthorization { get; set; }
         /// <summary>
         /// Current mode of the power supply
         /// </summary>
-        public Func<PowerSupplyMode> CurrentPowerSupplyMode;
+        public Func<PowerSupplyMode> CurrentPowerSupplyMode { get; set; }
 
         /// <summary>
         /// Sets current mode of the power supply
         /// </summary>
-        public Action<PowerSupplyMode> SetCurrentPowerSupplyMode;
+        public Action<PowerSupplyMode> SetCurrentPowerSupplyMode { get; set; }
         /// <summary>
         /// Sends an event to the traction cut-off relay
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToTractionCutOffRelay;
+        public Action<PowerSupplyEvent> SignalEventToTractionCutOffRelay { get; set; }
 
         public override void HandleEvent(PowerSupplyEvent evt)
         {

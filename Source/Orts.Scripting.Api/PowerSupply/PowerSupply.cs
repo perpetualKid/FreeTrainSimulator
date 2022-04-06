@@ -9,42 +9,42 @@ namespace Orts.Scripting.Api.PowerSupply
         /// Current state of the electric train supply
         /// ETS is used by the systems of the cars (such as air conditionning)
         /// </summary>
-        public Func<PowerSupplyState> CurrentElectricTrainSupplyState;
+        public Func<PowerSupplyState> CurrentElectricTrainSupplyState { get; set; }
         /// <summary>
         /// Current state of the low voltage power supply
         /// Low voltage power is used by safety systems (such as TCS) or lights
         /// </summary>
-        public Func<PowerSupplyState> CurrentLowVoltagePowerSupplyState;
+        public Func<PowerSupplyState> CurrentLowVoltagePowerSupplyState { get; set; }
         /// <summary>
         /// Current state of the battery
         /// </summary>
-        public Func<PowerSupplyState> CurrentBatteryState;
+        public Func<PowerSupplyState> CurrentBatteryState { get; set; }
         /// <summary>
         /// True if the battery is switched on
         /// </summary>
-        public Func<bool> BatterySwitchOn;
+        public Func<bool> BatterySwitchOn { get; set; }
 
         /// <summary>
         /// Sets the current state of the low voltage power supply
         /// Low voltage power is used by safety systems (such as TCS) or lights
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentLowVoltagePowerSupplyState;
+        public Action<PowerSupplyState> SetCurrentLowVoltagePowerSupplyState { get; set; }
         /// <summary>
         /// Sets the current state of the battery
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentBatteryState;
+        public Action<PowerSupplyState> SetCurrentBatteryState { get; set; }
         /// <summary>
         /// Sends an event to the battery switch
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToBatterySwitch;
+        public Action<PowerSupplyEvent> SignalEventToBatterySwitch { get; set; }
         /// <summary>
         /// Sends an event to all pantographs
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToPantographs;
+        public Action<PowerSupplyEvent> SignalEventToPantographs { get; set; }
         /// <summary>
         /// Sends an event to one pantograph
         /// </summary>
-        public Action<PowerSupplyEvent, int> SignalEventToPantograph;
+        public Action<PowerSupplyEvent, int> SignalEventToPantograph { get; set; }
 
         /// <summary>
         /// Called once at initialization time.

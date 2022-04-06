@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
@@ -43,6 +44,11 @@ namespace Orts.TrackViewer.PopupWindows
                 layout?.Add(item);
             }
             return base.Layout(layout, headerScaling);
+        }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            currentProvider[DebugScreenInformation.Route].InformationProvider = e.ContentArea?.Content;
         }
 
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)

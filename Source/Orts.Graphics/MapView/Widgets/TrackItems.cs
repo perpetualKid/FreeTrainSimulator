@@ -22,6 +22,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal abstract class TrackItemBase : PointWidget
     {
         private protected static System.Drawing.Font font;
+        internal protected readonly int TrackItemId;
 
         public TrackItemBase(TrackItem source)
         {
@@ -29,6 +30,7 @@ namespace Orts.Graphics.MapView.Widgets
             ref readonly WorldLocation location = ref source.Location;
             base.location = PointD.FromWorldLocation(location);
             base.tile = new Tile(location.TileX, location.TileZ);
+            TrackItemId = source.TrackItemId;
         }
 
         internal static void SetFont(System.Drawing.Font font)
@@ -36,12 +38,11 @@ namespace Orts.Graphics.MapView.Widgets
             TrackItemBase.font = font;
         }
 
-        public static List<TrackItemBase> Create(IList<TrackItem> trackItems)
+        public static List<TrackItemBase> CreateRoadItems(IList<TrackItem> trackItems)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
 
             foreach (TrackItem trackItem in trackItems)
             {
@@ -62,18 +63,14 @@ namespace Orts.Graphics.MapView.Widgets
                 }
             }
 
-            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
-
             return result;
         }
 
-        public static List<TrackItemBase> Create(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
-            Dictionary<int, SidingTrackItem> sidingItems = new Dictionary<int, SidingTrackItem>();
-
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
             foreach (TrackNode node in trackDb.TrackNodes)
@@ -94,11 +91,10 @@ namespace Orts.Graphics.MapView.Widgets
                 switch (trackItem)
                 {
                     case SidingItem sidingItem:
-                        SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
-                        sidingItems.Add(trackSidingItem.Id, trackSidingItem);
+                        result.Add(new SidingTrackItem(sidingItem, trackItemNodes));
                         break;
                     case PlatformItem platformItem:
-                        result.Add(new PlatformTrackItem(platformItem));
+                        result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
                         break;
                     case SpeedPostItem speedPostItem:
                         result.Add(new SpeedPostTrackItem(speedPostItem));
@@ -137,15 +133,7 @@ namespace Orts.Graphics.MapView.Widgets
                         break;
                 }
             }
-
-            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
-
             return result;
-        }
-
-        internal virtual bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return true;
         }
     }
     #endregion
@@ -163,12 +151,6 @@ namespace Orts.Graphics.MapView.Widgets
             Color drawColor = GetColor<CrossOverTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.CrossOvers) == MapViewItemSettings.CrossOvers;
-        }
-
     }
 
     #endregion
@@ -184,11 +166,6 @@ namespace Orts.Graphics.MapView.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             BasicShapes.DrawTexture(BasicTextureType.CarSpawner, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.CarSpawners) == MapViewItemSettings.CarSpawners;
         }
     }
 
@@ -207,12 +184,6 @@ namespace Orts.Graphics.MapView.Widgets
             Color drawColor = Color.Red;
             BasicShapes.DrawTexture(BasicTextureType.RingCrossed, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return false;
-        }
-
     }
 
     #endregion
@@ -220,66 +191,26 @@ namespace Orts.Graphics.MapView.Widgets
     #region SidingTrackItem
     internal class SidingTrackItem : TrackItemBase
     {
-        private readonly string sidingName;
+        internal readonly string SidingName;
         internal readonly int Id;
-        private readonly int linkedId;
-        private bool drawName;
-        private bool shouldDrawName;
+        internal readonly int LinkedId;
 
-        public SidingTrackItem(SidingItem source) : base(source)
+        internal TrackVectorNode TrackVectorNode;
+
+        public SidingTrackItem(SidingItem source, TrackVectorNode[] trackItemNodes) : base(source)
         {
-            sidingName = source.ItemName;
-            Id = (int)source.TrackItemId;
-            linkedId = source.LinkedSidingId;
+            TrackVectorNode = trackItemNodes[source.TrackItemId];
+            SidingName = source.ItemName;
+            Id = source.TrackItemId;
+            LinkedId = source.LinkedSidingId;
             Size = 5f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<SidingTrackItem>(colorVariation);
-            Color drawColor = GetColor<SidingTrackItem>(colorVariation.Next().Next());
+            Color drawColor = GetColor<SidingTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            if (drawName && shouldDrawName)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, sidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            shouldDrawName = (setting & MapViewItemSettings.SidingNames) == MapViewItemSettings.SidingNames;
-            return (setting & MapViewItemSettings.Sidings) == MapViewItemSettings.Sidings;
-        }
-
-        /// <summary>
-        /// Link siding items which belong together pairwise so text only appears once (otherwise text is mostly overlapping since siding items are too close to each other
-        /// </summary>
-        internal static List<SidingTrackItem> LinkSidingItems(Dictionary<int, SidingTrackItem> sidingItems)
-        {
-            List<SidingTrackItem> result = new List<SidingTrackItem>();
-
-            while (sidingItems.Count > 0)
-            {
-                int sourceId = sidingItems.Keys.First();
-                SidingTrackItem source = sidingItems[sourceId];
-                sidingItems.Remove(sourceId);
-                if (sidingItems.TryGetValue(source.linkedId, out SidingTrackItem target))
-                {
-                    if (target.linkedId != source.Id)
-                    {
-                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {source.Id} to target {source.linkedId} vs Target id {target.Id} to source {target.linkedId}.");
-                    }
-                    sidingItems.Remove(target.Id);
-                    result.Add(target);
-                    source.drawName = true;
-                    // TODO 20210115 maybe resulting location of text should be in the middle between the two linked siding items
-                }
-                else
-                {
-                    Trace.TraceWarning($"Linked Siding Item {source.linkedId} for Siding Item {source.Id} not found.");
-                }
-                result.Add(source);
-            }
-
-            return result;
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -287,34 +218,30 @@ namespace Orts.Graphics.MapView.Widgets
     #region PlatformTrackItem
     internal class PlatformTrackItem : TrackItemBase
     {
-        private readonly string platformName;
-        private readonly string stationName;
-        private bool shouldDrawName;
-        private bool shouldDrawStationName;
+        internal readonly string PlatformName;
+        internal readonly string StationName;
+        internal readonly int Id;
+        internal readonly int LinkedId;
 
-        public PlatformTrackItem(PlatformItem source) :
+        internal TrackVectorNode TrackVectorNode;
+
+        public PlatformTrackItem(PlatformItem source, TrackVectorNode[] trackItemNodes) :
             base(source)
         {
-            platformName = source.ItemName;
-            stationName = source.Station;
+            TrackVectorNode = trackItemNodes[source.TrackItemId];
+            PlatformName = source.ItemName;
+            StationName = source.Station;
+            Id = source.TrackItemId;
+            LinkedId = source.LinkedPlatformItemId;
             Size = 7f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
-            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-            if (shouldDrawName)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, platformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-            if (shouldDrawStationName)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, stationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            shouldDrawName = (setting & MapViewItemSettings.PlatformNames) == MapViewItemSettings.PlatformNames;
-            shouldDrawStationName = (setting & MapViewItemSettings.PlatformStations) == MapViewItemSettings.PlatformStations;
-            return (setting & MapViewItemSettings.Platforms) == MapViewItemSettings.Platforms;
+            Color drawColor = GetColor<PlatformTrackItem>(colorVariation);
+            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -323,12 +250,12 @@ namespace Orts.Graphics.MapView.Widgets
     internal class SpeedPostTrackItem : TrackItemBase
     {
         private readonly string distance;
-        private readonly bool milePost;
+        internal readonly bool MilePost;
 
         public SpeedPostTrackItem(SpeedPostItem source) : base(source)
         {
             distance = source.Distance.ToString(CultureInfo.CurrentCulture);
-            milePost = source.IsMilePost;
+            MilePost = source.IsMilePost;
             Size = 5f;
         }
 
@@ -336,7 +263,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color fontColor;
             Color drawColor;
-            if (milePost)
+            if (MilePost)
             {
                 fontColor = GetColor<SpeedPostTrackItem>(colorVariation.Next());
                 drawColor = GetColor<SpeedPostTrackItem>(colorVariation);
@@ -350,12 +277,6 @@ namespace Orts.Graphics.MapView.Widgets
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return milePost ? (setting & MapViewItemSettings.MilePosts) == MapViewItemSettings.MilePosts : (setting & MapViewItemSettings.SpeedPosts) == MapViewItemSettings.SpeedPosts;
-        }
-
     }
     #endregion
 
@@ -370,11 +291,6 @@ namespace Orts.Graphics.MapView.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.Hazards) == MapViewItemSettings.Hazards;
         }
     }
     #endregion
@@ -391,18 +307,13 @@ namespace Orts.Graphics.MapView.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.Pickups) == MapViewItemSettings.Pickups;
-        }
     }
     #endregion
 
     #region LevelCrossingTrackItem
     internal class LevelCrossingTrackItem : TrackItemBase
     {
-        private readonly bool roadLevelCrossing;
+        internal readonly bool RoadLevelCrossing;
 
         public LevelCrossingTrackItem(LevelCrossingItem source) : base(source)
         {
@@ -411,7 +322,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public LevelCrossingTrackItem(RoadLevelCrossingItem source) : base(source)
         {
-            roadLevelCrossing = true;
+            RoadLevelCrossing = true;
             Size = 5f;
         }
 
@@ -419,12 +330,6 @@ namespace Orts.Graphics.MapView.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.LevelCrossing, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return roadLevelCrossing ? (setting & MapViewItemSettings.RoadCrossings) == MapViewItemSettings.RoadCrossings : (setting & MapViewItemSettings.LevelCrossings) == MapViewItemSettings.LevelCrossings;
-        }
-
     }
     #endregion
 
@@ -440,12 +345,6 @@ namespace Orts.Graphics.MapView.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.SoundRegions) == MapViewItemSettings.SoundRegions;
-        }
-
     }
     #endregion
 
@@ -460,11 +359,6 @@ namespace Orts.Graphics.MapView.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             BasicShapes.DrawTexture(BasicTextureType.Circle, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.PathJunctions) == MapViewItemSettings.PathJunctions;
         }
     }
     #endregion
@@ -481,11 +375,6 @@ namespace Orts.Graphics.MapView.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Circle, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.PathReversals) == MapViewItemSettings.PathReversals;
-        }
     }
     #endregion
 
@@ -500,11 +389,6 @@ namespace Orts.Graphics.MapView.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             BasicShapes.DrawTexture(BasicTextureType.Circle, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.PathEnds) == MapViewItemSettings.PathEnds;
         }
     }
     #endregion
@@ -521,11 +405,6 @@ namespace Orts.Graphics.MapView.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Circle, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return (setting & MapViewItemSettings.PathIntermediates) == MapViewItemSettings.PathIntermediates;
-        }
     }
 
     #endregion
@@ -534,7 +413,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal class SignalTrackItem : TrackItemBase
     {
         private readonly float angle;
-        private readonly bool normal = true;
+        internal readonly bool Normal = true;
 
         public ISignal Signal { get; }
 
@@ -546,7 +425,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
             Size = 2f;
 
-            normal = normalSignal;
+            Normal = normalSignal;
             TrackVectorNode vectorNode = trackItemNodes[source.TrackItemId];
             angle = new Traveller(vectorNode, source.Location, (Direction)source.Direction).RotY;
 
@@ -596,11 +475,6 @@ namespace Orts.Graphics.MapView.Widgets
             };
 
             BasicShapes.DrawTexture(signalState, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-        }
-
-        internal override bool ShouldDraw(MapViewItemSettings setting)
-        {
-            return normal ? (setting & MapViewItemSettings.Signals) == MapViewItemSettings.Signals : (setting & MapViewItemSettings.OtherSignals) == MapViewItemSettings.OtherSignals;
         }
     }
     #endregion

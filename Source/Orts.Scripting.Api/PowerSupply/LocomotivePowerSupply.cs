@@ -28,108 +28,108 @@ namespace Orts.Scripting.Api.PowerSupply
         /// Current state of the main power supply
         /// Main power comes from the pantograph or the diesel generator
         /// </summary>
-        public Func<PowerSupplyState> CurrentMainPowerSupplyState;
+        public Func<PowerSupplyState> CurrentMainPowerSupplyState { get; set; }
         /// <summary>
         /// Current state of the auxiliary power supply
         /// Auxiliary power is used by auxiliary systems of a locomotive (such as ventilation or air compressor) and by systems of the cars (such as air conditionning)
         /// </summary>
-        public Func<PowerSupplyState> CurrentAuxiliaryPowerSupplyState;
+        public Func<PowerSupplyState> CurrentAuxiliaryPowerSupplyState { get; set; }
         /// <summary>
         /// Current state of the cab power supply
         /// </summary>
-        public Func<PowerSupplyState> CurrentCabPowerSupplyState;
+        public Func<PowerSupplyState> CurrentCabPowerSupplyState { get; set; }
         /// <summary>
         /// Current state of the helper engines
         /// </summary>
-        public Func<DieselEngineState> CurrentHelperEnginesState;
+        public Func<DieselEngineState> CurrentHelperEnginesState { get; set; }
         /// <summary>
         /// Current availability of the dynamic brake
         /// </summary>
-        public Func<bool> CurrentDynamicBrakeAvailability;
+        public Func<bool> CurrentDynamicBrakeAvailability { get; set; }
         /// <summary>
         /// Current throttle percentage
         /// </summary>
-        public Func<float> ThrottlePercent;
+        public Func<float> ThrottlePercent { get; set; }
         /// <summary>
         /// Main supply power on delay
         /// </summary>
-        public Func<float> PowerOnDelayS;
+        public Func<float> PowerOnDelayS { get; set; }
         /// <summary>
         /// Auxiliary supply power on delay
         /// </summary>
-        public Func<float> AuxPowerOnDelayS;
+        public Func<float> AuxPowerOnDelayS { get; set; }
         /// <summary>
         /// True if the master key is switched on
         /// </summary>
-        public Func<bool> MasterKeyOn;
+        public Func<bool> MasterKeyOn { get; set; }
         /// <summary>
         /// True if the electric train supply is switched on
         /// </summary>
-        public Func<bool> ElectricTrainSupplySwitchOn;
+        public Func<bool> ElectricTrainSupplySwitchOn { get; set; }
         /// <summary>
         /// True if the locomotive is not fitted with electric train supply
         /// </summary>
-        public Func<bool> ElectricTrainSupplyUnfitted;
+        public Func<bool> ElectricTrainSupplyUnfitted { get; set; }
 
         /// <summary>
         /// Sets the current state of the main power supply (power from the pantograph or the generator)
         /// Main power comes from the pantograph or the diesel generator
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentMainPowerSupplyState;
+        public Action<PowerSupplyState> SetCurrentMainPowerSupplyState { get; set; }
         /// <summary>
         /// Sets the current state of the auxiliary power supply
         /// Auxiliary power is used by auxiliary systems of a locomotive (such as ventilation or air compressor) and by systems of the cars (such as air conditionning)
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentAuxiliaryPowerSupplyState;
+        public Action<PowerSupplyState> SetCurrentAuxiliaryPowerSupplyState { get; set; }
         /// <summary>
         /// Sets the current state of the cab power supply
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentCabPowerSupplyState;
+        public Action<PowerSupplyState> SetCurrentCabPowerSupplyState { get; set; }
         /// <summary>
         /// Sets the current state of the electric train supply
         /// ETS is used by the systems of the cars (such as air conditionning)
         /// </summary>
-        public Action<PowerSupplyState> SetCurrentElectricTrainSupplyState;
+        public Action<PowerSupplyState> SetCurrentElectricTrainSupplyState { get; set; }
         /// <summary>
         /// Sets the current availability of the dynamic brake
         /// </summary>
-        public Action<bool> SetCurrentDynamicBrakeAvailability;
+        public Action<bool> SetCurrentDynamicBrakeAvailability { get; set; }
         /// <summary>
         /// Sends an event to the master switch
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToMasterKey;
+        public Action<PowerSupplyEvent> SignalEventToMasterKey { get; set; }
         /// <summary>
         /// Sends an event to the electric train supply switch
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToElectricTrainSupplySwitch;
+        public Action<PowerSupplyEvent> SignalEventToElectricTrainSupplySwitch { get; set; }
         /// <summary>
         /// Sends an event to the train control system
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToTcs;
+        public Action<PowerSupplyEvent> SignalEventToTcs { get; set; }
         /// <summary>
         /// Sends an event to the train control system with a message
         /// </summary>
-        public Action<PowerSupplyEvent, string> SignalEventToTcsWithMessage;
+        public Action<PowerSupplyEvent, string> SignalEventToTcsWithMessage { get; set; }
         /// <summary>
         /// Sends an event to the power supplies of other locomotives
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToOtherLocomotives;
+        public Action<PowerSupplyEvent> SignalEventToOtherLocomotives { get; set; }
         /// <summary>
         /// Sends an event to the power supplies of other locomotives
         /// </summary>
-        public Action<PowerSupplyEvent, int> SignalEventToOtherLocomotivesWithId;
+        public Action<PowerSupplyEvent, int> SignalEventToOtherLocomotivesWithId { get; set; }
         /// <summary>
         /// Sends an event to the power supplies of other train vehicles
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToOtherTrainVehicles;
+        public Action<PowerSupplyEvent> SignalEventToOtherTrainVehicles { get; set; }
         /// <summary>
         /// Sends an event to the power supplies of other train vehicles
         /// </summary>
-        public Action<PowerSupplyEvent, int> SignalEventToOtherTrainVehiclesWithId;
+        public Action<PowerSupplyEvent, int> SignalEventToOtherTrainVehiclesWithId { get; set; }
         /// <summary>
         /// Sends an event to all helper engines
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToHelperEngines;
+        public Action<PowerSupplyEvent> SignalEventToHelperEngines { get; set; }
 
         /// <summary>
         /// Called when the driver (or the train's systems) want something to happen on the power supply system

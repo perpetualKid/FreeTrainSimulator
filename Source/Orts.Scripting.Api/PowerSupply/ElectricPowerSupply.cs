@@ -12,48 +12,48 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Current state of the pantograph
         /// </summary>
-        public Func<PantographState> CurrentPantographState;
+        public Func<PantographState> CurrentPantographState { get; set; }
         /// <summary>
         /// Current state of the circuit breaker
         /// </summary>
-        public Func<CircuitBreakerState> CurrentCircuitBreakerState;
+        public Func<CircuitBreakerState> CurrentCircuitBreakerState { get; set; }
         /// <summary>
         /// Driver's closing order of the circuit breaker
         /// </summary>
-        public Func<bool> CircuitBreakerDriverClosingOrder;
+        public Func<bool> CircuitBreakerDriverClosingOrder { get; set; }
         /// <summary>
         /// Driver's opening order of the circuit breaker
         /// </summary>
-        public Func<bool> CircuitBreakerDriverOpeningOrder;
+        public Func<bool> CircuitBreakerDriverOpeningOrder { get; set; }
         /// <summary>
         /// Driver's closing authorization of the circuit breaker
         /// </summary>
-        public Func<bool> CircuitBreakerDriverClosingAuthorization;
+        public Func<bool> CircuitBreakerDriverClosingAuthorization { get; set; }
         /// <summary>
         /// Voltage of the pantograph
         /// </summary>
-        public Func<float> PantographVoltageV;
+        public Func<float> PantographVoltageV { get; set; }
         /// <summary>
         /// Voltage of the filter
         /// </summary>
-        public Func<float> FilterVoltageV;
+        public Func<float> FilterVoltageV { get; set; }
         /// <summary>
         /// Line voltage
         /// </summary>
-        public Func<float> LineVoltageV;
+        public Func<float> LineVoltageV { get; set; }
 
         /// <summary>
         /// Sets the voltage of the pantograph
         /// </summary>
-        public Action<float> SetPantographVoltageV;
+        public Action<float> SetPantographVoltageV { get; set; }
         /// <summary>
         /// Sets the voltage of the filter
         /// </summary>
-        public Action<float> SetFilterVoltageV;
+        public Action<float> SetFilterVoltageV { get; set; }
         /// <summary>
         /// Sends an event to the circuit breaker
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToCircuitBreaker;
+        public Action<PowerSupplyEvent> SignalEventToCircuitBreaker { get; set; }
 
         public override void HandleEvent(PowerSupplyEvent evt)
         {

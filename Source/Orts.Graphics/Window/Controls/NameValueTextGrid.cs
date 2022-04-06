@@ -38,13 +38,13 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Update(GameTime gameTime)
         {
-            if (null == InformationProvider)
+            if (null == InformationProvider?.DebugInfo)
                 return;
 
             float lineOffset = 0;
             drawItems.Clear();
             int hashCode;
-            foreach (string identifier in InformationProvider.DebugInfo)
+            foreach (string identifier in InformationProvider.DebugInfo.AllKeys)
             {
                 System.Drawing.Font currentFont = font;
                 FormatOption formatOption = null;

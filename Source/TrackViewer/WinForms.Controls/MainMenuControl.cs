@@ -61,7 +61,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapViewItemSettings.Tracks);
-            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapViewItemSettings.EndsNodes);
+            SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapViewItemSettings.EndNodes);
             SetupVisibilityMenuItem(trackJunctionNodesVisibleToolStripMenuItem, MapViewItemSettings.JunctionNodes);
             SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, MapViewItemSettings.CrossOvers);
             SetupVisibilityMenuItem(trackLevelCrossingsVisibleToolStripMenuItem, MapViewItemSettings.LevelCrossings);
@@ -99,7 +99,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, MapViewItemSettings setting)
         {
             menuItem.Tag = setting;
-            menuItem.Checked = (parent.Settings.ViewSettings & setting) == setting;
+            menuItem.Checked = parent.Settings.ViewSettings[setting];
             menuItem.Click += VisibilitySettingToolStripMenuItem_Click;
             if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
                 SetupVisibilityParentMenuItem(parentItem);
@@ -353,7 +353,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show($"{RuntimeInfo.ApplicationName} {VersionInfo.FullVersion}", $"{RuntimeInfo.ApplicationName}");
+            parent.ShowAboutWindow();
         }
 
         private void TakeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)

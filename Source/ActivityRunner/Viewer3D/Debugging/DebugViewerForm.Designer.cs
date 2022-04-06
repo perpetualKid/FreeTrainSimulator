@@ -63,7 +63,6 @@
             this.lblSimulationTimeText = new System.Windows.Forms.Label();
             this.lblSimulationTime = new System.Windows.Forms.Label();
             this.lblShow = new System.Windows.Forms.Label();
-            this.cbShowPlatformLabels = new System.Windows.Forms.CheckBox();
             this.cbShowSidings = new System.Windows.Forms.CheckBox();
             this.gbTrainLabels = new System.Windows.Forms.GroupBox();
             this.bTrainKey = new System.Windows.Forms.Button();
@@ -81,7 +80,6 @@
             this.lblInstruction2 = new System.Windows.Forms.Label();
             this.lblInstruction3 = new System.Windows.Forms.Label();
             this.lblInstruction4 = new System.Windows.Forms.Label();
-            this.cbShowPlatforms = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbCanvas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.windowSizeUpDown)).BeginInit();
             this.gbTrainLabels.SuspendLayout();
@@ -421,19 +419,6 @@
             this.lblShow.Text = "Show:";
             this.lblShow.Visible = false;
             // 
-            // cbShowPlatformLabels
-            // 
-            this.cbShowPlatformLabels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowPlatformLabels.AutoSize = true;
-            this.cbShowPlatformLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowPlatformLabels.Location = new System.Drawing.Point(769, 220);
-            this.cbShowPlatformLabels.Name = "cbShowPlatformLabels";
-            this.cbShowPlatformLabels.Size = new System.Drawing.Size(128, 22);
-            this.cbShowPlatformLabels.TabIndex = 39;
-            this.cbShowPlatformLabels.Text = "Platform labels";
-            this.cbShowPlatformLabels.UseVisualStyleBackColor = true;
-            this.cbShowPlatformLabels.Visible = false;
-            // 
             // cbShowSidings
             // 
             this.cbShowSidings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -643,28 +628,12 @@
             this.lblInstruction4.Text = "To zoom out of a location, press Alt and click the left mouse.";
             this.lblInstruction4.Visible = false;
             // 
-            // cbShowPlatforms
-            // 
-            this.cbShowPlatforms.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowPlatforms.AutoSize = true;
-            this.cbShowPlatforms.Checked = true;
-            this.cbShowPlatforms.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbShowPlatforms.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowPlatforms.Location = new System.Drawing.Point(769, 200);
-            this.cbShowPlatforms.Name = "cbShowPlatforms";
-            this.cbShowPlatforms.Size = new System.Drawing.Size(94, 22);
-            this.cbShowPlatforms.TabIndex = 56;
-            this.cbShowPlatforms.Text = "Platforms";
-            this.cbShowPlatforms.UseVisualStyleBackColor = true;
-            this.cbShowPlatforms.Visible = false;
-            // 
             // DispatchViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(923, 768);
-            this.Controls.Add(this.cbShowPlatforms);
             this.Controls.Add(this.lblInstruction4);
             this.Controls.Add(this.lblInstruction3);
             this.Controls.Add(this.lblInstruction2);
@@ -675,7 +644,6 @@
             this.Controls.Add(this.nudDaylightOffsetHrs);
             this.Controls.Add(this.gbTrainLabels);
             this.Controls.Add(this.cbShowSidings);
-            this.Controls.Add(this.cbShowPlatformLabels);
             this.Controls.Add(this.lblShow);
             this.Controls.Add(this.lblSimulationTime);
             this.Controls.Add(this.lblSimulationTimeText);
@@ -746,7 +714,6 @@
         public System.Windows.Forms.Label lblSimulationTimeText;
         public System.Windows.Forms.Label lblSimulationTime;
         public System.Windows.Forms.Label lblShow;
-        public System.Windows.Forms.CheckBox cbShowPlatformLabels;
         public System.Windows.Forms.CheckBox cbShowSidings;
         public System.Windows.Forms.GroupBox gbTrainLabels;
         public System.Windows.Forms.RadioButton rbShowActiveTrainLabels;
@@ -760,7 +727,6 @@
         private System.Windows.Forms.Label lblInstruction2;
         private System.Windows.Forms.Label lblInstruction3;
         private System.Windows.Forms.Label lblInstruction4;
-        public System.Windows.Forms.CheckBox cbShowPlatforms;
         public System.Windows.Forms.Button bTrainKey;
     }
 }
