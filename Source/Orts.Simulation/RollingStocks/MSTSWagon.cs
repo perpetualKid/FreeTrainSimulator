@@ -159,7 +159,12 @@ namespace Orts.Simulation.RollingStocks
         public float Curtius_KnifflerB = 44.0f;              // (adhesion coeficient)       umax = ---------------------  + C
         public float Curtius_KnifflerC = 0.161f;             //                                      speedMpS * 3.6 + B
         public float AdhesionK = 0.7f;   //slip characteristics slope
-        //public AntislipControl AntislipControl = AntislipControl.None;
+        public enum AntislipControlType
+        {
+            None,
+            Full
+        }
+        public AntislipControlType AntislipControl = AntislipControlType.None;
         public float AxleInertiaKgm2;    //axle inertia
         public float AdhesionDriveWheelRadiusM;
         public float WheelSpeedMpS;
@@ -1369,8 +1374,11 @@ namespace Orts.Simulation.RollingStocks
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(ortsantislip":
-                    stf.MustMatch("(");
-                    //AntislipControl = stf.ReadStringBlock(null);
+                    string type = stf.ReadStringBlock("none").ToLowerInvariant();
+                    if (type == "full")
+                        AntislipControl = AntislipControlType.Full;
+                    else
+                        AntislipControl = AntislipControlType.None;
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(wheelset(axle(ortsinertia":
@@ -1563,6 +1571,7 @@ namespace Orts.Simulation.RollingStocks
             Curtius_KnifflerC = source.Curtius_KnifflerC;
             AdhesionK = source.AdhesionK;
             AxleInertiaKgm2 = source.AxleInertiaKgm2;
+            AntislipControl = source.AntislipControl;
             AdhesionDriveWheelRadiusM = source.AdhesionDriveWheelRadiusM;
             SlipWarningThresholdPercent = source.SlipWarningThresholdPercent;
             Lights = source.Lights;
@@ -4024,7 +4033,7 @@ namespace Orts.Simulation.RollingStocks
             Type = source.Type;
 
         }
-        public bool Validity(bool onlyUnload, PickupObject pickup, ContainerManager containerManager, 
+        public bool Validity(bool onlyUnload, PickupObject pickup, ContainerManager containerManager,
             FreightAnimations freightAnimations, out ContainerHandlingItem containerStation)
         {
             var validity = false;

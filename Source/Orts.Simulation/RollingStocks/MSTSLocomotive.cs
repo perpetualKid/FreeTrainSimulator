@@ -2655,6 +2655,17 @@ namespace Orts.Simulation.RollingStocks
                 //LocomotiveAxle.AxleRevolutionsInt.MinStep = LocomotiveAxle.InertiaKgm2 / MaxPowerW / 5.0f;
                 LocomotiveAxle.AxleDiameterM = 2 * DriverWheelRadiusM;
 
+                if (AntislipControl == AntislipControlType.Full)
+                {
+                    // Simple slip control
+                    // Motive force is reduced to the maximum adhesive force
+                    // In wheelslip situations, motive force is set to zero
+                    double umax = (LocomotiveAxle.CurtiusKnifflerA / (Speed.MeterPerSecond.ToKpH(Math.Abs(SpeedMpS)) + LocomotiveAxle.CurtiusKnifflerB) + LocomotiveAxle.CurtiusKnifflerC); // Curtius - Kniffler equation
+                    umax *= LocomotiveAxle.AdhesionConditions;
+                    MotiveForceN = (float)(Math.Sign(MotiveForceN) * Math.Min(umax * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN)));
+                    if (LocomotiveAxle.IsWheelSlip) MotiveForceN = 0;
+                }
+
                 //Set axle model parameters
 
                 // Inputs
@@ -2663,6 +2674,7 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;                //Set the train speed of the axle mod
                 LocomotiveAxle.Update(elapsedClockSeconds); //Main updater of the axle model
+
                 MotiveForceN = LocomotiveAxle.CompensatedAxleForceN;
                 if (elapsedClockSeconds > 0)
                 {

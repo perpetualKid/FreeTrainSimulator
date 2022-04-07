@@ -17,6 +17,8 @@
 
 using System;
 
+using Orts.Common.Calc;
+
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
     public class ElectricMotor
@@ -50,9 +52,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public float RevolutionsRad { get; set; }
 
-        public float TemperatureK { get; }
+        public float TemperatureK { get; private set; }
 
-        //private Integrator tempIntegrator = new Integrator();
+        private readonly Integrator tempIntegrator = new Integrator();
 
         public float ThermalCoeffJ_m2sC { set; get; }
         public float SpecificHeatCapacityJ_kg_C { set; get; }
@@ -104,7 +106,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             //revolutionsRad += timeSpan / inertiaKgm2 * (developedTorqueNm + loadTorqueNm + (revolutionsRad == 0.0 ? 0.0 : frictionTorqueNm));
             //if (revolutionsRad < 0.0)
             //    revolutionsRad = 0.0;
-            //temperatureK = (float)tempIntegrator.Integrate(timeSpan, 1.0/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
+            TemperatureK = (float)tempIntegrator.Integrate(timeSpan, (temperatureK) => 1.0f/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
 
         }
 
