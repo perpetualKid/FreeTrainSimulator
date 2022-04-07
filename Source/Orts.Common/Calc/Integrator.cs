@@ -308,10 +308,7 @@ namespace Orts.Common.Calc
             {
                 if (--waitBeforeSpeedingUp <= 0)    //wait for a while before speeding up the integration
                 {
-                    count = Math.Max(--NumOfSubstepsPS, 5);
-                    /*if (count < timeSpan / MinStep)
-                        count = (int)Math.Ceiling(timeSpan / MinStep);*/
-
+                    count = Math.Max(--NumOfSubstepsPS, 1);
                     waitBeforeSpeedingUp = 10;      //not so fast ;)
                 }
                 else
