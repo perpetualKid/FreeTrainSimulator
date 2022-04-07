@@ -8,9 +8,6 @@
 		<RootNamespace>Orts.Graphics</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Remove="MapView\Widgets\SegmentPath.cs" />
-	</ItemGroup>
-	<ItemGroup>
 		<EmbeddedResource Include="Resources\ActiveBrokenNode.png" />
 		<EmbeddedResource Include="Resources\ActiveNode.png" />
 		<EmbeddedResource Include="Resources\ActiveNormalNode.png" />

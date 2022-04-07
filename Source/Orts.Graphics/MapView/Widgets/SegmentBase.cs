@@ -101,7 +101,6 @@ namespace Orts.Graphics.MapView.Widgets
             otherTile = new Tile(Tile.TileFromAbs(vectorEnd.X), Tile.TileFromAbs(vectorEnd.Y));
         }
 
-        public static void TEst() { }
         private protected SegmentBase(SegmentBase source)
         {
             location = source.location;

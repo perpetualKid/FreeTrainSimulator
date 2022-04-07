@@ -140,14 +140,14 @@ namespace Orts.Graphics.MapView
             }
             if (null != nearestItems[MapViewItemSettings.Tracks])
             {
-                foreach (TrackSegment segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as TrackSegment).TrackNodeIndex])
+                foreach (SegmentBase segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as SegmentBase).TrackNodeIndex])
                 {
                     segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
             }
             if (null != nearestItems[MapViewItemSettings.Roads])
             {
-                foreach (TrackSegment segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as TrackSegment).TrackNodeIndex])
+                foreach (SegmentBase segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as SegmentBase).TrackNodeIndex])
                 {
                     segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }

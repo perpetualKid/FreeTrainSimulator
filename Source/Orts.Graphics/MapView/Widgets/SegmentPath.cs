@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 using Orts.Common.Position;
 
@@ -9,11 +8,11 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal abstract class SegmentPath<T>: VectorWidget where T : SegmentBase
     {
-        private protected static Dictionary<int, List<SegmentBase>> sourceElements; //temporary variable to avoid passing the same element around
         private protected readonly List<T> pathSegments = new List<T>();
         private protected readonly PointD midPoint;
 
-        internal SegmentPath(TrackItemBase start, TrackItemBase end)
+#pragma warning disable CA2214 // Do not call overridable methods in constructors
+        private protected SegmentPath(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
         {
             location = start.Location;
             tile = start.Tile;
@@ -28,13 +27,11 @@ namespace Orts.Graphics.MapView.Widgets
             SegmentBase endSegment;
             List<SegmentBase> segments;
 
-            T.Test();
-
             // simple case, both are on the same tracknode
-            if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
+            if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                if (!sourceElements.TryGetValue(start.TrackVectorNode.Index, out segments))
-                    throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
+                if (!sourceElements.TryGetValue(startTrackNodeIndex, out segments))
+                    throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
                 (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
             }
@@ -42,63 +39,97 @@ namespace Orts.Graphics.MapView.Widgets
             else
             {
                 //check if the this was close enough on the other tracknode, maybe just a rounding error
-                if (!sourceElements.TryGetValue(start.TrackVectorNode.Index, out segments))
-                    throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
+                if (!sourceElements.TryGetValue(startTrackNodeIndex, out segments))
+                    throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
                 (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
 
                 if (startSegment == null || endSegment == null)
                 {
-                    if (!sourceElements.TryGetValue(end.TrackVectorNode.Index, out segments))
-                        throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
+                    if (!sourceElements.TryGetValue(endTrackNodeIndex, out segments))
+                        throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
                     (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
                 }
             }
+
             if (startSegment == null || endSegment == null)
             {
-                Trace.TraceWarning($"Can't connect siding ends for Siding '{start.SidingName}'.");
-                segments.Add(new SidingSegment(startLocation, endLocation));
+                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
+                pathSegments.Add(CreateItem(startLocation, endLocation));
                 return;
             }
 
-            //startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
-            //endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
             //find all vector sections in between (understanding which direction to go)
             //build a path between the two
             if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
             {
                 //start section
                 bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                segments.Add(new SidingSegment(startSegment, startLocation, reverse ? startSegment.Location : startSegment.Vector));
+                pathSegments.Add(CreateItem(startSegment, startLocation, reverse ? startSegment.Location : startSegment.Vector));
                 //interim sections
                 for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    segments.Add(new SidingSegment(segments[i]));
-                    new T(segments[i]);
+                    pathSegments.Add(CreateItem(segments[i]));
                 }
                 //end section
                 reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                segments.Add(new SidingSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
+                pathSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
             }
             else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
             {
                 //end section
                 bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                segments.Add(new SidingSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
+                pathSegments.Add(CreateItem(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
                 //interim sections
                 for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    sidingPath.Add(new SidingSegment(segments[i]));
+                    pathSegments.Add(CreateItem(segments[i]));
                 }
                 //start section
                 reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                segments.Add(new SidingSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
+                pathSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
             }
             //on a single track vector section
             else
             {
-                segments.Add(new SidingSegment(startSegment, startLocation, endLocation));
+                pathSegments.Add(CreateItem(startSegment, startLocation, endLocation));
             }
+        }
+#pragma warning restore CA2214 // Do not call overridable methods in constructors
+
+        public override double DistanceSquared(in PointD point)
+        {
+            return double.NaN;
+        }
+
+        protected abstract T CreateItem(in PointD start, in PointD end);
+
+        protected abstract T CreateItem(SegmentBase source);
+
+        protected abstract T CreateItem(SegmentBase source, in PointD start, in PointD end);
+
+        private static (SegmentBase startSegment, SegmentBase endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<SegmentBase> segments)
+        {
+            SegmentBase startSegment = null;
+            SegmentBase endSegment = null;
+            foreach (SegmentBase segment in segments)
+            {
+                //find the start vector section
+                if (segment.DistanceSquared(startLocation) < 1)
+                {
+                    startSegment = segment;
+                    if (null != endSegment)
+                        break;
+                }
+                //find the end vector section
+                if (segment.DistanceSquared(endLocation) < 1)
+                {
+                    endSegment = segment;
+                    if (null != startSegment)
+                        break;
+                }
+            }
+            return (startSegment, endSegment);
         }
     }
 }
