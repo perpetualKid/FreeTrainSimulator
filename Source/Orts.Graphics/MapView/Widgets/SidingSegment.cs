@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 
@@ -12,12 +13,12 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath : VectorWidget
+    internal class SidingPath: VectorWidget
     {
-        private static Dictionary<int, List<TrackSegment>> trackNodeSegments;
-        private readonly List<SidingSegment> sidingPath = new List<SidingSegment>();
         private readonly string sidingName;
-        private readonly PointD midPoint;
+        private protected static Dictionary<int, List<SegmentBase>> sourceElements; //temporary variable to avoid passing the same element around
+        private protected readonly List<SidingSegment> pathSegments = new List<SidingSegment>();
+        private protected readonly PointD midPoint;
 
         internal SidingPath(SidingTrackItem start, SidingTrackItem end)
         {
@@ -31,14 +32,14 @@ namespace Orts.Graphics.MapView.Widgets
             ref readonly PointD startLocation = ref start.Location;
             ref readonly PointD endLocation = ref end.Location;
 
-            TrackSegment startSegment;
-            TrackSegment endSegment;
-            List<TrackSegment> segments;
+            SegmentBase startSegment;
+            SegmentBase endSegment;
+            List<SegmentBase> segments;
 
             // simple case, both are on the same tracknode
             if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
             {
-                if (!trackNodeSegments.TryGetValue(start.TrackVectorNode.Index, out segments))
+                if (!sourceElements.TryGetValue(start.TrackVectorNode.Index, out segments))
                     throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
 
                 (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
@@ -47,63 +48,67 @@ namespace Orts.Graphics.MapView.Widgets
             else
             {
                 //check if the this was close enough on the other tracknode, maybe just a rounding error
-                if (!trackNodeSegments.TryGetValue(start.TrackVectorNode.Index, out segments))
+                if (!sourceElements.TryGetValue(start.TrackVectorNode.Index, out segments))
                     throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
                 (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
 
                 if (startSegment == null || endSegment == null)
                 {
-                    if (!trackNodeSegments.TryGetValue(end.TrackVectorNode.Index, out segments))
+                    if (!sourceElements.TryGetValue(end.TrackVectorNode.Index, out segments))
                         throw new InvalidOperationException($"Track Segments for TrackNode {start.TrackVectorNode.Index} not found");
 
                     (startSegment, endSegment) = EvaluteSegments(startLocation, endLocation, segments);
                 }
-                if (startSegment == null || endSegment == null)
-                    Trace.TraceWarning($"Can't connect siding ends for Siding '{start.SidingName}'.");
+            }
+            if (startSegment == null || endSegment == null)
+            {
+                Trace.TraceWarning($"Can't connect siding ends for Siding '{start.SidingName}'.");
+                pathSegments.Add(new SidingSegment(startLocation, endLocation));
+                return;
             }
 
-            startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
-            endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
+            //startSegment = CheckForSegmentOverrun(startSegment, startLocation, segments);
+            //endSegment = CheckForSegmentOverrun(endSegment, endLocation, segments);
             //find all vector sections in between (understanding which direction to go)
             //build a path between the two
             if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
             {
                 //start section
                 bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                sidingPath.Add(new SidingSegment(startSegment, startLocation, reverse ?  startSegment.Location : startSegment.Vector));
+                pathSegments.Add(new SidingSegment(startSegment, startLocation, reverse ?  startSegment.Location : startSegment.Vector));
                 //interim sections
                 for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    sidingPath.Add(new SidingSegment(segments[i]));
+                    pathSegments.Add(new SidingSegment(segments[i]));
                 }
                 //end section
                 reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                sidingPath.Add(new SidingSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
+                pathSegments.Add(new SidingSegment(endSegment, reverse ? endSegment.Vector : endSegment.Location, endLocation));
             }
             else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
             {
                 //end section
                 bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                sidingPath.Add(new SidingSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
+                pathSegments.Add(new SidingSegment(endSegment, endLocation, reverse ? endSegment.Location : endSegment.Vector));
                 //interim sections
                 for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    sidingPath.Add(new SidingSegment(segments[i]));
+                    pathSegments.Add(new SidingSegment(segments[i]));
                 }
                 //start section
                 reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                sidingPath.Add(new SidingSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
+                pathSegments.Add(new SidingSegment(startSegment, reverse ? startSegment.Vector : startSegment.Location, startLocation));
             }
             //on a single track vector section
             else
             {
-                sidingPath.Add(new SidingSegment(startSegment, startLocation, endLocation));
+                pathSegments.Add(new SidingSegment(startSegment, startLocation, endLocation));
             }
         }
 
-        public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<TrackSegment>> trackNodeSegments)
+        public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
-            SidingPath.trackNodeSegments = trackNodeSegments;
+            SidingPath.sourceElements = trackNodeSegments;
             List<SidingPath> sidings = new List<SidingPath>();
 
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
@@ -126,14 +131,14 @@ namespace Orts.Graphics.MapView.Widgets
                     Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.Id} not found.");
                 }
             }
-            SidingPath.trackNodeSegments = null;
+            SidingPath.sourceElements = null;
             return sidings;
 
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (SidingSegment segment in sidingPath)
+            foreach (SidingSegment segment in pathSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
@@ -142,40 +147,21 @@ namespace Orts.Graphics.MapView.Widgets
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, sidingName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
-        public override double DistanceSquared(in PointD point)
+        private static (SegmentBase startSegment, SegmentBase endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<SegmentBase> segments)
         {
-            return double.NaN;
-        }
-
-        private static TrackSegment CheckForSegmentOverrun(TrackSegment expectedSegment, in PointD targetLocation, List<TrackSegment> trackNodeSegments)
-        {
-            // seems the siding marker is placed beyond the tracknode
-            // so we need to figure which end is closer to the unset marker and run the siding until there
-            if (expectedSegment == null)
-            {
-                expectedSegment = trackNodeSegments[0];
-                double distanceFromStart = Math.Min(trackNodeSegments[0].Location.DistanceSquared(targetLocation), trackNodeSegments[0].Vector.DistanceSquared(targetLocation));
-                if (trackNodeSegments[^1].Location.DistanceSquared(targetLocation) < distanceFromStart || trackNodeSegments[^1].Vector.DistanceSquared(targetLocation) < distanceFromStart)
-                    expectedSegment = trackNodeSegments[^1];
-            }
-            return expectedSegment;
-        }
-
-        private static (TrackSegment startSegment, TrackSegment endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<TrackSegment> segments)
-        {
-            TrackSegment startSegment = null;
-            TrackSegment endSegment = null;
-            foreach (TrackSegment segment in segments)
+            SegmentBase startSegment = null;
+            SegmentBase endSegment = null;
+            foreach (SegmentBase segment in segments)
             {
                 //find the start vector section
-                if (segment.DistanceSquared(startLocation) < 4)
+                if (segment.DistanceSquared(startLocation) < 1)
                 {
                     startSegment = segment;
                     if (null != endSegment)
                         break;
                 }
                 //find the end vector section
-                if (segment.DistanceSquared(endLocation) < 4)
+                if (segment.DistanceSquared(endLocation) < 1)
                 {
                     endSegment = segment;
                     if (null != startSegment)
@@ -184,16 +170,27 @@ namespace Orts.Graphics.MapView.Widgets
             }
             return (startSegment, endSegment);
         }
+
+        public override double DistanceSquared(in PointD point)
+        {
+            return double.NaN;
+        }
+
     }
 
-    internal class SidingSegment : TrackSegment
+    internal class SidingSegment : SegmentBase
     {
-        public SidingSegment(TrackSegment source) : base(source)
+        public SidingSegment(SegmentBase source) : base(source)
         {
             Size = 3;
         }
 
-        public SidingSegment(TrackSegment source, in PointD start, in PointD end) : base(source, start, end)
+        public SidingSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        {
+            Size = 3;
+        }
+
+        public SidingSegment(in PointD start, in PointD end) : base(start, end)
         {
             Size = 3;
         }
@@ -207,5 +204,6 @@ namespace Orts.Graphics.MapView.Widgets
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
 
+        public override NameValueCollection DebugInfo => null;
     }
 }

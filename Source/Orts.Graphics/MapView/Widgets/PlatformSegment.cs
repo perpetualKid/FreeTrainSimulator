@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 
@@ -14,7 +15,7 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class PlatformPath : VectorWidget
     {
-        private static Dictionary<int, List<TrackSegment>> trackNodeSegments;
+        private static Dictionary<int, List<SegmentBase>> trackNodeSegments;
         private readonly List<PlatformSegment> platformPath = new List<PlatformSegment>();
         private readonly string platformName;
         private readonly string stationName;
@@ -33,9 +34,9 @@ namespace Orts.Graphics.MapView.Widgets
             ref readonly PointD startLocation = ref start.Location;
             ref readonly PointD endLocation = ref end.Location;
 
-            TrackSegment startSegment;
-            TrackSegment endSegment;
-            List<TrackSegment> segments;
+            SegmentBase startSegment;
+            SegmentBase endSegment;
+            List<SegmentBase> segments;
 
             // simple case, both are on the same tracknode
             if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
@@ -103,7 +104,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<TrackSegment>> trackNodeSegments)
+        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
             PlatformPath.trackNodeSegments = trackNodeSegments;
             List<PlatformPath> platforms = new List<PlatformPath>();
@@ -150,7 +151,7 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        private static TrackSegment CheckForSegmentOverrun(TrackSegment expectedSegment, in PointD targetLocation, List<TrackSegment> trackNodeSegments)
+        private static SegmentBase CheckForSegmentOverrun(SegmentBase expectedSegment, in PointD targetLocation, List<SegmentBase> trackNodeSegments)
         {
             // seems the platform marker is placed beyond the tracknode
             // so we need to figure which end is closer to the unset marker and run the platform until there
@@ -164,11 +165,11 @@ namespace Orts.Graphics.MapView.Widgets
             return expectedSegment;
         }
 
-        private static (TrackSegment startSegment, TrackSegment endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<TrackSegment> segments)
+        private static (SegmentBase startSegment, SegmentBase endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<SegmentBase> segments)
         {
-            TrackSegment startSegment = null;
-            TrackSegment endSegment = null;
-            foreach (TrackSegment segment in segments)
+            SegmentBase startSegment = null;
+            SegmentBase endSegment = null;
+            foreach (SegmentBase segment in segments)
             {
                 //find the start vector section
                 if (segment.DistanceSquared(startLocation) < 1)
@@ -189,17 +190,23 @@ namespace Orts.Graphics.MapView.Widgets
         }
     }
 
-    internal class PlatformSegment : TrackSegment
+    internal class PlatformSegment : SegmentBase
     {
-        public PlatformSegment(TrackSegment source) : base(source)
+        public PlatformSegment(SegmentBase source) : base(source)
         {
             Size = 3;
         }
 
-        public PlatformSegment(TrackSegment source, in PointD start, in PointD end) : base(source, start, end)
+        public PlatformSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
             Size = 3;
         }
+
+        public PlatformSegment(in PointD start, in PointD end) : base(start, end)
+        {
+            Size = 3;
+        }
+
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
@@ -210,5 +217,6 @@ namespace Orts.Graphics.MapView.Widgets
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
 
+        public override NameValueCollection DebugInfo => null;
     }
 }
