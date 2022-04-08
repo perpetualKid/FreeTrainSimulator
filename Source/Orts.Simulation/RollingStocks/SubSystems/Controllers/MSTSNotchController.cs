@@ -40,9 +40,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             string lower;
             if (type.StartsWith("trainbrakescontroller", StringComparison.OrdinalIgnoreCase))
                 lower = type[21..];
-            if (type.StartsWith("enginebrakescontroller", StringComparison.OrdinalIgnoreCase))
+            else if (type.StartsWith("enginebrakescontroller", StringComparison.OrdinalIgnoreCase))
                 lower = type[22..];
-            if (type.StartsWith("brakemanbrakescontroller", StringComparison.OrdinalIgnoreCase))
+            else if (type.StartsWith("brakemanbrakescontroller", StringComparison.OrdinalIgnoreCase))
                 lower = type.Substring(24);
             else
                 lower = type;

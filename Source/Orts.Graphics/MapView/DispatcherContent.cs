@@ -20,7 +20,7 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals};
+        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Sidings, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals};
 
         private readonly InsetComponent insetComponent;
 
@@ -232,7 +232,7 @@ namespace Orts.Graphics.MapView
 
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments));
-
+            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments));
         }
 
     }
