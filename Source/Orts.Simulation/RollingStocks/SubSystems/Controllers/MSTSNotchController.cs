@@ -35,7 +35,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public MSTSNotch(float v, int s, string type, STFReader stf)
         {
             Value = v;
-            Smooth = s == 0 ? false : true;
+            Smooth = s != 0;
             NotchStateType = ControllerState.Dummy;  // Default to a dummy controller state if no valid alternative state used
             string lower;
             if (type.StartsWith("trainbrakescontroller", StringComparison.OrdinalIgnoreCase))
