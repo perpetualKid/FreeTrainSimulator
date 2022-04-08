@@ -46,15 +46,5 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             foreach(NameValueTextGrid item in currentProvider)
                 item.TextColor = backgroundColor.ComplementColor();
         }
-
-        public override bool Open()
-        {
-            return base.Open();
-        }
-
-        public override bool Close()
-        {
-            return base.Close();
-        }
     }
 }
