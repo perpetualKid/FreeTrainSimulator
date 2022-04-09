@@ -45,7 +45,6 @@ namespace Orts.TrackViewer
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private readonly Point clientRectangleOffset;
-        private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
 
@@ -87,11 +86,6 @@ namespace Orts.TrackViewer
         internal string LogFileName { get; }
 
         private Color BackgroundColor;
-
-        #region preferences
-        private MapViewItemSettings viewSettings;
-
-        #endregion
 
         internal Catalog Catalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
@@ -169,7 +163,6 @@ namespace Orts.TrackViewer
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
-            centerPoint = new Vector2(Window.ClientBounds.Size.X / 2, Window.ClientBounds.Size.Y / 2);
             if (syncing)
                 return;
             if (currentScreenMode == ScreenMode.Windowed)
@@ -208,8 +201,7 @@ namespace Orts.TrackViewer
 
         internal void UpdateItemVisibilityPreference(MapViewItemSettings setting, bool enabled)
         {
-            viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
-            contentArea?.Content.UpdateItemVisiblity(viewSettings);
+            Settings.ViewSettings[setting] = enabled;
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -238,8 +230,6 @@ namespace Orts.TrackViewer
             }
 
             BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
-            viewSettings = Settings.ViewSettings;
-
         }
 
         private void SaveSettings()
@@ -261,7 +251,6 @@ namespace Orts.TrackViewer
                     Settings.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
-            Settings.ViewSettings = viewSettings;
             if (null != contentArea)
             {
                 string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };
@@ -405,12 +394,18 @@ namespace Orts.TrackViewer
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[WindowType.HelpWindow].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[WindowType.TrackNodeInfoWindow].ToggleVisibility();
+            });
             #endregion
 
             #region popup windows
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
+            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.WindowLocations[WindowType.AboutWindow].ToPoint());
             windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
             {
                 QuitWindow quitWindow = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
@@ -426,7 +421,7 @@ namespace Orts.TrackViewer
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
-                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+                OnContentAreaChanged += debugWindow.GameWindow_OnContentAreaChanged;
                 return debugWindow;
             }));
 
@@ -440,6 +435,12 @@ namespace Orts.TrackViewer
             {
                 HelpWindow helpWindow = new HelpWindow(windowManager, Settings.WindowLocations[WindowType.HelpWindow].ToPoint());
                 return helpWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<WindowBase>(() =>
+            {
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.TrackNodeInfoWindow].ToPoint());
+                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                return trackInfoWindow;
             }));
             #endregion
 
@@ -458,11 +459,6 @@ namespace Orts.TrackViewer
                         windowManager[windowType].Open();
                 }
             }
-        }
-
-        private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
-        {
-            (windowManager[WindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
         }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
@@ -575,6 +571,11 @@ namespace Orts.TrackViewer
 
             public GraphicsDebugInfo()
             {
+                FormattingOptions = new Dictionary<string, FormatOption>
+                {
+                    { "GPU Information", FormatOption.Bold }
+                };
+                DebugInfo.Add("GPU Information", null);
                 DebugInfo.Add("Clear Calls", null);
                 DebugInfo.Add("Draw Calls", null);
                 DebugInfo.Add("Primitives", null);

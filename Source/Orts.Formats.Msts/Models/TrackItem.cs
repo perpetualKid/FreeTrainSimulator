@@ -18,7 +18,11 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public abstract class TrackItem
     {
+        //there exist two Parameter to locate a TrackItem, which define the same point
+        //TrItemSData() is the distance in meters from the starting point of a track part
+        //TrItemRData() is a three-dimensional coordinate in space, for the same object
         private protected WorldLocation location;
+
         /// <summary>
         /// The name of the item (used for the label shown by F6)
         /// </summary>

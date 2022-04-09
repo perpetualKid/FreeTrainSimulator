@@ -67,5 +67,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal ref readonly PointD Vector => ref vectorEnd;
 
+        public abstract double DistanceSquared(in PointD point);
+
     }
 }

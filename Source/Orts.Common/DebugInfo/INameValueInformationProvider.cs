@@ -17,7 +17,7 @@ namespace Orts.Common.DebugInfo
 
     public class FormatOption : IEquatable<FormatOption>
     {
-        public Color TextColor { get; } = Color.White;
+        public Color? TextColor { get; }
         public System.Drawing.FontStyle FontStyle { get; } = System.Drawing.FontStyle.Regular;
 
         public static FormatOption RegularRed { get; } = new FormatOption(Color.Red);

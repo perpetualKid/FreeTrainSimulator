@@ -8,7 +8,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 {
     public abstract class ScrollboxControlLayout : ControlLayout
     {
-        public ControlLayout Client { get; protected set; }
+        public ControlLayout Client { get; private protected set; }
         private protected int scrollPosition;
 
         private protected bool ThumbVisible => Client.CurrentTop > Client.Bounds.Height;

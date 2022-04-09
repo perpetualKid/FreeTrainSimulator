@@ -12,113 +12,113 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// True if the driver has asked for an emergency braking (push button)
         /// </summary>
-        public Func<bool> EmergencyBrakingPushButton;
+        public Func<bool> EmergencyBrakingPushButton { get; set; }
         /// <summary>
         /// True if the TCS has asked for an emergency braking
         /// </summary>
-        public Func<bool> TCSEmergencyBraking;
+        public Func<bool> TCSEmergencyBraking { get; set; }
         /// <summary>
         /// True if the TCS has asked for a full service braking
         /// </summary>
-        public Func<bool> TCSFullServiceBraking;
+        public Func<bool> TCSFullServiceBraking { get; set; }
         /// <summary>
         /// True if the driver has pressed the Quick Release button
         /// </summary>
-        public Func<bool> QuickReleaseButtonPressed;
+        public Func<bool> QuickReleaseButtonPressed { get; set; }
         /// <summary>
         /// True if the driver has pressed the Overcharge button
         /// </summary>
-        public Func<bool> OverchargeButtonPressed;
+        public Func<bool> OverchargeButtonPressed { get; set; }
         /// <summary>
         /// True if low voltage power supply is switched on.
         /// </summary>
-        public Func<bool> IsLowVoltagePowerSupplyOn;
+        public Func<bool> IsLowVoltagePowerSupplyOn { get; set; }
         /// <summary>
         /// True if cab power supply is switched on.
         /// </summary>
-        public Func<bool> IsCabPowerSupplyOn;
+        public Func<bool> IsCabPowerSupplyOn { get; set; }
         /// <summary>
         /// <summary>
         /// Main reservoir pressure
         /// </summary>
-        public Func<float> MainReservoirPressureBar;
+        public Func<float> MainReservoirPressureBar { get; set; }
         /// <summary>
         /// Maximum pressure in the brake pipes and the equalizing reservoir
         /// </summary>
-        public Func<float> MaxPressureBar;
+        public Func<float> MaxPressureBar { get; set; }
         /// <summary>
         /// Maximum pressure in the brake pipes when they are overcharged
         /// </summary>
-        public Func<float> MaxOverchargePressureBar;
+        public Func<float> MaxOverchargePressureBar { get; set; }
         /// <summary>
         /// Release rate of the equalizing reservoir
         /// </summary>
-        public Func<float> ReleaseRateBarpS;
+        public Func<float> ReleaseRateBarpS { get; set; }
         /// <summary>
         /// Quick release rate of the equalizing reservoir
         /// </summary>
-        public Func<float> QuickReleaseRateBarpS;
+        public Func<float> QuickReleaseRateBarpS { get; set; }
         /// <summary>
         /// Pressure decrease rate of equalizing reservoir when eliminating overcharge
         /// </summary>
-        public Func<float> OverchargeEliminationRateBarpS;
+        public Func<float> OverchargeEliminationRateBarpS { get; set; }
         /// <summary>
         /// Slow application rate of the equalizing reservoir
         /// </summary>
-        public Func<float> SlowApplicationRateBarpS;
+        public Func<float> SlowApplicationRateBarpS { get; set; }
         /// <summary>
         /// Apply rate of the equalizing reservoir
         /// </summary>
-        public Func<float> ApplyRateBarpS;
+        public Func<float> ApplyRateBarpS { get; set; }
         /// <summary>
         /// Emergency rate of the equalizing reservoir
         /// </summary>
-        public Func<float> EmergencyRateBarpS;
+        public Func<float> EmergencyRateBarpS { get; set; }
         /// <summary>
         /// Depressure needed in order to obtain the full service braking
         /// </summary>
-        public Func<float> FullServReductionBar;
+        public Func<float> FullServReductionBar { get; set; }
         /// <summary>
         /// Release rate of the equalizing reservoir
         /// </summary>
-        public Func<float> MinReductionBar;
+        public Func<float> MinReductionBar { get; set; }
         /// <summary>
         /// Current value of the brake controller
         /// </summary>
-        public Func<float> CurrentValue;
+        public Func<float> CurrentValue { get; set; }
         /// <summary>
         /// Minimum value of the brake controller
         /// </summary>
-        public Func<float> MinimumValue;
+        public Func<float> MinimumValue { get; set; }
         /// <summary>
         /// Maximum value of the brake controller
         /// </summary>
-        public Func<float> MaximumValue;
+        public Func<float> MaximumValue { get; set; }
         /// <summary>
         /// Step size of the brake controller
         /// </summary>
-        public Func<float> StepSize;
+        public Func<float> StepSize { get; set; }
         /// <summary>
         /// State of the brake pressure (1 = increasing, -1 = decreasing)
         /// </summary>
-        public Func<float> UpdateValue;
+        public Func<float> UpdateValue { get; set; }
         /// <summary>
         /// Gives the list of notches
         /// </summary>
-        public Func<List<INotchController>> Notches;
+        public Func<List<INotchController>> Notches { get; set; }
 
         /// <summary>
         /// Sets the current value of the brake controller lever
         /// </summary>
-        public Action<float> SetCurrentValue;
+        public Action<float> SetCurrentValue { get; set; }
         /// <summary>
         /// Sets the state of the brake pressure (1 = increasing, -1 = decreasing)
         /// </summary>
-        public Action<float> SetUpdateValue;
+        public Action<float> SetUpdateValue { get; set; }
         /// <summary>
         /// Sets the dynamic brake intervention value
         /// </summary>
-        public Action<float> SetDynamicBrakeIntervention;
+        public Action<float> SetDynamicBrakeIntervention { get; set; }
 
         /// <summary>
         /// Called once at initialization time.

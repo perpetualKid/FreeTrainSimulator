@@ -6,7 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualBasic;
+
 using Orts.Common;
+using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
@@ -78,8 +82,37 @@ namespace Orts.TrackViewer.Settings
         [Default(true)]
         public bool RestoreLastView { get; set; }
 
-        [Default(MapViewItemSettings.All)]
-        public MapViewItemSettings ViewSettings { get; set; }
+        [Default(new string[]
+        {
+        nameof(MapViewItemSettings.Tracks) + "=True",
+        nameof(MapViewItemSettings.EndNodes) + "=True",
+        nameof(MapViewItemSettings.JunctionNodes) + "=True",
+        nameof(MapViewItemSettings.LevelCrossings) + "=True",
+        nameof(MapViewItemSettings.CrossOvers) + "=True",
+        nameof(MapViewItemSettings.Roads) + "=True",
+        nameof(MapViewItemSettings.RoadEndNodes) + "=True",
+        nameof(MapViewItemSettings.RoadCrossings) + "=True",
+        nameof(MapViewItemSettings.CarSpawners) + "=True",
+        nameof(MapViewItemSettings.Sidings) + "=True",
+        nameof(MapViewItemSettings.SidingNames) + "=True",
+        nameof(MapViewItemSettings.Platforms) + "=True",
+        nameof(MapViewItemSettings.PlatformNames) + "=True",
+        nameof(MapViewItemSettings.PlatformStations) + "=True",
+        nameof(MapViewItemSettings.SpeedPosts) + "=True",
+        nameof(MapViewItemSettings.MilePosts) + "=True",
+        nameof(MapViewItemSettings.Signals) + "=True",
+        nameof(MapViewItemSettings.OtherSignals) + "=True",
+        nameof(MapViewItemSettings.Hazards) + "=True",
+        nameof(MapViewItemSettings.Pickups) + "=True",
+        nameof(MapViewItemSettings.SoundRegions) + "=True",
+        nameof(MapViewItemSettings.Grid) + "=True",
+        nameof(MapViewItemSettings.Paths) + "=True",
+        nameof(MapViewItemSettings.PathEnds) + "=True",
+        nameof(MapViewItemSettings.PathIntermediates) + "=True",
+        nameof(MapViewItemSettings.PathJunctions) + "=True",
+        nameof(MapViewItemSettings.PathReversals) + "=True",
+        })]
+        public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }
 
         [Default("{Application} Log.txt")]
         public string LogFilename { get; set; }
@@ -114,20 +147,24 @@ namespace Orts.TrackViewer.Settings
         [Default(new string[]
         {
             nameof(WindowType.QuitWindow) + "=50,50",
+            nameof(WindowType.AboutWindow) + "=50,50",
             nameof(WindowType.StatusWindow) + "=50,50",
             nameof(WindowType.DebugScreen) + "=0,0",
             nameof(WindowType.LocationWindow) + "=100,100",
             nameof(WindowType.HelpWindow) + "=10,90",
+            nameof(WindowType.TrackNodeInfoWindow) + "=10,70",
         })]
         public EnumArray<int[], WindowType> WindowLocations { get; set; }
 
         [Default(new string[]
         {
             nameof(WindowType.QuitWindow) + "=False",
+            nameof(WindowType.AboutWindow) + "=False",
             nameof(WindowType.StatusWindow) + "=False",
             nameof(WindowType.DebugScreen) + "=False",
             nameof(WindowType.LocationWindow) + "=False",
             nameof(WindowType.HelpWindow) + "=True",
+            nameof(WindowType.TrackNodeInfoWindow) + "=True",
         })]
         public EnumArray<bool, WindowType> WindowStatus { get; set; }
 

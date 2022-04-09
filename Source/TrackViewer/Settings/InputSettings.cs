@@ -32,6 +32,7 @@ namespace Orts.TrackViewer.Settings
             UserCommands[UserCommand.DisplayDebugScreen] = new UserCommandModifiableKeyInput(Keys.F5, windowTab);
             UserCommands[UserCommand.DisplayLocationWindow] = new UserCommandModifiableKeyInput(Keys.F12, windowTab);
             UserCommands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(Keys.F1, windowTab);
+            UserCommands[UserCommand.DisplayTrackNodeInfoWindow] = new UserCommandModifiableKeyInput(Keys.F4, windowTab);
         }
     }
 }

@@ -29,40 +29,40 @@ namespace Orts.Scripting.Api.PowerSupply
         /// <summary>
         /// Current state of the diesel engines
         /// </summary>
-        public Func<DieselEngineState> CurrentDieselEnginesState;
+        public Func<DieselEngineState> CurrentDieselEnginesState { get; set; }
         /// <summary>
         /// Current state of the diesel engine
         /// </summary>
-        public Func<int, DieselEngineState> CurrentDieselEngineState;
+        public Func<int, DieselEngineState> CurrentDieselEngineState { get; set; }
         /// <summary>
         /// Current state of the circuit breaker
         /// </summary>
-        public Func<TractionCutOffRelayState> CurrentTractionCutOffRelayState;
+        public Func<TractionCutOffRelayState> CurrentTractionCutOffRelayState { get; set; }
         /// <summary>
         /// Driver's closing order of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverClosingOrder;
+        public Func<bool> TractionCutOffRelayDriverClosingOrder { get; set; }
         /// <summary>
         /// Driver's opening order of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverOpeningOrder;
+        public Func<bool> TractionCutOffRelayDriverOpeningOrder { get; set; }
         /// <summary>
         /// Driver's closing authorization of the traction cut-off relay
         /// </summary>
-        public Func<bool> TractionCutOffRelayDriverClosingAuthorization;
+        public Func<bool> TractionCutOffRelayDriverClosingAuthorization { get; set; }
 
         /// <summary>
         /// Sends an event to all diesel engines
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToDieselEngines;
+        public Action<PowerSupplyEvent> SignalEventToDieselEngines { get; set; }
         /// <summary>
         /// Sends an event to one diesel engine
         /// </summary>
-        public Action<PowerSupplyEvent, int> SignalEventToDieselEngine;
+        public Action<PowerSupplyEvent, int> SignalEventToDieselEngine { get; set; }
         /// <summary>
         /// Sends an event to the traction cut-off relay
         /// </summary>
-        public Action<PowerSupplyEvent> SignalEventToTractionCutOffRelay;
+        public Action<PowerSupplyEvent> SignalEventToTractionCutOffRelay { get; set; }
 
         public override void HandleEvent(PowerSupplyEvent evt)
         {

@@ -84,7 +84,7 @@ namespace Orts.TrackViewer
             // TrackContent content = new TrackContent(this);
             ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
-            content.UpdateItemVisiblity(viewSettings);
+            content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             ContentArea = content.ContentArea;
             windowManager[WindowType.StatusWindow].Close();

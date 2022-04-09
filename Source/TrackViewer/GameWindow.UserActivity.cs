@@ -143,6 +143,11 @@ namespace Orts.TrackViewer
             contentArea?.ResetSize(Window.ClientBounds.Size, 60);
         }
 
+        internal void ShowAboutWindow()
+        {
+            windowManager[WindowType.AboutWindow].Open();
+        }
+
         internal void PrintScreen()
         {
             using (SaveFileDialog dialog = new SaveFileDialog())
