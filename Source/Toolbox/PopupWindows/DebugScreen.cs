@@ -10,7 +10,7 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
 
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.Toolbox.PopupWindows
 {
     public enum DebugScreenInformation
     {

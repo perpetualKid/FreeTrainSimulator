@@ -12,9 +12,9 @@ using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.TrackViewer.Settings;
+using Orts.Toolbox.Settings;
 
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.Toolbox.PopupWindows
 {
     public class QuitWindow : WindowBase
     {

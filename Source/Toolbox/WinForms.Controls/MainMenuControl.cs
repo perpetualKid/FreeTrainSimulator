@@ -11,7 +11,7 @@ using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Graphics;
 
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     public partial class MainMenuControl : UserControl
     {

@@ -1,4 +1,4 @@
-﻿namespace Orts.TrackViewer.PopupWindows
+﻿namespace Orts.Toolbox.PopupWindows
 {
     public enum WindowType
     {

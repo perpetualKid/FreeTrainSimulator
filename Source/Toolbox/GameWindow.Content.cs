@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
-using Orts.TrackViewer.PopupWindows;
+using Orts.Toolbox.PopupWindows;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public class ContentAreaChangedEventArgs: EventArgs
     {
