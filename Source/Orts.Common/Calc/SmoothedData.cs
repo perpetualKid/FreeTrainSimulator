@@ -52,6 +52,8 @@ namespace Orts.Common.Calc
 
         protected double SmoothValue(double smoothedValue, double periodS, double value)
         {
+            // This formula and the calculation of `rate` are FPS-independent;
+            // see https://www.gamedeveloper.com/programming/improved-lerp-smoothing- for more details
             double ratio = Math.Exp(-rate * periodS);
             if (double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue) || ratio < 0.5)
                 return value;
