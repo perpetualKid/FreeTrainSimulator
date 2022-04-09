@@ -223,6 +223,18 @@ namespace Orts.TrackViewer.WinForms.Controls
             }
         }
 
+        //private static void UncheckOtherRouteMenuItems(ToolStripMenuItem selectedMenuItem)
+        //{
+        //    selectedMenuItem.Checked = true;
+        //
+        //    foreach (ToolStripMenuItem toolStripMenuItem in selectedMenuItem.Owner.Items.OfType<ToolStripMenuItem>())
+        //    {
+        //        if (toolStripMenuItem == selectedMenuItem)
+        //            continue;
+        //        toolStripMenuItem.Checked = false;
+        //    }
+        //}
+
         internal void PopulateContentFolders(IEnumerable<Folder> folders)
         {
             SuspendLayout();

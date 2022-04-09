@@ -80,8 +80,9 @@ namespace Orts.TrackViewer
             await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
-
-            TrackContent content = new TrackContent(this);
+            // Modification for ToolboxContent, kept original line for now
+            // TrackContent content = new TrackContent(this);
+            ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.UpdateItemVisiblity(viewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
