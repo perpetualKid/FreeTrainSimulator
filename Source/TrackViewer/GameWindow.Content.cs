@@ -81,8 +81,7 @@ namespace Orts.TrackViewer
             if (token.IsCancellationRequested)
                 return;
             // Modification for ToolboxContent, kept original line for now
-            // TrackContent content = new TrackContent(this);
-            ToolboxContent content = new ToolboxContent(this);
+            TrackContent content = new TrackContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
