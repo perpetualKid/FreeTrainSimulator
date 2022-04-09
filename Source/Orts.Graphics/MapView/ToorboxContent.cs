@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,24 +20,15 @@ namespace Orts.Graphics.MapView
 {
     public class ToolboxContent: ContentBase
     {
-        #region nearest items
-        private GridTile nearestGridTile;
-        private TrackItemBase nearestTrackItem;
-        private TrackSegment nearestTrackSegment;
-        private RoadSegment nearesRoadSegment;
-        #endregion
+        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals };
 
         private readonly InsetComponent insetComponent;
 
-        internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
-        internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
-        internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
-        internal TileIndexedList<TrackItemBase, Tile> TrackItems { get; private set; }
-        internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
-        internal TileIndexedList<RoadSegment, Tile> RoadSegments { get; private set; }
-        internal TileIndexedList<RoadEndSegment, Tile> RoadEndSegments { get; private set; }
+        #region nearest items
+        private PointWidget nearestToolboxItem;
+        #endregion
+
         internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
-        internal Dictionary<int, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
         internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
 
@@ -44,7 +37,6 @@ namespace Orts.Graphics.MapView
         public ToolboxContent(Game game) :
             base(game)
         {
-            DebugInfo["Route Name"] = RuntimeData.Instance.RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
@@ -54,17 +46,115 @@ namespace Orts.Graphics.MapView
             await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
 
             ContentArea.Initialize();
+        }
 
-            DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
-            DebugInfo["Track Nodes"] = $"{TrackNodeSegments.Count}";
-            DebugInfo["Track Segments"] = $"{TrackSegments.ItemCount}";
-            DebugInfo["Track End Segments"] = $"{TrackEndSegments.ItemCount}";
-            DebugInfo["Junction Segments"] = $"{JunctionSegments.ItemCount}";
-            DebugInfo["Track Items"] = $"{TrackItems.ItemCount}";
-            DebugInfo["Road Nodes"] = $"{RoadTrackNodeSegments.Count}";
-            DebugInfo["Road Segments"] = $"{RoadSegments.ItemCount}";
-            DebugInfo["Road End Segments"] = $"{RoadEndSegments.ItemCount}";
-            DebugInfo["Tiles"] = $"{Tiles.Count}";
+        internal override void Draw(ITile bottomLeft, ITile topRight)
+        {
+            foreach (MapViewItemSettings MapViewItemSettings in drawItems) // EnumExtension.GetValues<MapViewItemSettings>())
+            {
+                if (viewSettings[MapViewItemSettings] && contentItems[MapViewItemSettings] != null)
+                {
+                    foreach (ITileCoordinate<Tile> item in contentItems[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    {
+                        // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
+                        // but the performance impact/overhead seems invariant
+                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
+                            (vectorwidget).Draw(ContentArea);
+                        else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
+                            (pointWidget).Draw(ContentArea);
+                    }
+                }
+            }
+            foreach (PathSegment segment in PathSegments)
+            {
+                if (ContentArea.InsideScreenArea(segment))
+                    segment.Draw(ContentArea, ColorVariation.None, 1.5);
+            }
+            if (null != Trains)
+            {
+                foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
+                    trainCar.Draw(ContentArea);
+            }
+           
+        }
+
+        internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
+        {
+            GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
+            if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
+            {
+                nearestItems[MapViewItemSettings.Grid] = nearestGridTile;
+            }
+
+            double distance = 400; // max 20m (sqrt(400)
+            nearestToolboxItem = null;
+            foreach (JunctionSegment junction in contentItems[MapViewItemSettings.JunctionNodes][nearestGridTile.Tile])
+            {
+                double itemDistance = junction.Location.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    nearestToolboxItem = junction;
+                    distance = itemDistance;
+                }
+            }
+            foreach (SignalTrackItem signal in contentItems[MapViewItemSettings.Signals][nearestGridTile.Tile])
+            {
+                double itemDistance = signal.Location.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    nearestToolboxItem = signal;
+                    distance = itemDistance;
+                }
+            }
+        }
+
+        public void UpdateTrainTrackingPoint(in WorldLocation location)
+        {
+            ContentArea.SetTrackingPosition(location);
+        }
+
+        public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
+        {
+            Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
+        }
+
+        // TODO 20220311 PoC code
+        public void UpdateTrainPath(Traveller trainTraveller)
+        {
+            float remainingPathLength = 2000;
+            PathSegments.Clear();
+            if (null == TrackNodeSegments)
+                return;
+            Traveller traveller = new Traveller(trainTraveller);
+            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegment> trackSegments))
+            {
+                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
+                remainingPathLength -= PathSegments[^1].Length;
+            }
+            while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
+            {
+                traveller.NextSection();
+                switch (traveller.TrackNodeType)
+                {
+                    case TrackNodeType.Track:
+                        if (TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                        {
+                            PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
+                            remainingPathLength -= PathSegments[^1].Length;
+                        }
+                        break;
+                    case TrackNodeType.Junction:
+                        TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
+                        //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
+                        Debug.Assert(junctionNode.InPins == 1);
+                        if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + junctionNode.SelectedRoute].Link != PathSegments[^1].TrackNodeIndex)
+                        {
+                            PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
+                            return;
+                        }
+                        break;
+                }
+            }
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
@@ -78,189 +168,21 @@ namespace Orts.Graphics.MapView
             }
         }
 
-        public void UpdateColor(ColorSetting setting, Color color)
-        {
-            switch (setting)
-            {
-                case ColorSetting.Background:
-                    insetComponent?.UpdateColor(color);
-                    break;
-                case ColorSetting.RailTrack:
-                    PointWidget.UpdateColor<TrackSegment>(color);
-                    break;
-                case ColorSetting.RailTrackEnd:
-                    PointWidget.UpdateColor<TrackEndSegment>(color);
-                    break;
-                case ColorSetting.RailTrackJunction:
-                    PointWidget.UpdateColor<JunctionSegment>(color);
-                    break;
-                case ColorSetting.RailTrackCrossing:
-                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
-                    break;
-                case ColorSetting.RailLevelCrossing:
-                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
-                    break;
-                case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadSegment>(color);
-                    break;
-                case ColorSetting.RoadTrackEnd:
-                    PointWidget.UpdateColor<RoadEndSegment>(color);
-                    break;
-                case ColorSetting.PlatformItem:
-                    PointWidget.UpdateColor<PlatformTrackItem>(color);
-                    break;
-                case ColorSetting.SidingItem:
-                    PointWidget.UpdateColor<SidingTrackItem>(color);
-                    break;
-                case ColorSetting.SpeedPostItem:
-                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
-                    break;
-            }
-        }
-
-        internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
-        {
-            IEnumerable<ITileCoordinate<Tile>> result = Tiles.FindNearest(position, bottomLeft, topRight);
-            if (result.First() != nearestGridTile)
-            {
-                nearestGridTile = result.First() as GridTile;
-            }
-            double distance = double.MaxValue;
-            foreach (TrackItemBase trackItem in TrackItems[nearestGridTile.Tile])
-            {
-                double itemDistance = trackItem.Location.DistanceSquared(position);
-                if (itemDistance < distance)
-                {
-                    nearestTrackItem = trackItem;
-                    distance = itemDistance;
-                }
-            }
-            distance = double.MaxValue;
-            foreach (TrackSegment trackSegment in TrackSegments[nearestGridTile.Tile])
-            {
-                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
-                if (itemDistance < distance)
-                {
-                    nearestTrackSegment = trackSegment;
-                    distance = itemDistance;
-                }
-            }
-            distance = double.MaxValue;
-            foreach (RoadSegment trackSegment in RoadSegments[nearestGridTile.Tile])
-            {
-                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
-                if (itemDistance < distance)
-                {
-                    nearesRoadSegment = trackSegment;
-                    distance = itemDistance;
-                }
-            }
-        }
-
-        internal override void Draw(ITile bottomLeft, ITile topRight)
-        {
-            if ((viewSettings & MapViewItemSettings.Grid) == MapViewItemSettings.Grid)
-            {
-                foreach (GridTile tile in Tiles.BoundingBox(bottomLeft, topRight))
-                {
-                    tile.Draw(ContentArea);
-                }
-                nearestGridTile?.Draw(ContentArea, ColorVariation.Complement);
-            }
-            if ((viewSettings & MapViewItemSettings.Tracks) == MapViewItemSettings.Tracks)
-            {
-                foreach (TrackSegment segment in TrackSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(segment))
-                        segment.Draw(ContentArea);
-                }
-                if (nearestTrackSegment != null)
-                {
-                    foreach (TrackSegment segment in TrackNodeSegments[nearestTrackSegment.TrackNodeIndex])
-                    {
-                        segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
-                    }
-                    nearestTrackSegment.Draw(ContentArea, ColorVariation.Complement);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.EndsNodes) == MapViewItemSettings.EndsNodes)
-            {
-                foreach (TrackEndSegment endNode in TrackEndSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(endNode))
-                        endNode.Draw(ContentArea);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.JunctionNodes) == MapViewItemSettings.JunctionNodes)
-            {
-                foreach (JunctionSegment junctionNode in JunctionSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(junctionNode))
-                        junctionNode.Draw(ContentArea);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.Roads) == MapViewItemSettings.Roads)
-            {
-                foreach (RoadSegment segment in RoadSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(segment))
-                        segment.Draw(ContentArea);
-                }
-                if (nearesRoadSegment != null)
-                {
-                    foreach (RoadSegment segment in RoadTrackNodeSegments[nearesRoadSegment.TrackNodeIndex])
-                    {
-                        segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
-                    }
-                    nearesRoadSegment.Draw(ContentArea, ColorVariation.Complement);
-                }
-            }
-            if ((viewSettings & MapViewItemSettings.RoadEndNodes) == MapViewItemSettings.RoadEndNodes)
-            {
-                foreach (RoadEndSegment endNode in RoadEndSegments.BoundingBox(bottomLeft, topRight))
-                {
-                    if (ContentArea.InsideScreenArea(endNode))
-                        endNode.Draw(ContentArea);
-                }
-            }
-            foreach (TrackItemBase trackItem in TrackItems.BoundingBox(bottomLeft, topRight))
-            {
-                if (trackItem.ShouldDraw(viewSettings) && ContentArea.InsideScreenArea(trackItem))
-                    trackItem.Draw(ContentArea);
-            }
-
-            // path processing
-            foreach (PathSegment segment in PathSegments)
-            {
-                if (ContentArea.InsideScreenArea(segment))
-                    segment.Draw(ContentArea, ColorVariation.None, 1.5);
-            }
-
-            // Trains for playback
-            if (null != Trains)
-            {
-                foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
-                    trainCar.Draw(ContentArea);
-            }
-
-            if (nearestTrackItem?.ShouldDraw(viewSettings) ?? false)
-                nearestTrackItem.Draw(ContentArea, ColorVariation.Highlight);
-        }
+        public ISignal SignalSelected => (nearestToolboxItem as SignalTrackItem)?.Signal;
+        public IJunction SwitchSelected => (nearestToolboxItem as ActiveJunctionSegment)?.Junction;
 
         private void AddTrackSegments()
         {
             TrackDB trackDB = RuntimeData.Instance.TrackDB;
-            RoadTrackDB roadTrackDB = RuntimeData.Instance.RoadTrackDB;
             TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
 
-            double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+            ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
+            ConcurrentBag<TrackEndSegment> endSegments = new ConcurrentBag<TrackEndSegment>();
+            ConcurrentBag<JunctionSegment> junctionSegments = new ConcurrentBag<JunctionSegment>();
+            ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
+            ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
-            List<TrackSegment> trackSegments = new List<TrackSegment>();
-            List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
-            List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
-            List<TrackSegment> roadSegments = new List<TrackSegment>();
-            List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
-            foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
+            Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
                 if (null == trackSectionsFile)
                     throw new ArgumentNullException(nameof(trackSectionsFile));
@@ -275,95 +197,42 @@ namespace Orts.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
-                            if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
+                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
+                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
                         foreach (TrackPin pin in trackJunctionNode.TrackPins)
                         {
-                            if (trackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
-                            {
-                                TrackVectorSection item = pin.Direction == Common.TrackDirection.Reverse ? vectorNode.TrackVectorSections.First() : vectorNode.TrackVectorSections.Last();
-                            }
+                            vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
                         }
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
+                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
-            }
+            });
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
-            TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
+            contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
+            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
+            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
+            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
-            foreach (TrackNode trackNode in roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
-            {
-                if (null == trackSectionsFile)
-                    throw new ArgumentNullException(nameof(trackSectionsFile));
-
-                switch (trackNode)
-                {
-                    case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = roadTrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
-                        break;
-                    case TrackVectorNode trackVectorNode:
-                        int i = 0;
-                        foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
-                        {
-                            TrackSection trackSection = trackSectionsFile.TrackSections.TryGet(trackVectorSection.SectionIndex);
-                            if (trackSection != null)
-                                roadSegments.Add(new RoadSegment(trackVectorSection, trackSection, trackVectorNode.Index, i++));
-                        }
-                        break;
-                }
-            }
-
-            RoadSegments = new TileIndexedList<RoadSegment, Tile>(roadSegments);
-            RoadEndSegments = new TileIndexedList<RoadEndSegment, Tile>(roadEndSegments);
-            RoadTrackNodeSegments = roadSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
-
-            Tiles = new TileIndexedList<GridTile, Tile>(
-                TrackSegments.Select(d => d.Tile as ITile).Distinct()
-                .Union(TrackEndSegments.Select(d => d.Tile as ITile).Distinct())
-                .Union(RoadSegments.Select(d => d.Tile as ITile).Distinct())
-                .Union(RoadEndSegments.Select(d => d.Tile as ITile).Distinct())
+            contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
+                contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
+                .Union(contentItems[MapViewItemSettings.EndNodes].Select(d => d.Tile as ITile).Distinct())
                 .Select(t => new GridTile(t)));
 
-            if (Tiles.Count == 1)
-            {
-                foreach (TrackEndSegment trackEndSegment in TrackEndSegments)
-                {
-                    minX = Math.Min(minX, trackEndSegment.Location.X);
-                    minY = Math.Min(minY, trackEndSegment.Location.Y);
-                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
-                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
-                }
-            }
-            else
-            {
-                minX = Math.Min(minX, Tiles[0][0].Tile.X);
-                maxX = Math.Max(maxX, Tiles[^1][0].Tile.X);
-                foreach (GridTile tile in Tiles)
-                {
-                    minY = Math.Min(minY, tile.Tile.Z);
-                    maxY = Math.Max(maxY, tile.Tile.Z);
-                }
-                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-            }
-            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+            InitializeBounds();
         }
 
         private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.Create(RuntimeData.Instance.RoadTrackDB?.TrackItems)));
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+
+            contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
+            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments));
+
         }
 
     }
