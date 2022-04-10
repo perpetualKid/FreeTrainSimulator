@@ -66,7 +66,7 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, bool signalsOnly = false)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
@@ -83,7 +83,7 @@ namespace Orts.Graphics.MapView.Widgets
                     }
                 }
             }
-            foreach (TrackItem trackItem in signalsOnly ? trackItems.Where(t => t is SignalItem) : trackItems)
+            foreach (TrackItem trackItem in trackItems)
             {
                 if (trackItem.Location == WorldLocation.None)
                     continue;
@@ -116,8 +116,7 @@ namespace Orts.Graphics.MapView.Widgets
                         break;
                     case SignalItem signalItem:
                         bool normalSignal = (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal);
-                        if (!signalsOnly || (signalsOnly && normalSignal))
-                            result.Add(new SignalTrackItem(signalItem, trackItemNodes, normalSignal));
+                        result.Add(new SignalTrackItem(signalItem, trackItemNodes, normalSignal));
                         break;
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
