@@ -913,7 +913,7 @@ namespace Orts.Common
         RoadCrossings,
         SidingNames,
         PlatformNames,
-        PlatformStations,
+        StationNames,
         SpeedPosts,
         MilePosts,
         Signals,

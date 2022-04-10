@@ -65,6 +65,7 @@ namespace Orts.Graphics.MapView
         public ref readonly PointD WorldPosition => ref worldPosition;
 
         public System.Drawing.Font CurrentFont { get; private set; }
+        public System.Drawing.Font ConstantSizeFont { get; private set; }
 
         internal ContentArea(Game game, ContentBase content) :
             base(game)
@@ -76,6 +77,7 @@ namespace Orts.Graphics.MapView
             Enabled = false;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
+            ConstantSizeFont = fontManager[25];
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
@@ -465,7 +467,7 @@ namespace Orts.Graphics.MapView
 
         private void UpdateFontSize()
         {
-            int fontsize = MathHelper.Clamp((int)(25 * Scale), 1, 25);
+            int fontsize = MathHelper.Clamp((int)(25 * Scale), 4, 25);
             if (fontsize != (CurrentFont?.Size ?? 0))
                 CurrentFont = fontManager[fontsize];
             TrackItemBase.SetFont(CurrentFont);

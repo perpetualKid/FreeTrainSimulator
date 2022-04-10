@@ -1,25 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
     internal class PlatformPath : SegmentPath<PlatformSegment>
     {
-        private readonly string platformName;
-        private readonly string stationName;
+        internal string PlatformName { get; }
+        internal string StationName { get; }
 
         public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
         {
-            platformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
-            stationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
+            PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
+            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
         }
 
         public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
@@ -57,8 +54,8 @@ namespace Orts.Graphics.MapView.Widgets
             }
 
             Color fontColor = GetColor<PlatformPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, platformName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, stationName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            //TextShape.DrawString(contentArea.WorldToScreenCoordinates(in MidPoint), fontColor, PlatformName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            //TextShape.DrawString(contentArea.WorldToScreenCoordinates(in MidPoint), fontColor, StationName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         public override double DistanceSquared(in PointD point)

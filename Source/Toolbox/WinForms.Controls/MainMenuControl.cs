@@ -57,7 +57,7 @@ namespace Orts.Toolbox.WinForms.Controls
             SetupVisibilityMenuItem(otherSignalsVisibleToolStripMenuItem, MapViewItemSettings.OtherSignals);
             SetupVisibilityMenuItem(platformsVisibleToolStripMenuItem, MapViewItemSettings.Platforms);
             SetupVisibilityMenuItem(platformNamesVisibleToolStripMenuItem, MapViewItemSettings.PlatformNames);
-            SetupVisibilityMenuItem(platformStationsVisibleToolStripMenuItem, MapViewItemSettings.PlatformStations);
+            SetupVisibilityMenuItem(stationNamesVisibleToolStripMenuItem, MapViewItemSettings.StationNames);
             SetupVisibilityMenuItem(sidingsVisibleToolStripMenuItem, MapViewItemSettings.Sidings);
             SetupVisibilityMenuItem(sidingNamesVisibleToolStripMenuItem, MapViewItemSettings.SidingNames);
             SetupVisibilityMenuItem(speedpostsVisibleToolStripMenuItem, MapViewItemSettings.SpeedPosts);

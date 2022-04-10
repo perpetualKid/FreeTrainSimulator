@@ -12,11 +12,11 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class SidingPath: SegmentPath<SidingSegment>
     {
-        private readonly string sidingName;
+        internal string SidingName { get; }
 
         public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
         {
-            sidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
+            SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }
 
         public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
@@ -54,7 +54,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
 
             Color fontColor = GetColor<SidingPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in midPoint), fontColor, sidingName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in MidPoint), fontColor, SidingName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         protected override SidingSegment CreateItem(in PointD start, in PointD end)

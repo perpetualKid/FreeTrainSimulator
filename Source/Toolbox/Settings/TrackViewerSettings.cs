@@ -97,7 +97,7 @@ namespace Orts.Toolbox.Settings
         nameof(MapViewItemSettings.SidingNames) + "=True",
         nameof(MapViewItemSettings.Platforms) + "=True",
         nameof(MapViewItemSettings.PlatformNames) + "=True",
-        nameof(MapViewItemSettings.PlatformStations) + "=True",
+        nameof(MapViewItemSettings.StationNames) + "=True",
         nameof(MapViewItemSettings.SpeedPosts) + "=True",
         nameof(MapViewItemSettings.MilePosts) + "=True",
         nameof(MapViewItemSettings.Signals) + "=True",
