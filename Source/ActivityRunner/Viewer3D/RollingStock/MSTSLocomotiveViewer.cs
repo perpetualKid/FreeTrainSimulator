@@ -2340,6 +2340,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.OverSpeed:
                 case CabViewControlType.Penalty_App:
                 case CabViewControlType.Emergency_Brake:
+                case CabViewControlType.Orts_Bailoff:
+                case CabViewControlType.Orts_QuickRelease:
+                case CabViewControlType.Orts_Overcharge:
                 case CabViewControlType.Doors_Display:
                 case CabViewControlType.Cyl_Cocks:
                 case CabViewControlType.Orts_BlowDown_Valve:
