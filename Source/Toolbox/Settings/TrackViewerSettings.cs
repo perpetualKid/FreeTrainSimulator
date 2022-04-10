@@ -14,9 +14,9 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
-using Orts.TrackViewer.PopupWindows;
+using Orts.Toolbox.PopupWindows;
 
-namespace Orts.TrackViewer.Settings
+namespace Orts.Toolbox.Settings
 {
     public class TrackViewerSettings : SettingsBase
     {

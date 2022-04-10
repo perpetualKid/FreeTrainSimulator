@@ -25,10 +25,10 @@ using Orts.Graphics.MapView;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
-using Orts.TrackViewer.PopupWindows;
-using Orts.TrackViewer.Settings;
+using Orts.Toolbox.PopupWindows;
+using Orts.Toolbox.Settings;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public partial class GameWindow : Game, IInputCapture
     {

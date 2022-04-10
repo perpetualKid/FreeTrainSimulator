@@ -6,39 +6,21 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-using GetText;
-using GetText.WindowsForms;
-
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Graphics;
 
-
-using Path = Orts.Models.Simplified.Path ;
-
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     public partial class MainMenuControl : UserControl
     {
         private readonly GameWindow parent;
 
-        private readonly ICatalog catalog;
-
-        private string tempfolderPath;
-
-        private Folder folder;
-
-        private IEnumerable<Path> paths;
-
         internal MainMenuControl(GameWindow game)
         {
             parent = game;
             InitializeComponent();
-
-            catalog = CatalogManager.Catalog;
-            Localizer.Localize(this, catalog);
-
             MainMenuStrip.MenuActivate += MainMenuStrip_MenuActivate;
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
@@ -218,22 +200,8 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
                 await parent.LoadRoute(route).ConfigureAwait(false);
-                paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
-                PopulatePaths(paths);
             }
         }
-
-        //private static void UncheckOtherRouteMenuItems(ToolStripMenuItem selectedMenuItem)
-        //{
-        //    selectedMenuItem.Checked = true;
-        //
-        //    foreach (ToolStripMenuItem toolStripMenuItem in selectedMenuItem.Owner.Items.OfType<ToolStripMenuItem>())
-        //    {
-        //        if (toolStripMenuItem == selectedMenuItem)
-        //            continue;
-        //        toolStripMenuItem.Checked = false;
-        //    }
-        //}
 
         internal void PopulateContentFolders(IEnumerable<Folder> folders)
         {
@@ -252,10 +220,6 @@ namespace Orts.TrackViewer.WinForms.Controls
         }
 
         private bool closingCancelled;
-
-        //  ****
-        
-
         private void FolderDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
             //if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked)
@@ -301,25 +265,6 @@ namespace Orts.TrackViewer.WinForms.Controls
                 if (toolStripMenuItem == selectedMenuItem)
                     continue;
                 toolStripMenuItem.Checked = false;
-            }
-        }
-
-        private async void tempfoldertoolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-            using (FolderBrowserDialog folderBrowser = new FolderBrowserDialog())
-            {
-                folderBrowser.SelectedPath = "";
-                folderBrowser.Description = catalog.GetString("Select a temporary folder containing Routes folder");
-                folderBrowser.ShowNewFolderButton = false;
-                if (folderBrowser.ShowDialog(this) == DialogResult.OK)
-                {
-
-                    folder = new Folder(System.IO.Path.GetFileName(tempfolderPath), folderBrowser.SelectedPath);
-
-                    parent.UnloadRoute();
-                    PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
-                }
             }
         }
 
@@ -378,34 +323,5 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (e.KeyCode == Keys.Menu)
                 MainMenuStrip.Enabled = true;
         }
-
-        #region Path Methods
-
-        internal void PopulatePaths(IEnumerable<Path> paths)
-        {
-
-            Invoke((MethodInvoker)delegate {
-                SuspendLayout();
-                loadPathToolStripMenuItem.DropDownItems.Clear();
-                foreach (Path path in paths)
-                {
-                    ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
-                    {
-                        Tag = path,
-                    };
-                    pathItem.Click += loadPathToolStripMenuItem_Click;
-                    loadPathToolStripMenuItem.DropDownItems.Add(pathItem);
-                }
-                ResumeLayout();
-            });
-        }
-
-        private void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Path Selected ", $"{RuntimeInfo.ApplicationName}");
-        }
-
-        #endregion
-
     }
 }

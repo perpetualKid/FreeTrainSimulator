@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
-using Orts.TrackViewer.PopupWindows;
+using Orts.Toolbox.PopupWindows;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public class ContentAreaChangedEventArgs: EventArgs
     {
@@ -30,8 +30,6 @@ namespace Orts.TrackViewer
         private IEnumerable<Route> routes;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
-        //  ****
-        private IEnumerable<Path> paths;
 
         internal async Task LoadFolders()
         {
@@ -80,8 +78,8 @@ namespace Orts.TrackViewer
             await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
-            // Modification for ToolboxContent, kept original line for now
-            TrackContent content = new TrackContent(this);
+
+            ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
@@ -102,8 +100,6 @@ namespace Orts.TrackViewer
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                         await LoadRoute(route).ConfigureAwait(false);
-                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
-                        mainmenu.PopulatePaths(paths);
                 }
             }
         }

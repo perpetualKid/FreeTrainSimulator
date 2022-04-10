@@ -1,5 +1,5 @@
 ﻿
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     partial class StatusbarControl
     {

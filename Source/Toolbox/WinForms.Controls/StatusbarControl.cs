@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     public partial class StatusbarControl : UserControl
     {

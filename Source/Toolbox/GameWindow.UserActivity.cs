@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
-using Orts.TrackViewer.PopupWindows;
+using Orts.Toolbox.PopupWindows;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public partial class GameWindow : Game
     {

@@ -246,10 +246,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
             });
-//            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
+            //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
             debugInfo = new CommonDebugInfo(contentArea);
+            if (windowManager.WindowInitialized(DispatcherWindowType.DebugScreen))
+                (windowManager[DispatcherWindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Common, debugInfo);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -490,8 +492,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             private readonly SmoothedData frameRate = new SmoothedData();
             private readonly ContentArea contentArea;
 
-            private const double fpsLow = targetFps - targetFps / 5.0
-                ;
+            private const double fpsLow = targetFps - targetFps / 5.0;
             public CommonDebugInfo(ContentArea contentArea)
             {
                 this.contentArea = contentArea;

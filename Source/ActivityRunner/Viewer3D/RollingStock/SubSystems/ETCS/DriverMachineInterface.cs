@@ -31,7 +31,6 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
-using System.Linq;
 
 using static Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs.DriverMachineInterface;
 

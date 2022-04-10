@@ -7,7 +7,7 @@ using Orts.Common.Logging;
 
 [assembly: CLSCompliant(false)]
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public static class Program
     {

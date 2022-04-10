@@ -10,7 +10,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.Toolbox.PopupWindows
 {
     public class StatusTextWindow : WindowBase
     {
