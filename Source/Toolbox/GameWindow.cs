@@ -586,5 +586,13 @@ namespace Orts.Toolbox
                 DebugInfo.Add("VertexShaders", null);
             }
         }
+        #region Language and localization
+        /// <summary>
+        /// This is the 'catalog' needed for localization of TrackViewer (meaning translating it to different languages)
+        /// </summary>
+        internal static ICatalog catalog = new Catalog("Toolbox", RuntimeInfo.LocalesFolder);
+
+       
+        #endregion
     }
 }
