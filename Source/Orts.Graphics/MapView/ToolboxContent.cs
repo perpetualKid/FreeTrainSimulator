@@ -19,7 +19,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView
 {
-    public class TrackContent : ContentBase
+    public class ToolboxContent : ContentBase
     {
         #region nearest items
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
@@ -32,7 +32,7 @@ namespace Orts.Graphics.MapView
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
         internal Dictionary<int, List<SegmentBase>> RoadTrackNodeSegments { get; private set; }
 
-        public TrackContent(Game game) :
+        public ToolboxContent(Game game) :
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);

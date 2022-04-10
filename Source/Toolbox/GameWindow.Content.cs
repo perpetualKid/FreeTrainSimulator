@@ -79,7 +79,7 @@ namespace Orts.Toolbox
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(this);
+            ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
