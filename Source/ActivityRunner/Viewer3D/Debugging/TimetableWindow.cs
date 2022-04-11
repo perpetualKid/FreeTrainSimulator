@@ -97,9 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void SetDispatchMedia()
         {
             trainFont = new Font("Arial", 14, FontStyle.Bold);
-            sidingFont = new Font("Arial", 12, FontStyle.Bold);
             trainBrush = new SolidBrush(Color.Red);
-            sidingBrush = new SolidBrush(Color.Blue);
             pbCanvas.BackColor = Color.White;
         }
 
@@ -108,7 +106,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             lblSimulationTimeText.Visible = timetableView;
             lblSimulationTime.Visible = timetableView;
             lblShow.Visible = timetableView;
-            cbShowSidings.Visible = timetableView;
             cbShowTrainLabels.Visible = timetableView;
             cbShowTrainState.Visible = timetableView;
             bTrainKey.Visible = timetableView;
@@ -123,10 +120,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             Name = "Timetable Window";
             trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
-            sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
             trainBrush = new SolidBrush(Color.Red);
             inactiveTrainBrush = new SolidBrush(Color.DarkRed);
-            sidingBrush = new SolidBrush(Color.Blue);
             pbCanvas.BackColor = Color.FromArgb(250, 240, 230);
         }
 
@@ -163,51 +158,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             var yRange = maxY - minY;
             var maxSize = (int)(((xRange > yRange) ? xRange : yRange) * 1.5);
             windowSizeUpDown.Maximum = (decimal)maxSize;
-        }
-
-        private void PopulateItemLists()
-        {
-            foreach (var item in RuntimeData.Instance.TrackDB.TrackItems)
-            {
-                switch (item)
-                {
-                    case SidingItem sidingItem:
-                        // Sidings have 2 ends but are not always listed in pairs in the *.tdb file
-                        // Neither are their names unique (e.g. Bernina Bahn).
-                        // Find whether this siding is a new one or the other end of an old one.
-                        // If other end, then find the right-hand one as the location for a single label.
-                        // Note: Find() within a foreach() loop is O(n^2) but is only done at start.
-                        var oldSidingIndex = sidings.FindIndex(r => r.LinkId == item.TrackItemId && r.Name == item.ItemName);
-                        if (oldSidingIndex < 0)
-                        {
-                            var newSiding = new SidingWidget(item as SidingItem);
-                            sidings.Add(newSiding);
-                        }
-                        else
-                        {
-                            var oldSiding = sidings[oldSidingIndex];
-                            var oldLocation = oldSiding.Location;
-                            var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-
-                            // Because these are structs, not classes, compiler won't let you overwrite them.
-                            // Instead create a single item which replaces the 2 platform items.
-                            var replacement = new SidingWidget(item as SidingItem)
-                            {
-                                Location = new PointF()
-                                {
-                                    X = (oldLocation.X + newLocation.X) / 2,
-                                    Y = (oldLocation.Y + newLocation.Y) / 2
-                                }
-                            };
-                            // Replace the old siding item with the replacement
-                            sidings.RemoveAt(oldSidingIndex);
-                            sidings.Add(replacement);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
         }
 
         private void GenerateTimetableView(bool dragging)
@@ -251,10 +201,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     // Draw trains and path
                     DrawTrains(g, scaledA, scaledB);
 
-                    // Draw labels for sidings and platforms last so they go on top for readability
                     CleanTextCells();  // Empty the listing of labels ready for adding labels again
-
-                    ShowSidingLabels(g);
                 }
                 DrawZoomTarget(g);
             }
@@ -311,20 +258,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 else
                     g.DrawLine(p, scaledA, scaledB);
             }
-        }
-
-        private void ShowSidingLabels(System.Drawing.Graphics g)
-        {
-            if (cbShowSidings.CheckState == System.Windows.Forms.CheckState.Checked)
-                foreach (var s in sidings)
-                {
-                    var scaledItem = new PointF();
-
-                    scaledItem.X = (s.Location.X - subX) * xScale;
-                    scaledItem.Y = GetUnusedYLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
-                    if (scaledItem.Y >= 0f) // -1 indicates no free slot to draw label
-                        g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
-                }
         }
 
         private void DrawTrains(System.Drawing.Graphics g, PointF scaledA, PointF scaledB)
@@ -554,71 +487,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
             for (var i = 0; i < pbCanvas.Height / spacing; i++)
                 alignedTextNum[i] = 0;
-        }
-
-        // Returns a vertical position for the text that doesn't clash or returns -1
-        // If the preferred space for text is occupied, then the slot above (-ve Y) is tested, then 2 sltos above, then 1 below.
-        private float GetUnusedYLocation(float startX, float wantY, string name)
-        {
-            const float noFreeSlotFound = -1f;
-
-            var desiredPositionY = (int)(wantY / spacing);  // The positionY of the ideal row for the text.
-            var endX = startX + name.Length * trainFont.Size;
-            //out of drawing area
-            if (endX < 0)
-                return noFreeSlotFound;
-
-            int positionY = desiredPositionY;
-            while (positionY >= 0 && positionY < alignedTextY.Length)
-            {
-                //if the line contains no text yet, put it there
-                if (alignedTextNum[positionY] == 0)
-                    return SaveLabelLocation(startX, endX, positionY);
-
-                bool conflict = false;
-
-                //check if it intersects with any labels already in this row
-                for (var col = 0; col < alignedTextNum[positionY]; col++)
-                {
-                    var v = alignedTextY[positionY][col];
-                    //check conflict with a text, v.X is the start of the text, v.Y is the end of the text
-                    if ((endX >= v.X && startX <= v.Y))
-                    {
-                        conflict = true;
-                        break;
-                    }
-                }
-
-                if (conflict)
-                {
-                    positionY--; // Try a different row: -1, -2, +2, +1
-
-                    if (positionY - desiredPositionY <= -2) // Cannot move up (-ve Y), so try to move it down (+ve Y)
-                        positionY = desiredPositionY + 2;   // Try +2 then +1
-
-                    if (positionY == desiredPositionY) // Back to original position again
-                        return noFreeSlotFound;
-                }
-                else
-                {
-                    // Check that row has an unused column in its fixed size array
-                    if (alignedTextNum[positionY] >= alignedTextY[positionY].Length)
-                        return noFreeSlotFound;
-
-                    return SaveLabelLocation(startX, endX, positionY);
-                }
-            }
-            return noFreeSlotFound;
-        }
-
-        private float SaveLabelLocation(float startX, float endX, int positionY)
-        {
-            // add start and end location for the new label
-            alignedTextY[positionY][alignedTextNum[positionY]] = new Vector2 { X = startX, Y = endX };
-
-            alignedTextNum[positionY]++;
-
-            return positionY * spacing;
         }
     }
 }

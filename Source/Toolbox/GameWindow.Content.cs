@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
-using Orts.TrackViewer.PopupWindows;
+using Orts.Toolbox.PopupWindows;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public class ContentAreaChangedEventArgs: EventArgs
     {
@@ -79,7 +79,7 @@ namespace Orts.TrackViewer
             if (token.IsCancellationRequested)
                 return;
 
-            TrackContent content = new TrackContent(this);
+            ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);

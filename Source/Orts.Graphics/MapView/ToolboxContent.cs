@@ -19,7 +19,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView
 {
-    public class TrackContent : ContentBase
+    public class ToolboxContent : ContentBase
     {
         #region nearest items
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
@@ -29,10 +29,10 @@ namespace Orts.Graphics.MapView
         private readonly TrackNodeInfoProxy trackNodeInfo = new TrackNodeInfoProxy();
 
         //backreferences to draw whole TrackNode segment (all track vector sections) out of the current track vector section
-        internal Dictionary<int, List<TrackSegment>> TrackNodeSegments { get; private set; }
-        internal Dictionary<int, List<RoadSegment>> RoadTrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<SegmentBase>> RoadTrackNodeSegments { get; private set; }
 
-        public TrackContent(Game game) :
+        public ToolboxContent(Game game) :
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
@@ -140,14 +140,14 @@ namespace Orts.Graphics.MapView
             }
             if (null != nearestItems[MapViewItemSettings.Tracks])
             {
-                foreach (TrackSegment segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as TrackSegment).TrackNodeIndex])
+                foreach (SegmentBase segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as SegmentBase).TrackNodeIndex])
                 {
                     segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
             }
             if (null != nearestItems[MapViewItemSettings.Roads])
             {
-                foreach (TrackSegment segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as TrackSegment).TrackNodeIndex])
+                foreach (SegmentBase segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as SegmentBase).TrackNodeIndex])
                 {
                     segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
@@ -209,7 +209,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
+            TrackNodeSegments = trackSegments.Cast<SegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
@@ -231,7 +231,7 @@ namespace Orts.Graphics.MapView
 
             contentItems[MapViewItemSettings.Roads] = new TileIndexedList<RoadSegment, Tile>(roadSegments);
             contentItems[MapViewItemSettings.RoadEndNodes] = new TileIndexedList<RoadEndSegment, Tile>(roadEndSegments);
-            RoadTrackNodeSegments = roadSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
+            RoadTrackNodeSegments = roadSegments.Cast<SegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
             // indentify all tiles by looking at tracks and roads and their respective end segments
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public enum UserCommand
     {

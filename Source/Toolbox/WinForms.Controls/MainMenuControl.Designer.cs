@@ -1,5 +1,5 @@
 ﻿
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     partial class MainMenuControl
     {
@@ -575,7 +575,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.sidingColorToolStripComboBoxMenuItem});
             this.sidingColorToolStripMenuItem.Name = "sidingColorToolStripMenuItem";
             this.sidingColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
-            this.sidingColorToolStripMenuItem.Text = "Siding Text Color";
+            this.sidingColorToolStripMenuItem.Text = "Siding Color";
             // 
             // sidingColorToolStripComboBoxMenuItem
             // 

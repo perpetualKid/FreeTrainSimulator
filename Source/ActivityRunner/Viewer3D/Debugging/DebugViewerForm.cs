@@ -182,9 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         private Font trainFont;
-        private Font sidingFont;
         private SolidBrush trainBrush;
-        private SolidBrush sidingBrush;
         private SolidBrush inactiveTrainBrush;
 
         private double lastUpdateTime;
@@ -283,13 +281,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
             if (RuntimeData.Instance.TrackDB?.TrackItems == null)
                 return;
-
-            PopulateItemLists();
         }
 
         private bool Inited;
         private List<LineSegment> segments = new List<LineSegment>();
-        private List<SidingWidget> sidings = new List<SidingWidget>();
 
         /// <summary>
         /// Initialises the picturebox and the image it contains. 
@@ -648,10 +643,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (true/*showPlayerTrain.Checked*/)
                 {
 
-                    CleanVerticalCells();//clean the drawing area for text of sidings and platforms
-                    foreach (var sw in sidings)
-                        scaledItem = DrawSiding(g, scaledItem, sw);
-
                     var margin = 30 * xScale;//margins to determine if we want to draw a train
                     var margin2 = 5000 * xScale;
 
@@ -795,89 +786,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             pbCanvas.Invalidate();
         }
 
-        private PointF DrawSiding(System.Drawing.Graphics g, PointF scaledItem, SidingWidget s)
-        {
-            scaledItem.X = (s.Location.X - subX) * xScale;
-            scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
-            if (scaledItem.Y >= 0f) //if we need to draw the siding names
-            {
-
-                g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
-            }
-            return scaledItem;
-        }
-
         private Vector2[][] alignedTextY;
         private int[] alignedTextNum;
         private const int spacing = 12;
 
-        private void CleanVerticalCells()
-        {
-            if (alignedTextY == null || alignedTextY.Length != IM_Height / spacing) //first time to put text, or the text height has changed
-            {
-                alignedTextY = new Vector2[IM_Height / spacing][];
-                alignedTextNum = new int[IM_Height / spacing];
-                for (var i = 0; i < IM_Height / spacing; i++)
-                    alignedTextY[i] = new Vector2[4]; //each line has at most 4 sidings
-            }
-            for (var i = 0; i < IM_Height / spacing; i++)
-            { alignedTextNum[i] = 0; }
-
-        }
-        private float DetermineSidingLocation(float startX, float wantY, string name)
-        {
-            //out of drawing area
-            if (startX < -64 || startX > IM_Width || wantY < -spacing || wantY > IM_Height)
-                return -1f;
-
-            int position = (int)(wantY / spacing);//the cell of the text it wants in
-            if (position > alignedTextY.Length)
-                return wantY;//position is larger than the number of cells
-            var endX = startX + name.Length * trainFont.Size;
-            int desiredPosition = position;
-            while (position < alignedTextY.Length && position >= 0)
-            {
-                //if the line contains no text yet, put it there
-                if (alignedTextNum[position] == 0)
-                {
-                    alignedTextY[position][alignedTextNum[position]].X = startX;
-                    alignedTextY[position][alignedTextNum[position]].Y = endX;//add info for the text (i.e. start and end location)
-                    alignedTextNum[position]++;
-                    return position * spacing;
-                }
-
-                bool conflict = false;
-                //check if it is intersect any one in the cell
-                foreach (Vector2 v in alignedTextY[position])
-                {
-                    //check conflict with a text, v.x is the start of the text, v.y is the end of the text
-                    if ((startX > v.X && startX < v.Y) || (endX > v.X && endX < v.Y) || (v.X > startX && v.X < endX) || (v.Y > startX && v.Y < endX))
-                    {
-                        conflict = true;
-                        break;
-                    }
-                }
-                if (conflict == false) //no conflict
-                {
-                    if (alignedTextNum[position] >= alignedTextY[position].Length)
-                        return -1f;
-                    alignedTextY[position][alignedTextNum[position]].X = startX;
-                    alignedTextY[position][alignedTextNum[position]].Y = endX;//add info for the text (i.e. start and end location)
-                    alignedTextNum[position]++;
-                    return position * spacing;
-                }
-                position--;
-                //cannot move up, then try to move it down
-                if (position - desiredPosition < -1)
-                {
-                    position = desiredPosition + 2;
-                }
-                //could not find any position up or down, just return negative
-                if (position == desiredPosition)
-                    return -1f;
-            }
-            return position * spacing;
-        }
         #endregion
 
         /// <summary>
@@ -1577,9 +1489,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         //      {
         //	this.Name = "Dispatch Window";
         //	trainFont = new Font("Arial", 14, FontStyle.Bold);
-        //	sidingFont = new Font("Arial", 12, FontStyle.Bold);
         //	trainBrush = new SolidBrush(Color.Red);
-        //	sidingBrush = new SolidBrush(Color.Blue);
         //	pbCanvas.BackColor = Color.White;
         //}
 
@@ -1687,39 +1597,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
     }
 
-    #endregion
-
-    #region SidingWidget
-
-    /// <summary>
-    /// Defines a siding name being drawn in a 2D view.
-    /// </summary>
-    public struct SidingWidget
-    {
-        public int Id;
-        public PointF Location;
-        public string Name;
-        public int LinkId;
-
-        /// <summary>
-        /// The underlying track item.
-        /// </summary>
-        public SidingItem Item;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="signal"></param>
-        public SidingWidget(SidingItem item)
-        {
-            Id = item.TrackItemId;
-            LinkId = item.LinkedSidingId;
-            Item = item;
-            Name = item.ItemName;
-            Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-        }
-    }
     #endregion
 
     public class DebugVector

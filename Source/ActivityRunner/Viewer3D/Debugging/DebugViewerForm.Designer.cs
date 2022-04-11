@@ -24,8 +24,6 @@
                 trainPen.Dispose();
                 trainBrush.Dispose();
                 trainFont.Dispose();
-                sidingBrush.Dispose();
-                sidingFont.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -63,7 +61,6 @@
             this.lblSimulationTimeText = new System.Windows.Forms.Label();
             this.lblSimulationTime = new System.Windows.Forms.Label();
             this.lblShow = new System.Windows.Forms.Label();
-            this.cbShowSidings = new System.Windows.Forms.CheckBox();
             this.gbTrainLabels = new System.Windows.Forms.GroupBox();
             this.bTrainKey = new System.Windows.Forms.Button();
             this.rbShowActiveTrainLabels = new System.Windows.Forms.RadioButton();
@@ -419,19 +416,6 @@
             this.lblShow.Text = "Show:";
             this.lblShow.Visible = false;
             // 
-            // cbShowSidings
-            // 
-            this.cbShowSidings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbShowSidings.AutoSize = true;
-            this.cbShowSidings.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSidings.Location = new System.Drawing.Point(769, 240);
-            this.cbShowSidings.Name = "cbShowSidings";
-            this.cbShowSidings.Size = new System.Drawing.Size(112, 22);
-            this.cbShowSidings.TabIndex = 40;
-            this.cbShowSidings.Text = "Siding labels";
-            this.cbShowSidings.UseVisualStyleBackColor = true;
-            this.cbShowSidings.Visible = false;
-            // 
             // gbTrainLabels
             // 
             this.gbTrainLabels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -643,7 +627,6 @@
             this.Controls.Add(this.lblDayLightOffsetHrs);
             this.Controls.Add(this.nudDaylightOffsetHrs);
             this.Controls.Add(this.gbTrainLabels);
-            this.Controls.Add(this.cbShowSidings);
             this.Controls.Add(this.lblShow);
             this.Controls.Add(this.lblSimulationTime);
             this.Controls.Add(this.lblSimulationTimeText);
@@ -714,7 +697,6 @@
         public System.Windows.Forms.Label lblSimulationTimeText;
         public System.Windows.Forms.Label lblSimulationTime;
         public System.Windows.Forms.Label lblShow;
-        public System.Windows.Forms.CheckBox cbShowSidings;
         public System.Windows.Forms.GroupBox gbTrainLabels;
         public System.Windows.Forms.RadioButton rbShowActiveTrainLabels;
         public System.Windows.Forms.RadioButton rbShowAllTrainLabels;

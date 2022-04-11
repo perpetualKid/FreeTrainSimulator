@@ -11,7 +11,7 @@ using Orts.Common;
 using Orts.Graphics;
 using Orts.Graphics.Xna;
 
-namespace Orts.TrackViewer.WinForms.Controls
+namespace Orts.Toolbox.WinForms.Controls
 {
     internal class ComboBoxItem<T>
     {

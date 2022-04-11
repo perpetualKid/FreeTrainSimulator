@@ -8,7 +8,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.TrackViewer
+namespace Orts.Toolbox
 {
     public class TrackData: RuntimeData
     {

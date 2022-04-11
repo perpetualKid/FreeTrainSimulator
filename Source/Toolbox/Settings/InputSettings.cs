@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common;
 using Orts.Common.Input;
 
-namespace Orts.TrackViewer.Settings
+namespace Orts.Toolbox.Settings
 {
     public static class InputSettings
     {

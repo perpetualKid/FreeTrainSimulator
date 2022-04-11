@@ -9,7 +9,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
-namespace Orts.TrackViewer.PopupWindows
+namespace Orts.Toolbox.PopupWindows
 {
     internal class TrackNodeInfoWindow : WindowBase
     {
@@ -18,7 +18,7 @@ namespace Orts.TrackViewer.PopupWindows
         private NameValueTextGrid trackNodeInfoGrid;
 
         public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
-            base(owner, "Track Node Information", relativeLocation, new Point(200, 152))
+            base(owner, "Track Node Information", relativeLocation, new Point(240, 170))
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
@@ -31,7 +31,7 @@ namespace Orts.TrackViewer.PopupWindows
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = contentArea?.Content.TrackNodeInfo,
-                ColumnWidth = 100,
+                ColumnWidth = layout.RemainingWidth / 2,
             };
             layout.Add(trackNodeInfoGrid);
             return layout;
