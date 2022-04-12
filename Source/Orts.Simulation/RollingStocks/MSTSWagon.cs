@@ -159,12 +159,6 @@ namespace Orts.Simulation.RollingStocks
         public float Curtius_KnifflerB = 44.0f;              // (adhesion coeficient)       umax = ---------------------  + C
         public float Curtius_KnifflerC = 0.161f;             //                                      speedMpS * 3.6 + B
         public float AdhesionK = 0.7f;   //slip characteristics slope
-        public enum AntislipControlType
-        {
-            None,
-            Full
-        }
-        public AntislipControlType AntislipControl = AntislipControlType.None;
         public float AxleInertiaKgm2;    //axle inertia
         public float AdhesionDriveWheelRadiusM;
         public float WheelSpeedMpS;
@@ -1373,14 +1367,6 @@ namespace Orts.Simulation.RollingStocks
                         SlipWarningThresholdPercent = 70.0f;
                     stf.SkipRestOfBlock();
                     break;
-                case "wagon(ortsadhesion(ortsantislip":
-                    string type = stf.ReadStringBlock("none").ToLowerInvariant();
-                    if (type == "full")
-                        AntislipControl = AntislipControlType.Full;
-                    else
-                        AntislipControl = AntislipControlType.None;
-                    stf.SkipRestOfBlock();
-                    break;
                 case "wagon(ortsadhesion(wheelset(axle(ortsinertia":
                     stf.MustMatch("(");
                     AxleInertiaKgm2 = stf.ReadFloat(STFReader.Units.RotationalInertia, null);
@@ -1467,6 +1453,8 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void Copy(MSTSWagon source)
         {
+            ArgumentNullException.ThrowIfNull(source);
+
             MainShapeFileName = source.MainShapeFileName;
             PassengerCapacity = source.PassengerCapacity;
             WagonType = source.WagonType;
@@ -1571,7 +1559,6 @@ namespace Orts.Simulation.RollingStocks
             Curtius_KnifflerC = source.Curtius_KnifflerC;
             AdhesionK = source.AdhesionK;
             AxleInertiaKgm2 = source.AxleInertiaKgm2;
-            AntislipControl = source.AntislipControl;
             AdhesionDriveWheelRadiusM = source.AdhesionDriveWheelRadiusM;
             SlipWarningThresholdPercent = source.SlipWarningThresholdPercent;
             Lights = source.Lights;

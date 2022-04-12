@@ -78,6 +78,18 @@ namespace Orts.Simulation.RollingStocks
         Void = 2
     }
 
+    public enum ElectricMotorType
+    {
+        AC,
+        DC
+    }
+
+    public enum SlipControlType
+    {
+        None,
+        Full
+    }
+
     /// <summary>
     /// Adds Throttle, Direction, Horn, Sander and Wiper control
     /// to the basic TrainCar.
@@ -85,6 +97,13 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public abstract partial class MSTSLocomotive : MSTSWagon
     {
+        private enum Wheelslip
+        {
+            None,
+            Warning,
+            Occurring
+        };
+
         public enum CombinedControl
         {
             None,
@@ -204,8 +223,9 @@ namespace Orts.Simulation.RollingStocks
         public float CalculatedCarHeaterSteamUsageLBpS;
 
         // Adhesion parameters
+        public SlipControlType SlipControlSystem { get; private set; } = SlipControlType.Full;
         private float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions
-        float SlipFrictionCoefficientFactor;
+        private float SlipFrictionCoefficientFactor;
         public float SteamStaticWheelForce;
         public float SteamTangentialWheelForce;
         public float SteamDrvWheelWeightLbs;  // Weight on each drive axle
@@ -403,6 +423,8 @@ namespace Orts.Simulation.RollingStocks
         public float ThrottleIntervention = -1;
         public float DynamicBrakeIntervention = -1;
         protected float PreviousDynamicBrakeIntervention = -1;
+
+        public ElectricMotorType ElectricMotorType { get; private set; }
 
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem;
@@ -855,6 +877,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsunloadingspeed":
                     UnloadingSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
                     break;
+                case "engine(ortsslipcontrolsystem":
+                    stf.MustMatch("(");
+                    string slipControlType = stf.ReadString();
+                    if (EnumExtension.GetValue(slipControlType, out SlipControlType slipControlTypeResult))
+                        SlipControlSystem = slipControlTypeResult;
+                    else
+                        STFException.TraceWarning(stf, "Skipped unknown slip control system " + slipControlType);
+                    break;
                 case "engine(type":
                     stf.MustMatch("(");
                     string engineType = stf.ReadString();
@@ -862,6 +892,14 @@ namespace Orts.Simulation.RollingStocks
                         EngineType = engineTypeResult;
                     else
                         STFException.TraceWarning(stf, "Skipped unknown engine type " + engineType);
+                    break;
+                case "engine(ortselectricmotortype":
+                    stf.MustMatch("(");
+                    string electricMotorType = stf.ReadString();
+                    if (EnumExtension.GetValue(electricMotorType, out ElectricMotorType electricMotorTypeResult))
+                        ElectricMotorType = electricMotorTypeResult;
+                    else
+                        STFException.TraceWarning(stf, "Skipped unknown electric motor type " + electricMotorType);
                     break;
                 case "engine(enginecontrollers(throttle":
                     ThrottleController = new MSTSNotchController(stf);
@@ -872,6 +910,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(enginecontrollers(brake_dynamic":
                     DynamicBrakeController.Parse(stf);
                     break;
+
 
                 case "engine(trainbrakescontrollermaxsystempressure":
                 case "engine(ortstrainbrakescontrollermaxoverchargepressure":
@@ -1203,87 +1242,91 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Copy(MSTSWagon source)
         {
+            if (!(source is MSTSLocomotive sourceLocomotive))
+                throw new InvalidCastException($"Source is not of type {nameof(MSTSLocomotive)}");
+
             base.Copy(source);  // each derived level initializes its own variables
 
-            MSTSLocomotive locoCopy = (MSTSLocomotive)source;
-            CabSoundFileName = locoCopy.CabSoundFileName;
-            CVFFileName = locoCopy.CVFFileName;
-            CabViewList = locoCopy.CabViewList;
-            CabView3D = locoCopy.CabView3D;
-            MaxPowerW = locoCopy.MaxPowerW;
-            MaxForceN = locoCopy.MaxForceN;
-            MaxCurrentA = locoCopy.MaxCurrentA;
-            MaxSpeedMpS = locoCopy.MaxSpeedMpS;
-            UnloadingSpeedMpS = locoCopy.UnloadingSpeedMpS;
-            EngineType = locoCopy.EngineType;
-            TractiveForceCurves = locoCopy.TractiveForceCurves;
-            MaxContinuousForceN = locoCopy.MaxContinuousForceN;
-            SpeedOfMaxContinuousForceMpS = locoCopy.SpeedOfMaxContinuousForceMpS;
-            MSTSSpeedOfMaxContinuousForceMpS = locoCopy.MSTSSpeedOfMaxContinuousForceMpS;
-            ContinuousForceTimeFactor = locoCopy.ContinuousForceTimeFactor;
-            DynamicBrakeForceCurves = locoCopy.DynamicBrakeForceCurves;
-            DynamicBrakeAutoBailOff = locoCopy.DynamicBrakeAutoBailOff;
-            DynamicBrakeMaxCurrentA = locoCopy.DynamicBrakeMaxCurrentA;
-            CombinedControlType = locoCopy.CombinedControlType;
-            CombinedControlSplitPosition = locoCopy.CombinedControlSplitPosition;
-            DynamicBrakeDelayS = locoCopy.DynamicBrakeDelayS;
-            MaxDynamicBrakeForceN = locoCopy.MaxDynamicBrakeForceN;
-            HasSmoothStruc = locoCopy.HasSmoothStruc;
-            locoNumDrvAxles = locoCopy.locoNumDrvAxles;
-            locoNumDrvWheels = locoCopy.locoNumDrvWheels;
-            AntiSlip = locoCopy.AntiSlip;
-            VacuumPumpFitted = locoCopy.VacuumPumpFitted;
-            FastVacuumExhausterFitted = locoCopy.FastVacuumExhausterFitted;
-            DrvWheelWeightKg = locoCopy.DrvWheelWeightKg;
-            InitialDrvWheelWeightKg = locoCopy.InitialDrvWheelWeightKg;
-            SanderSpeedEffectUpToMpS = locoCopy.SanderSpeedEffectUpToMpS;
-            SanderSpeedOfMpS = locoCopy.SanderSpeedOfMpS;
-            MaxTrackSandBoxCapacityM3 = locoCopy.MaxTrackSandBoxCapacityM3;
-            TrackSanderSandConsumptionM3pS = locoCopy.TrackSanderSandConsumptionM3pS;
-            TrackSanderAirComsumptionM3pS = locoCopy.TrackSanderAirComsumptionM3pS;
-            PowerOnDelayS = locoCopy.PowerOnDelayS;
-            DoesHornTriggerBell = locoCopy.DoesHornTriggerBell;
-            MaxSteamHeatPressurePSI = locoCopy.MaxSteamHeatPressurePSI;
-            VacuumPumpResistanceN = locoCopy.VacuumPumpResistanceN;
-            VacuumBrakesMainResVolumeM3 = locoCopy.VacuumBrakesMainResVolumeM3;
-            VacuumBrakesMainResMaxVacuumPSIAorInHg = locoCopy.VacuumBrakesMainResMaxVacuumPSIAorInHg;
-            VacuumBrakesExhausterRestartVacuumPSIAorInHg = locoCopy.VacuumBrakesExhausterRestartVacuumPSIAorInHg;
-            VacuumBrakesMainResChargingRatePSIAorInHgpS = locoCopy.VacuumBrakesMainResChargingRatePSIAorInHgpS;
+            CabSoundFileName = sourceLocomotive.CabSoundFileName;
+            CVFFileName = sourceLocomotive.CVFFileName;
+            CabViewList = sourceLocomotive.CabViewList;
+            CabView3D = sourceLocomotive.CabView3D;
+            MaxPowerW = sourceLocomotive.MaxPowerW;
+            MaxForceN = sourceLocomotive.MaxForceN;
+            MaxCurrentA = sourceLocomotive.MaxCurrentA;
+            MaxSpeedMpS = sourceLocomotive.MaxSpeedMpS;
+            UnloadingSpeedMpS = sourceLocomotive.UnloadingSpeedMpS;
+            SlipControlSystem = sourceLocomotive.SlipControlSystem;
+            EngineType = sourceLocomotive.EngineType;
+            ElectricMotorType = sourceLocomotive.ElectricMotorType;
+            TractiveForceCurves = sourceLocomotive.TractiveForceCurves;
+            MaxContinuousForceN = sourceLocomotive.MaxContinuousForceN;
+            SpeedOfMaxContinuousForceMpS = sourceLocomotive.SpeedOfMaxContinuousForceMpS;
+            MSTSSpeedOfMaxContinuousForceMpS = sourceLocomotive.MSTSSpeedOfMaxContinuousForceMpS;
+            ContinuousForceTimeFactor = sourceLocomotive.ContinuousForceTimeFactor;
+            DynamicBrakeForceCurves = sourceLocomotive.DynamicBrakeForceCurves;
+            DynamicBrakeAutoBailOff = sourceLocomotive.DynamicBrakeAutoBailOff;
+            DynamicBrakeMaxCurrentA = sourceLocomotive.DynamicBrakeMaxCurrentA;
+            CombinedControlType = sourceLocomotive.CombinedControlType;
+            CombinedControlSplitPosition = sourceLocomotive.CombinedControlSplitPosition;
+            DynamicBrakeDelayS = sourceLocomotive.DynamicBrakeDelayS;
+            MaxDynamicBrakeForceN = sourceLocomotive.MaxDynamicBrakeForceN;
+            HasSmoothStruc = sourceLocomotive.HasSmoothStruc;
+            locoNumDrvAxles = sourceLocomotive.locoNumDrvAxles;
+            locoNumDrvWheels = sourceLocomotive.locoNumDrvWheels;
+            AntiSlip = sourceLocomotive.AntiSlip;
+            VacuumPumpFitted = sourceLocomotive.VacuumPumpFitted;
+            FastVacuumExhausterFitted = sourceLocomotive.FastVacuumExhausterFitted;
+            DrvWheelWeightKg = sourceLocomotive.DrvWheelWeightKg;
+            InitialDrvWheelWeightKg = sourceLocomotive.InitialDrvWheelWeightKg;
+            SanderSpeedEffectUpToMpS = sourceLocomotive.SanderSpeedEffectUpToMpS;
+            SanderSpeedOfMpS = sourceLocomotive.SanderSpeedOfMpS;
+            MaxTrackSandBoxCapacityM3 = sourceLocomotive.MaxTrackSandBoxCapacityM3;
+            TrackSanderSandConsumptionM3pS = sourceLocomotive.TrackSanderSandConsumptionM3pS;
+            TrackSanderAirComsumptionM3pS = sourceLocomotive.TrackSanderAirComsumptionM3pS;
+            PowerOnDelayS = sourceLocomotive.PowerOnDelayS;
+            DoesHornTriggerBell = sourceLocomotive.DoesHornTriggerBell;
+            MaxSteamHeatPressurePSI = sourceLocomotive.MaxSteamHeatPressurePSI;
+            VacuumPumpResistanceN = sourceLocomotive.VacuumPumpResistanceN;
+            VacuumBrakesMainResVolumeM3 = sourceLocomotive.VacuumBrakesMainResVolumeM3;
+            VacuumBrakesMainResMaxVacuumPSIAorInHg = sourceLocomotive.VacuumBrakesMainResMaxVacuumPSIAorInHg;
+            VacuumBrakesExhausterRestartVacuumPSIAorInHg = sourceLocomotive.VacuumBrakesExhausterRestartVacuumPSIAorInHg;
+            VacuumBrakesMainResChargingRatePSIAorInHgpS = sourceLocomotive.VacuumBrakesMainResChargingRatePSIAorInHgpS;
 
-            EmergencyCausesPowerDown = locoCopy.EmergencyCausesPowerDown;
-            EmergencyCausesThrottleDown = locoCopy.EmergencyCausesThrottleDown;
-            EmergencyEngagesHorn = locoCopy.EmergencyEngagesHorn;
+            EmergencyCausesPowerDown = sourceLocomotive.EmergencyCausesPowerDown;
+            EmergencyCausesThrottleDown = sourceLocomotive.EmergencyCausesThrottleDown;
+            EmergencyEngagesHorn = sourceLocomotive.EmergencyEngagesHorn;
 
-            WheelslipCausesThrottleDown = locoCopy.WheelslipCausesThrottleDown;
+            WheelslipCausesThrottleDown = sourceLocomotive.WheelslipCausesThrottleDown;
 
-            CompressorIsMechanical = locoCopy.CompressorIsMechanical;
-            CompressorRestartPressurePSI = locoCopy.CompressorRestartPressurePSI;
-            TrainBrakePipeLeakPSIorInHgpS = locoCopy.TrainBrakePipeLeakPSIorInHgpS;
-            MaxMainResPressurePSI = locoCopy.MaxMainResPressurePSI;
-            MainResPressurePSI = locoCopy.MaxMainResPressurePSI;
-            MaximumMainReservoirPipePressurePSI = locoCopy.MaximumMainReservoirPipePressurePSI;
-            MainResVolumeM3 = locoCopy.MainResVolumeM3;
-            MainResChargingRatePSIpS = locoCopy.MainResChargingRatePSIpS;
-            BrakePipeDischargeTimeFactor = locoCopy.BrakePipeDischargeTimeFactor;
+            CompressorIsMechanical = sourceLocomotive.CompressorIsMechanical;
+            CompressorRestartPressurePSI = sourceLocomotive.CompressorRestartPressurePSI;
+            TrainBrakePipeLeakPSIorInHgpS = sourceLocomotive.TrainBrakePipeLeakPSIorInHgpS;
+            MaxMainResPressurePSI = sourceLocomotive.MaxMainResPressurePSI;
+            MainResPressurePSI = sourceLocomotive.MaxMainResPressurePSI;
+            MaximumMainReservoirPipePressurePSI = sourceLocomotive.MaximumMainReservoirPipePressurePSI;
+            MainResVolumeM3 = sourceLocomotive.MainResVolumeM3;
+            MainResChargingRatePSIpS = sourceLocomotive.MainResChargingRatePSIpS;
+            BrakePipeDischargeTimeFactor = sourceLocomotive.BrakePipeDischargeTimeFactor;
 
-            DynamicBrakeBlended = locoCopy.DynamicBrakeBlended;
-            DynamicBrakeBlendingEnabled = locoCopy.DynamicBrakeBlendingEnabled;
-            DynamicBrakeAvailable = locoCopy.DynamicBrakeAvailable;
-            airPipeSystem = locoCopy.airPipeSystem;
-            DynamicBrakeCommandStartTime = locoCopy.DynamicBrakeCommandStartTime;
-            DynamicBrakeBlendingOverride = locoCopy.DynamicBrakeBlendingOverride;
-            DynamicBrakeBlendingForceMatch = locoCopy.DynamicBrakeBlendingForceMatch;
+            DynamicBrakeBlended = sourceLocomotive.DynamicBrakeBlended;
+            DynamicBrakeBlendingEnabled = sourceLocomotive.DynamicBrakeBlendingEnabled;
+            DynamicBrakeAvailable = sourceLocomotive.DynamicBrakeAvailable;
+            airPipeSystem = sourceLocomotive.airPipeSystem;
+            DynamicBrakeCommandStartTime = sourceLocomotive.DynamicBrakeCommandStartTime;
+            DynamicBrakeBlendingOverride = sourceLocomotive.DynamicBrakeBlendingOverride;
+            DynamicBrakeBlendingForceMatch = sourceLocomotive.DynamicBrakeBlendingForceMatch;
 
-            MainPressureUnit = locoCopy.MainPressureUnit;
+            MainPressureUnit = sourceLocomotive.MainPressureUnit;
             foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
-                BrakeSystemPressureUnits[component] = locoCopy.BrakeSystemPressureUnits[component];
+                BrakeSystemPressureUnits[component] = sourceLocomotive.BrakeSystemPressureUnits[component];
 
-            ThrottleController = (MSTSNotchController)locoCopy.ThrottleController.Clone();
-            SteamHeatController = (MSTSNotchController)locoCopy.SteamHeatController.Clone();
+            ThrottleController = (MSTSNotchController)sourceLocomotive.ThrottleController.Clone();
+            SteamHeatController = (MSTSNotchController)sourceLocomotive.SteamHeatController.Clone();
             TrainBrakeController = ScriptedBrakeController.From(TrainBrakeController, this);
             EngineBrakeController = ScriptedBrakeController.From(EngineBrakeController, this);
             BrakemanBrakeController = ScriptedBrakeController.From(BrakemanBrakeController, this);
-            DynamicBrakeController = locoCopy.DynamicBrakeController != null ? (MSTSNotchController)locoCopy.DynamicBrakeController.Clone() : null;
+            DynamicBrakeController = sourceLocomotive.DynamicBrakeController != null ? (MSTSNotchController)sourceLocomotive.DynamicBrakeController.Clone() : null;
             DistributedPowerThrottleController = (MSTSNotchController)ThrottleController.Clone();
             if (DynamicBrakeController != null)
             {
@@ -1295,19 +1338,19 @@ namespace Orts.Simulation.RollingStocks
             else
                 DistributedPowerDynamicBrakeController = null;
 
-            LocomotivePowerSupply.Copy(locoCopy.LocomotivePowerSupply);
-            TrainControlSystem.Copy(locoCopy.TrainControlSystem);
-            LocomotiveName = locoCopy.LocomotiveName;
-            MaxVaccuumMaxPressurePSI = locoCopy.MaxVaccuumMaxPressurePSI;
-            VacuumBrakeEQFitted = locoCopy.VacuumBrakeEQFitted;
-            TrainBrakeFitted = locoCopy.TrainBrakeFitted;
-            EngineBrakeFitted = locoCopy.EngineBrakeFitted;
-            BrakemanBrakeFitted = locoCopy.BrakemanBrakeFitted;
-            SteamEngineBrakeFitted = locoCopy.SteamEngineBrakeFitted;
-            HasWaterScoop = locoCopy.HasWaterScoop;
-            WaterScoopFillElevationM = locoCopy.WaterScoopFillElevationM;
-            WaterScoopDepthM = locoCopy.WaterScoopDepthM;
-            WaterScoopWidthM = locoCopy.WaterScoopWidthM;
+            LocomotivePowerSupply.Copy(sourceLocomotive.LocomotivePowerSupply);
+            TrainControlSystem.Copy(sourceLocomotive.TrainControlSystem);
+            LocomotiveName = sourceLocomotive.LocomotiveName;
+            MaxVaccuumMaxPressurePSI = sourceLocomotive.MaxVaccuumMaxPressurePSI;
+            VacuumBrakeEQFitted = sourceLocomotive.VacuumBrakeEQFitted;
+            TrainBrakeFitted = sourceLocomotive.TrainBrakeFitted;
+            EngineBrakeFitted = sourceLocomotive.EngineBrakeFitted;
+            BrakemanBrakeFitted = sourceLocomotive.BrakemanBrakeFitted;
+            SteamEngineBrakeFitted = sourceLocomotive.SteamEngineBrakeFitted;
+            HasWaterScoop = sourceLocomotive.HasWaterScoop;
+            WaterScoopFillElevationM = sourceLocomotive.WaterScoopFillElevationM;
+            WaterScoopDepthM = sourceLocomotive.WaterScoopDepthM;
+            WaterScoopWidthM = sourceLocomotive.WaterScoopWidthM;
             MoveParamsToAxle();
         }
 
@@ -2043,7 +2086,6 @@ namespace Orts.Simulation.RollingStocks
                             DynamicBrakeController.CurrentValue * 100);
                     }
 
-
                     // SimpleControlPhysics and if locomotive is a control car advanced adhesion will be "disabled".
                     if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control)
                     {
@@ -2270,13 +2312,18 @@ namespace Orts.Simulation.RollingStocks
                 // More modern locomotive have a more sophisticated system that eliminates slip in the majority (if not all circumstances).
                 // Simple adhesion control does not have any slip control feature built into it.
                 // TODO - a full review of slip/no slip control.
-                if (WheelSlip && AdvancedAdhesionModel)
+                if (ElectricMotorType == ElectricMotorType.AC)
                 {
-                    AbsTractionSpeedMpS = AbsWheelSpeedMpS;
+                    AbsTractionSpeedMpS = AbsSpeedMpS;
+                    if (AbsWheelSpeedMpS > 1.1 * MaxSpeedMpS)
+                    {
+                        AverageForceN = TractiveForceN = 0;
+                        return;
+                    }
                 }
                 else
                 {
-                    AbsTractionSpeedMpS = AbsSpeedMpS;
+                    AbsTractionSpeedMpS = WheelSlip && AdvancedAdhesionModel ? AbsWheelSpeedMpS : AbsSpeedMpS;
                 }
 
                 if (TractiveForceCurves == null)
@@ -2320,7 +2367,7 @@ namespace Orts.Simulation.RollingStocks
         protected virtual void ApplyDirectionToTractiveForce()
         {
             // Steam locomotives have their MotiveForceN already pre-inverted based on Direction
-            if (!(this is MSTSSteamLocomotive))
+            if (this is not MSTSSteamLocomotive)
             {
                 if (Train.IsPlayerDriven)
                 {
@@ -2352,14 +2399,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        protected enum Wheelslip
-        {
-            None,
-            Warning,
-            Occurring
-        };
-
-        protected Wheelslip WheelslipState = Wheelslip.None;
+        private Wheelslip wheelslipState = Wheelslip.None;
 
         public void ConfirmWheelslip(double elapsedClockSeconds)
         {
@@ -2368,29 +2408,29 @@ namespace Orts.Simulation.RollingStocks
                 if (AdvancedAdhesionModel)
                 {
                     // Wheelslip
-                    if (LocomotiveAxle.IsWheelSlip)
+                    if (WheelSlip)
                     {
-                        if (WheelslipState != Wheelslip.Occurring)
+                        if (wheelslipState != Wheelslip.Occurring)
                         {
-                            WheelslipState = Wheelslip.Occurring;
+                            wheelslipState = Wheelslip.Occurring;
                             simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                         }
                     }
                     else
                     {
-                        if (LocomotiveAxle.IsWheelSlipWarning)
+                        if (WheelSlipWarning)
                         {
-                            if (WheelslipState != Wheelslip.Warning)
+                            if (wheelslipState != Wheelslip.Warning)
                             {
-                                WheelslipState = Wheelslip.Warning;
+                                wheelslipState = Wheelslip.Warning;
                                 simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Warn1);
                             }
                         }
                         else
                         {
-                            if (WheelslipState != Wheelslip.None)
+                            if (wheelslipState != Wheelslip.None)
                             {
-                                WheelslipState = Wheelslip.None;
+                                wheelslipState = Wheelslip.None;
                                 simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                             }
                         }
@@ -2398,14 +2438,14 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    if (WheelSlip && (WheelslipState != Wheelslip.Occurring))
+                    if (WheelSlip && (wheelslipState != Wheelslip.Occurring))
                     {
-                        WheelslipState = Wheelslip.Occurring;
+                        wheelslipState = Wheelslip.Occurring;
                         simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                     }
-                    if ((!WheelSlip) && (WheelslipState != Wheelslip.None))
+                    if ((!WheelSlip) && (wheelslipState != Wheelslip.None))
                     {
-                        WheelslipState = Wheelslip.None;
+                        wheelslipState = Wheelslip.None;
                         simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                     }
                 }
@@ -2655,7 +2695,7 @@ namespace Orts.Simulation.RollingStocks
                 //LocomotiveAxle.AxleRevolutionsInt.MinStep = LocomotiveAxle.InertiaKgm2 / MaxPowerW / 5.0f;
                 LocomotiveAxle.AxleDiameterM = 2 * DriverWheelRadiusM;
 
-                if (AntislipControl == AntislipControlType.Full)
+                if (SlipControlSystem == SlipControlType.Full)
                 {
                     // Simple slip control
                     // Motive force is reduced to the maximum adhesive force
@@ -2679,7 +2719,7 @@ namespace Orts.Simulation.RollingStocks
                 if (elapsedClockSeconds > 0)
                 {
                     WheelSlip = LocomotiveAxle.IsWheelSlip;             //Get the wheelslip indicator
-                    WheelSlipWarning = LocomotiveAxle.IsWheelSlipWarning;
+                    WheelSlipWarning = LocomotiveAxle.IsWheelSlipWarning && SlipControlSystem != SlipControlType.Full;
                 }
                 WheelSpeedMpS = LocomotiveAxle.AxleSpeedMpS;
             }
@@ -5213,7 +5253,7 @@ namespace Orts.Simulation.RollingStocks
                                 if (activeloco.DieselEngines[0] != null)
                                 {
                                     if (activeloco.AdvancedAdhesionModel && Train.TrainType != TrainType.AiPlayerHosting)
-                                        data = activeloco.LocomotiveAxle.IsWheelSlipWarning ? 1 : 0;
+                                        data = activeloco.WheelSlipWarning ? 1 : 0;
                                     else
                                         data = activeloco.WheelSlip ? 1 : 0;
 
@@ -5224,7 +5264,7 @@ namespace Orts.Simulation.RollingStocks
                         else
                         {
                             if (AdvancedAdhesionModel && Train.TrainType != TrainType.AiPlayerHosting)
-                                data = LocomotiveAxle.IsWheelSlipWarning ? 1 : 0;
+                                data = WheelSlipWarning ? 1 : 0;
                             else
                                 data = WheelSlip ? 1 : 0;
                         }
