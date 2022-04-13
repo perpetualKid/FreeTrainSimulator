@@ -913,7 +913,7 @@ namespace Orts.Common
         RoadCrossings,
         SidingNames,
         PlatformNames,
-        PlatformStations,
+        StationNames,
         SpeedPosts,
         MilePosts,
         Signals,
@@ -975,6 +975,7 @@ namespace Orts.Common
         SwitchChange,
         SignalState,
         HelpWindow,
+        Settings,
     }
 
 }
