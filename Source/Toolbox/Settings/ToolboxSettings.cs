@@ -7,10 +7,8 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualBasic;
 
 using Orts.Common;
-using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
@@ -18,9 +16,9 @@ using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox.Settings
 {
-    public class TrackViewerSettings : SettingsBase
+    public class ToolboxSettings : SettingsBase
     {
-        internal const string SettingLiteral = "TrackViewer";
+        internal const string SettingLiteral = "Toolbox";
 
         private static readonly StoreType SettingsStoreType;
         private static readonly string Location;
@@ -28,7 +26,7 @@ namespace Orts.Toolbox.Settings
         private PropertyInfo[] properties;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
-        static TrackViewerSettings()
+        static ToolboxSettings()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Json))))
@@ -46,12 +44,12 @@ namespace Orts.Toolbox.Settings
             }
         }
 
-        public TrackViewerSettings(IEnumerable<string> options) :
+        public ToolboxSettings(IEnumerable<string> options) :
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
         }
 
-        internal TrackViewerSettings(IEnumerable<string> options, SettingsStore store) :
+        internal ToolboxSettings(IEnumerable<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, SettingLiteral))
         {
             LoadSettings(options);
@@ -60,7 +58,7 @@ namespace Orts.Toolbox.Settings
 
         public UserSettings UserSettings { get; private set; }
 
-        #region TrackViewer Settings
+        #region Toolbox Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen
@@ -162,7 +160,7 @@ namespace Orts.Toolbox.Settings
             nameof(WindowType.AboutWindow) + "=False",
             nameof(WindowType.StatusWindow) + "=False",
             nameof(WindowType.DebugScreen) + "=False",
-            nameof(WindowType.LocationWindow) + "=False",
+            nameof(WindowType.LocationWindow) + "=True",
             nameof(WindowType.HelpWindow) + "=True",
             nameof(WindowType.TrackNodeInfoWindow) + "=True",
         })]
@@ -184,7 +182,7 @@ namespace Orts.Toolbox.Settings
             {
                 defaultValue = InitializeEnumArrayDefaults(propertyType, defaultValue);
             }
-            return defaultValue ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
+            return defaultValue ?? throw new InvalidDataException($"Toolbox setting {property.Name} has no default value.");
         }
 
         protected override PropertyInfo[] GetProperties()
@@ -221,12 +219,6 @@ namespace Orts.Toolbox.Settings
         protected override void SetValue(string name, object value)
         {
             GetProperty(name).SetValue(this, value, null);
-        }
-
-        protected override void ResetCachedProperties()
-        {
-            properties = null;
-            base.ResetCachedProperties();
         }
     }
 }
