@@ -28,6 +28,7 @@ namespace Orts.Toolbox
         private Folder selectedFolder;
         private Route selectedRoute;
         private IEnumerable<Route> routes;
+        private IEnumerable<Path> paths;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
 
@@ -99,7 +100,12 @@ namespace Orts.Toolbox
                 {
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
+                    {
                         await LoadRoute(route).ConfigureAwait(false);
+                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                        mainmenu.PopulatePaths(paths);
+                    }
+
                 }
             }
         }

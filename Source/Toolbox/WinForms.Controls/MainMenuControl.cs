@@ -16,6 +16,7 @@ namespace Orts.Toolbox.WinForms.Controls
     public partial class MainMenuControl : UserControl
     {
         private readonly GameWindow parent;
+        private IEnumerable<Models.Simplified.Path> paths;
 
         internal MainMenuControl(GameWindow game)
         {
@@ -200,6 +201,8 @@ namespace Orts.Toolbox.WinForms.Controls
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
                 await parent.LoadRoute(route).ConfigureAwait(false);
+                paths = (await Models.Simplified.Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                PopulatePaths(paths);
             }
         }
 
@@ -323,5 +326,43 @@ namespace Orts.Toolbox.WinForms.Controls
             if (e.KeyCode == Keys.Menu)
                 MainMenuStrip.Enabled = true;
         }
+
+        #region Path Methods
+
+        internal void PopulatePaths(IEnumerable<Models.Simplified.Path> paths)
+        {
+
+            Invoke((MethodInvoker)delegate {
+                SuspendLayout();
+                loadPathToolStripMenuItem.DropDownItems.Clear();
+                foreach (Models.Simplified.Path path in paths)
+                {
+                    ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
+                    {
+                        Tag = path,
+                    };
+                    pathItem.Click += loadPathToolStripMenuItem_Click;
+                    loadPathToolStripMenuItem.DropDownItems.Add(pathItem);
+                }
+                ResumeLayout();
+            });
+        }
+
+        private void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //MessageBox.Show("Path Selected ", $"{RuntimeInfo.ApplicationName}");
+            string SelectedPathName = sender.ToString();
+            foreach (Models.Simplified.Path path in paths)
+            {
+                if (SelectedPathName == path.Name)
+                {
+                    parent.SetPath(path);
+                }
+            } 
+        }
+
+        #endregion
+
+
     }
 }
