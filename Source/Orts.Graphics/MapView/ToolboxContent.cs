@@ -245,7 +245,10 @@ namespace Orts.Graphics.MapView
 
             List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
-            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments));
+
+            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
             contentItems[MapViewItemSettings.OtherSignals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));
             contentItems[MapViewItemSettings.MilePosts] = new TileIndexedList<SpeedPostTrackItem, Tile>(trackItems.OfType<SpeedPostTrackItem>().Where(s => s.MilePost));
@@ -261,6 +264,8 @@ namespace Orts.Graphics.MapView
 
             IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName);
             contentItems[MapViewItemSettings.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
+            contentItems[MapViewItemSettings.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
+            contentItems[MapViewItemSettings.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
         }
         #endregion
 

@@ -2,11 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
 using Orts.Common.Position;
-using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -19,8 +15,9 @@ namespace Orts.Graphics.MapView.Widgets
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
+            //Strip the station name out of platform name
             if (PlatformName?.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase) ?? false)
-                PlatformName = PlatformName.Substring(StationName.Length);
+                PlatformName = PlatformName[StationName.Length..];
         }
 
         public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
@@ -56,9 +53,6 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
-
-            Color fontColor = GetColor<PlatformPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in MidPoint), fontColor, PlatformName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         public override double DistanceSquared(in PointD point)

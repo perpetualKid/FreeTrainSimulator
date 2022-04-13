@@ -52,9 +52,6 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
-
-            Color fontColor = GetColor<SidingPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in MidPoint), fontColor, SidingName, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         protected override SidingSegment CreateItem(in PointD start, in PointD end)
