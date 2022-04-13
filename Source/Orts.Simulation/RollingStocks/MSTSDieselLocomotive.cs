@@ -712,7 +712,7 @@ namespace Orts.Simulation.RollingStocks
                 // its impact. More modern locomotive have a more sophisticated system that eliminates slip in the majority (if not all circumstances).
                 // Simple adhesion control does not have any slip control feature built into it.
                 // TODO - a full review of slip/no slip control.
-                if (ElectricMotorType == ElectricMotorType.AC)
+                if (TractionMotorType == TractionMotorType.AC)
                 {
                     AbsTractionSpeedMpS = AbsSpeedMpS;
                     if (AbsWheelSpeedMpS > 1.1 * MaxSpeedMpS)

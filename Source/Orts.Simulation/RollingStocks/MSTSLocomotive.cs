@@ -78,7 +78,7 @@ namespace Orts.Simulation.RollingStocks
         Void = 2
     }
 
-    public enum ElectricMotorType
+    public enum TractionMotorType
     {
         AC,
         DC
@@ -424,7 +424,7 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeIntervention = -1;
         protected float PreviousDynamicBrakeIntervention = -1;
 
-        public ElectricMotorType ElectricMotorType { get; private set; }
+        public TractionMotorType TractionMotorType { get; private set; }
 
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem;
@@ -893,13 +893,13 @@ namespace Orts.Simulation.RollingStocks
                     else
                         STFException.TraceWarning(stf, "Skipped unknown engine type " + engineType);
                     break;
-                case "engine(ortselectricmotortype":
+                case "engine(ortstractionmotortype":
                     stf.MustMatch("(");
-                    string electricMotorType = stf.ReadString();
-                    if (EnumExtension.GetValue(electricMotorType, out ElectricMotorType electricMotorTypeResult))
-                        ElectricMotorType = electricMotorTypeResult;
+                    string tractionMotorType = stf.ReadString();
+                    if (EnumExtension.GetValue(tractionMotorType, out TractionMotorType electricMotorTypeResult))
+                        TractionMotorType = electricMotorTypeResult;
                     else
-                        STFException.TraceWarning(stf, "Skipped unknown electric motor type " + electricMotorType);
+                        STFException.TraceWarning(stf, "Skipped unknown traction motor type " + tractionMotorType);
                     break;
                 case "engine(enginecontrollers(throttle":
                     ThrottleController = new MSTSNotchController(stf);
@@ -1258,7 +1258,7 @@ namespace Orts.Simulation.RollingStocks
             UnloadingSpeedMpS = sourceLocomotive.UnloadingSpeedMpS;
             SlipControlSystem = sourceLocomotive.SlipControlSystem;
             EngineType = sourceLocomotive.EngineType;
-            ElectricMotorType = sourceLocomotive.ElectricMotorType;
+            TractionMotorType = sourceLocomotive.TractionMotorType;
             TractiveForceCurves = sourceLocomotive.TractiveForceCurves;
             MaxContinuousForceN = sourceLocomotive.MaxContinuousForceN;
             SpeedOfMaxContinuousForceMpS = sourceLocomotive.SpeedOfMaxContinuousForceMpS;
@@ -2312,7 +2312,7 @@ namespace Orts.Simulation.RollingStocks
                 // More modern locomotive have a more sophisticated system that eliminates slip in the majority (if not all circumstances).
                 // Simple adhesion control does not have any slip control feature built into it.
                 // TODO - a full review of slip/no slip control.
-                if (ElectricMotorType == ElectricMotorType.AC)
+                if (TractionMotorType == TractionMotorType.AC)
                 {
                     AbsTractionSpeedMpS = AbsSpeedMpS;
                     if (AbsWheelSpeedMpS > 1.1 * MaxSpeedMpS)
