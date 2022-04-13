@@ -223,7 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
-            //            content.UpdateItemVisiblity(MapViewItemSettings.All);
+            content.InitializeItemVisiblity(settings.Dispatcher.ViewSettings);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);

@@ -46,6 +46,39 @@ namespace Orts.Settings
             nameof(DispatcherWindowType.HelpWindow) + "=True",
         })]
         public EnumArray<bool, DispatcherWindowType> WindowStatus { get; set; }
+
+        [Default(new string[]
+{
+        nameof(MapViewItemSettings.Tracks) + "=True",
+        nameof(MapViewItemSettings.EndNodes) + "=True",
+        nameof(MapViewItemSettings.JunctionNodes) + "=True",
+        nameof(MapViewItemSettings.LevelCrossings) + "=True",
+        nameof(MapViewItemSettings.CrossOvers) + "=True",
+        nameof(MapViewItemSettings.Roads) + "=False",
+        nameof(MapViewItemSettings.RoadEndNodes) + "=False",
+        nameof(MapViewItemSettings.RoadCrossings) + "=False",
+        nameof(MapViewItemSettings.CarSpawners) + "=False",
+        nameof(MapViewItemSettings.Sidings) + "=True",
+        nameof(MapViewItemSettings.SidingNames) + "=True",
+        nameof(MapViewItemSettings.Platforms) + "=True",
+        nameof(MapViewItemSettings.PlatformNames) + "=True",
+        nameof(MapViewItemSettings.StationNames) + "=True",
+        nameof(MapViewItemSettings.SpeedPosts) + "=True",
+        nameof(MapViewItemSettings.MilePosts) + "=True",
+        nameof(MapViewItemSettings.Signals) + "=True",
+        nameof(MapViewItemSettings.OtherSignals) + "=False",
+        nameof(MapViewItemSettings.Hazards) + "=False",
+        nameof(MapViewItemSettings.Pickups) + "=False",
+        nameof(MapViewItemSettings.SoundRegions) + "=False",
+        nameof(MapViewItemSettings.Grid) + "=False",
+        nameof(MapViewItemSettings.Paths) + "=False",
+        nameof(MapViewItemSettings.PathEnds) + "=False",
+        nameof(MapViewItemSettings.PathIntermediates) + "=False",
+        nameof(MapViewItemSettings.PathJunctions) + "=False",
+        nameof(MapViewItemSettings.PathReversals) + "=False",
+})]
+        public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }
+
         #endregion
 
         public override object GetDefaultValue(string name)
