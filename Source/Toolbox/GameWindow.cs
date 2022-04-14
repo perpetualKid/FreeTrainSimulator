@@ -82,7 +82,7 @@ namespace Orts.Toolbox
 
         internal string StatusMessage { get; set; }
 
-        internal TrackViewerSettings Settings { get; }
+        internal ToolboxSettings Settings { get; }
 
         internal string LogFileName { get; }
 
@@ -95,7 +95,7 @@ namespace Orts.Toolbox
         public GameWindow()
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
-            Settings = new TrackViewerSettings(options);
+            Settings = new ToolboxSettings(options);
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 

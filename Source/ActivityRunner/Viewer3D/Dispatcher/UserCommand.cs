@@ -17,5 +17,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         [Description("Signal State Window")] DisplaySignalStateWindow,
         [Description("Help Window (Tab)")] DisplayHelpWindow,
         [Description("Debug Stepwise")] DebugStep,
+        [Description("Settings Window (Tab)")] DisplaySettingsWindow,
     }
 }

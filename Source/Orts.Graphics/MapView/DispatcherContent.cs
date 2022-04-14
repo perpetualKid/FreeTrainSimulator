@@ -20,13 +20,20 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Sidings, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals};
+        private readonly MapViewItemSettings[] drawItems = { 
+            MapViewItemSettings.Platforms, 
+            MapViewItemSettings.Sidings, 
+            MapViewItemSettings.Tracks, 
+            MapViewItemSettings.EndNodes, 
+            MapViewItemSettings.JunctionNodes, 
+            MapViewItemSettings.Signals, 
+            MapViewItemSettings.StationNames, 
+            MapViewItemSettings.PlatformNames, 
+            MapViewItemSettings.SidingNames};
 
         private readonly InsetComponent insetComponent;
 
-        #region nearest items
         private PointWidget nearestDispatchItem;
-        #endregion
 
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
 
@@ -230,9 +237,19 @@ namespace Orts.Graphics.MapView
         {
             IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
 
+            List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
+
+            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
-            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments));
-            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments));
+
+            IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName);
+            contentItems[MapViewItemSettings.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
+            contentItems[MapViewItemSettings.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
+            contentItems[MapViewItemSettings.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
+
         }
     }
 }

@@ -35,6 +35,11 @@ namespace Orts.Common.Position
                 new Vector3((float)(location.X - (xTileDistance * WorldLocation.TileSize)), 0, (float)(location.Y - (zTileDistance * WorldLocation.TileSize))));
         }
 
+        public static Tile ToTile(in PointD location)
+        {
+                return new Tile((int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+        }
+
         public static PointD TileCenter(in ITile tile)
         {
             if (tile == null)

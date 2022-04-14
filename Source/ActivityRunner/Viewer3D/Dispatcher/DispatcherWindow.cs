@@ -96,8 +96,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
 
-            if (settings.DispatcherWindowScreen < System.Windows.Forms.Screen.AllScreens.Length)
-                currentScreen = System.Windows.Forms.Screen.AllScreens[settings.DispatcherWindowScreen];
+            if (settings.Dispatcher.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length)
+                currentScreen = System.Windows.Forms.Screen.AllScreens[settings.Dispatcher.WindowScreen];
             else
                 currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
@@ -183,12 +183,17 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
             {
-                return new SignalStateWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.SignalState].ToPoint());
+                return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, settings.DispatcherWindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
+                HelpWindow helpWindow = new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
                 return helpWindow;
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
+            {
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
+                return settingsWindow;
             }));
             Components.Add(windowManager);
 
@@ -196,7 +201,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
             {
-                if (settings.DispatcherWindowStatus[windowType])
+                if (settings.Dispatcher.WindowStatus[windowType])
                     windowManager[windowType].Open();
             }
 
@@ -218,7 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
-//            content.UpdateItemVisiblity(MapViewItemSettings.All);
+            content.InitializeItemVisiblity(settings.Dispatcher.ViewSettings);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);
@@ -245,6 +250,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[DispatcherWindowType.Settings].ToggleVisibility();
             });
             //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
@@ -308,10 +318,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private void LoadSettings()
         {
-            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(settings.DispatcherWindowSettings[WindowSetting.Size][0]) / 100.0);
-            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(settings.DispatcherWindowSettings[WindowSetting.Size][1]) / 100.0);
+            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(settings.Dispatcher.WindowSettings[WindowSetting.Size][0]) / 100.0);
+            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(settings.Dispatcher.WindowSettings[WindowSetting.Size][1]) / 100.0);
 
-            windowPosition = PointExtension.ToPoint(settings.DispatcherWindowSettings[WindowSetting.Location]);
+            windowPosition = PointExtension.ToPoint(settings.Dispatcher.WindowSettings[WindowSetting.Location]);
             if (windowPosition != PointExtension.EmptyPoint)
             {
                 windowPosition = new Point(
@@ -329,20 +339,20 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private void SaveSettings()
         {
-            settings.DispatcherWindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            settings.DispatcherWindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            settings.Dispatcher.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
+            settings.Dispatcher.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
 
-            settings.DispatcherWindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
-            settings.DispatcherWindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            settings.DispatcherWindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            settings.Dispatcher.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
+            settings.Dispatcher.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
+            settings.Dispatcher.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
             foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    settings.DispatcherWindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                    settings.Dispatcher.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
                 }
-                    settings.DispatcherWindowStatus[windowType] = windowManager.WindowOpened(windowType);
+                settings.Dispatcher.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
             settings.Save();

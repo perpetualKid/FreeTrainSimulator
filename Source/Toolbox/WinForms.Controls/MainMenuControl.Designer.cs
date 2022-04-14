@@ -55,7 +55,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.otherSignalsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformNamesVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.platformStationsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stationNamesVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingNamesVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.speedpostsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -283,7 +283,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.otherSignalsVisibleToolStripMenuItem,
             this.platformsVisibleToolStripMenuItem,
             this.platformNamesVisibleToolStripMenuItem,
-            this.platformStationsVisibleToolStripMenuItem,
+            this.stationNamesVisibleToolStripMenuItem,
             this.sidingsVisibleToolStripMenuItem,
             this.sidingNamesVisibleToolStripMenuItem,
             this.speedpostsVisibleToolStripMenuItem,
@@ -326,10 +326,10 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             // platformStationsVisibleToolStripMenuItem
             // 
-            this.platformStationsVisibleToolStripMenuItem.CheckOnClick = true;
-            this.platformStationsVisibleToolStripMenuItem.Name = "platformStationsVisibleToolStripMenuItem";
-            this.platformStationsVisibleToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
-            this.platformStationsVisibleToolStripMenuItem.Text = "Platform Stations";
+            this.stationNamesVisibleToolStripMenuItem.CheckOnClick = true;
+            this.stationNamesVisibleToolStripMenuItem.Name = "platformStationsVisibleToolStripMenuItem";
+            this.stationNamesVisibleToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.stationNamesVisibleToolStripMenuItem.Text = "Station Names";
             // 
             // sidingsVisibleToolStripMenuItem
             // 
@@ -732,7 +732,7 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem otherSignalsVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem platformsVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem platformNamesVisibleToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem platformStationsVisibleToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stationNamesVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sidingsVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sidingNamesVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem speedpostsVisibleToolStripMenuItem;
