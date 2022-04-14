@@ -176,19 +176,26 @@ namespace Orts.Toolbox
         /// <summary>
         /// Once a path has been selected, do the necessary loading.
         /// </summary>
-        /// <param name="path">Path (with FilePath) that has to be loaded</param>
-        internal void SetPath(Models.Simplified.Path path)
+        /// <param name="spath">Path name as a string</param>
+        internal void SetPath(string spath)
         {
             //if (!CanDiscardModifiedPath())
             //    return;
 
-            if (path == null)
+            if (spath == null)
             {
                 MessageBox.Show("Null Path", $"{RuntimeInfo.ApplicationName}");
             }
             else
             {
-                MessageBox.Show("Path Selected: " + path.Name, $"{RuntimeInfo.ApplicationName}");
+                foreach (Models.Simplified.Path path in paths)
+                {
+                    if (spath == path.Name)
+                    {
+                        MessageBox.Show("Path Selected: " + path.Name, $"{RuntimeInfo.ApplicationName}");
+                    }
+                }
+                
             }
         }
 

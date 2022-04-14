@@ -95,7 +95,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.speedpostColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.PathEdittoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LoadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -625,17 +625,17 @@ namespace Orts.Toolbox.WinForms.Controls
             // PathEdittoolStripMenuItem
             // 
             this.PathEdittoolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.loadPathToolStripMenuItem});
+            this.LoadPathToolStripMenuItem});
             this.PathEdittoolStripMenuItem.Name = "PathEdittoolStripMenuItem";
             this.PathEdittoolStripMenuItem.Size = new System.Drawing.Size(66, 20);
             this.PathEdittoolStripMenuItem.Text = "Path Edit";
             // 
-            // loadPathToolStripMenuItem
+            // LoadPathToolStripMenuItem
             // 
-            this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.loadPathToolStripMenuItem.Text = "Load Path";
-            this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.loadPathToolStripMenuItem_Click);
+            this.LoadPathToolStripMenuItem.Name = "LoadPathToolStripMenuItem";
+            this.LoadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.LoadPathToolStripMenuItem.Text = "Load Path";
+            this.LoadPathToolStripMenuItem.Click += new System.EventHandler(this.LoadPathToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -748,6 +748,6 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem pathTrackColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox pathTrackColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripMenuItem PathEdittoolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem LoadPathToolStripMenuItem;
     }
 }

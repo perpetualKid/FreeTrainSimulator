@@ -85,8 +85,11 @@ namespace Orts.Toolbox
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             ContentArea = content.ContentArea;
+            paths = await Path.GetPaths(route, true, CancellationToken.None).ConfigureAwait(false);
+            mainmenu.PopulatePaths(paths);
             windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
+           
         }
 
         internal async Task PreSelectRoute(string[] selection)
@@ -102,8 +105,7 @@ namespace Orts.Toolbox
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
-                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
-                        mainmenu.PopulatePaths(paths);
+
                     }
 
                 }
