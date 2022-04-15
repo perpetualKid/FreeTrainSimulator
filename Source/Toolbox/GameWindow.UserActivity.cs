@@ -9,16 +9,25 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Graphics.MapView;
+using Orts.Toolbox.Pathediting;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox
 {
     public partial class GameWindow : Game
     {
+        #region private declarations
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
+
+        private string stpath;
+        #endregion
+
+        /// <summary>The Path editor</summary>
+        internal Patheditor Patheditor { get; private set; }
 
         private const int zoomAmplifier = 3;
 
@@ -192,7 +201,17 @@ namespace Orts.Toolbox
                 {
                     if (spath == path.Name)
                     {
-                        MessageBox.Show("Path Selected: " + path.Name, $"{RuntimeInfo.ApplicationName}");
+                        stpath = "P:" + spath;
+                        (windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
+                        windowManager[WindowType.StatusWindow].Open();
+
+                        MessageBox.Show("Path Selected: " + path.Name + " Patheditor Start", $"{RuntimeInfo.ApplicationName}");
+
+                        Patheditor = new Patheditor(path);
+
+                        MessageBox.Show("Path Selected: " + path.Name + " Patheditor End", $"{RuntimeInfo.ApplicationName}");
+
+                        windowManager[WindowType.StatusWindow].Close();
                     }
                 }
                 

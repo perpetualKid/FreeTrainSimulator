@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -75,7 +76,7 @@ namespace Orts.Toolbox
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
-
+            Task<IEnumerable<Path>> pathTask = Path.GetPaths(route, true, CancellationToken.None);
             await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
@@ -85,7 +86,7 @@ namespace Orts.Toolbox
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             ContentArea = content.ContentArea;
-            paths = await Path.GetPaths(route, true, CancellationToken.None).ConfigureAwait(false);
+            paths = await pathTask.ConfigureAwait(false);
             mainmenu.PopulatePaths(paths);
             windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
