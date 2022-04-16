@@ -343,37 +343,29 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return DebugWindowSignalAspect.Stop;
         }
 
-        private enum DistanceToType
-        {
-            Nothing,
-            EndOfLine,
-            Switch,
-            Signal,
-        }
-
-        public class TrackSectionCacheEntry {
+        private class TrackSectionCacheEntry {
             public int Age;
             public Direction Direction;
             public float Length;
             public List<TrackSectionObject> Objects;
         }
 
-        public class TrackSectionObject
+        private class TrackSectionObject
         {
             public float Distance;
         }
 
-        public class TrackSectionEndOfLine : TrackSectionObject
+        private class TrackSectionEndOfLine : TrackSectionObject
         {
         }
 
-        public class TrackSectionSwitch : TrackSectionObject
+        private class TrackSectionSwitch : TrackSectionObject
         {
             public TrackJunctionNode JunctionNode;
             public int NodeIndex;
         }
 
-        public class TrackSectionSignal : TrackSectionObject
+        private class TrackSectionSignal : TrackSectionObject
         {
             public Signal Signal;
         }
