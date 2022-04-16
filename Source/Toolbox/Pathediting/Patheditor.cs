@@ -5,6 +5,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Simplified;
+using Orts.Toolbox;
 
 
 
@@ -66,6 +67,7 @@ namespace Orts.Toolbox.Pathediting
         // Editor actions that are via keyboard commands
 
         private bool _editingIsActive;
+        
 
         #endregion
 
@@ -87,7 +89,7 @@ namespace Orts.Toolbox.Pathediting
             FileName = path.FilePath.Split('\\').Last();
             CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.FilePath);
             EditingIsActive = false;
-            //OnPathChanged();
+            OnPathChanged();
         }
         #endregion
 

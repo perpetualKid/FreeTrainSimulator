@@ -350,10 +350,29 @@ namespace Orts.Toolbox.WinForms.Controls
 
         private void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //MessageBox.Show("Path Selected ", $"{RuntimeInfo.ApplicationName}");
             string SelectedPathName = sender.ToString();
+            if (SelectedPathName == null) return;
             parent.SetPath(SelectedPathName);
+            if (!ShowPathToolStripMenuItem.Checked)
+            {
+                // Enable viewing of Path
+                ShowPathToolStripMenuItem.Checked = true;
+                enableEditToolStripMenuItem.Enabled = true;
+            }
                
+        }
+
+        private void enableEditToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!enableEditToolStripMenuItem.Checked)
+            {
+                enableEditToolStripMenuItem.Checked = true;
+            }
+            else
+            {
+                enableEditToolStripMenuItem.Checked = false;
+            }
+            parent.Patheditor.EditingIsActive = enableEditToolStripMenuItem.Checked;
         }
 
         #endregion

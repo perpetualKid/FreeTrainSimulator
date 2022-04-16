@@ -17,6 +17,11 @@ namespace Orts.Toolbox
 {
     public partial class GameWindow : Game
     {
+        #region public declarations
+
+       
+        #endregion
+
         #region private declarations
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
@@ -24,6 +29,7 @@ namespace Orts.Toolbox
         private static readonly Vector2 moveDown = new Vector2(0, -1);
 
         private string stpath;
+
         #endregion
 
         /// <summary>The Path editor</summary>
@@ -202,16 +208,12 @@ namespace Orts.Toolbox
                     if (spath == path.Name)
                     {
                         stpath = "P:" + spath;
-                        (windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
-                        windowManager[WindowType.StatusWindow].Open();
-
-                        MessageBox.Show("Path Selected: " + path.Name + " Patheditor Start", $"{RuntimeInfo.ApplicationName}");
+                        //(windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
+                        //windowManager[WindowType.StatusWindow].Open();
 
                         Patheditor = new Patheditor(path);
 
-                        MessageBox.Show("Path Selected: " + path.Name + " Patheditor End", $"{RuntimeInfo.ApplicationName}");
-
-                        windowManager[WindowType.StatusWindow].Close();
+                        //windowManager[WindowType.StatusWindow].Close();
                     }
                 }
                 
