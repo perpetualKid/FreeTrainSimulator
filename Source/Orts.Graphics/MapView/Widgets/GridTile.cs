@@ -8,10 +8,8 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class GridTile: VectorWidget, ITileCoordinate<Tile>
     {
-        private readonly PointD lowerLeft;
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;
-        private readonly PointD upperRight;
 
         static GridTile()
         {
@@ -25,22 +23,20 @@ namespace Orts.Graphics.MapView.Widgets
             else
                 this.tile = new Tile(tile);
 
-            lowerLeft = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, -1024));
+            location = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, -1024));
             upperLeft = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, 1024));
             lowerRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, -1024));
-            upperRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, 1024));
-            location = lowerLeft;
-            vectorEnd = upperRight;
+            vectorEnd = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, 1024));
 
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color color = GetColor<GridTile>(colorVariation);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(vectorEnd), contentArea.SpriteBatch);
+            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
+            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(vectorEnd), contentArea.SpriteBatch);
         }
 
         public override double DistanceSquared(in PointD point)
