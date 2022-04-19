@@ -188,13 +188,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
-                return helpWindow;
+                return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
-                return settingsWindow;
+                return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<WindowBase>(() =>
+            {
+                return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));
             Components.Add(windowManager);
 
@@ -257,6 +259,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.Settings].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayTrainInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[DispatcherWindowType.TrainInfo].ToggleVisibility();
+            });
             //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
@@ -278,28 +285,29 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             foreach (Simulation.Physics.Train train in Simulator.Instance.Trains)
             {
                 ((List<int>)trackedTrains).Add(train.Number);
-                if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.Train trainWidget))
-                { 
-                    trainWidget = new Graphics.MapView.Widgets.Train(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
+                if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.TrainWidget trainWidget))
+                {
+                    trainWidget = new Graphics.MapView.Widgets.TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
                     foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
                     {
-                        trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCar(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                        trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                     }
                     content.Trains.Add(train.Number, trainWidget);
                 }
                 else if (train.SpeedMpS != 0)
                 {
+                    trainWidget.UpdatePosition(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation);
                     IEnumerable<int> trackedCars = new List<int>();
                     foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
                     {
                         ((List<int>)trackedCars).Add(car.UiD);
-                        if (trainWidget.Cars.TryGetValue(car.UiD, out Graphics.MapView.Widgets.TrainCar trainCar))
-                            {
+                        if (trainWidget.Cars.TryGetValue(car.UiD, out Graphics.MapView.Widgets.TrainCarWidget trainCar))
+                        {
                             trainCar.UpdatePosition(car.WorldPosition);
                         }
                         else
                         {
-                            trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCar(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                            trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                         }
                     }
                     trackedCars = trainWidget.Cars.Keys.Except(trackedCars);
@@ -506,6 +514,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
                 signalstateWindow.UpdateSignal(content.SignalSelected);
             }
+            if (content.Trains != null && windowManager.WindowInitialized(DispatcherWindowType.TrainInfo))
+            {
+                TrainInformationWindow trainInfoWindow = windowManager[DispatcherWindowType.TrainInfo] as TrainInformationWindow;
+                trainInfoWindow.UpdateTrain(content.TrainSelected);
+            }
+
         }
 
         public void MouseRightClick(UserCommandArgs userCommandArgs)

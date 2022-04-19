@@ -927,6 +927,7 @@ namespace Orts.Common
         PathJunctions,
         PathReversals,
         Empty,
+        TrainNames,
     }
 
     public enum TrainType
@@ -976,6 +977,7 @@ namespace Orts.Common
         SignalState,
         HelpWindow,
         Settings,
+        TrainInfo,
     }
 
 }

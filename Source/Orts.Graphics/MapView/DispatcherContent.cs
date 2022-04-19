@@ -34,10 +34,11 @@ namespace Orts.Graphics.MapView
         private readonly InsetComponent insetComponent;
 
         private PointWidget nearestDispatchItem;
+        private TrainWidget nearestTrain;
 
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
 
-        public Dictionary<int, Train> Trains { get; } = new Dictionary<int, Train>();
+        public Dictionary<int, TrainWidget> Trains { get; } = new Dictionary<int, TrainWidget>();
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
@@ -66,9 +67,9 @@ namespace Orts.Graphics.MapView
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
                         if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                            (vectorwidget).Draw(ContentArea);
+                            vectorwidget.Draw(ContentArea);
                         else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                            (pointWidget).Draw(ContentArea);
+                            pointWidget.Draw(ContentArea);
                     }
                 }
             }
@@ -77,12 +78,17 @@ namespace Orts.Graphics.MapView
                 if (ContentArea.InsideScreenArea(segment))
                     segment.Draw(ContentArea, ColorVariation.None, 1.5);
             }
-            foreach(Train train in Trains.Values)
+            foreach(TrainWidget train in Trains.Values)
             {
                 if (ContentArea.InsideScreenArea(train))
+                {
                     train.Draw(ContentArea, ColorVariation.None, 1.5);
+                    if (viewSettings[MapViewItemSettings.TrainNames])
+                        train.DrawName(ContentArea);
+                }
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+            nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 3);
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -111,6 +117,17 @@ namespace Orts.Graphics.MapView
                 {
                     nearestDispatchItem = signal;
                     distance = itemDistance;
+                }
+            }
+            distance = 2500;
+            nearestTrain = null;
+            foreach(TrainWidget train in Trains.Values)
+            {
+                double itemDistance = train.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    distance = itemDistance;
+                    nearestTrain = train;
                 }
             }
         }
@@ -172,6 +189,7 @@ namespace Orts.Graphics.MapView
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
         public IJunction SwitchSelected => (nearestDispatchItem as ActiveJunctionSegment)?.Junction;
+        public ITrain TrainSelected => nearestTrain?.Train;
 
         private void AddTrackSegments()
         {

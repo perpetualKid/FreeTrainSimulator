@@ -20,6 +20,8 @@ namespace Orts.Graphics.MapView.Widgets
     public abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
 #pragma warning restore CA1708 // Identifiers should differ by more than case
     {
+        private protected const double proximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
+
         private protected PointD location;
 
         private protected Tile tile;
@@ -68,8 +70,6 @@ namespace Orts.Graphics.MapView.Widgets
     public abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
 #pragma warning restore CA1708 // Identifiers should differ by more than case
     {
-
-        private protected const double proximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
 
         private protected PointD vectorEnd;
 

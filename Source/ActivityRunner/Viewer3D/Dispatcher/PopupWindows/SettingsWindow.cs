@@ -17,9 +17,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private Checkbox chkShowPlatforms;
         private Checkbox chkShowStations;
         private Checkbox chkShowSidings;
+        private Checkbox chkShowTrainNames;
 
         public SettingsWindow(WindowManager owner, DispatcherSettings settings, 
-            Point relativeLocation, Catalog catalog = null) : base(owner, "Settings", relativeLocation, new Point(200, 200), catalog)
+            Point relativeLocation, Catalog catalog = null) : base(owner, "Settings", relativeLocation, new Point(200, 100), catalog)
         {
             this.settings = settings;
         }
@@ -27,7 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling);
-            layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
+//            layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
 
             ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
             int width = (int)(line.RemainingWidth * 0.8);
@@ -50,6 +51,13 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             chkShowStations.OnClick += (object sender, MouseClickEventArgs e) => settings.ViewSettings[MapViewItemSettings.StationNames] = (sender as Checkbox).State.Value;
             chkShowStations.State = settings.ViewSettings[MapViewItemSettings.StationNames];
             line.Add(chkShowStations);
+
+            line = layout.AddLayoutHorizontalLineOfText();
+            line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Show Train Names")));
+            chkShowTrainNames = new Checkbox(this);
+            chkShowTrainNames.OnClick += (object sender, MouseClickEventArgs e) => settings.ViewSettings[MapViewItemSettings.TrainNames] = (sender as Checkbox).State.Value;
+            chkShowTrainNames.State = settings.ViewSettings[MapViewItemSettings.TrainNames];
+            line.Add(chkShowTrainNames);
 
             return layout;
         }
