@@ -37,7 +37,7 @@ namespace Orts.Graphics.MapView
 
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
 
-        internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
+        public Dictionary<int, Train> Trains { get; } = new Dictionary<int, Train>();
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
@@ -77,10 +77,10 @@ namespace Orts.Graphics.MapView
                 if (ContentArea.InsideScreenArea(segment))
                     segment.Draw(ContentArea, ColorVariation.None, 1.5);
             }
-            if (null != Trains)
+            foreach(Train train in Trains.Values)
             {
-                foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
-                    trainCar.Draw(ContentArea);
+                if (ContentArea.InsideScreenArea(train))
+                    train.Draw(ContentArea, ColorVariation.None, 1.5);
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
         }
@@ -118,11 +118,6 @@ namespace Orts.Graphics.MapView
         public void UpdateTrainTrackingPoint(in WorldLocation location)
         {
             ContentArea.SetTrackingPosition(location);
-        }
-
-        public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
-        {
-            Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
         // TODO 20220311 PoC code

@@ -64,7 +64,9 @@ namespace Orts.Graphics.MapView.Widgets
     /// Graphical widget which forms a vector (may be a curve as well), having a start point and end point such as a track segment, 
     /// or also 2D dimensional items such such a tile on the grid (having a lower left and upper right coordinate)
     /// </summary>
-    internal abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
+#pragma warning disable CA1708 // Identifiers should differ by more than case
+    public abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
+#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
 
         private protected const double proximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
