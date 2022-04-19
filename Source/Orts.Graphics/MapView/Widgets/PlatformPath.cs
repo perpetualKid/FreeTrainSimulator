@@ -6,7 +6,7 @@ using Orts.Common.Position;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : SegmentPath<PlatformSegment>
+    internal class PlatformPath : SegmentPathBase<PlatformSegment>
     {
         internal string PlatformName { get; }
         internal string StationName { get; }
@@ -15,8 +15,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
-            //Strip the station name out of platform name
-            if (PlatformName?.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase) ?? false)
+            //Strip the station name out of platform name (only if they are not equal)
+            if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[StationName.Length..];
         }
 

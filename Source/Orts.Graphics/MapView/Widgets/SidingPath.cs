@@ -10,7 +10,7 @@ using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath: SegmentPath<SidingSegment>
+    internal class SidingPath: SegmentPathBase<SidingSegment>
     {
         internal string SidingName { get; }
 

@@ -37,6 +37,7 @@ namespace Orts.Settings
             nameof(DispatcherWindowType.SwitchChange) + "=0,0",
             nameof(DispatcherWindowType.DebugScreen) + "=0,0",
             nameof(DispatcherWindowType.Settings) + "=0,100",
+            nameof(DispatcherWindowType.TrainInfo) + "=75,75",
         })]
         public EnumArray<int[], DispatcherWindowType> WindowLocations { get; set; }
 
@@ -76,6 +77,7 @@ namespace Orts.Settings
         nameof(MapViewItemSettings.PathIntermediates) + "=False",
         nameof(MapViewItemSettings.PathJunctions) + "=False",
         nameof(MapViewItemSettings.PathReversals) + "=False",
+        nameof(MapViewItemSettings.TrainNames) + "=True",
 })]
         public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }
 

@@ -18,5 +18,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         [Description("Help Window (Tab)")] DisplayHelpWindow,
         [Description("Debug Stepwise")] DebugStep,
         [Description("Settings Window (Tab)")] DisplaySettingsWindow,
+        [Description("Train Information (Tab)")] DisplayTrainInfoWindow,
     }
 }

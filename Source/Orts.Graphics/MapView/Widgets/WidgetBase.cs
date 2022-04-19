@@ -13,10 +13,15 @@ namespace Orts.Graphics.MapView.Widgets
         internal float Size;
     }
 
+    /// <summary>
+    /// Graphical widget which has an exact, single point location only, such as a signal, junction etc
+    /// </summary>
 #pragma warning disable CA1708 // Identifiers should differ by more than case
     public abstract class PointWidget : WidgetBase, ITileCoordinate<Tile>
 #pragma warning restore CA1708 // Identifiers should differ by more than case
     {
+        private protected const double proximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
+
         private protected PointD location;
 
         private protected Tile tile;
@@ -57,8 +62,15 @@ namespace Orts.Graphics.MapView.Widgets
         }
     }
 
-    internal abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
+    /// <summary>
+    /// Graphical widget which forms a vector (may be a curve as well), having a start point and end point such as a track segment, 
+    /// or also 2D dimensional items such such a tile on the grid (having a lower left and upper right coordinate)
+    /// </summary>
+#pragma warning disable CA1708 // Identifiers should differ by more than case
+    public abstract class VectorWidget : PointWidget, ITileCoordinateVector<Tile>
+#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
+
         private protected PointD vectorEnd;
 
         private protected Tile otherTile;
@@ -67,6 +79,13 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal ref readonly PointD Vector => ref vectorEnd;
 
+        /// <summary>
+        /// Squared distance of the given point on the straight line vector or on the arc (curved line)
+        /// Points which are not betwween the start and end point, are considered to return NaN.
+        /// For this, implementations will mostly allow for a small rounding offset (up to 1m)
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
         public abstract double DistanceSquared(in PointD point);
 
     }

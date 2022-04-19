@@ -39,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             NameValueTextGrid signalStates = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = signalStateInformation,
-                ColumnWidth = 140,
+                ColumnWidth = 100,
             };
             layout.Add(signalStates);
             return layout;

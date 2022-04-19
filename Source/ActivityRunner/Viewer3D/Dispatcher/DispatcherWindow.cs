@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 using GetText;
 using GetText.WindowsForms;
@@ -187,13 +188,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
-                return helpWindow;
+                return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
-                return settingsWindow;
+                return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
+            }));
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<WindowBase>(() =>
+            {
+                return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));
             Components.Add(windowManager);
 
@@ -256,6 +259,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
                     windowManager[DispatcherWindowType.Settings].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayTrainInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                    windowManager[DispatcherWindowType.TrainInfo].ToggleVisibility();
+            });
             //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
@@ -273,15 +281,44 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override void Update(GameTime gameTime)
         {
-            List<TrainCarWidget> trainCars = new List<TrainCarWidget>();
-            foreach (Train train in Simulator.Instance.Trains)
+            IEnumerable<int> trackedTrains = new List<int>();
+            foreach (Simulation.Physics.Train train in Simulator.Instance.Trains)
             {
-                foreach (TrainCar car in train.Cars)
+                ((List<int>)trackedTrains).Add(train.Number);
+                if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.TrainWidget trainWidget))
                 {
-                    trainCars.Add(new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                    trainWidget = new Graphics.MapView.Widgets.TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
+                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    {
+                        trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                    }
+                    content.Trains.Add(train.Number, trainWidget);
+                }
+                else if (train.SpeedMpS != 0)
+                {
+                    trainWidget.UpdatePosition(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation);
+                    IEnumerable<int> trackedCars = new List<int>();
+                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    {
+                        ((List<int>)trackedCars).Add(car.UiD);
+                        if (trainWidget.Cars.TryGetValue(car.UiD, out Graphics.MapView.Widgets.TrainCarWidget trainCar))
+                        {
+                            trainCar.UpdatePosition(car.WorldPosition);
+                        }
+                        else
+                        {
+                            trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                        }
+                    }
+                    trackedCars = trainWidget.Cars.Keys.Except(trackedCars);
+                    foreach (int carNumber in trackedCars)
+                        trainWidget.Cars.Remove(carNumber);
                 }
             }
-            content.UpdateTrainPositions(trainCars);
+            trackedTrains = content.Trains.Keys.Except(trackedTrains);
+            foreach (int trainNumber in trackedTrains)
+                content.Trains.Remove(trainNumber);
+
             content.UpdateTrainPath(Simulator.Instance.Trains[0].FrontTDBTraveller);
             if (followTrain)
                 content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
@@ -477,6 +514,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
                 signalstateWindow.UpdateSignal(content.SignalSelected);
             }
+            if (content.Trains != null && windowManager.WindowInitialized(DispatcherWindowType.TrainInfo))
+            {
+                TrainInformationWindow trainInfoWindow = windowManager[DispatcherWindowType.TrainInfo] as TrainInformationWindow;
+                trainInfoWindow.UpdateTrain(content.TrainSelected);
+            }
+
         }
 
         public void MouseRightClick(UserCommandArgs userCommandArgs)
