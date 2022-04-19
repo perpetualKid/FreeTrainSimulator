@@ -42,7 +42,7 @@
 //#define ALLOW_ORTS_SPECIFIC_ENG_PARAMETERS
 
 // Debug for Advanced Adhesion Model
-//#define DEBUG_ADHESION
+// #define DEBUG_ADHESION
 
 using System;
 using System.Collections.Generic;
@@ -227,6 +227,10 @@ namespace Orts.Simulation.RollingStocks
         float WheelSlipTimeS;
         float WheelStopSlipTimeS;
         float CurrentWheelSlipAdhesionMultiplier;
+        float DebugTimer; // Used for debugging adhesion coefficient
+        bool DebugSpeedReached = false; // Used for debugging adhesion coefficient
+        float DebugSpeedIncrement = 1; // Used for debugging adhesion coefficient
+        float DebugSpeed = 1; // Used for debugging adhesion coefficient
 
         // parameters for Track Sander based upon compressor air and abrasive table for 1/2" sand blasting nozzle @ 50psi
         public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
@@ -3084,39 +3088,59 @@ namespace Orts.Simulation.RollingStocks
         {
             float BaseuMax = (float)(Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
             float SandingFrictionCoefficientFactor = 1.0f;
-            //Set the friction coeff due to weather
-            if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
+
+            //Set the friction coeff due to weather - uses the vlaues set in the precipitation module to determine whether clear, rain or snow.
+
+            // Adjust clear weather for precipitation presence, ie base value between 60% and 80% 
+            // note lowest friction will be for drizzle (light) rain; friction will increase for precipitation higher than drizzle rail
+            if (!simulator.GamePaused)
             {
-                if (Train.SlipperySpotDistanceM < 0)
+                var fogBaseFrictionCoefficientFactor = 0.0f;
+                var pricBaseFrictionCoefficientFactor = 0.0f;
+                float pric = simulator.Weather.PrecipitationIntensity * 1000;
+                // precipitation will calculate a base coefficient value between 60% (light rain) and 80% (heavy rain) - this will be a factor that is used to adjust the base value - assume linear value between upper and lower precipitation values
+                if (pric >= 0.5)
+                    pricBaseFrictionCoefficientFactor = Math.Min((pric - 0.5f) * 0.0078f + 0.6f, 0.8f); // should give a value between 0.6 and 0.8
+                else
+                    pricBaseFrictionCoefficientFactor = 0.6f + 0.8f * (0.5f - pric); // should give a transition value between 1.0 and 0.6 as rain starts
+
+                // Adjust adhesion for impact of fog - default = 20000m = 20km
+                float fog = simulator.Weather.FogVisibilityDistance;
+                if (fog < 20000) // as fog thickens then decrease adhesion
                 {
-                    Train.SlipperySpotLengthM = 10 + 40 * (float)StaticRandom.NextDouble();
-                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)StaticRandom.NextDouble();
+                    fogBaseFrictionCoefficientFactor = Math.Min((fog * 2.75e-4f + 0.6f), 1.0f); // If fog is less then 2km then it will impact friction, decrease adhesion to 60% (same as light rain transition)
                 }
-                if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
+                else
                 {
-                    BaseFrictionCoefficientFactor = 0.8f;
+                    fogBaseFrictionCoefficientFactor = 1;
                 }
-                if (simulator.WeatherType == WeatherType.Rain) // Wet weather
-                {
-                    if (simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !simulator.GamePaused)  // Adjust clear weather for precipitation presence
-                    // ie base value between 60% and 80% (TODO) 
-                    // note lowest friction will be for drizzle (light) rain; friction will increase for precipitation higher than drizzle rail
-                    {
-                        float pric = simulator.Weather.PrecipitationIntensity * 1000;
-                        // precipitation will calculate a base coefficient value between 60% (light rain) and 80% (heavy rain) - this will be a factor that is used to adjust the base value - assume linear value between upper and lower precipitation values
-                        BaseFrictionCoefficientFactor = Math.Min((pric * 0.0078f + 0.6f), 0.8f); // should give a minimum value between 60% and 80%
-                    }
-                    else // if not proportional to precipitation use fixed friction value of 0.8 x friction coefficient value
-                    {
-                        BaseFrictionCoefficientFactor = 0.8f;
-                    }
-                }
-                else     // Snow weather
+
+                BaseFrictionCoefficientFactor = Math.Min(fogBaseFrictionCoefficientFactor, pricBaseFrictionCoefficientFactor);
+            }
+
+            // Random slippery track
+            if (Train.SlipperySpotDistanceM < 0)
+            {
+                Train.SlipperySpotLengthM = 10 + 40 * (float)StaticRandom.NextDouble();
+                Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)StaticRandom.NextDouble();
+            }
+            if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
+            {
+                if (BaseFrictionCoefficientFactor > 0.6 && BaseFrictionCoefficientFactor < 0.8)
                 {
                     BaseFrictionCoefficientFactor = 0.6f;
                 }
+                else
+                {
+                    BaseFrictionCoefficientFactor = 0.8f;
+                }
+            }
 
-                //add sander - more effective in wet weather, so increases adhesion by more
+            BaseFrictionCoefficientFactor = MathHelper.Clamp(BaseFrictionCoefficientFactor, 0.5f, 1.0f); 
+
+            if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
+            {
+                //sander - more effective in wet weather, so increases adhesion by more
                 if (AbsSpeedMpS < SanderSpeedOfMpS && CurrentTrackSandBoxCapacityM3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
                 {
                     if (SanderSpeedEffectUpToMpS > 0.0f)
@@ -3138,27 +3162,9 @@ namespace Orts.Simulation.RollingStocks
                     }
                 }
             }
-            else // Default to Dry (Clear) weather
+            else // dry weather
             {
-
-                if (simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !simulator.GamePaused)  // Adjust clear weather for fog presence
-                {
-                    float fog = simulator.Weather.FogVisibilityDistance;
-                    if (fog > 2000)
-                    {
-                        BaseFrictionCoefficientFactor = 1.0f; // if fog is not too thick don't change the friction - minimal fog stay at clear adhesion
-                    }
-                    else
-                    {
-                        BaseFrictionCoefficientFactor = Math.Min((fog * 2.75e-4f + 0.6f), 1.0f); // If fog is less then 2km then it will impact friction, decrease adhesion to 60% (same as light rain transition)
-                    }
-                }
-                else // if not proportional to fog use fixed friction value approximately equal to default 0.33 (will vary if adhesion parameters set), thus factor will be 1.0 x friction coefficient of 0.33
-                {
-                    BaseFrictionCoefficientFactor = 1.0f;
-                }
-
-                //add sander - not as effective in dry weather
+                //sander - not as effective in dry weather
                 if (AbsSpeedMpS < SanderSpeedOfMpS && CurrentTrackSandBoxCapacityM3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
                 {
                     if (SanderSpeedEffectUpToMpS > 0.0f)
@@ -3178,6 +3184,7 @@ namespace Orts.Simulation.RollingStocks
                         }
                     }
                 }
+
             }
 
             // For wagons use base Curtius-Kniffler adhesion factor - u = 0.33
