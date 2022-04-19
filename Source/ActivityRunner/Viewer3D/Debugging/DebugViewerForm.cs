@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -30,22 +31,12 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 
-using GetText.WindowsForms;
-
-using Microsoft.Xna.Framework;
-
-using Orts.Common;
 using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 
 using Color = System.Drawing.Color;
-using Control = System.Windows.Forms.Control;
 using Image = System.Drawing.Image;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
@@ -62,25 +53,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// </summary>
         private readonly Simulator simulator;
 
-        private int IM_Width = 720;
-        private int IM_Height = 720;
-
-        /// <summary>
-        /// True when the user is dragging the route view
-        /// </summary>
-        private bool dragging;
-        private WorldPosition worldPos;
-        private float xScale = 1; // pixels / metre
-        private float yScale = 1; // pixels / metre 
-
         private string name = "";
 
         private ImageList imageList1;
-        private List<Train> selectedTrainList;
         /// <summary>
         /// contains the last position of the mouse
         /// </summary>
-        private System.Drawing.Point LastCursorPosition;
         private Pen redPen = new Pen(Color.Red);
         private Pen greenPen = new Pen(Color.Green);
         private Pen orangePen = new Pen(Color.Orange);
@@ -90,6 +68,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         //the train selected by leftclicking the mouse
         public Train PickedTrain;
+
+        private Timer UITimer;
+        private Viewer Viewer;
 
         // Note +ve pixels draw down from top, but +ve metres draw up from the bottom
         //
@@ -116,25 +97,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         // + 0,0 World origin                                                     ----------
 
         /// <summary>
-        /// Defines the area to view, in meters. The left edge is meters from the leftmost extent of the route.
-        /// </summary>
-        private RectangleF viewWindow;
-
-        /// <summary>
-        /// Used to periodically check if we should shift the view when the
-        /// user is holding down a "shift view" button.
-        /// </summary>
-        private Timer UITimer;
-        private bool loaded;
-
-        // Extents of the route in meters measured from the World origin
-        private float minX = float.MaxValue;
-        private float minY = float.MaxValue;
-        private float maxX = float.MinValue;
-        private float maxY = float.MinValue;
-
-        private Viewer Viewer;
-        /// <summary>
         /// Creates a new DebugViewerForm.
         /// </summary>
         /// <param name="simulator"></param>
@@ -142,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         public DispatchViewer(Viewer viewer)
         {
             InitializeComponent();
-
+            Visible = false;
             simulator = Simulator.Instance;
             this.Viewer = viewer;
 
@@ -152,14 +114,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             UITimer.Tick += new System.EventHandler(UITimer_Tick);
             UITimer.Start();
 
-            viewWindow = new RectangleF(0, 0, 5000f, 5000f);
-            windowSizeUpDown.Accelerations.Add(new NumericUpDownAcceleration(1, 100));
             chkAllowUserSwitch.Checked = false;
-            selectedTrainList = new List<Train>();
             if (MultiPlayerManager.IsMultiPlayer())
             { MultiPlayerManager.Instance().AllowedManualSwitch = false; }
 
-            InitData(RuntimeData.Instance.TrackDB.TrackNodes);
             InitImage();
 
             MultiPlayerManager.Instance().ServerChanged += (sender, e) =>
@@ -183,128 +141,45 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private Font trainFont;
         private SolidBrush trainBrush;
-        private SolidBrush inactiveTrainBrush;
 
-        private double lastUpdateTime;
-
-        /// <summary>
-        /// When the user holds down the  "L", "R", "U", "D" buttons,
-        /// shift the view. Avoids the case when the user has to click
-        /// buttons like crazy.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void UITimer_Tick(object sender, EventArgs e)
         {
-            if (Viewer.DebugViewerEnabled == false)
-            { this.Visible = false; firstShow = true; return; }
+            if (!Viewer.DebugViewerEnabled)
+            { 
+                this.Visible = false; 
+                firstShow = true; 
+                return; 
+            }
             else
                 this.Visible = true;
-
-            if (simulator.GameTime - lastUpdateTime < 1)
-                return;
-            lastUpdateTime = simulator.GameTime;
 
             GenerateView();
         }
 
-        #region initData
-        private void InitData(List<TrackNode> nodes)
+        protected override void OnClosing(CancelEventArgs e)
         {
-            if (!loaded)
-            {
-                // do this only once
-                loaded = true;
-                Localizer.Localize(this, Viewer.Catalog);
-            }
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i] is TrackEndNode)
-                {
-                    //buffers.Add(new PointF(currNode.UiD.TileX * 2048 + currNode.UiD.X, currNode.UiD.TileZ * 2048 + currNode.UiD.Z));
-                }
-                else if (nodes[i] is TrackVectorNode trackVectorNode)
-                {
-
-                    if (trackVectorNode.TrackVectorSections.Length > 1)
-                    {
-                        AddSegments(trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY);
-                    }
-                    else
-                    {
-                        TrackVectorSection s = trackVectorNode.TrackVectorSections[0];
-
-                        foreach (TrackPin pin in trackVectorNode.TrackPins)
-                        {
-
-                            TrackNode connectedNode = nodes[pin.Link];
-
-                            DebugVector A = new DebugVector(s.Location);
-                            DebugVector B = new DebugVector(connectedNode.UiD.Location);
-                            segments.Add(new LineSegment(A, B, null));
-                        }
-
-
-                    }
-                }
-                else if (nodes[i] is TrackJunctionNode trackJunctionNode)
-                {
-                    foreach (TrackPin pin in trackJunctionNode.TrackPins)
-                    {
-                        TrackVectorSection item = null;
-                        TrackVectorNode vectorNode = nodes[pin.Link] as TrackVectorNode;
-                        try
-                        {
-                            if (vectorNode == null || vectorNode.TrackVectorSections.Length < 1)
-                                continue;
-                            if (pin.Direction == TrackDirection.Reverse)
-                                item = vectorNode.TrackVectorSections.First();
-                            else
-                                item = vectorNode.TrackVectorSections.Last();
-                        }
-                        catch { continue; }
-                        DebugVector A = new DebugVector(trackJunctionNode.UiD.Location);
-                        DebugVector B = new DebugVector(item.Location);
-                        var x = DebugVector.DistanceSqr(A, B);
-                        if (x < 0.1)
-                            continue;
-                        segments.Add(new LineSegment(B, A, item));
-                    }
-                }
-            }
-
-            var maxsize = maxX - minX > maxY - minY ? maxX - minX : maxY - minY;
-            // Take up to next 100
-            maxsize = (int)(maxsize / 100 + 1) * 100;
-            windowSizeUpDown.Maximum = (decimal)maxsize;
-            Inited = true;
-
-            if (RuntimeData.Instance.TrackDB?.TrackItems == null)
-                return;
+            e.Cancel = true;
+            Viewer.DebugViewerEnabled = false;
+            base.OnClosing(e);
         }
 
-        private bool Inited;
-        private List<LineSegment> segments = new List<LineSegment>();
+        public void ToggleVisibility()
+        {
+            if (InvokeRequired)
+                Invoke(new Action(() => ToggleVisibility()));
+            Visible = !Visible;
+        }
+        #region initData
 
         /// <summary>
         /// Initialises the picturebox and the image it contains. 
         /// </summary>
         public void InitImage()
         {
-            pbCanvas.Width = IM_Width;
-            pbCanvas.Height = IM_Height;
-
-            if (pbCanvas.Image != null)
-            {
-                pbCanvas.Image.Dispose();
-            }
-
-            pbCanvas.Image = new Bitmap(pbCanvas.Width, pbCanvas.Height);
             imageList1 = new ImageList();
             this.AvatarView.View = System.Windows.Forms.View.LargeIcon;
             imageList1.ImageSize = new Size(64, 64);
             this.AvatarView.LargeImageList = this.imageList1;
-
         }
 
         #endregion
@@ -465,41 +340,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         #region Draw
         private bool firstShow = true;
-        private bool followTrain;
-        private float subX, subY;
-        private float oldWidth;
-        private float oldHeight;
-
-        //determine locations of buttons and boxes
-        private void DetermineLocations()
-        {
-            if (this.Height < 600 || this.Width < 800)
-                return;
-            if (oldHeight != this.Height || oldWidth != label1.Left)//use the label "Res" as anchor point to determine the picture size
-            {
-                oldWidth = label1.Left;
-                oldHeight = this.Height;
-                IM_Width = label1.Left - 20;
-                IM_Height = this.Height - pbCanvas.Top;
-                pbCanvas.Width = IM_Width;
-                //pictureBox1.Height = IM_Height;
-                pbCanvas.Height = this.Height - pbCanvas.Top - 40;
-                if (pbCanvas.Image != null)
-                {
-                    pbCanvas.Image.Dispose();
-                }
-
-                pbCanvas.Image = new Bitmap(pbCanvas.Width, pbCanvas.Height);
-
-                if (btnAssist.Left - 10 < composeMSG.Right)
-                {
-                    var size = composeMSG.Width;
-                    composeMSG.Left = msgAll.Left = msgSelected.Left = reply2Selected.Left = btnAssist.Left - 10 - size;
-                    MSG.Width = messages.Width = composeMSG.Left - 20;
-                }
-                firstShow = true;
-            }
-        }
 
         /// <summary>
         /// Regenerates the 2D view. At the moment, examines the track network
@@ -507,18 +347,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// </summary>
         public void GenerateView(bool dragging = false)
         {
-            if (!Inited)
-                return;
-
             if (tWindow.SelectedIndex == 1)
             {
                 GenerateTimetableView(dragging);
                 return;
             }
 
-            if (pbCanvas.Image == null)
-                InitImage();
-            DetermineLocations();
+            InitImage();
 
             if (firstShow)
             {
@@ -540,345 +375,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 else
                 { rmvButton.Visible = false; chkAllowNew.Visible = false; chkAllowUserSwitch.Visible = false; chkBoxPenalty.Visible = false; chkPreferGreen.Visible = false; }
             }
-            if (firstShow || followTrain)
-            {
-                WorldPosition pos;
-                //see who should I look at:
-                //if the player is selected in the avatar list, show the player, otherwise, show the one with the lowest index
-                if (simulator.PlayerLocomotive != null)
-                    pos = simulator.PlayerLocomotive.WorldPosition;
-                else
-                    pos = simulator.Trains[0].Cars[0].WorldPosition;
-                bool hasSelectedTrain = false;
-                if (AvatarView.SelectedIndices.Count > 0 && !AvatarView.SelectedIndices.Contains(0))
-                {
-                    try
-                    {
-                        var i = 10000;
-                        foreach (var index in AvatarView.SelectedIndices)
-                        {
-                            if ((int)index < i)
-                                i = (int)index;
-                        }
-                        var name = AvatarView.Items[i].Text.Split(' ')[0].Trim();
-                        if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
-                        {
-                            pos = MultiPlayerManager.OnlineTrains.Players[name].Train.Cars[0].WorldPosition;
-                        }
-                        else if (MultiPlayerManager.Instance().lostPlayer.ContainsKey(name))
-                        {
-                            pos = MultiPlayerManager.Instance().lostPlayer[name].Train.Cars[0].WorldPosition;
-                        }
-                        hasSelectedTrain = true;
-                    }
-                    catch { }
-                }
-                if (hasSelectedTrain == false && PickedTrain != null && PickedTrain.Cars != null && PickedTrain.Cars.Count > 0)
-                {
-                    pos = PickedTrain.Cars[0].WorldPosition;
-                }
-                var ploc = new PointF(pos.TileX * 2048 + pos.Location.X, pos.TileZ * 2048 + pos.Location.Z);
-                viewWindow.X = ploc.X - minX - viewWindow.Width / 2;
-                viewWindow.Y = ploc.Y - minY - viewWindow.Width / 2;
-                firstShow = false;
-            }
 
             try
             {
                 CheckAvatar();
             }
             catch { } //errors for avatar, just ignore
-            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(pbCanvas.Image))
-            {
-                subX = minX + viewWindow.X;
-                subY = minY + viewWindow.Y;
-                g.Clear(Color.White);
-
-                xScale = pbCanvas.Width / viewWindow.Width;
-                yScale = pbCanvas.Height / viewWindow.Height;
-
-                PointF[] points = new PointF[3];
-                Pen p = grayPen;
-
-                p.Width = MathHelper.Clamp(xScale, 1, 3);
-                greenPen.Width = orangePen.Width = redPen.Width = p.Width;
-                pathPen.Width = 2 * p.Width;
-                trainPen.Width = p.Width * 6;
-                var forwardDist = 100 / xScale;
-                if (forwardDist < 5)
-                    forwardDist = 5;
-                //if (xScale > 3) p.Width = 3f;
-                //else if (xScale > 2) p.Width = 2f;
-                //else p.Width = 1f;
-                PointF scaledA = new PointF(0, 0);
-                PointF scaledB = new PointF(0, 0);
-                PointF scaledC = new PointF(0, 0);
-
-                foreach (var line in segments)
-                {
-
-                    scaledA = line.A.Scale(xScale, yScale, subX, subY);
-                    scaledA.Y = pbCanvas.Height - scaledA.Y;
-                    scaledB = line.B.Scale(xScale, yScale, subX, subY);
-                    scaledB.Y = pbCanvas.Height - scaledB.Y;
-
-                    if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width) || (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0))
-                        continue;
-
-                    if (line.isCurved == true)
-                    {
-                        scaledC.X = (line.C.Location.Location.X - subX) * xScale;
-                        scaledC.Y = pbCanvas.Height - (line.C.Location.Location.Z - subY) * yScale;
-                        points[0] = scaledA;
-                        points[1] = scaledC;
-                        points[2] = scaledB;
-                        g.DrawCurve(p, points);
-                    }
-                    else
-                        g.DrawLine(p, scaledA, scaledB);
-
-                }
-
-                PointF scaledItem = new PointF();
-                if (true/*showPlayerTrain.Checked*/)
-                {
-
-                    var margin = 30 * xScale;//margins to determine if we want to draw a train
-                    var margin2 = 5000 * xScale;
-
-                    selectedTrainList.Clear();
-                    foreach (var t in simulator.Trains)
-                        selectedTrainList.Add(t);
-
-                    var redTrain = selectedTrainList.Count;
-
-                    //choosen trains will be drawn later using blue, so it will overlap on the red lines
-                    var chosen = AvatarView.SelectedItems;
-                    if (chosen.Count > 0)
-                    {
-                        for (var i = 0; i < chosen.Count; i++)
-                        {
-                            var name = chosen[i].Text.Split(' ')[0].Trim(); //filter out (H) in the text
-                            var train = MultiPlayerManager.OnlineTrains.FindTrain(name);
-                            if (train != null)
-                            { selectedTrainList.Remove(train); selectedTrainList.Add(train); redTrain--; }
-                            //if selected include myself, will show it as blue
-                            if (MultiPlayerManager.GetUserName() == name && simulator.PlayerLocomotive != null)
-                            {
-                                selectedTrainList.Remove(simulator.PlayerLocomotive.Train);
-                                selectedTrainList.Add(simulator.PlayerLocomotive.Train);
-                                redTrain--;
-                            }
-
-                        }
-                    }
-
-                    //trains selected in the avatar view list will be drawn in blue, others will be drawn in red
-                    pathPen.Color = Color.Red;
-                    var drawRed = 0;
-                    int ValidTrain = selectedTrainList.Count;
-                    //add trains quit into the end, will draw them in gray
-                    var quitTrains = MultiPlayerManager.Instance().lostPlayer.Values
-                        .Select((OnlinePlayer lost) => lost?.Train)
-                        .Where((Train t) => t != null)
-                        .Where((Train t) => !selectedTrainList.Contains(t));
-                    selectedTrainList.AddRange(quitTrains);
-                    foreach (Train t in selectedTrainList)
-                    {
-                        drawRed++;//how many red has been drawn
-                        if (drawRed > redTrain)
-                            pathPen.Color = Color.Blue; //more than the red should be drawn, thus draw in blue
-
-                        name = "";
-                        TrainCar firstCar = null;
-                        if (t.LeadLocomotive != null)
-                        {
-                            worldPos = t.LeadLocomotive.WorldPosition;
-                            name = Train.GetTrainName(t.LeadLocomotive.CarID);
-                            firstCar = t.LeadLocomotive;
-                        }
-                        else if (t.Cars != null && t.Cars.Count > 0)
-                        {
-                            worldPos = t.Cars[0].WorldPosition;
-                            name = Train.GetTrainName(t.Cars[0].CarID);
-                            if (t.TrainType == TrainType.Ai)
-                                name = t.Number.ToString() + ":" + t.Name;
-                            firstCar = t.Cars[0];
-                        }
-                        else
-                            continue;
-
-                        if (xScale < 0.3 || t.FrontTDBTraveller == null || t.RearTDBTraveller == null)
-                        {
-                            worldPos = firstCar.WorldPosition;
-                            scaledItem.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                            scaledItem.Y = pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
-                            if (scaledItem.X < -margin2 || scaledItem.X > IM_Width + margin2 || scaledItem.Y > IM_Height + margin2 || scaledItem.Y < -margin2)
-                                continue;
-                            if (drawRed > ValidTrain)
-                                g.FillRectangle(Brushes.Gray, GetRect(scaledItem, 15f));
-                            else
-                            {
-                                if (t == PickedTrain)
-                                    g.FillRectangle(Brushes.Red, GetRect(scaledItem, 15f));
-                                else
-                                    g.FillRectangle(Brushes.DarkGreen, GetRect(scaledItem, 15f));
-                                scaledItem.Y -= 25;
-                            }
-                            g.DrawString(name, trainFont, trainBrush, scaledItem);
-                            continue;
-                        }
-
-                        var loc = t.FrontTDBTraveller.WorldLocation;
-                        scaledItem = new PointF((loc.TileX * 2048 + loc.Location.X - subX) * xScale, pbCanvas.Height - (loc.TileZ * 2048 + loc.Location.Z - subY) * yScale);
-                        if (scaledItem.X < -margin2 || scaledItem.X > IM_Width + margin2 || scaledItem.Y > IM_Height + margin2 || scaledItem.Y < -margin2)
-                            continue;
-
-                        trainPen.Color = Color.DarkGreen;
-                        foreach (var car in t.Cars)
-                        {
-                            float x, y;
-                            Traveller t1 = new Traveller(t.RearTDBTraveller);
-                            worldPos = car.WorldPosition;
-                            var dist = t1.DistanceTo(worldPos.WorldLocation);
-                            if (dist > 0)
-                            {
-                                t1.Move(dist - 1 + car.CarLengthM / 2);
-                                x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale;
-                                y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
-                                //x = (worldPos.TileX * 2048 + worldPos.Location.X - minX - ViewWindow.X) * xScale; y = pictureBox1.Height - (worldPos.TileZ * 2048 + worldPos.Location.Z - minY - ViewWindow.Y) * yScale;
-                                if (x < -margin || x > IM_Width + margin || y > IM_Height + margin || y < -margin)
-                                    continue;
-
-                                scaledItem.X = x;
-                                scaledItem.Y = y;
-
-                                t1.Move(-car.CarLengthM);
-                                x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale;
-                                y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
-                                if (x < -margin || x > IM_Width + margin || y > IM_Height + margin || y < -margin)
-                                    continue;
-
-                                scaledA.X = x;
-                                scaledA.Y = y;
-
-                                //if the train has quit, will draw in gray, if the train is selected by left click of the mouse, will draw it in red
-                                if (drawRed > ValidTrain)
-                                    trainPen.Color = Color.Gray;
-                                else if (t == PickedTrain)
-                                    trainPen.Color = Color.Red;
-                                g.DrawLine(trainPen, scaledA, scaledItem);
-
-                                //g.FillEllipse(Brushes.DarkGreen, GetRect(scaledItem, car.Length * xScale));
-                            }
-                        }
-                        worldPos = firstCar.WorldPosition;
-                        scaledItem.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                        scaledItem.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
-
-                        g.DrawString(name, trainFont, trainBrush, scaledItem);
-
-                    }
-                }
-
-            }
-
-            pbCanvas.Invalidate();
         }
-
-        private Vector2[][] alignedTextY;
-        private int[] alignedTextNum;
-        private const int spacing = 12;
-
         #endregion
-
-        /// <summary>
-        /// Generates a rectangle representing a dot being drawn.
-        /// </summary>
-        /// <param name="p">Center point of the dot, in pixels.</param>
-        /// <param name="size">Size of the dot's diameter, in pixels</param>
-        /// <returns></returns>
-        public static RectangleF GetRect(PointF p, float size)
-        {
-            return new RectangleF(p.X - size / 2f, p.Y - size / 2f, size, size);
-        }
-
-        /// <summary>
-        /// Generates line segments from an array of TrVectorSection. Also computes 
-        /// the bounds of the entire route being drawn.
-        /// </summary>
-        /// <param name="segments"></param>
-        /// <param name="items"></param>
-        /// <param name="minX"></param>
-        /// <param name="minY"></param>
-        /// <param name="maxX"></param>
-        /// <param name="maxY"></param>
-        /// <param name="simulator"></param>
-        private void AddSegments(TrackVectorSection[] items, ref float minX, ref float minY, ref float maxX, ref float maxY)
-        {
-            double tempX1, tempX2, tempZ1, tempZ2;
-
-            for (int i = 0; i < items.Length - 1; i++)
-            {
-                DebugVector A = new DebugVector(items[i].Location);
-                DebugVector B = new DebugVector(items[i + 1].Location);
-
-                tempX1 = A.Location.TileX * 2048 + A.Location.Location.X;
-                tempX2 = B.Location.TileX * 2048 + B.Location.Location.X;
-                tempZ1 = A.Location.TileZ * 2048 + A.Location.Location.Z;
-                tempZ2 = B.Location.TileZ * 2048 + B.Location.Location.Z;
-                CalcBounds(ref maxX, tempX1, true);
-                CalcBounds(ref maxY, tempZ1, true);
-                CalcBounds(ref maxX, tempX2, true);
-                CalcBounds(ref maxY, tempZ2, true);
-
-                CalcBounds(ref minX, tempX1, false);
-                CalcBounds(ref minY, tempZ1, false);
-                CalcBounds(ref minX, tempX2, false);
-                CalcBounds(ref minY, tempZ2, false);
-
-                segments.Add(new LineSegment(A, B, items[i]));
-            }
-        }
-
-        /// <summary>
-        /// Given a value representing a limit, evaluate if the given value exceeds the current limit.
-        /// If so, expand the limit.
-        /// </summary>
-        /// <param name="limit">The current limit.</param>
-        /// <param name="value">The value to compare the limit to.</param>
-        /// <param name="gt">True when comparison is greater-than. False if less-than.</param>
-        private static void CalcBounds(ref float limit, double v, bool gt)
-        {
-            float value = (float)v;
-            if (gt)
-            {
-                if (value > limit)
-                {
-                    limit = value;
-                }
-            }
-            else
-            {
-                if (value < limit)
-                {
-                    limit = value;
-                }
-            }
-        }
-
-
-        private float ScrollSpeedX
-        {
-            get
-            {
-                return viewWindow.Width * 0.10f;
-            }
-        }
 
         private void refreshButton_Click(object sender, EventArgs e)
         {
-            followTrain = false;
             firstShow = true;
             GenerateView();
         }
@@ -902,189 +409,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     }
                 }
-            }
-
-        }
-
-        private void windowSizeUpDown_ValueChanged(object sender, EventArgs e)
-        {
-            // this is the center, before increasing the size
-            PointF center = new PointF(viewWindow.X + viewWindow.Width / 2f, viewWindow.Y + viewWindow.Height / 2f);
-
-
-            float newSizeH = (float)windowSizeUpDown.Value;
-            float verticalByHorizontal = viewWindow.Height / viewWindow.Width;
-            float newSizeV = newSizeH * verticalByHorizontal;
-
-            viewWindow = new RectangleF(center.X - newSizeH / 2f, center.Y - newSizeV / 2f, newSizeH, newSizeV);
-
-
-            GenerateView();
-        }
-
-
-        protected override void OnMouseWheel(MouseEventArgs e)
-        {
-            decimal tempValue = windowSizeUpDown.Value;
-            if (e.Delta < 0)
-                tempValue /= 0.95m;
-            else if (e.Delta > 0)
-                tempValue *= 0.95m;
-            else
-                return;
-
-            if (tempValue < windowSizeUpDown.Minimum)
-                tempValue = windowSizeUpDown.Minimum;
-            if (tempValue > windowSizeUpDown.Maximum)
-                tempValue = windowSizeUpDown.Maximum;
-            windowSizeUpDown.Value = tempValue;
-        }
-
-        private bool Zooming;
-        private bool LeftClick;
-        private bool RightClick;
-
-        private void pictureBoxMouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-                LeftClick = true;
-            if (e.Button == MouseButtons.Right)
-                RightClick = true;
-
-            if (LeftClick == true && RightClick == false)
-            {
-                if (dragging == false)
-                {
-                    dragging = true;
-                }
-            }
-            else if (LeftClick == true && RightClick == true)
-            {
-                if (Zooming == false)
-                    Zooming = true;
-            }
-            LastCursorPosition.X = e.X;
-            LastCursorPosition.Y = e.Y;
-            //MSG.Enabled = false;
-            lblInstruction1.Visible = true;
-            lblInstruction2.Visible = true;
-            lblInstruction3.Visible = true;
-            lblInstruction4.Visible = true;
-        }
-
-        private void pictureBoxMouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-                LeftClick = false;
-            if (e.Button == MouseButtons.Right)
-                RightClick = false;
-
-            if (LeftClick == false)
-            {
-                dragging = false;
-                Zooming = false;
-            }
-
-            if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
-            {
-                PictureMoveAndZoomInOut(e.X, e.Y, 1200);
-            }
-            else if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
-            {
-                PictureMoveAndZoomInOut(e.X, e.Y, 30000);
-            }
-            else if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
-            {
-                PictureMoveAndZoomInOut(e.X, e.Y, windowSizeUpDown.Maximum);
-            }
-            lblInstruction1.Visible = false;
-            lblInstruction2.Visible = false;
-            lblInstruction3.Visible = false;
-            lblInstruction4.Visible = false;
-
-        }
-
-        private ItemWidget findItemFromMouse(int x, int y, int range)
-        {
-            if (range < 5)
-                range = 5;
-            double closest = float.NaN;
-            ItemWidget closestItem = null;
-
-            //now check for trains (first car only)
-            TrainCar firstCar;
-            PickedTrain = null;
-            float tX, tY;
-            closest = 100f;
-
-            foreach (var t in simulator.Trains)
-            {
-                firstCar = null;
-                if (t.LeadLocomotive != null)
-                {
-                    worldPos = t.LeadLocomotive.WorldPosition;
-                    firstCar = t.LeadLocomotive;
-                }
-                else if (t.Cars != null && t.Cars.Count > 0)
-                {
-                    worldPos = t.Cars[0].WorldPosition;
-                    firstCar = t.Cars[0];
-
-                }
-                else
-                    continue;
-
-                worldPos = firstCar.WorldPosition;
-                tX = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                tY = pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
-                float xSpeedCorr = Math.Abs(t.SpeedMpS) * xScale * 1.5f;
-                float ySpeedCorr = Math.Abs(t.SpeedMpS) * yScale * 1.5f;
-
-                if (tX < x - range - xSpeedCorr || tX > x + range + xSpeedCorr || tY < y - range - ySpeedCorr || tY > y + range + ySpeedCorr)
-                    continue;
-                if (PickedTrain == null)
-                    PickedTrain = t;
-            }
-            //if a train is picked, will clear the avatar list selection
-            if (PickedTrain != null)
-            {
-                AvatarView.SelectedItems.Clear();
-            }
-            return null;
-        }
-
-        private void pictureBoxMouseMove(object sender, MouseEventArgs e)
-        {
-            if (tWindow.SelectedIndex == 1)
-                TimetableDrag(sender, e);
-            else
-            {
-                if (dragging && !Zooming)
-                {
-                    int diffX = LastCursorPosition.X - e.X;
-                    int diffY = LastCursorPosition.Y - e.Y;
-
-                    viewWindow.Offset(diffX * ScrollSpeedX / 10, -diffY * ScrollSpeedX / 10);
-                    GenerateView();
-                }
-                else if (Zooming)
-                {
-                    decimal tempValue = windowSizeUpDown.Value;
-                    if (LastCursorPosition.Y - e.Y < 0)
-                        tempValue /= 0.95m;
-                    else if (LastCursorPosition.Y - e.Y > 0)
-                        tempValue *= 0.95m;
-
-                    if (tempValue < windowSizeUpDown.Minimum)
-                        tempValue = windowSizeUpDown.Minimum;
-                    if (tempValue > windowSizeUpDown.Maximum)
-                        tempValue = windowSizeUpDown.Maximum;
-                    windowSizeUpDown.Value = tempValue;
-                    GenerateView();
-
-                }
-                LastCursorPosition.X = e.X;
-                LastCursorPosition.Y = e.Y;
             }
         }
 
@@ -1120,17 +444,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             try
             { CheckAvatar(); }
             catch { }
-        }
-
-        private const int CP_NOCLOSE_BUTTON = 0x200;
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                CreateParams myCp = base.CreateParams;
-                myCp.ClassStyle = myCp.ClassStyle | CP_NOCLOSE_BUTTON;
-                return myCp;
-            }
         }
 
         private string imagestring = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACpJREFUOE9jYBjs4D/QgSBMNhg1ABKAFAUi2aFPNY0Ue4FiA6jmlUFsEABfyg/x8/L8/gAAAABJRU5ErkJggg==";
@@ -1188,6 +501,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
             }
         }
+
         private void replySelected(object sender, EventArgs e)
         {
             msgAll.Enabled = false;
@@ -1231,40 +545,37 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             if (e.KeyValue == 13)
             {
-                if (e.KeyValue == 13)
-                {
-                    var msg = MSG.Text;
-                    msg = msg.Replace("\r", "", StringComparison.Ordinal);
-                    msg = msg.Replace("\t", "", StringComparison.Ordinal);
-                    msg = msg.Replace("\n", "", StringComparison.Ordinal);
-                    MSG.Enabled = false;
-                    MSG.Text = "";
-                    if (msg.Length == 0)
-                        return;
-                    var user = "";
+                var msg = MSG.Text;
+                msg = msg.Replace("\r", "", StringComparison.Ordinal);
+                msg = msg.Replace("\t", "", StringComparison.Ordinal);
+                msg = msg.Replace("\n", "", StringComparison.Ordinal);
+                MSG.Enabled = false;
+                MSG.Text = "";
+                if (msg.Length == 0)
+                    return;
+                var user = "";
 
-                    if (MultiPlayerManager.IsServer())
+                if (MultiPlayerManager.IsServer())
+                {
+                    var users = MultiPlayerManager.OnlineTrains.Players.Keys
+                        .Select((string u) => $"{u}\r");
+                    user += string.Join("", users) + "0END";
+                    string msgText = new MSGText(MultiPlayerManager.GetUserName(), user, msg).ToString();
+                    try
                     {
-                        var users = MultiPlayerManager.OnlineTrains.Players.Keys
-                            .Select((string u) => $"{u}\r");
-                        user += string.Join("", users) + "0END";
-                        string msgText = new MSGText(MultiPlayerManager.GetUserName(), user, msg).ToString();
-                        try
-                        {
-                            MultiPlayerManager.Notify(msgText);
-                        }
-                        catch { }
-                        finally
-                        {
-                            MSG.Text = "";
-                        }
+                        MultiPlayerManager.Notify(msgText);
                     }
-                    else
+                    catch { }
+                    finally
                     {
-                        user = "0Server\r+0END";
-                        MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
                         MSG.Text = "";
                     }
+                }
+                else
+                {
+                    user = "0Server\r+0END";
+                    MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
+                    MSG.Text = "";
                 }
             }
         }
@@ -1378,11 +689,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         }
 
-        private void btnFollowClick(object sender, EventArgs e)
-        {
-            followTrain = true;
-        }
-
         private void chkOPenaltyHandle(object sender, EventArgs e)
         {
             MultiPlayerManager.Instance().CheckSpad = chkBoxPenalty.Checked;
@@ -1410,63 +716,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void PictureMoveAndZoomInOut(int x, int y, decimal scale)
         {
-            int diffX = x - pbCanvas.Width / 2;
-            int diffY = y - pbCanvas.Height / 2;
-            viewWindow.Offset(diffX / xScale, -diffY / yScale);
-            if (scale < windowSizeUpDown.Minimum)
-                scale = windowSizeUpDown.Minimum;
-            if (scale > windowSizeUpDown.Maximum)
-                scale = windowSizeUpDown.Maximum;
-            windowSizeUpDown.Value = scale;
             GenerateView();
         }
 
 
         #region Timetable
         public int DaylightOffsetHrs { get; set; }
-
-        private void TimetableDrag(object sender, MouseEventArgs e)
-        {
-            if (dragging && !Zooming)
-            {
-                int diffX = e.X - LastCursorPosition.X;
-                int diffY = e.Y - LastCursorPosition.Y;
-
-                GenerateView(true);
-            }
-            else if (Zooming)
-            {
-                decimal tempValue = windowSizeUpDown.Value;
-                if (LastCursorPosition.Y - e.Y < 0)
-                    tempValue /= 0.95m;
-                else if (LastCursorPosition.Y - e.Y > 0)
-                    tempValue *= 0.95m;
-
-                if (tempValue < windowSizeUpDown.Minimum)
-                    tempValue = windowSizeUpDown.Minimum;
-                if (tempValue > windowSizeUpDown.Maximum)
-                    tempValue = windowSizeUpDown.Maximum;
-                windowSizeUpDown.Value = tempValue;
-                GenerateView(true);
-            }
-            LastCursorPosition.X = e.X;
-            LastCursorPosition.Y = e.Y;
-        }
-
-        private void pbCanvas_SizeChanged(object sender, EventArgs e)
-        {
-            var oldSizePxX = viewWindow.Width * xScale;
-            var oldSizePxY = viewWindow.Height * yScale;
-            var newSizePxX = pbCanvas.Width;
-            var newSizePxY = pbCanvas.Height;
-            var sizeIncreaseX = newSizePxX / oldSizePxX;
-            var sizeIncreaseY = newSizePxY / oldSizePxY;
-
-            // Could be clever and keep all the previous view still in view and centred at the same point.
-            // Instead use the simplest solution:
-            viewWindow.Width *= sizeIncreaseX;
-            viewWindow.Height *= sizeIncreaseY;
-        }
 
         /// <summary>
         /// Add or subtract hours of daylight to more easily observe activity during the night.
@@ -1477,21 +732,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         {
             DaylightOffsetHrs = (int)nudDaylightOffsetHrs.Value;
         }
-
-        //      private void bSwitchWindow_Click(object sender, EventArgs e)
-        //      {
-        //	DispatchWindowWanted = true;
-        //	ShowTimetableControls(false);
-        //	RestoreDispatchMedia();
-        //}
-
-        //private void RestoreDispatchMedia()
-        //      {
-        //	this.Name = "Dispatch Window";
-        //	trainFont = new Font("Arial", 14, FontStyle.Bold);
-        //	trainBrush = new SolidBrush(Color.Red);
-        //	pbCanvas.BackColor = Color.White;
-        //}
 
         private void tWindow_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1516,116 +756,5 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
         #endregion
-    }
-
-    #region ItemWidget
-    public abstract class ItemWidget
-    {
-        public Vector2 Location;
-        public PointF Location2D;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        protected ItemWidget()
-        {
-            Location = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
-            Location2D = new PointF(float.NegativeInfinity, float.NegativeInfinity);
-        }
-
-        protected static PointF PointFromLocation(in WorldLocation location)
-        {
-            return new PointF((float)(location.TileX * WorldLocation.TileSize + location.Location.X), (float)(location.TileZ * WorldLocation.TileSize + location.Location.Z));
-        }
-
-        protected static Vector2 VectorFromLocation(in WorldLocation location)
-        {
-            return new Vector2((float)(location.TileX * WorldLocation.TileSize + location.Location.X), (float)(location.TileZ * WorldLocation.TileSize + location.Location.Z));
-        }
-    }
-    #endregion
-
-    #region LineSegment
-    /// <summary>
-    /// Defines a geometric line segment.
-    /// </summary>
-    public class LineSegment
-    {
-        public DebugVector A;
-        public DebugVector B;
-        public DebugVector C;
-
-        public bool isCurved;
-
-        public LineSegment(DebugVector A, DebugVector B, TrackVectorSection Section)
-        {
-            this.A = A;
-            this.B = B;
-
-            isCurved = false;
-            if (Section == null)
-                return;
-            //MySection = Section;
-            int k = Section.SectionIndex;
-            TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(k);
-            if (ts != null)
-            {
-                if (ts.Curved)
-                {
-                    float diff = (float)(ts.Radius * (1 - Math.Cos(ts.Angle * 3.14f / 360)));
-                    if (diff < 3)
-                        return; //not need to worry, curve too small
-                                //curve = ts.SectionCurve;
-                    Vector3 v = new Vector3(((B.Location.TileX - A.Location.TileX) * 2048 + B.Location.Location.X - A.Location.Location.X), 0, ((B.Location.TileZ - A.Location.TileZ) * 2048 + B.Location.Location.Z - A.Location.Location.Z));
-                    isCurved = true;
-                    Vector3 v2 = Vector3.Cross(Vector3.Up, v);
-                    v2.Normalize();
-                    v = v / 2;
-                    v.X += A.Location.TileX * 2048 + A.Location.Location.X;
-                    v.Z += A.Location.TileZ * 2048 + A.Location.Location.Z;
-                    if (ts.Angle > 0)
-                    {
-                        v = v2 * -diff + v;
-                    }
-                    else
-                        v = v2 * diff + v;
-                    C = new DebugVector(0, v.X, 0, v.Z);
-                }
-            }
-
-        }
-    }
-
-    #endregion
-
-    public class DebugVector
-    {
-        private readonly WorldLocation location;
-        public ref readonly WorldLocation Location => ref location;
-
-        public DebugVector(int tileX, float x, int tileZ, float z) :
-            this(new WorldLocation(tileX, tileZ, x, 0, z))
-        { }
-
-        public DebugVector(in WorldLocation location)
-        {
-            this.location = location;
-        }
-
-        public static double DistanceSqr(DebugVector v1, DebugVector v2)
-        {
-            return Math.Pow((v1.location.TileX - v2.location.TileX) * 2048 + v1.location.Location.X - v2.location.Location.X, 2)
-                + Math.Pow((v1.location.TileZ - v2.location.TileZ) * 2048 + v1.location.Location.Z - v2.location.Location.Z, 2);
-        }
-
-        public PointF Scale(float xScale, float yScale, float subX, float subY)
-        {
-            return new PointF()
-            {
-                X = (location.TileX * 2048 - subX + location.Location.X) * xScale,
-                Y = (location.TileZ * 2048 - subY + location.Location.Z) * yScale
-            };
-        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 using System.Collections.Specialized;
+using System.Linq;
 
 using GetText;
 
@@ -10,12 +11,12 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
-using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
@@ -32,6 +33,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private readonly TrainInformation trainInformation = new TrainInformation();
 
         private Train train;
+        private TrainCar locomotive;
+        
         public TrainInformationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, "Train Information", relativeLocation, new Point(200, 180), catalog)
         {
@@ -42,9 +45,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             if (train is Train physicalTrain)
             {                
                 this.train = physicalTrain;
+                locomotive = physicalTrain.LeadLocomotive ?? physicalTrain.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
                 trainInformation.DebugInfo[Catalog.GetString("Train")] = train.Name;
                 trainInformation.DebugInfo[Catalog.GetString("Speed")] = FormatStrings.FormatSpeedDisplay(physicalTrain.SpeedMpS, Simulator.Instance.MetricUnits);
-                trainInformation.DebugInfo["Gradient"] = $"{physicalTrain.LeadLocomotive?.CurrentElevationPercent:F1}%";
+                trainInformation.DebugInfo["Gradient"] = $"{locomotive?.CurrentElevationPercent:F1}%";
                 trainInformation.DebugInfo["Direction"] = Math.Abs(physicalTrain.MUReverserPercent) != 100 ? $"{Math.Abs(physicalTrain.MUReverserPercent):F0} {physicalTrain.MUDirection.GetLocalizedDescription()}" : $"{physicalTrain.MUDirection.GetLocalizedDescription()}";
                 trainInformation.DebugInfo["Cars"] = $"{physicalTrain.Cars.Count}";
                 trainInformation.DebugInfo["Type"] = $"{(physicalTrain.IsFreight ? Catalog.GetString("Freight") : Catalog.GetString("Passenger"))}";
@@ -59,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             if (train != null)
             {
                 trainInformation.DebugInfo[Catalog.GetString("Speed")] = FormatStrings.FormatSpeedDisplay(train.SpeedMpS, Simulator.Instance.MetricUnits);
-                trainInformation.DebugInfo["Gradient"] = $"{(train.LeadLocomotive ?? train.Cars[0]).CurrentElevationPercent:F1}%";
+                trainInformation.DebugInfo["Gradient"] = $"{locomotive?.CurrentElevationPercent:F1}%";
                 trainInformation.DebugInfo["Direction"] = Math.Abs(train.MUReverserPercent) != 100 ? $"{Math.Abs(train.MUReverserPercent):F0} {train.MUDirection.GetLocalizedDescription()}" : $"{train.MUDirection.GetLocalizedDescription()}";
             }
         }

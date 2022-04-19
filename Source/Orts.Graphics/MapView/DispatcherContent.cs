@@ -82,13 +82,13 @@ namespace Orts.Graphics.MapView
             {
                 if (ContentArea.InsideScreenArea(train))
                 {
-                    train.Draw(ContentArea, ColorVariation.None, 1.5);
+                    train.Draw(ContentArea, ColorVariation.None);
                     if (viewSettings[MapViewItemSettings.TrainNames])
                         train.DrawName(ContentArea);
                 }
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
-            nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 3);
+            nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)

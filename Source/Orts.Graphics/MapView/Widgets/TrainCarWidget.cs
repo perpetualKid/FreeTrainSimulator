@@ -126,7 +126,7 @@ namespace Orts.Graphics.MapView.Widgets
         public double DistanceSquared(in PointD point)
         {
             double distanceSquared;
-            PointD vectorEnd = new PointD(location.X + Math.Cos(angle) * length, location.Y + Math.Sin(angle) * length);
+            PointD vectorEnd = new PointD(location.X + Math.Cos(angle) * length, location.Y - Math.Sin(angle) * length);
             distanceSquared = length * length;
             // Calculate the t that minimizes the distance.
             double t = (point - location).DotProduct(vectorEnd - location) / distanceSquared;
