@@ -79,9 +79,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
 
             TileSample newTile = new TileSample(filePath, tileX, tileZ, zoom, visible);
-            tileList.Add(newTile);
             if (newTile.Valid)
             {
+                tileList.Add(newTile);
                 Tiles = new TileList(tileList);
                 return;
             }
@@ -92,9 +92,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
 
             newTile = new TileSample(filePath, tileX, tileZ, zoom - 1, visible);
-            tileList.Add(newTile);
             if (newTile.Valid)
             {
+                tileList.Add(newTile);
                 Tiles = new TileList(tileList);
                 return;
             }

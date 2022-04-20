@@ -10,12 +10,18 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Graphics.MapView.Widgets
 {
+    /// <summary>
+    /// A single segment along a track, covering a single TrackNodeSection as part of a Track Node
+    /// Main properties are Length, Direction at starting point, the endpoint
+    /// and if this is a curved segment, Radius and the Angle (angular size)
+    /// This is a base class for derived types like rail tracks, road tracks
+    /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
+    /// </summary>
     internal abstract class SegmentBase : VectorWidget, INameValueInformationProvider
     {
         public abstract NameValueCollection DebugInfo { get; }
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        private const double proximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
         internal readonly bool Curved;
 
         // Direction in Rad from -π to π from North (0) to South

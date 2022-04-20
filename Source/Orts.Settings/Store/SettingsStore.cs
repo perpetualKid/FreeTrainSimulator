@@ -128,7 +128,7 @@ namespace Orts.Settings.Store
                 , $"GetUserValue called with unexpected type {expectedType.FullName}.");
         }
 
-        protected static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : Enum
+        protected static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : struct, Enum
         {
             if (null == values)
                 throw new ArgumentNullException(nameof(values));
@@ -139,14 +139,12 @@ namespace Orts.Settings.Store
 
             Type[] genericArguments = expectedType.GenericTypeArguments;
             Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
-            Type enumType = genericArguments[1];
             foreach (string value in values)
             {
                 string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
                 if (enumValues.Length == 2)
                 {
-                    dynamic enumIndex = Enum.Parse(enumType, enumValues[0]);
-                    if (SettingsBase.TryParseValues(genericArguments[0], enumValues[1], out dynamic result))
+                    if (Enum.TryParse(enumValues[0], out TEnum enumIndex) &&  SettingsBase.TryParseValues(genericArguments[0], enumValues[1], out dynamic result))
                         defaultValues[enumIndex] = result;
                 }
             }

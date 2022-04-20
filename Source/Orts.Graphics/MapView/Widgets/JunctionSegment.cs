@@ -16,6 +16,9 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
+    /// <summary>
+    /// Graphical representation of a track junction (switch( <seealso cref="PointWidget"/>
+    /// </summary>
     internal class JunctionSegment : PointWidget, INameValueInformationProvider
     {
         private const int diameter = 3;
@@ -62,6 +65,9 @@ namespace Orts.Graphics.MapView.Widgets
         }
     }
 
+    /// <summary>
+    /// Junction segment <seealso cref="JunctionSegment"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
+    /// </summary>
     internal class ActiveJunctionSegment : JunctionSegment
     {
         private readonly float[] trackSectionAngles;
@@ -97,6 +103,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         }
 
+        // find the direction angle of the facing (in) track 
         private static float GetInboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections)
         {
             if (null == vectorNode)
@@ -125,6 +132,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
+        // find the direction angle of the trailing (out) track 
         private static float GetOutboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections, int index)
         {
             if (vectorNode.TrackVectorSections.Length < 1)

@@ -32,7 +32,9 @@ namespace Orts.Settings
 
     public class UserSettings : SettingsBase
     {
-        public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
+        private static readonly string[] subSettings = new string[] { "FolderSettings", "Input", "RailDriver", "Dispatcher" };
+
+    public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
@@ -394,35 +396,6 @@ namespace Orts.Settings
         [Default(false)]
         [DoNotSave]
         public bool MultiplayerClient { get; set; }
-
-        #region Dispatcher Window Settings
-        [Default(new string[]
-        {
-            nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen
-            nameof(WindowSetting.Size) + "=75, 75"    // % of screen size
-        })]
-        public EnumArray<int[], WindowSetting> DispatcherWindowSettings { get; set; }
-
-        [Default(0)]
-        public int DispatcherWindowScreen { get; set; }
-
-        [Default(new string[]
-        {
-            nameof(DispatcherWindowType.SignalState) + "=100,100",
-            nameof(DispatcherWindowType.HelpWindow) + "=50,50",
-            nameof(DispatcherWindowType.SignalChange) + "=0,0",
-            nameof(DispatcherWindowType.SwitchChange) + "=0,0",
-            nameof(DispatcherWindowType.DebugScreen) + "=0,0",
-        })]
-        public EnumArray<int[], DispatcherWindowType> DispatcherWindowLocations { get; set; }
-
-        [Default(new string[]
-        {
-            nameof(DispatcherWindowType.SignalState) + "=False",
-            nameof(DispatcherWindowType.HelpWindow) + "=True",
-        })]
-        public EnumArray<bool, DispatcherWindowType> DispatcherWindowStatus { get; set; }
-        #endregion
         #endregion
 
         public FolderSettings FolderSettings { get; private set; }
@@ -430,6 +403,8 @@ namespace Orts.Settings
         public InputSettings Input { get; private set; }
 
         public RailDriverSettings RailDriver { get; private set; }
+
+        public DispatcherSettings Dispatcher { get; private set; }
 
         public UserSettings() :
             this(Array.Empty<string>())
@@ -450,6 +425,7 @@ namespace Orts.Settings
             FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
+            Dispatcher = new DispatcherSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
@@ -471,7 +447,7 @@ namespace Orts.Settings
         protected override PropertyInfo[] GetProperties()
         {
             if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+                properties = base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
             return properties;
         }
 
@@ -500,6 +476,7 @@ namespace Orts.Settings
             FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
+            Dispatcher.Save();
             properties = null;
         }
 

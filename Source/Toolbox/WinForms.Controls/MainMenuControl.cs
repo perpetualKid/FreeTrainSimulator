@@ -57,7 +57,7 @@ namespace Orts.Toolbox.WinForms.Controls
             SetupVisibilityMenuItem(otherSignalsVisibleToolStripMenuItem, MapViewItemSettings.OtherSignals);
             SetupVisibilityMenuItem(platformsVisibleToolStripMenuItem, MapViewItemSettings.Platforms);
             SetupVisibilityMenuItem(platformNamesVisibleToolStripMenuItem, MapViewItemSettings.PlatformNames);
-            SetupVisibilityMenuItem(platformStationsVisibleToolStripMenuItem, MapViewItemSettings.PlatformStations);
+            SetupVisibilityMenuItem(stationNamesVisibleToolStripMenuItem, MapViewItemSettings.StationNames);
             SetupVisibilityMenuItem(sidingsVisibleToolStripMenuItem, MapViewItemSettings.Sidings);
             SetupVisibilityMenuItem(sidingNamesVisibleToolStripMenuItem, MapViewItemSettings.SidingNames);
             SetupVisibilityMenuItem(speedpostsVisibleToolStripMenuItem, MapViewItemSettings.SpeedPosts);
@@ -127,7 +127,7 @@ namespace Orts.Toolbox.WinForms.Controls
             List<string> languageCodes = new List<string> { "en" };
             if (Directory.Exists(RuntimeInfo.LocalesFolder))
                 foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
-                    if (Directory.EnumerateFiles(path, "TrackViewer.mo").Any())
+                    if (Directory.EnumerateFiles(path, "Toolbox.mo").Any())
                     {
                         try
                         {

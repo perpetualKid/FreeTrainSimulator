@@ -6,19 +6,23 @@ using Orts.Common.Position;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal abstract class SegmentPath<T>: VectorWidget where T : SegmentBase
+    /// <summary>
+    /// base class for Paths which are formed as set (list) of multiple <see cref="SegmentBase"></see> segments
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal abstract class SegmentPathBase<T>: VectorWidget where T : SegmentBase
     {
         private protected readonly List<T> pathSegments = new List<T>();
-        private protected readonly PointD midPoint;
+        internal protected readonly PointD MidPoint;
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        private protected SegmentPath(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
+        private protected SegmentPathBase(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
         {
             location = start.Location;
             tile = start.Tile;
             vectorEnd = end.Location;
             otherTile = end.Tile;
-            midPoint = Location + (vectorEnd - location) / 2.0;
+            MidPoint = Location + (vectorEnd - location) / 2.0;
 
             ref readonly PointD startLocation = ref start.Location;
             ref readonly PointD endLocation = ref end.Location;
@@ -115,14 +119,14 @@ namespace Orts.Graphics.MapView.Widgets
             foreach (SegmentBase segment in segments)
             {
                 //find the start vector section
-                if (segment.DistanceSquared(startLocation) < 1)
+                if (segment.DistanceSquared(startLocation) < proximityTolerance)
                 {
                     startSegment = segment;
                     if (null != endSegment)
                         break;
                 }
                 //find the end vector section
-                if (segment.DistanceSquared(endLocation) < 1)
+                if (segment.DistanceSquared(endLocation) < proximityTolerance)
                 {
                     endSegment = segment;
                     if (null != startSegment)

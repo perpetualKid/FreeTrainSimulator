@@ -20,17 +20,25 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private readonly MapViewItemSettings[] drawItems = { MapViewItemSettings.Platforms, MapViewItemSettings.Sidings, MapViewItemSettings.Tracks, MapViewItemSettings.EndNodes, MapViewItemSettings.JunctionNodes, MapViewItemSettings.Signals};
+        private readonly MapViewItemSettings[] drawItems = { 
+            MapViewItemSettings.Platforms, 
+            MapViewItemSettings.Sidings, 
+            MapViewItemSettings.Tracks, 
+            MapViewItemSettings.EndNodes, 
+            MapViewItemSettings.JunctionNodes, 
+            MapViewItemSettings.Signals, 
+            MapViewItemSettings.StationNames, 
+            MapViewItemSettings.PlatformNames, 
+            MapViewItemSettings.SidingNames};
 
         private readonly InsetComponent insetComponent;
 
-        #region nearest items
         private PointWidget nearestDispatchItem;
-        #endregion
+        private TrainWidget nearestTrain;
 
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
 
-        internal TileIndexedList<TrainCarWidget, Tile> Trains { get; private set; }
+        public Dictionary<int, TrainWidget> Trains { get; } = new Dictionary<int, TrainWidget>();
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
@@ -59,9 +67,9 @@ namespace Orts.Graphics.MapView
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
                         if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                            (vectorwidget).Draw(ContentArea);
+                            vectorwidget.Draw(ContentArea);
                         else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                            (pointWidget).Draw(ContentArea);
+                            pointWidget.Draw(ContentArea);
                     }
                 }
             }
@@ -70,12 +78,17 @@ namespace Orts.Graphics.MapView
                 if (ContentArea.InsideScreenArea(segment))
                     segment.Draw(ContentArea, ColorVariation.None, 1.5);
             }
-            if (null != Trains)
+            foreach(TrainWidget train in Trains.Values)
             {
-                foreach (TrainCarWidget trainCar in Trains.BoundingBox(bottomLeft, topRight))
-                    trainCar.Draw(ContentArea);
+                if (ContentArea.InsideScreenArea(train))
+                {
+                    train.Draw(ContentArea, ColorVariation.None);
+                    if (viewSettings[MapViewItemSettings.TrainNames])
+                        train.DrawName(ContentArea);
+                }
             }
             nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+            nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
         }
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
@@ -106,16 +119,22 @@ namespace Orts.Graphics.MapView
                     distance = itemDistance;
                 }
             }
+            distance = 2500;
+            nearestTrain = null;
+            foreach(TrainWidget train in Trains.Values)
+            {
+                double itemDistance = train.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    distance = itemDistance;
+                    nearestTrain = train;
+                }
+            }
         }
 
         public void UpdateTrainTrackingPoint(in WorldLocation location)
         {
             ContentArea.SetTrackingPosition(location);
-        }
-
-        public void UpdateTrainPositions(ICollection<TrainCarWidget> trainCars)
-        {
-            Trains = new TileIndexedList<TrainCarWidget, Tile>(trainCars);
         }
 
         // TODO 20220311 PoC code
@@ -170,6 +189,7 @@ namespace Orts.Graphics.MapView
 
         public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
         public IJunction SwitchSelected => (nearestDispatchItem as ActiveJunctionSegment)?.Junction;
+        public ITrain TrainSelected => nearestTrain?.Train;
 
         private void AddTrackSegments()
         {
@@ -230,9 +250,19 @@ namespace Orts.Graphics.MapView
         {
             IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
 
+            List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
+
+            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
-            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments));
-            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments));
+
+            IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName);
+            contentItems[MapViewItemSettings.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
+            contentItems[MapViewItemSettings.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
+            contentItems[MapViewItemSettings.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
+
         }
     }
 }

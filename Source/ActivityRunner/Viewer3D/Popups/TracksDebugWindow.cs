@@ -33,9 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class TracksDebugWindow : LayeredWindow
     {
-        private const float DisplayDistance = 1000;
         private const float DisplaySegmentLength = 10;
-        private const float MaximumSectionDistance = 10000;
         private const float Tolerance = 0.0001F;
         private Viewport Viewport;
         private List<DispatcherPrimitive> Primitives = new List<DispatcherPrimitive>();

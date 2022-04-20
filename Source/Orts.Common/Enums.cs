@@ -913,7 +913,7 @@ namespace Orts.Common
         RoadCrossings,
         SidingNames,
         PlatformNames,
-        PlatformStations,
+        StationNames,
         SpeedPosts,
         MilePosts,
         Signals,
@@ -927,6 +927,7 @@ namespace Orts.Common
         PathJunctions,
         PathReversals,
         Empty,
+        TrainNames,
     }
 
     public enum TrainType
@@ -989,6 +990,8 @@ namespace Orts.Common
         SwitchChange,
         SignalState,
         HelpWindow,
+        Settings,
+        TrainInfo,
     }
 
 }

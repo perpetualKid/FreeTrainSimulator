@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 // We must create these forms on the main thread (Render) or they won't pump events correctly.
 
-                if (MultiPlayerManager.IsMultiPlayer() || Game.Settings.ViewDispatcher)
+                if (MultiPlayerManager.IsMultiPlayer())
                 {
                     Program.DebugViewer = new DispatchViewer(Viewer);
                     Program.DebugViewer.Hide();
