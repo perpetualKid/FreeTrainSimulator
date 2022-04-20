@@ -271,7 +271,7 @@ namespace Orts.Settings
         public bool UseMSTSEnv { get; set; }
         [Default(false)]
         public bool SignalLightGlow { get; set; }
-        [Default(130)]
+        [Default(100)]
         public int AdhesionFactor { get; set; }
         [Default(10)]
         public int AdhesionFactorChange { get; set; }

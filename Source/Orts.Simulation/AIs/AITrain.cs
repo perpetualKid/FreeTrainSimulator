@@ -4804,7 +4804,6 @@ namespace Orts.Simulation.AIs
                 {
                     var loco = car as MSTSLocomotive;
                     loco.LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS);
-                    loco.LocomotiveAxle.AxleSpeedMpS = SpeedMpS;
                     loco.AntiSlip = false; // <CSComment> TODO Temporary patch until AntiSlip is re-implemented
                 }
                 if (car == simulator.PlayerLocomotive)

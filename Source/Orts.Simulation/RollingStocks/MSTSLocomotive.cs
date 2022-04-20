@@ -434,10 +434,11 @@ namespace Orts.Simulation.RollingStocks
         public DetailInfoBase LocomotiveBrakeInfo => locomotiveBrakeInfo;
         public DetailInfoBase LocomotiveForceInfo => locomotiveForceInfo;
 
-        public Axle LocomotiveAxle;
-        public IIRFilter CurrentFilter;
-        public IIRFilter AdhesionFilter;
-        public float SaveAdhesionFilter;
+        public Axle LocomotiveAxle { get; protected set; }
+        private IIRFilter currentFilter;
+        private IIRFilter adhesionFilter;
+        private float saveAdhesionFilter;
+        private float adhesionConditions;
 
         public float FilteredMotiveForceN;
 
@@ -462,9 +463,9 @@ namespace Orts.Simulation.RollingStocks
 
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
-            LocomotiveAxle = new Axle(AxleDriveType.ForceDriven, MassKG / 1000.0f, MassKG / 100.0f);
-            CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
-            AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
+            LocomotiveAxle = new Axle(AxleDriveType.ForceDriven);
+            currentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
+            adhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
             TrainBrakeController = new ScriptedTrainBrakeController(this);
             EngineBrakeController = new ScriptedEngineBrakeController(this);
@@ -1363,9 +1364,6 @@ namespace Orts.Simulation.RollingStocks
             {
                 LocomotiveAxle.SlipWarningTresholdPercent = SlipWarningThresholdPercent;
                 LocomotiveAxle.AdhesionK = AdhesionK;
-                LocomotiveAxle.CurtiusKnifflerA = Curtius_KnifflerA;
-                LocomotiveAxle.CurtiusKnifflerB = Curtius_KnifflerB;
-                LocomotiveAxle.CurtiusKnifflerC = Curtius_KnifflerC;
             }
         }
 
@@ -1404,7 +1402,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(ScoopIsBroken);
             outf.Write(IsWaterScoopDown);
             outf.Write(CurrentTrackSandBoxCapacityM3);
-            outf.Write(SaveAdhesionFilter);
+            outf.Write(saveAdhesionFilter);
             outf.Write(GenericItem1);
             outf.Write(GenericItem2);
             outf.Write((int)RemoteControlGroup);
@@ -1457,9 +1455,9 @@ namespace Orts.Simulation.RollingStocks
             IsWaterScoopDown = inf.ReadBoolean();
             CurrentTrackSandBoxCapacityM3 = inf.ReadSingle();
 
-            SaveAdhesionFilter = inf.ReadSingle();
+            saveAdhesionFilter = inf.ReadSingle();
 
-            AdhesionFilter.Reset(SaveAdhesionFilter);
+            adhesionFilter.Reset(saveAdhesionFilter);
 
             GenericItem1 = inf.ReadBoolean();
             GenericItem2 = inf.ReadBoolean();
@@ -1830,9 +1828,7 @@ namespace Orts.Simulation.RollingStocks
         {
             base.InitializeMoving();
             LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS);
-            LocomotiveAxle.AxleSpeedMpS = SpeedMpS;
-            LocomotiveAxle.AdhesionConditions = (float)(simulator.Settings.AdhesionFactor) * 0.01f;
-            AdhesionFilter.Reset(0.5f);
+            adhesionFilter.Reset(0.5f);
             AverageForceN = MaxForceN * Train.MUThrottlePercent / 100;
             float maxPowerW = MaxPowerW * Train.MUThrottlePercent * Train.MUThrottlePercent / 10000;
             if (AverageForceN * SpeedMpS > maxPowerW)
@@ -2061,7 +2057,7 @@ namespace Orts.Simulation.RollingStocks
                     AntiSlip = true; // Always set AI trains to AntiSlip
                     SimpleAdhesion();   // Simple adhesion model used for AI trains
                     if (Train.IsActualPlayerTrain)
-                        FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                        FilteredMotiveForceN = (float)currentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     WheelSpeedMpS = Flipped ? -AbsSpeedMpS : AbsSpeedMpS;            //make the wheels go round
                     break;
                 case TrainType.Static:
@@ -2119,7 +2115,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     //Force to display
-                    FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                    FilteredMotiveForceN = (float)currentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     break;
                 default:
                     break;
@@ -2693,17 +2689,18 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.InertiaKgm2 = Math.Min(AxleInertiaKgm2, 40000);
 
                 //LocomotiveAxle.AxleRevolutionsInt.MinStep = LocomotiveAxle.InertiaKgm2 / MaxPowerW / 5.0f;
-                LocomotiveAxle.AxleDiameterM = 2 * DriverWheelRadiusM;
+                LocomotiveAxle.WheelRadiusM = DriverWheelRadiusM;
+                LocomotiveAxle.DampingNs = MassKG / 1000.0f;
+                LocomotiveAxle.FrictionN = MassKG / 1000.0f;
 
                 if (SlipControlSystem == SlipControlType.Full)
                 {
                     // Simple slip control
                     // Motive force is reduced to the maximum adhesive force
                     // In wheelslip situations, motive force is set to zero
-                    double umax = (LocomotiveAxle.CurtiusKnifflerA / (Speed.MeterPerSecond.ToKpH(Math.Abs(SpeedMpS)) + LocomotiveAxle.CurtiusKnifflerB) + LocomotiveAxle.CurtiusKnifflerC); // Curtius - Kniffler equation
-                    umax *= LocomotiveAxle.AdhesionConditions;
-                    MotiveForceN = (float)(Math.Sign(MotiveForceN) * Math.Min(umax * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN)));
-                    if (LocomotiveAxle.IsWheelSlip) MotiveForceN = 0;
+                    MotiveForceN = LocomotiveAxle.IsWheelSlip
+                        ? 0
+                        : Math.Sign(MotiveForceN) * Math.Min(LocomotiveAxle.AdhesionLimit * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN));
                 }
 
                 //Set axle model parameters
@@ -3191,9 +3188,9 @@ namespace Orts.Simulation.RollingStocks
             // Set adhesion conditions for diesel, electric or steam geared locomotives
             if (elapsedClockSeconds > 0)
             {
-                SaveAdhesionFilter = (float)AdhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
-                LocomotiveAxle.AdhesionConditions = AdhesionMultiplier * SaveAdhesionFilter;
-                LocomotiveAxle.AdhesionConditions = MathHelper.Clamp(LocomotiveAxle.AdhesionConditions, 0.05f, 2.5f); // Avoids NaNs in axle speed computing
+                saveAdhesionFilter = (float)adhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
+                adhesionConditions = MathHelper.Clamp(AdhesionMultiplier * saveAdhesionFilter, 0.05f, 2.5f);
+                LocomotiveAxle.AdhesionLimit = adhesionConditions * BaseuMax;
             }
 
             // Set adhesion conditions for other steam locomotives
@@ -3203,7 +3200,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                LocomotiveCoefficientFrictionHUD = BaseuMax * LocomotiveAxle.AdhesionConditions; // Set display value for HUD - diesel
+                LocomotiveCoefficientFrictionHUD = BaseuMax * LocomotiveAxle.AdhesionLimit; // Set display value for HUD - diesel
             }
 
 
@@ -5772,7 +5769,7 @@ namespace Orts.Simulation.RollingStocks
                         else  // Advanced adhesion non steam locomotives
                         {
                             this["Wheel slip"] = $"{locomotive.LocomotiveAxle.SlipSpeedPercent:F0}% ({locomotive.LocomotiveAxle.SlipDerivationPercentpS:F0}%/{FormatStrings.s})";
-                            this["Conditions"] = $"{locomotive.LocomotiveAxle.AdhesionConditions * 100.0f:F0}%";
+                            this["Conditions"] = $"{locomotive.adhesionConditions * 100.0f:F0}%";
                             this["Axle drive force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.DriveForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.DriveForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
                             this["Axle brake force"] = FormatStrings.FormatForce(locomotive.LocomotiveAxle.BrakeRetardForceN, metricUnits);
                             this["Number of substeps"] = $"{locomotive.LocomotiveAxle.NumOfSubstepsPS:F0}";

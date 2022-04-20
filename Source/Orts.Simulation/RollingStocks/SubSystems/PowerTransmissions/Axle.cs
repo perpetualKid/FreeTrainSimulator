@@ -57,8 +57,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     /// </summary>
     public class Axle
     {
-        private readonly int times;
-
         public int NumOfSubstepsPS { get; set; }
 
         /// <summary>
@@ -69,8 +67,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// Damping force covered by DampingForceN interface
         /// </summary>
         /// </summary>
-        private readonly float dampingNs;
-        private readonly float frictionN;
+        public float DampingNs { get; set; }
+        public float FrictionN { get; set; }
 
         /// <summary>
         /// Axle drive type covered by DriveType interface
@@ -114,13 +112,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         /// <summary>
-        /// Drive force covered by DriveForceN interface, in Newtons
-        /// </summary>
-        private float driveForceN;
-        /// <summary>
         /// Read/Write drive force used to pass the force directly to the axle without gearbox, in Newtons
         /// </summary>
-        public float DriveForceN { set { driveForceN = value; } get { return driveForceN; } }
+        public float DriveForceN { set; get; }
 
         /// <summary>
         /// Sum of inertia over all axle conected rotating mass, in kg.m^2
@@ -164,6 +158,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
         }
 
+        /// <summary>
+        /// Pre-calculation of r^2/I
+        /// </summary>
+        private float forceToAccelerationFactor;
         /// <summary>
         /// Transmission ratio on gearbox covered by TransmissionRatio interface
         /// </summary>
@@ -213,66 +211,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         /// <summary>
-        /// Axle diameter value, covered by AxleDiameterM interface, in metric meters
+        /// Radius of wheels connected to axle
         /// </summary>
-        private float axleDiameterM;
-        /// <summary>
-        /// Read/Write nonzero positive axle diameter parameter, in metric meters
-        /// Throws exception when zero or negative value is passed
-        /// </summary>
-        public float AxleDiameterM
-        {
-            set
-            {
-                if (value <= 0.0f)
-                    throw new NotSupportedException("Axle diameter must be greater than zero");
-                axleDiameterM = value;
-            }
-            get
-            {
-                return axleDiameterM;
-            }
-        }
+        public float WheelRadiusM { get; set; }
 
         /// <summary>
-        /// Read/Write adhesion conditions parameter
-        /// Should be set within the range of 0.3 to 1.2 but there is no restriction
-        /// - Set 1.0 for dry weather (standard)
-        /// - Set 0.7 for wet, rainy weather
+        /// Static adhesion coefficient, as given by Curtius-Kniffler formula
         /// </summary>
-        public float AdhesionConditions { set; get; }
+        public float AdhesionLimit { get; set; }
 
         /// <summary>
-        /// Curtius-Kniffler equation A parameter
-        /// </summary>
-        public float CurtiusKnifflerA { set; get; }
-        /// <summary>
-        /// Curtius-Kniffler equation B parameter
-        /// </summary>
-        public float CurtiusKnifflerB { set; get; }
-        /// <summary>
-        /// Curtius-Kniffler equation C parameter
-        /// </summary>
-        public float CurtiusKnifflerC { set; get; }
-
-        /// <summary>
-        /// Read/Write correction parameter of adhesion, it has proportional impact on adhesion limit
+        /// Correction parameter of adhesion, it has proportional impact on adhesion limit
         /// Should be set to 1.0 for most cases
         /// </summary>
-        public float AdhesionK
-        {
-            set
-            {
-                adhesionK_orig = adhesionK = value;
-            }
-            get
-            {
-                return adhesionK;
-            }
-
-        }
-        private float adhesionK;
-        private float adhesionK_orig;
+        public float AdhesionK { get; set; } = 0.7f;
 
         /// <summary>
         /// Read/Write Adhesion2 parameter from the ENG/WAG file, used to correct the adhesion
@@ -283,7 +235,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <summary>
         /// Axle speed value, in metric meters per second
         /// </summary>
-        public float AxleSpeedMpS { get; set; }
+        public float AxleSpeedMpS { get; private set; }
         /// <summary>
         /// Axle angular position in radians
         public float AxlePositionRad { get; private set; }
@@ -329,17 +281,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         ///                umax^2*dV^2 + K^2
         ///   maximum can be found as a derivation f'(dV) = 0
         /// </summary>
-        public float WheelSlipThresholdMpS
-        {
-            get
-            {
-                if (AdhesionK == 0.0f)
-                    AdhesionK = 1.0f;
-                double umax = (CurtiusKnifflerA / (Speed.MeterPerSecond.ToKpH(Math.Abs(TrainSpeedMpS)) + CurtiusKnifflerB) + CurtiusKnifflerC); // Curtius - Kniffler equation
-                umax *= AdhesionConditions;
-                return (float)Speed.MeterPerSecond.FromKpH(AdhesionK / umax);
-            }
-        }
+        public float WheelSlipThresholdMpS => (float)Speed.MeterPerSecond.FromKpH(AdhesionK / AdhesionLimit);
 
         /// <summary>
         /// Read only wheelslip warning indication
@@ -400,8 +342,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// </summary>
         public float SlipDerivationPercentpS { get; private set; }
 
-        float integratorError;
-        int waitBeforeSpeedingUp;
+        private float integratorError;
+        private int waitBeforeSpeedingUp;
 
         /// <summary>
         /// Read/Write relative slip speed warning threshold value, in percent of maximal effective slip
@@ -409,11 +351,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public float SlipWarningTresholdPercent { set; get; }
         public double ResetTime { get; set; }
 
-        public Axle(AxleDriveType driveType, float damping, float friction) : this()
+        public Axle(AxleDriveType driveType) : this()
         {
             this.driveType = driveType;
-            dampingNs = Math.Abs(damping);
-            frictionN = Math.Abs(friction);
         }
 
         /// <summary>
@@ -429,7 +369,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             transmissionEfficiency = 0.99f;
             SlipWarningTresholdPercent = 70.0f;
             driveType = AxleDriveType.ForceDriven;
-            Adhesion2 = 0.331455f;
 
             switch (driveType)
             {
@@ -461,7 +400,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             motor.AxleConnected = this;
             transmissionEfficiency = 0.99f;
             driveType = AxleDriveType.MotorDriven;
-            Adhesion2 = 0.331455f;
 
             switch (driveType)
             {
@@ -489,10 +427,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             previousSlipPercent = inf.ReadSingle();
             previousSlipSpeedMpS = inf.ReadSingle();
             AxleForceN = inf.ReadSingle();
-            adhesionK = inf.ReadSingle();
-            AdhesionConditions = inf.ReadSingle();
-            frictionN = inf.ReadSingle();
-            dampingNs = inf.ReadSingle();
         }
 
         /// <summary>
@@ -504,35 +438,31 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             outf.Write(previousSlipPercent);
             outf.Write(previousSlipSpeedMpS);
             outf.Write(AxleForceN);
-            outf.Write(adhesionK);
-            outf.Write(AdhesionConditions);
-            outf.Write(frictionN);
-            outf.Write(dampingNs);
         }
 
         /// <summary>
         /// Compute variation in axle dynamics. Calculates axle speed, axle angular position and rail force.
         /// </summary>
-        private (double, double, double) GetAxleMotionVariation(double axleSpeedMpS, double axlePositionRad)
+        private (double, double, double) GetAxleMotionVariation(double axleSpeedMpS)
         {
             //Update axle force ( = k * loadTorqueNm)
-            double axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2);
+            double axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionLimit);
 
-            double motiveAxleForceN = -axleForceN - frictionN * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
+            double motiveAxleForceN = -axleForceN - DampingNs * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
             if (driveType == AxleDriveType.ForceDriven)
-                motiveAxleForceN += driveForceN * transmissionEfficiency;
+                motiveAxleForceN += DriveForceN * transmissionEfficiency;
             else if (driveType == AxleDriveType.MotorDriven)
-                motiveAxleForceN += motor.DevelopedTorqueNm * transmissionEfficiency * AxleDiameterM / 2;
+                motiveAxleForceN += motor.DevelopedTorqueNm * transmissionEfficiency * WheelRadiusM;
 
             // Dissipative forces: they will never increase wheel speed
-            double frictionalForceN = BrakeRetardForceN;
+            double frictionalForceN = BrakeRetardForceN + FrictionN;
             // + slipDerivationMpSS * dampingNs TODO: Integrator does not allow derivatives of integration variable, is damping required?
 
             double totalAxleForceN = motiveAxleForceN - Math.Sign(axleSpeedMpS) * frictionalForceN;
             if (Math.Abs(axleSpeedMpS) < 0.01f)
             {
                 if (Math.Abs(TrainSpeedMpS) < 0.01f)
-                    frictionalForceN += frictionN; // Set a starting friction to avoid oscillations
+                    frictionalForceN += FrictionN; // Set a starting friction to avoid oscillations
                 if (motiveAxleForceN > frictionalForceN)
                     totalAxleForceN = motiveAxleForceN - frictionalForceN;
                 else if (motiveAxleForceN < -frictionalForceN)
@@ -544,7 +474,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     frictionalForceN -= Math.Abs(motiveAxleForceN);
                 }
             }
-            return (totalAxleForceN * axleDiameterM * axleDiameterM / 4 / totalInertiaKgm2, axleSpeedMpS * 2 / axleDiameterM, axleForceN);
+            return (totalAxleForceN * forceToAccelerationFactor, axleSpeedMpS / WheelRadiusM, axleForceN);
         }
 
         private void Integrate(double elapsedClockSeconds)
@@ -567,16 +497,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 }
             }
 
-            NumOfSubstepsPS = Math.Max(Math.Min(NumOfSubstepsPS, 50), 5);
+            NumOfSubstepsPS = Math.Max(Math.Min(NumOfSubstepsPS, 50), 1);
             double dt = elapsedClockSeconds / NumOfSubstepsPS;
             double hdt = dt / 2.0f;
             double axleForceSumN = 0;
             for (int i = 0; i < NumOfSubstepsPS; i++)
             {
-                (double, double, double) k1 = GetAxleMotionVariation(AxleSpeedMpS, AxlePositionRad);
-                (double, double, double) k2 = GetAxleMotionVariation(AxleSpeedMpS + k1.Item1 * hdt, AxlePositionRad + k1.Item2 * hdt);
-                (double, double, double) k3 = GetAxleMotionVariation(AxleSpeedMpS + k2.Item1 * hdt, AxlePositionRad + k2.Item2 * hdt);
-                (double, double, double) k4 = GetAxleMotionVariation(AxleSpeedMpS + k3.Item1 * dt, AxlePositionRad + k3.Item2 * dt);
+                (double, double, double) k1 = GetAxleMotionVariation(AxleSpeedMpS);
+                if (i == 0 && k1.Item1 * dt > Math.Max(SlipSpeedMpS, 1) / 100)
+                {
+                    NumOfSubstepsPS = Math.Min(NumOfSubstepsPS + 5, 50);
+                    dt = elapsedClockSeconds / NumOfSubstepsPS;
+                    hdt = dt / 2;
+                }
+                (double, double, double) k2 = GetAxleMotionVariation(AxleSpeedMpS + k1.Item1 * hdt);
+                (double, double, double) k3 = GetAxleMotionVariation(AxleSpeedMpS + k2.Item1 * hdt);
+                (double, double, double) k4 = GetAxleMotionVariation(AxleSpeedMpS + k3.Item1 * dt);
                 AxleSpeedMpS += (integratorError = (float)((k1.Item1 + 2 * (k2.Item1 + k3.Item1) + k4.Item1) * dt / 6.0f));
                 AxlePositionRad += (float)((k1.Item2 + 2 * (k2.Item2 + k3.Item2) + k4.Item2) * dt / 6.0f);
                 axleForceSumN += (float)(k1.Item3 + 2 * (k2.Item3 + k3.Item3) + k4.Item3);
@@ -586,7 +522,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
             if ((prevSpeedMpS > 0 && AxleSpeedMpS <= 0) || (prevSpeedMpS < 0 && AxleSpeedMpS >= 0))
             {
-                if (Math.Max(BrakeRetardForceN, frictionN) > Math.Abs(driveForceN - AxleForceN))
+                if (Math.Max(BrakeRetardForceN, FrictionN) > Math.Abs(DriveForceN - AxleForceN))
                     Reset();
             }
         }
@@ -600,6 +536,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <param name="timeSpan"></param>
         public void Update(double timeSpan)
         {
+            forceToAccelerationFactor = WheelRadiusM * WheelRadiusM / totalInertiaKgm2;
             Integrate(timeSpan);
             // TODO: We should calculate brake force here
             // Adding and substracting the brake force is correct for normal operation,
@@ -609,10 +546,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             // has the brake force "added" back in to give the appropriate motive force output for the locomotive. Braking force is handled separately.
             // Hence CompensatedAxleForce is the actual output force on the axle. 
             CompensatedAxleForceN = AxleForceN + Math.Sign(TrainSpeedMpS) * BrakeRetardForceN;
+            if (AxleForceN == 0)
+                CompensatedAxleForceN = 0;
 
             if (driveType == AxleDriveType.MotorDriven)
             {
-                motor.RevolutionsRad = AxleSpeedMpS * 2.0f * transmissionRatio / (axleDiameterM);
+                motor.RevolutionsRad = AxleSpeedMpS * transmissionRatio / WheelRadiusM;
                 motor.Update(timeSpan);
             }
             if (timeSpan > 0.0f)
@@ -631,7 +570,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public void Reset()
         {
             AxleSpeedMpS = 0;
-            adhesionK = adhesionK_orig;
             motor?.Reset();
         }
 
@@ -648,7 +586,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         /// <summary>
         /// Slip characteristics computation
-        /// - Computes adhesion limit using Curtius-Kniffler formula:
+        /// - Uses adhesion limit calculated by Curtius-Kniffler formula:
         ///                 7.5
         ///     umax = ---------------------  + 0.161
         ///             speed * 3.6 + 44.0
@@ -663,29 +601,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// further investigation is done to get a single formula that provides
         /// non zero adhesion at infinity.
         /// </summary>
-        /// <param name="slipSpeed">Difference between train speed and wheel speed MpS</param>
-        /// <param name="speed">Current speed MpS</param>
-        /// <param name="K">Slip speed correction. If is set K = 0 then K = 0.7 is used</param>
-        /// <param name="conditions">Relative weather conditions, usually from 0.2 to 1.0</param>
+        /// <param name="slipSpeedMpS">Difference between train speed and wheel speed</param>
+        /// <param name="speedMpS">Current speed</param>
+        /// <param name="K">Slip speed correction</param>
+        /// <param name="umax">Relative weather conditions, usually from 0.2 to 1.0</param>
         /// <returns>Relative force transmitted to the rail</returns>
-        private double SlipCharacteristics(float slipSpeedMpS, float speedMpS, float K, float conditions, float Adhesion2)
+        private static double SlipCharacteristics(float slipSpeedMpS, float speedMpS, float K, float umax)
         {
-            double speedKpH = Math.Abs(Speed.MeterPerSecond.ToKpH(speedMpS));
-            double umax = (CurtiusKnifflerA / (speedKpH + CurtiusKnifflerB) + CurtiusKnifflerC);// *Adhesion2 / 0.331455f; // Curtius - Kniffler equation
-            umax *= conditions;
-            if (K == 0.0)
-                K = 1;
             double slipSpeedKpH = Speed.MeterPerSecond.ToKpH(slipSpeedMpS);
-            double x = Math.Abs(slipSpeedKpH * umax / K);
-            double sqrt3 = (float)Math.Sqrt(3);
-            if (x > sqrt3)
+            double x = slipSpeedKpH * umax / K; // Slip percentage
+            double absx = Math.Abs(x);
+            double sqrt3 = Math.Sqrt(3);
+            if (absx > sqrt3)
             {
                 // At infinity, adhesion is 40% of maximum (Polach, 2005)
                 // The value must be lower than 85% for the formula to work
                 float inftyFactor = 0.4f;
                 return Math.Sign(slipSpeedKpH) * umax * ((sqrt3 / 2 - inftyFactor) * (float)Math.Exp((sqrt3 - x) / (2 * sqrt3 - 4 * inftyFactor)) + inftyFactor);
             }
-            return 2.0f * K * umax * umax * (slipSpeedKpH / (umax * umax * slipSpeedKpH * slipSpeedKpH + K * K));
+            return 2.0f * umax * x / (1 + x * x);
         }
     }
 }
