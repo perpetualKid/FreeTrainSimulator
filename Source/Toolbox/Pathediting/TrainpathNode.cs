@@ -38,6 +38,8 @@
 
 using System;
 
+using GetText;
+
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
@@ -266,11 +268,11 @@ namespace Orts.Toolbox.Pathediting
             {
                 return brokenStatus switch
                 {
-                    NodeStatus.SetAsInvalid => GameWindow.catalog.GetString("Set as invalid in .pat file"),
-                    NodeStatus.NotOnJunction => GameWindow.catalog.GetString("Closest junction is too far away"),
-                    NodeStatus.NotOnTrack => GameWindow.catalog.GetString("Not able to place node on track"),
-                    NodeStatus.Dangling => GameWindow.catalog.GetString("Dangling siding node"),
-                    _ => GameWindow.catalog.GetString("Unknown"),
+                    NodeStatus.SetAsInvalid => CatalogManager.Catalog.GetString("Set as invalid in .pat file"),
+                    NodeStatus.NotOnJunction => CatalogManager.Catalog.GetString("Closest junction is too far away"),
+                    NodeStatus.NotOnTrack => CatalogManager.Catalog.GetString("Not able to place node on track"),
+                    NodeStatus.Dangling => CatalogManager.Catalog.GetString("Dangling siding node"),
+                    _ => CatalogManager.Catalog.GetString("Unknown"),
                 };
             }
 

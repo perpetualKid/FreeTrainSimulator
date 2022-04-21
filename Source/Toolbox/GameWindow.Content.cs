@@ -11,6 +11,7 @@ using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Toolbox
 {
@@ -91,6 +92,13 @@ namespace Orts.Toolbox
             windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
            
+        }
+
+        internal async Task LoadPath(Path path)
+        {
+            PathFile patFile = new PathFile(path.FilePath);
+            ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         internal async Task PreSelectRoute(string[] selection)

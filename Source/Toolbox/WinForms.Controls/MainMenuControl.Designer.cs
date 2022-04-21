@@ -677,7 +677,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.enableEditToolStripMenuItem.Name = "enableEditToolStripMenuItem";
             this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.enableEditToolStripMenuItem.Text = "Enable Editing";
-            this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.enableEditToolStripMenuItem_Click);
+            this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 

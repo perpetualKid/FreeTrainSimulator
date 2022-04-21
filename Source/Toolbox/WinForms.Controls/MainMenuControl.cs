@@ -348,30 +348,38 @@ namespace Orts.Toolbox.WinForms.Controls
             });
         }
 
-        private void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string SelectedPathName = sender.ToString();
-            if (SelectedPathName == null) return;
-            parent.SetPath(SelectedPathName);
-            if (!ShowPathToolStripMenuItem.Checked)
+            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Models.Simplified.Path path)
             {
-                // Enable viewing of Path
-                ShowPathToolStripMenuItem.Checked = true;
-                enableEditToolStripMenuItem.Enabled = true;
+                await parent.LoadPath(path).ConfigureAwait(false);
             }
+            // **note** the selected menuItem already holds a "Path" in the tag, so rather use that instead of the menu item name
+
+            //string SelectedPathName = sender.ToString();
+            //if (SelectedPathName == null) return;
+            //parent.SetPath(SelectedPathName);
+            //if (!ShowPathToolStripMenuItem.Checked)
+            //{
+            //    // Enable viewing of Path
+            //    ShowPathToolStripMenuItem.Checked = true;
+            //    enableEditToolStripMenuItem.Enabled = true;
+            //}
                
         }
 
-        private void enableEditToolStripMenuItem_Click(object sender, EventArgs e)
+        private void EnableEditToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!enableEditToolStripMenuItem.Checked)
-            {
-                enableEditToolStripMenuItem.Checked = true;
-            }
-            else
-            {
-                enableEditToolStripMenuItem.Checked = false;
-            }
+            // **note** avoid excessive code
+            //if (!enableEditToolStripMenuItem.Checked)
+            //{
+            //    enableEditToolStripMenuItem.Checked = true;
+            //}
+            //else
+            //{
+            //    enableEditToolStripMenuItem.Checked = false;
+            //}
+            enableEditToolStripMenuItem.Checked = !enableEditToolStripMenuItem.Checked;
             parent.Patheditor.EditingIsActive = enableEditToolStripMenuItem.Checked;
         }
 

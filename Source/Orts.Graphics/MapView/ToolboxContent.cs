@@ -163,6 +163,13 @@ namespace Orts.Graphics.MapView
             }
         }
 
+        #region additional content (Paths)
+        public void InitializePath(PathFile path)
+        {
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
+        }
+        #endregion
+
         #region build content database
         private void AddTrackSegments()
         {

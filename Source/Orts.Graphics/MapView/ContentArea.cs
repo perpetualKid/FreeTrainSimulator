@@ -121,6 +121,7 @@ namespace Orts.Graphics.MapView
                     break;
                 case ColorSetting.PathTrack:
                     PointWidget.UpdateColor<PathSegment>(color);
+                    PointWidget.UpdateColor<TrainPathSegment>(color);
                     break;
                 case ColorSetting.PathTrackEnd:
                     PointWidget.UpdateColor<PathEndTrackItem>(color);
