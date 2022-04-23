@@ -42,20 +42,10 @@ namespace Orts.ContentManager.Models
                 EndName = file.End;
 
                 List<PathNode> nodes = new List<PathNode>(file.PathNodes.Count);
-                List<List<PathNode>> nodeNexts = new List<List<PathNode>>(file.PathNodes.Count);
                 foreach (Formats.Msts.Models.PathNode node in file.PathNodes)
                 {
-                    Formats.Msts.Models.PathDataPoint pdp = file.DataPoints[(int)node.PathDataPoint];
                     List<PathNode> next = new List<PathNode>();
-                    nodes.Add(new PathNode(pdp.Location.ToString(), node.PathFlags, node.WaitTime, next));
-                    nodeNexts.Add(next);
-                }
-                for (int i = 0; i < file.PathNodes.Count; i++)
-                {
-                    if (file.PathNodes[i].NextMainNode > -1)
-                        nodeNexts[i].Add(nodes[file.PathNodes[i].NextMainNode]);
-                    if (file.PathNodes[i].NextSidingNode > -1)
-                        nodeNexts[i].Add(nodes[file.PathNodes[i].NextSidingNode]);
+                    nodes.Add(new PathNode(node.Location.ToString(), node.PathFlags, node.WaitTime, next));
                 }
                 Nodes = nodes;
             }

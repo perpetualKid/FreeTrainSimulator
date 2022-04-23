@@ -117,7 +117,6 @@ namespace Orts.Formats.Msts.Files
         public PathFlags Flags { get; private set; }
         public bool IsPlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
 #pragma warning disable CA1002 // Do not expose generic lists
-        public List<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
         public List<PathNode> PathNodes { get; } = new List<PathNode>();
 #pragma warning restore CA1002 // Do not expose generic lists
 
@@ -130,10 +129,11 @@ namespace Orts.Formats.Msts.Files
         {
             try
             {
+                List<PathDataPoint> dataPoints = new List<PathDataPoint>();
                 using (STFReader stf = new STFReader(fileName, false))
                     stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("trackpdps", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("trackpdp", ()=>{ DataPoints.Add(new PathDataPoint(stf)); }),
+                        new STFReader.TokenProcessor("trackpdp", ()=>{ dataPoints.Add(new PathDataPoint(stf)); }),
                     });}),
                     new STFReader.TokenProcessor("trackpath", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
 						new STFReader.TokenProcessor("trpathname", ()=>{ PathID = stf.ReadStringBlock(null); }),
@@ -149,7 +149,7 @@ namespace Orts.Formats.Msts.Files
                                     if (--count < 0)
                                         STFException.TraceWarning(stf, "Skipped extra TrPathNodes");
                                     else
-                                        PathNodes.Add(new PathNode(stf));
+                                        PathNodes.Add(new PathNode(stf, dataPoints));
                                 }),
                             });
                             if (count > 0)

@@ -215,8 +215,6 @@ namespace Orts.Toolbox.Pathediting
             { return true; }
             if (patFile.End == null)
             { return true; }
-            if (patFile.DataPoints.Count == 0)
-            { return true; }
             if (patFile.PathNodes.Count == 0)
             { return true; }
 
@@ -231,7 +229,7 @@ namespace Orts.Toolbox.Pathediting
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], trackDB, tsectionDat));
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDB, tsectionDat));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }

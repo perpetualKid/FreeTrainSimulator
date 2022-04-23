@@ -11,12 +11,12 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPath(PathFile pathFile) : base(PointD.FromWorldLocation(pathFile.DataPoints[0].Location), PointD.FromWorldLocation(pathFile.DataPoints[^1].Location))
+        public TrainPath(PathFile pathFile) : base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
         {
             bool firstNode = true;
-            foreach(PathDataPoint point in pathFile.DataPoints)
+            foreach(PathNode node in pathFile.PathNodes)
             {
-                pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(point.Location), firstNode ? TrainPathNodeType.Start : TrainPathNodeType.Other));
+                pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(node.Location), firstNode ? TrainPathNodeType.Start : TrainPathNodeType.Other));
                 firstNode = false;
             }
         }
