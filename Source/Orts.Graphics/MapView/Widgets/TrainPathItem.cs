@@ -5,48 +5,30 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    public enum TrainPathNodeType
-    {
-        /// <summary>Node is the start node </summary>
-        Start,
-        /// <summary>Node is the end node (and not just the last node) </summary>
-        End,
-        /// <summary>Node is a regular node </summary>
-        Other,
-        /// <summary>Node is a wait/stop node</summary>
-        Stop,
-        /// <summary>Node is a junction node at the start of a siding </summary>
-        SidingStart,
-        /// <summary>Node is a junction node at the end of a siding</summary>
-        SidingEnd,
-        /// <summary>Node is a reversal node</summary>
-        Reverse,
-        /// <summary>Temporary node for editing purposes</summary>
-        Temporary,
-    };
-
     internal class TrainPathItem : PointWidget
     {
         private protected readonly BasicTextureType textureType;
 
-        internal TrainPathItem(in PointD location, TrainPathNodeType nodeType)
+        internal TrainPathItem(in PointD location, PathNodeType nodeType)
         {
             base.location = location;
             tile = PointD.ToTile(location);
             textureType = nodeType switch
             {
-                TrainPathNodeType.Start => BasicTextureType.PathStart,
-                TrainPathNodeType.End => BasicTextureType.PathEnd,
-                TrainPathNodeType.Other => BasicTextureType.PathNormal,
-                TrainPathNodeType.Stop => BasicTextureType.PathWait,
-                TrainPathNodeType.SidingStart => BasicTextureType.PathNormal,
-                TrainPathNodeType.SidingEnd => BasicTextureType.PathNormal,
-                TrainPathNodeType.Reverse => BasicTextureType.PathReverse,
-                TrainPathNodeType.Temporary => BasicTextureType.RingCrossed,
+                PathNodeType.Start => BasicTextureType.PathStart,
+                PathNodeType.End => BasicTextureType.PathEnd,
+                PathNodeType.Normal => BasicTextureType.PathNormal,
+                PathNodeType.Intermediate => BasicTextureType.PathNormal,
+                PathNodeType.Wait => BasicTextureType.PathWait,
+                PathNodeType.SidingStart => BasicTextureType.PathNormal,
+                PathNodeType.SidingEnd => BasicTextureType.PathNormal,
+                PathNodeType.Reversal => BasicTextureType.PathReverse,
+                PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
         }

@@ -13,11 +13,9 @@ namespace Orts.Graphics.MapView.Widgets
 
         public TrainPath(PathFile pathFile) : base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
         {
-            bool firstNode = true;
             foreach(PathNode node in pathFile.PathNodes)
             {
-                pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(node.Location), firstNode ? TrainPathNodeType.Start : TrainPathNodeType.Other));
-                firstNode = false;
+                pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(node.Location), node.NodeType));
             }
         }
 

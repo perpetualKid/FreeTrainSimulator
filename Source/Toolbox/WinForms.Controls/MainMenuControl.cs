@@ -379,8 +379,8 @@ namespace Orts.Toolbox.WinForms.Controls
             //{
             //    enableEditToolStripMenuItem.Checked = false;
             //}
-            enableEditToolStripMenuItem.Checked = !enableEditToolStripMenuItem.Checked;
-            parent.Patheditor.EditingIsActive = enableEditToolStripMenuItem.Checked;
+            //enableEditToolStripMenuItem.Checked = !enableEditToolStripMenuItem.Checked;
+            //parent.Patheditor.EditingIsActive = enableEditToolStripMenuItem.Checked;
         }
 
         #endregion

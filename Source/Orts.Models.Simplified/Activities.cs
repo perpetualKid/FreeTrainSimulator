@@ -93,7 +93,7 @@ namespace Orts.Models.Simplified
                 ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
                 Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig, false);
                 Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
-                if (!path.IsPlayerPath)
+                if (!path.PlayerPath)
                 {
                     return null;
                     // Not nice to throw an error now. Error was originally thrown by new Path(...);

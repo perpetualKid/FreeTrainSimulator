@@ -260,8 +260,17 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public AIPathNode(PathNode tpn, bool isTimetableMode)
         {
-            InterpretPathNodeFlags(tpn, isTimetableMode);
+            if (tpn.NodeType == PathNodeType.Reversal)
+                Type = AIPathNodeType.Reverse;
+            else if (tpn.NodeType == PathNodeType.Wait)
+                Type = AIPathNodeType.Stop;
 
+            if (tpn.Invalid && isTimetableMode) // not a valid point
+            {
+                Type = AIPathNodeType.Invalid;
+            }
+
+            WaitTimeS = tpn.WaitTime;
             Location = tpn.Location;
             if (tpn.Junction)
             {
@@ -290,75 +299,6 @@ namespace Orts.Simulation.AIs
             IsFacingPoint = otherNode.IsFacingPoint;
             IsVisited = otherNode.IsVisited;
         }
-
-        // Possible interpretation (as found on internet, by krausyao)
-        // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
-        // AAAA wait time seconds in hexidecimal
-        // BBBB (Also hexidecimal, so 16 bits)
-        // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
-        // Bit 1 - waiting point (2/x2)
-        // Bit 2 - intermediate point between switches (4/x4)
-        // Bit 3 - 'other exit' is used (8/x8)
-        // Bit 4 - 'optional Route' active (16/x10)
-        //
-        // But the interpretation below is a bit more complicated.
-        // TODO. Since this interpretation belongs to the PATfile itself, 
-        // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(PathNode tpn, bool isTimetableMode)
-        {
-            if ((tpn.PathFlags & (PathFlags.WaitPoint | PathFlags.ReversalPoint)) == 0) return;
-            // bit 0 and/or bit 1 is set.
-
-            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
-            {
-                // if bit 0 is set: reversal
-                Type = AIPathNodeType.Reverse;
-            }
-            else
-            {
-                // bit 0 is not set, but bit 1 is set:waiting point
-                Type = AIPathNodeType.Stop;
-                //<CSComment> tests showed me that value 9 in pdp is generated  when the waiting point (or also 
-                //a path start or end point) are dragged within the path editor of the MSTS activity editor; the points are still valid;
-                // however, as a contradictory case of the past has been reported, the check is skipped only when the enhanced compatibility flag is on;
-                if (!tpn.Valid && isTimetableMode) // not a valid point
-                {
-                    Type = AIPathNodeType.Invalid;
-                }
-            }
-
-            WaitTimeS = tpn.WaitTime; // get the AAAA part.
-            // computations for absolute wait times are made within AITrain.cs
-/*            if (WaitTimeS >= 30000 && WaitTimeS < 40000)
-            {
-                // real wait time. 
-                // waitTimeS (in decimal notation) = 3HHMM  (hours and minuts)
-                int hour = (WaitTimeS / 100) % 100;
-                int minute = WaitTimeS % 100;
-                WaitUntil = 60 * (minute + 60 * hour);
-                WaitTimeS = 0;
-            }*/
-            // computations are made within AITrain.cs
-/*            else if (WaitTimeS >= 40000 && WaitTimeS < 60000)
-            {
-                // Uncouple if a wait=stop point
-                // waitTimeS (in decimal notation) = 4NNSS (uncouple NN cars, wait SS seconds)
-                //                                or 5NNSS (uncouple NN cars, keep rear, wait SS seconds)
-                NCars = (WaitTimeS / 100) % 100;
-                if (WaitTimeS >= 50000)
-                    NCars = -NCars;
-                WaitTimeS %= 100;
-                if (Type == AIPathNodeType.Stop)
-                    Type = AIPathNodeType.Uncouple;
-            }
-            else if (WaitTimeS >= 60000)  // this is old and should be removed/reused
-            {
-                // waitTimes = 6xSSS  with waitTime SSS seconds.
-                WaitTimeS %= 1000;
-            } */
-
-        }
-
 
         // restore game state
         public AIPathNode(BinaryReader inf)

@@ -25,7 +25,6 @@ using Orts.Graphics.MapView;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
-using Orts.Toolbox.Pathediting;
 using Orts.Toolbox.PopupWindows;
 using Orts.Toolbox.Settings;
 

@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
-using Orts.Graphics.MapView;
-using Orts.Toolbox.Pathediting;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox
@@ -31,9 +29,6 @@ namespace Orts.Toolbox
         private string stpath;
 
         #endregion
-
-        /// <summary>The Path editor</summary>
-        internal Patheditor Patheditor { get; private set; }
 
         private const int zoomAmplifier = 3;
 
@@ -211,7 +206,7 @@ namespace Orts.Toolbox
                         //(windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
                         //windowManager[WindowType.StatusWindow].Open();
 
-                        Patheditor = new Patheditor(path);
+                        //Patheditor = new Patheditor(path);
 
                         //windowManager[WindowType.StatusWindow].Close();
                     }

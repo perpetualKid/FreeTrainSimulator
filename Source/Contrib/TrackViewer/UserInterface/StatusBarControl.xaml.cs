@@ -283,8 +283,8 @@ namespace ORTS.TrackViewer.UserInterface
                 PathNode curNode = trackViewer.DrawPATfile.CurrentNode;
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " {7}: {3}, {4} [{1} {2}] [{5} {6}] <{0}>",
-                    curNode.PathFlags, (int)curNode.NextMainNode, (int)curNode.NextSidingNode,
-                    curNode.Location.Location.X, curNode.Location.Location.Z, curNode.Junction, curNode.Valid, trackViewer.DrawPATfile.FileName);
+                    curNode.NodeType, curNode.NextMainNode, curNode.NextSidingNode,
+                    curNode.Location.Location.X, curNode.Location.Location.Z, curNode.Junction, curNode.Invalid, trackViewer.DrawPATfile.FileName);
             }
         }
 

@@ -1,5 +1,7 @@
 ﻿
+using System;
 using System.Collections.Generic;
+using System.Xml.XPath;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
@@ -30,7 +32,6 @@ namespace Orts.Formats.Msts.Models
         private readonly int junctionFlag;
         private readonly int invalidFlag;
 
-        public PathFlags PathFlags { get; private set; }
         public int NextMainNode { get; private set; }
         public int NextSidingNode { get; private set; }
 
@@ -38,14 +39,12 @@ namespace Orts.Formats.Msts.Models
 
         public ref readonly WorldLocation Location => ref location;
 
-        #region Properties
-        //Note : these flags are not understood in all detail
         public bool Junction => junctionFlag == 2;
-        public bool Valid => (invalidFlag & 0b1000) != 0b1000;  //When bit 3 is set for flag2 (so 8, 9, 12, 13), it seems to denote a broken (or perhaps unfinished) path. Perhaps route was changed afterwards.
-        #endregion
+        public bool Invalid => (invalidFlag & 0b1000) == 0b1000;  //When bit 3 is set for flag2 (so 8, 9, 12, 13), it seems to denote a broken (or perhaps unfinished) path. Perhaps route was changed afterwards.
 
+        public PathNodeType NodeType { get; }
 
-        internal PathNode(STFReader stf, List<PathDataPoint> pathDataPoints)
+        internal PathNode(STFReader stf, List<PathDataPoint> pathDataPoints, bool firstNode = false)
         {
             // Possible interpretation (as found on internet, by krausyao)
             // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
@@ -57,9 +56,9 @@ namespace Orts.Formats.Msts.Models
             // Bit 3 - 'other exit' is used (8/x8)
             // Bit 4 - 'optional Route' active (16/x10)
             stf.MustMatchBlockStart();
-            uint pathFlags = stf.ReadHex(0);
-            WaitTime = (int)(pathFlags >> 16);
-            PathFlags = (PathFlags)(pathFlags & 0xFFFF);
+            uint fullPathFlags = stf.ReadHex(0);
+            WaitTime = (int)(fullPathFlags >> 16);
+            PathFlags pathFlags = (PathFlags)(fullPathFlags & 0xFFFF);
             NextMainNode = (int)stf.ReadUInt(null);
             NextSidingNode = (int)stf.ReadUInt(null);
             int pathDataPoint = (int)stf.ReadUInt(null);
@@ -68,6 +67,29 @@ namespace Orts.Formats.Msts.Models
             location = pathDataPoints[pathDataPoint].Location;
             junctionFlag = pathDataPoints[pathDataPoint].JunctionFlag;
             invalidFlag = pathDataPoints[pathDataPoint].InvalidFlag;
+
+            if (firstNode)
+            {
+                NodeType = PathNodeType.Start;
+            }
+            else if (NextMainNode == -1  && NextSidingNode == -1)
+            {
+                NodeType = PathNodeType.End;
+            }
+            // if bit 0 is set: reversal
+            else if ((pathFlags & PathFlags.ReversalPoint) == PathFlags.ReversalPoint)
+            {
+                NodeType = PathNodeType.Reversal;
+            }
+            // bit 0 is not set, but bit 1 is set:waiting point
+            else if ((pathFlags & PathFlags.WaitPoint) == PathFlags.WaitPoint)
+            {
+                NodeType = PathNodeType.Wait;
+            }
+            else if ((pathFlags & PathFlags.IntermediatePoint) == PathFlags.IntermediatePoint)
+            {
+                NodeType = PathNodeType.Intermediate;
+            }
         }
     }
 }

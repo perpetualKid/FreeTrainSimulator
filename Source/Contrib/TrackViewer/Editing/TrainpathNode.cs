@@ -184,7 +184,7 @@ namespace ORTS.TrackViewer.Editing
             :this(trackDB, tsectionDat)
         {
             Location = tpn.Location;
-            if (!tpn.Valid) // not a valid point
+            if (tpn.Invalid) // not a valid point
             {
                 SetBroken(NodeStatus.SetAsInvalid);
             }
@@ -731,7 +731,18 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
-            InterpretPathNodeFlags(tpn);
+            NodeType = tpn.NodeType switch
+            {
+                PathNodeType.Normal => TrainpathNodeType.Other,
+                PathNodeType.Intermediate => TrainpathNodeType.Other,
+                PathNodeType.Start => TrainpathNodeType.Other,
+                PathNodeType.End => TrainpathNodeType.Other,
+                PathNodeType.Wait => TrainpathNodeType.Stop,
+                PathNodeType.SidingStart => TrainpathNodeType.Other,
+                PathNodeType.SidingEnd => TrainpathNodeType.Other,
+                PathNodeType.Reversal => TrainpathNodeType.Reverse,
+                PathNodeType.Temporary => TrainpathNodeType.Other,
+            };
         }
 
         /// <summary>
@@ -863,41 +874,6 @@ namespace ORTS.TrackViewer.Editing
         public bool IsBetween(TrainpathNode node1, TrainpathNode node2)
         {
             return (IsEarlierOnTrackThan(node1) != IsEarlierOnTrackThan(node2));
-        }
-
-        // Flag Intepretation
-        // (No flag interpretation for junction nodes)
-
-        // Possible interpretation (as found on internet, by krausyao)
-        // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
-        // AAAA wait time seconds in hexidecimal
-        // BBBB (Also hexidecimal, so 16 bits)
-        // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
-        // Bit 1 - waiting point (2/x2)
-        // Bit 2 - intermediate point between switches (4/x4)
-        // Bit 3 - 'other exit' is used (8/x8)
-        // Bit 4 - 'optional Route' active (16/x10)
-        //
-        // But the interpretation below is a bit more complicated.
-        // Since this interpretation belongs to the PATfile itself, 
-        // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(PathNode tpn)
-        {
-            if ((tpn.PathFlags & (PathFlags.ReversalPoint & PathFlags.WaitPoint)) == 0) return;
-            // bit 0 and/or bit 1 is set.
-
-            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
-            {
-                // if bit 0 is set: reversal
-                NodeType = TrainpathNodeType.Reverse;
-            }
-            else
-            {
-                // bit 0 is not set, but bit 1 is set:waiting point
-                NodeType = TrainpathNodeType.Stop;
-            }
-
-            WaitTimeS = tpn.WaitTime; // get the AAAA part.
         }
 
         /// <summary>

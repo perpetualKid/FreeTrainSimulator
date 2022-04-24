@@ -497,7 +497,7 @@ namespace Orts.Menu
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
                 Path path = Path.GetPath(SelectedRoute, selectedTrain.Path);
-                SelectedTimetablePath = path.IsPlayerPath ? path : null;
+                SelectedTimetablePath = path.PlayerPath ? path : null;
 
                 if (updater == 0)
                 {
