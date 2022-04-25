@@ -238,10 +238,16 @@ namespace Orts.Simulation.RollingStocks
         /// True if vehicle is equipped with an additional emergency brake reservoir
         /// </summary>
         public bool EmergencyReservoirPresent;
+        public enum BrakeValveType
+        {
+            None,
+            TripleValve, // Plain triple valve
+            Distributor, // Triple valve with graduated release
+        }
         /// <summary>
-        /// True if triple valve is capable of releasing brake gradually
+        /// Type of brake valve in the car
         /// </summary>
-        public bool DistributorPresent;
+        public BrakeValveType BrakeValve;
         /// <summary>
         /// True if equipped with handbrake. (Not common for older steam locomotives.)
         /// </summary>
@@ -1189,16 +1195,21 @@ namespace Orts.Simulation.RollingStocks
                     {
                         switch (equipment)
                         {
-                            case "distributor":
-                            case "graduated_release_triple_valve":
-                                DistributorPresent = true;
+                            case "triple_valve": 
+                                BrakeValve = BrakeValveType.TripleValve; 
                                 break;
-                            case "emergency_brake_reservoir":
+                            case "distributor":
+                            case "graduated_release_triple_valve": 
+                                BrakeValve = BrakeValveType.Distributor; 
+                                break;
+                           case "emergency_brake_reservoir":
                                 EmergencyReservoirPresent = true;
                                 break;
                             case "handbrake":
                                 HandBrakePresent = true;
                                 break;
+
+                            case "auxilary_reservoir": // MSTS legacy parameter - use is discouraged
                             case "auxiliary_reservoir":
                                 AuxiliaryReservoirPresent = true;
                                 break;
@@ -1526,7 +1537,7 @@ namespace Orts.Simulation.RollingStocks
             BrakeSystemType = source.BrakeSystemType;
             BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
             EmergencyReservoirPresent = source.EmergencyReservoirPresent;
-            DistributorPresent = source.DistributorPresent;
+            BrakeValve = source.BrakeValve;
             HandBrakePresent = source.HandBrakePresent;
             ManualBrakePresent = source.ManualBrakePresent;
             AuxiliaryReservoirPresent = source.AuxiliaryReservoirPresent;
