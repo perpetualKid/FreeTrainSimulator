@@ -19,7 +19,7 @@ namespace Orts.Graphics.MapView.Widgets
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }
 
-        public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
             List<SidingPath> sidings = new List<SidingPath>();
 
@@ -36,14 +36,13 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
                     }
                     sidingItemMappings.Remove(end.Id);
-                    sidings.Add(new SidingPath(start, end, trackNodeSegments));
+                    yield return new SidingPath(start, end, trackNodeSegments);
                 }
                 else
                 {
                     Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.Id} not found.");
                 }
             }
-            return sidings;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

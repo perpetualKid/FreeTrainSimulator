@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Xna.Framework;
 
@@ -271,6 +272,35 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
         #endregion
+
+        public static SegmentBase SegmentBaseAt(in PointD location, IEnumerable<SegmentBase> segments)
+        {
+            foreach (SegmentBase segment in segments)
+            {
+                //find the start vector section
+                if (segment.DistanceSquared(location) < proximityTolerance)
+                {
+                    return segment;
+                }
+            }
+            return null;
+        }
+
+        public float DirectionAt(in PointD location)
+        {
+            if (Curved)
+            {
+                PointD delta = location - centerPoint;
+                float deltaAngle = (float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
+                return Direction - deltaAngle;
+            }
+            else
+            {
+                return Direction;
+            }
+
+        }
 
     }
 }

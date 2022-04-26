@@ -250,13 +250,18 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
+                RuntimeData.Instance.TrackDB?.TrackItems, 
+                RuntimeData.Instance.SignalConfigFile, 
+                RuntimeData.Instance.TrackDB, TrackNodeSegments).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
 
-            List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
-            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
             contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
+            IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();
 
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
             contentItems[MapViewItemSettings.OtherSignals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));

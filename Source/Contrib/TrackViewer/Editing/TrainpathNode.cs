@@ -742,6 +742,7 @@ namespace ORTS.TrackViewer.Editing
                 PathNodeType.SidingEnd => TrainpathNodeType.Other,
                 PathNodeType.Reversal => TrainpathNodeType.Reverse,
                 PathNodeType.Temporary => TrainpathNodeType.Other,
+                _ => throw new NotImplementedException(),
             };
         }
 

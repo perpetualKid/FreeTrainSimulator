@@ -298,7 +298,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             StringBuilder documentation = new StringBuilder();
             documentation.AppendLine(parent.Catalog.GetString($"Documentation for {RuntimeInfo.ApplicationName} is available online at:"));
-            documentation.AppendLine(RuntimeInfo.WikiUri.ToString());
+            documentation.AppendLine(RuntimeInfo.WikiLink.ToString());
             documentation.AppendLine();
             documentation.AppendLine(parent.Catalog.GetString("Do you want to visit the website now?"));
             documentation.AppendLine(parent.Catalog.GetString("This will open the page in standard web browser."));
@@ -306,7 +306,7 @@ namespace Orts.Toolbox.WinForms.Controls
             DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
-                SystemInfo.OpenBrowser(RuntimeInfo.WikiUri);
+                SystemInfo.OpenBrowser(RuntimeInfo.WikiLink);
             }
 
         }
