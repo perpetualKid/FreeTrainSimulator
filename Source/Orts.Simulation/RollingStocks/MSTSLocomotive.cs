@@ -223,7 +223,7 @@ namespace Orts.Simulation.RollingStocks
         public float CalculatedCarHeaterSteamUsageLBpS;
 
         // Adhesion parameters
-        public SlipControlType SlipControlSystem { get; private set; } = SlipControlType.Full;
+        public SlipControlType SlipControlSystem { get; private set; }
         private float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions
         private float SlipFrictionCoefficientFactor;
         public float SteamStaticWheelForce;
