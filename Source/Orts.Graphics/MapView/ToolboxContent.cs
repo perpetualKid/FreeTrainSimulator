@@ -203,7 +203,12 @@ namespace Orts.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
+                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
+                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
+                        {
+                            vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
+                        }
+                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             });
