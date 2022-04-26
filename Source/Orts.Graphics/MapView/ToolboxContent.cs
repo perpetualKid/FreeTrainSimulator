@@ -166,6 +166,8 @@ namespace Orts.Graphics.MapView
         #region additional content (Paths)
         public void InitializePath(PathFile path)
         {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
             contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
         }
         #endregion

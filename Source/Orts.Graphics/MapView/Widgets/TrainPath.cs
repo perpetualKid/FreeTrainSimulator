@@ -15,6 +15,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             foreach(PathNode node in pathFile.PathNodes)
             {
+//                if (node.Junction)
+
                 pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(node.Location), node.NodeType));
             }
         }

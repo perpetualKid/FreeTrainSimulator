@@ -203,7 +203,7 @@ namespace Orts.Graphics.MapView.Widgets
                 reverse = true;
 
             //TODO 20220407 may need/want to map the start/end point onto the actual track, as they may be slightly skewed/offset from the track
-            //however at this point it should already be determined that the points are perpendicular to the track, and within a certain distance limit
+            //however at this point it should already be determined that the points are perpendicular to (along) the track, and within a certain distance limit
 
             if (reverse)
             {

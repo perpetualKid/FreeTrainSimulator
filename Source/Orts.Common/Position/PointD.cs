@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Position
