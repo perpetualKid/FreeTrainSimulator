@@ -13,8 +13,9 @@ namespace Orts.Graphics.MapView.Widgets
     internal class TrainPathItem : PointWidget
     {
         private protected readonly BasicTextureType textureType;
+        private protected float Direction;
 
-        internal TrainPathItem(in PointD location, PathNodeType nodeType)
+        internal TrainPathItem(in PointD location, SegmentBase trackSegment, PathNodeType nodeType)
         {
             base.location = location;
             tile = PointD.ToTile(location);
@@ -31,6 +32,7 @@ namespace Orts.Graphics.MapView.Widgets
                 PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
+            Direction = trackSegment.DirectionAt(Location) + MathHelper.PiOver2;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -46,7 +48,7 @@ namespace Orts.Graphics.MapView.Widgets
                 double i when i < 8 => 4,
                 _ => 3,
             };
-            BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), Color.White, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), Color.White, contentArea.SpriteBatch);
         }
     }
 }

@@ -129,7 +129,7 @@ namespace Orts.Graphics.MapView
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
-                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
+                        if (item is VectorWidget vectorwidget && (ContentArea.InsideScreenArea(vectorwidget) || viewItemSettings == MapViewItemSettings.Paths))
                             (vectorwidget).Draw(ContentArea);
                         else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
                             (pointWidget).Draw(ContentArea);
@@ -168,7 +168,7 @@ namespace Orts.Graphics.MapView
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path, TrackNodeSegments) });
         }
         #endregion
 

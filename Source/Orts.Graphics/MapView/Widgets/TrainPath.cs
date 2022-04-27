@@ -11,13 +11,31 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPath(PathFile pathFile) : base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
+        public TrainPath(PathFile pathFile, Dictionary<int, List<SegmentBase>> trackNodeSegments) : 
+            base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
         {
             foreach(PathNode node in pathFile.PathNodes)
             {
-//                if (node.Junction)
+                PointD nodeLocation = PointD.FromWorldLocation(node.Location);
+                SegmentBase nodeSegment = null;
+                foreach(List<SegmentBase> trackNodes in trackNodeSegments.Values)
+                {
+                    foreach(SegmentBase trackSegment in trackNodes)
+                    {
+                        if (trackSegment.DistanceSquared(nodeLocation) < proximityTolerance)
+                        {
+                            nodeSegment = trackSegment;
+                            break;
+                        }
+                    }
+                    if (nodeSegment != null)
+                        break;
+                }
 
-                pathPoints.Add(new TrainPathItem(PointD.FromWorldLocation(node.Location), node.NodeType));
+                if (nodeSegment == null)
+                    return;
+
+                pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType));
             }
         }
 
