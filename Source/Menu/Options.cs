@@ -148,7 +148,6 @@ namespace Orts.Menu
             numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
             checkBreakCouplers.Checked = this.settings.BreakCouplers;
-            checkCurveResistanceDependent.Checked = this.settings.CurveResistanceDependent;
             checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
             checkTunnelResistanceDependent.Checked = this.settings.TunnelResistanceDependent;
             checkWindResistanceDependent.Checked = this.settings.WindResistanceDependent;
@@ -328,7 +327,6 @@ namespace Orts.Menu
             settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
             settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
             settings.BreakCouplers = checkBreakCouplers.Checked;
-            settings.CurveResistanceDependent = checkCurveResistanceDependent.Checked;
             settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
             settings.TunnelResistanceDependent = checkTunnelResistanceDependent.Checked;
             settings.WindResistanceDependent = checkWindResistanceDependent.Checked;

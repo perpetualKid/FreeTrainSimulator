@@ -101,7 +101,6 @@ namespace Orts.Menu
             this.checkHotStart = new System.Windows.Forms.CheckBox();
             this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
-            this.checkCurveResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkTunnelResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkWindResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkOverrideNonElectrifiedRoutes = new System.Windows.Forms.CheckBox();
@@ -1277,7 +1276,6 @@ namespace Orts.Menu
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
             this.tabPageSimulation.Controls.Add(this.checkCurveSpeedDependent);
-            this.tabPageSimulation.Controls.Add(this.checkCurveResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkTunnelResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkWindResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkOverrideNonElectrifiedRoutes);
@@ -1378,16 +1376,6 @@ namespace Orts.Menu
             this.checkCurveSpeedDependent.TabIndex = 5;
             this.checkCurveSpeedDependent.Text = "Curve dependent speed limit";
             this.checkCurveSpeedDependent.UseVisualStyleBackColor = true;
-            // 
-            // checkCurveResistanceDependent
-            // 
-            this.checkCurveResistanceDependent.AutoSize = true;
-            this.checkCurveResistanceDependent.Location = new System.Drawing.Point(6, 76);
-            this.checkCurveResistanceDependent.Name = "checkCurveResistanceDependent";
-            this.checkCurveResistanceDependent.Size = new System.Drawing.Size(172, 19);
-            this.checkCurveResistanceDependent.TabIndex = 4;
-            this.checkCurveResistanceDependent.Text = "Curve dependent resistance";
-            this.checkCurveResistanceDependent.UseVisualStyleBackColor = true;
             // 
             // checkTunnelResistanceDependent
             // 
@@ -3087,7 +3075,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkDataLogTrainSpeed;
         private System.Windows.Forms.CheckBox checkUseMSTSEnv;
         private System.Windows.Forms.CheckBox checkPreferDDSTexture;
-        private System.Windows.Forms.CheckBox checkCurveResistanceDependent;
         private System.Windows.Forms.CheckBox checkTunnelResistanceDependent;
         private System.Windows.Forms.CheckBox checkWindResistanceDependent;
         private System.Windows.Forms.Label labelLanguage;
