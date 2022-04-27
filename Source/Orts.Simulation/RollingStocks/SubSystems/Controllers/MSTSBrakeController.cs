@@ -193,7 +193,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                                 if (pressureBar > MaxPressureBar() - MinReductionBar())
                                     pressureBar = MaxPressureBar() - MinReductionBar();
-                                pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
+                                pressureBar = DecreasePressure(pressureBar, Math.Min(x, MainReservoirPressureBar()), ApplyRateBarpS(), elapsedClockSeconds);
                                 if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.EPApply)
                                     pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
                             }
