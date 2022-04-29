@@ -523,7 +523,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public GearBoxOperation OriginalGearBoxOperation = GearBoxOperation.Manual;
 
         private float rpmRatio;
-        private float torqueCurveMultiplier;
+        internal float torqueCurveMultiplier;
         private float throttleFraction;
 
         private double tractiveForceN;
