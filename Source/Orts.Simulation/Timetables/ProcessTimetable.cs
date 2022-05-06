@@ -23,7 +23,6 @@
 // #define DEBUG_TIMETABLE
 //
 
-using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,6 +33,7 @@ using System.Threading;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -41,10 +41,9 @@ using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
-
-using static Orts.Formats.Msts.FolderStructure.ContentFolder;
 
 namespace Orts.Simulation.Timetables
 {
@@ -1166,16 +1165,14 @@ namespace Orts.Simulation.Timetables
             string formedpathFilefull = Path.Combine(simulator.RouteFolder.PathsFolder, pathstring);
             string pathExtension = Path.GetExtension(formedpathFilefull);
 
-            if (String.IsNullOrEmpty(pathExtension))
+            if (string.IsNullOrEmpty(pathExtension))
                 formedpathFilefull = Path.ChangeExtension(formedpathFilefull, "pat");
 
             if (!Paths.TryGetValue(formedpathFilefull, out var outPath))
             {
                 // try to load binary path if required
                 bool binaryloaded = false;
-                string formedpathFilefullBinary = Path.Combine(Path.GetDirectoryName(formedpathFilefull), "OpenRails");
-                formedpathFilefullBinary = Path.Combine(formedpathFilefullBinary, Path.GetFileNameWithoutExtension(formedpathFilefull));
-                formedpathFilefullBinary = Path.ChangeExtension(formedpathFilefullBinary, "or-binpat");
+                string formedpathFilefullBinary = RuntimeInfo.GetCacheFilePath("Path", formedpathFilefull);
 
                 if (BinaryPaths && File.Exists(formedpathFilefullBinary))
                 {
@@ -1189,17 +1186,25 @@ namespace Orts.Simulation.Timetables
                     {
                         try
                         {
-                            var infpath = new BinaryReader(new FileStream(formedpathFilefullBinary, FileMode.Open, FileAccess.Read));
-                            outPath = new AIPath(infpath);
-                            infpath.Close();
-
-                            if (outPath.Nodes != null)
+                            BinaryReader infpath = new BinaryReader(new FileStream(formedpathFilefullBinary, FileMode.Open, FileAccess.Read));
+                            string cachePath = infpath.ReadString();
+                            if (cachePath != formedpathFilefull)
                             {
-                                Paths.Add(formedpathFilefull, outPath);
-                                binaryloaded = true;
+                                Trace.TraceWarning($"Expected cache file for '{formedpathFilefull}'; got '{cachePath}' in {formedpathFilefullBinary}");
                             }
+                            else
+                            {
+                                outPath = new AIPath(infpath);
+
+                                if (outPath.Nodes != null)
+                                {
+                                    Paths.Add(formedpathFilefull, outPath);
+                                    binaryloaded = true;
+                                }
+                            }
+                            infpath.Close();
                         }
-                        catch
+                        catch (Exception ex) when (ex is Exception)
                         {
                             binaryloaded = false;
                         }
@@ -1247,6 +1252,7 @@ namespace Orts.Simulation.Timetables
                             try
                             {
                                 var outfpath = new BinaryWriter(new FileStream(formedpathFilefullBinary, FileMode.Create));
+                                outfpath.Write(formedpathFilefull);
                                 outPath.Save(outfpath);
                                 outfpath.Close();
                             }
