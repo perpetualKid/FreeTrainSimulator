@@ -18,13 +18,14 @@
 // Use this define to diagnose issues in the JSON reader below.
 // #define DEBUG_JSON_READER
 
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace Orts.Formats.OR.Parsers
 {
@@ -45,6 +46,7 @@ namespace Orts.Formats.OR.Parsers
         private readonly JsonTextReader reader;
         private readonly StringBuilder path;
         private readonly Stack<int> pathPositions;
+        int _countWarnings;
 
         public string Path { get; private set; }
 
@@ -56,6 +58,12 @@ namespace Orts.Formats.OR.Parsers
             pathPositions = new Stack<int>();
         }
 
+        /// <summary>
+        /// Reads next token and stores in _reader.TokenType, _reader.ValueType, _reader.Value
+        /// Throws exception if value not as expected.
+        /// PropertyNames are case-sensitive.
+        /// </summary>
+        /// <param name="tryParse"></param>
         public void ReadBlock(Func<JsonReader, bool> tryParse)
         {
             int basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
@@ -99,6 +107,7 @@ namespace Orts.Formats.OR.Parsers
                 switch (reader.TokenType)
                 {
                     case JsonToken.StartObject:
+                    case JsonToken.StartArray:
                     case JsonToken.Boolean:
                     case JsonToken.Bytes:
                     case JsonToken.Date:
@@ -111,6 +120,13 @@ namespace Orts.Formats.OR.Parsers
                         break;
                 }
             }
+        }
+
+        public bool TryRead<T>(Func<JsonReader, T> read, out T output)
+        {
+            var warnings = _countWarnings;
+            output = read(this);
+            return warnings == _countWarnings;
         }
 
         public T AsEnum<T>(T defaultValue)
@@ -153,6 +169,18 @@ namespace Orts.Formats.OR.Parsers
             }
         }
 
+        public bool AsBoolean(bool defaultValue)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonToken.Boolean:
+                    return (bool)reader.Value;
+                default:
+                    TraceWarning($"Expected Boolean value in {Path}; got {reader.TokenType}");
+                    return defaultValue;
+            }
+        }
+
         public string AsString(string defaultValue)
         {
             switch (reader.TokenType)
@@ -179,9 +207,36 @@ namespace Orts.Formats.OR.Parsers
             }
         }
 
+        public Vector3 AsVector3(Vector3 defaultValue)
+        {
+            var vector3 = defaultValue;
+            switch (reader.TokenType)
+            {
+                case JsonToken.StartArray:
+                    if (reader.Read())
+                        vector3.X = AsFloat(0f);
+                    if (reader.Read())
+                        vector3.Y = AsFloat(0f);
+                    if (reader.Read())
+                        vector3.Z = AsFloat(0f);
+                    if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
+                        goto default; // We did not have exactly 3 items in the array
+                    path.Length = pathPositions.Pop();
+                    return vector3;
+                default:
+                    TraceWarning($"Expected Vector3 (3 item array) in {Path}; got {reader.TokenType}");
+
+                    // If the end of the array is not found in the right position, then parsing of subsequence objects also fails.
+                    TraceWarning($"Subsequent objects may be skipped");
+
+                    return defaultValue;
+            }
+        }
+
         public void TraceWarning(string message)
         {
             Trace.TraceWarning("{2} in {0}:line {1}", fileName, reader.LineNumber, message);
+            _countWarnings++;
         }
 
         public void TraceInformation(string message)
