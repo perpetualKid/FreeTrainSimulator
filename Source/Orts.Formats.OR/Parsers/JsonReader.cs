@@ -19,7 +19,11 @@
 // #define DEBUG_JSON_READER
 
 using Microsoft.Xna.Framework;
+
 using Newtonsoft.Json;
+
+using Orts.Formats.Msts.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,12 +37,25 @@ namespace Orts.Formats.OR.Parsers
     {
         public static void ReadFile(string fileName, Func<JsonReader, bool> tryParse)
         {
-            using (JsonTextReader reader = new JsonTextReader(File.OpenText(fileName))
-            {
-                CloseInput = true,
-            })
+            using (JsonTextReader reader = new JsonTextReader(File.OpenText(fileName)))
             {
                 new JsonReader(fileName, reader).ReadBlock(tryParse);
+            }
+        }
+
+        /// <summary>
+        /// Read the JSON from a string using a method TryParse() which is specific for the expected objects.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="fileName"></param>
+        /// <param name="tryParse"></param>
+        public static (int Warning, int Information) ReadTest(string content, string fileName, Func<JsonReader, bool> tryParse)
+        {
+            using (var reader = new JsonTextReader(new StringReader(content)))
+            {
+                JsonReader json = new JsonReader(fileName, reader);
+                json.ReadFile(tryParse);
+                return (json.countWarnings, json.countInformations);
             }
         }
 
@@ -46,9 +63,18 @@ namespace Orts.Formats.OR.Parsers
         private readonly JsonTextReader reader;
         private readonly StringBuilder path;
         private readonly Stack<int> pathPositions;
-        int _countWarnings;
+        private Stack<string> paths;
+        private int countWarnings;
+        private int countInformations;
 
-        public string Path { get; private set; }
+        private string FullPath { get => path.Length > 0 ? path.ToString() : "(root)"; }
+
+        /// <summary>
+        /// Contains a condensed account of the position of the current item in the JSON, such as when parsing "Clear" from a WeatherFile:
+        /// JsonReader item;
+        ///   item.Path = "Changes[].Type"
+        /// </summary>
+        public string Path { get => paths.Peek(); }
 
         private JsonReader(string fileName, JsonTextReader reader)
         {
@@ -56,8 +82,25 @@ namespace Orts.Formats.OR.Parsers
             this.reader = reader;
             path = new StringBuilder();
             pathPositions = new Stack<int>();
+            paths = new Stack<string>();
         }
 
+        void ReadFile(Func<JsonReader, bool> tryParse)
+        {
+            try
+            {
+                ReadBlock(tryParse);
+                // Read the rest of the file so that we catch any extra data, which might be in error
+                while (reader.Read())
+                    ;
+            }
+            catch (JsonReaderException error)
+            {
+                // Newtonsoft.Json unfortunately includes extra information in the message we already provide
+                string[] jsonMessage = error.Message.Split(new[] { ". Path '" }, StringSplitOptions.None);
+                TraceWarning($"{jsonMessage[0]} in {FullPath}");
+            }
+        }
         /// <summary>
         /// Reads next token and stores in _reader.TokenType, _reader.ValueType, _reader.Value
         /// Throws exception if value not as expected.
@@ -69,14 +112,13 @@ namespace Orts.Formats.OR.Parsers
             int basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
 
 #if DEBUG_JSON_READER
-            Trace.WriteLine();
-            Trace.WriteLine($"JsonReader({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})).ReadBlock(): base={basePosition}");
+            Console.WriteLine($"JsonReader({basePosition} / {path} / {String.Join(" ", pathPositions)}).ReadBlock()");
 #endif
 
             while (reader.Read())
             {
 #if DEBUG_JSON_READER
-                Trace.WriteLine($"JsonReader.ReadBlock({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})): token={_reader.TokenType} value={_reader.Value} type={_reader.ValueType}");
+                Console.Write($"JsonReader({basePosition} / {path} / {String.Join(" ", pathPositions)}) --> ");
 #endif
                 switch (reader.TokenType)
                 {
@@ -89,7 +131,8 @@ namespace Orts.Formats.OR.Parsers
                         break;
                     case JsonToken.StartObject:
                         pathPositions.Push(path.Length);
-                        if (pathPositions.Count > 1) path.Append('.');
+                        if (pathPositions.Count > 1)
+                            path.Append('.');
                         pathPositions.Push(path.Length);
                         break;
                     case JsonToken.PropertyName:
@@ -100,9 +143,16 @@ namespace Orts.Formats.OR.Parsers
                     case JsonToken.EndObject:
                         int end = pathPositions.Pop();
                         path.Length = pathPositions.Pop();
-                        if (end == basePosition) return;
+                        if (end == basePosition)
+                            return;
                         break;
                 }
+
+#if DEBUG_JSON_READER
+                Console.WriteLine($"({basePosition} / {path} / {string.Join(" ", pathPositions)}) token={reader.TokenType} value={reader.Value} type={reader.ValueType}");
+#endif
+                if (path.Length <= basePosition && (reader.TokenType == JsonToken.EndArray || reader.TokenType == JsonToken.EndObject))
+                    return;
 
                 switch (reader.TokenType)
                 {
@@ -115,18 +165,21 @@ namespace Orts.Formats.OR.Parsers
                     case JsonToken.Integer:
                     case JsonToken.Null:
                     case JsonToken.String:
-                        Path = path.ToString().Substring(basePosition);
-                        if (!tryParse(this)) TraceInformation($"Skipped unknown {reader.TokenType} \"{reader.Value}\" in {Path}");
+                        paths.Push(path.ToString().Substring(basePosition));
+                        if (!tryParse(this))
+                            TraceInformation($"Skipped unknown {reader.TokenType} \"{reader.Value}\" in {Path}");
+                        paths.Pop();
                         break;
                 }
             }
+            TraceWarning($"Unexpected end of file in {FullPath}");
         }
 
         public bool TryRead<T>(Func<JsonReader, T> read, out T output)
         {
-            var warnings = _countWarnings;
+            var warnings = countWarnings;
             output = read(this);
-            return warnings == _countWarnings;
+            return warnings == countWarnings;
         }
 
         public T AsEnum<T>(T defaultValue)
@@ -138,7 +191,7 @@ namespace Orts.Formats.OR.Parsers
                     string value = (string)reader.Value;
                     return (T)Enum.Parse(typeof(T), value, true);
                 default:
-                    TraceWarning($"Expected string (enum) value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected string (enum) value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -152,7 +205,7 @@ namespace Orts.Formats.OR.Parsers
                 case JsonToken.Integer:
                     return (long)reader.Value;
                 default:
-                    TraceWarning($"Expected floating point value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected floating point value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -164,7 +217,7 @@ namespace Orts.Formats.OR.Parsers
                 case JsonToken.Integer:
                     return (int)(long)reader.Value;
                 default:
-                    TraceWarning($"Expected integer value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected integer value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -176,7 +229,7 @@ namespace Orts.Formats.OR.Parsers
                 case JsonToken.Boolean:
                     return (bool)reader.Value;
                 default:
-                    TraceWarning($"Expected Boolean value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected Boolean value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -188,7 +241,7 @@ namespace Orts.Formats.OR.Parsers
                 case JsonToken.String:
                     return (string)reader.Value;
                 default:
-                    TraceWarning($"Expected string value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected string value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -202,7 +255,7 @@ namespace Orts.Formats.OR.Parsers
                     TimeSpan StartTime = new TimeSpan(int.Parse(time[0], CultureInfo.InvariantCulture), time.Length > 1 ? int.Parse(time[1], CultureInfo.InvariantCulture) : 0, time.Length > 2 ? int.Parse(time[2], CultureInfo.InvariantCulture) : 0);
                     return (float)StartTime.TotalSeconds;
                 default:
-                    TraceWarning($"Expected string (time) value in {Path}; got {reader.TokenType}");
+                    TraceWarning($"Expected string (time) value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
@@ -213,21 +266,24 @@ namespace Orts.Formats.OR.Parsers
             switch (reader.TokenType)
             {
                 case JsonToken.StartArray:
-                    if (reader.Read())
-                        vector3.X = AsFloat(0f);
-                    if (reader.Read())
-                        vector3.Y = AsFloat(0f);
-                    if (reader.Read())
-                        vector3.Z = AsFloat(0f);
-                    if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
-                        goto default; // We did not have exactly 3 items in the array
-                    path.Length = pathPositions.Pop();
-                    return vector3;
+                    if (TryRead(json =>
+                    {
+                        var floats = new List<float>(3);
+                        ReadBlock(item =>
+                        {
+                            floats.Add(item.AsFloat(0));
+                            return true;
+                        });
+                        return floats;
+                    }, out var vector))
+                    {
+                        if (vector.Count == 3)
+                            return new Vector3(vector[0], vector[1], vector[2]);
+                        TraceWarning($"Expected 3 float array (Vector3) value in {FullPath}; got {vector.Count} float array");
+                    }
+                    return defaultValue;
                 default:
-                    TraceWarning($"Expected Vector3 (3 item array) in {Path}; got {reader.TokenType}");
-
-                    // If the end of the array is not found in the right position, then parsing of subsequence objects also fails.
-                    TraceWarning($"Subsequent objects may be skipped");
+                    TraceWarning($"Expected array (Vector3) value in {FullPath}; got {reader.TokenType}");
 
                     return defaultValue;
             }
@@ -236,12 +292,13 @@ namespace Orts.Formats.OR.Parsers
         public void TraceWarning(string message)
         {
             Trace.TraceWarning("{2} in {0}:line {1}", fileName, reader.LineNumber, message);
-            _countWarnings++;
+            countWarnings++;
         }
 
         public void TraceInformation(string message)
         {
             Trace.TraceInformation("{2} in {0}:line {1}", fileName, reader.LineNumber, message);
+            countInformations++;
         }
     }
 }
