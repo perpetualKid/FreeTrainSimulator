@@ -38,10 +38,6 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
         protected static void GetLoadingBarSize(Game game, out int w, out int h, out float x, out float y)
         {
-            //int w = game.RenderProcess.DisplaySize.X;
-            //int h = game.RenderProcess.DisplaySize.Y / 80;
-            //float x = -w / 2 - 0.5f;
-            //float y = game.RenderProcess.DisplaySize.Y / 2 - h - 0.5f;
             w = game.RenderProcess.DisplaySize.X;
             h = game.RenderProcess.DisplaySize.Y / 60;//10;
             x = -w / 2 - 0.5f;
