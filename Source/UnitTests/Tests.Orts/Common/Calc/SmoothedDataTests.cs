@@ -36,7 +36,7 @@ namespace Tests.Orts.Common.Calc
             data.Update(0, 0);
             data.Update(1, 15);
             Assert.AreEqual(15, data.Value);
-            Assert.AreEqual(3, data.SmoothedValue);
+            Assert.AreEqual(2.723, Math.Round(data.SmoothedValue, 3));
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace Tests.Orts.Common.Calc
             SmoothedData data = new SmoothedData(5);
             data.Update(0, 3);
             data.Update(2, 8);
-            Assert.AreEqual(5, data.SmoothedValue);
+            Assert.AreEqual(4.651, Math.Round(data.SmoothedValue, 3));
         }
 
         [TestMethod]
@@ -53,8 +53,8 @@ namespace Tests.Orts.Common.Calc
         {
             SmoothedData data = new SmoothedData(5);
             data.Preset(8);
-            data.Update(2, 3);
-            Assert.AreEqual(6, data.SmoothedValue);
+            data.Update(2, 4);
+            Assert.AreEqual(6.679, Math.Round(data.SmoothedValue, 3));
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace Tests.Orts.Common.Calc
             data.Update(2, 3);
             data.Update(2, 6);
             data.Update(2, 2);
-            Assert.AreEqual(3, data.SmoothedValue);
+            Assert.AreEqual(3.262, Math.Round(data.SmoothedValue, 3));
         }
 
     }
