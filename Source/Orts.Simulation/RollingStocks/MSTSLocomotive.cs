@@ -3201,7 +3201,7 @@ namespace Orts.Simulation.RollingStocks
 
 
             // Test to see if loco wheel is slipping or skidding due to brake application
-            if ((EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared) && WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))   
+            if (this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared && WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))   
             {
 
                 WheelStopSlipTimeS = 0; // Reset stop slip time if wheel slip starts
@@ -3226,7 +3226,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 WheelSlipTimeS = 0; // Reset slip time if wheel slip stops
 
-                if ((EngineType == EngineTypes.Steam && SteamEngineType != MSTSSteamLocomotive.SteamEngineTypes.Geared) && SlipFrictionCoefficientFactor < BaseFrictionCoefficientFactor && SlipFrictionCoefficientFactor != 0) // Once these two are equal then assume that wheels have stopped slipping.
+                if (this is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.SteamEngineType != SteamEngineType.Geared && SlipFrictionCoefficientFactor < BaseFrictionCoefficientFactor && SlipFrictionCoefficientFactor != 0) // Once these two are equal then assume that wheels have stopped slipping.
                 {
                     //                    Trace.TraceInformation("SlipFriction {0} Base {1}", SlipFrictionCoefficientFactor, BaseFrictionCoefficientFactor);
                     // Exponential curve is used to transition between dynamic friction and static friction when wheel stops slipping
@@ -3260,7 +3260,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set adhesion conditions for other steam locomotives
-            if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
+            if (this is MSTSSteamLocomotive steamLocomotive3 && steamLocomotive3.SteamEngineType != SteamEngineType.Geared)  // ToDo explore adhesion factors
             {
                 LocomotiveCoefficientFrictionHUD = Train.LocomotiveCoefficientFriction; // Set display value for HUD - steam
             }
