@@ -473,7 +473,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             float minCylPressurePSI = Math.Max(threshold, RetainerPressureThresholdPSI);
             if (TripleValveState == ValveState.Release && HoldingValve == ValveState.Release && AutoCylPressurePSI > minCylPressurePSI)
             {
-                AutoCylPressurePSI -= elapsedClockSeconds * ReleaseRatePSIpS;
+                AutoCylPressurePSI -= (float)elapsedClockSeconds * ReleaseRatePSIpS;
                 if (AutoCylPressurePSI < minCylPressurePSI)
                     AutoCylPressurePSI = minCylPressurePSI;
             }
