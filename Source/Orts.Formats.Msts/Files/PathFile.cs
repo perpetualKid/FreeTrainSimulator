@@ -38,10 +38,7 @@ namespace Orts.Formats.Msts.Files
     /// Paths for both player train as well as AI trains.
     /// This class reads and stores the MSTS .pat file. Because of the format of the .pat file 
     /// it is easier to have an intermediate format that just contains the data of the .pat file
-    /// and create the wanted data scructure from that.
-    /// It is the intention that it is only used for
-    ///     * ORTS main menu
-    ///     * postprocessing by TrainPath.
+    /// and create the wanted data structure from that.
     /// </summary>
     // Typical simple .PATfile (the example helps to understand the code below)
     /*
@@ -80,7 +77,6 @@ namespace Orts.Formats.Msts.Files
     //
     // TrPathNode format is : TrPathNode ( flags nextMainNode nextSidingNode correspondingPDP)
     //          Note 4294967295 = 2^32-1 = 0xFFFFFFFF  denotes that there is no next...Node.
-    //          For an (partly) explanation of the flags, see AIPath.cs
     //
     // flags:
     //      Possible interpretation (as found on internet, by krausyao)
@@ -115,9 +111,8 @@ namespace Orts.Formats.Msts.Files
         public string Start { get; private set; }
         public string End { get; private set; }
         public PathFlags Flags { get; private set; }
-        public bool IsPlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
+        public bool PlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
 #pragma warning disable CA1002 // Do not expose generic lists
-        public List<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
         public List<PathNode> PathNodes { get; } = new List<PathNode>();
 #pragma warning restore CA1002 // Do not expose generic lists
 
@@ -130,10 +125,11 @@ namespace Orts.Formats.Msts.Files
         {
             try
             {
+                List<PathDataPoint> dataPoints = new List<PathDataPoint>();
                 using (STFReader stf = new STFReader(fileName, false))
                     stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("trackpdps", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("trackpdp", ()=>{ DataPoints.Add(new PathDataPoint(stf)); }),
+                        new STFReader.TokenProcessor("trackpdp", ()=>{ dataPoints.Add(new PathDataPoint(stf)); }),
                     });}),
                     new STFReader.TokenProcessor("trackpath", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
 						new STFReader.TokenProcessor("trpathname", ()=>{ PathID = stf.ReadStringBlock(null); }),
@@ -144,12 +140,16 @@ namespace Orts.Formats.Msts.Files
                         new STFReader.TokenProcessor("trpathnodes", ()=>{
                             stf.MustMatchBlockStart();
                             int count = stf.ReadInt(null);
+                            bool firstNode = true;
                             stf.ParseBlock(new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("trpathnode", ()=>{
                                     if (--count < 0)
                                         STFException.TraceWarning(stf, "Skipped extra TrPathNodes");
                                     else
-                                        PathNodes.Add(new PathNode(stf));
+                                    {
+                                        PathNodes.Add(new PathNode(stf, dataPoints, firstNode));
+                                        firstNode = false;
+                                    }
                                 }),
                             });
                             if (count > 0)

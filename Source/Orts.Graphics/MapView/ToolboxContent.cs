@@ -129,7 +129,7 @@ namespace Orts.Graphics.MapView
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
-                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
+                        if (item is VectorWidget vectorwidget && (ContentArea.InsideScreenArea(vectorwidget) || viewItemSettings == MapViewItemSettings.Paths))
                             (vectorwidget).Draw(ContentArea);
                         else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
                             (pointWidget).Draw(ContentArea);
@@ -163,6 +163,15 @@ namespace Orts.Graphics.MapView
             }
         }
 
+        #region additional content (Paths)
+        public void InitializePath(PathFile path)
+        {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path, TrackNodeSegments) });
+        }
+        #endregion
+
         #region build content database
         private void AddTrackSegments()
         {
@@ -194,7 +203,12 @@ namespace Orts.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
+                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
+                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
+                        {
+                            vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
+                        }
+                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             });
@@ -241,13 +255,18 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
+                RuntimeData.Instance.TrackDB?.TrackItems, 
+                RuntimeData.Instance.SignalConfigFile, 
+                RuntimeData.Instance.TrackDB, TrackNodeSegments).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
 
-            List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
-            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
             contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
+            IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();
 
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
             contentItems[MapViewItemSettings.OtherSignals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));

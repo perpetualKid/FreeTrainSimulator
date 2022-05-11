@@ -59,7 +59,7 @@ namespace Orts.Models.Simplified
         /// <summary>Full filename of the underlying .pat file</summary>
         public string FilePath { get; private set; }
         /// <summary>Is the path a player path or not</summary>
-        public bool IsPlayerPath { get; private set; }
+        public bool PlayerPath { get; private set; }
 
         /// <summary>
         /// Constructor. This will try to have the requested .pat file parsed for its metadata
@@ -72,7 +72,7 @@ namespace Orts.Models.Simplified
                 try
                 {
                     PathFile patFile = new PathFile(filePath);
-                    IsPlayerPath = patFile.IsPlayerPath;
+                    PlayerPath = patFile.PlayerPath;
                     Name = patFile.Name;
                     Start = patFile.Start;
                     End = patFile.End;
@@ -153,7 +153,7 @@ namespace Orts.Models.Simplified
                     inputBlock.Complete();
                     await actionBlock.Completion.ConfigureAwait(false);
                 }
-                return result.Where(p => p != null && p.IsPlayerPath || includeNonPlayerPaths);
+                return result.Where(p => p != null && p.PlayerPath || includeNonPlayerPaths);
             }
         }
 

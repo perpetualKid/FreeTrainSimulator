@@ -20,10 +20,8 @@ namespace Orts.Graphics.MapView.Widgets
                 PlatformName = PlatformName[StationName.Length..];
         }
 
-        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static IEnumerable<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
-            List<PlatformPath> platforms = new List<PlatformPath>();
-
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.Id);
             while (platformItemMappings.Count > 0)
             {
@@ -37,14 +35,13 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
                     }
                     platformItemMappings.Remove(end.Id);
-                    platforms.Add(new PlatformPath(start, end, trackNodeSegments));
+                    yield return new PlatformPath(start, end, trackNodeSegments);
                 }
                 else
                 {
                     Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.Id} not found.");
                 }
             }
-            return platforms;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

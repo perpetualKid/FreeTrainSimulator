@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Xna.Framework;
 
@@ -203,7 +204,7 @@ namespace Orts.Graphics.MapView.Widgets
                 reverse = true;
 
             //TODO 20220407 may need/want to map the start/end point onto the actual track, as they may be slightly skewed/offset from the track
-            //however at this point it should already be determined that the points are perpendicular to the track, and within a certain distance limit
+            //however at this point it should already be determined that the points are perpendicular to (along) the track, and within a certain distance limit
 
             if (reverse)
             {
@@ -271,6 +272,35 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
         #endregion
+
+        public static SegmentBase SegmentBaseAt(in PointD location, IEnumerable<SegmentBase> segments)
+        {
+            foreach (SegmentBase segment in segments)
+            {
+                //find the start vector section
+                if (segment.DistanceSquared(location) < proximityTolerance)
+                {
+                    return segment;
+                }
+            }
+            return null;
+        }
+
+        public float DirectionAt(in PointD location)
+        {
+            if (Curved)
+            {
+                PointD delta = location - centerPoint;
+                float deltaAngle = (float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
+                return Direction - deltaAngle;
+            }
+            else
+            {
+                return Direction;
+            }
+
+        }
 
     }
 }

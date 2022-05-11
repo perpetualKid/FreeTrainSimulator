@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -66,13 +65,14 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
                 return result;
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
+            //linking TrackItems to TrackNodes
             foreach (TrackNode node in trackDb.TrackNodes)
             {
                 if (node is TrackVectorNode trackVectorNode && trackVectorNode.TrackItemIndices?.Length > 0)
@@ -116,7 +116,7 @@ namespace Orts.Graphics.MapView.Widgets
                         break;
                     case SignalItem signalItem:
                         bool normalSignal = (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal);
-                        result.Add(new SignalTrackItem(signalItem, trackItemNodes, normalSignal));
+                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[trackItemNodes[signalItem.TrackItemId].Index], normalSignal));
                         break;
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
@@ -416,7 +416,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public ISignal Signal { get; }
 
-        public SignalTrackItem(SignalItem source, TrackVectorNode[] trackItemNodes, bool normalSignal) : base(source)
+        public SignalTrackItem(SignalItem source, List<SegmentBase> segments, bool normalSignal) : base(source)
         {
             if (source.SignalObject > -1)
             {
@@ -424,10 +424,10 @@ namespace Orts.Graphics.MapView.Widgets
             }
             Size = 2f;
 
-            Normal = normalSignal;
-            TrackVectorNode vectorNode = trackItemNodes[source.TrackItemId];
-            angle = new Traveller(vectorNode, source.Location, (Direction)source.Direction).RotY;
+            SegmentBase segment = SegmentBase.SegmentBaseAt(Location, segments);
+            angle = segment.DirectionAt(Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2);
 
+            Normal = normalSignal;
             Vector3 shiftedLocation = source.Location.Location +
                     0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
             WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);

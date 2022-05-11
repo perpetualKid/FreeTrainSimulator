@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
@@ -43,11 +44,11 @@ namespace Orts.ContentManager.Models
 
                 List<PathNode> nodes = new List<PathNode>(file.PathNodes.Count);
                 List<List<PathNode>> nodeNexts = new List<List<PathNode>>(file.PathNodes.Count);
+
                 foreach (Formats.Msts.Models.PathNode node in file.PathNodes)
                 {
-                    Formats.Msts.Models.PathDataPoint pdp = file.DataPoints[(int)node.PathDataPoint];
                     List<PathNode> next = new List<PathNode>();
-                    nodes.Add(new PathNode(pdp.Location.ToString(), node.PathFlags, node.WaitTime, next));
+                    nodes.Add(new PathNode(node.Location.ToString(), node.NodeType, node.WaitTime, next));
                     nodeNexts.Add(next);
                 }
                 for (int i = 0; i < file.PathNodes.Count; i++)
@@ -64,14 +65,14 @@ namespace Orts.ContentManager.Models
     public class PathNode
     {
         public string Location { get; }
-        public PathFlags Flags { get; }
+        public PathNodeType NodeType { get; }
         public int WaitTime { get; }
         public IEnumerable<PathNode> Next { get; }
 
-        internal PathNode(string location, PathFlags flags, int waitTime, IEnumerable<PathNode> next)
+        internal PathNode(string location, PathNodeType nodeType, int waitTime, IEnumerable<PathNode> next)
         {
             Location = location;
-            Flags = (PathFlags)((int)flags & 0xFFFF);
+            NodeType = nodeType;
             WaitTime = waitTime;
             Next = next;
         }

@@ -7,13 +7,13 @@ namespace Orts.Common.Info
 {
     public static class RuntimeInfo
     {
-        public const string LauncherExecutable = "openrails.exe";
+        public const string LauncherExecutable = "OpenRails.exe";
 
-        public const string ActivityRunnerExecutable = "activityrunner.exe";
+        public const string ActivityRunnerExecutable = "ActivityRunner.exe";
 
         public static readonly string ProductName = VersionInfo.ProductName();
 
-        public static readonly Uri WikiUri = new Uri("https://github.com/perpetualKid/ORTS-MG/wiki");
+        public const string WikiLink = "https://github.com/perpetualKid/ORTS-MG/wiki";
 
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 

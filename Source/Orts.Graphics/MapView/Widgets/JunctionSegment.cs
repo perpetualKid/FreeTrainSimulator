@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 
@@ -25,14 +23,17 @@ namespace Orts.Graphics.MapView.Widgets
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
 
         internal readonly int TrackNodeIndex;
+        internal readonly float Direction;
 
-        public JunctionSegment(TrackJunctionNode junctionNode)
+        public JunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections)
         {
             Size = diameter;
             ref readonly WorldLocation location = ref junctionNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
             base.tile = new Tile(location.TileX, location.TileZ);
             TrackNodeIndex = junctionNode.Index;
+            Direction = MathHelper.WrapAngle(GetInboundSectionDirection(vectorNodes[0], junctionNode.TrackPins[0].Direction == TrackDirection.Reverse, trackSections));
+
         }
 
         public NameValueCollection DebugInfo
@@ -61,50 +62,11 @@ namespace Orts.Graphics.MapView.Widgets
             };
 
             Color drawColor = GetColor<JunctionSegment>(colorVariation);
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-        }
-    }
-
-    /// <summary>
-    /// Junction segment <seealso cref="JunctionSegment"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
-    /// </summary>
-    internal class ActiveJunctionSegment : JunctionSegment
-    {
-        private readonly float[] trackSectionAngles;
-
-        public IJunction Junction { get; }
-
-        public ActiveJunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections) : base(junctionNode)
-        {
-            trackSectionAngles = new float[vectorNodes.Count];
-            Junction = RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(junctionNode.TrackCircuitCrossReferences[0].Index);
-
-            trackSectionAngles[0] = MathHelper.WrapAngle(GetInboundSectionDirection(vectorNodes[0], junctionNode.TrackPins[0].Direction == TrackDirection.Reverse, trackSections));
-
-            int trial = 0;
-            while (trial < 3)
-            {
-                for (int i = 1; i < vectorNodes.Count; i++)
-                {
-                    float direction = GetOutboundSectionDirection(vectorNodes[i], junctionNode.TrackPins[i].Direction == TrackDirection.Reverse, trackSections, trial);
-                    if (float.IsNaN(direction))
-                        break;
-                    trackSectionAngles[i] = MathHelper.WrapAngle(direction);
-                }
-                if (trackSectionAngles[1].AlmostEqual(trackSectionAngles[2], 0.001f))
-                    trial++;
-                else
-                    break;
-            }
-
-            //if main route is not in OutPin[0] but OutPin[1], swap the both
-            if ((int)Junction.State != junctionNode.SelectedRoute)
-                (trackSectionAngles[1], trackSectionAngles[2]) = (trackSectionAngles[2], trackSectionAngles[1]);
-
+            BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
         // find the direction angle of the facing (in) track 
-        private static float GetInboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections)
+        private protected static float GetInboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections)
         {
             if (null == vectorNode)
                 return 0;
@@ -133,7 +95,7 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         // find the direction angle of the trailing (out) track 
-        private static float GetOutboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections, int index)
+        private protected static float GetOutboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections, int index)
         {
             if (vectorNode.TrackVectorSections.Length < 1)
                 throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");
@@ -161,6 +123,44 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
+    }
+
+    /// <summary>
+    /// Junction segment <seealso cref="JunctionSegment"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
+    /// </summary>
+    internal class ActiveJunctionSegment : JunctionSegment
+    {
+        private readonly float[] trackSectionAngles;
+
+        public IJunction Junction { get; }
+
+        public ActiveJunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections) : base(junctionNode, vectorNodes, trackSections)
+        {
+            trackSectionAngles = new float[vectorNodes.Count - 1];
+            Junction = RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(junctionNode.TrackCircuitCrossReferences[0].Index);
+
+            int trial = 0;
+            while (trial < 3)
+            {
+                for (int i = 1; i < vectorNodes.Count; i++)
+                {
+                    float direction = GetOutboundSectionDirection(vectorNodes[i], junctionNode.TrackPins[i].Direction == TrackDirection.Reverse, trackSections, trial);
+                    if (float.IsNaN(direction))
+                        break;
+                    trackSectionAngles[i - 1] = MathHelper.WrapAngle(direction);
+                }
+                if (trackSectionAngles[0].AlmostEqual(trackSectionAngles[1], 0.001f))
+                    trial++;
+                else
+                    break;
+            }
+
+            //if main route is not in OutPin[0] but OutPin[1], swap the both
+            if ((int)Junction.State != junctionNode.SelectedRoute)
+                (trackSectionAngles[0], trackSectionAngles[1]) = (trackSectionAngles[1], trackSectionAngles[0]);
+
+        }
+
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = contentArea.Scale switch
@@ -176,7 +176,7 @@ namespace Orts.Graphics.MapView.Widgets
             };
 
             Color drawColor = GetColor<JunctionSegment>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
-            BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[1 + (int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
     }

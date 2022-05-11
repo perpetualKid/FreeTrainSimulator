@@ -155,8 +155,8 @@ namespace ORTS.TrackViewer.UserInterface
                 "{0,3:F3} ", closestPoint.X);
                 statusTrItemLocationZ.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     "{0,3:F3} ", closestPoint.Z);
-                AddSignalStatus(trackViewer, closestPoint.Description, closestPoint.Index);
-                AddNamesStatus(trackViewer, closestPoint.Description, closestPoint.Index);
+                AddSignalStatus(closestPoint.Description, closestPoint.Index);
+                AddNamesStatus(closestPoint.Description, closestPoint.Index);
             }
         }
 
@@ -281,11 +281,10 @@ namespace ORTS.TrackViewer.UserInterface
             if (Properties.Settings.Default.statusShowPATfile && (trackViewer.DrawPATfile != null))
             {
                 PathNode curNode = trackViewer.DrawPATfile.CurrentNode;
-                PathDataPoint curPDP = trackViewer.DrawPATfile.CurrentPdp;
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " {7}: {3}, {4} [{1} {2}] [{5} {6}] <{0}>",
-                    curNode.PathFlags, (int)curNode.NextMainNode, (int)curNode.NextSidingNode,
-                    curPDP.Location.Location.X, curPDP.Location.Location.Z, curPDP.JunctionFlag, curPDP.InvalidFlag, trackViewer.DrawPATfile.FileName);
+                    curNode.NodeType, curNode.NextMainNode, curNode.NextSidingNode,
+                    curNode.Location.Location.X, curNode.Location.Location.Z, curNode.Junction, curNode.Invalid, trackViewer.DrawPATfile.FileName);
             }
         }
 
@@ -319,7 +318,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddSignalStatus(TrackViewer trackViewer, string description, int index)
+        private void AddSignalStatus(string description, int index)
         {
             if (!Properties.Settings.Default.statusShowSignal) 
                 return;
@@ -335,7 +334,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddNamesStatus(TrackViewer trackViewer, string description, int index)
+        private void AddNamesStatus(string description, int index)
         {
             if (!Properties.Settings.Default.statusShowNames) 
                 return;

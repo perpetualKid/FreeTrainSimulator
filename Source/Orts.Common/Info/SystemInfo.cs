@@ -190,12 +190,9 @@ namespace Orts.Common.Info
             return output.ToString();
         }
 
-        public static void OpenBrowser(Uri url)
-        {
-            OpenBrowser(url?.ToString());
-        }
-
+#pragma warning disable CA1054 // URI-like parameters should not be strings
         public static void OpenBrowser(string url)
+#pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

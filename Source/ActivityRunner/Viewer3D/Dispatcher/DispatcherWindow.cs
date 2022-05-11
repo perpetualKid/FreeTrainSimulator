@@ -282,15 +282,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         protected override void Update(GameTime gameTime)
         {
             IEnumerable<int> trackedTrains = new List<int>();
-            foreach (Simulation.Physics.Train train in Simulator.Instance.Trains)
+            foreach (Train train in Simulator.Instance.Trains)
             {
                 ((List<int>)trackedTrains).Add(train.Number);
                 if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.TrainWidget trainWidget))
                 {
-                    trainWidget = new Graphics.MapView.Widgets.TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
-                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    trainWidget = new TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
+                    foreach (TrainCar car in train.Cars)
                     {
-                        trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                        trainWidget.Cars.Add(car.UiD, new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                     }
                     content.Trains.Add(train.Number, trainWidget);
                 }
@@ -298,16 +298,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 {
                     trainWidget.UpdatePosition(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation);
                     IEnumerable<int> trackedCars = new List<int>();
-                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    foreach (TrainCar car in train.Cars)
                     {
                         ((List<int>)trackedCars).Add(car.UiD);
-                        if (trainWidget.Cars.TryGetValue(car.UiD, out Graphics.MapView.Widgets.TrainCarWidget trainCar))
+                        if (trainWidget.Cars.TryGetValue(car.UiD, out TrainCarWidget trainCar))
                         {
                             trainCar.UpdatePosition(car.WorldPosition);
                         }
                         else
                         {
-                            trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                            trainWidget.Cars.Add(car.UiD, new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                         }
                     }
                     trackedCars = trainWidget.Cars.Keys.Except(trackedCars);

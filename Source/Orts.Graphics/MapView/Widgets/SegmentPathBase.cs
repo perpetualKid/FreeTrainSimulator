@@ -15,6 +15,15 @@ namespace Orts.Graphics.MapView.Widgets
         private protected readonly List<T> pathSegments = new List<T>();
         internal protected readonly PointD MidPoint;
 
+        private protected SegmentPathBase(PointD start, PointD end)
+        {
+            location = start;
+            tile = PointD.ToTile(start);
+            vectorEnd = end;
+            otherTile = PointD.ToTile(end);
+            MidPoint = Location + (vectorEnd - location) / 2.0;
+        }
+
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
         private protected SegmentPathBase(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
         {
