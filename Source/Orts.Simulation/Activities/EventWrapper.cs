@@ -25,6 +25,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
 using Orts.Formats.Msts;
 using Orts.Common.Position;
+using Orts.Common;
 
 namespace Orts.Simulation.Activities
 {
@@ -152,7 +153,7 @@ namespace Orts.Simulation.Activities
             else
             {
                 // Go to opposite direction
-                poiTraveller = new Traveller(start, Traveller.TravellerDirection.Backward);
+                poiTraveller = new Traveller(start, true);
 
                 distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
                 // If valid, it is behind us
@@ -176,14 +177,14 @@ namespace Orts.Simulation.Activities
         public EventCategoryActionWrapper(ActivityEvent activityEvent)
             : base(activityEvent)
         {
-            if (ActivityEvent is ActionActivityEvent actionActivityEvent && actionActivityEvent.SidingId != null)
+            if (ActivityEvent is ActionActivityEvent actionActivityEvent && actionActivityEvent.SidingId > -1)
             {
-                uint i = actionActivityEvent.SidingId.Value;
+                int i = actionActivityEvent.SidingId;
                 try
                 {
-                    sidingEnd1 = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
+                    sidingEnd1 = RuntimeData.Instance.TrackDB.TrackItems[i] as SidingItem;
                     i = sidingEnd1.LinkedSidingId;
-                    sidingEnd2 = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
+                    sidingEnd2 = RuntimeData.Instance.TrackDB.TrackItems[i] as SidingItem;
                 }
                 catch (IndexOutOfRangeException)
                 {

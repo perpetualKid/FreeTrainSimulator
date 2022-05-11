@@ -24,11 +24,11 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="metadata">Array of string, containing ID, name, start and end</param>
         /// <param name="isPlayerPath">Is the path currently a player path?</param>
-        public PathMetadataDialog(string[] metadata, bool isPlayerPath)
+        internal PathMetadataDialog(string[] metadata, bool isPlayerPath)
         {
             InitializeComponent();
-            this.Left = 100;
-            this.Top = 10;
+            Left = 100;
+            Top = 10;
             pathID.Text    = metadata[0];
             pathName.Text  = metadata[1];
             pathStart.Text = metadata[2];

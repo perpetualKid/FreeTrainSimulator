@@ -19,16 +19,6 @@ using System;
 using System.Windows.Forms;
 
 [assembly: CLSCompliant(false)]
-
-// TODO 20210531
-// https://github.com/perpetualKid/ORTS-MG/issues/89
-//< configuration >
-//  < runtime >
-//    < AppContextSwitchOverrides value = "Switch.System.Windows.Forms.DoNotLoadLatestRichEditControl=true" />
-
-//   </ runtime >
-// </ configuration >
-
 namespace Orts.ContentManager
 {
     internal static class Program
@@ -42,7 +32,10 @@ namespace Orts.ContentManager
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ContentManagerGUI());
+            using (ContentManagerGUI contentManager = new ContentManagerGUI())
+            {
+                Application.Run(contentManager);
+            }
         }
     }
 }

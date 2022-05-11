@@ -28,7 +28,9 @@ namespace Orts.Formats.Msts.Files
     /// </summary>
     public class SoundManagmentFile
 	{
-        public IList<ScalabilityGroup> ScalabiltyGroups { get; } = new List<ScalabilityGroup>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<ScalabilityGroup> ScalabiltyGroups { get; } = new List<ScalabilityGroup>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         public SoundManagmentFile( string fileName )
 		{

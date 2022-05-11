@@ -100,15 +100,14 @@ namespace Orts.Menu
             checkAlerterExternal.Enabled = this.settings.Alerter;
             checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
             checkSpeedMonitor.Checked = this.settings.SpeedControl;
-            checkConfirmations.Checked = !this.settings.SuppressConfirmations;
-            checkViewMapWindow.Checked = this.settings.ViewDispatcher;
+            checkConfirmations.Checked = !this.settings.SuppressConfirmations;// Inverted as "Show confirmations" is better UI than "Suppress confirmations"
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
             comboPressureUnit.SelectedValue = this.settings.PressureUnit;
             comboOtherUnits.SelectedValue = settings.MeasurementUnit;
-            checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
+            checkEnableTCSScripts.Checked = !this.settings.DisableTCSScripts;// Inverted as "Enable scripts" is better UI than "Disable scripts"
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
 
@@ -120,7 +119,6 @@ namespace Orts.Menu
             // Video tab
             checkDynamicShadows.Checked = this.settings.DynamicShadows;
             checkShadowAllShapes.Checked = this.settings.ShadowAllShapes;
-            checkFastFullScreenAltTab.Checked = this.settings.FastFullScreenAltTab;
             checkWindowGlass.Checked = this.settings.WindowGlass;
             checkModelInstancing.Checked = this.settings.ModelInstancing;
             checkWire.Checked = this.settings.Wire;
@@ -149,16 +147,12 @@ namespace Orts.Menu
             numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
             checkBreakCouplers.Checked = this.settings.BreakCouplers;
-            checkCurveResistanceDependent.Checked = this.settings.CurveResistanceDependent;
             checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
-            checkTunnelResistanceDependent.Checked = this.settings.TunnelResistanceDependent;
-            checkWindResistanceDependent.Checked = this.settings.WindResistanceDependent;
-            checkOverrideNonElectrifiedRoutes.Checked = this.settings.OverrideNonElectrifiedRoutes;
-            checkHotStart.Checked = this.settings.HotStart;
+            checkBoilerPreheated.Checked = this.settings.HotStart;
             checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
             checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
             checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
-            checkBoxNoDieselEngineStart.Checked = !this.settings.DieselEngineStart;
+            checkDieselEnginesStarted.Checked = this.settings.DieselEngineStart;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -230,10 +224,7 @@ namespace Orts.Menu
             numericPerformanceTunerTarget.Value = this.settings.PerformanceTunerTarget;
             trackLODBias.Value = this.settings.LODBias;
             TrackLODBias_ValueChanged(null, null);
-            checkConditionalLoadOfNightTextures.Checked = this.settings.ConditionalLoadOfDayOrNightTextures;
             checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
-            checkCircularSpeedGauge.Checked = this.settings.CircularSpeedGauge;
-            checkLODViewingExtention.Checked = this.settings.LODViewingExtention;
             checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
             checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
             checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
@@ -241,7 +232,7 @@ namespace Orts.Menu
             checkAdhesionPropToWeather.Checked = this.settings.AdhesionProportionalToWeather;
             trackAdhesionFactorChange.Value = this.settings.AdhesionFactorChange;
             TrackAdhesionFactor_ValueChanged(null, null);
-            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;
+            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;   // Inverted as "Show warnings" is better UI than "Suppress warnings"
             precipitationBoxHeight.Value = this.settings.PrecipitationBoxHeight;
             precipitationBoxWidth.Value = this.settings.PrecipitationBoxWidth;
             precipitationBoxLength.Value = this.settings.PrecipitationBoxLength;
@@ -289,15 +280,15 @@ namespace Orts.Menu
             settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
             settings.SpeedControl = checkSpeedMonitor.Checked;
             settings.SuppressConfirmations = !checkConfirmations.Checked;
-            settings.ViewDispatcher = checkViewMapWindow.Checked;
             settings.RetainersOnAllCars = checkRetainers.Checked;
             settings.GraduatedRelease = checkGraduatedRelease.Checked;
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             settings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
             settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
-            settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
+            settings.DisableTCSScripts = !checkEnableTCSScripts.Checked; // Inverted as "Enable scripts" is better UI than "Disable scripts"
             settings.WebServer = checkEnableWebServer.Checked;
+            settings.WebServerPort = (int)numericWebServerPort.Value;
 
             // Audio tab
             settings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;
@@ -307,7 +298,6 @@ namespace Orts.Menu
             // Video tab
             settings.DynamicShadows = checkDynamicShadows.Checked;
             settings.ShadowAllShapes = checkShadowAllShapes.Checked;
-            settings.FastFullScreenAltTab = checkFastFullScreenAltTab.Checked;
             settings.WindowGlass = checkWindowGlass.Checked;
             settings.ModelInstancing = checkModelInstancing.Checked;
             settings.Wire = checkWire.Checked;
@@ -330,16 +320,12 @@ namespace Orts.Menu
             settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
             settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
             settings.BreakCouplers = checkBreakCouplers.Checked;
-            settings.CurveResistanceDependent = checkCurveResistanceDependent.Checked;
             settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
-            settings.TunnelResistanceDependent = checkTunnelResistanceDependent.Checked;
-            settings.WindResistanceDependent = checkWindResistanceDependent.Checked;
-            settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
-            settings.HotStart = checkHotStart.Checked;
+            settings.HotStart = checkBoilerPreheated.Checked;
             settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
             settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
-            settings.DieselEngineStart = !checkBoxNoDieselEngineStart.Checked;
+            settings.DieselEngineStart = checkDieselEnginesStarted.Checked;
 
             // Keyboard tab
             // These are edited live.
@@ -383,10 +369,7 @@ namespace Orts.Menu
             settings.PerformanceTuner = checkPerformanceTuner.Checked;
             settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
             settings.LODBias = trackLODBias.Value;
-            settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
             settings.SignalLightGlow = checkSignalLightGlow.Checked;
-            settings.CircularSpeedGauge = checkCircularSpeedGauge.Checked;
-            settings.LODViewingExtention = checkLODViewingExtention.Checked;
             settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
             settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
             settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
@@ -703,14 +686,13 @@ namespace Orts.Menu
             {
                 (pbAlerter, new[] { checkAlerter }, "/options.html#alerter-in-cab"),
                 (pbControlConfirmations, new[] { checkConfirmations }, "/options.html#control-confirmations"),
-                (pbMapWindow, new[] { checkViewMapWindow }, "/options.html#dispatcher-window"),
                 (pbRetainers, new[] { checkRetainers }, "/options.html#retainer-valve-on-all-cars"),
                 (pbGraduatedRelease, new[] { checkGraduatedRelease }, "/options.html#graduated-release-air-brakes"),
                 (pbBrakePipeChargingRate, new[] { numericBrakePipeChargingRate }, "/options.html#brake-pipe-charging-rate"),
                 (pbLanguage, new Control[] { labelLanguage, comboLanguage }, "/options.html#language"),
                 (pbPressureUnit, new Control[] { labelPressureUnit, comboPressureUnit }, "/options.html#pressure-unit"),
                 (pbOtherUnits, new Control[] { labelOtherUnits, comboOtherUnits }, "/options.html#other-units"),
-                (pbDisableTcsScripts, new[] { checkDisableTCSScripts }, "/options.html#disable-tcs-scripts"),
+                (pbEnableTcsScripts, new[] { checkEnableTCSScripts }, "/options.html#disable-tcs-scripts"),
                 (pbEnableWebServer, new[] { checkEnableWebServer }, "/options.html#enable-web-server"),
                 (pbOverspeedMonitor, new[] { checkSpeedMonitor }, "/options.html#overspeed-monitor"),
             };

@@ -6,6 +6,7 @@ using System.Linq;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
@@ -428,11 +429,11 @@ namespace Orts.Simulation.Signalling
             float distancePlatformHeadtoTrainHead = -train.StationStops[0].StopOffset + PlatformItem.TrackCircuitOffset[Location.FarEnd, train.StationStops[0].Direction] + train.StationStops[0].DistanceToTrainM;
             float trainPartOutsidePlatformForward = distancePlatformHeadtoTrainHead < 0 ? -distancePlatformHeadtoTrainHead : 0;
             if (trainPartOutsidePlatformForward >= train.Length) 
-                return (int)PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
+                return PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
             float distancePlatformTailtoTrainTail = distancePlatformHeadtoTrainHead - PlatformItem.Length + train.Length;
             float trainPartOutsidePlatformBackward = distancePlatformTailtoTrainTail > 0 ? distancePlatformTailtoTrainTail : 0;
             if (trainPartOutsidePlatformBackward >= train.Length) 
-                return (int)PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
+                return PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
             if (train == Simulator.Instance.OriginalPlayerTrain)
             {
                 if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0) 
@@ -446,8 +447,8 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformForward && passengerCarsWithinPlatform > 0 && trainCarIndex < train.Cars.Count - 1)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
+                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;
@@ -463,8 +464,8 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformBackward && passengerCarsWithinPlatform > 0 && trainCarIndex >= 0)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && train.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].HasPassengerCapacity))
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
+                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;

@@ -25,9 +25,10 @@ using System.Linq;
 using GetText;
 
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -42,24 +43,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const int heightInLinesOfText = 1;
         private bool UpdateDataEnded;
 
-        public static bool MultiplayerUpdating = false;
+        public static bool MultiplayerUpdating;
 
         public int keyPresLenght;
-        public int OffSetX = 0;
-        private int maxFirstColWidth = 0;
-        private int maxLastColWidth = 0;
+        public int OffSetX;
+        private int maxFirstColWidth;
+        private int maxLastColWidth;
         private int WindowHeightMax;
         private int WindowHeightMin;
         private int WindowWidthMin;
         private int WindowWidthMax;
-        private char expandWindow;
         private const int TextSize = 15;
         private string keyPressed;// display a symbol when a control key is pressed.
 
         private Label indicator;
         private Label LabelFontToBold;
         public static bool FontChanged;
-        public static bool FontToBold = false;
+        public static bool FontToBold;
         public static bool MonoFont;
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             UpdateDataEnded = false;
             // First Block
             // Client and server may have a time difference.
-            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.IsClient() ? MultiPlayerManager.Instance().serverTimeDifference : 0));
+            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? MultiPlayerManager.Instance().serverTimeDifference : 0));
             AddLabel(new ListLabel
             {
                 FirstCol = $"{CatalogManager.Catalog.GetString("Time")}: {time}",
@@ -332,13 +332,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             AddSeparator();
 
             // MultiPlayer
-            if (MultiPlayerManager.IsMultiPlayer())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.None)
             {
                 string text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
-                string multiPlayerStatus = MultiPlayerManager.IsServer()
-                    ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Client.UserName})" : MultiPlayerManager.Instance().AmAider
-                    ? CatalogManager.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
-                    ? $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Client.UserName})" : "";
+                string multiPlayerStatus = MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Instance().UserName})" : 
+                    MultiPlayerManager.Instance().AmAider ? CatalogManager.Catalog.GetString("Helper") : $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Instance().UserName})";
 
                 var status = $"{CatalogManager.Catalog.GetString("Status")}: {multiPlayerStatus}";
 

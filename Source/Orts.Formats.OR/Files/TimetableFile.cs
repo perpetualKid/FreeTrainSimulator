@@ -100,7 +100,7 @@ namespace Orts.Formats.OR.Files
                     if (firstCommentColumn < 0)
                         firstCommentColumn = columnIndex;
                 }
-                else if (!string.IsNullOrEmpty(header) && !header.ToLower().Contains("$static"))
+                else if (!string.IsNullOrEmpty(header) && !header.Contains("$static", StringComparison.OrdinalIgnoreCase))
                 {
                     Trains.Add(new TrainInformation(columnIndex, header));
                 }
@@ -169,9 +169,9 @@ namespace Orts.Formats.OR.Files
                     {
                         briefingFound = true;
                         // Newlines "\n" cannot be emdedded in CSV files, so HTML breaks "<br>" are used instead.
-                        Briefing = parts[1].Replace("<br>", "\n");
+                        Briefing = parts[1].Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase);
                         foreach (TrainInformation train in Trains)
-                            train.Briefing = parts[train.Column].Replace("<br>", "\n");
+                            train.Briefing = parts[train.Column].Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase);
                     }
                 }
                 readLine = scrStream.ReadLine();
@@ -186,7 +186,7 @@ namespace Orts.Formats.OR.Files
 
             if (!string.IsNullOrEmpty(consistProc) && consistProc[0] == '<')
             {
-                int endIndex = consistProc.IndexOf('>');
+                int endIndex = consistProc.IndexOf('>', StringComparison.OrdinalIgnoreCase);
                 if (endIndex < 0)
                 {
                     reqString = consistProc.Substring(1);
@@ -200,12 +200,12 @@ namespace Orts.Formats.OR.Files
             }
             else
             {
-                int plusIndex = consistProc.IndexOf('+');
+                int plusIndex = consistProc.IndexOf('+', StringComparison.OrdinalIgnoreCase);
                 if (plusIndex > 0)
                 {
                     reqString = consistProc.Substring(0, plusIndex - 1);
 
-                    int sepIndex = consistDef.IndexOf('$');
+                    int sepIndex = consistDef.IndexOf('$', StringComparison.OrdinalIgnoreCase);
                     if (sepIndex > 0)
                     {
                         consistProc = consistDef.Substring(sepIndex).Trim();
@@ -219,7 +219,7 @@ namespace Orts.Formats.OR.Files
                 {
                     reqString = consistDef;
 
-                    int sepIndex = consistDef.IndexOf('$');
+                    int sepIndex = consistDef.IndexOf('$', StringComparison.OrdinalIgnoreCase);
                     if (sepIndex > 0)
                     {
                         consistProc = consistDef.Substring(sepIndex).Trim();
@@ -233,7 +233,7 @@ namespace Orts.Formats.OR.Files
 
             if (!string.IsNullOrEmpty(consistProc) && consistProc[0] == '$')
             {
-                reverse = (consistProc.Substring(1, 7).Equals("reverse"));
+                reverse = consistProc.Substring(1, 7).Equals("reverse", StringComparison.OrdinalIgnoreCase);
             }
             return (reqString.Trim());
         }

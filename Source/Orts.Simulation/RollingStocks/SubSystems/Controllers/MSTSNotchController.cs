@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -34,16 +35,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public MSTSNotch(float v, int s, string type, STFReader stf)
         {
             Value = v;
-            Smooth = s == 0 ? false : true;
+            Smooth = s != 0;
             NotchStateType = ControllerState.Dummy;  // Default to a dummy controller state if no valid alternative state used
-            string lower = type.ToLower();
-            if (lower.StartsWith("trainbrakescontroller"))
-                lower = lower.Substring(21);
-            if (lower.StartsWith("enginebrakescontroller"))
-                lower = lower.Substring(22);
-            if (lower.StartsWith("brakemanbrakescontroller"))
-                lower = lower.Substring(24);
-            switch (lower)
+            string lower;
+            if (type.StartsWith("trainbrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type[21..];
+            else if (type.StartsWith("enginebrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type[22..];
+            else if (type.StartsWith("brakemanbrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type.Substring(24);
+            else
+                lower = type;
+            switch (lower.ToLowerInvariant())
             {
                 case "dummy": break;
                 case ")": break;
@@ -214,7 +217,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             StepSize = stf.ReadFloat(STFReader.Units.None, null);
             IntermediateValue = CurrentValue = stf.ReadFloat(STFReader.Units.None, null);
             string token = stf.ReadItem(); // s/b numnotches
-            if (string.Compare(token, "NumNotches", true) != 0) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
+            if (!string.Equals(token, "NumNotches", StringComparison.OrdinalIgnoreCase)) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
                 stf.ReadItem();
             stf.MustMatch("(");
             stf.ReadInt(null);
@@ -240,6 +243,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             return (ToZero && ((CurrentNotch >= 0 && Notches[CurrentNotch].Smooth) || Notches.Count == 0 || 
                 IntermediateValue - CurrentValue > StepSize) ? FastBoost : boost);
+        }
+
+        public void AddNotch(float value)
+        {
+            Notches.Add(new MSTSNotch(value, false, (int)ControllerState.Dummy));
         }
 
         /// <summary>
@@ -494,6 +502,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return target;
         }
 
+        public float? DistributedPowerSmoothMax()
+        {
+            float? target = null;
+            if (Notches.Count > 0 && CurrentNotch < Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+                target = Notches[CurrentNotch + 1].Value;
+            else if (Notches.Count == 0 || CurrentNotch == Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+                target = MaximumValue;
+            return target;
+        }
+
+        public float? DPSmoothMax()
+        {
+            float? target = null;
+            if (Notches.Count > 0 && CurrentNotch < Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+                target = Notches[CurrentNotch + 1].Value;
+            else if (Notches.Count == 0 || CurrentNotch == Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+                target = MaximumValue;
+            return target;
+        }
+
         public virtual string GetStatus()
         {
             if (Notches.Count == 0)
@@ -579,6 +607,42 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             for (int i = 0; i < Notches.Count; i++)
                 Notches[i].Value /= ratio;
+        }
+
+        /// <summary>
+        /// Get the nearest discrete notch position for a normalized input value.
+        /// This function is not dependent on notch controller actual (current) value, so can be queried for computer-intervened value as well.
+        /// </summary>
+        public int GetNearestNotch(float value)
+        {
+            var notch = 0;
+            for (notch = Notches.Count - 1; notch > 0; notch--)
+            {
+                if (Notches[notch].Value <= value)
+                {
+                    if (notch < Notches.Count - 1 && Notches[notch + 1].Value - value < value - Notches[notch].Value)
+                        notch++;
+                    break;
+                }
+            }
+            return notch;
+        }
+
+        /// <summary>
+        /// Get the discrete notch position for a normalized input value.
+        /// This function is not dependent on notch controller actual (current) value, so can be queried for computer-intervened value as well.
+        /// </summary>
+        public int GetNotch(float value)
+        {
+            var notch = 0;
+            for (notch = Notches.Count - 1; notch > 0; notch--)
+            {
+                if (Notches[notch].Value <= value)
+                {
+                     break;
+                }
+            }
+            return notch;
         }
 
     }

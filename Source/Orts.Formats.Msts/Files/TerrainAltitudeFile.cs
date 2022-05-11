@@ -37,10 +37,32 @@ namespace Orts.Formats.Msts.Files
                         for (int x = 0; x < sampleCount; x++)
                             elevation[x, z] = reader.ReadUInt16();
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.WriteLine(new FileLoadException(fileName, error));
             }
+        }
+
+
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+        public static ushort[,] LoadTerrainAltitudeFile(string fileName, int sampleCount)
+        {
+            ushort[,] result = new ushort[sampleCount, sampleCount];
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
+            try
+            {
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(fileName)))
+                    for (int z = 0; z < sampleCount; z++)
+                        for (int x = 0; x < sampleCount; x++)
+                            result[x, z] = reader.ReadUInt16();
+            }
+            catch (IOException error)
+            {
+                Trace.WriteLine(new FileLoadException(fileName, error));
+            }
+            return result;
         }
 
         /// <summary>

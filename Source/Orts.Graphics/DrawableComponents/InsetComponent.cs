@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Graphics.Track.Shapes;
-using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.MapView.Shapes;
+using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents
@@ -19,13 +20,14 @@ namespace Orts.Graphics.DrawableComponents
         private const int borderSize = 2;
         private Color borderColor;
 
+        private IEnumerable<TrackSegment> trackSegments;
+
         public InsetComponent(Game game, Color color, Vector2 position) :
             base(game, color, position)
         {
             Enabled = false;
             Visible = false;
 
-            size = new Point(game.GraphicsDevice.DisplayMode.Width / 15, game.GraphicsDevice.DisplayMode.Height / 15);
             Window_ClientSizeChanged(this, EventArgs.Empty);
             borderColor = color.HighlightColor(0.6);
         }
@@ -43,6 +45,8 @@ namespace Orts.Graphics.DrawableComponents
             if (positionOffset.X < 0 || positionOffset.Y < 0)
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - size.X, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - size.Y);
         }
+
+        internal void SetTrackSegments(IEnumerable<TrackSegment> trackSegments) { this.trackSegments = trackSegments; }
 
         public override void UpdateColor(Color color)
         {
@@ -80,12 +84,15 @@ namespace Orts.Graphics.DrawableComponents
             BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
             BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
-            foreach (TrackSegment segment in content.TrackContent.TrackSegments)
+            if (null != trackSegments)
             {
-                if (segment.Curved)
-                    BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0, spriteBatch);
-                else
-                    BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                foreach (TrackSegment segment in trackSegments)
+                {
+                    if (segment.Curved)
+                        BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
+                    else
+                        BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                }
             }
 
             spriteBatch.End();
@@ -93,26 +100,13 @@ namespace Orts.Graphics.DrawableComponents
             return renderTarget;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2 WorldToScreenCoordinates(in PointD location)
-        {
-            return new Vector2((float)(scale * (location.X - offsetX)),
-                               (float)(size.Y - scale * (location.Y - offsetY)));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float WorldToScreenSize(double worldSize, int minScreenSize = 1)
-        {
-            return Math.Max((float)Math.Ceiling(worldSize * scale), minScreenSize);
-        }
-
         private void UpdateWindowSize()
         {
-            double xScale = (double)size.X / content.TrackContent.Bounds.Width;
-            double yScale = (double)size.Y / content.TrackContent.Bounds.Height;
+            double xScale = (double)size.X / content.Content.Bounds.Width;
+            double yScale = (double)size.Y / content.Content.Bounds.Height;
             scale = Math.Min(xScale, yScale);
-            offsetX = (content.TrackContent.Bounds.Left + content.TrackContent.Bounds.Right) / 2 - size.X / 2 / scale;
-            offsetY = (content.TrackContent.Bounds.Top + content.TrackContent.Bounds.Bottom) / 2 - size.Y / 2 / scale;
+            offsetX = (content.Content.Bounds.Left + content.Content.Bounds.Right) / 2 - size.X / 2 / scale;
+            offsetY = (content.Content.Bounds.Top + content.Content.Bounds.Bottom) / 2 - size.Y / 2 / scale;
         }
 
         private void DrawClippingMarker()
@@ -130,7 +124,18 @@ namespace Orts.Graphics.DrawableComponents
             BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
                 BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, spriteBatch);
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector2 WorldToScreenCoordinates(in PointD location)
+        {
+            return new Vector2((float)(scale * (location.X - offsetX)), (float)(size.Y - scale * (location.Y - offsetY)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float WorldToScreenSize(double worldSize, int minScreenSize = 1)
+        {
+            return Math.Max((float)Math.Ceiling(worldSize * scale), minScreenSize);
         }
     }
 }

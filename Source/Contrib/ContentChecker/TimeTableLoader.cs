@@ -38,7 +38,7 @@ namespace Orts.ContentChecker
 #pragma warning disable CA1308 // Normalize strings to uppercase
             string extension = Path.GetExtension(file).ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            if (extension.Contains("table"))
+            if (extension.Contains("table", StringComparison.OrdinalIgnoreCase))
             {
                 _ = new TimetableGroupFile(file);
             }

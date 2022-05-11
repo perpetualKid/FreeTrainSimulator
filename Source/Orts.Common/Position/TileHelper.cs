@@ -7,6 +7,7 @@ namespace Orts.Common.Position
     {
         public enum Zoom
         {
+            Invalid = 0,
             /// <summary>
             /// 32KM^2
             /// </summary>

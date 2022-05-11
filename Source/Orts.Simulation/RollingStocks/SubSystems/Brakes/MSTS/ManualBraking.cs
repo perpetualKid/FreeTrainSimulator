@@ -17,11 +17,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
@@ -101,7 +101,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
 
             // Changes brake type if tender fitted with steam brakes
-            if (Car.WagonType == MSTSWagon.WagonTypes.Tender) 
+            if (Car.WagonType == WagonType.Tender) 
             {
                 var wagonid = Car as MSTSWagon;
                 // Find the associated steam locomotive for this tender
@@ -156,7 +156,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             BrakeForceFraction = ManualBrakingCurrentFraction / ManualMaxBrakeValue;
           
             // If car is a locomotive or tender, then process engine brake
-            if (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender) // Engine brake
+            if (Car.WagonType == WagonType.Engine || Car.WagonType == WagonType.Tender) // Engine brake
             {
                 if (lead != null)
                 {
@@ -213,16 +213,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     f = Car.MaxHandbrakeForceN * HandbrakePercent / 100;
             }
             else f = Math.Max(Car.MaxBrakeForceN, Car.MaxHandbrakeForceN / 2);
-            Car.BrakeRetardForceN = f * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid
-            if (Car.BrakeSkid) // Test to see if wheels are skiding to excessive brake force
-            {
-                Car.BrakeForceN = f * Car.SkidFriction;   // if excessive brakeforce, wheel skids, and loses adhesion
-            }
-            else
-            {
-                Car.BrakeForceN = f * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple model constant force applied as per value in WAG file, will vary with wheel skid.
-            }
-
+            Car.SetBrakeForce(f);
         }
 
         // Get the brake BC & BP for EOT conditions
@@ -308,7 +299,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             if (percent < 0) percent = 0;
             if (percent > 100) percent = 100;
-            //  Car.Train.EqualReservoirPressurePSIorInHg = Vac.FromPress(OneAtmospherePSI - MaxForcePressurePSI * (1 - percent / 100));
+            //  Car.Train.EqualReservoirPressurePSIorInHg = Vac.FromPress(Const.OneAtmospherePSI - MaxForcePressurePSI * (1 - percent / 100));
         }
 
         public override void SetHandbrakePercent(float percent)

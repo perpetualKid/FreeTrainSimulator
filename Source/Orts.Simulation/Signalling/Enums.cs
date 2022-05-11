@@ -8,6 +8,7 @@
 
     public enum InternalBlockstate
     {
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
         Reserved,                   // all sections reserved for requiring train       //
         Reservable,                 // all secetions clear and reservable for train    //
         OccupiedSameDirection,      // occupied by train moving in same direction      //
@@ -16,9 +17,12 @@
         OccupiedOppositeDirection,  // occupied by train moving in opposite direction  //
         Open,                       // sections are claimed and not accesible          //
         Blocked,                    // switch locked against train                     //
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
     }
 
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum SignalPermission
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         Granted,
         Requested,

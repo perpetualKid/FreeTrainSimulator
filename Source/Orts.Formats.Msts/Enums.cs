@@ -104,13 +104,20 @@ namespace Orts.Formats.Msts
     #endregion
 
     #region Path
+    public enum TrackNodeType
+    { 
+        Track,
+        Junction,
+        End,
+    }
+
     // This relates to TrPathFlags, which is not always present in .pat file
     // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
     // Bit 1 - waiting point (2/x2)
     // Bit 2 - intermediate point between switches (4/x4)
     // Bit 3 - 'other exit' is used (8/x8)
     // Bit 4 - 'optional Route' active (16/x10)
-     [Flags]
+    [Flags]
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum PathFlags
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
@@ -412,6 +419,17 @@ namespace Orts.Formats.Msts
         Orts_Electric_Train_Supply_Command_Switch,
         Orts_Electric_Train_Supply_On,
         Orts_2DExternalWipers,
+        Orts_Generic_Item1,
+        Orts_Generic_Item2,
+        Orts_Screen_Select,
+        Orts_Static_Display,
+        Orts_Eot_Brake_Pipe,
+        Orts_Eot_State_Display,
+        Orts_Eot_Id,
+        Orts_Eot_Comm_Test,
+        Orts_Eot_Disarm,
+        Orts_Eot_Arm_Two_Way,
+        Orts_Eot_Emergency_Brake,
 
         // TCS Controls
         Orts_TCS1,
@@ -466,12 +484,24 @@ namespace Orts.Formats.Msts
         Orts_Odometer,
         Orts_Odometer_Reset,
         Orts_Odometer_Direction,
+        Orts_DistributedPower,
+        Orts_DistributedPower_MoveToFront,
+        Orts_DistributedPower_MoveToBack,
+        Orts_DistributedPower_Idle,
+        Orts_DistributedPower_Traction,
+        Orts_DistributedPower_Brake,
+        Orts_DistributedPower_Increase,
+        Orts_DistributedPower_Decrease,
 
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         ExternalWipers,
         LeftDoor,
         RightDoor,
         Mirrors,
+        Orts_Item1Continuous,
+        Orts_Item2Continuous,
+        Orts_Item1TwoState,
+        Orts_Item2TwoState,
     }
 
     public enum CabViewControlStyle
@@ -571,26 +601,76 @@ namespace Orts.Formats.Msts
     /// </summary>
     public enum PickupType
     {
-        [Description("none")]               None = 0,
-        [Description("freight-grain")]      FreightGrain = 1,
-        [Description("freight-coal")]       FreightCoal = 2,
-        [Description("freight-gravel")]     FreightGravel = 3,
-        [Description("freight-sand")]       FreightSand = 4,
-        [Description("water")]              FuelWater = 5,
-        [Description("coal")]               FuelCoal = 6,
-        [Description("diesel oil")]         FuelDiesel = 7,
-        [Description("wood")]               FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
-        [Description("sand")]               FuelSand = 9,  // New to OR
-        [Description("freight-general")]    FreightGeneral = 10, // New to OR
-        [Description("freight-livestock")]  FreightLivestock = 11,  // New to OR
-        [Description("freight-fuel")]       FreightFuel = 12,  // New to OR
-        [Description("freight-milk")]       FreightMilk = 13,   // New to OR
-        [Description("mail")]               SpecialMail = 14  // New to OR
+        [Description("none")] None = 0,
+        [Description("freight-grain")] FreightGrain = 1,
+        [Description("freight-coal")] FreightCoal = 2,
+        [Description("freight-gravel")] FreightGravel = 3,
+        [Description("freight-sand")] FreightSand = 4,
+        [Description("water")] FuelWater = 5,
+        [Description("coal")] FuelCoal = 6,
+        [Description("diesel oil")] FuelDiesel = 7,
+        [Description("wood")] FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
+        [Description("sand")] FuelSand = 9,  // New to OR
+        [Description("freight-general")] FreightGeneral = 10, // New to OR
+        [Description("freight-livestock")] FreightLivestock = 11,  // New to OR
+        [Description("freight-fuel")] FreightFuel = 12,  // New to OR
+        [Description("freight-milk")] FreightMilk = 13,   // New to OR
+        [Description("mail")] SpecialMail = 14  // New to OR
     }
     #endregion
 
     #region TrackItem
 
     #endregion
+
+    #region Train Car and Engines
+    public enum EngineType
+    {
+        Unknown,
+        Steam,
+        Diesel,
+        Electric,
+        Control,
+    }
+
+    public enum WagonType
+    {
+        Unknown,
+        Engine,
+        Tender,
+        Passenger,
+        Freight,
+    }
+
+    public enum SteamEngineType
+    {
+        Unknown,
+        Simple,
+        Geared,
+        Compound,
+    }
+
+    public enum WagonSpecialType
+    {
+        Unknown,
+        HeatingBoiler,
+        Heated,
+        PowerVan,
+    }
+    #endregion
+    public enum BrakeSystemType
+    {
+        ManualBraking,
+        AirPiped,
+        AirTwinPipe,
+        AirSinglePipe,
+        VacuumPiped,
+        VacuumSinglePipe,
+        VacuumTwinPipe,
+        StraightVacuumSinglePipe,
+        Ecp,
+        Ep, 
+        Sme,
+    }
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

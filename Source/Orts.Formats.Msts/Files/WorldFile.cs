@@ -35,7 +35,7 @@ namespace Orts.Formats.Msts.Files
         {
         }
 
-        public WorldFile(string fileName, IList<TokenID> allowedTokens)
+        public WorldFile(string fileName, HashSet<TokenID> allowedTokens)
         {
             try
             {

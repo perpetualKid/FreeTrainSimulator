@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Position
@@ -23,6 +24,20 @@ namespace Orts.Common.Position
         public static PointD FromWorldLocation(in WorldLocation location)
         {
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
+        }
+
+        public static WorldLocation ToWorldLocation(in PointD location)
+        {
+            int xTileDistance = (int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int zTileDistance = (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero);
+
+            return new WorldLocation(xTileDistance, zTileDistance, 
+                new Vector3((float)(location.X - (xTileDistance * WorldLocation.TileSize)), 0, (float)(location.Y - (zTileDistance * WorldLocation.TileSize))));
+        }
+
+        public static Tile ToTile(in PointD location)
+        {
+                return new Tile((int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
         public static PointD TileCenter(in ITile tile)
@@ -123,39 +138,20 @@ namespace Orts.Common.Position
             return new PointD(source.X * scalar, source.Y * scalar);
         }
 
-        public double DistanceToLineSegmentSquared(in PointD start, in PointD end)
+        public static PointD operator /(in PointD source, double scalar)
         {
-            // Compute length of line segment (squared) and handle special case of coincident points
-            double segmentLengthSquared = start.DistanceSquared(end);
-            if (segmentLengthSquared < double.Epsilon)  // start and end are considered same
-            {
-                return DistanceSquared(start);
-            }
-
-            // Use the magic formula to compute the "projection" of this point on the infinite line
-            PointD lineSegment = end - start;
-            double t = (this - start).DotProduct(lineSegment) / segmentLengthSquared;
-
-            PointD closest;
-            // Handle the two cases where the projection is not on the line segment, and the case where 
-            //  the projection is on the segment
-            if (t <= 0)
-                closest = start;
-            else if (t >= 1)
-                closest = end;
-            else
-                closest = start + (lineSegment * t);
-            return DistanceSquared(closest);
+            return Divide(source, scalar);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public static double DistanceToLineSegmentSquared(in PointD start, in PointD end, in PointD source)
+        public static PointD Divide(in PointD source, double scalar)
         {
-            return source.DistanceToLineSegmentSquared(start, end);
+            return new PointD(source.X / scalar, source.Y / scalar);
         }
 
+        public override string ToString()
+        {
+            return $"{{X:{X} Y:{Y}}}";
+        }
     }
 
 }

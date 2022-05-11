@@ -35,13 +35,15 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
-using Orts.MultiPlayer;
 using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -122,7 +124,9 @@ namespace Orts.Simulation
 
         public UserSettings Settings { get; }
 
+        public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
+        public string EOTPath;      // ie c:\program files\microsoft games\train simulator\trains\ORTS_EOT
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -135,15 +139,14 @@ namespace Orts.Simulation
         public bool PreUpdate { get; internal set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
-        public TrackDatabaseFile TrackDatabase { get; private set; }
-        public RoadDatabaseFile RoadDatabase { get; private set; }
         public Route Route { get; private set; }
-        public TrackSectionsFile TSectionDat { get; private set; }
         public TrainList Trains { get; private set; }
         public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<int, AITrain> AutoGenDictionary { get; } = new Dictionary<int, AITrain>();
-        public IList<int> StartReference { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> StartReference { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public Weather Weather { get; } = new Weather();
 
         public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
@@ -169,8 +172,10 @@ namespace Orts.Simulation
         public float InitialTileZ { get; private set; }
         public HazardManager HazardManager { get; private set; }
 
-        public IList<MovingTable> MovingTables { get; } = new List<MovingTable>();
-        public IList<CarSpawners> CarSpawnerLists { get; } = new List<CarSpawners>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
+        public List<CarSpawners> CarSpawnerLists { get; } = new List<CarSpawners>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public ClockList Clocks { get; private set; }           // List of OR-Clocks given by externe file "openrails\clocks.dat"
 
         // timetable pools
@@ -192,12 +197,11 @@ namespace Orts.Simulation
         public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
-        public bool MilepostUnitsMetric { get; private set; }
         public bool OpenDoorsInAITrains { get; private set; }
 
         public MovingTable ActiveMovingTable { get; set; }
 
-
+        public FullEOTPaths FullEOTPaths { get; }
         // Replay functionality!
         public CommandLog Log { get; set; }
         public List<ICommand> ReplayCommandList { get; set; }
@@ -218,6 +222,8 @@ namespace Orts.Simulation
         public event EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
         public event EventHandler RequestTTDetachWindow;
 
+        public float TimetableLoadedFraction { get; internal set; }    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
+
         public Simulator(UserSettings settings, string activityPath)
         {
             Instance = this;
@@ -237,29 +243,32 @@ namespace Orts.Simulation
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
             RouteName = Route.Name;
-            MilepostUnitsMetric = Route.MilepostUnitsMetric;
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
-            TrackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName));
+            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName)).TrackDB;
 
             Trace.Write(" SIGCFG");
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
 
             Trace.Write(" DAT");
-            TSectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
+            TrackSectionsFile tsectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
             if (File.Exists(RouteFolder.RouteTrackSectionFile))
-                TSectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
+                tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
+
+            RoadTrackDB roadDatabase = null;
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
+            {
+                Trace.Write(" RDB");
+                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
+            }
+
+            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
             Trace.Write(" ACT");
-
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
-            {
-                Trace.Write(" RDB");
-                RoadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName));
-            }
 
             string carSpawnFile = RouteFolder.CarSpawnerFile;
             if (File.Exists(carSpawnFile))
@@ -285,8 +294,17 @@ namespace Orts.Simulation
                 Clocks = cf.Clocks;
             }
 
+            EOTPath = RouteFolder.ContentFolder.TrainSetsFolder + @"\TRAINS\ORTS_EOT\";
+
+            // Generate a list of EOTs that may be used to attach at end of train
+            if (Directory.Exists(EOTPath))
+            {
+                Trace.Write(" EOT");
+                FullEOTPaths = new FullEOTPaths(EOTPath);
+            }
+
             Confirmer = new Confirmer(this, 1.5);
-            HazardManager = new HazardManager(this);
+            HazardManager = new HazardManager();
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
         }
@@ -312,7 +330,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(Route, TSectionDat, TrackDatabase.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(Route, ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -354,7 +372,7 @@ namespace Orts.Simulation
         {
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
 
@@ -378,7 +396,7 @@ namespace Orts.Simulation
             TimetableMode = true;
             SignalEnvironment = new SignalEnvironment(SignalConfig, true, cancellationToken);
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
 
@@ -424,7 +442,7 @@ namespace Orts.Simulation
             SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
-            LevelCrossings = new LevelCrossings(this);
+            LevelCrossings = new LevelCrossings();
             AI = new AI(this, inf);
             // Find original player train
             OriginalPlayerTrain = Trains.Find(item => item.Number == 0);
@@ -476,7 +494,7 @@ namespace Orts.Simulation
         {
             Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             if (playerTrain != null)
             {
                 _ = playerTrain.PostInit();
@@ -490,7 +508,7 @@ namespace Orts.Simulation
         {
             AITrain playerTrain = InitializeAPPlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellationToken, ClockTime);
+            AI = new AI(this, ClockTime, cancellationToken);
             playerTrain.AI = AI;
             if (playerTrain != null)
             {
@@ -631,7 +649,7 @@ namespace Orts.Simulation
 
             if (!TimetableMode)
             {
-                if (!MultiPlayerManager.IsMultiPlayer() || !MultiPlayerManager.IsClient())
+                if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
                 {
                     foreach (Train train in movingTrains)
                     {
@@ -644,7 +662,7 @@ namespace Orts.Simulation
                 }
             }
 
-            if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
                 SignalEnvironment?.Update(false);
 
             if (AI != null)
@@ -1012,7 +1030,7 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, PathFileName, TimetableMode);
+            AIPath aiPath = new AIPath(PathFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
@@ -1021,10 +1039,11 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, aiPath);
+            train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
+            train.TcsParametersFileName = conFile.Train.TcsParametersFileName;
 
             // add wagons
             foreach (Wagon wagon in conFile.Train.Wagons)
@@ -1032,6 +1051,11 @@ namespace Orts.Simulation
                 string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                else if (wagon.IsEOT)
+                {
+                    string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot",wagon.Folder);
+                    wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                }
 
                 if (!File.Exists(wagonFilePath))
                 {
@@ -1044,15 +1068,16 @@ namespace Orts.Simulation
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(this, wagonFilePath);
+                    TrainCar car = RollingStock.Load(train, wagonFilePath);
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
                         car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
-                    train.Cars.Add(car);
-                    car.Train = train;
+                    if (car is EndOfTrainDevice endOfTrain) 
+                        train.EndOfTrainDevice = endOfTrain;
+
                     train.Length += car.CarLengthM;
 
                     if (ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
@@ -1074,6 +1099,7 @@ namespace Orts.Simulation
             }// for each rail car
 
             train.CheckFreight();
+            train.SetDistributedPowerUnitIds();
 
             train.PresetExplorerPath(aiPath);
             train.ControlMode = TrainControlMode.Explorer;
@@ -1105,6 +1131,10 @@ namespace Orts.Simulation
             float prevEQres = train.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
             train.EqualReservoirPressurePSIorInHg = prevEQres; // The previous command modifies EQ reservoir pressure, causing issues with EP brake systems, so restore to prev value
+
+//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
+
             return (train);
         }
 
@@ -1167,11 +1197,14 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction : -2);
+                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction.Reverse() : -2);
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
+
+//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
 
             return train;
         }
@@ -1202,7 +1235,7 @@ namespace Orts.Simulation
                         default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, activityObject.Location);
+                    train.RearTDBTraveller = new Traveller(activityObject.Location);
                     if (consistDirection != 1)
                         train.RearTDBTraveller.ReverseDirection();
                     // add wagons in reverse order - ie first wagon is at back of train
@@ -1214,6 +1247,11 @@ namespace Orts.Simulation
                         string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                         if (wagon.IsEngine)
                             wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                        else if (wagon.IsEOT)
+                        {
+                            string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
+                            wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                        }
 
                         if (!File.Exists(wagonFilePath))
                         {
@@ -1223,12 +1261,12 @@ namespace Orts.Simulation
 
                         try // Load could fail if file has bad data.
                         {
-                            TrainCar car = RollingStock.Load(this, wagonFilePath);
+                            TrainCar car = RollingStock.Load(train, wagonFilePath);
                             car.Flipped = !wagon.Flip;
                             car.UiD = wagon.UiD;
                             car.CarID = activityObject.ID + " - " + car.UiD;
-                            train.Cars.Add(car);
-                            car.Train = train;
+                            if (car is EndOfTrainDevice endOfTrain)
+                                train.EndOfTrainDevice = endOfTrain;
                         }
                         catch (Exception error)
                         {
@@ -1249,6 +1287,7 @@ namespace Orts.Simulation
                     train.InitializeBrakes();
                     train.CheckFreight();
                     train.ReverseFormation(false); // When using autopilot mode this is needed for correct working of train switching
+                    train.SetDistributedPowerUnitIds();
                     bool validPosition = train.PostInit();
                     if (validPosition)
                         Trains.Add(train);
@@ -1583,7 +1622,11 @@ namespace Orts.Simulation
 
 
             train.CheckFreight();
+            train.SetDistributedPowerUnitIds();
+            train.ReinitializeEOT();
             train2.CheckFreight();
+            train2.SetDistributedPowerUnitIds();
+            train2.ReinitializeEOT();
 
             train.Update(0);   // stop the wheels from moving etc
             train2.Update(0);  // stop the wheels from moving etc
@@ -1725,6 +1768,7 @@ namespace Orts.Simulation
 
 
                     selectedAsPlayer.CheckFreight();
+                    selectedAsPlayer.SetDistributedPowerUnitIds(true);
 
                     selectedAsPlayer.Update(0);  // stop the wheels from moving etc
                     TrainSwitcher.PickedTrainFromList = selectedAsPlayer;
@@ -1756,6 +1800,7 @@ namespace Orts.Simulation
                         playerTrain.SpeedMpS = 0;
                         foreach (TrainCar car in playerTrain.Cars) car.SpeedMpS = 0;
                         playerTrain.CheckFreight();
+                        playerTrain.SetDistributedPowerUnitIds();
                         playerTrain.InitializeBrakes();
                     }
                 }
@@ -1913,15 +1958,8 @@ namespace Orts.Simulation
                 setting.GraduatedRelease = activitySettings.Options.GraduatedBrakeRelease == 1;
                 Trace.Write($"\n{"Graduated Brake Release",-40}={setting.GraduatedRelease,6}");
 
-                setting.ViewDispatcher = activitySettings.Options.ViewDispatcherWindow == 1;
-                Trace.Write($"\n{"View Dispatch Window",-40}={setting.ViewDispatcher,6}");
-
                 setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
                 Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
-
-                // Video TAB
-                setting.FastFullScreenAltTab = activitySettings.Options.FastFullScreenAltTab == 1;
-                Trace.Write($"\n{"Fast Full Screen Alt TAB",-40}={setting.FastFullScreenAltTab,6}");
 
                 // Simulation TAB
                 setting.NoForcedRedAtStationStops = activitySettings.Options.ForcedRedAtStationStops == 0; // Note this parameter is reversed in its logic to others.
@@ -1936,17 +1974,8 @@ namespace Orts.Simulation
                 setting.BreakCouplers = activitySettings.Options.BreakCouplers == 1;
                 Trace.Write($"\n{"Break Couplers",-40}={setting.BreakCouplers,6}");
 
-                setting.CurveResistanceDependent = activitySettings.Options.CurveResistanceDependent == 1;
-                Trace.Write($"\n{"Curve Resistance Dependent",-40}={setting.CurveResistanceDependent,6}");
-
                 setting.CurveSpeedDependent = activitySettings.Options.CurveSpeedDependent == 1;
                 Trace.Write($"\n{"Curve Speed Dependent",-40}={setting.CurveSpeedDependent,6}");
-
-                setting.TunnelResistanceDependent = activitySettings.Options.TunnelResistanceDependent == 1;
-                Trace.Write($"\n{"Tunnel Resistance Dependent",-40}={setting.TunnelResistanceDependent,6}");
-
-                setting.WindResistanceDependent = activitySettings.Options.WindResistanceDependent == 1;
-                Trace.Write($"\n{"Wind Resistance Dependent",-40}={setting.WindResistanceDependent,6}");
 
                 setting.HotStart = activitySettings.Options.HotStart == 1;
                 Trace.Write($"\n{"Hot Start",-40}={setting.HotStart,6}");

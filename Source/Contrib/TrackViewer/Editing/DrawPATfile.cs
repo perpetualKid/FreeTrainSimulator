@@ -37,10 +37,10 @@ namespace ORTS.TrackViewer.Editing
     /// The amount of points that are drawn can be varied, such that it is easier to follow the path (especially in 
     /// complicated cases.
     /// </summary>
-    public class DrawPATfile
+    internal class DrawPATfile
     {
         /// <summary>the parsed .pat file information</summary>
-        private PathFile patFile;
+        private readonly PathFile patFile;
         /// <summary>The filename of the .pat file</summary>
         public string FileName { get; private set; }
 
@@ -51,9 +51,9 @@ namespace ORTS.TrackViewer.Editing
         private int currentMainNodeIndex;
 
         /// <summary>Return the last drawn node</summary>
-        public PathNode CurrentNode { get { return patFile.PathNodes[currentMainNodeIndex]; } }
+        public PathNode CurrentNode => patFile.PathNodes[currentMainNodeIndex];
         /// <summary>return the (Path Data Point?) belonging to the last drawn node</summary>
-        public PathDataPoint CurrentPdp { get { return patFile.DataPoints[(int)CurrentNode.PathDataPoint]; } }
+        public PathDataPoint CurrentPdp => patFile.DataPoints[(int)CurrentNode.PathDataPoint];
         /// <summary>Return the location of the last drawn node</summary>
 
         /// <summary>

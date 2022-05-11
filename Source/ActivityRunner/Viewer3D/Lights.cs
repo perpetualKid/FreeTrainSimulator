@@ -323,7 +323,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected float StateTime;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public LightPrimitive(Light light)
+        protected LightPrimitive(Light light)
         {
             Light = light;
             StateCount = Light.Cycle ? 2 * Light.States.Count - 2 : Light.States.Count;

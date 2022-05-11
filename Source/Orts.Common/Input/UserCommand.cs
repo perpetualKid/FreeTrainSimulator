@@ -47,10 +47,12 @@ namespace Orts.Common.Input
         [Description("Display Station Labels")] DisplayStationLabels,
         [Description("Display Switch Window")] DisplaySwitchWindow,
         [Description("Display Train Operations Window")] DisplayTrainOperationsWindow,
+        [Description("Display Train Dpu Window")] DisplayTrainDpuWindow,
         [Description("Display Next Station Window")] DisplayNextStationWindow,
         [Description("Display Compass Window")] DisplayCompassWindow,
         [Description("Display Basic HUD Toggle")] DisplayBasicHUDToggle,
         [Description("Display Train List Window")] DisplayTrainListWindow,
+        [Description("Display EOT List Window")] DisplayEOTListWindow,
 
         [Description("Debug Speed Up")] DebugSpeedUp,
         [Description("Debug Speed Down")] DebugSpeedDown,
@@ -148,6 +150,7 @@ namespace Orts.Common.Input
         [Description("Control Brake Hose Disconnect")] ControlBrakeHoseDisconnect,
         [Description("Control Alerter")] ControlAlerter,
         [Description("Control Emergency Push Button")] ControlEmergencyPushButton,
+        [Description("Control EOT Emergency Brake")] ControlEOTEmergencyBrake,
         [Description("Control Sander")] ControlSander,
         [Description("Control Sander Toggle")] ControlSanderToggle,
         [Description("Control Wiper")] ControlWiper,
@@ -209,12 +212,23 @@ namespace Orts.Common.Input
         [Description("Control ImmediateRefill")] ControlImmediateRefill,
         [Description("Control Turntable Clockwise")] ControlTurntableClockwise,
         [Description("Control Turntable Counterclockwise")] ControlTurntableCounterclockwise,
-        [Description("Control Generic 1")] ControlGeneric1,
-        [Description("Control Generic 2")] ControlGeneric2,
+        [Description("Control Generic Item 1")] ControlGenericItem1,
+        [Description("Control Generic Item 2")] ControlGenericItem2,
+        [Description("Control TCS Generic 1")] ControlTCSGeneric1,
+        [Description("Control TCS Generic 2")] ControlTCSGeneric2,
         [Description("Control Cab Radio")] ControlCabRadio,
         [Description("Control AI Fire On")] ControlAIFireOn,
         [Description("Control AI Fire Off")] ControlAIFireOff,
         [Description("Control AI Fire Reset")] ControlAIFireReset,
+        //Distributed power
+        [Description("Control DP Move To Front")] ControlDistributedPowerMoveToFront,
+        [Description("Control DP Move To Back")] ControlDistributedPowerMoveToBack,
+        [Description("Control DP Traction")] ControlDistributedPOwerTraction,
+        [Description("Control DP Idle")] ControlDistributedPowerIdle,
+        [Description("Control DP Brake")] ControlDistributedPowerBrake,
+        [Description("Control DP More")] ControlDistributedIncrease,
+        [Description("Control DP Less")] ControlDistributedPowerDecrease,
+
     }
 
     /// <summary>

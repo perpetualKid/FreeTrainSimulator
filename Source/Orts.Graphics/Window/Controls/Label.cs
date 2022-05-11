@@ -4,13 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Graphics.Window.Controls
 {
-    public enum LabelAlignment
-    {
-        Left,
-        Center,
-        Right,
-    }
-
     public class Label : TextControl
     {
         private string text;
@@ -19,10 +12,12 @@ namespace Orts.Graphics.Window.Controls
             get => text;
             set { text = value; Initialize(); } 
         }
-        public LabelAlignment Alignment { get; }
-        private Point alignmentOffset;
 
-        public Label(WindowBase window, int x, int y, int width, int height, string text, LabelAlignment alignment, System.Drawing.Font font, Color color)
+        public HorizontalAlignment Alignment { get; }
+        private Point alignmentOffset;
+        private Rectangle? clippingRectangle;
+
+        public Label(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
         {
             this.text = text;
@@ -32,42 +27,55 @@ namespace Orts.Graphics.Window.Controls
         }
 
         public Label(WindowBase window, int x, int y, int width, int height, string text)
-            : this(window, x, y, width, height, text, LabelAlignment.Left, null, Color.White)
+            : this(window, x, y, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text, LabelAlignment align)
+        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align)
             : this(window, 0, 0, width, height, text, align, null, Color.White)
         {
         }
 
         public Label(WindowBase window, int width, int height, string text)
-            : this(window, 0, 0, width, height, text, LabelAlignment.Left, null, Color.White)
+            : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public override void Initialize()
+        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align, Color color)
+            : this(window, 0, 0, width, height, text, align, null, color)
+        {
+        }
+
+        internal override void Initialize()
         {
             base.Initialize();
             InitializeText(Text);
             RenderText(Text);
+            clippingRectangle = null;
             switch (Alignment)
             {
-                case LabelAlignment.Left:
+                case HorizontalAlignment.Left:
                     alignmentOffset = Point.Zero;
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(Point.Zero, Bounds.Size);
                     break;
-                case LabelAlignment.Center:
-                    alignmentOffset = new Point((Position.Width - texture.Width) / 2, 0);
+                case HorizontalAlignment.Center:
+                    alignmentOffset = new Point((Bounds.Width - System.Math.Min(texture.Width, Bounds.Width)) / 2, 0);
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(new Point((texture.Width - Bounds.Width) / 2, 0), Bounds.Size);
                     break;
-                case LabelAlignment.Right:
-                    alignmentOffset = new Point((Position.Width - texture.Width), 0);
+                case HorizontalAlignment.Right:
+                    alignmentOffset = new Point(Bounds.Width - System.Math.Min(texture.Width, Bounds.Width), 0);
+                    if (texture.Width > Bounds.Width)
+                        clippingRectangle = new Rectangle(new Point(texture.Width - Bounds.Width, 0), Bounds.Size);
                     break;
             }
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Draw(texture, (Position.Location + offset + alignmentOffset).ToVector2(), null, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            base.Draw(spriteBatch, offset);
         }
 
         protected override void Dispose(bool disposing)

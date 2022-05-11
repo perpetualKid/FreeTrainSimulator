@@ -42,16 +42,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly DMIButton ButtonScrollUp;
         public readonly DMIButton ButtonScrollDown;
         private readonly int MaxTextLines;
-        private readonly int RowHeight = 20;
+        private const int RowHeight = 20;
         private readonly TextPrimitive[] DisplayedTexts;
         private readonly TextPrimitive[] DisplayedTimes;
         private List<TextMessage> MessageList;
         private TextMessage? AcknowledgingMessage;
-        public MessageArea(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Acknowledge"), true, dmi, false)
+        public MessageArea(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Acknowledge"), true, null, 234, (dmi.IsSoftLayout ? 4 : 5)*RowHeight, dmi, false)
         {
             MaxTextLines = dmi.IsSoftLayout ? 4 : 5;
-            Height = MaxTextLines * RowHeight;
-            Width = 234;
 
             DisplayedTexts = new TextPrimitive[MaxTextLines];
             DisplayedTimes = new TextPrimitive[MaxTextLines];
@@ -123,7 +121,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             int totalseconds = (int)timestampS;
             int hour = (totalseconds / 3600) % 24;
             int minute = (totalseconds / 60) % 60;
-            DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, (hour < 10 ? "0" : "") + hour.ToString() + ":" + (minute < 10 ? "0" : "") + minute.ToString(), FontTimestamp);
+            DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, $"{hour:00}:{minute:00}", FontTimestamp);
         }
 
         private void SetTextPrimitive(string text, int row, bool isBold)

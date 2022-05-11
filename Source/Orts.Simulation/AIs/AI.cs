@@ -29,6 +29,7 @@
 // #define DEBUG_DEADLOCK
 //
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,12 +38,14 @@ using System.Threading;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
+using static Orts.Formats.Msts.FolderStructure.ContentFolder;
 
 namespace Orts.Simulation.AIs
 {
@@ -65,7 +68,7 @@ namespace Orts.Simulation.AIs
         /// Creates a queue of AI trains in the order they should appear.
         /// At the moment AI trains are also created off scene so the rendering code will know about them.
         /// </summary>
-        public AI(Simulator simulator, CancellationToken cancellationToken, double activityStartTime)
+        public AI(Simulator simulator, double activityStartTime, CancellationToken cancellationToken)
         {
             Simulator = simulator;
 #if WITH_PATH_DEBUG
@@ -161,7 +164,7 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
 
                 // activity mode trains
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     AITrains.Add(aiTrain);
@@ -194,7 +197,7 @@ namespace Orts.Simulation.AIs
             for (int iStarting = 0; iStarting < totalStarting; iStarting++)
             {
                 string trainType = inf.ReadString();
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     StartList.InsertTrain(aiTrain);
@@ -213,7 +216,7 @@ namespace Orts.Simulation.AIs
             for (int iAutoGen = 0; iAutoGen < totalAutoGen; iAutoGen++)
             {
                 string trainType = inf.ReadString();
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     AutoGenTrains.Add(aiTrain);
@@ -333,7 +336,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write("\n Run AI : " + StartList.Count.ToString() + " ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -344,7 +347,7 @@ namespace Orts.Simulation.AIs
                 for (double runTime = firstAITime; runTime < Simulator.ClockTime; runTime += 5.0) // update with 5 secs interval
                 {
                     int fullsec = Convert.ToInt32(runTime);
-                    if (fullsec % 3600 == 0) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                    if (fullsec % 3600 == 0) Trace.Write($" {fullsec / 3600:00}:00 ");
 
                     AIUpdate((float)(runTime - clockTime), Simulator.PreUpdate);
                     Simulator.SignalEnvironment.Update(true);
@@ -363,7 +366,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write("\n Run AI : " + StartList.Count.ToString() + " ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -373,8 +376,12 @@ namespace Orts.Simulation.AIs
                 bool activeTrains = false;
                 for (double runTime = firstAITime; runTime < Simulator.ClockTime && !endPreRun; runTime += 5.0) // update with 5 secs interval
                 {
+                    var loaderSpan = (float)TimetableInfo.PlayerTrainOriginalStartTime - firstAITime;
+                    Simulator.TimetableLoadedFraction = ((float)runTime - firstAITime) / loaderSpan;
+
                     int fullsec = Convert.ToInt32(runTime);
-                    if (fullsec % 3600 < 5) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                    if (fullsec % 3600 < 5) 
+                        Trace.Write($" {(fullsec / 3600):00}:00 ");
 
                     endPreRun = AITTUpdate((float)(runTime - clockTime), Simulator.PreUpdate, ref activeTrains);
 
@@ -544,7 +551,8 @@ namespace Orts.Simulation.AIs
                             return;
 
                         int fullsec = Convert.ToInt32(runTime);
-                        if (fullsec % 3600 == 0) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                        if (fullsec % 3600 == 0) 
+                            Trace.Write($" {(fullsec / 3600):00}:00 ");
 
                         if (runTime >= 24 * 3600) // end of day reached
                         {
@@ -814,7 +822,7 @@ namespace Orts.Simulation.AIs
             ServiceTraffics trfDef = null;
             foreach (ServiceTraffics thisDef in trd.ServiceTraffics)
             {
-                if (String.Compare(thisDef.Name, sd.Name) == 0 &&
+                if (string.Equals(thisDef.Name, sd.Name, StringComparison.OrdinalIgnoreCase) &&
                 thisDef.Time == sd.Time)
                 {
                     trfDef = thisDef;
@@ -848,7 +856,7 @@ namespace Orts.Simulation.AIs
 
             // Patch Placingproblem - JeroenP
             // 
-            AIPath aiPath = new AIPath(Simulator.TrackDatabase, Simulator.TSectionDat, pathFileName, isTimetableMode);
+            AIPath aiPath = new AIPath(pathFileName, isTimetableMode);
             // End patch
 
             if (aiPath.Nodes == null)
@@ -866,7 +874,8 @@ namespace Orts.Simulation.AIs
             if (!Simulator.NameDictionary.ContainsKey(train.Name))
                 Simulator.NameDictionary.Add(train.Name, train);
 
-            if (consistFileName.Contains("tilted")) train.IsTilting = true;
+            if (consistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase)) 
+                train.IsTilting = true;
 
             // also set Route max speed for speedpost-processing in train.cs
             train.TrainMaxSpeedMpS = (float)Simulator.Route.SpeedLimit;
@@ -879,6 +888,8 @@ namespace Orts.Simulation.AIs
                 train.TrainMaxSpeedMpS = Math.Min(train.TrainMaxSpeedMpS, maxVelocityA * train.Efficiency);
             }
 
+            train.TcsParametersFileName = conFile.Train.TcsParametersFileName;
+
             // add wagons
             train.Length = 0.0f;
             foreach (Wagon wagon in conFile.Train.Wagons)
@@ -887,6 +898,11 @@ namespace Orts.Simulation.AIs
                 ;
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
+                else if (wagon.IsEOT)
+                {
+                    string wagonFolder = Path.Combine(Simulator.RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
+                    wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
+                }
 
                 if (!File.Exists(wagonFilePath))
                 {
@@ -896,34 +912,45 @@ namespace Orts.Simulation.AIs
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(Simulator, wagonFilePath);
+                    TrainCar car = RollingStock.Load(train, wagonFilePath);
                     car.Flipped = wagon.Flip;
-                    train.Cars.Add(car);
-                    car.Train = train;
                     train.Length += car.CarLengthM;
                     car.UiD = wagon.UiD;
+                    if (car is EndOfTrainDevice)
+                    {
+                        train.EndOfTrainDevice = car as EndOfTrainDevice;
+                        if (!isInitialPlayerTrain)
+                        {
+                            train.EndOfTrainDevice.InitializeLevel();
+                        }
+                    }
+
                     if (isInitialPlayerTrain)
                     {
                         Simulator.PathName = aiPath.pathName;
-                        if (MultiPlayerManager.IsMultiPlayer()) car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
-                        else car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
-                        var mstsDieselLocomotive = car as MSTSDieselLocomotive;
-                        if (Simulator.ActivityFile != null && mstsDieselLocomotive != null)
-                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                        if (MultiPlayerManager.IsMultiPlayer())
+                            car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                        else
+                            car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
 
-                        var mstsSteamLocomotive = car as MSTSSteamLocomotive;
-                        if (Simulator.ActivityFile != null && mstsSteamLocomotive != null)
+                        if (Simulator.ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
+                        {
+                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                        }
+
+                        if (Simulator.ActivityFile != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
                         {
                             mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * Simulator.ActivityFile.Activity.Header.FuelWater / 100.0);
                             mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.ActivityFile.Activity.Header.FuelCoal / 100.0f;
                         }
+
                         if (train.InitialSpeed != 0)
                             car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);
                     }
                     else
                     {
                         car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);
-                        car.CarID = "AI" + train.Number.ToString() + " - " + (train.Cars.Count - 1).ToString();
+                        car.CarID = $"AI{train.Number} - {train.Cars.Count - 1}";
                     }
 
                     // associate location events
@@ -946,12 +973,13 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = 2;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            train.RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TrackDatabase.TrackDB.TrackNodes, aiPath); // create traveller
+            train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "-----  New AI Train  -----\n");
 #endif
             train.CreateRoute(false);  // create route without use of FrontTDBtraveller
             train.CheckFreight(); // check if train is freight or passenger
+            train.SetDistributedPowerUnitIds(); // distributed power
             if (!isInitialPlayerTrain || train.InitialSpeed != 0) train.AITrainDirectionForward = true;
             train.BrakeLine3PressurePSI = 0;
 
@@ -982,7 +1010,7 @@ namespace Orts.Simulation.AIs
                 {
                     Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                     position.Y -= 1000;
-                    thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                    thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                 }
                 thisTrain.ResetInitialTrainRoute(tempRoute);
                 validPosition = thisTrain.PostInit();
@@ -1157,7 +1185,7 @@ namespace Orts.Simulation.AIs
                     }
                     if (lastTrain != null)
                     {
-                        thisTrain.CreateAhead = lastTrain.Name.ToLower();
+                        thisTrain.CreateAhead = lastTrain.Name;
                     }
                 }
 
@@ -1171,7 +1199,7 @@ namespace Orts.Simulation.AIs
                     {
                         Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
-                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                        thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                     }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 
@@ -1197,7 +1225,7 @@ namespace Orts.Simulation.AIs
                     {
                         Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
-                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                        thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
                     }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 
@@ -1550,7 +1578,7 @@ namespace Orts.Simulation.AIs
             LinkedListNode<AITrain> AITrainNode = First;
             while (AITrainNode != null)
             {
-                if (String.Equals(AITrainNode.Value.Name.ToLower(), reqName))
+                if (string.Equals(AITrainNode.Value.Name, reqName, StringComparison.OrdinalIgnoreCase))
                 {
                     TTTrain reqTrain = AITrainNode.Value as TTTrain;
                     if (remove) Remove(AITrainNode);

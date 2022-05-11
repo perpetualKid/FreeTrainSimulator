@@ -46,8 +46,8 @@ namespace ORTS.TrackViewer.Editing
         public WaitPointDialog(int mouseX, int mouseY, int currentWaitTimeS)
         {
             InitializeComponent();
-            this.Left = mouseX;
-            this.Top = mouseY;
+            Left = mouseX;
+            Top = mouseY;
 
             untilTimeHours.Text = "1";
             untilTimeMinutes.Text = "1";
@@ -157,17 +157,11 @@ namespace ORTS.TrackViewer.Editing
             }
         }
 
-        private int GetIntOrZero(string inputText)
+        private static int GetIntOrZero(string inputText)
         {
-            int returnValue; 
-            try
-            {
-                returnValue = Convert.ToInt32(inputText, System.Globalization.CultureInfo.CurrentCulture);
-            }
-            catch {
-                returnValue=0;
-            }
-            return returnValue;
+            if (!int.TryParse(inputText, out int result))
+                result = 0;
+            return result;
         }
 
         private void ButtonOK_Click(object sender, RoutedEventArgs e)
@@ -256,13 +250,15 @@ namespace ORTS.TrackViewer.Editing
                 WaitTimeDecimal.Content = $"{waitTime:D5},";
                 WaitTimeHexadecimal.Content = $"{waitTime:x4}.";
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
 
         private void TwoDigits_TextChanged(object sender, TextChangedEventArgs e)
         {
-            var textBox = sender as TextBox;
+            TextBox textBox = sender as TextBox;
             int ww = GetIntOrZero(textBox.Text);
             if (ww > 99)
             {

@@ -64,8 +64,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 var terrainTiles = TerrainTiles;
                 var newTerrainTiles = new List<TerrainTile>();
 
-                var tiles = new List<Tile>();
-                var loTiles = new List<Tile>();
+                var tiles = new List<TileSample>();
+                var loTiles = new List<TileSample>();
                 var needed = (int)Math.Ceiling((float)Viewer.Settings.ViewingDistance / 2048);
 
                 // First we establish the regular tiles we need to cover the current viewable area.
@@ -90,10 +90,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Now we turn each unique (distinct) loaded tile in to a terrain tile.
                 newTerrainTiles = tiles
                     .Where(t => t != null).Distinct()
-                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.TileX && tt.TileZ == tile.TileZ && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
+                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
                     .Union(loTiles
                         .Where(t => t != null).Distinct()
-                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.TileX && tt.TileZ == tile.TileZ && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
+                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
                     ).ToList();
 
                 TerrainTiles = newTerrainTiles;
@@ -133,11 +133,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly TerrainPrimitive[,] TerrainPatches;
         private readonly WaterPrimitive WaterTile;
 
-        public TerrainTile(Viewer viewer, TileManager tileManager, Tile tile)
+        public TerrainTile(Viewer viewer, TileManager tileManager, TileSample tile)
         {
             Trace.Write(tile.Size > 2 ? "L" : "T");
-            TileX = tile.TileX;
-            TileZ = tile.TileZ;
+            TileX = tile.Tile.X;
+            TileZ = tile.Tile.Z;
             Size = tile.Size;
             PatchCount = tile.PatchCount;
 
@@ -198,14 +198,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         // These are only used while the contructor runs and are discarded after.
         private readonly TileManager TileManager;
-        private readonly Tile Tile;
+        private readonly TileSample Tile;
         private readonly Patch Patch;
 
-        public TerrainPrimitive(Viewer viewer, TileManager tileManager, Tile tile, int x, int z)
+        public TerrainPrimitive(Viewer viewer, TileManager tileManager, TileSample tile, int x, int z)
         {
             Viewer = viewer;
-            TileX = tile.TileX;
-            TileZ = tile.TileZ;
+            TileX = tile.Tile.X;
+            TileZ = tile.Tile.Z;
             Size = tile.Size;
 
             PatchX = x;
@@ -226,10 +226,10 @@ namespace Orts.ActivityRunner.Viewer3D
             var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
             var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Count > 1)
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, ts[1].FileName) +
-                    (uv[1].D != 0 && uv[1].D != 32 ? "\0" + uv[1].D.ToString(): ""));
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + 
+                    $"\0{Helpers.GetTerrainTextureFile(ts[1].FileName)}{(uv[1].D != 0 && uv[1].D != 32 ? $"\0{uv[1].D}" : "")}");
             else
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, "microtex.ace"));
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile("microtex.ace"));
 
             if (SharedPatchIndexBuffer == null)
                 SetupSharedData(Viewer.RenderProcess.GraphicsDevice);
@@ -361,15 +361,19 @@ namespace Orts.ActivityRunner.Viewer3D
                     var sw = (short)(nw + 17);
                     var se = (short)(sw + 1);
 
+                    bool vertexHiddenXZ = IsVertexHidden(x, z);
+                    bool vertexHiddenX1Z1 = IsVertexHidden(x + 1, z + 1);
+                    bool vertexHiddenX1Z = IsVertexHidden(x + 1, z);
+                    bool vertexHiddenXZ1 = IsVertexHidden(x, z + 1);
                     if ((z & 1) == (x & 1))  // Triangles alternate
                     {
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z1 && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = se;
                             indexBuffer[i++] = sw;
                         }
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z && !vertexHiddenX1Z1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = ne;
@@ -378,13 +382,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                     {
-                        if (!IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenX1Z && !vertexHiddenX1Z1 && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = ne;
                             indexBuffer[i++] = se;
                             indexBuffer[i++] = sw;
                         }
-                        if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x, z + 1))
+                        if (!vertexHiddenXZ && !vertexHiddenX1Z && !vertexHiddenXZ1)
                         {
                             indexBuffer[i++] = nw;
                             indexBuffer[i++] = ne;
@@ -524,7 +528,6 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.ImageTexture = patchTexture;
             shader.OverlayTexture = patchTextureOverlay;
             shader.OverlayScale = OverlayScale;
-            graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
@@ -538,7 +541,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
+                    graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
                     item.RenderPrimitive.Draw();
+
                 }
             }
         }
@@ -558,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TerrainSharedMaterial : TerrainMaterial
     {
         public TerrainSharedMaterial(Viewer viewer, string terrainTexture)
-            : base(viewer, terrainTexture, Helpers.IsSnow(viewer.Simulator) ? SharedMaterialManager.DefaultSnowTexture : SharedMaterialManager.MissingTexture)
+            : base(viewer, terrainTexture, Helpers.IsSnow() ? SharedMaterialManager.DefaultSnowTexture : SharedMaterialManager.MissingTexture)
         {
         }
 
@@ -572,7 +577,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TerrainSharedDistantMountain : TerrainMaterial
     {
         public TerrainSharedDistantMountain(Viewer viewer, string terrainTexture)
-            : base(viewer, terrainTexture, Helpers.IsSnow(viewer.Simulator) ? SharedMaterialManager.DefaultDMSnowTexture : SharedMaterialManager.MissingTexture)
+            : base(viewer, terrainTexture, Helpers.IsSnow() ? SharedMaterialManager.DefaultDMSnowTexture : SharedMaterialManager.MissingTexture)
         {
         }
 

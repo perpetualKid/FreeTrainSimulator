@@ -23,7 +23,7 @@ using System.Text;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common.Input;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

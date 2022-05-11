@@ -25,6 +25,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
 using Orts.Common.Position;
+using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.UserInterface
 {
@@ -39,13 +40,13 @@ namespace ORTS.TrackViewer.UserInterface
     {
         /// <summary>Height of the statusbar in pixels</summary>
         public int StatusbarHeight { get; private set; }
-        private ElementHost elementHost;
+        private readonly ElementHost elementHost;
 
         /// <summary>
         /// Constructor for the statusbar
         /// </summary>
         /// <param name="trackViewer">Track viewer object that contains all the information we want to show the status for</param>
-        public StatusBarControl(TrackViewer trackViewer)
+        internal StatusBarControl(TrackViewer trackViewer)
         {
             InitializeComponent();
 
@@ -79,7 +80,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="trackViewer">trackViewer object that contains all relevant data</param>
         /// <param name="mouseLocation">The Worldlocation of the mouse pointer</param>
-        public void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
+        internal void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
         {
             ResetAdditionalText();
 
@@ -116,7 +117,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         private void ResetAdditionalText()
         {
-            statusAdditional.Text = String.Empty;
+            statusAdditional.Text = string.Empty;
         }
 
         /// <summary>
@@ -183,22 +184,24 @@ namespace ORTS.TrackViewer.UserInterface
             {
                 TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
                 if (tvs == null) return;
-                uint shapeIndex = tvs.ShapeIndex;
+                int shapeIndex = tvs.ShapeIndex;
                 string shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 try
                 {
                     // Try to find a fixed track
-                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes[shapeIndex];
+                    TrackShape shape = RuntimeData.Instance.TSectionDat.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // try to find a dynamic track
                     try
                     {
-                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TrackSectionIndex[tvs.ShapeIndex];
+                        TrackPath trackPath = RuntimeData.Instance.TSectionDat.TrackSectionIndex[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
-                        foreach (uint trackSection in trackPath.TrackSections)
+                        foreach (int trackSection in trackPath.TrackSections)
                         {
                             if (trackSection == tvs.SectionIndex)
                             {
@@ -208,7 +211,9 @@ namespace ORTS.TrackViewer.UserInterface
                             // so this foreach loop will not always find a combination
                         }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                     }
                 }
@@ -238,7 +243,7 @@ namespace ORTS.TrackViewer.UserInterface
                     if (trackViewer.PathEditor.HasModifiedPath) statusItems.Add("modified");
                     if (trackViewer.PathEditor.HasStoredTail) statusItems.Add("stored tail");
                     
-                    string pathStatus = String.Join(", ", statusItems.ToArray());
+                    string pathStatus = string.Join(", ", statusItems.ToArray());
                     
                     ORTS.TrackViewer.Editing.TrainpathNode curNode = trackViewer.PathEditor.CurrentNode;
                     
@@ -252,14 +257,13 @@ namespace ORTS.TrackViewer.UserInterface
                         statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                             " Broken: {0} ", curNode.BrokenStatusString());
                     }
-                    TrainpathVectorNode curVectorNode = curNode as TrainpathVectorNode;
-                    if (curVectorNode != null && curNode.NodeType == TrainpathNodeType.Stop)
+                    if (curNode is TrainpathVectorNode curVectorNode && curNode.NodeType == TrainpathNodeType.Stop)
                     {
                         statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                             " (wait-time={0}s)",
                             curVectorNode.WaitTimeS);
                     }
-            
+
                 }
                 else
                 {
@@ -315,12 +319,14 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddSignalStatus(TrackViewer trackViewer, string description, uint index)
+        private void AddSignalStatus(TrackViewer trackViewer, string description, int index)
         {
-            if (!Properties.Settings.Default.statusShowSignal) return;
-            if (!String.Equals(description, "signal")) return;
+            if (!Properties.Settings.Default.statusShowSignal) 
+                return;
+            if (!string.Equals(description, "signal", StringComparison.OrdinalIgnoreCase)) 
+                return;
             statusAdditional.Text += "signal shape = ";
-            statusAdditional.Text += trackViewer.RouteData.GetSignalFilename(index);
+            statusAdditional.Text += RouteData.GetSignalFilename(index);
         }
 
         /// <summary>
@@ -329,14 +335,15 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="trackViewer">The trackviewer we need to find the trackDB</param>
         /// <param name="description">The description of the item we might want to show, needed to make sure it is a proper item</param>
         /// <param name="index">The index of the item to show</param>
-        private void AddNamesStatus(TrackViewer trackViewer, string description, uint index)
+        private void AddNamesStatus(TrackViewer trackViewer, string description, int index)
         {
-            if (!Properties.Settings.Default.statusShowNames) return;
-            if (!String.Equals(description, "platform")) return;
+            if (!Properties.Settings.Default.statusShowNames) 
+                return;
+            if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase)) 
+                return;
 
-            TrackItem item = trackViewer.RouteData.TrackDB.TrackItems[index];
-            PlatformItem platform = item as PlatformItem;
-            if (platform == null) return;
+            if (!(RuntimeData.Instance.TrackDB.TrackItems[index] is PlatformItem platform))
+                return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0} ({1})", platform.Station, platform.ItemName);
         }

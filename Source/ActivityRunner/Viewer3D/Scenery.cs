@@ -84,12 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
-            Viewer.DontLoadNightTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y > 0.05f && Simulator.Instance.ClockTime % 86400 < 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Simulator.Instance.ClockTime % 86400 >= 43200)));
-            Viewer.DontLoadDayTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y < -0.05f && Simulator.Instance.ClockTime % 86400 >= 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Simulator.Instance.ClockTime % 86400 < 43200)));
+
             if (TileX != VisibleTileX || TileZ != VisibleTileZ)
             {
                 TileX = VisibleTileX;
@@ -120,12 +115,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 Viewer.tryLoadingNightTextures = true; // when Tiles loaded change you can try
                 Viewer.tryLoadingDayTextures = true; // when Tiles loaded change you can try
             }
-            else if (Viewer.NightTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 >= 43200 && Viewer.tryLoadingNightTextures)
+            else if (Viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingNightTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
                 {
-                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Night is coming, it's time to load the night textures
@@ -140,12 +135,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 else if (sunHeight <= 0.01)
                     Viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
             }
-            else if (Viewer.DayTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 < 43200 && Viewer.tryLoadingDayTextures)
+            else if (Viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingDayTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)
                 {
-                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Day is coming, it's time to load the day textures
@@ -344,7 +339,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TrackDatabase.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
+                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? RuntimeData.Instance.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
@@ -397,7 +392,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             int success = Wire.DecomposeStaticWire(viewer, dTrackList, trackObj, worldMatrix);
                             //if cannot draw wire, try to see if it is converted. modified for DynaTrax
-                            if (success == 0 && trackObj.FileName.Contains("Dyna")) Wire.DecomposeConvertedDynamicWire(viewer, dTrackList, trackObj, worldMatrix);
+                            if (success == 0 && trackObj.FileName.Contains("Dyna", StringComparison.OrdinalIgnoreCase)) Wire.DecomposeConvertedDynamicWire(viewer, dTrackList, trackObj, worldMatrix);
                         }
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
@@ -449,18 +444,22 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(SidingObject))
                     {
-                        sidings.Add(new TrItemLabel(viewer, worldMatrix, (SidingObject)worldObject));
+                        sidings.Add(new TrItemLabel(worldMatrix, (SidingObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(PlatformObject))
                     {
-                        platforms.Add(new TrItemLabel(viewer, worldMatrix, (PlatformObject)worldObject));
+                        platforms.Add(new TrItemLabel(worldMatrix, (PlatformObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(StaticObject))
                     {
-                        //          preTestShape for lookup if it is an animated clock shape with subobjects named as clock hands 
+                        // preTestShape for lookup if it is an animated clock shape with subobjects named as clock hands 
                         StaticShape preTestShape = (new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
-                        IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?[0]?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
-                        var isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
+
+                        // FirstOrDefault() checks for "animations( 0 )" as this is a valid entry in *.s files
+                        // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
+                        IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?.FirstOrDefault()?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
+                        bool isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
+
                         if (isAnimatedClock)
                         {
                             sceneryObjects.Add(new AnalogClockShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
@@ -625,13 +624,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private static string FormatTileCoordinate(int tileCoord)
         {
-            var sign = "+";
-            if (tileCoord < 0)
-            {
-                sign = "-";
-                tileCoord *= -1;
-            }
-            return sign + tileCoord.ToString("000000");
+            return $"{(tileCoord < 0 ? "-" : "+")}{Math.Abs(tileCoord):000000}";
         }
     }
 

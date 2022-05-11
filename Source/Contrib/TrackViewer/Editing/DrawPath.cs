@@ -41,13 +41,13 @@ namespace ORTS.TrackViewer.Editing
     /// The amount of points that are drawn can be varied, such that it is easier to follow the path (especially in 
     /// complicated cases.
     /// </summary>
-    public class DrawPath
+    internal class DrawPath
     {
         /// <summary>Return the last drawn node</summary>
         public TrainpathNode CurrentMainNode { get; private set; }
 
-        private TrackDB trackDB;
-        private TrackSectionsFile tsectionDat;
+        private readonly TrackDB trackDB;
+        private readonly TrackSectionsFile tsectionDat;
         internal ColorScheme ColorSchemeSiding { get; set; }
         internal ColorScheme ColorSchemeMain { get; set; }
         internal ColorScheme ColorSchemeLast { get; set; }
@@ -59,9 +59,9 @@ namespace ORTS.TrackViewer.Editing
         {
             this.trackDB = trackDB;
             this.tsectionDat = tsectionDat;
-            this.ColorSchemeMain = DrawColors.colorsPathMain;
-            this.ColorSchemeSiding = DrawColors.colorsPathSiding;
-            this.ColorSchemeLast = DrawColors.ShadeColor(DrawColors.otherPathsReferenceColor, 0, 1);
+            ColorSchemeMain = DrawColors.colorsPathMain;
+            ColorSchemeSiding = DrawColors.colorsPathSiding;
+            ColorSchemeLast = DrawColors.ShadeColor(DrawColors.otherPathsReferenceColor, 0, 1);
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace ORTS.TrackViewer.Editing
                 if (currentSidingNode != null)
                 {
                     //finish the complete siding path if the main path is at end of siding already
-                    int sidingNodesToDraw = (CurrentMainNode.NodeType == TrainpathNodeType.SidingEnd) ? Int32.MaxValue : 1;
+                    int sidingNodesToDraw = (CurrentMainNode.NodeType == TrainpathNodeType.SidingEnd) ? int.MaxValue : 1;
                     while (sidingNodesToDraw >= 1)
                     {
                         //while tracking a siding, it has its own next node
@@ -214,9 +214,9 @@ namespace ORTS.TrackViewer.Editing
             int maxPixelSize = 24;
             float angle = trainpathNode.TrackAngle;
 
-            Color colorMain = isLastNode ? this.ColorSchemeLast.TrackStraight : ColorSchemeMain.TrackStraight  ;
-            Color colorSiding = this.ColorSchemeSiding.TrackStraight;
-            Color colorBroken = this.ColorSchemeMain.BrokenNode;
+            Color colorMain = isLastNode ? ColorSchemeLast.TrackStraight : ColorSchemeMain.TrackStraight  ;
+            Color colorSiding = ColorSchemeSiding.TrackStraight;
+            Color colorBroken = ColorSchemeMain.BrokenNode;
 
             switch (trainpathNode.NodeType)
             {
@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing
         private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;
@@ -450,7 +450,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// This is a datastructure where we can store information about the path that has actually been drawn.
     /// </summary>
-    public class DrawnPathData
+    internal class DrawnPathData
     {
         /// <summary>
         /// List of main-track nodes that were actually drawn and can therefore be selected for editing
@@ -461,7 +461,7 @@ namespace ORTS.TrackViewer.Editing
         /// Keys are tracknode indexes, value is a list of (main) track node (in pairs) that are both
         /// on the tracknode and the path between them has been drawn 
         /// </summary>
-        private Dictionary<int, List<TrainpathNode>> DrawnTrackIndexes = new Dictionary<int, List<TrainpathNode>>();
+        private readonly Dictionary<int, List<TrainpathNode>> DrawnTrackIndexes = new Dictionary<int, List<TrainpathNode>>();
 
         /// <summary>
         /// Constructor, just creates new empty collections

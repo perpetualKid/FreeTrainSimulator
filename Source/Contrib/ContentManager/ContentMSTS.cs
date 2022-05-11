@@ -17,29 +17,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace Orts.ContentManager
 {
-    [Serializable]
-    public class ContentMSTSCollection : Content
+    public class ContentMSTS : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Collection; } }
+        public override ContentType Type => ContentType.Collection;
 
-        public ContentMSTSCollection(Content parent, string name, string path)
+        public ContentMSTS(ContentBase parent, string name, string path)
             : base(parent)
         {
             Name = name;
             PathName = path;
         }
 
-        public override IEnumerable<Content> Get(ContentType type)
+        public override IEnumerable<ContentBase> GetContent(ContentType type)
         {
             if (type == ContentType.Package)
             {
                 if (Directory.Exists(PathName))
                 {
-                    foreach (var item in Directory.GetDirectories(PathName))
+                    foreach (string item in Directory.GetDirectories(PathName))
                     {
                         if (ContentMSTSPackage.IsValid(item))
                             yield return new ContentMSTSPackage(this, Path.GetFileName(item), item);
@@ -49,120 +50,117 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSPackage : Content
+    public class ContentMSTSPackage : ContentBase
     {
         public static bool IsValid(string pathName)
         {
             return Directory.Exists(Path.Combine(pathName, "ROUTES")) || Directory.Exists(Path.Combine(pathName, "TRAINS"));
         }
 
-        public override ContentType Type { get { return ContentType.Package; } }
+        public override ContentType Type => ContentType.Package;
 
-        public ContentMSTSPackage(Content parent, string name, string path)
+        public ContentMSTSPackage(ContentBase parent, string name, string path)
             : base(parent)
         {
             Name = name;
             PathName = path;
         }
 
-        public override IEnumerable<Content> Get(ContentType type)
+        public override IEnumerable<ContentBase> GetContent(ContentType type)
         {
             if (type == ContentType.Route)
             {
-                var path = Path.Combine(PathName, "Routes");
+                string path = Path.Combine(PathName, "Routes");
                 if (Directory.Exists(path))
-                    foreach (var item in Directory.GetDirectories(path))
+                    foreach (string item in Directory.GetDirectories(path))
                         yield return new ContentMSTSRoute(this, Path.Combine(path, item));
             }
             else if (type == ContentType.Consist)
             {
-                var path = Path.Combine(PathName, "Trains", "Consists");
+                string path = Path.Combine(PathName, "Trains", "Consists");
                 if (Directory.Exists(path))
-                    foreach (var item in Directory.GetFiles(path, "*.con"))
+                    foreach (string item in Directory.GetFiles(path, "*.con"))
                         yield return new ContentMSTSConsist(this, Path.Combine(path, item));
             }
         }
 
-        public override Content Get(string name, ContentType type)
+        public override ContentBase GetContent(string name, ContentType type)
         {
             if (type == ContentType.Car)
             {
-                var pathEng = Path.Combine(PathName, "Trains", "Trainset", name + ".eng");
+                string pathEng = Path.Combine(PathName, "Trains", "Trainset", name + ".eng");
                 if (File.Exists(pathEng))
                     return new ContentMSTSCar(this, pathEng);
 
-                var pathWag = Path.Combine(PathName, "Trains", "Trainset", name + ".wag");
+                string pathWag = Path.Combine(PathName, "Trains", "Trainset", name + ".wag");
                 if (File.Exists(pathWag))
                     return new ContentMSTSCar(this, pathWag);
             }
-            return base.Get(name, type);
+            return base.GetContent(name, type);
         }
     }
 
-    [Serializable]
-    public class ContentMSTSRoute : Content
+    public class ContentMSTSRoute : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Route; } }
+        public override ContentType Type => ContentType.Route;
 
-        public ContentMSTSRoute(Content parent, string path)
+        public ContentMSTSRoute(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileName(path);
             PathName = path;
         }
 
-        public override IEnumerable<Content> Get(ContentType type)
+        public override IEnumerable<ContentBase> GetContent(ContentType type)
         {
             if (type == ContentType.Activity)
             {
-                var path = Path.Combine(PathName, "Activities");
+                string path = Path.Combine(PathName, "Activities");
                 if (Directory.Exists(path))
-                    foreach (var item in Directory.GetFiles(path, "*.act"))
+                    foreach (string item in Directory.GetFiles(path, "*.act"))
                         yield return new ContentMSTSActivity(this, Path.Combine(path, item));
 
-                var pathOR = Path.Combine(PathName, @"Activities\OpenRails");
+                string pathOR = Path.Combine(PathName, @"Activities\OpenRails");
                 if (Directory.Exists(pathOR))
-                    foreach (var item in Directory.GetFiles(pathOR, "*.timetable_or"))
+                    foreach (var item in Enumerable.Concat(Directory.GetFiles(pathOR, "*.timetable_or"), Directory.GetFiles(pathOR, "*.timetable-or")))
                         yield return new ContentORTimetableActivity(this, Path.Combine(pathOR, item));
             }
         }
 
-        public override Content Get(string name, ContentType type)
+        public override ContentBase GetContent(string name, ContentType type)
         {
             if (type == ContentType.Path)
             {
-                var path = Path.Combine(PathName, "Paths", name + ".pat");
+                string path = Path.Combine(PathName, "Paths", name + ".pat");
                 if (File.Exists(path))
                     return new ContentMSTSPath(this, path);
             }
-            return base.Get(name, type);
+            return base.GetContent(name, type);
         }
     }
 
-    [Serializable]
-    public class ContentMSTSActivity : Content
+    public class ContentMSTSActivity : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Activity; } }
+        public override ContentType Type => ContentType.Activity;
 
-        public ContentMSTSActivity(Content parent, string path)
+        public ContentMSTSActivity(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
             PathName = path;
         }
 
-        public override Content Get(string name, ContentType type)
+        public override ContentBase GetContent(string name, ContentType type)
         {
             if (type == ContentType.Service)
             {
-                var names = name.Split('|');
+                string[] names = name?.Split('|') ?? throw new ArgumentNullException(nameof(name));
                 if (names.Length >= 2 && names[0] == "Player")
                     return new ContentMSTSService(this, GetRelatedPath("Services", names[1], ".srv"));
                 if (names.Length >= 4 && names[0] == "AI")
-                    return new ContentMSTSService(this, GetRelatedPath("Services", names[1], ".srv"), GetRelatedPath("Traffic", names[2], ".trf"), int.Parse(names[3]));
+                    return new ContentMSTSService(this, GetRelatedPath("Services", names[1], ".srv"), GetRelatedPath("Traffic", names[2], ".trf"), int.Parse(names[3], CultureInfo.InvariantCulture));
             }
-            return base.Get(name, type);
+            return base.GetContent(name, type);
         }
 
         private string GetRelatedPath(string type, string name, string extension)
@@ -171,15 +169,14 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSService : Content
+    public class ContentMSTSService : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Service; } }
+        public override ContentType Type => ContentType.Service;
         public bool IsPlayer { get; private set; }
         public string TrafficPathName { get; private set; }
         public int TrafficIndex { get; private set; }
 
-        public ContentMSTSService(Content parent, string path)
+        public ContentMSTSService(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
@@ -187,7 +184,7 @@ namespace Orts.ContentManager
             IsPlayer = true;
         }
 
-        public ContentMSTSService(Content parent, string path, string traffic, int traffixIndex)
+        public ContentMSTSService(ContentBase parent, string path, string traffic, int traffixIndex)
             : this(parent, path)
         {
             IsPlayer = false;
@@ -196,12 +193,11 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSPath : Content
+    public class ContentMSTSPath : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Path; } }
+        public override ContentType Type => ContentType.Path;
 
-        public ContentMSTSPath(Content parent, string path)
+        public ContentMSTSPath(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
@@ -209,12 +205,11 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSConsist : Content
+    public class ContentMSTSConsist : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Consist; } }
+        public override ContentType Type => ContentType.Consist;
 
-        public ContentMSTSConsist(Content parent, string path)
+        public ContentMSTSConsist(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
@@ -222,12 +217,11 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSCar : Content
+    public class ContentMSTSCar : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Car; } }
+        public override ContentType Type => ContentType.Car;
 
-        public ContentMSTSCar(Content parent, string path)
+        public ContentMSTSCar(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileName(Path.GetDirectoryName(path)) + "/" + Path.GetFileNameWithoutExtension(path);
@@ -235,34 +229,32 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSCab : Content
+    public class ContentMSTSCab : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Cab; } }
+        public override ContentType Type => ContentType.Cab;
 
-        public ContentMSTSCab(Content parent, string path)
+        public ContentMSTSCab(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
             PathName = path;
         }
 
-        public override IEnumerable<Content> Get(ContentType type)
+        public override IEnumerable<ContentBase> GetContent(ContentType type)
         {
             if (type == ContentType.Texture)
             {
-                foreach (var item in Directory.GetFiles(Path.GetDirectoryName(PathName), "*.ace"))
+                foreach (string item in Directory.EnumerateFiles(Path.GetDirectoryName(PathName), "*.ace"))
                     yield return new ContentMSTSTexture(this, Path.Combine(PathName, item));
             }
         }
     }
 
-    [Serializable]
-    public class ContentMSTSModel : Content
+    public class ContentMSTSModel : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Model; } }
+        public override ContentType Type => ContentType.Model;
 
-        public ContentMSTSModel(Content parent, string path)
+        public ContentMSTSModel(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
@@ -270,12 +262,11 @@ namespace Orts.ContentManager
         }
     }
 
-    [Serializable]
-    public class ContentMSTSTexture : Content
+    public class ContentMSTSTexture : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Texture; } }
+        public override ContentType Type => ContentType.Texture;
 
-        public ContentMSTSTexture(Content parent, string path)
+        public ContentMSTSTexture(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);

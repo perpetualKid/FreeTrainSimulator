@@ -54,21 +54,21 @@ namespace ORTS.TrackViewer.UserInterface
     /// </summary>
     public sealed partial class SearchControl : Window
     {
-        private TrackViewer trackViewer;
-        private SearchableItem searchItem;
+        private readonly TrackViewer trackViewer;
+        private readonly SearchableItem searchItem;
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="trackViewer">Trackviewer so we can perform a callback</param>
         /// <param name="searchItem">Type of item that needs to be searched</param>
-        public SearchControl(TrackViewer trackViewer, SearchableItem searchItem)
+        internal SearchControl(TrackViewer trackViewer, SearchableItem searchItem)
         {
             InitializeComponent();
             this.trackViewer = trackViewer;
             this.searchItem = searchItem;
             textboxIndex.Focus();
-            this.Top = trackViewer.Window.ClientBounds.Top + 20;
-            this.Left = trackViewer.Window.ClientBounds.Left + 0;
+            Top = trackViewer.Window.ClientBounds.Top + 20;
+            Left = trackViewer.Window.ClientBounds.Left + 0;
             switch (searchItem)
             {
                 case SearchableItem.TrackNode:
@@ -111,7 +111,9 @@ namespace ORTS.TrackViewer.UserInterface
 
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {   // clear text if not an integer. Should not happen because we limt possible input
                 textboxIndex.Text = "";
             }
@@ -119,7 +121,7 @@ namespace ORTS.TrackViewer.UserInterface
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
 

@@ -70,7 +70,9 @@ namespace Orts.Formats.Msts.Models
                     }
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.WriteLine(new FileLoadException("Error in additional activity file", error));
             }
@@ -184,7 +186,7 @@ namespace Orts.Formats.Msts.Models
     {
         public EventType Type { get; private set; }
         public WorkOrderWagons WorkOrderWagons { get; private set; }
-        public uint? SidingId { get; private set; }  // May be specified inside the Wagon_List instead. Nullable as can't use -1 to indicate not set.
+        public int SidingId { get; private set; } = -1;// May be specified inside the Wagon_List instead.
         public float SpeedMpS { get; private set; }
 
         internal ActionActivityEvent(STFReader stf)
@@ -215,7 +217,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf); }),
-                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
+                new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (int)stf.ReadUIntBlock(null); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatchBlockEnd(); Reversible = true; }),
                 // Also support the correct spelling !
@@ -310,10 +312,12 @@ namespace Orts.Formats.Msts.Models
         public bool ActivitySuccess { get; private set; }
         public string ActivityFail { get; private set; }
         // MSTS Activity Editor limits model to 4 outcomes of any type. We use lists so there is no restriction.
-        public IList<int> ActivateList { get; } = new List<int>();
-        public IList<int> RestoreActivityLevels { get; } = new List<int>();
-        public IList<int> DecrementActivityLevels { get; } = new List<int>();
-        public IList<int> IncrementActivityLevels { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> ActivateList { get; } = new List<int>();
+        public List<int> RestoreActivityLevels { get; } = new List<int>();
+        public List<int> DecrementActivityLevels { get; } = new List<int>();
+        public List<int> IncrementActivityLevels { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public string DisplayMessage { get; private set; }
         //       public string WaitingTrainToRestart;
         public RestartWaitingTrain RestartWaitingTrain { get; private set; }

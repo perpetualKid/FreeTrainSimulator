@@ -63,7 +63,6 @@ namespace Orts.Formats.Msts.Models
         public uint UiD { get; protected set; }
         public int DetailLevel { get; protected set; }
         public uint StaticFlags { get; protected set; }
-        public uint ViewDbId { get; protected set; }
 
         public ref readonly WorldPosition WorldPosition => ref worldPosition;
 
@@ -99,7 +98,8 @@ namespace Orts.Formats.Msts.Models
                     ReadPosition(subBlock, holder);
                     break;
                 case TokenID.VDbId:
-                    ViewDbId = subBlock.ReadUInt(); break;
+                    //ViewDbId =
+                    subBlock.ReadUInt(); break;
                 case TokenID.StaticFlags:
                     StaticFlags = subBlock.ReadFlags(); break;
                 default:
@@ -169,7 +169,7 @@ namespace Orts.Formats.Msts.Models
             TokenID.ViewDbSphere,
         };
 
-        internal WorldObjects(SBR block, IList<TokenID> allowedTokens, int tileX, int tileZ)
+        internal WorldObjects(SBR block, HashSet<TokenID> allowedTokens, int tileX, int tileZ)
         {
             block.VerifyID(TokenID.Tr_Worldfile);
             int detailLevel = 0;
@@ -250,7 +250,9 @@ namespace Orts.Formats.Msts.Models
                         else
                             subBlock.Skip();
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         Trace.WriteLine(new FileLoadException(subBlock.FileName, error));
                     }
@@ -310,7 +312,9 @@ namespace Orts.Formats.Msts.Models
                         }
                         subBlock.EndOfBlock();
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         Trace.WriteLine(new FileLoadException(block.FileName, error));
                     }
@@ -376,7 +380,7 @@ namespace Orts.Formats.Msts.Models
     public class SignalUnit
     {
         public int SubObject { get; private set; }
-        public uint TrackItem { get; private set; }
+        public int TrackItem { get; private set; }
 
         internal SignalUnit(SBR block)
         {
@@ -386,7 +390,7 @@ namespace Orts.Formats.Msts.Models
             {
                 subBlock.VerifyID(TokenID.TrItemId);
                 subBlock.ReadUInt(); // Unk?
-                TrackItem = subBlock.ReadUInt();
+                TrackItem = subBlock.ReadInt();
                 subBlock.VerifyEndOfBlock();
             }
             block.VerifyEndOfBlock();
@@ -500,7 +504,7 @@ namespace Orts.Formats.Msts.Models
     public class TrackObject : WorldObject
     {
         private WorldLocation location;
-        public uint SectionIndex { get; private set; }
+        public int SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
         public ref readonly WorldLocation WorldLocation => ref location;
@@ -516,7 +520,7 @@ namespace Orts.Formats.Msts.Models
         {
             switch (subBlock.ID)
             {
-                case TokenID.SectionIdx: SectionIndex = subBlock.ReadUInt(); break;
+                case TokenID.SectionIdx: SectionIndex = subBlock.ReadInt(); break;
                 case TokenID.Elevation: Elevation = subBlock.ReadFloat(); break;
                 case TokenID.CollideFlags: CollideFlags = subBlock.ReadUInt(); break;
                 case TokenID.JNodePosn: ReadLocation(subBlock); break;
@@ -537,7 +541,9 @@ namespace Orts.Formats.Msts.Models
         public uint SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
-        public IList<TrackSection> TrackSections { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackSection> TrackSections { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal DynamicTrackObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
@@ -565,7 +571,6 @@ namespace Orts.Formats.Msts.Models
             Elevation = source.Elevation;
             CollideFlags = source.CollideFlags;
             StaticFlags = source.StaticFlags;
-            ViewDbId = source.ViewDbId;
             FileName = source.FileName;
             DetailLevel = source.DetailLevel;
             UiD = source.UiD;
@@ -573,7 +578,7 @@ namespace Orts.Formats.Msts.Models
             TrackSections = new List<TrackSection>() { source.TrackSections[trackSetionIndex] };
         }
 
-        private static IList<TrackSection> ReadTrackSections(SBR block)
+        private static List<TrackSection> ReadTrackSections(SBR block)
         {
             List<TrackSection> result = new List<TrackSection>();
             block.VerifyID(TokenID.TrackSections);
@@ -645,7 +650,9 @@ namespace Orts.Formats.Msts.Models
     {
         public string TextureFile { get; private set; } //ace
         public TextData TextSize { get; private set; }// ( 0.08 0.06 0 )
-        public IList<Vector4> SignShapes { get; } = new List<Vector4>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Vector4> SignShapes { get; } = new List<Vector4>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public TrackItems TrackItemIds { get; } = new TrackItems();
 
         internal SpeedPostObject(SBR block, int detailLevel, int tileX, int tileZ)
@@ -722,8 +729,10 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        public IList<int> RoadDbItems { get; } = new List<int>();
-        public IList<int> TrackDbItems { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> RoadDbItems { get; } = new List<int>();
+        public List<int> TrackDbItems { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
     }
 
     public class LevelCrossingObject : WorldObject

@@ -14,14 +14,15 @@ namespace Orts.Graphics.Window.Controls
             Padding = padding;
         }
 
-        public override void Initialize()
+        internal override void Initialize()
         {
             base.Initialize();
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Draw(Window.Owner.WhiteTexture, new Rectangle(offset.X + Position.X + Padding, offset.Y + Position.Y + Padding, Position.Width - 2 * Padding, Position.Height - 2 * Padding), Color.White);
+            spriteBatch.Draw(Window.Owner.WhiteTexture, new Rectangle(offset.X + Bounds.X + Padding, offset.Y + Bounds.Y + Padding, Bounds.Width - 2 * Padding, Bounds.Height - 2 * Padding), Color.White);
+            base.Draw(spriteBatch, offset);
         }
     }
 }

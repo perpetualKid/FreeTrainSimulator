@@ -192,7 +192,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public ScriptedBrakeController(MSTSLocomotive locomotive)
         {
-            Simulator = locomotive.Simulator;
+            Simulator = Simulator.Instance;
             Locomotive = locomotive;
 
             MaxPressurePSI = 90;
@@ -209,7 +209,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public ScriptedBrakeController(ScriptedBrakeController controller, MSTSLocomotive locomotive)
         {
-            Simulator = locomotive.Simulator;
+            Simulator = Simulator.Instance;
             Locomotive = locomotive;
 
             scriptName = controller.scriptName;
@@ -307,7 +307,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     StepSize = stf.ReadFloat(STFReader.Units.None, null);
                     CurrentValue = stf.ReadFloat(STFReader.Units.None, null);
                     string token = stf.ReadItem(); // s/b numnotches
-                    if (string.Compare(token, "NumNotches", true) != 0) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
+                    if (!string.Equals(token, "NumNotches", StringComparison.OrdinalIgnoreCase)) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
                         stf.ReadItem();
                     stf.MustMatch("(");
                     stf.ReadInt(null);
@@ -351,10 +351,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.ClockTime = () => (float)Simulator.ClockTime;
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.PreUpdate = () => Simulator.PreUpdate;
-                Script.DistanceM = () => Locomotive.DistanceM;
+                Script.DistanceM = () => Locomotive.DistanceTravelled;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
-                Script.Message = Locomotive.Simulator.Confirmer.Message;
+                Script.Confirm = Simulator.Confirmer.Confirm;
+                Script.Message = Simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
                 Script.SignalEventToTrain = (evt) =>
                 {

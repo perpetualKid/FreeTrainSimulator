@@ -27,8 +27,8 @@ namespace Orts.Formats.OR
 
     public class AuxActionRef
     {
-        public bool IsGeneric { get; set; }
-        public AuxiliaryAction ActionType;
+        public bool IsGeneric { get; protected set; }
+        public AuxiliaryAction ActionType { get; protected set; }
 
 
         public enum AuxiliaryAction
@@ -63,11 +63,11 @@ namespace Orts.Formats.OR
     //  AuxActionHorn is always a Generic Action, no need to specify a location
     public class AuxActionHorn : AuxActionRef
     {
-        public int Delay;
-        public float RequiredDistance;
+        public int Delay { get; protected set; }
+        public float RequiredDistance { get; protected set; }
         public LevelCrossingHornPattern Pattern { get; private set; }
 
-        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0, LevelCrossingHornPattern hornPattern = LevelCrossingHornPattern.Single) :    
+        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0, LevelCrossingHornPattern hornPattern = LevelCrossingHornPattern.Single) :
             base(AuxiliaryAction.SoundHorn, isGeneric)
         {
             Delay = delay;

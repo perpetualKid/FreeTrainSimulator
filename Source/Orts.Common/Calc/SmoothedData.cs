@@ -15,20 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 
 namespace Orts.Common.Calc
 {
     public class SmoothedData
     {
-        public SmoothedData()
+        private const double DefaultSmoothPeriod = 3;
+        private double rate;
+
+        public SmoothedData(): this(DefaultSmoothPeriod)
         {
         }
 
         public SmoothedData(double smoothPeriodS)
-            : this()
         {
-            SmoothPeriodS = smoothPeriodS;
+            SmoothPeriod = smoothPeriodS;
+            // Convert the input assuming 60 FPS (arbitary)
+            rate = -60.0 * Math.Log(1 - 1 / (60 * smoothPeriodS));
         }
 
         public virtual void Update(double periodS, double value)
@@ -47,11 +52,13 @@ namespace Orts.Common.Calc
 
         protected double SmoothValue(double smoothedValue, double periodS, double value)
         {
-            double rate = SmoothPeriodS / periodS;
-            if (rate < 1 || double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue))
+            // This formula and the calculation of `rate` are FPS-independent;
+            // see https://www.gamedeveloper.com/programming/improved-lerp-smoothing- for more details
+            double ratio = Math.Exp(-rate * periodS);
+            if (double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue) || ratio < 0.5)
                 return value;
             else
-                return (smoothedValue * (rate - 1) + value) / rate;
+                return smoothedValue * ratio + value * (1 - ratio);
         }
 
         public void Preset(double smoothedValue)
@@ -62,7 +69,7 @@ namespace Orts.Common.Calc
         public double Value { get; private set; } = double.NaN;
         public double SmoothedValue { get; private set; } = double.NaN;
 
-        public double SmoothPeriodS { get; } = 3;
+        public double SmoothPeriod { get; }
     }
 
     public class SmoothedDataWithPercentiles : SmoothedData

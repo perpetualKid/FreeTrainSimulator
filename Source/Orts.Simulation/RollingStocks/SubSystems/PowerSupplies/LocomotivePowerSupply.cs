@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
@@ -30,9 +31,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public abstract class ScriptedLocomotivePowerSupply : ILocomotivePowerSupply
     {
         public readonly MSTSLocomotive Locomotive;
-        protected Simulator Simulator => Locomotive.Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
         protected Train Train => Locomotive.Train;
-        protected int CarId = 0;
+        protected int CarId;
 
         public BatterySwitch BatterySwitch { get; protected set; }
         public MasterKey MasterKey { get; protected set; }
@@ -44,7 +45,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public PowerSupplyState MainPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool MainPowerSupplyOn => MainPowerSupplyState == PowerSupplyState.PowerOn;
-        public bool DynamicBrakeAvailable { get; protected set; } = false;
+        public bool DynamicBrakeAvailable { get; protected set; }
 
         public PowerSupplyState AuxiliaryPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool AuxiliaryPowerSupplyOn => AuxiliaryPowerSupplyState == PowerSupplyState.PowerOn;
@@ -73,15 +74,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public PowerSupplyState CabPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool CabPowerSupplyOn => CabPowerSupplyState == PowerSupplyState.PowerOn;
 
-        public float PowerOnDelayS { get; protected set; } = 0f;
-        public float AuxPowerOnDelayS { get; protected set; } = 0f;
+        public float PowerOnDelayS { get; protected set; }
+        public float AuxPowerOnDelayS { get; protected set; }
 
-        public bool ServiceRetentionButton { get; protected set; } = false;
-        public bool ServiceRetentionCancellationButton { get; protected set; } = false;
+        public bool ServiceRetentionButton { get; protected set; }
+        public bool ServiceRetentionCancellationButton { get; protected set; }
 
         private bool firstUpdate = true;
 
-        public ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
+        protected ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
         {
             Locomotive = locomotive;
 
@@ -217,8 +218,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                 // Connect the power supply cable if the previous car is a locomotive or another passenger car
                 if (previousCar != null
-                    && (previousCar.WagonType == TrainCar.WagonTypes.Engine
-                        || previousCar.WagonType == TrainCar.WagonTypes.Passenger)
+                    && (previousCar.WagonType == WagonType.Engine
+                        || previousCar.WagonType == WagonType.Passenger)
                     )
                 {
                     FrontElectricTrainSupplyCableConnected = true;
@@ -256,10 +257,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             AbstractScript.ClockTime = () => (float)Simulator.ClockTime;
             AbstractScript.GameTime = () => (float)Simulator.GameTime;
             AbstractScript.PreUpdate = () => Simulator.PreUpdate;
-            AbstractScript.DistanceM = () => Locomotive.DistanceM;
+            AbstractScript.DistanceM = () => Locomotive.DistanceTravelled;
             AbstractScript.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-            AbstractScript.Confirm = Locomotive.Simulator.Confirmer.Confirm;
-            AbstractScript.Message = Locomotive.Simulator.Confirmer.Message;
+            AbstractScript.Confirm = Simulator.Confirmer.Confirm;
+            AbstractScript.Message = Simulator.Confirmer.Message;
             AbstractScript.SignalEvent = Locomotive.SignalEvent;
             AbstractScript.SignalEventToTrain = (evt) =>
             {
@@ -280,7 +281,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 DieselEngineState state = DieselEngineState.Unavailable;
 
-                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where((MSTSLocomotive locomotive) => { return locomotive.AcceptMUSignals; }))
+                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where(locomotive => locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected))
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {
@@ -332,7 +333,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (MSTSLocomotive locomotive in Locomotive.Train.Cars.OfType<MSTSLocomotive>())
                     {
-                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.AcceptMUSignals)
+                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             locomotive.LocomotivePowerSupply.HandleEventFromLeadLocomotive(evt);
                         }
@@ -345,7 +346,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (MSTSLocomotive locomotive in Locomotive.Train.Cars.OfType<MSTSLocomotive>())
                     {
-                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.AcceptMUSignals)
+                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             locomotive.LocomotivePowerSupply.HandleEventFromLeadLocomotive(evt, id);
                         }
@@ -358,7 +359,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (TrainCar car in Locomotive.Train.Cars)
                     {
-                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.AcceptMUSignals)
+                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             car.PowerSupply?.HandleEventFromLeadLocomotive(evt);
                         }
@@ -371,7 +372,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (TrainCar car in Locomotive.Train.Cars)
                     {
-                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.AcceptMUSignals)
+                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             car.PowerSupply?.HandleEventFromLeadLocomotive(evt, id);
                         }
@@ -382,7 +383,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 bool helperFound = false; //this avoids that locomotive engines toggle in opposite directions
 
-                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where((MSTSLocomotive locomotive) => { return locomotive.AcceptMUSignals; }))
+                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where(locomotive => locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected))
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {

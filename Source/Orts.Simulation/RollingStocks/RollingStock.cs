@@ -15,12 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using Orts.Common;
+
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 
@@ -28,7 +29,7 @@ namespace Orts.Simulation.RollingStocks
 {
     public static class RollingStock
     {
-        public static TrainCar Load(Simulator simulator, string wagFilePath, bool initialize = true)
+        public static TrainCar Load(Train train, string wagFilePath, bool initialize = true)
         {
             GenericWAGFile wagFile = SharedGenericWAGFileManager.Get(wagFilePath);
             TrainCar car;
@@ -43,6 +44,10 @@ namespace Orts.Simulation.RollingStocks
                     Assembly customDLL = Assembly.LoadFrom(dllPath);
                     object[] args = new object[] { wagFilePath };
                     car = (TrainCar)customDLL.CreateInstance("ORTS.CustomCar", true, BindingFlags.CreateInstance, null, args, null, null);
+
+                    car.Train = train;
+                    train.Cars.Add(car);
+
                     return car;
                 }
                 catch (Exception error)
@@ -51,10 +56,14 @@ namespace Orts.Simulation.RollingStocks
                     // on error, fall through and try loading without the custom dll
                 }
             }
+
             if (!wagFile.IsEngine)
             {
-                // its an ordinary MSTS wagon
-                car = new MSTSWagon(simulator, wagFilePath);
+                if (wagFilePath.ToLower().Contains("orts_eot"))
+                    car = new EndOfTrainDevice(wagFilePath);
+                else
+                    // its an ordinary MSTS wagon
+                car = new MSTSWagon(wagFilePath);
             }
             else
             {
@@ -65,16 +74,17 @@ namespace Orts.Simulation.RollingStocks
                 switch (wagFile.Engine.Type.ToLower())
                 {
                     // TODO complete parsing of proper car types
-                    case "electric": car = new MSTSElectricLocomotive(simulator, wagFilePath); break;
-                    case "steam": car = new MSTSSteamLocomotive(simulator, wagFilePath); break;
-                    case "diesel": car = new MSTSDieselLocomotive(simulator, wagFilePath); break;
-                    case "control": car = new MSTSControlTrailerCar(simulator, wagFilePath); break;
+                    case "electric": car = new MSTSElectricLocomotive(wagFilePath); break;
+                    case "steam": car = new MSTSSteamLocomotive(wagFilePath); break;
+                    case "diesel": car = new MSTSDieselLocomotive(wagFilePath); break;
+                    case "control": car = new MSTSControlTrailerCar(wagFilePath); break;
                     default: throw new InvalidDataException(wagFilePath + "\r\n\r\nUnknown engine type: " + wagFile.Engine.Type);
                 }
             }
 
-            MSTSWagon wagon = car as MSTSWagon;
-            if (car != null)
+            car.Train = train;
+
+            MSTSWagon wagon = (MSTSWagon)car;
             {
                 wagon.Load();
 
@@ -83,6 +93,9 @@ namespace Orts.Simulation.RollingStocks
                     wagon.Initialize();
                 }
             }
+
+            // Loading is complete, the car can be added to the train
+            train.Cars.Add(car);
 
             return car;
         }
@@ -102,40 +115,24 @@ namespace Orts.Simulation.RollingStocks
             return fileName;   // then search in OpenRails program folder
         }
 
-        public static void Save(BinaryWriter outf, TrainCar car)
-        {
-            MSTSWagon wagon = (MSTSWagon)car;   // extend this when we introduce other types of rolling stock
-            outf.Write(wagon.WagFilePath);
-            wagon.Save(outf);
-        }
-
-        public static TrainCar Restore(Simulator simulator, BinaryReader inf, Train train)
-        {
-            TrainCar car = Load(simulator, inf.ReadString(), false);
-            car.Train = train;
-            car.Restore(inf);
-            car.Initialize();
-            return car;
-        }
-
         /// <summary>
         /// Utility class to avoid loading multiple copies of the same file.
         /// </summary>
-        public class SharedGenericWAGFileManager
+        public static class SharedGenericWAGFileManager
         {
-            private static Dictionary<string, GenericWAGFile> SharedWAGFiles = new Dictionary<string, GenericWAGFile>();
+            private static readonly Dictionary<string, GenericWAGFile> sharedWAGFiles = new Dictionary<string, GenericWAGFile>();
 
             public static GenericWAGFile Get(string path)
             {
-                if (!SharedWAGFiles.ContainsKey(path))
+                if (!sharedWAGFiles.ContainsKey(path))
                 {
                     GenericWAGFile wagFile = new GenericWAGFile(path);
-                    SharedWAGFiles.Add(path, wagFile);
+                    sharedWAGFiles.Add(path, wagFile);
                     return wagFile;
                 }
                 else
                 {
-                    return SharedWAGFiles[path];
+                    return sharedWAGFiles[path];
                 }
             }
         }

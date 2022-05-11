@@ -38,8 +38,8 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private readonly Viewer Viewer;
         private readonly GraphicsDevice GraphicsDevice;
-        private Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.InvariantCultureIgnoreCase);
-        private Dictionary<string, bool> TextureMarks;
+        private Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, bool> TextureMarks = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         internal SharedTextureManager(Viewer viewer, GraphicsDevice graphicsDevice)
         {
@@ -78,9 +78,10 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (File.Exists(aceTexture))
                             {
                                 texture = AceFile.Texture2DFromFile(GraphicsDevice, aceTexture);
-                                Trace.TraceWarning("Required texture {1} not existing; using existing texture {2}", path, aceTexture);
+                                Trace.TraceWarning($"Required texture {path} not existing; using existing texture {aceTexture}");
                             }
-                            else texture = defaultTexture;
+                            else
+                                texture = defaultTexture;
                         }
                     }
                     else if (Path.GetExtension(path).Equals(".ace", StringComparison.OrdinalIgnoreCase))
@@ -173,7 +174,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Mark()
         {
-            TextureMarks = new Dictionary<string, bool>(Textures.Count);
+            TextureMarks.Clear();
             foreach (var path in Textures.Keys)
                 TextureMarks.Add(path, false);
         }
@@ -187,7 +188,10 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Sweep()
         {
             foreach (var path in TextureMarks.Where(kvp => !kvp.Value).Select(kvp => kvp.Key))
+            {
+                Textures[path].Dispose();
                 Textures.Remove(path);
+            }
         }
 
         public string GetStatus()
@@ -361,7 +365,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count = 0;
                     // retest if there is enough free memory left;
-                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
                     if (remainingMemorySpace < 0)
                     {
                         return false; // too bad, no more space, other night textures won't be loaded
@@ -384,7 +388,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count = 0;
                     // retest if there is enough free memory left;
-                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
                     if (remainingMemorySpace < 0)
                     {
                         return false; // too bad, no more space, other night textures won't be loaded
@@ -457,10 +461,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Headlight illumination
             if (Viewer.PlayerLocomotiveViewer != null
-                && Viewer.PlayerLocomotiveViewer.lightDrawer != null
-                && Viewer.PlayerLocomotiveViewer.lightDrawer.HasLightCone)
+                && Viewer.PlayerLocomotiveViewer.LightDrawer != null
+                && Viewer.PlayerLocomotiveViewer.LightDrawer.HasLightCone)
             {
-                var lightDrawer = Viewer.PlayerLocomotiveViewer.lightDrawer;
+                var lightDrawer = Viewer.PlayerLocomotiveViewer.LightDrawer;
                 var lightState = lightDrawer.IsLightConeActive;
                 if (lightState != lastLightState)
                 {
@@ -687,24 +691,24 @@ namespace Orts.ActivityRunner.Viewer3D
         // Alpha test
         AlphaTest = 0x2,
         // Blending
-        AlphaBlendingNone = 0x0,
+        AlphaBlendingNone = None,
         AlphaBlendingBlend = 0x4,
         AlphaBlendingAdd = 0x8,
         AlphaBlendingMask = 0xC,
         // Shader
-        ShaderImage = 0x00,
+        ShaderImage = None,
         ShaderDarkShade = 0x10,
         ShaderHalfBright = 0x20,
         ShaderFullBright = 0x30,
         ShaderVegetation = 0x40,
         ShaderMask = 0x70,
         // Lighting
-        Specular0 = 0x000,
+        Specular0 = None,
         Specular25 = 0x080,
         Specular750 = 0x100,
         SpecularMask = 0x180,
         // Texture address mode
-        TextureAddressModeWrap = 0x000,
+        TextureAddressModeWrap = None,
         TextureAddressModeMirror = 0x200,
         TextureAddressModeClamp = 0x400,
         TextureAddressModeBorder = 0x600,
@@ -747,23 +751,23 @@ namespace Orts.ActivityRunner.Viewer3D
             dayTexture = SharedMaterialManager.MissingTexture;
             nightTexture = SharedMaterialManager.MissingTexture;
             // <CSComment> if "trainset" is in the path (true for night textures for 3DCabs) deferred load of night textures is disabled 
-            if (!String.IsNullOrEmpty(texturePath) && (options & SceneryMaterialOptions.NightTexture) != 0 && ((!viewer.DontLoadNightTextures && !viewer.DontLoadDayTextures)
+            if (!String.IsNullOrEmpty(texturePath) && (options & SceneryMaterialOptions.NightTexture) != 0 && ((!viewer.Daytime && !viewer.Nighttime)
                 || texturePath.Contains(@"\trainset\")))
             {
-                var nightTexturePath = Helpers.GetNightTextureFile(Viewer.Simulator, texturePath);
+                var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!String.IsNullOrEmpty(nightTexturePath))
                     nightTexture = Viewer.TextureManager.Get(nightTexturePath.ToLower());
                 dayTexture = Viewer.TextureManager.Get(texturePath, true);
             }
-            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.DontLoadNightTextures)
+            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Daytime)
             {
                 viewer.NightTexturesNotLoaded = true;
                 dayTexture = Viewer.TextureManager.Get(texturePath, true);
             }
 
-            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.DontLoadDayTextures)
+            else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Nighttime)
             {
-                var nightTexturePath = Helpers.GetNightTextureFile(Viewer.Simulator, texturePath);
+                var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!String.IsNullOrEmpty(nightTexturePath))
                     nightTexture = Viewer.TextureManager.Get(nightTexturePath.ToLower());
                 if (nightTexture != SharedMaterialManager.MissingTexture)
@@ -771,7 +775,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     viewer.DayTexturesNotLoaded = true;
                 }
             }
-            else dayTexture = Viewer.TextureManager.Get(texturePath, true);
+            else
+                dayTexture = Viewer.TextureManager.Get(texturePath, true);
 
             // Record the number of bits in the alpha channel of the original ace file
             var missingTexture = SharedMaterialManager.MissingTexture;
@@ -779,7 +784,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 missingTexture = dayTexture;
             else if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture)
                 missingTexture = nightTexture;
-            aceAlphaBits = missingTexture.Tag is byte alphaBits ? alphaBits : byte.MinValue; 
+            aceAlphaBits = missingTexture.Tag is byte alphaBits ? alphaBits : byte.MinValue;
 
             // map shader techniques from Name to their index to avoid costly name-based lookups at runtime
             //this can be static as the techniques are constant for all scenery
@@ -793,16 +798,21 @@ namespace Orts.ActivityRunner.Viewer3D
                     switch (shader.Techniques[i].Name)
                     {
                         case "ImagePS":
-                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderImage >> 4] = i; break;         //[0]
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderImage >> 4] = i;
+                            break;         //[0]
                         case "DarkShadePS":
-                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderDarkShade >> 4] = i; break;     //[1]   
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderDarkShade >> 4] = i;
+                            break;     //[1]   
                         case "HalfBrightPS":
-                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderHalfBright >> 4] = i; break;    //[2]
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderHalfBright >> 4] = i;
+                            break;    //[2]
                         case "FullBrightPS":
-                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderFullBright >> 4] = i; break;    //[3]
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderFullBright >> 4] = i;
+                            break;    //[3]
                         case "VegetationPS":
                             shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderVegetation >> 4] = i;           //[4]
-                            shaderTechniqueLookup[(int)(SceneryMaterialOptions.ShaderVegetation | SceneryMaterialOptions.ShaderFullBright) >> 4] = i; break;    //[7]
+                            shaderTechniqueLookup[(int)(SceneryMaterialOptions.ShaderVegetation | SceneryMaterialOptions.ShaderFullBright) >> 4] = i;
+                            break;    //[7]
                     }
                 }
             }
@@ -817,7 +827,7 @@ namespace Orts.ActivityRunner.Viewer3D
             bool result = false;
             if (((options & SceneryMaterialOptions.NightTexture) != 0) && (nightTexture == SharedMaterialManager.MissingTexture))
             {
-                var nightTexturePath = Helpers.GetNightTextureFile(Viewer.Simulator, texturePath);
+                var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!string.IsNullOrEmpty(nightTexturePath))
                 {
                     nightTexture = Viewer.TextureManager.Get(nightTexturePath);
@@ -841,7 +851,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void SetState(Material previousMaterial)
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
 
             shader.LightingDiffuse = (options & SceneryMaterialOptions.Diffuse) != 0 ? 1 : 0;
 
@@ -910,8 +919,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     throw new InvalidDataException("Options has unexpected SceneryMaterialOptions.SpecularMask value.");
             }
 
-            graphicsDevice.SamplerStates[0] = SamplerState;
-
             if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) ||
             Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
             //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
@@ -937,6 +944,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
+
+                    // SamplerStates can only be set after the ShaderPasses.Current.Apply().
+                    graphicsDevice.SamplerStates[0] = SamplerState;
+
                     item.RenderPrimitive.Draw();
                 }
             }

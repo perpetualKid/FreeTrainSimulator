@@ -15,31 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
+using System.Collections.Generic;
 using System.Diagnostics;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public abstract class TrainCarViewer
     {
         // TODO add view location and limits
-        public TrainCar Car;
-        public LightViewer lightDrawer;
+        public TrainCar Car { get; }
+        public LightViewer LightDrawer { get; }
 
-        protected Viewer Viewer;
+        private protected static Viewer Viewer;
 
-        public TrainCarViewer(Viewer viewer, TrainCar car)
+        protected TrainCarViewer(Viewer viewer, TrainCar car)
         {
             Car = car;
-            Viewer = viewer;
-
+            Viewer ??= viewer;
+            LightDrawer = new LightViewer(Viewer, car);
         }
 
         public abstract void HandleUserInput(in ElapsedTime elapsedTime);
-
-        public abstract void InitializeUserInputCommands();
 
         public abstract void RegisterUserCommandHandling();
 
@@ -58,12 +61,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         internal abstract void Mark();
 
-
         public float[] Velocity = new float[] { 0, 0, 0 };
+
+        public int TrackSoundType { get; set; }
+        public WorldLocation TrackSoundLocation { get; set; } = WorldLocation.None;
+        public float TrackSoundDistSquared { get; set; }
+
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> SoundSourceIDs { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         public void UpdateSoundPosition()
         {
-            if (Car.SoundSourceIDs.Count == 0 || Viewer.Camera == null)
+            if (SoundSourceIDs.Count == 0 || Viewer.Camera == null)
                 return;
 
             if (Car.Train != null)
@@ -89,15 +99,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // make a copy of SoundSourceIDs, but check that it didn't change during the copy; if it changed, try again up to 5 times.
             var sSIDsFinalCount = -1;
             var sSIDsInitCount = -2;
-            int[] soundSourceIDs = { 0 };
+            List<int> soundSourceIDs = new List<int>(){ 0 };
             int trialCount = 0;
             try
             {
                 while (sSIDsInitCount != sSIDsFinalCount && trialCount < 5)
                 {
-                    sSIDsInitCount = Car.SoundSourceIDs.Count;
-                    soundSourceIDs = Car.SoundSourceIDs.ToArray();
-                    sSIDsFinalCount = Car.SoundSourceIDs.Count;
+                    sSIDsInitCount = SoundSourceIDs.Count;
+                    soundSourceIDs = SoundSourceIDs;
+                    sSIDsFinalCount = SoundSourceIDs.Count;
                     trialCount++;
                 }
             }
@@ -110,13 +120,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
             foreach (var soundSourceID in soundSourceIDs)
             {
-                Viewer.Simulator.UpdaterWorking = true;
+                Simulator.Instance.UpdaterWorking = true;
                 if (OpenAL.IsSource(soundSourceID))
                 {
                     OpenAL.Sourcefv(soundSourceID, OpenAL.AL_POSITION, soundLocation);
                     OpenAL.Sourcefv(soundSourceID, OpenAL.AL_VELOCITY, Velocity);
                 }
-                Viewer.Simulator.UpdaterWorking = false;
+                Simulator.Instance.UpdaterWorking = false;
             }
             // TODO END
         }

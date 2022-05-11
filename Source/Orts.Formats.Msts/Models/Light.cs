@@ -93,7 +93,9 @@ namespace Orts.Formats.Msts.Models
         public bool Cycle { get; private set; }
         public float FadeIn { get; private set; }
         public float FadeOut { get; private set; }
-        public IList<LightState> States { get; } = new List<LightState>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<LightState> States { get; } = new List<LightState>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal Light(int index, STFReader stf)
         {

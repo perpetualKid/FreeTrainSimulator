@@ -34,47 +34,52 @@ using System.Text;
 
 using GetText;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
+    public enum MultiplayerState
+    { 
+        None,
+        Client, 
+        Dispatcher,
+    }
+
     //a singleton class handles communication, update and stop etc.
-    public class MultiPlayerManager
+    public class MultiPlayerManager: IDisposable
     {
         private double lastMoveTime;
 
-        public const int ProtocolVersion = 15;
-
-        public static ICatalog Catalog { get; private set; }
-        public static Random Random { get; private set; }
-
-        public static ClientComm Client;
-
-        public bool IsDispatcher { get; set; }
-
-
-        public double lastSwitchTime;
-        public double lastSyncTime;
         private double lastSendTime;
         private string metric = "";
-        public static OnlineTrains OnlineTrains = new OnlineTrains();
         private static MultiPlayerManager localUser;
 
+        private readonly List<Train> addedTrains;
+        private readonly List<OnlineLocomotive> addedLocomotives;
+
+        private readonly List<Train> uncoupledTrains;
+        private Client client;
+        //private ClientComm client;
+
+        public const int ProtocolVersion = 15;
+
+        public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
+
+        public bool Connected { get => client?.Connected ?? false; set => client.Connected = value; }
+        public bool IsDispatcher { get; set; }
+
+        public static OnlineTrains OnlineTrains = new OnlineTrains();
+        public double lastSwitchTime;
+        public double lastSyncTime;
         public List<Train> removedTrains;
-        private List<Train> addedTrains;
         public List<OnlineLocomotive> removedLocomotives;
-        private List<OnlineLocomotive> addedLocomotives;
 
-        private List<Train> uncoupledTrains;
-
-        public bool weatherChanged;
-        public int weather = -1;
         public float fogDistance = -1f;
         public float pricipitationIntensity = -1f;
         public float overcastFactor = -1f;
@@ -82,21 +87,26 @@ namespace Orts.MultiPlayer
 
         public double lastPlayerAddedTime;
         public int MPUpdateInterval = 10;
-        public static bool AllowedManualSwitch = true;
+        public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
         public bool AllowNewPlayer = true;
-        public bool ComposingText;
         public string lastSender = ""; //who last sends me a message
         public bool AmAider; //am I aiding the dispatcher?
         public List<string> aiderList;
         public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
         public bool CheckSpad = true;
-        public static bool PreferGreen = true;
+        public bool PreferGreen = true;
         public string MD5Check = "";
 
         public event EventHandler<ServerChangedEventArgs> ServerChanged;
         public event EventHandler<AvatarUpdatedEventArgs> AvatarUpdated;
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        public bool weatherChanged;
+        public int weather = -1;
+
+        public string UserName { get; private set; } = string.Empty;
+        public string Code { get; private set; }
 
         public void AddUncoupledTrains(Train t)
         {
@@ -143,7 +153,6 @@ namespace Orts.MultiPlayer
             if (localUser == null)
             {
                 Catalog = CatalogManager.Catalog;
-                Random = new Random();
                 localUser = new MultiPlayerManager();
             }
             return localUser;
@@ -164,12 +173,12 @@ namespace Orts.MultiPlayer
                     train.InitializeSignals(false);
                     Simulator.Instance.Confirmer?.Information(Catalog.GetString("You gained back the control of your train"));
                     msgctl = new MSGControl(GetUserName(), "Confirm", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
                 else //client, send request
                 {
                     msgctl = new MSGControl(GetUserName(), "Request", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
             }
             catch (Exception)
@@ -198,7 +207,7 @@ namespace Orts.MultiPlayer
                 MSGMove move = new MSGMove();
                 if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
                     move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
-                Notify(OnlineTrains.MoveTrains(move));
+                BroadCast(OnlineTrains.MoveTrains(move));
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 for (int iCar = 0; iCar < t.Cars.Count; iCar++)
@@ -211,16 +220,9 @@ namespace Orts.MultiPlayer
                 // Broadcast also exhaust
                 var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
                 if (!string.IsNullOrEmpty(exhaustMessage))
-                    Notify(exhaustMessage);
+                    BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
-
-#if INDIVIDUAL_CONTROL
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Server.BroadCast((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
             //server updates switch
@@ -236,7 +238,7 @@ namespace Orts.MultiPlayer
             }
 
             //client updates itself
-            if (Client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
+            if (client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
             {
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 MSGMove move = new MSGMove();
@@ -268,26 +270,18 @@ namespace Orts.MultiPlayer
                 //if there are messages to send
                 if (move.OKtoSend())
                 {
-                    Client.SendMessage(move.ToString()).Wait();
-                    if (exhaust.OKtoSend()) Client.SendMessage(exhaust.ToString()).Wait();
+                    client.SendMessage(move.ToString()).Wait();
+                    if (exhaust.OKtoSend()) client.SendMessage(exhaust.ToString()).Wait();
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
-
-#if INDIVIDUAL_CONTROL
-
-				if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
-				{
-					Client.Send((new MSGLocoInfo(Simulator.PlayerLocomotive, GetUserName())).ToString());
-				}
-#endif
             }
 
 
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (Client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
+            if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
             {
-                Notify((new MSGAlive(GetUserName())).ToString());
+                Notify(new MSGAlive(GetUserName()));
                 lastSendTime = newtime;
             }
 
@@ -341,38 +335,40 @@ namespace Orts.MultiPlayer
             return localUser?.IsDispatcher ?? false;
         }
 
-        //check if it is in the client mode
-        public static bool IsClient()
-        {
-            if (!IsMultiPlayer() || IsServer()) return false;
-            return true;
-        }
-
         //check if it is in the server mode && they are players && not allow autoswitch
         public static bool NoAutoSwitch()
         {
             if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer()) return false;
-            //if (MPManager.IsClient()) return true;
-            return !MultiPlayerManager.AllowedManualSwitch; //aloow manual switch or not
+
+            return !MultiPlayerManager.Instance().AllowedManualSwitch; //allow manual switch or not
         }
 
         //user name
         public static string GetUserName()
         {
-            return Client?.UserName ?? string.Empty;
+            return localUser?.UserName ?? string.Empty;
         }
 
         //check if it is in the multiplayer session
         public static bool IsMultiPlayer()
         {
-            return (Client != null);
+            return (localUser?.client != null);
         }
+
+        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.client != null) ? MultiplayerState.Client : MultiplayerState.None;
 
         public static void BroadCast(string m)
         {
-            if (m == null) 
+            if (m == null)
                 return;
-            Client?.SendMessage(m).Wait();
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(m).Wait();
+        }
+
+        public static void BroadCast(Message message)
+        {
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
         }
 
         //notify others (server will broadcast, client will send msg to server)
@@ -380,32 +376,49 @@ namespace Orts.MultiPlayer
         {
             if (m == null)
                 return;
-            Client?.SendMessage(m).Wait(); //client notify server
+            localUser?.client?.SendMessage(m).Wait(); //client notify server
+        }
+
+        public static void Notify(Message message)
+        {
+            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait(); //client notify server
         }
 
         //nicely shutdown listening threads, and notify the server/other player
         public static void Stop()
         {
-            if (localUser != null)
+            localUser?.Quit();
+        }
+
+        public static void Start(int updateIntervall, string hostname, int port, string userName, string code)
+        {
+            if (localUser == null)
             {
-                localUser.Quit();
+                localUser = new MultiPlayerManager
+                {
+                    MPUpdateInterval = updateIntervall,
+                    client = new Client(hostname, port),
+                    UserName = userName,
+                    Code = code,
+                };
             }
         }
 
         private void Quit()
         {
-            if (Client != null)
+            if (client != null)
             {
-                if (IsDispatcher)
+                if (MultiplayerState == MultiplayerState.Dispatcher)
                 {
-                    //    Client.Send((new MSGQuit("ServerHasToQuit\t" + GetUserName())).ToString()); //server notify everybody else
+//                    BroadCast(new MSGQuit("ServerHasToQuit\t" + GetUserName()).ToString()); //server notify everybody else
                 }
-                //else
+                else
                 {
-                    Client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
+                    Notify(new MSGQuit(GetUserName()).ToString()); //client notify server
                 }
-                Client.Stop();
+                client.Stop();
             }
+            client = null;
         }
 
         //when two player trains connected, require decouple at speed 0.
@@ -532,12 +545,12 @@ namespace Orts.MultiPlayer
                 //foreach (var p in MPManager.OnlineTrains.Players) info += "\t" + p.Value.Train.Number + " " + p.Key;
                 foreach (OnlinePlayer p in OnlineTrains.Players.Values)
                 {
-                    if (p.Train == null) 
+                    if (p.Train == null)
                         continue;
-                    if (p.Train.Cars.Count <= 0) 
+                    if (p.Train.Cars.Count <= 0)
                         continue;
                     double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, mine.Train.RearTDBTraveller.WorldLocation);
-                    users.Add(Math.Sqrt(d) + Random.NextDouble(), p.Username);
+                    users.Add(Math.Sqrt(d) + StaticRandom.NextDouble(), p.Username);
                 }
             }
             catch (Exception)
@@ -552,9 +565,9 @@ namespace Orts.MultiPlayer
             {
                 info.Append($"\t{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
-            if (OnlineTrains.Players.Count > 10) 
-            { 
-                info.Append("\t ..."); 
+            if (OnlineTrains.Players.Count > 10)
+            {
+                info.Append("\t ...");
             }
             return info.ToString();
         }
@@ -798,36 +811,35 @@ namespace Orts.MultiPlayer
             Notify((new MSGLocoChange(GetUserName(), lead.CarID, frontOrRearCab, t)).ToString());
         }
 
-        public TrainCar SubCar(string wagonFilePath, int length)
+        public TrainCar SubCar(Train train, string wagonFilePath, int length)
         {
             Trace.WriteLine("Will substitute with your existing stocks\n.");
-            TrainCar car;
             try
             {
                 char type = 'w';
-                if (wagonFilePath.ToLower().Contains(".eng")) type = 'e';
+                if (wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase)) type = 'e';
                 string newWagonFilePath = SubMissingCar(length, type);
-                car = RollingStock.Load(Simulator.Instance, newWagonFilePath);
+                TrainCar car = RollingStock.Load(train, newWagonFilePath);
                 car.CarLengthM = length;
                 car.RealWagFilePath = wagonFilePath;
-                Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("Missing car, have substituted with other one."));
-
+                Simulator.Instance.Confirmer?.Information(Catalog.GetString("Missing car, have substituted with other one."));
+                return car;
             }
             catch (Exception error)
             {
                 Trace.WriteLine(error.Message + "Substitution failed, will ignore it\n.");
-                car = null;
+                return null;
             }
-            return car;
         }
 
         private SortedList<double, string> coachList;
         private SortedList<double, string> engList;
+        private bool disposedValue;
 
         public string SubMissingCar(int length, char type)
         {
 
-            type = char.ToLower(type);
+            type = char.ToLowerInvariant(type);
             SortedList<double, string> copyList;
             if (type == 'w')
             {
@@ -885,7 +897,7 @@ namespace Orts.MultiPlayer
                         });
 
                     len = def.Z;
-                    carList.Add(len + MultiPlayerManager.Random.NextDouble() / 10.0f, name);
+                    carList.Add(len + StaticRandom.NextDouble() / 10.0, name);
                 }
                 catch { }
             }
@@ -925,6 +937,26 @@ namespace Orts.MultiPlayer
         internal void OnAvatarUpdated(string user, string url)
         {
             AvatarUpdated?.Invoke(this, new AvatarUpdatedEventArgs(user, url));
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    client?.Dispose();
+                    // TODO: dispose managed state (managed objects)
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

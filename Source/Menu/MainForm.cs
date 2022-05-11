@@ -176,8 +176,8 @@ namespace Orts.Menu
             };
 
             linkLabelUpdate.Visible = false;
-            LoadOptions();
             LoadLanguage();
+            LoadOptions();
 
             if (!initialized)
             {
@@ -860,7 +860,7 @@ namespace Orts.Menu
                 string extension = System.IO.Path.GetExtension(path);
                 if (".act".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeActivity.Checked = true;
-                else if (".timetable_or".Equals(extension, StringComparison.OrdinalIgnoreCase))
+                else if (".timetable_or".Equals(extension, StringComparison.OrdinalIgnoreCase) || ".timetable-or".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeTimetable.Checked = true;
             }
             UpdateEnabled();
@@ -1218,7 +1218,7 @@ namespace Orts.Menu
 
         private void UpdateTimetableWeatherSet()
         {
-            SelectedTimetableSet.WeatherFile = SelectedWeatherFile.GetFullName();
+            SelectedTimetableSet.WeatherFile = SelectedWeatherFile.FullName;
         }
 
         #endregion
@@ -1508,7 +1508,7 @@ namespace Orts.Menu
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = settings.Menu_Selection[(int)index];
                 else
-                    SetComboBoxItem<T>(comboBox, item => map(item) == settings.Menu_Selection[(int)index]);
+                    SetComboBoxItem<T>(comboBox, item => string.Equals(map(item),settings.Menu_Selection[(int)index], StringComparison.OrdinalIgnoreCase));
             }
             else
             {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
@@ -14,7 +15,7 @@ namespace Orts.Formats.Msts.Models
             // is parsed. 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("uid", ()=> { UiD = stf.ReadUIntBlock(null); }),
-                new STFReader.TokenProcessor("sidingitem", ()=> { Add(new WorkOrderWagon(UiD, stf.ReadUIntBlock(null))); }),
+                new STFReader.TokenProcessor("sidingitem", ()=> { Add(new WorkOrderWagon(UiD, (int)(stf.ReadUIntBlock(null)))); }),
                 new STFReader.TokenProcessor("description", ()=> { this[Count-1].Description = stf.ReadStringBlock(""); }),
             });
         }
@@ -27,10 +28,10 @@ namespace Orts.Formats.Msts.Models
     public class WorkOrderWagon
     {
         public uint UiD { get; private set; }
-        public uint SidingId { get; private set; }
+        public int SidingId { get; private set; }
         public string Description { get; internal set; } = "";   // Value assumed if property not found.
 
-        public WorkOrderWagon(uint uid, uint sidingId)
+        public WorkOrderWagon(uint uid, int sidingId)
         {
             UiD = uid;
             SidingId = sidingId;
@@ -43,8 +44,11 @@ namespace Orts.Formats.Msts.Models
         public int Serial { get; private set; } = 1;
         public MaxVelocity MaxVelocity { get; private set; }
         public float Durability { get; private set; } = 1.0f;   // Value assumed if attribute not found.
+        public string TcsParametersFileName { get; private set; } = string.Empty;
 
-        public IList<Wagon> Wagons { get; } = new List<Wagon>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Wagon> Wagons { get; } = new List<Wagon>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
 
         internal TrainSet(STFReader stf)
@@ -67,6 +71,8 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("durability", ()=>{ Durability = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("wagon", ()=>{ Wagons.Add(new Wagon(stf)); }),
                 new STFReader.TokenProcessor("engine", ()=>{ Wagons.Add(new Wagon(stf)); }),
+                new STFReader.TokenProcessor("ortseot", ()=>{ Wagons.Add(new Wagon(stf)); }),
+                new STFReader.TokenProcessor("ortstraincontrolsystemparameters", () => TcsParametersFileName = stf.ReadStringBlock(null)),
             });
         }
     }
@@ -77,6 +83,7 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; private set; }
         public int UiD { get; private set; }
         public bool IsEngine { get; private set; }
+        public bool IsEOT { get; private set; }
         public bool Flip { get; private set; }
 
         internal Wagon(STFReader stf)
@@ -87,6 +94,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("flip", ()=>{ stf.MustMatchBlockStart(); stf.MustMatchBlockEnd(); Flip = true; }),
                 new STFReader.TokenProcessor("enginedata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatchBlockEnd(); IsEngine = true; }),
                 new STFReader.TokenProcessor("wagondata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatchBlockEnd(); }),
+                new STFReader.TokenProcessor("eotdata", ()=>{ stf.MustMatch("("); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); IsEOT = true;  }),
             });
         }
 

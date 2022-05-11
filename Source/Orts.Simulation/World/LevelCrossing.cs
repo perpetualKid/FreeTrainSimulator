@@ -22,7 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -36,12 +38,12 @@ namespace Orts.Simulation.World
         public Dictionary<int, LevelCrossingItem> RoadCrossingItems { get; }
         public Dictionary<LevelCrossingItem, LevelCrossingItem> RoadToTrackCrossingItems { get; } = new Dictionary<LevelCrossingItem, LevelCrossingItem>();
 
-        public LevelCrossings(Simulator simulator)
+        public LevelCrossings()
         {
-            TrackCrossingItems = simulator?.TrackDatabase?.TrackDB?.TrackNodes != null && simulator.TrackDatabase.TrackDB.TrackItems != null
-                ? GetLevelCrossingsFromDB(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
-            RoadCrossingItems = simulator.RoadDatabase?.RoadTrackDB?.TrackNodes != null && simulator.RoadDatabase.RoadTrackDB.TrItemTable != null
-                ? GetLevelCrossingsFromDB(simulator.RoadDatabase.RoadTrackDB.TrackNodes, simulator.RoadDatabase.RoadTrackDB.TrItemTable) : new Dictionary<int, LevelCrossingItem>();
+            TrackCrossingItems = RuntimeData.Instance.TrackDB?.TrackNodes != null && RuntimeData.Instance.TrackDB.TrackItems != null
+                ? GetLevelCrossingsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
+            RoadCrossingItems = RuntimeData.Instance.RoadTrackDB?.TrackNodes != null && RuntimeData.Instance.RoadTrackDB.TrackItems != null
+                ? GetLevelCrossingsFromDB(RuntimeData.Instance.RoadTrackDB.TrackNodes, RuntimeData.Instance.RoadTrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
         }
 
         private static Dictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(IEnumerable<TrackNode> trackNodes, IList<TrackItem> trItemTable)
@@ -151,7 +153,7 @@ namespace Orts.Simulation.World
                 float frontDist = crossing.DistanceTo(train.FrontTDBTraveller, reqDist);
                 if (frontDist < 0 && train.TrainType != TrainType.Static)
                 {
-                    frontDist = -crossing.DistanceTo(new Traveller(train.FrontTDBTraveller, Traveller.TravellerDirection.Backward), reqDist + train.Length);
+                    frontDist = -crossing.DistanceTo(new Traveller(train.FrontTDBTraveller, true), reqDist + train.Length);
                     if (frontDist > 0)
                     {
                         // Train cannot find crossing.
@@ -201,7 +203,7 @@ namespace Orts.Simulation.World
                     rearDist = crossing.DistanceTo(train.RearTDBTraveller, adjustDist);
                     // Static consist passed the crossing.
                     if (frontDist < 0 && rearDist < 0)
-                        rearDist = crossing.DistanceTo(new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward), adjustDist);
+                        rearDist = crossing.DistanceTo(new Traveller(train.RearTDBTraveller, true), adjustDist);
 
                     // Testing distance before crossing
                     if (frontDist > 0 && frontDist <= adjustDist)
@@ -271,7 +273,7 @@ namespace Orts.Simulation.World
             LevelCrossingItem roadItem = LevelCrossingItem.None;
             frontDist = -1;
             Traveller traveller = trainForwards ? train.FrontTDBTraveller :
-                new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
+                new Traveller(train.RearTDBTraveller, true);
             foreach (LevelCrossingItem crossing in TrackCrossingItems.Values.Where(ci => ci.CrossingGroup != null))
                 if (crossing.Trains.Contains(train))
                 {
@@ -298,7 +300,7 @@ namespace Orts.Simulation.World
         internal List<Train> StaticConsists = new List<Train>();
         public ref readonly WorldLocation Location => ref trackItem.Location;
         public LevelCrossing CrossingGroup { get; internal set; }
-        public uint TrackIndex => TrackNode.Index;
+        public int TrackIndex => TrackNode.Index;
         private readonly TrackItem trackItem;
 
         public static LevelCrossingItem None { get; } = new LevelCrossingItem();

@@ -26,6 +26,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.World;
+using System.IO;
 
 namespace Orts.Simulation.Commanding
 {
@@ -41,7 +42,7 @@ namespace Orts.Simulation.Commanding
         /// <summary>
         /// Each command adds itself to the log when it is constructed.
         /// </summary>
-        public Command(CommandLog log)
+        protected Command(CommandLog log)
         {
             log.CommandAdd(this);
         }
@@ -78,7 +79,7 @@ namespace Orts.Simulation.Commanding
     {
         protected bool targetState;
 
-        public BooleanCommand(CommandLog log, bool targetState)
+        protected BooleanCommand(CommandLog log, bool targetState)
             : base(log)
         {
             this.targetState = targetState;
@@ -90,7 +91,7 @@ namespace Orts.Simulation.Commanding
     {
         protected int index;
 
-        public IndexCommand(CommandLog log, int index)
+        protected IndexCommand(CommandLog log, int index)
             : base(log)
         {
             this.index = index;
@@ -105,7 +106,7 @@ namespace Orts.Simulation.Commanding
     {
         protected float? target;
 
-        public ContinuousCommand(CommandLog log, bool targetState, float? target, double startTime)
+        protected ContinuousCommand(CommandLog log, bool targetState, float? target, double startTime)
             : base(log, targetState)
         {
             this.target = target;
@@ -123,7 +124,7 @@ namespace Orts.Simulation.Commanding
     {
         public double PauseDurationS { get; private set; }
 
-        public PausedCommand(CommandLog log, double pauseDurationS)
+        protected PausedCommand(CommandLog log, double pauseDurationS)
             : base(log)
         {
             PauseDurationS = pauseDurationS;
@@ -138,7 +139,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public abstract class CameraCommand : Command
     {
-        public CameraCommand(CommandLog log)
+        protected CameraCommand(CommandLog log)
             : base(log)
         {
         }
@@ -595,7 +596,7 @@ namespace Orts.Simulation.Commanding
         }
     }
 
-     [Serializable()]
+    [Serializable()]
     public sealed class BrakemanBrakeCommand : ContinuousCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
@@ -749,7 +750,7 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HandbrakeCommand : BooleanCommand 
+    public sealed class HandbrakeCommand : BooleanCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
 
@@ -1010,7 +1011,8 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HornCommand : BooleanCommand {
+    public sealed class HornCommand : BooleanCommand
+    {
         public static MSTSLocomotive Receiver { get; set; }
 
         public HornCommand(CommandLog log, bool targetState)
@@ -1025,7 +1027,7 @@ namespace Orts.Simulation.Commanding
             if (targetState)
             {
                 Receiver.AlerterReset(TCSEvent.HornActivated);
-                Receiver.Simulator.HazardManager.Horn();
+                Simulator.Instance.HazardManager.Horn();
             }
         }
 
@@ -1101,27 +1103,30 @@ namespace Orts.Simulation.Commanding
                         if (!MasterKeyHeadlightControl)
                         {
                             Receiver.Headlight = 1;
-                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
+                            Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         }
                         break;
                     case 1:
                         Receiver.Headlight = 2;
-                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.On );
+                        Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.On);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
-            } else {
-                switch( Receiver.Headlight ) {
+            }
+            else
+            {
+                switch (Receiver.Headlight)
+                {
                     case 1:
                         if (!MasterKeyHeadlightControl)
                         {
                             Receiver.Headlight = 0;
-                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
+                            Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
                         }
                         break;
                     case 2:
                         Receiver.Headlight = 1;
-                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Neutral );
+                        Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
@@ -1359,6 +1364,134 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+    // Distributed Power controls
+    [Serializable()]
+    public sealed class DistributedPowerMoveToFrontCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerMoveToFrontCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerMoveToFront();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerMoveToBackCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerMoveToBackCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerMoveToBack();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerIdleCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerIdleCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerIdle();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerTractionCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerTractionCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerTraction();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerDynamicBrakeCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerDynamicBrakeCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerDynamicBrake();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerIncreaseCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerIncreaseCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerIncrease();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerDecreaseCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerDecreaseCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerDecrease();
+            // Report();
+        }
+    }
+
+
     // Steam controls
     [Serializable()]
     public sealed class ContinuousSteamHeatCommand : ContinuousCommand
@@ -1426,7 +1559,7 @@ namespace Orts.Simulation.Commanding
     public sealed class ContinuousInjectorCommand : ContinuousCommand
     {
         public static MSTSSteamLocomotive Receiver { get; set; }
-        private int injector;
+        private readonly int injector;
 
         public ContinuousInjectorCommand(CommandLog log, int injector, bool targetState, float? target, double startTime)
             : base(log, targetState, target, startTime)
@@ -1447,7 +1580,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return $"Command: {FormatStrings.FormatPreciseTime(Time)} {GetType().Name} {injector.ToString()}"
+            return $"Command: {FormatStrings.FormatPreciseTime(Time)} {GetType().Name} {injector}"
                 + (targetState ? "open" : "close") + ", target = " + target.ToString();
         }
     }
@@ -1456,7 +1589,7 @@ namespace Orts.Simulation.Commanding
     public sealed class ToggleInjectorCommand : Command
     {
         public static MSTSSteamLocomotive Receiver { get; set; }
-        private int injector;
+        private readonly int injector;
 
         public ToggleInjectorCommand(CommandLog log, int injector)
             : base(log)
@@ -1477,7 +1610,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return base.ToString() + injector.ToString();
+            return $"{base.ToString()}{injector}";
         }
     }
 
@@ -1949,7 +2082,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class TCSButtonCommand : BooleanCommand
     {
-        public int CommandIndex;
+        public int CommandIndex { get; private set; }
         public static ScriptedTrainControlSystem Receiver { get; set; }
 
         public TCSButtonCommand(CommandLog log, bool toState, int commandIndex)
@@ -1964,7 +2097,7 @@ namespace Orts.Simulation.Commanding
             if (Receiver != null)
             {
                 Receiver.TCSCommandButtonDown[CommandIndex] = targetState;
-                Receiver.HandleEvent(targetState? TCSEvent.GenericTCSButtonPressed : TCSEvent.GenericTCSButtonReleased, CommandIndex);
+                Receiver.HandleEvent(targetState ? TCSEvent.GenericTCSButtonPressed : TCSEvent.GenericTCSButtonReleased, CommandIndex);
             }
 
         }
@@ -1979,7 +2112,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class TCSSwitchCommand : BooleanCommand
     {
-        public int CommandIndex;
+        public int CommandIndex { get; private set; }
         public static ScriptedTrainControlSystem Receiver { get; set; }
 
         public TCSSwitchCommand(CommandLog log, bool toState, int commandIndex)
@@ -2004,5 +2137,184 @@ namespace Orts.Simulation.Commanding
         }
     }
     #endregion
+
+    [Serializable()]
+    public sealed class ToggleGenericItem1Command : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleGenericItem1Command(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.GenericItem1Toggle();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    [Serializable()]
+    public sealed class ToggleGenericItem2Command : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleGenericItem2Command(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.GenericItem2Toggle();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    // EOT Commands
+
+    [Serializable()]
+    public sealed class EOTCommTestCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTCommTestCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+                Receiver?.Train?.EndOfTrainDevice?.CommTest();
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTDisarmCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTDisarmCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+                Receiver?.Train?.EndOfTrainDevice?.Disarm();
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTArmTwoWayCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTArmTwoWayCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+                Receiver?.Train?.EndOfTrainDevice?.ArmTwoWay();
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTEmergencyBrakeCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public EOTEmergencyBrakeCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+                Receiver?.Train?.EndOfTrainDevice?.EmergencyBrake(targetState);
+        }
+    }
+
+    [Serializable()]
+    public sealed class ToggleEOTEmergencyBrakeCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleEOTEmergencyBrakeCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+                Receiver.Train.EndOfTrainDevice?.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
+        }
+    }
+
+    [Serializable()]
+    public sealed class EOTMountCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+        public string PickedEOTType { get; set; }
+
+        public EOTMountCommand(CommandLog log, bool toState, string pickedEOTType)
+            : base(log, toState)
+        {
+            PickedEOTType = pickedEOTType;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver?.Train != null)
+            {
+                if (targetState)
+                {
+                    string wagonFilePath = PickedEOTType.ToLowerInvariant();
+                    try
+                    {
+                        EndOfTrainDevice eot = (EndOfTrainDevice)RollingStock.Load(Receiver.Train, wagonFilePath);
+                        eot.CarID = $"{Receiver.Train.Number} - EOT";
+                        eot.Train.EndOfTrainDevice = eot;
+                    }
+                    catch (Exception error)
+                    {
+                        Trace.WriteLine(new FileLoadException(wagonFilePath, error));
+                        return;
+                    }
+                    Receiver.Train.CalculatePositionOfEOT();
+                    Receiver.Train.PhysicsUpdate(0);
+                }
+                else
+                {
+                    Receiver.Train.RecalculateRearTDBTraveller();
+                    var car = Receiver.Train.Cars[^1];
+                    car.Train = null;
+                    car.IsPartOfActiveTrain = false;  // to stop sounds
+                    Receiver.Train.Cars.Remove(car);
+                    Receiver.Train.EndOfTrainDevice = null;
+                    Receiver.Train.PhysicsUpdate(0);
+                }
+            }
+        }
+    }
 
 }

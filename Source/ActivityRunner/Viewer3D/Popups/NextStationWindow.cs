@@ -143,7 +143,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TTTrain playerTimetableTrain = playerTrain as TTTrain;
 
                     // train name
-                    StationPlatform.Text = String.Concat(playerTimetableTrain.Name.Substring(0, Math.Min(playerTimetableTrain.Name.Length, 20)));
+                    StationPlatform.Text = playerTimetableTrain.Name.Substring(0, Math.Min(playerTimetableTrain.Name.Length, 20));
 
                     if (playerTimetableTrain.ControlMode == TrainControlMode.Inactive || playerTimetableTrain.MovementState == AiMovementState.Static)
                     {
@@ -188,7 +188,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else
                             {
-                                Message.Text = String.Concat(Viewer.Catalog.GetString("Waiting for train to attach : "), otherTrain.Name);
+                                Message.Text = $"{Viewer.Catalog.GetString("Waiting for train to attach : ")}{otherTrain.Name}";
                                 Message.Color = Color.Orange;
                                 validMessage = true;
                             }
@@ -231,11 +231,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 // set activation message or time
                                 if (playerTimetableTrain.TriggeredActivationRequired)
                                 {
-                                    Message.Text = String.Concat(Message.Text, Viewer.Catalog.GetString(" Activated by other train."));
+                                    Message.Text += Viewer.Catalog.GetString(" Activated by other train.");
                                 }
                                 else
                                 {
-                                    Message.Text = String.Concat(Message.Text, Viewer.Catalog.GetString(" Activation time : "), activateDT.ToString("HH:mm:ss"));
+                                    Message.Text += $"{Message.Text}{Viewer.Catalog.GetString(" Activation time : ")}{activateDT:HH:mm:ss}";
                                 }
                             }
                             else
@@ -335,7 +335,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         // check transfer details
                         bool transferValid = false;
-                        string TransferMessage = String.Empty;
+                        string TransferMessage = string.Empty;
 
                         if (playerTimetableTrain.TransferStationDetails != null && playerTimetableTrain.TransferStationDetails.Count > 0 &&
                             playerTimetableTrain.StationStops != null && playerTimetableTrain.StationStops.Count > 0)
@@ -344,7 +344,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 TransferInfo thisTransfer = playerTimetableTrain.TransferStationDetails[playerTimetableTrain.StationStops[0].PlatformReference];
                                 TransferMessage = Viewer.Catalog.GetString("Transfer units at next station with train ");
-                                TransferMessage = String.Concat(TransferMessage, thisTransfer.TransferTrainName);
+                                TransferMessage = string.Concat(TransferMessage, thisTransfer.TransferTrainName);
                                 transferValid = true;
                             }
                         }
@@ -354,7 +354,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 TransferInfo thisTransfer = transferDetails.Value[0];
                                 TransferMessage = Viewer.Catalog.GetString("Transfer units with train ");
-                                TransferMessage = String.Concat(TransferMessage, thisTransfer.TransferTrainName);
+                                TransferMessage = string.Concat(TransferMessage, thisTransfer.TransferTrainName);
                                 transferValid = true;
                                 break;  // only show first
                             }
@@ -386,14 +386,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 if (playerTimetableTrain.AttachDetails.Valid)
                                 {
                                     Message.Text = Viewer.Catalog.GetString("Train is to attach to : ");
-                                    Message.Text = String.Concat(Message.Text, playerTimetableTrain.AttachDetails.AttachTrainName);
+                                    Message.Text = string.Concat(Message.Text, playerTimetableTrain.AttachDetails.AttachTrainName);
                                     Message.Color = Color.Orange;
                                 }
                                 else
                                 {
                                     Message.Text = Viewer.Catalog.GetString("Train is to attach to : ");
-                                    Message.Text = String.Concat(Message.Text, playerTimetableTrain.AttachDetails.AttachTrainName);
-                                    Message.Text = String.Concat(Message.Text, Viewer.Catalog.GetString(" ; other train not yet ready"));
+                                    Message.Text = string.Concat(Message.Text, playerTimetableTrain.AttachDetails.AttachTrainName);
+                                    Message.Text = string.Concat(Message.Text, Viewer.Catalog.GetString(" ; other train not yet ready"));
                                     Message.Color = Color.Orange;
                                 }
                             }
@@ -427,7 +427,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 else if (!Owner.Viewer.Simulator.TimetableMode && playerTrain != Owner.Viewer.Simulator.OriginalPlayerTrain)
                 {
                     // train name
-                    StationPlatform.Text = String.Concat(playerTrain.Name.Substring(0, Math.Min(playerTrain.Name.Length, 20)));
+                    StationPlatform.Text = string.Concat(playerTrain.Name[..Math.Min(playerTrain.Name.Length, 20)]);
 
                     if (playerTrain.ControlMode == TrainControlMode.Inactive)
                     {
@@ -459,7 +459,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if (playerTimetableTrain.ActivateTime.HasValue)
                             {
                                 DateTime activateDT = new DateTime((long)(Math.Pow(10, 7) * playerTimetableTrain.ActivateTime.Value));
-                                Message.Text = String.Concat(Message.Text, Viewer.Catalog.GetString(" Activation time : "), activateDT.ToString("HH:mm:ss"));
+                                Message.Text += $"{Viewer.Catalog.GetString(" Activation time : ")}{activateDT:HH:mm:ss}";
                             }
                         }
                     }
@@ -606,7 +606,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         StationCurrentDistance.Text = "";
                         if (playerTrain.StationStops.Count > 0 && playerTrain.StationStops[0].PlatformItem != null &&
-                            String.Compare(playerTrain.StationStops[0].PlatformItem.Name, StationCurrentName.Text) == 0 &&
+                            string.Equals(playerTrain.StationStops[0].PlatformItem.Name, StationCurrentName.Text, StringComparison.OrdinalIgnoreCase) &&
                             playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM != 9999999f)
                         {
                             StationCurrentDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, metric);
@@ -632,7 +632,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         StationNextDistance.Text = "";
                         if (playerTrain.StationStops.Count > 0 && playerTrain.StationStops[0].PlatformItem != null &&
-                            String.Compare(playerTrain.StationStops[0].PlatformItem.Name, StationNextName.Text) == 0 &&
+                            string.Equals(playerTrain.StationStops[0].PlatformItem.Name, StationNextName.Text, StringComparison.OrdinalIgnoreCase) &&
                             playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM != 9999999f)
                         {
                             StationNextDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, metric);

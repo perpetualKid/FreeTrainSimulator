@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 objectRadius = shapes.Max(s => (WorldPosition.Location - s.WorldPosition.Location).Length()) + dlHighest.ViewSphereRadius;
 
                 // Object viewing distance is easy because it's based on the outside of the object radius.
-                objectViewingDistance = viewer.Settings.LODViewingExtention ? float.MaxValue : dlLowest.ViewingDistance;
+                objectViewingDistance = float.MaxValue;
             }
 
             // Create all the primitives for the shared shape.

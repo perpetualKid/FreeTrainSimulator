@@ -34,7 +34,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class SuperElevationManager
+    public static class SuperElevationManager
     {
         /// <summary>
         /// Decompose and add a SuperElevation on top of MSTS track section
@@ -48,10 +48,10 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="shapeFilePath">Path to the shape file.</param>
         public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput, int TileX, int TileZ, string shapeFilePath)
         {
-            TrackShape shape = null;
+            TrackShape shape;
             try
             {
-                shape = viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex];
+                shape = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex];
 
                 if (shape.RoadShape == true) return false;
             }
@@ -69,13 +69,13 @@ namespace Orts.ActivityRunner.Viewer3D
             //List<DynamicTrackViewer> tmpTrackList = new List<DynamicTrackViewer>();
             foreach (SectionIndex id in SectionIdxs)
             {
-                uint[] sections = id.TrackSections;
+                int[] sections = id.TrackSections;
 
                 for (int i = 0; i < sections.Length; i++)
                 {
                     count++;
-                    uint sid = id.TrackSections[i];
-                    TrackSection section = viewer.Simulator.TSectionDat.TrackSections.Get(sid);
+                    int sid = id.TrackSections[i];
+                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(sid);
                     if (Math.Abs(section.Width - viewer.Settings.SuperElevationGauge / 1000f) > 0.2) continue;//the main route has a gauge different than mine
                     if (!section.Curved)
                     {
@@ -83,7 +83,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         //with strait track, will remove all related sections later
                     }
                     TrackVectorSection tmp = null;
-                    tmp = FindSectionValue(shape, viewer.Simulator, section, TileX, TileZ, trackObj.UiD);
+                    tmp = FindSectionValue(shape, section, TileX, TileZ, trackObj.UiD);
 
                     if (tmp == null) //cannot find the track for super elevation, will return 0;
                     {
@@ -97,72 +97,51 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (drawn <= count || isTunnel)//tunnel or not every section is in SE, will remove all sections in the shape out
             {
-                if (sectionsinShape.Count > 0) RemoveTracks(viewer.Simulator, sectionsinShape);
+                if (sectionsinShape.Count > 0) 
+                    RemoveTracks(sectionsinShape);
                 return false;
             }
             return true;
         }
 
         //remove sections from future consideration
-        private static void RemoveTracks(Simulator simulator, List<TrackVectorSection> sectionsinShape)
+        private static void RemoveTracks(List<TrackVectorSection> sectionsinShape)
         {
-            foreach (var tmpSec in sectionsinShape)
+            foreach (TrackVectorSection tmpSec in sectionsinShape)
             {
                 List<TrackVectorSection> curve = null;
-                var pos = -1;
-                foreach (var c in simulator.SuperElevation.Curves) { if (c.Contains(tmpSec)) { curve = c; break; } }//find which curve has the section
+                int pos = -1;
+                foreach (List<TrackVectorSection> c in Simulator.Instance.SuperElevation.Curves) 
+                { 
+                    if (c.Contains(tmpSec)) 
+                    { 
+                        curve = c; 
+                        break; 
+                    } 
+                }//find which curve has the section
                 if (curve != null)
                 {
                     pos = curve.IndexOf(tmpSec);
                     if (pos >= 1) curve[pos - 1].EndElev = 0; if (pos < curve.Count - 1) curve[pos + 1].StartElev = 0;
-                    RemoveSectionsFromMap(simulator, tmpSec);//remove all sections in the curve from future consideration
+                    RemoveSectionsFromMap(tmpSec);//remove all sections in the curve from future consideration
                     curve.Remove(tmpSec);
                 }
             }
-
-        }
-
-        //no use anymore
-        public static int DecomposeStaticSuperElevationOneSection(Viewer viewer, List<DynamicTrackViewer> dTrackList, int TileX, int TileZ, TrackVectorSection ts)
-        {
-            if (ts == null) return 0;
-
-            var tss = viewer.Simulator.TSectionDat.TrackSections.Get(ts.SectionIndex);
-
-            if (tss == null || !tss.Curved)
-                return 0;
-            ref readonly WorldLocation location = ref ts.Location;
-
-            Vector3 trackLocation = location.Location;
-            trackLocation.Z *= -1;
-            WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLocation, Matrix.Identity));
-
-            var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
-            var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
-            var curveRotation = Matrix.CreateRotationY(to * sign);
-            var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
-
-            WorldPosition nextRoot = root.SetTranslation(displacement);
-
-            sv = ev = mv = 0f; dir = 1f;
-            sv = ts.StartElev; ev = ts.EndElev; mv = ts.MaxElev;
-
-            //nextRoot.XNAMatrix.Translation += Vector3.Transform(trackLoc, worldMatrix.XNAMatrix);
-            dTrackList.Add(new SuperElevationViewer(viewer, root, nextRoot, tss.Radius, tss.Angle * 3.14f / 180, sv, ev, mv, dir));
-            return 1;
         }
 
         //no use anymore
         public static int DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, int TileX, int TileZ)
         {
-            var key = (int)(Math.Abs(TileX) + Math.Abs(TileZ));
-            if (!viewer.Simulator.SuperElevation.Sections.ContainsKey(key)) return 0;//cannot find sections associated with this tile
-            var sections = viewer.Simulator.SuperElevation.Sections[key];
-            if (sections == null) return 0;
+            int key = Math.Abs(TileX) + Math.Abs(TileZ);
+            if (!Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) 
+                return 0;//cannot find sections associated with this tile
+            List<TrackVectorSection> sections = Simulator.Instance.SuperElevation.Sections[key];
+            if (sections == null) 
+                return 0;
 
-            foreach (var ts in sections)
+            foreach (TrackVectorSection ts in sections)
             {
-                var tss = viewer.Simulator.TSectionDat.TrackSections.Get(ts.SectionIndex);
+                TrackSection tss = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(ts.SectionIndex);
                 if (tss == null || !tss.Curved || ts.Location.TileX != TileX || ts.Location.TileZ != TileZ)
                     continue;
                 Vector3 trackLoc = ts.Location.Location;
@@ -173,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
-                var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
+                var displacement = InterpolateHelper.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
                 WorldPosition nextRoot = root.SetTranslation(displacement);
 
@@ -188,14 +167,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private static float sv, ev, mv, dir;
         //a function to find the elevation of a section ,by searching the TDB database
-        public static TrackVectorSection FindSectionValue(TrackShape shape, Simulator simulator, TrackSection section, int TileX, int TileZ, uint UID)
+        public static TrackVectorSection FindSectionValue(TrackShape shape, TrackSection section, int TileX, int TileZ, uint UID)
         {
             if (!section.Curved)
                 return null;
             sv = ev = mv = 0f; dir = 1f;
             var key = (int)(Math.Abs(TileX) + Math.Abs(TileZ));
-            if (!simulator.SuperElevation.Sections.ContainsKey(key)) return null;//we do not have the maps of sections on the given tile, will not bother to search
-            var tileSections = simulator.SuperElevation.Sections[key];
+            if (!Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) return null;//we do not have the maps of sections on the given tile, will not bother to search
+            var tileSections = Simulator.Instance.SuperElevation.Sections[key];
             foreach (var s in tileSections)
             {
                 if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.SectionIndex == s.SectionIndex)
@@ -207,7 +186,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //not found, will do again to find reversed
             foreach (var s in tileSections)
             {
-                var sec = simulator.TSectionDat.TrackSections.Get(s.SectionIndex);
+                var sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(s.SectionIndex);
                 if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.Radius == sec.Radius
                     && section.Angle == -sec.Angle)
                 {
@@ -218,22 +197,23 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //remove a section from the tile-section map
-        public static void RemoveSectionsFromMap(Simulator simulator, TrackVectorSection section)
+        public static void RemoveSectionsFromMap(TrackVectorSection section)
         {
-            var key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
-            if (simulator.SuperElevation.Sections.ContainsKey(key)) simulator.SuperElevation.Sections[key].Remove(section);
+            int key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
+            if (Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) 
+                Simulator.Instance.SuperElevation.Sections[key].Remove(section);
         }
 
         //get how much elevation is needed, starting at 8cm of max, but actual max will be 8mm+Simulator.UseSuperElevation
-        public static float ElevationNumber(Simulator simulator, float degree, float radius)
+        public static float ElevationNumber(float degree, float radius)
         {
             var len = degree * 0.0174 * radius;
             double Curvature = degree * 33 / len;//average radius in degree/100feet
-            var Max = (float)(Math.Pow(simulator.Route.SpeedLimit * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
+            var Max = (float)(Math.Pow(Simulator.Instance.Route.SpeedLimit * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max = Max * 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;
             if (Max < 0.01f) return 0f;
-            if (Max > simulator.SuperElevation.MaximumAllowedM) Max = simulator.SuperElevation.MaximumAllowedM;//max 16 cm
+            if (Max > Simulator.Instance.SuperElevation.MaximumAllowedM) Max = Simulator.Instance.SuperElevation.MaximumAllowedM;//max 16 cm
             Max /= 1.44f; //now change to rotation in radius by quick estimation as the angle is small
 
             return Max;
@@ -264,7 +244,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = viewer.Simulator.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
+                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[dTrackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -283,15 +263,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-            uint[] sections = path.TrackSections;
+            int[] sections = path.TrackSections;
 
             int count = -1;
             for (int i = 0; i < sections.Length; i++)
             {
                 count++;
                 float length, radius;
-                uint sid = path.TrackSections[i];
-                TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
+                int sid = path.TrackSections[i];
+                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -300,7 +280,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     length = section.Length;
                     radius = -1;
                     localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else
@@ -313,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-section.Angle * 3.14f / 180); // Heading change (rotation about O)
 
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
@@ -371,7 +351,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 count++;
 
                 if ((dTrackObj.TrackSections[iTkSection].Length ==0f && dTrackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || dTrackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || dTrackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(dTrackObj, iTkSection);
@@ -392,7 +372,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + subsection.TrackSections[0].Length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
@@ -403,7 +383,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
@@ -427,7 +407,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             for (int iTkSection = 0; iTkSection < dTrackObj.TrackSections.Count; iTkSection++)
             {
-                if ((dTrackObj.TrackSections[iTkSection].Length == 0f && dTrackObj.TrackSections[iTkSection].Radius == 0f) || dTrackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                if ((dTrackObj.TrackSections[iTkSection].Length == 0f && dTrackObj.TrackSections[iTkSection].Radius == 0f) || dTrackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 if (dTrackObj.TrackSections[iTkSection].Curved)
                     return true;

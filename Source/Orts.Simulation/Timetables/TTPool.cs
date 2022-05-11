@@ -25,10 +25,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 
 using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -297,7 +298,7 @@ namespace Orts.Simulation.Timetables
 
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, inf);
+                newPool.StoragePathTraveller = new Traveller(inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = new List<TrackCircuitPartialPathRoute>();
@@ -528,7 +529,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
 
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TrackDatabase.TrackDB.TrackNodes, newPath);
+                newPool.StoragePathTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;
@@ -1197,7 +1198,7 @@ namespace Orts.Simulation.Timetables
                 if (thisSection.CircuitState.TrainReserved != null)
                 {
                     TTTrain otherTTTrain = thisSection.CircuitState.TrainReserved.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                     {
                         incomingEngine = true;
                         break;
@@ -1210,7 +1211,7 @@ namespace Orts.Simulation.Timetables
                     foreach (Train.TrainRouted otherTrain in thisSection.CircuitState.TrainClaimed)
                     {
                         TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                        if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                        if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                         {
                             incomingEngine = true;
                             break;
@@ -1224,7 +1225,7 @@ namespace Orts.Simulation.Timetables
                 foreach (Train.TrainRouted otherTrain in otherTrains)
                 {
                     TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName) && otherTTTrain.MovementState != AiMovementState.Static)
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase) && otherTTTrain.MovementState != AiMovementState.Static)
                     {
                         incomingEngine = true;
 #if DEBUG_POOLINFO
@@ -1366,7 +1367,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (TrainCar car in train.Cars)
                         {
-                            if (car.WagonType == TrainCar.WagonTypes.Engine)
+                            if (car.WagonType == WagonType.Engine)
                             {
                                 MSTSLocomotive loco = car as MSTSLocomotive;
                                 loco.AntiSlip = train.leadLocoAntiSlip;
@@ -1379,7 +1380,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     // set delay
-                    float randDelay = RandomNumberGenerator.GetInt32(train.DelayedStartSettings.newStart.randomPartS * 10);
+                    float randDelay = StaticRandom.Next(train.DelayedStartSettings.newStart.randomPartS * 10);
                     train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
                     train.DelayedStart = true;
                     train.DelayedStartState = AiStartMovement.NewTrain;
@@ -1399,7 +1400,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgConsist = train.ForcedConsistName;
+                        car.OrgiginalConsist = train.ForcedConsistName;
                     }
                 }
             }

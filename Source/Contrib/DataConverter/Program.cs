@@ -27,32 +27,33 @@ namespace Orts.DataConverter
 {
     internal class Program
     {
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)
         {
-            var converters = new List<IDataConverter>()
+            List<IDataConverter> converters = new List<IDataConverter>()
             {
                 new TerrainConverter()
             };
 
             try
             {
-                var conversions = GetConversions(args);
+                List<DataConversion> conversions = GetConversions(args);
                 if (conversions.Count == 0)
                 {
                     ShowHelp(converters);
                     return;
                 }
 
-                foreach (var conversion in conversions)
+                foreach (DataConversion conversion in conversions)
                 {
-                    var valid = false;
-                    foreach (var converter in converters)
+                    bool valid = false;
+                    foreach (IDataConverter converter in converters)
                     {
                         if (converter.DoConversion(conversion))
                         {
                             valid = true;
                             Console.WriteLine(conversion.Input);
-                            foreach (var output in conversion.Output)
+                            foreach (string output in conversion.Output)
                             {
                                 Console.WriteLine("--> {0}", output);
                             }
@@ -92,7 +93,7 @@ namespace Orts.DataConverter
             Console.WriteLine();
             Console.WriteLine("  Available file format conversions");
             Console.WriteLine("    Input   Output  Description");
-            foreach (var converter in converters)
+            foreach (IDataConverter converter in converters)
             {
                 converter.ShowConversions();
             }
@@ -100,24 +101,24 @@ namespace Orts.DataConverter
 
         private static List<DataConversion> GetConversions(string[] args)
         {
-            var conversions = new List<DataConversion>();
-            for (var i = 0; i < args.Length; i++)
+            List<DataConversion> conversions = new List<DataConversion>();
+            for (int i = 0; i < args.Length; i++)
             {
-                switch (args[i].ToLowerInvariant())
+                switch (args[i].ToUpperInvariant())
                 {
-                    case "/input":
+                    case "/INPUT":
                         i++;
                         if (i >= args.Length)
                         {
                             throw new InvalidCommandLineException("Expected input filename; got end of input");
                         }
-                        if (args[i].StartsWith("/"))
+                        if (args[i].StartsWith('/'))
                         {
                             throw new InvalidCommandLineException("Expected input filename; got option " + args[i]);
                         }
                         conversions.Add(new DataConversion(args[i]));
                         break;
-                    case "/output":
+                    case "/OUTPUT":
                         if (conversions.Count == 0)
                         {
                             throw new InvalidCommandLineException("Expected /input; got /output");
@@ -137,7 +138,7 @@ namespace Orts.DataConverter
                         {
                             throw new InvalidCommandLineException("Expected /input; got " + args[i]);
                         }
-                        if (args[i].StartsWith("/"))
+                        if (args[i].StartsWith('/'))
                         {
                             throw new InvalidCommandLineException("Expected output filename; got option " + args[i]);
                         }
@@ -147,10 +148,11 @@ namespace Orts.DataConverter
             }
             return conversions;
         }
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
     }
 
     [Serializable]
-    internal class InvalidCommandLineException : Exception
+    public class InvalidCommandLineException : Exception
     {
         public InvalidCommandLineException()
         {
@@ -169,7 +171,7 @@ namespace Orts.DataConverter
         }
     }
 
-    public class DataConversion
+    internal class DataConversion
     {
         public string Input { get; private set; }
         public List<string> Output { get; private set; }
@@ -184,7 +186,7 @@ namespace Orts.DataConverter
         }
     }
 
-    public interface IDataConverter
+    internal interface IDataConverter
     {
         void ShowConversions();
         bool DoConversion(DataConversion conversion);

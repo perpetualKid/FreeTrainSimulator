@@ -51,7 +51,7 @@ namespace Orts.Models.Simplified
             try
             {
                 string extension = System.IO.Path.GetExtension(filePath);
-                if (extension.IndexOf("list", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (extension.Contains("list", StringComparison.OrdinalIgnoreCase))
                 {
                     TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
                     TimeTables = groupFile.TimeTables;
@@ -139,10 +139,7 @@ namespace Orts.Models.Simplified
             return (fileDetails.Name);
         }
 
-        public string GetFullName()
-        {
-            return (fileDetails.FullName);
-        }
+        public string FullName => fileDetails.FullName;
 
         // get weatherfiles
         public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Route route, CancellationToken token)

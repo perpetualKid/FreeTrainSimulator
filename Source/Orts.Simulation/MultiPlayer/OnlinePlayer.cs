@@ -17,15 +17,11 @@
 
 using System;
 using System.IO;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 
-using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public enum OnlinePlayerStatus 
     { 

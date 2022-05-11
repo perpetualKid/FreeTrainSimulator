@@ -27,9 +27,11 @@ namespace Orts.Formats.Msts.Files
         public float WaterWaveHeight { get; private set; }
         public float WaterWaveSpeed { get; private set; }
         public float WorldSkynLayers { get; private set; }
-        public IList<WaterLayer> WaterLayers { get; private set; }
-        public IList<SkyLayer> SkyLayers { get; private set; }
-        public IList<SkySatellite> SkySatellites { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<WaterLayer> WaterLayers { get; private set; }
+        public List<SkyLayer> SkyLayers { get; private set; }
+        public List<SkySatellite> SkySatellites { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         public EnvironmentFile(string fileName)
         {

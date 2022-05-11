@@ -36,10 +36,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool Activated;
         private ElectricPowerSupply Script => AbstractScript as ElectricPowerSupply;
 
-        public bool RouteElectrified => Simulator.Route.Electrified || Simulator.Settings.OverrideNonElectrifiedRoutes;
         public float LineVoltageV => (float)Simulator.Route.MaxLineVoltage;
         public float PantographVoltageV { get; set; }
-        public float FilterVoltageV { get; set; } = 0;
+        public float FilterVoltageV { get; set; }
 
         public ScriptedElectricPowerSupply(MSTSLocomotive locomotive) :
             base(locomotive)
@@ -161,7 +160,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         private Timer PowerOnTimer;
         private Timer AuxPowerOnTimer;
 
-        private bool QuickPowerOn = false;
+        private bool QuickPowerOn;
 
         public override void Initialize()
         {

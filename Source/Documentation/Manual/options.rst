@@ -32,45 +32,8 @@ sometimes use a view other than the cabview to follow the train, and
 therefore will not see the alerter warning, selecting the related option
 *Also in external views* enables the alerter in those views as well.
 
-.. _options-map-window:
 
-Map window
------------------
-
-It is suggested to always select this option. When this option is selected,
-pressing ``<Ctrl+9>`` at runtime creates an additional window like the
-following. This window coexists with the main Open Rails window, and
-``<Alt+Tab>`` switches between it and the Open Rails window. See the related
-option :ref:`Fast fullscreen Alt+Tab <options-fullscreen>`.
-
-Through this window you can monitor train movements and also influence
-them, by setting signals and switches. A complete description of the
-dispatcher tab can be found :ref:`here <driving-dispatcher>`.
-
-.. image:: images/options-dispatcher.png
-
-Graduated release air brakes
-----------------------------
-
-Selecting this option allows a partial release of the brakes. Generally
-speaking, operating with the option checked is equivalent to passenger
-standard and unchecked is equivalent to freight standard. A complete
-description of this option can be found :ref:`here <physics-braking>`.
-
-Large address aware binaries
-----------------------------
-
-It is suggested to leave this option checked. When it is unchecked, Open
-Rails can use a maximum of 2 GB of RAM. When it is checked, the maximum is
-4 GB for 64-bit Windows systems, and 2 or 3 GB for 32-bit Windows systems.
-To increase the maximum RAM used by OR in 32-bit Windows systems from 2 to
-3 GB see the information found `here <http://knowledge.autodesk.com/
-support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/
-How-to-enable-a-3GB-switch-on-Windows-Vista-Windows-7-or-Windows-XP-s.html>`_.
-
-Take note that the RAM increase from 2 to 3 GB in 32-bit systems can slow
-down computer operation when not using OR.
-
+.. _options-control-confirmations:
 Control confirmations
 ---------------------
 
@@ -127,7 +90,7 @@ Language
 
 OR is an internationalized package. It supports many languages, and others
 can be added by following the instructions contained in the *Localization
-Manual* which can be found in the Open Rails ``Source/Trunk/Documentation``
+Manual* which can be found in the Open Rails ``Documentation``
 folder.
 
 When *System* is selected, OR automatically selects the language of the
@@ -148,7 +111,7 @@ Other units
 -----------
 
 This selects the units displayed for length, mass, pressure, etc. in the
-:ref:`F5 HUD <driving-hud>` of the simulation.
+:ref:`F5 Train Driving Info Window and also the Alt+F5 HUD <driving-hud>` of the simulation.
 
 The option *Player's Location* sets the units according to the Windows
 *Language and Region* settings on the player's computer.
@@ -156,26 +119,26 @@ The option *Player's Location* sets the units according to the Windows
 The option *Route* sets the units based on the data in the route files.
 The other options are self-explanatory.
 
-The F5 HUD uses the abbreviations *stn* for short tons (2000 lb) and
-*t* or *tn* for metric tons (tonnes).
+These windows use the abbreviations *t-us* for short tons (2000 lb),
+*t-uk* for long tons (2240 lb) and *t* for metric tons (1000 kg).
 
-Note that the units displayed by the :ref:`F4 Track Monitor <driving-track-monitor>` (e.g. velocity and
+Note: The units displayed by the :ref:`F4 Track Monitor <driving-track-monitor>` (e.g. velocity and
 distance) are always based on data read from the route files.
 
-Disable TCS scripts
+Enable TCS scripts
 -------------------
 
-This option disables the train control system scripts for locomotives where
+This option enables the train control system scripts for locomotives where
 these have been implemented.
 
-Enable web server
+.. _options-web-server-port:
+
+Web server port
 -----------------
 
-This option enables an internal web server that can be used to display game and
-train status information in a web browser, intended for use on secondary screens.
-
-When activated, the server can be accessed from a browser on the local machine at
+The web server can be accessed from a browser on the local machine at
 ``http://localhost:<port>``, where ``<port>`` is the specified port number.
+Change the default value of 2150 if it conflicts with other services.
 
 If you `open
 <https://www.howtogeek.com/394735/how-do-i-open-a-port-on-windows-firewall/>`_
@@ -207,8 +170,7 @@ Audio Options
 
 .. image:: images/options-audio.png
 
-Except for very slow computers, it is suggested that you leave the *MSTS
-Bin compatible sound* option checked and set the Sound detail level to 5.
+Except for very slow computers, it is suggested that you set the Sound detail level to 5.
 
 The *% sound volume* scroll button allows adjustment of the volume of OR
 sound. Default is 40.
@@ -227,37 +189,24 @@ Video Options
 Dynamic shadows
 ---------------
 
-The default setting is unchecked.
-Check this option to cast shadows from movable objects such as trains.
+This option causes movable objects such as trains to cast shadows.
+Unchecking the option will increase the frame rate.
 
-Note: This may reduce the frame rate.
+The default setting is checked.
+
 
 Shadow for all shapes
 ---------------------
 
-The default setting is unchecked.
 Check this option to cast shadows from static objects.
+
+The default setting is unchecked.
 
 Note: This may reduce the frame rate.
 
-Note: Static objects provided with shadows (in the file <route>.ref) 
+Note: Static objects provided with shadows (in the World files) 
 will cast shadows anyway. This option adds shadows for other static objects.
 
-
-.. _options-fullscreen:
-
-Fast full-screen Alt+Tab
-------------------------
-
-When this option is selected, and OR is running full-screen, pressing
-Alt+Tab leaves OR full-screen and running, and allows the
-:ref:`Dispatcher Window <driving-dispatcher>` to be shown in front of it. 
-If this option is not selected, OR is minimized. 
-Each successive press of Alt+Tab will toggle between the map window
-and the OR window.
-
-Note: To display the Map Window, the :ref:`Map window option <options-map-window>` 
-must also be selected and the Map Window started with Ctrl+9.
 
 Glass on in-game windows
 ------------------------
@@ -265,17 +214,23 @@ Glass on in-game windows
 When this option is checked, the in-game windows are displayed in a
 semitransparent mode.
 
+
 Model instancing
 ----------------
 
-When the option is checked, in cases where multiple instances of the same
-object have to be drawn, only a single draw call is sent to the GPU. This
-means lower CPU load. It is suggested to always check this option.
+When the option is checked, in cases where multiple instances of the same 
+object have to be drawn, only a single draw call is sent to the GPU. 
+Uncheck this option to avoid the graphical glitches which appear on some 
+hardware, but this may reduce the frame rate.
+
+The default setting is checked.
+
 
 Overhead wire
 -------------
 
 This option will enable or disable display of the overhead wire.
+
 
 .. _options-double-overhead-wires:
 
@@ -285,6 +240,7 @@ Double overhead wires
 MSTS uses a single wire for electrified routes; you may check this box so
 that OR will show the two overhead wires that are more common.
 
+
 .. _options-vsync:
 
 Vertical sync
@@ -292,13 +248,17 @@ Vertical sync
 
 Vertical Sync (VSync) attempts to lock Open Rails’ output frame rate 
 to your monitor's refresh rate for the smoothest image and to resist 
-image "tearing”.
+image "tearing".
+
 VSync may help keep the frame rate more stable on complex routes, 
 reducing sudden frame rate drops and apparent control lag in some cases.
 If Open Rails' frame rate drops below your monitor's frame rate, you 
-may see stuttering or image "tearing". To prevent this, either turn off 
+may see stuttering or image "tearing". To prevent this, either uncheck 
 the VSync option or reduce the values for video options such as view 
 distance, anti-aliasing, or world object density.
+
+The default setting is checked.
+
 
 .. _options-cab-stretch:
 
@@ -338,22 +298,26 @@ any stretching.
 Viewing distance
 ----------------
 
-This option defines the maximum distance at which terrain is displayed. At
-higher distances Distant Mountains will be displayed (see below). 
-Increasing this parameter tends to increase CPU and GPU load. 
-Also, some routes are optimized for the standard MSTS maximum viewing distance (2000m).
+This option defines the maximum distance at which terrain is displayed. 
+Where the content provides "Distant Mountains", these are displayed independently (see below).
+
+Note: Some routes are optimized for the standard MSTS maximum viewing distance (2km).
 
 Note: When the option to tune settings automatically is applied, then this 
 value will be overridden and dynamically changed to maintain a target frame rate.
 
+The default distance is 2km.
+
 Distant mountains
 -----------------
 
-Distant mountains are supported in a way that is compatible with MSTS.
-Distant mountains are present in the route if it has a folder called
-LO_TILE. You may turn the feature on by checking the *Distant Mountains*
-checkbox. In addition to MSTS capability, you can select the viewing
-distance of the distant mountains.
+This option defines the maximum distance at which "Distant Mountains" are displayed. 
+
+Note: "Distant Mountains" are present in the route if it has a folder called LO_TILE. 
+
+The default setting is checked.
+
+The default distance is 40km
 
 .. image:: images/options-mountains.png
 
@@ -433,14 +397,6 @@ divided into two parts. OR will display a message to report this.
 
 .. _options-curve-resistance:
 
-Curve dependent resistance
---------------------------
-
-When this option is selected, resistance to train motion is influenced by
-the radius of the curve on which the train is running. This option is
-described in detail :ref:`here <physics-curve-resistance>` (theory) and
-also :ref:`here <physics-curve-resistance-application>` (OR application).
-
 Curve dependent speed limit
 ---------------------------
 
@@ -452,38 +408,29 @@ displayed as a message. This option is described in detail
 :ref:`here <physics-curve-speed-limit-application>` (OR application).
 OR does not display the damage.
 
-.. _options-tunnel-resistance:
+At game start, Steam - pre-heat boiler
+--------------------------------------
 
-Tunnel dependent resistance
----------------------------
+With this option selected, the temperature and pressure of steam in the boiler is ready to pull the train.
+Uncheck this option for a more detailed behaviour in which the player has to raise the boiler pressure.
 
-When this option is selected, OR takes into account the fact that trains
-in tunnels are subject to higher air resistance, and therefore need a
-higher effort at invariant speed. This option is described in detail
-:ref:`here <physics-tunnel-friction>` (theory) and
-:ref:`here <physics-tunnel-friction-application>` (OR application).
+If not, the boiler pressure will be at 2/3 of maximum, which is only adequate for light work.
+If your schedule gives you time to raise the pressure close to maximum, then 
+switch from AI Firing to Manual Firing (Ctrl+F) and increase the Blower (N) to 100% to raise a draught. 
+Replenish the coal using R and Shift+R to keep the fire mass close to 100%.
+Full pressure may be reached in 5 minutes or so.
 
-.. _options-wind-resistance:
+The default setting is checked.
 
-Wind dependent resistance
--------------------------
 
-When this option is selected, resistance to train motion is influenced by
-the wind speed, and the direction that it is blowing. This option is
-described in detail :ref:`here <physics-wind-resistance>`
+At game start, Diesel - run engines
+-----------------------------------
 
-Run electric locos on non-electrified routes
---------------------------------------------
+When this option is checked, stationary diesel locos start the simulation with their engines running.
+Uncheck this option for a more detailed behaviour in which the player has to start the loco's engine.
 
-This option allows the running of electric locomotives on non-electrified routes.
+The default setting is checked.
 
-Steam locomotive hot start
---------------------------
-
-This option allows starting the game with the boiler water temperature
-already at a value that allows running the locomotive. If the option is
-not selected, you will have to wait until the water temperature reaches a
-high enough value.
 
 .. _options-forced-red:
 
@@ -496,9 +443,11 @@ until the train has stopped and then hold it as red from that time up to
 two minutes before starting time. This is useful in organizing train meets
 and takeovers, however it does not always correspond to reality nor to
 MSTS operation. So with this option the player can decide which behavior
-the start signal will have. This option is checked by default. 
+the start signal will have. 
 
-Unchecking the option has no effect when in 
+This option is checked by default. 
+
+Note: Unchecking the option has no effect when in 
 :ref:`Timetable mode <timetable>`.
 
 .. _options-open-doors-ai:
@@ -546,11 +495,12 @@ This is an option which players can set to simplify either the train controls or
 This feature is intended for players who want to focus on "running" trains and don't want to be bothered 
 by complex controls or prototypical physics which may require some additional expertise to operate.
 
-Initally this option affects only trains that use vacuum braking but other controls may be added in future versions.
+Initially this option affects only trains that use vacuum braking but other controls may be added in future versions.
 
 With vacuum braking, it is sometimes necessary to operate two different controls to apply and release the brakes. 
 With "Simple control and physics" checked, the player is able to operate the brakes just with the brake valve 
 and doesn't need to consider the steam ejector separately.
+
 
 .. _options-keyboard:
 
@@ -686,56 +636,6 @@ When this option is selected, when OR is loading the shape (.s) files it
 will report errors in syntax and structure (even if these don't cause
 runtime errors) in the :ref:`Log file <driving-logfile>` ``OpenRailsLog.txt`` on the desktop.
 
-.. _options-etcs:
-
-ETCS circular speed gauge
--------------------------
-
-When this option is selected, it is possible to add to the cabview a
-circular speed gauge accordingly to the European standard train control
-system ETCS.
-
-.. image:: images/options-etcs.png
-   :scale: 60 %
-   :align: center
-
-
-.. admonition:: For content developers
-
-    The gauge is added by the insertion of a block like the following
-    into the .cvf file::
-
-        Digital (
-            Type ( SPEEDOMETER DIGITAL )
-            Style ( NEEDLE )
-            Position ( 160 255 56 56 )
-            ScaleRange ( 0 250 )
-            Units ( KM_PER_HOUR )
-        )
-
-It is also possible to display the full ETCS display using the following block
-instead::
-
-		ScreenDisplay (
-			Type ( ORTS_ETCS SCREEN_DISPLAY )
-			Position ( 280 272 320 240 )
-			Units ( KM_PER_HOUR )
-		)
-
-The information displayed in the DMI is controlled via the TCS script. For more details,
-see :ref:`C# engine scripting - Train Control System <features-scripting-tcs>`.
-
-Load day/night textures only when needed
-----------------------------------------
-
-As a default OR loads night textures together with the day textures both at
-daytime and nighttime. When this option is selected, to reduce loading time and reduce
-memory used, night textures are not loaded in the daytime and are only
-loaded at sunset (if the game continues through sunset time); analogously day
-textures are not loaded in the nighttime if the related night textures are
-available, and are only loaded at sunrise (if the game continues through sunrise
-time).
-
 Signal light glow
 -----------------
 
@@ -800,14 +700,6 @@ lat/lon rectangle corresponding to the arid zone of North America (lat from
 The randomization is not performed either if the activity contains weather
 change events.
 
-Extend object maximum viewing distance to horizon
--------------------------------------------------
-
-With this option selected, all objects viewable up to the viewing distance
-defined in the Video Options are displayed. As a default ORTS only
-displays objects up to 2000 m distance. Selecting this option improves
-display quality but may reduce frame rate.
-
 .. _options-dds-textures:
 
 Load DDS textures in preference to ACE
@@ -852,7 +744,9 @@ level of detail comes into view. This may be useful to sharpen distant content
 that was created for a smaller screen or a wider field of view than you are 
 currently using.
 
-If your content does not use multiple LODs, then this option will have no effect.
+The default setting is 0.
+
+Note: If your content does not use multiple LODs, then this option will have no effect.
 
 
 Adhesion proportional to rain/snow/fog

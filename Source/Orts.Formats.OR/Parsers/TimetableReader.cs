@@ -43,7 +43,7 @@ namespace Orts.Formats.OR.Parsers
                 char separator = readLine.Length > 0 ? readLine[0] : '\0';
 
                 // check : only ";" or "," or "\tab" are allowed as separators
-                if (!validSeparators.Contains($"{separator}")) // Fatal error
+                if (!validSeparators.Contains($"{separator}", System.StringComparison.OrdinalIgnoreCase)) // Fatal error
                 {
                     throw new InvalidDataException($"Expected separators are {validSeparators} and tab but found '{separator}' as first character of timetable {filePath}");
                 }

@@ -20,6 +20,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Simplified;
@@ -33,31 +34,31 @@ namespace ORTS.TrackViewer.Drawing
     /// No editing, just plain single-color drawing.
     /// Paths will be drawn in slightly different colors to make it (a bit) easier to distinguish between them.
     /// </summary>
-    public class DrawMultiplePaths
+    internal class DrawMultiplePaths
     {
 
         /// <summary>For each path name, store the full file name of the .pat file</summary>
-        private Dictionary<string, string> fullPathNames;
+        private readonly Dictionary<string, string> fullPathNames;
 
         /// <summary>The paths that have already been loaded (.pat file has been read and parsed)</summary>
-        private Dictionary<string, Trainpath> loadedPaths;
+        private readonly Dictionary<string, Trainpath> loadedPaths;
 
         /// <summary>For each trainpath we have it is own DrawPath (each with their own color)</summary>
-        private Dictionary<Trainpath, DrawPath> drawPaths;
+        private readonly Dictionary<Trainpath, DrawPath> drawPaths;
 
         /// <summary>List of trainpaths that have been selected</summary>
-        private List<Trainpath> selectedTrainpaths;
+        private readonly List<Trainpath> selectedTrainpaths;
     
-        private TrackDB trackDB;
-        private TrackSectionsFile tsectionDat;
+        private readonly TrackDB trackDB;
+        private readonly TrackSectionsFile tsectionDat;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawMultiplePaths (RouteData routeData, Collection<Path> paths)
+        public DrawMultiplePaths (Collection<Path> paths)
         {
-            this.trackDB = routeData.TrackDB;
-            this.tsectionDat = routeData.TsectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
             fullPathNames = new Dictionary<string, string>();
             loadedPaths = new Dictionary<string, Trainpath>();
             selectedTrainpaths = new List<Trainpath>();
@@ -84,8 +85,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="pathName">The name of the path</param>
         private Trainpath TrainpathFromName(string pathName)
         {
-            Trainpath newTrainpath;
-            if (!loadedPaths.TryGetValue(pathName, out newTrainpath))
+            if (!loadedPaths.TryGetValue(pathName, out Trainpath newTrainpath))
             {
                 newTrainpath = new Trainpath(trackDB, tsectionDat, fullPathNames[pathName]);
                 loadedPaths[pathName] = newTrainpath;
@@ -162,8 +162,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns></returns>
         public Color? ColorOf(string pathName)
         {
-            Trainpath trainPath;
-            loadedPaths.TryGetValue(pathName, out trainPath);
+            loadedPaths.TryGetValue(pathName, out Trainpath trainPath);
             if (trainPath == null || !selectedTrainpaths.Contains(trainPath))
             {
                 return null;

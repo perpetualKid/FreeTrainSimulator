@@ -27,7 +27,7 @@ using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-    public class UpdaterProcess
+    public class UpdaterProcess : IDisposable
     {
         public Profiler Profiler { get; } = new Profiler("Updater");
 
@@ -38,6 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
         private RenderFrame CurrentFrame;
         private GameTime gameTime;
+        private bool disposedValue;
 
         public UpdaterProcess(Game game)
         {
@@ -67,22 +68,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.SetThread();
             game.SetThreadLanguage();
 
-            while (true)
+            while (!State.Terminated)
             {
                 // Wait for a new Update() command
                 State.WaitTillStarted();
-                if (State.Terminated)
-                    break;
-                try
-                {
-                    if (!DoUpdate())
-                        return;
-                }
-                finally
-                {
-                    // Signal finished so RenderProcess can start drawing
-                    State.SignalFinish();
-                }
+                if (!DoUpdate())
+                    return;
+                // Signal finished so RenderProcess can start drawing
+                State.SignalFinish();
             }
         }
 
@@ -105,7 +98,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     Update();
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // Unblock anyone waiting for us, report error and die.
                     State.SignalTerminate();
@@ -127,7 +122,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         component.Update(gameTime);
                 if (game.State != null)
                 {
-                    game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds, gameTime);
+                    game.State.Update(CurrentFrame, gameTime);
+                    game.RenderProcess.ComputeFPS(gameTime.ElapsedGameTime.TotalSeconds);
                     CurrentFrame.Sort();
                 }
             }
@@ -135,6 +131,26 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 Profiler.Stop();
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    State?.Dispose();
+                    // TODO: dispose managed state (managed objects)
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

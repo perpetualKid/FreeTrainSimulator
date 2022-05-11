@@ -54,8 +54,8 @@ namespace Orts.Simulation.RollingStocks
     {
         public ScriptedElectricPowerSupply ElectricPowerSupply => PowerSupply as ScriptedElectricPowerSupply;
 
-        public MSTSElectricLocomotive(Simulator simulator, string wagFile) :
-            base(simulator, wagFile)
+        public MSTSElectricLocomotive(string wagFile) :
+            base(wagFile)
         {
             PowerSupply = new ScriptedElectricPowerSupply(this);
         }
@@ -109,9 +109,6 @@ namespace Orts.Simulation.RollingStocks
 
         public override void Initialize()
         {
-            if (!ElectricPowerSupply.RouteElectrified)
-                Trace.WriteLine("Warning: The route is not electrified. Electric driven trains will not run!");
-
             base.Initialize();
 
             // If DrvWheelWeight is not in ENG file, then calculate drivewheel weight freom FoA
@@ -124,13 +121,13 @@ namespace Orts.Simulation.RollingStocks
             // Initialise water level in steam heat boiler
             if (CurrentLocomotiveSteamHeatBoilerWaterCapacityL == 0 && IsSteamHeatFitted)
             {
-                if (MaximumSteamHeatBoilerWaterTankCapacityL != 0)
+                if (maximumSteamHeatBoilerWaterTankCapacityL != 0)
                 {
-                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = MaximumSteamHeatBoilerWaterTankCapacityL;
+                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = (float)maximumSteamHeatBoilerWaterTankCapacityL;
                 }
                 else
                 {
-                CurrentLocomotiveSteamHeatBoilerWaterCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f);
+                    CurrentLocomotiveSteamHeatBoilerWaterCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f);
                 }
             }
         }
@@ -164,16 +161,16 @@ namespace Orts.Simulation.RollingStocks
             {
 
                 // Update water controller for steam boiler heating tank
-                    WaterController.Update(elapsedClockSeconds);
-                    if (WaterController.UpdateValue > 0.0)
-                        Simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeatBoilerWater, CabSetting.Increase, WaterController.CurrentValue * 100);
+                WaterController.Update(elapsedClockSeconds);
+                if (WaterController.UpdateValue > 0.0)
+                    simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeatBoilerWater, CabSetting.Increase, WaterController.CurrentValue * 100);
 
 
                 CurrentSteamHeatPressurePSI = SteamHeatController.CurrentValue * MaxSteamHeatPressurePSI;
 
                 // Calculate steam boiler usage values
                 // Don't turn steam heat on until pressure valve has been opened, water and fuel capacity also needs to be present, and steam boiler is not locked out
-                if (CurrentSteamHeatPressurePSI > 0.1 && CurrentLocomotiveSteamHeatBoilerWaterCapacityL > 0 && CurrentSteamHeatBoilerFuelCapacityL > 0 && !IsSteamHeatBoilerLockedOut)
+                if (CurrentSteamHeatPressurePSI > 0.1 && CurrentLocomotiveSteamHeatBoilerWaterCapacityL > 0 && currentSteamHeatBoilerFuelCapacityL > 0 && !steamHeatBoilerLockedOut)
                 {
                     // Set values for visible exhaust based upon setting of steam controller
                     HeatingSteamBoilerVolumeM3pS = 1.5f * SteamHeatController.CurrentValue;
@@ -182,7 +179,7 @@ namespace Orts.Simulation.RollingStocks
 
                     // Calculate fuel usage for steam heat boiler
                     float FuelUsageLpS = (float)Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(TrainHeatBoilerFuelUsageGalukpH[Frequency.Periodic.ToHours(CalculatedCarHeaterSteamUsageLBpS)]));
-                    CurrentSteamHeatBoilerFuelCapacityL -= (float)(FuelUsageLpS * elapsedClockSeconds); // Reduce Tank capacity as fuel used.
+                    currentSteamHeatBoilerFuelCapacityL -= (float)(FuelUsageLpS * elapsedClockSeconds); // Reduce Tank capacity as fuel used.
 
                     // Calculate water usage for steam heat boiler
                     float WaterUsageLpS = (float)Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(TrainHeatBoilerWaterUsageGalukpH[Frequency.Periodic.ToHours(CalculatedCarHeaterSteamUsageLBpS)]));
@@ -204,14 +201,17 @@ namespace Orts.Simulation.RollingStocks
         protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
             Variable1 = ThrottlePercent;
-            if (ThrottlePercent == 0f) Variable2 = 0;
+            if (ThrottlePercent == 0f)
+                Variable2 = 0;
             else
             {
                 float dV2;
                 dV2 = Math.Abs(TractiveForceN) / MaxForceN * 100f - Variable2;
                 float max = 2f;
-                if (dV2 > max) dV2 = max;
-                else if (dV2 < -max) dV2 = -max;
+                if (dV2 > max)
+                    dV2 = max;
+                else if (dV2 < -max)
+                    dV2 = -max;
                 Variable2 += dV2;
             }
             if (DynamicBrakePercent > 0)
@@ -352,62 +352,42 @@ namespace Orts.Simulation.RollingStocks
 
         public override string GetStatus()
         {
-            var status = new StringBuilder();
-            status.AppendFormat("{0} = ", Simulator.Catalog.GetString("Pantographs"));
-            foreach (var pantograph in Pantographs.List)
-                status.AppendFormat("{0} ", pantograph.State.GetLocalizedDescription());
+            StringBuilder status = new StringBuilder();
+            status.Append($"{Simulator.Catalog.GetString("Pantographs")} = ");
+            foreach (Pantograph pantograph in Pantographs.List)
+                status.Append($"{pantograph.State.GetLocalizedDescription()} ");
             status.AppendLine();
-            status.AppendFormat("{0} = {1}\n",
-                Simulator.Catalog.GetString("Battery switch"),
-                LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"));
-            status.AppendFormat("{0} = {1}\n",
-                Simulator.Catalog.GetString("Master key"),
-                LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"));
-            status.AppendFormat("{0} = {1}\n",
-                Simulator.Catalog.GetString("Circuit breaker"),
-                Simulator.Catalog.GetParticularString("CircuitBreaker", ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription()));
-            status.AppendFormat("{0} = {1}\n",
-                Simulator.Catalog.GetString("Electric train supply"),
-                LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"));
+            status.Append($"{Simulator.Catalog.GetString("Battery switch")} = {(LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
+            status.Append($"{Simulator.Catalog.GetString("Master key")} = {(LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
+            status.Append($"{Simulator.Catalog.GetString("Circuit breaker")} = {(Simulator.Catalog.GetParticularString("CircuitBreaker", ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription()))}\n");
+            status.Append($"{Simulator.Catalog.GetString("Electric train supply")} = {(LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
             status.AppendLine();
-            status.AppendFormat("{0} = {1}",
-                Simulator.Catalog.GetParticularString("PowerSupply", "Power"),
-                LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription());
+            status.Append($"{Simulator.Catalog.GetParticularString("PowerSupply", "Power")} = {LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription()}");
             return status.ToString();
         }
 
         public override string GetDebugStatus()
         {
-            var status = new StringBuilder(base.GetDebugStatus());
-            status.AppendFormat("\t{0}\t\t", ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription());
-            status.AppendFormat("{0}\t", ElectricPowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("{0}\t", ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("\t{0}\t\t{1}\n", Simulator.Catalog.GetString("Auxiliary power"), LocomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription());
+            StringBuilder status = new StringBuilder(base.GetDebugStatus());
+            status.Append($"\t{ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription()}\t\t");
+            status.Append($"{(ElectricPowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"))}\t");
+            status.Append($"{(ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"))}\t");
+            status.Append($"\t{Simulator.Catalog.GetString("Auxiliary power")}\t\t{LocomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription()}\n");
 
             if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && this.IsLeadLocomotive() && Train.CarSteamHeatOn)
             {
+                bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
                 // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive
                 // Display Steam Heat info
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}/{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18:N0}\n",
-                   Simulator.Catalog.GetString("StHeat:"),
-                   Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                   Simulator.Catalog.GetString("StTemp"),
-                   FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), IsMetric),
-                   Simulator.Catalog.GetString("StUse"),
-                   FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), IsMetric),
-                   FormatStrings.h,
-                   Simulator.Catalog.GetString("WaterLvl"),
-                   FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, IsMetric, IsUK),
-                   Simulator.Catalog.GetString("Last:"),
-                   Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(Train.LastCar.CarSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                   Simulator.Catalog.GetString("Temp"),
-                   FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, IsMetric),
-                   Simulator.Catalog.GetString("OutTemp"),
-                   FormatStrings.FormatTemperature(CarOutsideTempC, IsMetric),
-                   Simulator.Catalog.GetString("NetHt"),
-                   Train.LastCar.CarNetHeatFlowRateW);
+                status.Append($"\t{Simulator.Catalog.GetString("StHeat:")}");
+                status.Append($"\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
+                status.Append($"\t{Simulator.Catalog.GetString("StTemp")}\t{FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits)}");
+                status.Append($"\t{Simulator.Catalog.GetString("StUse")}\t{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}");
+                status.Append($"\t{Simulator.Catalog.GetString("WaterLvl")}\t{FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, isUK)}");
+                status.Append($"\t{Simulator.Catalog.GetString("Last:")}\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
+                status.Append($"\t{Simulator.Catalog.GetString("Temp")}\t{FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits)}");
+                status.Append($"\t{Simulator.Catalog.GetString("OutTemp")}\t{FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits)}");
+                status.Append($"\t{Simulator.Catalog.GetString("NetHt")}\t{Train.LastCar.carNetHeatFlowRateW:N0}");
             }
 
             return status.ToString();
@@ -430,8 +410,10 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SetStepSize(PickupObject matchPickup)
         {
-            if (MaximumSteamHeatBoilerWaterTankCapacityL != 0)
-                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaximumSteamHeatBoilerWaterTankCapacityL);
+            if (null == matchPickup)
+                throw new ArgumentNullException(nameof(matchPickup));
+            if (maximumSteamHeatBoilerWaterTankCapacityL != 0)
+                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / (float)maximumSteamHeatBoilerWaterTankCapacityL);
         }
 
         /// <summary>
@@ -453,5 +435,19 @@ namespace Orts.Simulation.RollingStocks
             return (pickupType == PickupType.FuelWater) ? WaterController.CurrentValue : 0f;
         }
 
+        protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
+        {
+            base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
+            if (AbsSpeedMpS > 0.5f)
+            {
+                Variable1 = 70;
+                Variable2 = 70;
+            }
+            else
+            {
+                Variable1 = 0;
+                Variable2 = 0;
+            }
+        }
     } // class ElectricLocomotive
 }

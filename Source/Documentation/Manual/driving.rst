@@ -9,8 +9,20 @@ Game Loading
 
 Once you have pressed ``Start``, Open Rails loads and processes all the 
 data needed to run the game. During this phase, the route's splash screen 
-is shown. If the same session was loaded previously, a bar showing loading 
-progress is shown at the bottom of the display. During loading, if logging 
+is shown with an indicator bar at the bottom.
+
+.. image:: images/loading_bars.png
+
+The first time a session is loaded, an animated bar just shows activity. 
+Subsequent loads of that session show the bar growing across the screen to indicate
+progress.
+
+If a timetable has been selected, then the game also simulates the progress of the timetable
+from the first train in the timetable up to start time of the player's train.
+This is done at high speed, but may still take some time. A second bar appears
+above the first one to show the progress of this stage.
+
+During loading, if logging 
 is selected, the log file ``OpenRailsLog.txt`` will already begin storing 
 data.
 
@@ -1606,8 +1618,8 @@ key assignment list shown by pressing ``<F1>``.
 In addition, Open Rails offers functionality similar to the time 
 acceleration switch for MSTS. 
 
-Use ``<Alt+PgUp>`` or ``<Alt+PgDn>`` keys to increase or decrease the 
-speed of the game clock.
+Use ``<Ctrl+Alt+PgUp(Numkey)>`` or ``<Ctrl+Alt+PgDn(Numkey)>`` keys to increase or decrease the 
+speed of the game clock. ``<Ctrl+Alt+Home(Numkey)>`` resets the speed.
 
 In a multiplayer session, all clients' time, weather and season selections 
 are overridden by those set by the server.

@@ -18,8 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace Orts.DataValidator
 {
@@ -29,7 +27,7 @@ namespace Orts.DataValidator
 
         protected Validator(string file)
         {
-            File = file.ToLowerInvariant();
+            File = file;
         }
 
         protected void Equal<T>(TraceEventType type, T expected, T actual, string item)

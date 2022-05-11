@@ -162,14 +162,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             state.Game = this;
             gameStates.Push(state);
-            Trace.TraceInformation("Game.PushState({0})  {1}", state.GetType().Name, String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
+            Trace.TraceInformation($"Game.PushState({state.GetType().Name})  {string.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray())}");
         }
 
         internal void PopState()
         {
             State.Dispose();
             gameStates.Pop();
-            Trace.TraceInformation("Game.PopState()  {0}", String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
+            Trace.TraceInformation($"Game.PopState()  {string.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray())}");
         }
 
         internal void ReplaceState(GameState state)
@@ -181,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
             state.Game = this;
             gameStates.Push(state);
-            Trace.TraceInformation("Game.ReplaceState({0})  {1}", state.GetType().Name, String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
+            Trace.TraceInformation($"Game.ReplaceState({state.GetType().Name})  {string.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray())}");
         }
 
         /// <summary>
@@ -207,8 +207,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             // Log the error first in case we're burning.
             Trace.WriteLine(new FatalException(error));
-            // Stop the world!
-            Exit();
             // Show the user that it's all gone horribly wrong.
             if (Settings.ShowErrorDialogs)
             {
@@ -222,6 +220,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (openTracker == DialogResult.OK)
                     Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
             }
+            // Stop the world!
+            Exit();
         }
     }
 }

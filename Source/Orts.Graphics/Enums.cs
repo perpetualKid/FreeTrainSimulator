@@ -1,13 +1,13 @@
 ﻿namespace Orts.Graphics
 {
-    public enum TextHorizontalAlignment
+    public enum HorizontalAlignment
     {
         Left = 0,
         Center = 1,
         Right = 2,
     }
 
-    public enum TextVerticalAlignment
+    public enum VerticalAlignment
     {
         Top = 0,
         Center = 1,
@@ -32,6 +32,11 @@
         RoadTrack,
         RoadTrackEnd,
         RoadLevelCrossing,
+        PathTrack,
+        PathTrackEnd,
+        PathTrackIntermediate,
+        PathJunction,
+        PathReversal,
         RoadCarSpawner,
         SignalItem,
         PlatformItem,

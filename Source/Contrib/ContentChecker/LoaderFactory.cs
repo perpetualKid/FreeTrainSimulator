@@ -110,15 +110,11 @@ namespace Orts.ContentChecker
                         return new NotUsedLoader(); // in TD/td_idx.dat and TD/lo_td_idx.dat
 
                     case "SIMISA@@@@@@@@@@JINX0F0t______":
-                        switch (filename)
+                        return filename switch
                         {
-                            case "forests.dat":
-                                return new NotUsedLoader(); // forests.dat
-                            default:
-                                return new TsectionGlobalLoader();
-                        }
-
-
+                            "forests.dat" => new NotUsedLoader(),// forests.dat
+                            _ => new TsectionGlobalLoader(),
+                        };
                     case "SIMISA@@@@@@@@@@JINX0f1t______":
                         return new NotUsedLoader(); // GUI/gui_fnts.dat
 
@@ -141,16 +137,12 @@ namespace Orts.ContentChecker
                         return new TSectionLoader();
 
                     case "SIMISA@@@@@@@@@@JINX0t1t______":
-                        switch (filename)
+                        return filename switch
                         {
-                            case "ttype.dat":
-                                return new TrackTypeLoader();
-                            case "speedpost.dat":
-                                return new NotUsedLoader(); // speedpost.dat
-                            default:
-                                return new NotRecognizedLoader();
-                        }
-
+                            "ttype.dat" => new TrackTypeLoader(),
+                            "speedpost.dat" => new NotUsedLoader(),// speedpost.dat
+                            _ => new NotRecognizedLoader(),
+                        };
                     case "SIMISA@@@@@@@@@@JINX0v1t______":
                         return new CarSpawnLoader();
 
@@ -161,7 +153,7 @@ namespace Orts.ContentChecker
                         return new NotUsedLoader(); // ssource.dat
 
                     default:
-                        if (SimisSignature.Contains("SIMIS"))
+                        if (SimisSignature.Contains("SIMIS", StringComparison.OrdinalIgnoreCase))
                         {
                             string fileName = Path.GetFileName(file);
                             Console.WriteLine();
@@ -177,6 +169,8 @@ namespace Orts.ContentChecker
             {
                 case "sigscr.dat":
                     return new SignalScriptLoader();
+                default:
+                    break;
             }
 
             return new NotRecognizedLoader();
@@ -192,21 +186,16 @@ namespace Orts.ContentChecker
 #pragma warning disable CA1308 // Normalize strings to uppercase
             string fileName = Path.GetFileName(file).ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            string endswith = fileName.Substring(fileName.Length - 6);
+            string endswith = fileName[^6..];
 
-            switch (endswith)
+            return endswith switch
             {
-                case "_y.raw":
-                    return new TerrainAltitudeLoader();
-                case "_f.raw":
-                    return new TerrainFlagsLoader();
-                case "_n.raw":
-                    return new NotUsedLoader();
-                case "_e.raw":
-                    return new NotUsedLoader();
-                default:
-                    return new NotRecognizedLoader();
-            }
+                "_y.raw" => new TerrainAltitudeLoader(),
+                "_f.raw" => new TerrainFlagsLoader(),
+                "_n.raw" => new NotUsedLoader(),
+                "_e.raw" => new NotUsedLoader(),
+                _ => new NotRecognizedLoader(),
+            };
         }
 
     }

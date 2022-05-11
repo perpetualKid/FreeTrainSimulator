@@ -212,6 +212,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlDynamicBrakeIncrease] = new UserCommandKeyInput(0x34);
             commands[UserCommand.ControlElectricTrainSupply] = new UserCommandKeyInput(0x30, KeyModifiers.Alt);
             commands[UserCommand.ControlEmergencyPushButton] = new UserCommandKeyInput(0x0E);
+            commands[UserCommand.ControlEOTEmergencyBrake] = new UserCommandKeyInput(0x0E, KeyModifiers.Control);
             commands[UserCommand.ControlEngineBrakeDecrease] = new UserCommandKeyInput(0x1A);
             commands[UserCommand.ControlEngineBrakeIncrease] = new UserCommandKeyInput(0x1B);
             commands[UserCommand.ControlBrakemanBrakeDecrease] = new UserCommandKeyInput(0x1A, KeyModifiers.Alt);
@@ -224,8 +225,10 @@ namespace Orts.Settings
             commands[UserCommand.ControlFiringRateIncrease] = new UserCommandKeyInput(0x13);
             commands[UserCommand.ControlGearDown] = new UserCommandKeyInput(0x12, KeyModifiers.Shift);
             commands[UserCommand.ControlGearUp] = new UserCommandKeyInput(0x12);
-            commands[UserCommand.ControlGeneric1] = new UserCommandKeyInput(0x33, KeyModifiers.Control);
-            commands[UserCommand.ControlGeneric2] = new UserCommandKeyInput(0x34, KeyModifiers.Control);
+            commands[UserCommand.ControlGenericItem1] = new UserCommandKeyInput(0x33, KeyModifiers.Shift);
+            commands[UserCommand.ControlGenericItem2] = new UserCommandKeyInput(0x34, KeyModifiers.Shift);
+            commands[UserCommand.ControlTCSGeneric1] = new UserCommandKeyInput(0x33, KeyModifiers.Control);
+            commands[UserCommand.ControlTCSGeneric2] = new UserCommandKeyInput(0x34, KeyModifiers.Control);
             commands[UserCommand.ControlHandbrakeFull] = new UserCommandKeyInput(0x28, KeyModifiers.Shift);
             commands[UserCommand.ControlHandbrakeNone] = new UserCommandKeyInput(0x27, KeyModifiers.Shift);
             commands[UserCommand.ControlHeadlightDecrease] = new UserCommandKeyInput(0x23, KeyModifiers.Shift);
@@ -273,6 +276,15 @@ namespace Orts.Settings
             commands[UserCommand.ControlWaterScoop] = new UserCommandKeyInput(0x15);
             commands[UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
+            // Distributed power
+            commands[UserCommand.ControlDistributedPowerMoveToFront] = new UserCommandKeyInput(0x18, KeyModifiers.Control); //O
+            commands[UserCommand.ControlDistributedPowerMoveToBack] = new UserCommandKeyInput(0x18, KeyModifiers.Control | KeyModifiers.Shift); //O
+            commands[UserCommand.ControlDistributedPOwerTraction] = new UserCommandKeyInput(0x26, KeyModifiers.Control); //L
+            commands[UserCommand.ControlDistributedPowerIdle] = new UserCommandKeyInput(0x26, KeyModifiers.Control | KeyModifiers.Shift); //L
+            commands[UserCommand.ControlDistributedPowerBrake] = new UserCommandKeyInput(0x28, KeyModifiers.Control); //
+            commands[UserCommand.ControlDistributedIncrease] = new UserCommandKeyInput(0x16, KeyModifiers.Control); //U
+            commands[UserCommand.ControlDistributedPowerDecrease] = new UserCommandKeyInput(0x16, KeyModifiers.Control | KeyModifiers.Shift); //U
+
             commands[UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
             commands[UserCommand.DebugClockForwards] = new UserCommandKeyInput(0x0D);
             commands[UserCommand.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
@@ -312,6 +324,8 @@ namespace Orts.Settings
             commands[UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
             commands[UserCommand.DisplayTrackMonitorWindow] = new UserCommandModifiableKeyInput(0x3E, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayTrainOperationsWindow] = new UserCommandKeyInput(0x43);
+            commands[UserCommand.DisplayTrainDpuWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Shift);
+            commands[UserCommand.DisplayEOTListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Control);
 
             commands[UserCommand.GameAutopilotMode] = new UserCommandKeyInput(0x1E, KeyModifiers.Alt);
             commands[UserCommand.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);

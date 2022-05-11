@@ -122,7 +122,7 @@ namespace Orts.Models.Simplified
                     Distance = $"{Math.Sqrt(Math.Pow(currentTileX - initialTileX, 2) + Math.Pow(currentTileZ - initialTileZ, 2)) * Common.Position.WorldPosition.TileSize:F1}";
 
                     //Debrief Eval
-                    DebriefEvaluation = System.IO.File.Exists(fileName.Substring(0, fileName.Length - 5) + ".dbfeval");
+                    DebriefEvaluation = System.IO.File.Exists(string.Concat(fileName.AsSpan(0, fileName.Length - 5), ".dbfeval"));
                 }
             }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidDataException)

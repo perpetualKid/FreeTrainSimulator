@@ -25,7 +25,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         BrakeController
     }
 
-    public class ControllerFactory
+    public static class ControllerFactory
     {
         public static void Save(IController controller, BinaryWriter outf)
         {

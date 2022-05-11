@@ -13,6 +13,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
+            base.Draw(spriteBatch, offset);
         }
     }
 }

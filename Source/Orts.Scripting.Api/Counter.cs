@@ -12,7 +12,7 @@ namespace Orts.Scripting.Api
     public abstract class Counter
     {
         private double endValue;
-        protected Func<double> CurrentValue;
+        protected Func<double> CurrentValue { get; set; }
 
         public double AlarmValue { get; private set; }
         public double RemainingValue { get { return endValue - CurrentValue(); } }
@@ -30,10 +30,16 @@ namespace Orts.Scripting.Api
             CurrentValue = script.GameTime;
         }
 
-        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic
+        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic //TrainCar
         {
             CurrentValue = () => (float)car.Simulator.GameTime;
         }
+
+        //public Timer(dynamic eot)//TODO 20220510 refactor use of dynamic //Eot
+        //{
+        //    CurrentValue = () => (float)eot.Train.Simulator.GameTime;
+        //}
+
     }
 
     public class Odometer : Counter
@@ -52,7 +58,7 @@ namespace Orts.Scripting.Api
     public class Blinker
     {
         private double StartValue;
-        protected Func<double> CurrentValue;
+        protected Func<double> CurrentValue { get; set; }
 
         public float FrequencyHz { get; private set; }
         public bool Started { get; private set; }

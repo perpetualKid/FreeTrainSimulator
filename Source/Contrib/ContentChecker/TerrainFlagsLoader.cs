@@ -27,7 +27,7 @@ namespace Orts.ContentChecker
     internal class TerrainFlagsLoader : Loader
     {
         /// <summary> The sample count needed for loading a terrain .raw file </summary>
-        private int sampleCount;
+        private readonly int sampleCount;
 
         /// <summary>
         /// default constructor when not enough information is available
@@ -62,7 +62,7 @@ namespace Orts.ContentChecker
             }
             else
             {
-                _ = new TerrainFlagsFile(file, sampleCount);
+                _ = TerrainFlagsFile.LoadTerrainFlagsFile(file, sampleCount);
             }
         }
     }

@@ -22,13 +22,13 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
-using Orts.Simulation;
+using Orts.Formats.Msts;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public class OnlineTrains
     {
@@ -139,7 +139,7 @@ namespace Orts.MultiPlayer
         {
             if (Players.ContainsKey(player.user)) 
                 return;
-            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) 
+            if (player.user == MultiPlayerManager.Instance().UserName) 
                 return; //do not add self//WARNING: may need to worry about train number here
             OnlinePlayer p = new OnlinePlayer(player.user, 
                 Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con), 
@@ -155,7 +155,7 @@ namespace Orts.MultiPlayer
             {
                 train.Number = player.num;
             }
-            if (player.con.Contains("tilted")) train.IsTilting = true;
+            if (player.con.Contains("tilted", StringComparison.OrdinalIgnoreCase)) train.IsTilting = true;
             int direction = player.dir;
             train.DistanceTravelled = player.Travelled;
             train.TrainMaxSpeedMpS = player.trainmaxspeed;
@@ -164,14 +164,14 @@ namespace Orts.MultiPlayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, Simulator.Instance.TSectionDat, p.Path, Simulator.Instance.TimetableMode);
+                    AIPath aiPath = new AIPath(p.Path, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }
 
             try
             {
-                train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                train.RearTDBTraveller = new Traveller(player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
             catch (Exception e)
             {
@@ -188,31 +188,28 @@ namespace Orts.MultiPlayer
                 TrainCar car = null;
                 try
                 {
-                    car = RollingStock.Load(Simulator.Instance, wagonFilePath);
+                    car = RollingStock.Load(train, wagonFilePath);
                     car.CarLengthM = player.lengths[i] / 100.0f;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error.Message);
-                    car = MultiPlayerManager.Instance().SubCar(wagonFilePath, player.lengths[i]);
+                    car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, player.lengths[i]);
                 }
-                if (car == null) continue;
-                bool flip = true;
-                if (player.flipped[i] == 0) flip = false;
-                car.Flipped = flip;
+                if (car == null) 
+                    continue;
+
+                car.Flipped = player.flipped[i] != 0;
                 car.CarID = player.ids[i];
-                train.Cars.Add(car);
-                car.Train = train;
-                MSTSWagon w = (MSTSWagon)car;
-                if (w != null)
+
+                if (car is MSTSWagon w)
                 {
                     w.SignalEvent((player.pantofirst == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 1);
                     w.SignalEvent((player.pantosecond == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 2);
                     w.SignalEvent((player.pantothird == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 3);
                     w.SignalEvent((player.pantofourth == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 4);
                 }
-
-            }// for each rail car
+            }
 
             if (train.Cars.Count == 0)
             {
@@ -252,8 +249,7 @@ namespace Orts.MultiPlayer
             if (train.LeadLocomotive == null)
             {
                 train.LeadNextLocomotive();
-                if (train.LeadLocomotive != null) p.LeadingLocomotiveID = train.LeadLocomotive.CarID;
-                else p.LeadingLocomotiveID = "NA";
+                p.LeadingLocomotiveID = train.LeadLocomotive?.CarID ?? "NA";
             }
 
             if (train.LeadLocomotive != null)
@@ -264,7 +260,10 @@ namespace Orts.MultiPlayer
             {
                 train.Name = Train.GetTrainName(train.Cars[0].CarID);
             }
-            else if (player != null && player.user != null) train.Name = player.user;
+            else if (player?.user != null)
+            {
+                train.Name = player.user;
+            }
 
             if (MultiPlayerManager.IsServer())
             {
@@ -282,7 +281,7 @@ namespace Orts.MultiPlayer
             // find info about the new player train
             // look in all trains
 
-            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) return; //do not add self//WARNING: may need to worry about train number here
+            if (player.user == MultiPlayerManager.Instance().UserName) return; //do not add self//WARNING: may need to worry about train number here
             OnlinePlayer p;
             var doesPlayerExist = Players.TryGetValue(player.user, out p);
             if (!doesPlayerExist) return;

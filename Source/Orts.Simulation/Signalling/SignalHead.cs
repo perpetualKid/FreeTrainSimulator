@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using Orts.Common;
@@ -6,7 +7,7 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.Simulation.Signalling
 {
@@ -34,8 +35,8 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState SignalIndicationState { get; set; } = SignalAspectState.Stop;
         public int DrawState { get; set; }
         public int TrackItemIndex { get; private set; }
-        public uint TrackJunctionNode { get; private set; }
-        public uint JunctionPath { get; private set; }
+        public int TrackJunctionNode { get; private set; }
+        public int JunctionPath { get; private set; }
         public int JunctionMainNode { get; internal set; }
         public float? ApproachControlLimitPositionM { get; private set; }
         public float? ApproachControlLimitSpeedMpS { get; private set; }
@@ -96,7 +97,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Set the signal type object from the SIGCFG file
         /// </summary>
-        internal void SetSignalType(TrackItem[] trackItems, SignalConfigurationFile signalConfig)
+        internal void SetSignalType(List<TrackItem> trackItems, SignalConfigurationFile signalConfig)
         {
             SignalItem signalItem = (SignalItem)trackItems[TDBIndex];
 
@@ -474,10 +475,10 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MultiPlayerManager.IsMultiPlayer())
             {
-                TrackNode node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[MainSignal.TrackNode];
+                TrackNode node = RuntimeData.Instance.TrackDB.TrackNodes[MainSignal.TrackNode];
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
-                    node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
+                    node = RuntimeData.Instance.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {

@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
     public class TrackSection
     {
-        public uint SectionIndex { get; protected set; }
+        public int SectionIndex { get; protected set; }
 
         //straight segment
         public float Width { get; private set; } = 1.5f;
@@ -30,7 +30,7 @@ namespace Orts.Formats.Msts.Models
                 stf.MustMatchBlockStart();
                 stf.MustMatch("SectionCurve");
                 stf.SkipBlock();
-                SectionIndex = stf.ReadUInt(null);
+                SectionIndex = (int)stf.ReadUInt(null);
 
                 float a = stf.ReadFloat(STFReader.Units.Distance, null);
                 float b = stf.ReadFloat(STFReader.Units.None, null);
@@ -41,13 +41,14 @@ namespace Orts.Formats.Msts.Models
                     Radius = b;
                     Angle = MathHelper.ToDegrees(a);
                     Curved = true;
+                    Length = Radius * Math.Abs(a);
                 }
                 stf.SkipRestOfBlock();
             }
             else
             {
                 stf.MustMatchBlockStart();
-                SectionIndex = stf.ReadUInt(null);
+                SectionIndex = (int)stf.ReadUInt(null);
                 stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("sectionsize", ()=>{ ReadSectionSize(stf); }),
                     new STFReader.TokenProcessor("sectioncurve", ()=>{ ReadSectionCurve(stf); }),
@@ -80,7 +81,7 @@ namespace Orts.Formats.Msts.Models
                 Curved = subBlock.ReadUInt() != 0;
                 subBlock.VerifyEndOfBlock();
             }
-            SectionIndex = block.ReadUInt();
+            SectionIndex = (int)block.ReadUInt();
             if (Curved)
             {
                 Angle = block.ReadFloat();
@@ -109,13 +110,14 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             Radius = stf.ReadFloat(STFReader.Units.Distance, null);
             Angle = stf.ReadFloat(STFReader.Units.None, null);
+            Length = Radius * Math.Abs(MathHelper.ToRadians(Angle));
             stf.SkipRestOfBlock();
         }
     }
 
-    public class TrackSections : Dictionary<uint, TrackSection>
+    public class TrackSections : Dictionary<int, TrackSection>
     {
-        public uint MaxSectionIndex { get; private set; }
+        public int MaxSectionIndex { get; private set; }
 
         internal TrackSections(STFReader stf)
         {
@@ -125,7 +127,7 @@ namespace Orts.Formats.Msts.Models
         internal void AddRouteStandardTrackSections(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            MaxSectionIndex = stf.ReadUInt(null);
+            MaxSectionIndex = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tracksection", ()=>{ AddSection(stf, new TrackSection(stf, false)); }),
             });
@@ -134,7 +136,7 @@ namespace Orts.Formats.Msts.Models
         internal void AddRouteTrackSections(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            MaxSectionIndex = stf.ReadUInt(null);
+            MaxSectionIndex = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tracksection", ()=>{ AddSection(stf, new TrackSection(stf, true)); }),
             });
@@ -149,13 +151,11 @@ namespace Orts.Formats.Msts.Models
 
         public static int MissingTrackSectionWarnings { get; private set; }
 
-        public TrackSection Get(uint targetSectionIndex)
+        public TrackSection TryGet(int targetSectionIndex)
         {
-            if (TryGetValue(targetSectionIndex, out TrackSection ts))
-                return ts;
-            if (MissingTrackSectionWarnings++ < 5)
+            if (!TryGetValue(targetSectionIndex, out TrackSection trackSection) && MissingTrackSectionWarnings++ < 5)
                 Trace.TraceWarning("Skipped track section {0} not in global or dynamic TSECTION.DAT", targetSectionIndex);
-            return null;
+            return trackSection;
         }
     }
 
@@ -165,7 +165,9 @@ namespace Orts.Formats.Msts.Models
         public uint SectionsCount { get; private set; }
         public ref readonly Vector3 Offset => ref offset;
         public float AngularOffset { get; private set; }  // Angular offset 
-        public uint[] TrackSections { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
+        public int[] TrackSections { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal SectionIndex(STFReader stf)
         {
@@ -173,7 +175,7 @@ namespace Orts.Formats.Msts.Models
             SectionsCount = stf.ReadUInt(null);
             offset = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), -stf.ReadFloat(null));
             AngularOffset = stf.ReadFloat(null);
-            TrackSections = new uint[SectionsCount];
+            TrackSections = new int[SectionsCount];
             for (int i = 0; i < SectionsCount; ++i)
             {
                 string token = stf.ReadString();
@@ -182,8 +184,10 @@ namespace Orts.Formats.Msts.Models
                     STFException.TraceWarning(stf, "Missing track section");
                     return;   // there are many TSECTION.DAT's with missing sections so we will accept this error
                 }
-                if (!uint.TryParse(token, out TrackSections[i]))
+                if (!uint.TryParse(token, out uint trackSection))
                     STFException.TraceWarning(stf, "Invalid track section " + token);
+                else
+                    TrackSections[i] = (int)trackSection;
             }
             stf.SkipRestOfBlock();
         }
@@ -192,24 +196,26 @@ namespace Orts.Formats.Msts.Models
     [DebuggerDisplay("TrackShape {ShapeIndex}")]
     public class TrackShape
     {
-        public uint ShapeIndex { get; private set; }
+        public int ShapeIndex { get; private set; }
         public string FileName { get; private set; }
-        public uint PathsNumber { get; private set; }
-        public uint MainRoute { get; private set; }
+        public int PathsNumber { get; private set; }
+        public int MainRoute { get; private set; }
         public double ClearanceDistance { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public SectionIndex[] SectionIndices { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public bool TunnelShape { get; private set; }
         public bool RoadShape { get; private set; }
 
         internal TrackShape(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            ShapeIndex = stf.ReadUInt(null);
+            ShapeIndex = stf.ReadInt(null);
             int nextPath = 0;
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("numpaths", ()=>{ SectionIndices = new SectionIndex[PathsNumber = stf.ReadUIntBlock(null)]; }),
-                new STFReader.TokenProcessor("mainroute", ()=>{ MainRoute = stf.ReadUIntBlock(null); }),
+                new STFReader.TokenProcessor("numpaths", ()=>{ SectionIndices = new SectionIndex[PathsNumber = stf.ReadIntBlock(null)]; }),
+                new STFReader.TokenProcessor("mainroute", ()=>{ MainRoute = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("clearancedist", ()=>{ ClearanceDistance = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("sectionidx", ()=>{ SectionIndices[nextPath++] = new SectionIndex(stf); }),
                 new STFReader.TokenProcessor("tunnelshape", ()=>{ TunnelShape = stf.ReadBoolBlock(true); }),
@@ -222,10 +228,10 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class TrackShapes : Dictionary<uint, TrackShape>
+    public class TrackShapes : Dictionary<int, TrackShape>
     {
 
-        public uint MaxShapeIndex { get; private set; }
+        public int MaxShapeIndex { get; private set; }
 
         internal TrackShapes(STFReader stf)
         {
@@ -235,7 +241,7 @@ namespace Orts.Formats.Msts.Models
         internal void AddRouteTrackShapes(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            MaxShapeIndex = stf.ReadUInt(null);
+            MaxShapeIndex = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[]
             {
                 new STFReader.TokenProcessor("trackshape", ()=>{ Add(stf, new TrackShape(stf)); }),
@@ -250,7 +256,7 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class TrackPaths : Dictionary<uint, TrackPath> //SectionIdx in the route's tsection.dat
+    public class TrackPaths : Dictionary<int, TrackPath> //SectionIdx in the route's tsection.dat
     {
         internal TrackPaths(STFReader stf)
         {
@@ -279,15 +285,17 @@ namespace Orts.Formats.Msts.Models
     public class TrackPath //SectionIdx in the route's tsection.dat
     {
 
-        public uint DynamicSectionIndex { get; private set; }
-        public uint[] TrackSections { get; private set; }
+        public int DynamicSectionIndex { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
+        public int[] TrackSections { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal TrackPath(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            DynamicSectionIndex = stf.ReadUInt(null);
-            uint sectionNumber = stf.ReadUInt(null);
-            TrackSections = new uint[sectionNumber];
+            DynamicSectionIndex = stf.ReadInt(null);
+            int sectionNumber = (int)stf.ReadUInt(null);
+            TrackSections = new int[sectionNumber];
             for (int i = 0; i < sectionNumber; ++i)
             {
                 string token = stf.ReadString();
@@ -296,8 +304,10 @@ namespace Orts.Formats.Msts.Models
                     STFException.TraceWarning(stf, "Missing track section");
                     return;   // there are many TSECTION.DAT's with missing sections so we will accept this error
                 }
-                if (!uint.TryParse(token, out TrackSections[i]))
+                if (!uint.TryParse(token, out uint trackSection))
                     STFException.TraceWarning(stf, "Invalid track section " + token);
+                else
+                    TrackSections[i] = (int)trackSection;
             }
             stf.SkipRestOfBlock();
         }
@@ -331,12 +341,14 @@ namespace Orts.Formats.Msts.Models
         /// Array of all TrackNodes in the track database
         /// Warning, the first TrackNode is always null.
         /// </summary>
-        public TrackNode[] TrackNodes { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackNode> TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the track database
         /// </summary>
-        public TrackItem[] TrackItems { get; private set; }
+        public List<TrackItem> TrackItems { get; } = new List<TrackItem>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -349,38 +361,35 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrackNodes = stf.ReadInt(null);
-                    TrackNodes = new TrackNode[numberOfTrackNodes + 1];
-                    int idx = 1;
+                    TrackNodes = new List<TrackNode>(numberOfTrackNodes + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tracknode", ()=>{
-                            TrackNodes[idx] = TrackNode.ReadTrackNode(stf, idx, numberOfTrackNodes);
-                            if (TrackNodes[idx] is TrackJunctionNode junctionNode)
+                            TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, numberOfTrackNodes));
+                            if (TrackNodes[^1] is TrackJunctionNode junctionNode)
                             {
                                 string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
                                 if (!junctionNodes.ContainsKey(key))
                                     junctionNodes.Add(key, junctionNode);
                                 // only need any (first) junction node with that key here to relate back to ShapeIndex
                             }
-                            ++idx;
                         }),
                     });
                 }),
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrItems = stf.ReadInt(null);
-                    TrackItems = new TrackItem[numberOfTrItems];
-                    int idx = -1;
-                    stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems[idx] = new CrossoverItem(stf,idx); }),
-                        new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems[idx] = new SignalItem(stf,idx); }),
-                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrackItems[idx] = new SpeedPostItem(stf,idx); }),
-                        new STFReader.TokenProcessor("platformitem", ()=>{ TrackItems[idx] = new PlatformItem(stf,idx); }),
-                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrackItems[idx] = new SoundRegionItem(stf,idx); }),
-                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems[idx] = new EmptyItem(stf,idx); }),
-                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems[idx] = new LevelCrossingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrackItems[idx] = new SidingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrackItems[idx] = new HazardItem(stf,idx); }),
-                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrackItems[idx] = new PickupItem(stf,idx); }),
+                    TrackItems.Capacity = numberOfTrItems;
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems.Add(new CrossoverItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems.Add(new SignalItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrackItems.Add(new SpeedPostItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("platformitem", ()=>{ TrackItems.Add(new PlatformItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrackItems.Add(new SoundRegionItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems.Add(new EmptyItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems.Add(new LevelCrossingItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrackItems.Add(new SidingItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrackItems.Add(new HazardItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrackItems.Add(new PickupItem(stf, TrackItems.Count)); }),
                     });
                 }),
             });
@@ -396,26 +405,13 @@ namespace Orts.Formats.Msts.Models
             if (null == trackItems)
                 throw new ArgumentNullException(nameof(trackItems));
 
-            TrackItem[] tempTrackItems;
-
-            if (TrackItems == null)
+            int i = TrackItems?.Count ?? 0;
+            foreach (TrackItem item in trackItems)
             {
-                tempTrackItems = new TrackItem[trackItems.Length];
-            }
-            else
-            {
-                tempTrackItems = new TrackItem[TrackItems.Length + trackItems.Length];
-                TrackItems.CopyTo(tempTrackItems, 0);
+                item.TrackItemId = i++;
             }
 
-            for (int i = 0; i < trackItems.Length; i++)
-            {
-                int newId = i + TrackItems.Length;
-                trackItems[i].TrackItemId = (uint)newId;
-                tempTrackItems[newId] = trackItems[i];
-            }
-
-            TrackItems = tempTrackItems;
+            TrackItems.AddRange(trackItems);
         }
 
         /// <summary>
@@ -447,7 +443,7 @@ namespace Orts.Formats.Msts.Models
         public float Length { get; private set; }
         /// <summary>Offset length in orig track section, for either forward or backward direction</summary>
         /// Offset indicates length from end of original tracknode, Index 0 is forward, index 1 is backward wrt original tracknode direction.
-        public float[] OffsetLength { get; } = new float[2];
+        public EnumArray<float, TrackDirection> OffsetLength { get; } = new EnumArray<float, TrackDirection>();
         /// <summary>index of TrackCircuitSection</summary>
         public int Index { get; private set; }
 
@@ -456,12 +452,12 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="sectionIndex"></param>
         /// <param name="sectionLength"></param>
-        public TrackCircuitSectionCrossReference(int sectionIndex, float sectionLength, float[] sectionOffsetLength)
+        public TrackCircuitSectionCrossReference(int sectionIndex, float sectionLength, float sectionOffsetLengthAhead, float sectionOffsetLengthReverse)
         {
             Index = sectionIndex;
             Length = sectionLength;
-            OffsetLength[0] = sectionOffsetLength[0];
-            OffsetLength[1] = sectionOffsetLength[1];
+            OffsetLength[TrackDirection.Ahead] = sectionOffsetLengthAhead;
+            OffsetLength[TrackDirection.Reverse] = sectionOffsetLengthReverse;
         }
     }
 
@@ -478,9 +474,9 @@ namespace Orts.Formats.Msts.Models
         /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
         /// <param name="direction">Direction where we start measuring along the vector node</param>
         /// <returns>Index in the current list of crossreferences</returns>
-        public int GetCrossReferenceIndex(float offset, int direction)
+        public int GetCrossReferenceIndex(float offset, TrackDirection direction)
         {
-            if (direction == 0)
+            if (direction == TrackDirection.Ahead)
             {   // search forward, start at the second one (first one should have offsetlength zero
                 for (int trackCircuit = 1; trackCircuit < Count; trackCircuit++)
                 {
@@ -529,7 +525,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
         /// <param name="direction">Direction where we start measuring along the vector node</param>
         /// <returns>Index of the section that is at the wanted location</returns>
-        public int GetSectionIndex(float offset, int direction)
+        public int GetSectionIndex(float offset, TrackDirection direction)
         {
             int index = GetCrossReferenceIndex(offset, direction);
 
@@ -555,14 +551,16 @@ namespace Orts.Formats.Msts.Models
         /// <summary>'Universal Id', containing location information. Only provided for TrJunctionNode and TrEndNode type of TrackNodes</summary>
         public UiD UiD { get; private set; }
         /// <summary>The array containing the TrPins (Track pins), which are connections to other tracknodes</summary>
-        public TrackPin[] TrackPins;
+#pragma warning disable CA1819 // Properties should not return arrays
+        public TrackPin[] TrackPins { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
         public int InPins { get; private set; }
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
         public int OutPins { get; private set; }
 
         /// <summary>The index in the array of tracknodes.</summary>
-        public uint Index { get; private set; }
+        public int Index { get; private set; }
 
         private TrackCircuitCrossReferences circuitCrossReferences;
         /// <summary>
@@ -578,7 +576,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private protected TrackNode(STFReader stf, uint index, int maxTrackNode, int expectedPins)
+        private protected TrackNode(STFReader stf, int index, int maxTrackNode, int expectedPins)
         {
             Index = index;
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -618,7 +616,7 @@ namespace Orts.Formats.Msts.Models
         internal static TrackNode ReadTrackNode(STFReader stf, int expectedIndex, int maxNodeIndex)
         {
             stf.MustMatchBlockStart();
-            uint index = stf.ReadUInt(null);
+            int index = stf.ReadInt(null);
             Debug.Assert(index == expectedIndex, "TrackNode Index Mismatch");
             if (!EnumExtension.GetValue(stf.ReadString(), out NodeType nodeType))
             {
@@ -642,7 +640,7 @@ namespace Orts.Formats.Msts.Models
     [DebuggerDisplay("\\{MSTS.TrEndNode\\}")]
     public class TrackEndNode : TrackNode
     {
-        internal TrackEndNode(STFReader stf, uint index, int maxTrackNode) :
+        internal TrackEndNode(STFReader stf, int index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 1)
         {
         }
@@ -665,12 +663,12 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Index to the shape that actually describes the looks of this switch
         /// </summary>
-        public uint ShapeIndex { get; private set; }
+        public int ShapeIndex { get; private set; }
 
         /// <summary>The angle of this junction</summary>
-        private float angle = float.MaxValue;
+        private float angle = float.NaN;
 
-        internal TrackJunctionNode(STFReader stf, uint index, int maxTrackNode) :
+        internal TrackJunctionNode(STFReader stf, int index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 3)
         {
         }
@@ -679,7 +677,7 @@ namespace Orts.Formats.Msts.Models
         {
             stf.MustMatchBlockStart();
             stf.ReadString();
-            ShapeIndex = stf.ReadUInt(null);
+            ShapeIndex = stf.ReadInt(null);
             stf.SkipRestOfBlock();
         }
 
@@ -688,37 +686,42 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="tsectionDat">The datafile with all the track sections</param>
         /// <returns>The angle calculated</returns>
-        public float GetAngle(TrackSectionsFile tsectionDat)
+        public float Angle
         {
-            if (angle != float.MaxValue)
-                return angle;
-
-            try //so many things can be in conflict for trackshapes, tracksections etc.
+            get
             {
-                TrackShape trackShape = tsectionDat.TrackShapes[ShapeIndex];
-                SectionIndex[] sectionIndices = trackShape.SectionIndices;
+                if (!float.IsNaN(angle))
+                    return angle;
 
-                for (int index = 0; index < sectionIndices.Length; index++)
-                {
-                    if (index == trackShape.MainRoute)
-                        continue;
-                    uint[] sections = sectionIndices[index].TrackSections;
+                //try //so many things can be in conflict for trackshapes, tracksections etc.
+                //{
+                    TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
+                    SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
-                    for (int i = 0; i < sections.Length; i++)
+                    for (int index = 0; index < sectionIndices.Length; index++)
                     {
-                        uint sid = sectionIndices[index].TrackSections[i];
-                        TrackSection section = tsectionDat.TrackSections[sid];
+                        if (index == trackShape.MainRoute)
+                            continue;
+                        int[] sections = sectionIndices[index].TrackSections;
 
-                        if (section.Curved)
+                        for (int i = 0; i < sections.Length; i++)
                         {
-                            angle = section.Angle;
-                            break;
+                            int sid = sectionIndices[index].TrackSections[i];
+                            TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+
+                            if (section.Curved)
+                            {
+                                angle = section.Angle;
+                                break;
+                            }
                         }
                     }
-                }
+//                }
+//#pragma warning disable CA1031 // Do not catch general exception types
+//                catch (Exception) { }
+//#pragma warning restore CA1031 // Do not catch general exception types
+                return angle;
             }
-            catch (Exception) { }
-            return angle;
         }
     }
 
@@ -733,12 +736,14 @@ namespace Orts.Formats.Msts.Models
     {
         private static readonly int[] emptyTrackItemIndices = Array.Empty<int>();
         /// <summary>Array of sections that together form the vectorNode</summary>
+#pragma warning disable CA1819 // Properties should not return arrays
         public TrackVectorSection[] TrackVectorSections { get; private set; }
         /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>
         public int[] TrackItemIndices { get; private set; } = emptyTrackItemIndices;
         /// <summary>The amount of TrItems in TrItemRefs</summary>
+#pragma warning restore CA1819 // Properties should not return arrays
 
-        internal TrackVectorNode(STFReader stf, uint index, int maxTrackNode) :
+        internal TrackVectorNode(STFReader stf, int index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 2)
         {
         }
@@ -900,17 +905,17 @@ namespace Orts.Formats.Msts.Models
         public ref readonly WorldLocation Location => ref location;
         public ref readonly Vector3 Direction => ref direction;
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
-        public int Flag1 { get; set; }
+        public int Flag1 { get; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>
-        public int Flag2 { get; set; }
+        public int Flag2 { get; }
         /// <summary>Index of the track section in Tsection.dat</summary>
-        public uint SectionIndex { get; set; }
+        public int SectionIndex { get; }
         /// <summary>Index to the shape from Tsection.dat</summary>
-        public uint ShapeIndex { get; set; }
+        public int ShapeIndex { get; }
 
         //The following items are related to super elevation
         /// <summary>Cross-reference to worldFile: World ID</summary>
-        public uint WorldFileUiD { get; set; }
+        public uint WorldFileUiD { get; }
         /// <summary>The (super)elevation at the start</summary>
         public float StartElev { get; set; }
         /// <summary>The (super)elevation at the end</summary>
@@ -924,8 +929,8 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         internal TrackVectorSection(STFReader stf)
         {
-            SectionIndex = stf.ReadUInt(null);
-            ShapeIndex = stf.ReadUInt(null);
+            SectionIndex = (int)stf.ReadUInt(null);
+            ShapeIndex = stf.ReadInt(null);
             int worldTileX = stf.ReadInt(null);// worldfilenamex
             int worldTileZ = stf.ReadInt(null);// worldfilenamez
             WorldFileUiD = stf.ReadUInt(null); // UID in worldfile

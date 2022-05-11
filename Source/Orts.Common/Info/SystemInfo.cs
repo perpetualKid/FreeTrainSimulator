@@ -212,7 +212,7 @@ namespace Orts.Common.Info
             }
         }
 
-        public static double DisplayScalingFactor(Screen screen)
+        public static float DisplayScalingFactor(Screen screen)
         {
              if (screen == null)
                 return 1;
@@ -226,7 +226,7 @@ namespace Orts.Common.Info
                     Top = screen.Bounds.Top
                 })
                 {
-                    return Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
+                    return (float)Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
                 }
             }
             catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
@@ -237,7 +237,7 @@ namespace Orts.Common.Info
                     {
                         IntPtr desktop = g.GetHdc();
                         int dpi = GetDeviceCaps(desktop, (int)DeviceCap.LOGPIXELSX);
-                        return Math.Round(dpi / 96.0, 2);
+                        return (float)Math.Round(dpi / 96.0, 2);
                     }
                     finally
                     {

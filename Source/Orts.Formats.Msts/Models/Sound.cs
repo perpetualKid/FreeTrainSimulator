@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -11,15 +12,17 @@ namespace Orts.Formats.Msts.Models
 {
     public class TrackItemSound
     {
-        public IList<WorldSoundSource> SoundSources { get; private set; } = new List<WorldSoundSource>();
-        public IList<WorldSoundRegion> SoundRegions { get; private set; } = new List<WorldSoundRegion>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<WorldSoundSource> SoundSources { get; } = new List<WorldSoundSource>();
+        public List<WorldSoundRegion> SoundRegions { get; } = new List<WorldSoundRegion>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
-        internal TrackItemSound(STFReader stf, TrackItem[] trItems)
+        internal TrackItemSound(STFReader stf, int trackItemsCount)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("soundsource", ()=>{ SoundSources.Add(new WorldSoundSource(stf)); }),
-                new STFReader.TokenProcessor("soundregion", ()=>{ SoundRegions.Add(new WorldSoundRegion(stf, trItems)); }),
+                new STFReader.TokenProcessor("soundregion", ()=>{ SoundRegions.Add(new WorldSoundRegion(stf, trackItemsCount)); }),
             });
         }
     }
@@ -49,9 +52,11 @@ namespace Orts.Formats.Msts.Models
     {
         public int TrackType { get; private set; } = -1;
         public float RotY { get; private set; }
-        public IList<int> TrackNodes { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> TrackNodes { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
-        internal WorldSoundRegion(STFReader stf, TrackItem[] trItems)
+        internal WorldSoundRegion(STFReader stf, int trackItemsCount)
         {
             TrackNodes = new List<int>();
             stf.MustMatchBlockStart();
@@ -63,7 +68,7 @@ namespace Orts.Formats.Msts.Models
                     stf.ReadInt(0);//dummy read
                     int trItemId = stf.ReadInt(-1);
                     if (trItemId != -1) {
-                        if (trItemId >= trItems.Length) {
+                        if (trItemId >= trackItemsCount) {
                             STFException.TraceWarning(stf, $"Ignored invalid TrItemId {trItemId}");
                         } else {
                             TrackNodes.Add(trItemId);
@@ -217,7 +222,9 @@ namespace Orts.Formats.Msts.Models
         public int Priority { get; private set; }
         public Triggers Triggers { get; private set; }
         public float Volume { get; private set; } = 1.0f;
-        public IList<Curve> VolumeCurves { get; } = new List<Curve>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Curve> VolumeCurves { get; } = new List<Curve>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public Curve FrequencyCurve { get; private set; }
 
         internal SmsStream(STFReader stf)
@@ -267,7 +274,9 @@ namespace Orts.Formats.Msts.Models
 
         public float Granularity { get; private set; } = 1.0f;
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public CurvePoint[] CurvePoints { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal Curve(STFReader stf)
         {
@@ -573,7 +582,9 @@ namespace Orts.Formats.Msts.Models
             StartLoopRelease,
         }
 
-        public IList<string> Files { get; protected set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> Files { get; }
+#pragma warning restore CA1002 // Do not expose generic lists
         public Selection SelectionMethod { get; protected set; } = Selection.Sequential;
 
         public SoundCommandType CommandType { get; private set; }
@@ -583,7 +594,7 @@ namespace Orts.Formats.Msts.Models
             CommandType = commandType;
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
-            Files = new string[count];
+            Files = new string[count].ToList();
             int fileIndex = 0;
             while (!stf.EndOfBlock())
                 switch (stf.ReadString().ToUpperInvariant())

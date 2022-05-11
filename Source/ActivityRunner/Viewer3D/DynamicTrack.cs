@@ -39,7 +39,7 @@ using System.Xml.Schema;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class DynamicTrack
+    public static class DynamicTrack
     {
         /// <summary>
         /// Decompose an MSTS multi-subsection dynamic track section into multiple single-subsection sections.
@@ -77,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
                 if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || trackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || trackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);
@@ -100,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + subsection.TrackSections[0].Length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length, root, out localProjectedV);
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length, root, out localProjectedV);
                 }
                 else // Curved section
                 {   // Both heading and translation change 
@@ -111,7 +111,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot, root, out localProjectedV);
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot, root, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
                     nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
@@ -816,7 +816,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static void LoadMaterial(Viewer viewer, LODItem lod)
         {
             var options = Helpers.EncodeMaterialOptions(lod);
-            lod.LODMaterial = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, (Helpers.TextureFlags)lod.ESD_Alternative_Texture, lod.TexName), (int)options, lod.MipMapLevelOfDetailBias);
+            lod.LODMaterial = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile((Helpers.TextureFlags)lod.ESD_Alternative_Texture, lod.TexName), (int)options, lod.MipMapLevelOfDetailBias);
         }
 
         public void Mark()
@@ -975,11 +975,11 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public DtrackData DTrackData;      // Was: DtrackData[] dtrackData;
+        public DtrackData DTrackData { get; set; }      // Was: DtrackData[] dtrackData;
 
-        public uint UiD; // Used for debugging only
+        public int UiD { get; } // Used for debugging only
 
-        public TrProfile TrProfile;
+        public TrProfile TrProfile { get; set; }
 
         /// <summary>
         /// Default constructor

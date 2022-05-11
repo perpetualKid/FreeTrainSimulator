@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -7,46 +9,50 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Graphics.Window.Controls.Layout
 {
-    public abstract class ControlLayout : WindowControl
+#pragma warning disable CA1710 // Identifiers should have correct suffix
+    public abstract class ControlLayout : WindowControl, ICollection<WindowControl>
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         public const int SeparatorPadding = 2;
 
-        internal protected static double ScaleFactor { get; set; }
-
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
-        public int TextHeight { get; internal set; }
 
         protected ControlLayout(WindowBase window, int x, int y, int width, int height)
             : base(window, x, y, width, height)
         {
         }
 
-        public virtual int RemainingWidth => Position.Width;
+        public virtual int RemainingWidth => Bounds.Width;
 
-        public virtual int RemainingHeight => Position.Height;
+        public virtual int RemainingHeight => Bounds.Height;
 
         public virtual int CurrentLeft => 0;
 
         public virtual int CurrentTop => 0;
+
+        public HorizontalAlignment HorizontalChildAlignment { get; protected set; } = HorizontalAlignment.Left;
+
+        public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
+
+        public int Count => ((ICollection<WindowControl>)Controls).Count;
+
+        public bool IsReadOnly => ((ICollection<WindowControl>)Controls).IsReadOnly;
 
         protected T InternalAdd<T>(T control) where T : WindowControl
         {
             if (null == control)
                 throw new ArgumentNullException(nameof(control));
 
-            if (control is ControlLayout controlLayout)
-            {
-                controlLayout.TextHeight = TextHeight;
-            }
-            // Offset control by our position and current values. Don't touch its size!
-            control.MoveBy(Position.Left + CurrentLeft, Position.Top + CurrentTop);
+            // Offset control by our position and current values. Don't touch its size, also consider alignment
+            control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
+            control.Container = this;
             return control;
         }
 
-        public void Add(WindowControl control)
+        public void Add(WindowControl item)
         {
-            InternalAdd(control);
+            InternalAdd(item);
         }
 
         public void AddSpace(int width, int height)
@@ -54,15 +60,14 @@ namespace Orts.Graphics.Window.Controls.Layout
             Add(new Spacer(Window, width, height));
         }
 
-
         public void AddHorizontalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public void AddVerticalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), RemainingHeight, padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)
@@ -81,8 +86,8 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
-        {
-            return AddLayoutHorizontal(TextHeight);
+{
+            return AddLayoutHorizontal(Window.Owner.TextFontDefault.Height);
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontal(int height)
@@ -107,28 +112,40 @@ namespace Orts.Graphics.Window.Controls.Layout
         //    return sb.Client;
         //}
 
-        //public ControlLayout AddLayoutScrollboxVertical(int width)
-        //{
-        //    var sb = InternalAdd(new ControlLayoutScrollboxVertical(width, RemainingHeight));
-        //    sb.Initialize();
-        //    return sb.Client;
-        //}
-        public override void Initialize()
+        public ControlLayout AddLayoutScrollboxVertical(int width)
+        {
+            return InternalAdd(new VerticalScrollboxControlLayout(Window, width, RemainingHeight)).Client;
+        }
+
+        internal override void Initialize()
         {
             base.Initialize();
             foreach (WindowControl control in Controls)
                 control.Initialize();
         }
 
+        internal override void Update(GameTime gameTime)
+        {
+            foreach (WindowControl control in Controls)
+            {
+                if (control.Visible)
+                    control.Update(gameTime);
+            }
+            base.Update(gameTime);
+        }
+
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             foreach (WindowControl control in Controls)
-                control.Draw(spriteBatch, offset);
+            {
+                if (control.Visible)
+                    control.Draw(spriteBatch, offset);
+            }
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseClicked(e))
                     return true;
             return base.HandleMouseClicked(e);
@@ -136,7 +153,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDown(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseDown(e))
                     return true;
             return base.HandleMouseDown(e);
@@ -144,7 +161,8 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            Window.CapturedControl = null;
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseReleased(e))
                     return true;
             return base.HandleMouseReleased(e);
@@ -152,7 +170,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseMove(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseMove(e))
                     return true;
             return base.HandleMouseMove(e);
@@ -160,10 +178,23 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseScroll(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseScroll(e))
                     return true;
             return base.HandleMouseScroll(e);
+        }
+
+        internal override bool HandleMouseDrag(WindowMouseEvent e)
+        {
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || c is ControlLayout controlLayout && TestForDragging(controlLayout)))
+                if (control.HandleMouseDrag(e))
+                    return true;
+            return base.HandleMouseDrag(e);
+        }
+
+        private bool TestForDragging(ControlLayout controlLayout)
+        {
+            return controlLayout == Window.CapturedControl || controlLayout.Controls.Where((c) => c is ControlLayout controlLayout && TestForDragging(controlLayout)).Any();
         }
 
         internal override void MoveBy(int x, int y)
@@ -178,6 +209,58 @@ namespace Orts.Graphics.Window.Controls.Layout
             foreach (WindowControl control in Controls)
                 control.Dispose();
             base.Dispose(disposing);
+        }
+
+        private int VerticalChildAlignmentOffset(in Rectangle childBounds)
+        {
+            return VerticalChildAlignment switch
+            {
+                VerticalAlignment.Top => 0,
+                VerticalAlignment.Bottom => Bounds.Height - childBounds.Height,
+                VerticalAlignment.Center => (Bounds.Height - childBounds.Height) / 2,
+                _ => 0,
+            };
+        }
+
+        private int HorizontalChildAlignmentOffset(in Rectangle childBounds)
+        {
+            return HorizontalChildAlignment switch
+            {
+                HorizontalAlignment.Left => 0,
+                HorizontalAlignment.Right => Bounds.Width - childBounds.Width,
+                HorizontalAlignment.Center => (Bounds.Width - childBounds.Width) / 2,
+                _ => 0,
+            };
+        }
+
+        public void Clear()
+        {
+            ((ICollection<WindowControl>)Controls).Clear();
+        }
+
+        public bool Contains(WindowControl item)
+        {
+            return ((ICollection<WindowControl>)Controls).Contains(item);
+        }
+
+        public void CopyTo(WindowControl[] array, int arrayIndex)
+        {
+            ((ICollection<WindowControl>)Controls).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(WindowControl item)
+        {
+            return ((ICollection<WindowControl>)Controls).Remove(item);
+        }
+
+        public IEnumerator<WindowControl> GetEnumerator()
+        {
+            return ((IEnumerable<WindowControl>)Controls).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)Controls).GetEnumerator();
         }
     }
 }

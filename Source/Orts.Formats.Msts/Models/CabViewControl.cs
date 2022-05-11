@@ -64,6 +64,12 @@ namespace Orts.Formats.Msts.Models
 
         public string AceFile { get; protected set; } = string.Empty;
 
+        public string Label { get; protected set; } = string.Empty;
+        public int Display { get; protected set; }
+        public List<string> Screens { get; protected set; }
+        public int CabViewpoint { get; protected set; }
+
+
         public CabViewControlType ControlType { get; protected set; }
         public CabViewControlStyle ControlStyle { get; protected set; }
         public CabViewControlUnit ControlUnit { get; protected set; }
@@ -201,6 +207,30 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
             return rotation;
         }
+
+        private protected virtual void ParseDisplay(STFReader stf)
+        {
+            stf.MustMatch("(");
+            Display = stf.ReadInt(0);
+            stf.SkipRestOfBlock();
+        }
+
+        private protected virtual void ParseScreen(STFReader stf)
+        {
+            stf.MustMatch("(");
+            var newScreen = stf.ReadString();
+            stf.SkipRestOfBlock();
+            if (Screens == null)
+                Screens = new List<string>();
+            Screens.Add(newScreen.ToLower());
+        }
+
+        private protected virtual void ParseCabViewpoint(STFReader stf)
+        {
+            stf.MustMatch("(");
+            CabViewpoint = stf.ReadInt(0);
+            stf.SkipRestOfBlock();
+        }
     }
     #endregion
 
@@ -252,6 +282,14 @@ namespace Orts.Formats.Msts.Models
                     EndAngle = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
+                new STFReader.TokenProcessor("ortslabel", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
         }
     }
@@ -266,13 +304,15 @@ namespace Orts.Formats.Msts.Models
         public int ZeroPos { get; private set; }
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public Color[] PositiveColors { get; private set; } = new Color[1];
         public float PositiveTrigger { get; private set; }
         public Color[] NegativeColors { get; private set; } = new Color[1];
+#pragma warning restore CA1819 // Properties should not return arrays
         public float NegativeTrigger { get; private set; }
         public Color DecreaseColor { get; private set; }
         public float Rotation { get; private set; }
-        
+
         public CabViewGaugeControl() { }
 
         internal CabViewGaugeControl(STFReader stf, string basePath)
@@ -313,7 +353,15 @@ namespace Orts.Formats.Msts.Models
                             new STFReader.TokenProcessor("controlcolour", ()=>{ DecreaseColor = ParseControlColor(stf); }) });
                     }
                 }),
-                new STFReader.TokenProcessor("ortsangle", () =>{ Rotation = ParseRotation(stf); })
+                new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
+                new STFReader.TokenProcessor("ortslabel", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", ()=> { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
+
             });
         }
     }
@@ -350,9 +398,11 @@ namespace Orts.Formats.Msts.Models
         public float Accuracy { get; private set; }
         public float AccuracySwitch { get; private set; }
         public int Justification { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public Color[] PositiveColors { get; private set; } = new Color[1];
         public float PositiveTrigger { get; private set; }
         public Color[] NegativeColors { get; private set; } = new Color[1];
+#pragma warning restore CA1819 // Properties should not return arrays
         public float NegativeTrigger { get; private set; }
         public Color DecreaseColor { get; private set; }
         public float FontSize { get; protected set; }
@@ -405,6 +455,13 @@ namespace Orts.Formats.Msts.Models
                 }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
                 new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
+                new STFReader.TokenProcessor("ortslabel", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
         }
 
@@ -465,7 +522,10 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("accuracy", ()=>{ ParseAccuracy(stf); }),
                 new STFReader.TokenProcessor("controlcolour", ()=>{ PositiveColors[0] = ParseControlColor(stf); }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
-                new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); })
+                new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
         }
     }
@@ -481,16 +541,36 @@ namespace Orts.Formats.Msts.Models
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
 
-        public IList<float> Values { get; } = new List<float>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<float> Values { get; } = new List<float>();
+#pragma warning restore CA1002 // Do not expose generic lists
     }
 
     public class CabViewDiscreteControl : CabViewFramedControl
     {
-        public IList<int> Positions { get; } = new List<int>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> Positions { get; } = new List<int>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         private int valuesRead;
         private int numPositions;
         private bool canFill = true;
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+        public readonly struct NewScreenData
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+        {
+            public NewScreenData(string newScreen, int newScreenDisplay)
+            {
+                NewScreen = newScreen;
+                NewScreenDisplay = newScreenDisplay;
+            }
+
+            public string NewScreen { get; }
+            public int NewScreenDisplay { get; }
+        }
+
+        public List<NewScreenData> NewScreens { get; private set; }
 
         internal CabViewDiscreteControl(STFReader stf, string basePath, CabViewControlDiscreteState discreteState)
         {
@@ -609,6 +689,14 @@ namespace Orts.Formats.Msts.Models
                             valuesRead++;
                         }
                     }),
+                new STFReader.TokenProcessor("ortslabel", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortsnewscreenpage", () => { ParseNewScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ParseCabViewpoint(stf); }),
                 });
 
             // If no ACE, just don't need any fixup
@@ -736,8 +824,10 @@ namespace Orts.Formats.Msts.Models
 
                         // Add the maximums to the end, the Value will be removed
                         // We use Positions only here
-                        if (Values.Count > 0 && Values[0] <= Values[Values.Count - 1]) Values.Add(ScaleRangeMax);
-                        else if (Values.Count > 0 && Values[0] > Values[Values.Count - 1]) Values.Add(ScaleRangeMin);
+                        if (Values.Count > 0 && Values[0] <= Values[Values.Count - 1])
+                            Values.Add(ScaleRangeMax);
+                        else if (Values.Count > 0 && Values[0] > Values[Values.Count - 1])
+                            Values.Add(ScaleRangeMin);
                     }
 
                     // OK, we have a valid size of Positions and Values
@@ -774,18 +864,21 @@ namespace Orts.Formats.Msts.Models
             switch (ControlType)
             {
                 case CabViewControlType.Cp_Handle:
-                    ControlStyle = CabViewControlStyle.Not_Sprung; break;
+                    ControlStyle = CabViewControlStyle.Not_Sprung;
+                    break;
                 case CabViewControlType.Pantograph:
                 case CabViewControlType.Pantograph2:
                 case CabViewControlType.Orts_Pantograph3:
                 case CabViewControlType.Orts_Pantograph4:
-                    ControlStyle = CabViewControlStyle.OnOff; break;
+                    ControlStyle = CabViewControlStyle.OnOff;
+                    break;
                 case CabViewControlType.Horn:
                 case CabViewControlType.Sanders:
                 case CabViewControlType.Bell:
                 case CabViewControlType.Reset:
                 case CabViewControlType.Vacuum_Exhauster:
-                    ControlStyle = CabViewControlStyle.While_Pressed; break;
+                    ControlStyle = CabViewControlStyle.While_Pressed;
+                    break;
                 case CabViewControlType.Direction:
                     if (Orientation == 0)
                         Direction = 1 - Direction;
@@ -808,13 +901,26 @@ namespace Orts.Formats.Msts.Models
             ScaleRangeMin = min;
             ScaleRangeMax = max;
         }
+
+        protected void ParseNewScreen(STFReader stf)
+        {
+            stf.MustMatch("(");
+            var newScreen = new NewScreenData(stf.ReadString().ToLowerInvariant(), stf.ReadInt(-1));
+            stf.SkipRestOfBlock();
+            if (NewScreens == null)
+                NewScreens = new List<NewScreenData>();
+            NewScreens.Add(newScreen);
+        }
+
     }
     #endregion
 
     #region Multistate Display Controls
     public class CabViewMultiStateDisplayControl : CabViewFramedControl
     {
-        public IList<float> Styles { get; } = new List<float>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<float> Styles { get; } = new List<float>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal CabViewMultiStateDisplayControl(STFReader stf, string basePath)
         {
@@ -848,10 +954,13 @@ namespace Orts.Formats.Msts.Models
                     for (int i = Values.Count; i < FramesCount; i++)    //fill missing values with dummies
                         Values.Add(-10000);
                 }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
         }
 
-        private protected int ParseNumStyle(STFReader stf)
+        private protected static int ParseNumStyle(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int style = stf.ReadInt(0);
@@ -881,6 +990,9 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("parameters", ()=>{ ParseCustomParameters(stf); }),
                 new STFReader.TokenProcessor("disablediflowvoltagepowersupplyoff", ()=>{ ParseDisabledIfLowVoltagePowerSupplyOff(stf); }),
                 new STFReader.TokenProcessor("disabledifcabpowersupplyoff", ()=>{ ParseDisabledIfCabPowerSupplyOff(stf); }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
         }
         private protected void ParseCustomParameters(STFReader stf)
@@ -895,7 +1007,9 @@ namespace Orts.Formats.Msts.Models
 
     public class CabViewAnimatedDisplayControl : CabViewFramedControl
     {
-        public IList<double> MSStyles { get; } = new List<double>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<double> MSStyles { get; } = new List<double>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public float CycleTimeS { get; private set; }
 
         internal CabViewAnimatedDisplayControl(STFReader stf, string basepath)
@@ -929,6 +1043,9 @@ namespace Orts.Formats.Msts.Models
                     for (int i = Values.Count; i < FramesCount; i++)
                         Values.Add(-10000);
                 }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
+                new STFReader.TokenProcessor("ortscabviewpoint", () =>{ ParseCabViewpoint(stf); }),
             });
         }
         private protected static int ParseNumStyle(STFReader stf)

@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 
@@ -38,6 +39,80 @@ namespace Orts.ActivityRunner.Viewer3D
         public const int skySides = 24;
         // <CScomment> added a belt of triangles just below 0 level to avoid empty sky below horizon
         public const short skyLevels = 6;
+    }
+
+    public class SkySteps
+    {
+        // Size of the sun- and moon-position lookup table arrays.
+        // Must be an integral divisor of 1440 (which is the number of minutes in a day).
+        public int MaxSteps = 72;
+        public double OldClockTime;
+        public int Step1, Step2;
+
+        /// <summary>
+        /// Returns the advance of time in units of 20 mins (1200 seconds).
+        /// Allows for an offset in hours from a control in the DispatchViewer.
+        /// This is a user convenience to reveal in daylight what might be hard to see at night.
+        /// </summary>
+        /// <returns></returns>
+        private float CelestialDiff(double clockTime)
+        {
+            var diffS = clockTime - (OldClockTime - DaylightOffsetS);
+            return (float)diffS / 1200;
+        }
+
+        private float DaylightOffsetS
+        {
+            get
+            {
+                return (Program.DebugViewer == null) ? 0f : (float)Program.DebugViewer.DaylightOffsetHrs * 60 * 60;
+            }
+        }
+
+        public void SetSunAndMoonDirection(ref Vector3 solarDirection, ref Vector3 lunarDirection
+            , ref Vector3[] solarPosArray, ref Vector3[] lunarPosArray
+            , double clockTime)
+        {
+            // Current solar and lunar position are calculated by interpolation in the lookup arrays.
+            // The arrays have intervals of 1200 secs or 20 mins.
+            // Using the Lerp() function, so need to calculate the in-between differential
+            // The rest of this increments/decrements the array indices and checks for overshoot/undershoot.
+            while (clockTime >= (OldClockTime - DaylightOffsetS + 1200)) // Plus key, or normal forward in time; <CSComment> better so in case of fast forward
+            {
+                OldClockTime = OldClockTime + 1200;
+                Step1++;
+                Step2++;
+                if (Step2 >= MaxSteps) // Midnight.
+                {
+                    Step2 = 0;
+                }
+                if (Step1 >= MaxSteps) // Midnight.
+                {
+                    Step1 = 0;
+                }
+            }
+            if (clockTime <= (OldClockTime - DaylightOffsetS)) // Minus key
+            {
+                OldClockTime = OldClockTime - 1200;
+                Step1--;
+                Step2--;
+                if (Step1 < 0) // Midnight.
+                {
+                    Step1 = MaxSteps - 1;
+                }
+                if (Step2 < 0) // Midnight.
+                {
+                    Step2 = MaxSteps - 1;
+                }
+            }
+            var diff = CelestialDiff(clockTime);
+            solarDirection.X = MathHelper.Lerp(solarPosArray[Step1].X, solarPosArray[Step2].X, diff);
+            solarDirection.Y = MathHelper.Lerp(solarPosArray[Step1].Y, solarPosArray[Step2].Y, diff);
+            solarDirection.Z = MathHelper.Lerp(solarPosArray[Step1].Z, solarPosArray[Step2].Z, diff);
+            lunarDirection.X = MathHelper.Lerp(lunarPosArray[Step1].X, lunarPosArray[Step2].X, diff);
+            lunarDirection.Y = MathHelper.Lerp(lunarPosArray[Step1].Y, lunarPosArray[Step2].Y, diff);
+            lunarDirection.Z = MathHelper.Lerp(lunarPosArray[Step1].Z, lunarPosArray[Step2].Z, diff);
+        }
     }
 
     public class SkyViewer
@@ -64,11 +139,9 @@ namespace Orts.ActivityRunner.Viewer3D
             public int ordinalDate;
         };
         public Date date;
-        // Size of the sun- and moon-position lookup table arrays.
-        // Must be an integral divisor of 1440 (which is the number of minutes in a day).
-        private int maxSteps = 72;
-        private double oldClockTime;
-        private int step1, step2;
+
+        private SkySteps skySteps = new SkySteps();
+
         // Phase of the moon
         public int moonPhase;
         // Wind speed and direction
@@ -106,10 +179,10 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!initialized)
             {
                 // First time around, initialize the following items:
-                oldClockTime = Viewer.Simulator.ClockTime % 86400;
-                while (oldClockTime < 0) oldClockTime += 86400;
-                step1 = step2 = (int)(oldClockTime / 1200);
-                step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
+                skySteps.OldClockTime = Viewer.Simulator.ClockTime % 86400;
+                while (skySteps.OldClockTime < 0) skySteps.OldClockTime += 86400;
+                skySteps.Step1 = skySteps.Step2 = (int)(skySteps.OldClockTime / 1200);
+                skySteps.Step2 = skySteps.Step2 < skySteps.MaxSteps - 1 ? skySteps.Step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
 
                 // Get the current latitude and longitude coordinates
                 EarthCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
@@ -123,75 +196,22 @@ namespace Orts.ActivityRunner.Viewer3D
                     date.year = 2017;
                 }
                 // Fill in the sun- and moon-position lookup tables
-                for (int i = 0; i < maxSteps; i++)
+                for (int i = 0; i < skySteps.MaxSteps; i++)
                 {
-                    solarPosArray[i] = SunMoonPos.SolarAngle(latitude, longitude, ((float)i / maxSteps), date);
-                    lunarPosArray[i] = SunMoonPos.LunarAngle(latitude, longitude, ((float)i / maxSteps), date);
+                    solarPosArray[i] = SunMoonPos.SolarAngle(latitude, longitude, ((float)i / skySteps.MaxSteps), date);
+                    lunarPosArray[i] = SunMoonPos.LunarAngle(latitude, longitude, ((float)i / skySteps.MaxSteps), date);
                 }
                 // Phase of the moon is generated at random
-                moonPhase = Viewer.Random.Next(8);
+                moonPhase = StaticRandom.Next(8);
                 if (moonPhase == 6 && date.ordinalDate > 45 && date.ordinalDate < 330)
                     moonPhase = 3; // Moon dog only occurs in winter
                 initialized = true;
             }
 
-
-            // Current solar and lunar position are calculated by interpolation in the lookup arrays.
-            // The arrays have intervals of 1200 secs or 20 mins.
-            // Using the Lerp() function, so need to calculate the in-between differential
-            float diff = GetCelestialDiff();
-            // The rest of this increments/decrements the array indices and checks for overshoot/undershoot.
-            while (Viewer.Simulator.ClockTime >= (oldClockTime + 1200)) // Plus key, or normal forward in time; <CSComment> better so in case of fast forward
-            {
-                oldClockTime = oldClockTime + 1200;
-                diff = GetCelestialDiff();
-                step1++;
-                step2++;
-                if (step2 >= maxSteps) // Midnight.
-                {
-                    step2 = 0;
-                }
-                if (step1 >= maxSteps) // Midnight.
-                {
-                    step1 = 0;
-                }
-            }
-            if (Viewer.Simulator.ClockTime <= (oldClockTime - 1200)) // Minus key
-            {
-                oldClockTime = Viewer.Simulator.ClockTime;
-                diff = 0;
-                step1--;
-                step2--;
-                if (step1 < 0) // Midnight.
-                {
-                    step1 = maxSteps - 1;
-                }
-                if (step2 < 0) // Midnight.
-                {
-                    step2 = maxSteps - 1;
-                }
-            }
-            solarDirection.X = MathHelper.Lerp(solarPosArray[step1].X, solarPosArray[step2].X, diff);
-            solarDirection.Y = MathHelper.Lerp(solarPosArray[step1].Y, solarPosArray[step2].Y, diff);
-            solarDirection.Z = MathHelper.Lerp(solarPosArray[step1].Z, solarPosArray[step2].Z, diff);
-            lunarDirection.X = MathHelper.Lerp(lunarPosArray[step1].X, lunarPosArray[step2].X, diff);
-            lunarDirection.Y = MathHelper.Lerp(lunarPosArray[step1].Y, lunarPosArray[step2].Y, diff);
-            lunarDirection.Z = MathHelper.Lerp(lunarPosArray[step1].Z, lunarPosArray[step2].Z, diff);
+            skySteps.SetSunAndMoonDirection(ref solarDirection, ref lunarDirection, ref solarPosArray, ref lunarPosArray,
+                Viewer.Simulator.ClockTime);
 
             frame.AddPrimitive(Material, Primitive, RenderPrimitiveGroup.Sky, ref XNASkyWorldLocation);
-        }
-
-        /// <summary>
-        /// Returns the advance of time in seconds in units of 20 mins (1200 seconds).
-        /// Allows for an offset in hours from a control in the DispatchViewer.
-        /// This is a user convenience to reveal in daylight what might be hard to see at night.
-        /// </summary>
-        /// <returns></returns>
-        private float GetCelestialDiff()
-        {
-            var diffS = (Viewer.Simulator.ClockTime - oldClockTime);
-            diffS += (double)(Program.DebugViewer?.DaylightOffsetHrs ?? 0) * 60 * 60;
-            return (float)diffS / 1200;
         }
 
         public void LoadPrep()

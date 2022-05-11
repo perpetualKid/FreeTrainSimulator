@@ -101,7 +101,7 @@ namespace Orts.Updater
             {
                 try
                 {
-                    if (int.TryParse(waitPid.Substring(9), out int processId))
+                    if (int.TryParse(waitPid.AsSpan(9), out int processId))
                     {
                         Process process = Process.GetProcessById(processId);
                         waitList.Add(WaitForProcessExitAsync(process));
@@ -127,7 +127,7 @@ namespace Orts.Updater
             try
             {
                 string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
-                targetVersion = targetVersion?.Substring(UpdateManager.VersionCommandLine.Length);
+                targetVersion = targetVersion?[UpdateManager.VersionCommandLine.Length..];
 
                 Invoke((Action)(() =>
                 {

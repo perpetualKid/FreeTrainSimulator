@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
@@ -113,7 +114,7 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            TrackShape trackShape = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex];
             uint nSections = trackShape.SectionIndices[0].SectionsCount;
             trackNodesIndex = new int[trackShape.SectionIndices.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
@@ -126,8 +127,8 @@ namespace Orts.Simulation
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            TrackNode[] trackNodes = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes;
-            for (int j = 1; j < trackNodes.Length; j++)
+            List<TrackNode> trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
+            for (int j = 1; j < trackNodes.Count; j++)
             {
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
@@ -254,7 +255,7 @@ namespace Orts.Simulation
                     relativeCarPositions = new List<Matrix>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
+                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
                         Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         relativeCarPositions.Add(relativeCarPosition);
                     }
@@ -298,8 +299,8 @@ namespace Orts.Simulation
                 int relativeCarPositions = 0;
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
-                    traincar.WorldPosition = new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
-                        Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix));
+                    traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
+                        Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
                     relativeCarPositions++;
                 }
             }
@@ -349,8 +350,7 @@ namespace Orts.Simulation
         /// </summary>
         public void TargetExactlyReached()
         {
-            Traveller.TravellerDirection direction = Traveller.TravellerDirection.Forward;
-            direction = saveConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? direction : Traveller.TravellerDirection.Backward;
+            Direction direction = saveConnected ^ !trackNodesOrientation[ConnectedTrackEnd] ? Direction.Forward : Direction.Backward;
             GoToTarget = false;
             if (TrainsOnMovingTable.Count == 1)
             {
@@ -368,7 +368,7 @@ namespace Orts.Simulation
             if (null == train)
                 throw new ArgumentNullException(nameof(train));
             return Connected && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
-                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index);
+                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TrackNode.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TrackNode.Index);
         }
 
         /// <summary>

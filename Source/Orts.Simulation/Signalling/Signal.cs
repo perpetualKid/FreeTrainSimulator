@@ -28,10 +28,12 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
 using Orts.Simulation.AIs;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
+
+using SharpDX.MediaFoundation;
 
 namespace Orts.Simulation.Signalling
 {
@@ -43,10 +45,10 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    public class Signal
+    public class Signal : ISignal
     {
-        private static TrackNode[] trackNodes;
-        private static TrackItem[] trackItems;
+        private static List<TrackNode> trackNodes;
+        private static List<TrackItem> trackItems;
 
         private static SignalEnvironment signalEnvironment; //back reference to the signal environment
 
@@ -97,9 +99,12 @@ namespace Orts.Simulation.Signalling
         public TrackCircuitPartialPathRoute SignalRoute { get; internal set; } = new TrackCircuitPartialPathRoute();  // train route from signal
         public int TrainRouteIndex { get; private set; }    // index of section after signal in train route list
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
-        public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
+#pragma warning restore CA1002 // Do not expose generic lists
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
+        public bool CallOnManuallyAllowed { get; set; }
 
         //TODO 20201030 next two properties may be better joined into an enum setting
         public bool IsSignal { get; internal set; } = true; // if signal, false if speedpost //
@@ -114,7 +119,7 @@ namespace Orts.Simulation.Signalling
 
         public bool CallOnEnabled { get; internal set; }      // set if signal script file uses CallOn functionality
 
-        internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
+        internal static void Initialize(SignalEnvironment signals, List<TrackNode> trackNodes, List<TrackItem> trackItems)
         {
             signalEnvironment = signals;               // reference to overlaying Signal class
             Signal.trackNodes = trackNodes;
@@ -416,13 +421,86 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.PreferGreen)
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().PreferGreen)
                     return true;
                 return EnabledTrain != null;
             }
         }
 
         public int TrackItemIndex => (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
+
+        SignalState ISignal.State { get => State; set => State = value; }
+
+        bool ISignal.CallOnEnabled => CallOnEnabled && CallOnManuallyAllowed;
+
+        protected SignalState State
+        {
+            get
+            {
+                SignalState result = SignalState.Lock;
+                foreach (var head in SignalHeads)
+                {
+                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
+                        head.SignalIndicationState == SignalAspectState.Clear_2)
+                    {
+                        result = SignalState.Clear;
+                    }
+                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
+                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
+                    {
+                        result = SignalState.Approach;
+                    }
+                }
+                return result;
+            }
+            set 
+            {
+                switch (value)
+                {
+                    case SignalState.Clear:
+                        DispatcherClearHoldSignal();
+                        break;
+                    case SignalState.Lock:
+                        DispatcherRequestHoldSignal(true);
+                        break;
+                        case SignalState.Approach:
+                        HoldState = SignalHoldState.ManualApproach;
+                        foreach (SignalHead signalHead in SignalHeads)
+                        {
+                            int drawstate1 = signalHead.DefaultDrawState(SignalAspectState.Approach_1);
+                            int drawstate2 = signalHead.DefaultDrawState(SignalAspectState.Approach_2);
+                            int drawstate3 = signalHead.DefaultDrawState(SignalAspectState.Approach_3);
+                            if (drawstate1 > 0)
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_1; 
+                            }
+                            else if (drawstate2 > 0)
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_2; 
+                            }
+                            else
+                            { 
+                                signalHead.SignalIndicationState = SignalAspectState.Approach_3; 
+                            }
+                            signalHead.DrawState = signalHead.DefaultDrawState(signalHead.SignalIndicationState);
+                            // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
+                            signalHead.TextSignalAspect = "";
+                        }
+                        break;
+                    case SignalState.Manual:
+                        HoldState = SignalHoldState.ManualPass;
+                        foreach (SignalHead signalHead in SignalHeads)
+                        {
+                            signalHead.SetLeastRestrictiveAspect();
+                            signalHead.DrawState = signalHead.DefaultDrawState(signalHead.SignalIndicationState);
+                        }
+                        break;
+                    case SignalState.CallOn:
+                        SetManualCallOn(true);
+                        break;
+                }
+            }
+        }
 
         //================================================================================================//
         /// <summary>
@@ -658,7 +736,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public SignalAspectState SignalMR(SignalFunction signalType)
         {
-           return SignalMRLimited((int)signalType);
+            return SignalMRLimited((int)signalType);
         }
 
         /// <summary>
@@ -916,7 +994,7 @@ namespace Orts.Simulation.Signalling
                             setSpeed.PassengerSpeed = speed.PassengerSpeed;
                             setSpeed.Flag = false;
                             setSpeed.Reset = false;
-                            if (!IsSignal) 
+                            if (!IsSignal)
                                 setSpeed.LimitedSpeedReduction = speed.LimitedSpeedReduction;
                         }
 
@@ -925,7 +1003,7 @@ namespace Orts.Simulation.Signalling
                             setSpeed.FreightSpeed = speed.FreightSpeed;
                             setSpeed.Flag = false;
                             setSpeed.Reset = false;
-                            if (!IsSignal) 
+                            if (!IsSignal)
                                 setSpeed.LimitedSpeedReduction = speed.LimitedSpeedReduction;
                         }
                     }
@@ -956,7 +1034,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public int SignalLocalVariable(int index)
         {
-            return localStorage.TryGetValue(index, out int result) ? result: 0;
+            return localStorage.TryGetValue(index, out int result) ? result : 0;
         }
 
         //================================================================================================//
@@ -1088,7 +1166,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// check if required route is set
         /// </summary>
-        public bool CheckRouteSet(int mainNode, uint junctionNode)
+        public bool CheckRouteSet(int mainNode, int junctionNode)
         {
             bool routeset = false;
             bool retry = false;
@@ -1158,7 +1236,7 @@ namespace Orts.Simulation.Signalling
                     if (sectionIndex < 0 && section.CircuitType == TrackCircuitType.Junction)
                     {
                         // check if this is required junction
-                        if (Convert.ToUInt32(section.Index) == junctionNode)
+                        if (section.Index == junctionNode)
                         {
                             passedTrackJn = true;
                         }
@@ -1245,6 +1323,17 @@ namespace Orts.Simulation.Signalling
             else
             {
                 section = TrackCircuitSection.TrackCircuitList[trackCircuit];
+                if (!SignalNormal())
+                {
+                    foreach (var item in section.CircuitItems.TrackCircuitSignals[direction][reqtype])
+{
+                        if (item.Signal.TrackCircuitOffset > TrackCircuitOffset)
+                        {
+                            signalFound = item.Signal.Index;
+                            break;
+                        }
+                    }
+                }
                 sectionSet = EnabledTrain != null && section.IsSet(EnabledTrain, false);
 
                 if (sectionSet)
@@ -1570,6 +1659,7 @@ namespace Orts.Simulation.Signalling
         {
             // reset train information
             EnabledTrain = null;
+            CallOnManuallyAllowed = false;
             SignalRoute.Clear();
             fullRoute = FixedRoute;
             TrainRouteIndex = -1;
@@ -1614,14 +1704,9 @@ namespace Orts.Simulation.Signalling
 
             // update all normal heads first
 
-            if (MultiPlayerManager.IsMultiPlayer())
-            {
-                if (MultiPlayerManager.IsClient())
-                    return; //client won't handle signal update
-
-                //if there were hold manually, will not update
-                if (HoldState == SignalHoldState.ManualApproach || HoldState == SignalHoldState.ManualLock || HoldState == SignalHoldState.ManualPass) return;
-            }
+            if ((MultiPlayerManager.MultiplayerState == MultiplayerState.Client) || //client won't handle signal update
+                ((MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher) && (HoldState == SignalHoldState.ManualApproach || HoldState == SignalHoldState.ManualLock || HoldState == SignalHoldState.ManualPass))) //if there were hold manually, will not update
+                return;
 
             foreach (SignalHead sigHead in SignalHeads)
             {
@@ -1863,7 +1948,7 @@ namespace Orts.Simulation.Signalling
             int requestNumberClearAhead;
             if (SignalNumClearAheadMsts > -2)
             {
-                requestNumberClearAhead = propagated ?  signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+                requestNumberClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
             }
             else
             {
@@ -2071,7 +2156,7 @@ namespace Orts.Simulation.Signalling
             if (train.Train is AITrain aitrain && Math.Abs(train.Train.SpeedMpS) <= Simulator.MaxStoppedMpS)
             {
                 ref readonly WorldLocation location = ref TdbTraveller.WorldLocation;
-                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNodeIndex);
+                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNode.Index);
             }
 
             return SignalMR(SignalFunction.Normal) != SignalAspectState.Stop;
@@ -3329,7 +3414,7 @@ namespace Orts.Simulation.Signalling
 
             if (EnabledTrain.Train != null && SignalRoute != null)
             {
-                return EnabledTrain.Train.TestCallOn(this, allowOnNonePlatform, SignalRoute);
+                return CallOnManuallyAllowed || EnabledTrain.Train.TestCallOn(this, allowOnNonePlatform, SignalRoute);
             }
             return false;
         }
@@ -3585,7 +3670,8 @@ namespace Orts.Simulation.Signalling
             if (EnabledTrain == null || EnabledTrain.Train == null)
             {
                 HoldState = SignalHoldState.ManualLock;
-                if (thisAspect > SignalAspectState.Stop) ResetSignal(true);
+                if (thisAspect > SignalAspectState.Stop)
+                    ResetSignal(true);
                 returnValue[0] = true;
             }
             // if enabled, cleared and reset not requested : no action
@@ -3646,12 +3732,12 @@ namespace Orts.Simulation.Signalling
             {
                 if (state && CallOnEnabled)
                 {
-                    EnabledTrain.Train.AllowedCallOnSignal = this;
                     DispatcherClearHoldSignal();
+                    CallOnManuallyAllowed = true;
                 }
-                else if (EnabledTrain.Train.AllowedCallOnSignal == this)
+                else
                 {
-                    EnabledTrain.Train.AllowedCallOnSignal = null;
+                    CallOnManuallyAllowed = false;
                 }
             }
         }

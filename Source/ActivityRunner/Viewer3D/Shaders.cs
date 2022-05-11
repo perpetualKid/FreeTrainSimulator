@@ -30,7 +30,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-
+#pragma warning disable CA1044 // Properties should not be write only
     public class SceneryShader : BaseShader
     {
         private readonly EffectParameter world;
@@ -156,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void SetHeadlight(ref Vector3 position, ref Vector3 direction, float distance, float minDotProduct, float fadeTime, float fadeDuration, float clampValue, ref Vector4 color)
         {
             var lighting = fadeTime / fadeDuration * clampValue;
-            if (lighting < 0) lighting = 1 + lighting;
+            if (fadeDuration < 0) lighting = 1 + lighting;
             headlightPosition.SetValue(new Vector4(position, MathHelper.Clamp(lighting, 0, clampValue)));
             headlightDirection.SetValue(new Vector4(direction, 0.5f * (1 - minDotProduct))); // We want 50% brightness at the given dot product.
             headlightRcpDistance.SetValue(1f / distance); // Needed to be separated (direction * distance) because no pre-shaders are supported in XNA 4
@@ -694,4 +694,5 @@ namespace Orts.ActivityRunner.Viewer3D
             worldViewProjection.SetValue(wvp);
         }
     }
+#pragma warning restore CA1044 // Properties should not be write only
 }

@@ -2,12 +2,23 @@
 
 This is a fork of [OpenRails](http://www.openrails.org), running on .NET Core and based on [Monogame patch](http://www.elvastower.com/forums/index.php?/topic/30924-going-beyond-the-4-gb-of-memory/page__view__findpost__p__237281) and many other improvements and performance tweaks like completely rewritten RailDriver input, Signalscript-Parser and much more, at the same time adopting most of the updates and features from [OpenRails Source Code](https://github.com/openrails/openrails) as well.
 
+## Feature overview
+In addition to all the features from OpenRails, this version includes:  
+- Most recent version of Monogame (3.8) 
+- build on .NET Core (3.1), which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine) for Linux support)
+- full 64bit support, removing out-of-memory situations and allows to use all available system memory also beyond 3GB/4GB barrier as with 32bit software
+- rewritten SignalScript parsing engine for faster loading time
+- [Standalone Multiplayer server](https://github.com/perpetualKid/ORTS-MG/wiki#2021-12-05-multiplayer-standalone-server) simplifying multi-player games
+- New [TrackViewer](https://github.com/perpetualKid/ORTS-MG/wiki#2021-03-09-new-trackviewer-preview), also handling large routes smoothly
+- Rewritten RailDriver support, with built-in unit calibration support, no need to to handle extra files&tools
+- New Translation engine, allowing for simpler Localization (support for PoEdit .mo files removes the need for compiled resource dlls)
+- Many performance optimizations
+
 ## Download
 [![GitHub All Releases](https://img.shields.io/github/downloads/perpetualKid/orts-mg/total)](https://github.com/perpetualKid/ORTS-MG/releases/)
 
 If you came here just to download the software, please see the [Releases](https://github.com/perpetualKid/ORTS-MG/releases) section to download a recent version of the software. Simply unzip the download folder and start OpenRails.exe. 
-Once started, please be aware there may be updates available immediately, as the release page only has major release packages, while minor updates are only available through the Auto-Updater, or announced in our [News](https://github.com/perpetualKid/ORTS-MG/wiki#news) section in the wiki.
-
+Once started, please be aware there may be updates available immediately, as the release page only has major release packages. Minor updates are only available through the Auto-Updater, as well developer builds which are updated each time some code is updated. Also check the [News](https://github.com/perpetualKid/ORTS-MG/wiki#news) section in the wiki.
 ## Contributing
 If you are interested in more information, documentation and news regarding recent updates, please check the [Wiki](https://github.com/perpetualKid/ORTS-MG/wiki).
 
@@ -24,7 +35,7 @@ Running on Windows 10 with recent patch status (version 1809 or higher), the onl
 
 You will need to have an DirectX 11.0 compatible graphics adapter (GPU).
 
-To install on Linux, please see the [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine)
+To install on Linux, please see the [Wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine).
 
 ## Build Information
 

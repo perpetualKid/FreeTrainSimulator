@@ -15,29 +15,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Formats.Msts.Parsers;
-using Orts.Scripting.Api;
-using Orts.Scripting.Api.PowerSupply;
-using Orts.Simulation.Physics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Parsers;
+using Orts.Scripting.Api;
+using Orts.Scripting.Api.PowerSupply;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
     public class ScriptedPassengerCarPowerSupply : IPassengerCarPowerSupply, ISubSystem<ScriptedPassengerCarPowerSupply>
     {
         public readonly MSTSWagon Wagon;
-        protected Simulator Simulator => Wagon.Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
         protected Train Train => Wagon.Train;
         protected Pantographs Pantographs => Wagon.Pantographs;
-        protected int CarId = 0;
+        protected int CarId;
 
         public BatterySwitch BatterySwitch { get; protected set; }
 
-        protected bool Activated = false;
+        protected bool Activated;
         protected string ScriptName = "Default";
         protected PassengerCarPowerSupply Script;
 
@@ -46,7 +48,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public PowerSupplyState ElectricTrainSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool ElectricTrainSupplyOn => ElectricTrainSupplyState == PowerSupplyState.PowerOn;
         public bool FrontElectricTrainSupplyCableConnected { get; set; }
-        public float ElectricTrainSupplyPowerW { get; protected set; } = 0f;
+        public float ElectricTrainSupplyPowerW { get; protected set; }
 
         public PowerSupplyState LowVoltagePowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool LowVoltagePowerSupplyOn => LowVoltagePowerSupplyState == PowerSupplyState.PowerOn;
@@ -60,10 +62,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public float HeatFlowRateW { get; protected set; }
 
         // Parameters
-        public float PowerOnDelayS { get; protected set; } = 0f;
-        public float ContinuousPowerW { get; protected set; } = 0f;
-        public float HeatingPowerW { get; protected set; } = 0f;
-        public float AirConditioningPowerW { get; protected set; } = 0f;
+        public float PowerOnDelayS { get; protected set; }
+        public float ContinuousPowerW { get; protected set; }
+        public float HeatingPowerW { get; protected set; }
+        public float AirConditioningPowerW { get; protected set; }
         public float AirConditioningYield { get; protected set; } = 0.9f;
 
         private bool firstUpdate = true;
@@ -213,8 +215,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 // Connect the power supply cable if the previous car is a locomotive or another passenger car
                 if (previousCar != null
                     && (previousCar is MSTSLocomotive locomotive && locomotive.LocomotivePowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable
-                        || previousCar.WagonSpecialType == TrainCar.WagonSpecialTypes.PowerVan
-                        || previousCar.WagonType == TrainCar.WagonTypes.Passenger && previousCar.PowerSupply is ScriptedPassengerCarPowerSupply)
+                        || previousCar.WagonSpecialType == WagonSpecialType.PowerVan
+                        || previousCar.WagonType == WagonType.Passenger && previousCar.PowerSupply is ScriptedPassengerCarPowerSupply)
                     )
                 {
                     FrontElectricTrainSupplyCableConnected = true;
@@ -302,7 +304,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script.ClockTime = () => (float)Simulator.ClockTime;
             Script.GameTime = () => (float)Simulator.GameTime;
             Script.PreUpdate = () => Simulator.PreUpdate;
-            Script.DistanceM = () => Wagon.DistanceM;
+            Script.DistanceM = () => Wagon.DistanceTravelled;
             Script.SpeedMpS = () => Math.Abs(Wagon.SpeedMpS);
             Script.Confirm = Simulator.Confirmer.Confirm;
             Script.Message = Simulator.Confirmer.Message;
@@ -326,8 +328,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script.AirConditioningPowerW = () => AirConditioningPowerW;
             Script.AirConditioningYield = () => AirConditioningYield;
             Script.PowerOnDelayS = () => PowerOnDelayS;
-            Script.DesiredTemperatureC = () => Wagon.DesiredCompartmentTempSetpointC;
-            Script.InsideTemperatureC = () => Wagon.CarInsideTempC;
+            Script.DesiredTemperatureC = () => (float)Wagon.DesiredCompartmentTempSetpointC;
+            Script.InsideTemperatureC = () => (float)Wagon.CarInsideTempC;
             Script.OutsideTemperatureC = () => Wagon.CarOutsideTempC;
 
             // AbstractPowerSupply setters

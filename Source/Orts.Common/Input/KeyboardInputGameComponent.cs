@@ -16,6 +16,7 @@ namespace Orts.Common.Input
 
         private KeyboardState currentKeyboardState;
         private KeyboardState previousKeyboardState;
+        private KeyboardState inActiveKeyboardState;
         private KeyModifiers previousModifiers;
         private KeyModifiers currentModifiers;
         private Keys[] previousKeys = Array.Empty<Keys>();
@@ -23,6 +24,7 @@ namespace Orts.Common.Input
         private readonly IInputCapture inputCapture;
 
         private Action<int, GameTime, KeyEventType, KeyModifiers> inputActionHandler;
+        private bool inActive;
 
         public KeyboardInputGameComponent(Game game) : base(game)
         {
@@ -57,10 +59,20 @@ namespace Orts.Common.Input
         {
             if (!Game.IsActive || (inputCapture?.InputCaptured ?? false))
             {
-                currentKeyboardState = default;
+                if (!inActive)
+                {
+                    inActiveKeyboardState = currentKeyboardState;   // keep current keyboard state
+                    currentKeyboardState = default;
+                    inActive = true;
+                }
                 return;
             }
 
+            if (inActive) // restore keyboard state
+            {
+                currentKeyboardState = inActiveKeyboardState;
+                inActive = false;
+            }
             KeyboardState newState = Keyboard.GetState();
 
             #region keyboard update

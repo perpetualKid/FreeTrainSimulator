@@ -32,9 +32,8 @@ namespace ORTS.TrackViewer.Editing
     /// </summary>
     public partial class AutoFixAllPaths : Window
     {
-        private RouteData routeData;
-        private DrawTrackDB drawTrackDB;
-        private Dictionary<string, List<string>> pathsThatAre = new Dictionary<string, List<string>>
+        private readonly DrawTrackDB drawTrackDB;
+        private readonly Dictionary<string, List<string>> pathsThatAre = new Dictionary<string, List<string>>
             {
                 ["UnmodifiedFine"] = new List<string>(),
                 ["UnmodifiedBroken"] = new List<string>(),
@@ -48,24 +47,26 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
-        public AutoFixAllPaths(RouteData routeData, DrawTrackDB drawTrackDB)
+        internal AutoFixAllPaths(DrawTrackDB drawTrackDB)
         {
-            this.routeData = routeData;
             this.drawTrackDB = drawTrackDB;
         }
 
         /// <summary>
         /// Load all the paths, fix them, and ask the user what to do whit the fixed paths
         /// </summary>
-        /// <param name="Paths">The list of paths that are availabel and that need to be checked and possibly fixed</param>
+        /// <param name="paths">The list of paths that are availabel and that need to be checked and possibly fixed</param>
         /// <param name="callback">Callback that will be called showing the current processing that is being done</param>
-        public void FixallAndShowResults(Collection<Path> Paths, Action<string> callback )
+        public void FixallAndShowResults(Collection<Path> paths, Action<string> callback )
         {
-            _Fixall(Paths, callback);
-            _ShowResults();
+            if (paths == null || callback == null)
+                return;
+
+            Fixall(paths, callback);
+            ShowResults();
         }
 
-        private void _Fixall(Collection<Path> Paths, Action<string> callback)
+        private void Fixall(Collection<Path> Paths, Action<string> callback)
         {
             modifiedPaths = new List<PathEditor>();
 
@@ -73,9 +74,9 @@ namespace ORTS.TrackViewer.Editing
             foreach (Path path in Paths)
             {
                 callback(TrackViewer.catalog.GetString("Processing .pat file ") + path.FilePath);
-                string pathName = ORTS.TrackViewer.UserInterface.MenuControl.MakePathMenyEntryName(path);
-                PathEditor pathFixer = new PathEditor(this.routeData, this.drawTrackDB, path);
-                bool fixSucceeded = pathFixer.AutoFixAllBrokenNodes();
+                string pathName = UserInterface.MenuControl.MakePathMenyEntryName(path);
+                PathEditor pathFixer = new PathEditor(drawTrackDB, path);
+                _ = pathFixer.AutoFixAllBrokenNodes();
                 if (pathFixer.HasModifiedPath)
                 {
                     if (pathFixer.HasBrokenPath)
@@ -102,7 +103,7 @@ namespace ORTS.TrackViewer.Editing
             }
         }
 
-        private void _ShowResults()
+        private void ShowResults()
         {
             InitializeComponent();
 
@@ -112,7 +113,7 @@ namespace ORTS.TrackViewer.Editing
                 ModifiedBrokenList.Visibility = Visibility.Visible;
                 foreach (string pathName in pathsThatAre["ModifiedBroken"])
                 {
-                    var item = new ListViewItem { Content = pathName };
+                    ListViewItem item = new ListViewItem { Content = pathName };
                     ModifiedBrokenList.Items.Add(item);
                 }
                 SaveDirect.IsEnabled = true;
@@ -125,7 +126,7 @@ namespace ORTS.TrackViewer.Editing
                 ModifiedFineList.Visibility = Visibility.Visible;
                 foreach (string pathName in pathsThatAre["ModifiedFine"])
                 {
-                    var item = new ListViewItem { Content = pathName };
+                    ListViewItem item = new ListViewItem { Content = pathName };
                     ModifiedFineList.Items.Add(item);
                 }
                 SaveDirect.IsEnabled = true;
@@ -138,7 +139,7 @@ namespace ORTS.TrackViewer.Editing
                 UnmodifiedBrokenList.Visibility = Visibility.Visible;
                 foreach (string pathName in pathsThatAre["UnmodifiedBroken"])
                 {
-                    var item = new ListViewItem { Content = pathName };
+                    ListViewItem item = new ListViewItem { Content = pathName };
                     UnmodifiedBrokenList.Items.Add(item);
                 }
             }
@@ -149,17 +150,17 @@ namespace ORTS.TrackViewer.Editing
                 UnmodifiedFineList.Visibility = Visibility.Visible;
                 foreach (string pathName in pathsThatAre["UnmodifiedFine"])
                 {
-                    var item = new ListViewItem { Content = pathName };
+                    ListViewItem item = new ListViewItem { Content = pathName };
                     UnmodifiedFineList.Items.Add(item);
                 }
             }
 
-            this.ShowDialog();
+            ShowDialog();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void SaveDirect_Click(object sender, RoutedEventArgs e)
@@ -168,7 +169,7 @@ namespace ORTS.TrackViewer.Editing
             {
                 SavePatFile.WritePatFileDirect(modifiedPath.CurrentTrainPath);
             }
-            this.Close();
+            Close();
         }
 
         private void SaveAndConfirm_Click(object sender, RoutedEventArgs e)
@@ -177,14 +178,14 @@ namespace ORTS.TrackViewer.Editing
             {
                 SavePatFile.WritePatFile(modifiedPath.CurrentTrainPath);
             }
-            this.Close();
+            Close();
         }
 
         private void SaveOverview_Click(object sender, RoutedEventArgs e)
         {
 
             string fullFilePath = GetFileName();
-            if (String.IsNullOrEmpty(fullFilePath)) return;
+            if (string.IsNullOrEmpty(fullFilePath)) return;
 
             System.IO.StreamWriter file = new System.IO.StreamWriter(fullFilePath, false, System.Text.Encoding.Unicode);
             string[] statusses = { "ModifiedBroken", "ModifiedFine", "UnmodifiedBroken", "UnmodifiedFine"};
@@ -214,7 +215,7 @@ namespace ORTS.TrackViewer.Editing
             {
                 return dlg.FileName;
             }
-            return String.Empty;
+            return string.Empty;
         }
     }
 }

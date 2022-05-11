@@ -40,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TransferShape(TransferObject transfer, in WorldPosition position)
             : base(null, RemoveRotation(position), ShapeFlags.AutoZBias)
         {
-            Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(viewer.Simulator, transfer.FileName));
+            Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(transfer.FileName));
             Primitive = new TransferPrimitive(viewer, transfer.Width, transfer.Height, position);
             Radius = (float)Math.Sqrt(transfer.Width * transfer.Width + transfer.Height * transfer.Height) / 2;
         }
@@ -181,7 +181,6 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.ImageTexture = texture;
             shader.ReferenceAlpha = 10;
 
-            graphicsDevice.SamplerStates[0] = transferSamplerState;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
@@ -197,7 +196,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
+                    graphicsDevice.SamplerStates[0] = transferSamplerState;
                     item.RenderPrimitive.Draw();
+
                 }
             }
         }

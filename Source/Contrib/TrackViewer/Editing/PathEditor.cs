@@ -52,45 +52,46 @@ namespace ORTS.TrackViewer.Editing
     /// 
     /// Some terminology: a disambiguity node is a node that only exist to uniquely identify which of two alternative paths
     /// needs to be taken between two junctions.
-    public class PathEditor
+    internal class PathEditor
     {
         #region Public members
         /// <summary>The current path that we are editing</summary>
         public Trainpath CurrentTrainPath { get; private set; }
         /// <summary>Editing is active or not</summary>
-        public bool EditingIsActive { 
-            get {return _editingIsActive;}
+        public bool EditingIsActive
+        {
+            get => _editingIsActive;
             set { _editingIsActive = value; OnActiveOrPathChanged(); }
         }
 
         /// <summary>Name of the file with the .pat definition</summary>
         public string FileName { get; private set; }
         /// <summary>Does the editor have a path</summary>
-        public bool HasValidPath { get { return (CurrentTrainPath.FirstNode != null); } }
+        public bool HasValidPath => (CurrentTrainPath.FirstNode != null);
         /// <summary>Does the editor have a path that is broken</summary>
-        public bool HasBrokenPath { get { return CurrentTrainPath.IsBroken; } }
+        public bool HasBrokenPath => CurrentTrainPath.IsBroken;
         /// <summary>Does the editor have a path that has an end</summary>
-        public bool HasEndingPath { get { return CurrentTrainPath.HasEnd; } }
+        public bool HasEndingPath => CurrentTrainPath.HasEnd;
         /// <summary>Does the editor have a path that has been modified</summary>
-        public bool HasModifiedPath { get { return CurrentTrainPath.IsModified; } }
+        public bool HasModifiedPath => CurrentTrainPath.IsModified;
         /// <summary>Does the editor have a path that has a stored tail</summary>
-        public bool HasStoredTail { get { return (CurrentTrainPath.FirstNodeOfTail != null); } }
+        public bool HasStoredTail => (CurrentTrainPath.FirstNodeOfTail != null);
 
         /// <summary>A description of the current action that will be done when the mouse is clicked</summary>
         public string CurrentActionDescription { get; private set; } = "";
 
         // some redirections to the drawPath
         /// <summary>Return current node (last drawn) node</summary>
-        public TrainpathNode CurrentNode { get { return drawPath.CurrentMainNode; } }
+        public TrainpathNode CurrentNode => drawPath.CurrentMainNode;
         /// <summary>Return the location of the current (last drawn) node</summary>
-        public WorldLocation CurrentLocation { get { return CurrentNode != null ? CurrentNode.Location : WorldLocation.None; } }
+        public WorldLocation CurrentLocation => CurrentNode != null ? CurrentNode.Location : WorldLocation.None;
         #endregion
 
         #region Private members
-        private DrawTrackDB drawTrackDB; // We need to know what has been drawn, especially to get track closest to mouse
-        private TrackDB trackDB;
-        private TrackSectionsFile tsectionDat;
-        private DrawPath drawPath;      // drawing of the path itself
+        private readonly DrawTrackDB drawTrackDB; // We need to know what has been drawn, especially to get track closest to mouse
+        private readonly TrackDB trackDB;
+        private readonly TrackSectionsFile tsectionDat;
+        private readonly DrawPath drawPath;      // drawing of the path itself
 
         private TrainpathNode activeNode;           // active Node (if present) for which actions can be performed
         private TrainpathVectorNode activeTrackLocation;  // dynamic node that follows the mouse and is on track, but is not part of path
@@ -134,11 +135,12 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
-        private PathEditor(RouteData routeData, DrawTrackDB drawTrackDB)
+        private PathEditor(DrawTrackDB drawTrackDB)
         {
+
             this.drawTrackDB = drawTrackDB;
-            this.trackDB = routeData.TrackDB;
-            this.tsectionDat = routeData.TsectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
+            tsectionDat = RuntimeData.Instance.TSectionDat;
 
             TrackExtensions.Initialize(trackDB.TrackNodes, tsectionDat); // we might be calling this more than once, but so be it.
 
@@ -163,8 +165,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>/// <param name="pathsDirectory">The directory where paths will be stored</param>
-        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, string pathsDirectory)
-            :this(routeData, drawTrackDB)
+        public PathEditor(DrawTrackDB drawTrackDB, string pathsDirectory)
+            :this(drawTrackDB)
         {
             CurrentTrainPath = new Trainpath(trackDB, tsectionDat);
             FileName = CurrentTrainPath.PathId + ".pat";
@@ -179,8 +181,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
         /// <param name="path">Path to the .pat file</param>
-        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, Path path)
-            :this(routeData, drawTrackDB)
+        public PathEditor(DrawTrackDB drawTrackDB, Path path)
+            :this(drawTrackDB)
         {
             FileName = path.FilePath.Split('\\').Last();
             CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.FilePath);
@@ -459,9 +461,16 @@ namespace ORTS.TrackViewer.Editing
         }
 
         /// <summary> Place an end point at the current active track location </summary>
-        public void PlaceEndPoint() => activeAddEndAction?.DoAction();
+        public void PlaceEndPoint()
+        {
+            activeAddEndAction?.DoAction();
+        }
+
         /// <summary> Place a wait point at the current active track location </summary>
-        public void PlaceWaitPoint() => activeAddWaitAction?.DoAction();
+        public void PlaceWaitPoint()
+        {
+            activeAddWaitAction?.DoAction();
+        }
 
 
         /// <summary>
@@ -540,7 +549,7 @@ namespace ORTS.TrackViewer.Editing
             float textureSize = 8f;
             int minPixelSize = 7;
             int maxPixelSize = 24;
-            if (activeNode != null && activeNode.Location != null)
+            if (activeNode != null && activeNode.Location != WorldLocation.None)
             {
                 drawArea.DrawTexture(activeNode.Location, "ring", textureSize, minPixelSize, maxPixelSize, DrawColors.colorsNormal.ActiveNode);
 
@@ -590,10 +599,9 @@ namespace ORTS.TrackViewer.Editing
                 return;
             }
 
-            uint tni = drawTrackDB.ClosestTrack.TrackNode.Index;
-            int tni_int = (int)tni;
+            int tni = drawTrackDB.ClosestTrack.TrackNode.Index;
 
-            if (!drawnPathData.TrackHasBeenDrawn(tni_int) && CurrentTrainPath.FirstNode != null && activeMouseDragAction == null)
+            if (!drawnPathData.TrackHasBeenDrawn(tni) && CurrentTrainPath.FirstNode != null && activeMouseDragAction == null)
             {
                 activeTrackLocation.Location = WorldLocation.None;
                 return;
@@ -606,14 +614,14 @@ namespace ORTS.TrackViewer.Editing
             WorldLocation location = drawTrackDB.FindLocation(tni, tvsi, distance, true);
 
             // fill the properties of the activeTrackLocation 
-            activeTrackLocation.TvnIndex = tni_int;
+            activeTrackLocation.TvnIndex = tni;
             activeTrackLocation.TrackVectorSectionIndex = tvsi;
             activeTrackLocation.TrackSectionOffset = distance;
             activeTrackLocation.Location = location;
 
             if ( (CurrentTrainPath.FirstNode != null) && (activeMouseDragAction == null) ) 
             {   //Only in case this is not the first path.
-                TrainpathNode prevNode = FindPrevNodeOfActiveTrack(drawnPathData, tni_int);
+                TrainpathNode prevNode = FindPrevNodeOfActiveTrack(drawnPathData, tni);
                 if (prevNode == null || prevNode.HasSidingPath)
                 {
                     activeTrackLocation.Location = WorldLocation.None;
@@ -762,7 +770,10 @@ namespace ORTS.TrackViewer.Editing
             }
 
             TrainpathNode lastNode = CurrentTrainPath.FirstNode;
-            while (lastNode.NextMainNode != null) {
+#pragma warning disable CA1508 // Avoid dead conditional code
+            while (lastNode.NextMainNode != null)
+#pragma warning restore CA1508 // Avoid dead conditional code
+            {
                 lastNode = lastNode.NextMainNode;
             }
             if (CurrentTrainPath.HasEnd)
@@ -822,8 +833,7 @@ namespace ORTS.TrackViewer.Editing
         public void SaveStationNames()
         {
             string[] stationNames = CurrentTrainPath.StationNames();
-            SaveStationNames saveStationNames = new Editing.SaveStationNames();
-            saveStationNames.SaveToFile(stationNames);
+            Editing.SaveStationNames.SaveToFile(stationNames);
         }
 
         /// <summary>

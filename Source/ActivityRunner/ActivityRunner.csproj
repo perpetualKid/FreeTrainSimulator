@@ -1,82 +1,83 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <Description>Open Rails Activity Runner</Description>
-    <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    <OutputPath>..\..\Program</OutputPath>
-    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
-    <RootNamespace>Orts.ActivityRunner</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
-    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Update="Content\*.bmp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\*.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\ETCS\**\*.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\ETCS\**\*.bmp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\ETCS\ETCS_DMI_symbols_credit.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Content Include="Copying.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="EmbedIO" Version="3.4.3" />
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="0.12.11" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.12.11" />
-    <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
-    <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-    <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-    <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <ProjectReference Include="..\Orts.Simulation\Orts.Simulation.csproj" />
-    <ProjectReference Include="..\Orts.Graphics\Orts.Graphics.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Native\x64\" />
-    <Folder Include="Native\x86\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\3rdPartyLibs\openal-soft\Win32\OpenAL32.dll" Link="Native\x86\OpenAL32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\3rdPartyLibs\openal-soft\Win64\OpenAL32.dll" Link="Native\x64\OpenAL32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Content\TakeScreenshot.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\Web\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if Defined Agent.TempDirectory (cd %25Agent.TempDirectory%25) else (cd %25temp%25)&#xD;&#xA;echo %25cd%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc)&#xD;&#xA;if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Content\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
-  </Target>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<Description>Open Rails Activity Runner</Description>
+		<UseWindowsForms>true</UseWindowsForms>
+		<AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
+		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+		<OutputPath>..\..\Program</OutputPath>
+		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<RootNamespace>Orts.ActivityRunner</RootNamespace>
+	</PropertyGroup>
+	<PropertyGroup>
+		<ServerGarbageCollection>true</ServerGarbageCollection>
+		<ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DefineConstants>TRACE;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Update="Content\*.bmp">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\*.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\ETCS\**\*.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\ETCS\**\*.bmp">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\ETCS\ETCS_DMI_symbols_credit.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<Content Include="Copying.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="EmbedIO" Version="3.4.3" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
+		<PackageReference Include="GetText.NET" Version="1.1.4" />
+		<PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
+		<PackageReference Include="OpenAL-Soft" Version="1.16.0">
+			<GeneratePathProperty>True</GeneratePathProperty>
+		</PackageReference>
+		<PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
+		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
+		<ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
+		<ProjectReference Include="..\Orts.Simulation\Orts.Simulation.csproj" />
+		<ProjectReference Include="..\Orts.Graphics\Orts.Graphics.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="$(PkgOpenAL-Soft)\bin\Win64\soft_oal.dll">
+			<Link>Native\x64\soft_oal.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="$(PkgOpenAL-Soft)\bin\Win32\soft_oal.dll">
+			<Link>Native\x86\soft_oal.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Content\TakeScreenshot.wav">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\Web\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="if Defined Agent.TempDirectory (cd %25Agent.TempDirectory%25) else (cd %25temp%25)&#xD;&#xA;echo %25cd%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc)&#xD;&#xA;if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Content\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
+	</Target>
 </Project>

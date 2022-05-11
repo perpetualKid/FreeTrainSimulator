@@ -3,41 +3,61 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Graphics.MapView.Shapes;
+using Orts.Graphics.Window.Controls.Layout;
+
 namespace Orts.Graphics.Window.Controls
 {
     public abstract class WindowControl: IDisposable
     {
-        private Rectangle position;
+        private Rectangle bounds;
         private bool disposedValue;
 
-        public ref readonly Rectangle Position => ref position;
+        public ref readonly Rectangle Bounds => ref bounds;
 
         public WindowBase Window { get; }
+
+        public ControlLayout Container { get; internal set; }
+
+        public Color BorderColor { get; set; } = Color.Transparent;
 
         public object Tag { get; set; }
 
         public event EventHandler<MouseClickEventArgs> OnClick;
 
+        public bool Visible { get; set; } = true;
+
         protected WindowControl(WindowBase window, int x, int y, int width, int height)
         {
-            position = new Rectangle(x, y, width, height);
-            Window = window;
+            bounds = new Rectangle(x, y, width, height);
+            Window = window ?? throw new ArgumentNullException(nameof(window));
         }
 
-        public virtual void Initialize()
+        internal virtual void Initialize()
+        { }
+
+        internal virtual void Update(GameTime gameTime)
+        { }
+
+        internal virtual void Draw(SpriteBatch spriteBatch, Point offset)
         {
+            if (BorderColor != Color.Transparent)
+            {
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, Bounds.Height)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
+                BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
+            }
         }
-
-        internal abstract void Draw(SpriteBatch spriteBatch, Point offset);
 
         internal virtual bool HandleMouseClicked(WindowMouseEvent e)
         {
-            MouseClick(e);
             return false;
         }
 
         internal virtual bool HandleMouseReleased(WindowMouseEvent e)
         {
+            MouseClick(e);
             return false;
         }
 
@@ -56,14 +76,19 @@ namespace Orts.Graphics.Window.Controls
             return false;
         }
 
+        internal virtual bool HandleMouseDrag(WindowMouseEvent e)
+        {
+            return false;
+        }
+
         internal virtual void MoveBy(int x, int y)
         {
-            position.Offset(x, y);
+            bounds.Offset(x, y);
         }
 
         internal virtual void MouseClick(WindowMouseEvent e)
         {
-            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - position.Location, e.KeyModifiers));
+            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - bounds.Location, e.KeyModifiers));
         }
 
         #region IDisposable

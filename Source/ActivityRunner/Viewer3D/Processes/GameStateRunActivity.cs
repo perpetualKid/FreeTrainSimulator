@@ -35,15 +35,14 @@ using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
     public class GameStateRunActivity : GameState
     {
 
@@ -71,17 +70,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private Simulator simulator;
 
-        //for Multiplayer
-        private static ClientComm Client { get { return MultiPlayerManager.Client; } set { MultiPlayerManager.Client = value; } }
-
-        private string userName;
-        private string code;
-
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         private static string logFileName;
         private LoadingPrimitive loading;
         private LoadingScreenPrimitive loadingScreen;
         private LoadingBarPrimitive loadingBar;
+        private TimetableLoadingBarPrimitive timetableLoadingBar;
         private Matrix loadingMatrix = Matrix.Identity;
 
         private static readonly string separatorLine = new string('-', 80);
@@ -105,7 +99,16 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             options = optionsList.ToArray();
         }
 
-        internal override void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
+        protected override void Dispose(bool disposing)
+        {
+            loading.Dispose();
+            loadingScreen.Dispose();
+            loadingBar.Dispose();
+            timetableLoadingBar.Dispose();
+            base.Dispose(disposing);
+        }
+
+        internal override void Update(RenderFrame frame, GameTime gameTime)
         {
             UpdateLoading();
 
@@ -124,8 +127,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 loadingBar.Material.shader.LoadingPercent = loadedPercent;
                 frame.AddPrimitive(loadingBar.Material, loadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
+            if (simulator != null && simulator.TimetableMode && timetableLoadingBar != null && simulator.TimetableLoadedFraction < 0.99f)    // 0.99 to hide loading bar at end of timetable pre-run
+            {
+                timetableLoadingBar.Material.shader.LoadingPercent = simulator.TimetableLoadedFraction;
+                frame.AddPrimitive(timetableLoadingBar.Material, timetableLoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
+            }
 
-            base.Update(frame, totalRealSeconds, gameTime);
+            base.Update(frame, gameTime);
         }
 
         internal override void Load()
@@ -135,6 +143,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 loading = new LoadingPrimitive(Game);
             if (loadingBar == null)
                 loadingBar = new LoadingBarPrimitive(Game);
+            if (timetableLoadingBar == null)
+                timetableLoadingBar = new TimetableLoadingBarPrimitive(Game);
 
             // No action, check for data; for now assume any data is good data.
             if (actionType == ActionType.None && data.Any())
@@ -281,9 +291,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
             }
 
-            if (Client != null)
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
+                MultiPlayerManager.Notify((new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -296,6 +306,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             Viewer = new Viewer(simulator, Game);
+            Viewer.Initialize();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
@@ -386,7 +397,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                     outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
-                    outf.Write(Simulation.Physics.Train.NumOfCouplerBreaks);
+                    outf.Write(Viewer.PlayerTrain.NumOfCouplerBreaks);
                     outf.Write(Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
                     outf.Write(Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned);
@@ -395,7 +406,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Simulator.Instance.DebriefEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
-                    outf.Write(simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
+                    outf.Write(simulator.PlayerLocomotive.DistanceTravelled + Popups.HelpWindow.DbfEvalDistanceTravelled);
                 }
             }
         }
@@ -425,11 +436,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
-                    if (Client != null && ActivityType == ActivityType.Activity)
-                        simulator.SetPathAndConsist();
-                    if (Client != null)
+                    Viewer.Initialize();
+                    if (MultiPlayerManager.IsMultiPlayer())
                     {
-                        Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
+                        if (ActivityType == ActivityType.Activity)
+                            simulator.SetPathAndConsist();
+                        MultiPlayerManager.BroadCast(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL).ToString());
                     }
                     Viewer.Restore(inf);
 
@@ -442,7 +454,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         throw new InvalidDataException("Saved game stream position is incorrect.");
 
                     //Restore Debrief eval data
-                    string dbfevalfile = saveFile.Replace(".save", ".dbfeval");
+                    string dbfevalfile = saveFile.Replace(".save", ".dbfeval", StringComparison.OrdinalIgnoreCase);
                     if (settings.DebriefActivityEval && File.Exists(dbfevalfile))
                     {
                         using (BinaryReader infDbfEval = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
@@ -457,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS = infDbfEval.ReadDouble();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving = infDbfEval.ReadInt32();
                             RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped = infDbfEval.ReadInt32();
-                            Simulation.Physics.Train.NumOfCouplerBreaks = infDbfEval.ReadInt32();
+                            Viewer.PlayerTrain.NumOfCouplerBreaks = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned = infDbfEval.ReadInt32();
@@ -519,6 +531,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
 
             // Load command log to replay
@@ -547,7 +560,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             // Find previous save file and then move commands to be replayed into replay list.
             CommandLog log = new CommandLog(null);
-            string logFile = saveFile.Replace(".save", ".replay");
+            string logFile = saveFile.Replace(".save", ".replay", StringComparison.OrdinalIgnoreCase);
             log.LoadLog(logFile);
             List<ICommand> replayCommandList = new List<ICommand>();
 
@@ -592,6 +605,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
             }
             else
             {
@@ -606,6 +620,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
+                    Viewer.Initialize();
                     Viewer.Restore(inf);
                 }
             }
@@ -652,6 +667,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(Viewer));
@@ -699,7 +715,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // We hash together all the appropriate arguments to the program as the key for the loading cache file.
             // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
             // configuration (time, season, etc.) or flags like /test which we don't want to change on.
-            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.')).ToArray()).ToUpperInvariant();
+            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
             using (HashAlgorithm hash = new SHA256CryptoServiceProvider())
             {
                 hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));
@@ -930,19 +946,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (settings.MultiplayerClient)
             {
-                try
-                {
-                    MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
-                    userName = Client.UserName;
-                    code = Client.Code;
-                }
-                catch (Exception error)
-                {
-                    Trace.WriteLine(error);
-                    Trace.WriteLine("Connection error - will play in single mode.");
-                    Client = null;
-                }
+                MultiPlayerManager.Start(settings.Multiplayer_UpdateInterval, settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
             }
         }
 
@@ -1052,5 +1056,4 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return 0;
         }
     }
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
 }

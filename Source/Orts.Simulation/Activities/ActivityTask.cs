@@ -88,7 +88,9 @@ namespace Orts.Simulation.Activities
         private Train playerTrain; // Shortcut to player train
 
         private bool debriefEvalDepartBeforeBoarding;//Debrief Eval
-        public static IList<string> DebriefEvalDepartBeforeBoarding { get; } = new List<string>();//Debrief Eval
+#pragma warning disable CA1002 // Do not expose generic lists
+        public static List<string> DebriefEvalDepartBeforeBoarding { get; } = new List<string>();//Debrief Eval
+#pragma warning restore CA1002 // Do not expose generic lists
 
         public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, int arrivalTime, int departureTime, PlatformItem platformStart, PlatformItem platformeEnd)
         {
@@ -399,8 +401,8 @@ namespace Orts.Simulation.Activities
             ActualArrival = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
             rdval = inf.ReadInt64();
             ActualDeparture = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
-            PlatformEnd1 = simulator.TrackDatabase.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
-            PlatformEnd2 = simulator.TrackDatabase.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd1 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd2 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             BoardingEndS = inf.ReadDouble();
             BoardingS = inf.ReadDouble();
             timerChk = inf.ReadInt32();

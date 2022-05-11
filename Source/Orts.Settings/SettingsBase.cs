@@ -294,12 +294,18 @@ namespace Orts.Settings
                 Type valueType = value.GetType();
                 if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
                 {
+                    dynamic enumArray = Activator.CreateInstance(valueType);
+                    foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
+                    {
+                        enumArray[enumName] = value[enumName];
+                    }
+                    value = enumArray;
                     foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
                     {
                         if (defaultValue[enumName] == null)
                         {
                             value[enumName] = null;
-                            Debug.WriteLine($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable storing of custom values.");
+                            Debug.WriteLine($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable persistance of user preferences.");
                         }
                         else if (valueType.GetGenericArguments()[0].IsArray)
                         {
@@ -319,7 +325,7 @@ namespace Orts.Settings
                             }
                         }
                         else if (value[enumName] == defaultValue[enumName])
-                            value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? Activator.CreateInstance(valueType.GetGenericArguments()[0]) : null);
+                            value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? defaultValue[enumName] : null);
                     }
                 }
                 SettingStore.SetSettingValue(name, value);

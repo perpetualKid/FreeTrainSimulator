@@ -31,10 +31,10 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -57,10 +57,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected AnimatedShape RearAirHoseDisconnectedShape;
 
         public static readonly Action Noop = () => { };
-        /// <summary>
-        /// Dictionary of built-in locomotive control keyboard commands, Action[] is in the order {KeyRelease, KeyPress}
-        /// </summary>
-        public Dictionary<UserCommand, Action[]> UserInputCommands = new Dictionary<UserCommand, Action[]>();
 
         // Wheels are rotated by hand instead of in the shape file.
         private float WheelRotationR;
@@ -77,6 +73,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private AnimatedPart Mirrors;
         protected AnimatedPart Wipers;
         protected AnimatedPart Bell;
+        protected AnimatedPart Item1Continuous;
+        protected AnimatedPart Item2Continuous;
+        private AnimatedPart Item1TwoState;
+        private AnimatedPart Item2TwoState;
         private AnimatedPart UnloadingParts;
 
         public Dictionary<string, List<ParticleEmitterViewer>> ParticleDrawers = new Dictionary<string, List<ParticleEmitterViewer>>();
@@ -119,19 +119,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     select new ParticleEmitterViewer(viewer, data, car)))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             // Initaialise particle viewers for special steam effects
-            foreach (var emitter in ParticleDrawers)
+            foreach (KeyValuePair<string, List<ParticleEmitterViewer>> emitter in ParticleDrawers)
             {
 
                 // Exhaust for steam heating boiler
-                if (emitter.Key.ToLowerInvariant() == "heatingsteamboilerfx")
+                if (emitter.Key.Equals("heatingsteamboilerfx", StringComparison.OrdinalIgnoreCase))
                 {
                     HeatingSteamBoiler.AddRange(emitter.Value);
-                    // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
-                    if (!car.IsTrainHeatingBoilerInitialised && !car.HeatingBoilerSet)
-                    {
-                        car.HeatingBoilerSet = true;
-                        car.IsTrainHeatingBoilerInitialised = true;
-                    }
+                    car.InitializeBoilerHeating();
                 }
 
                 foreach (var drawer in HeatingSteamBoiler)
@@ -140,7 +135,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Exhaust for HEP/Power Generator
-                if (emitter.Key.ToLowerInvariant() == "wagongeneratorfx")
+                if (emitter.Key.Equals("wagongeneratorfx", StringComparison.OrdinalIgnoreCase))
                     WagonGenerator.AddRange(emitter.Value);
 
                 foreach (var drawer in WagonGenerator)
@@ -149,7 +144,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Smoke for wood/coal fire
-                if (emitter.Key.ToLowerInvariant() == "wagonsmokefx")
+                if (emitter.Key.Equals("wagonsmokefx", StringComparison.OrdinalIgnoreCase))
                     WagonSmoke.AddRange(emitter.Value);
 
                 foreach (var drawer in WagonSmoke)
@@ -158,7 +153,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Smoke for bearing hot box
-                if (emitter.Key.ToLowerInvariant() == "bearinghotboxfx")
+                if (emitter.Key.Equals("bearinghotboxfx", StringComparison.OrdinalIgnoreCase))
                     BearingHotBox.AddRange(emitter.Value);
 
                 foreach (var drawer in BearingHotBox)
@@ -168,7 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating hose 
 
-                if (emitter.Key.ToLowerInvariant() == "heatinghosefx")
+                if (emitter.Key.Equals("heatinghosefx", StringComparison.OrdinalIgnoreCase))
                     HeatingHose.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingHose)
@@ -178,7 +173,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating compartment steam trap
 
-                if (emitter.Key.ToLowerInvariant() == "heatingcompartmentsteamtrapfx")
+                if (emitter.Key.Equals("heatingcompartmentsteamtrapfx", StringComparison.OrdinalIgnoreCase))
                     HeatingCompartmentSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingCompartmentSteamTrap)
@@ -188,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating steam trap
 
-                if (emitter.Key.ToLowerInvariant() == "heatingmainpipesteamtrapfx")
+                if (emitter.Key.Equals("heatingmainpipesteamtrapfx", StringComparison.OrdinalIgnoreCase))
                     HeatingMainPipeSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingMainPipeSteamTrap)
@@ -198,7 +193,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
                 // Forward motion
-                if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
+                if (emitter.Key.Equals("waterscoopfx", StringComparison.OrdinalIgnoreCase))
                     WaterScoop.AddRange(emitter.Value);
 
                 foreach (var drawer in WaterScoop)
@@ -208,7 +203,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Reverse motion
 
-                if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
+                if (emitter.Key.Equals("waterscoopreversefx", StringComparison.OrdinalIgnoreCase))
                     WaterScoopReverse.AddRange(emitter.Value);
 
                 foreach (var drawer in WaterScoopReverse)
@@ -218,7 +213,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
 
-                if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
+                if (emitter.Key.Equals("tenderwateroverflowfx", StringComparison.OrdinalIgnoreCase))
                     TenderWaterOverflow.AddRange(emitter.Value);
 
                 foreach (var drawer in TenderWaterOverflow)
@@ -226,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
-                if (emitter.Key.ToLowerInvariant() == "steambrakefx")
+                if (emitter.Key.Equals("steambrakefx", StringComparison.OrdinalIgnoreCase))
                     SteamBrake.AddRange(emitter.Value);
 
                 foreach (var drawer in SteamBrake)
@@ -245,19 +240,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
-
-                car.HasFreightAnim = true;
                 FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
                 // Applies to both a standard tender locomotive or a tank locomotive (where coal load is on same "wagon" as the locomotive -  for the coal load on a tender or tank locomotive - in operation it will raise or lower with caol usage
 
-                if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSSteamLocomotive)
+                if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSSteamLocomotive)
                 {
 
                     var NonTenderSteamLocomotive = MSTSWagon as MSTSSteamLocomotive;
 
-                    if ((MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == TrainCar.EngineTypes.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0)) && MSTSWagon.FreightAnimMaxLevelM != 0 && MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM)
+                    if ((MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == EngineType.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0)) && MSTSWagon.FreightAnimMaxLevelM != 0 && MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM)
                     {
                         // Force allowing animation:
                         if (FreightShape.SharedShape.LodControls.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives.Length > 0 && FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy.Length > 0)
@@ -267,46 +260,46 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Initialise Coupler shapes 
-            if (car.FrontCouplerShapeFileName != null)
+            if (car.FrontCouplerAnimation != null)
             {
-                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontCouplerOpenShapeFileName != null)
+            if (car.FrontCouplerOpenAnimation != null)
             {
-                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerShapeFileName != null)
+            if (car.RearCouplerAnimation != null)
             {
-                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearCouplerOpenShapeFileName != null)
+            if (car.RearCouplerOpenAnimation != null)
             {
-                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
             // Initialise air hose shapes
 
-            if (car.FrontAirHoseShapeFileName != null)
+            if (car.FrontAirHoseAnimation != null)
             {
-                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.FrontAirHoseDisconnectedShapeFileName != null)
+            if (car.FrontAirHoseDisconnectedAnimation != null)
             {
-                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                FrontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseShapeFileName != null)
+            if (car.RearAirHoseAnimation != null)
             {
-                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
-            if (car.RearAirHoseDisconnectedShapeFileName != null)
+            if (car.RearAirHoseDisconnectedAnimation != null)
             {
-                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                RearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
 
@@ -324,6 +317,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Wipers = new AnimatedPart(TrainCarShape);
             UnloadingParts = new AnimatedPart(TrainCarShape);
             Bell = new AnimatedPart(TrainCarShape);
+            Item1Continuous = new AnimatedPart(TrainCarShape);
+            Item2Continuous = new AnimatedPart(TrainCarShape);
+            Item1TwoState = new AnimatedPart(TrainCarShape);
+            Item2TwoState = new AnimatedPart(TrainCarShape);
 
             if (car.FreightAnimations != null)
                 FreightAnimations = new FreightAnimationsViewer(viewer, car, wagonFolderSlash);
@@ -331,61 +328,61 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             LoadCarSounds(wagonFolderSlash);
             //if (!(MSTSWagon is MSTSLocomotive))
             //    LoadTrackSounds();
-            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, Viewer));
+            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, this));
 
             // Determine if it has first pantograph. So we can match unnamed panto parts correctly
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
-                if (TrainCarShape.SharedShape.MatrixNames[i].Contains('1'))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Contains('1', StringComparison.OrdinalIgnoreCase))
                 {
-                    if (TrainCarShape.SharedShape.MatrixNames[i].ToUpper().StartsWith("PANTO")) { HasFirstPanto = true; break; }
+                    if (TrainCarShape.SharedShape.MatrixNames[i].StartsWith("PANTO", StringComparison.OrdinalIgnoreCase)) { HasFirstPanto = true; break; }
                 }
 
             // Check bogies and wheels to find out what we have.
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
             {
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE1"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE1", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix1 = i;
                     numBogie1 += 1;
                 }
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE2"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE2", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix2 = i;
                     numBogie2 += 1;
                 }
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix1 = i;
                 }
                 // For now, the total axle count consisting of axles that are part of the bogie are being counted.
-                if (TrainCarShape.SharedShape.MatrixNames[i].Contains("WHEELS"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Contains("WHEELS", StringComparison.OrdinalIgnoreCase))
                     if (TrainCarShape.SharedShape.MatrixNames[i].Length == 8)
                     {
                         var tpmatrix = TrainCarShape.SharedShape.GetParentMatrix(i);
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS22") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS22", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
 
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
                     }
             }
@@ -408,50 +405,49 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             LeftDoor.SetState(MSTSWagon.DoorLeftOpen);
             RightDoor.SetState(MSTSWagon.DoorRightOpen);
             Mirrors.SetState(MSTSWagon.MirrorOpen);
+            Item1TwoState.SetState(MSTSWagon.GenericItem1);
+            Item2TwoState.SetState(MSTSWagon.GenericItem2);
             UnloadingParts.SetState(MSTSWagon.UnloadingPartsOpen);
-
-            InitializeUserInputCommands();
         }
 
         private void MatchMatrixToPart(MSTSWagon car, int matrix, int bogieMatrix)
         {
-            var matrixName = TrainCarShape.SharedShape.MatrixNames[matrix].ToUpper();
+            string matrixName = TrainCarShape.SharedShape.MatrixNames[matrix];
             // Gate all RunningGearPartIndexes on this!
             var matrixAnimated = TrainCarShape.SharedShape.Animations != null && TrainCarShape.SharedShape.Animations.Count > 0 && TrainCarShape.SharedShape.Animations[0].AnimationNodes.Count > matrix && TrainCarShape.SharedShape.Animations[0].AnimationNodes[matrix].Controllers.Count > 0;
-            if (matrixName.StartsWith("WHEELS") && (matrixName.Length == 7 || matrixName.Length == 8 || matrixName.Length == 9))
+            if (matrixName.StartsWith("Wheels", StringComparison.OrdinalIgnoreCase) && (matrixName.Length == 7 || matrixName.Length == 8 || matrixName.Length == 9))
             {
                 // Standard WHEELS length would be 8 to test for WHEELS11. Came across WHEELS tag that used a period(.) between the last 2 numbers, changing max length to 9.
                 // Changing max length to 9 is not a problem since the initial WHEELS test will still be good.
-                var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                 //someone uses wheel to animate fans, thus check if the wheel is not too high (lower than 3m), will animate it as real wheel
                 if (m.M42 < 3)
                 {
-                    var id = 0;
+                    int id = 0;
                     // Model makers are not following the standard rules, For example, one tender uses naming convention of wheels11/12 instead of using Wheels1,2,3 when not part of a bogie.
                     // The next 2 lines will sort out these axles.
-                    var tmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
+                    int tmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
                     if (matrixName.Length == 8 && bogieMatrix == 0 && tmatrix == 0) // In this test, both tmatrix and bogieMatrix are 0 since these wheels are not part of a bogie.
                         matrixName = TrainCarShape.SharedShape.MatrixNames[matrix].Substring(0, 7); // Changing wheel name so that it reflects its actual use since it is not p
                     if (matrixName.Length == 8 || matrixName.Length == 9)
-                        Int32.TryParse(matrixName.Substring(6, 1), out id);
+                        _ = int.TryParse(matrixName.AsSpan(6, 1), out id);
                     if (matrixName.Length == 8 || matrixName.Length == 9 || !matrixAnimated)
                         WheelPartIndexes.Add(matrix);
                     else
                         RunningGear.AddMatrix(matrix);
-                    var pmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
+                    int pmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
                     car.AddWheelSet(m.M43, id, pmatrix, matrixName.ToString(), bogie1Axles, bogie2Axles);
                 }
                 // Standard wheels are processed above, but wheels used as animated fans that are greater than 3m are processed here.
                 else
                     RunningGear.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("BOGIE") && matrixName.Length <= 6) //BOGIE1 is valid, BOGIE11 is not, it is used by some modelers to indicate this is part of bogie1
+            else if (matrixName.StartsWith("Bogie", StringComparison.OrdinalIgnoreCase) && matrixName.Length <= 6) //BOGIE1 is valid, BOGIE11 is not, it is used by some modelers to indicate this is part of bogie1
             {
                 if (matrixName.Length == 6)
                 {
-                    var id = 1;
-                    Int32.TryParse(matrixName.Substring(5), out id);
-                    var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                    _ = int.TryParse(matrixName.AsSpan(5), out int id);
+                    Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
                 }
@@ -459,8 +455,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     // Since the string content is BOGIE, Int32.TryParse(matrixName.Substring(5), out id) is not needed since its sole purpose is to
                     //  parse the string number from the string.
-                    var id = 1;
-                    var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                    int id = 1;
+                    Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
                 }
@@ -469,20 +465,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (TrainCarShape.Hierarchy[i] == matrix)
                         MatchMatrixToPart(car, i, bogieMatrix);
             }
-            else if (matrixName.StartsWith("WIPER")) // wipers
+            else if (matrixName.StartsWith("Wiper", StringComparison.OrdinalIgnoreCase)) // wipers
             {
                 Wipers.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("DOOR")) // doors (left / right)
+            else if (matrixName.StartsWith("Door", StringComparison.OrdinalIgnoreCase)) // doors (left / right)
             {
-                if (matrixName.StartsWith("DOOR_D") || matrixName.StartsWith("DOOR_E") || matrixName.StartsWith("DOOR_F"))
+                if (matrixName.StartsWith("Door_D", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_E", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_F", StringComparison.OrdinalIgnoreCase))
                     LeftDoor.AddMatrix(matrix);
-                else if (matrixName.StartsWith("DOOR_A") || matrixName.StartsWith("DOOR_B") || matrixName.StartsWith("DOOR_C"))
+                else if (matrixName.StartsWith("Door_A", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_B", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_C", StringComparison.OrdinalIgnoreCase))
                     RightDoor.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("PANTOGRAPH")) //pantographs (1/2)
+            else if (matrixName.StartsWith("Pantograph", StringComparison.OrdinalIgnoreCase)) //pantographs (1/2)
             {
-
+                matrixName = matrixName.ToUpperInvariant();
                 switch (matrixName)
                 {
                     case "PANTOGRAPHBOTTOM1":
@@ -508,13 +508,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Pantograph2.AddMatrix(matrix);
                         break;
                     default://someone used other language
-                        if (matrixName.Contains("1"))
+                        if (matrixName.Contains('1', StringComparison.OrdinalIgnoreCase))
                             Pantograph1.AddMatrix(matrix);
-                        else if (matrixName.Contains("2"))
+                        else if (matrixName.Contains('2', StringComparison.OrdinalIgnoreCase))
                             Pantograph2.AddMatrix(matrix);
-                        else if (matrixName.Contains("3"))
+                        else if (matrixName.Contains('3', StringComparison.OrdinalIgnoreCase))
                             Pantograph3.AddMatrix(matrix);
-                        else if (matrixName.Contains("4"))
+                        else if (matrixName.Contains('4', StringComparison.OrdinalIgnoreCase))
                             Pantograph4.AddMatrix(matrix);
                         else
                         {
@@ -524,24 +524,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         break;
                 }
             }
-            else if (matrixName.StartsWith("MIRROR")) // mirrors
+            else if (matrixName.StartsWith("MIRROR", StringComparison.OrdinalIgnoreCase)) // mirrors
             {
                 Mirrors.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("UNLOADINGPARTS")) // unloading parts
+            else if (matrixName.StartsWith("UNLOADINGPARTS", StringComparison.OrdinalIgnoreCase)) // unloading parts
             {
                 UnloadingParts.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("PANTO"))  // TODO, not sure why this is needed, see above!
+            else if (matrixName.StartsWith("PANTO", StringComparison.OrdinalIgnoreCase))  // TODO, not sure why this is needed, see above!
             {
                 Trace.TraceInformation("Pantograph matrix with unusual name {1} in shape {0}", TrainCarShape.SharedShape.FilePath, matrixName);
-                if (matrixName.Contains("1"))
+                if (matrixName.Contains('1', StringComparison.OrdinalIgnoreCase))
                     Pantograph1.AddMatrix(matrix);
-                else if (matrixName.Contains("2"))
+                else if (matrixName.Contains('2', StringComparison.OrdinalIgnoreCase))
                     Pantograph2.AddMatrix(matrix);
-                else if (matrixName.Contains("3"))
+                else if (matrixName.Contains('3', StringComparison.OrdinalIgnoreCase))
                     Pantograph3.AddMatrix(matrix);
-                else if (matrixName.Contains("4"))
+                else if (matrixName.Contains('4', StringComparison.OrdinalIgnoreCase))
                     Pantograph4.AddMatrix(matrix);
                 else
                 {
@@ -549,9 +549,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else Pantograph2.AddMatrix(matrix);
                 }
             }
-            else if (matrixName.StartsWith("ORTSBELL")) // wipers
+            else if (matrixName.StartsWith("ORTSBELL", StringComparison.OrdinalIgnoreCase)) // bell
             {
                 Bell.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM1CONTINUOUS", StringComparison.OrdinalIgnoreCase)) // generic item 1, continuous animation
+            {
+                Item1Continuous.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM2CONTINUOUS", StringComparison.OrdinalIgnoreCase)) // generic item 2, continuous animation
+            {
+                Item2Continuous.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM1TWOSTATE", StringComparison.OrdinalIgnoreCase)) // generic item 1, continuous animation
+            {
+                Item1TwoState.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM2TWOSTATE", StringComparison.OrdinalIgnoreCase)) // generic item 2, continuous animation
+            {
+                Item2TwoState.AddMatrix(matrix);
             }
             else
             {
@@ -562,10 +578,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (TrainCarShape.Hierarchy[i] == matrix)
                         MatchMatrixToPart(car, i, 0);
             }
-        }
-
-        public override void InitializeUserInputCommands()
-        {
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
@@ -623,6 +635,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             RightDoor.UpdateState(MSTSWagon.DoorRightOpen, elapsedTime);
             Mirrors.UpdateState(MSTSWagon.MirrorOpen, elapsedTime);
             UnloadingParts.UpdateState(MSTSWagon.UnloadingPartsOpen, elapsedTime);
+            Item1TwoState.UpdateState(MSTSWagon.GenericItem1, elapsedTime);
+            Item2TwoState.UpdateState(MSTSWagon.GenericItem2, elapsedTime);
             UpdateAnimation(frame, elapsedTime);
 
             var car = Car as MSTSWagon;
@@ -715,13 +729,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             float AnimationWheelRadiusM = 0.0f; // Radius of non driven wheels
             float AnimationDriveWheelRadiusM = 0.0f; // Radius of driven wheels
 
-            if (MSTSWagon.IsDriveable && Viewer.Settings.UseAdvancedAdhesion && !MSTSWagon.Simulator.Settings.SimpleControlPhysics)
+            if (MSTSWagon.IsDriveable && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
             {
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                                distanceTravelledM = MSTSWagon.WheelSpeedMpS * elapsedTime.ClockSeconds;
 
-                if (Car.EngineType == Orts.Simulation.RollingStocks.TrainCar.EngineTypes.Steam) // Steam locomotive so set up different speeds for different driver and non-driver wheels
+                if (Car.EngineType == EngineType.Steam) // Steam locomotive so set up different speeds for different driver and non-driver wheels
                 {
                     distanceTravelledM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
                     distanceTravelledDrivenM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedSlipMpS * (float)elapsedTime.ClockSeconds;
@@ -744,7 +758,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 distanceTravelledM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 distanceTravelledDrivenM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 // Set values of wheel radius - assume that drive wheel and non driven wheel are same sizes
-                if (Car.EngineType == Orts.Simulation.RollingStocks.TrainCar.EngineTypes.Steam) // set values for steam stock
+                if (Car.EngineType == EngineType.Steam) // set values for steam stock
                 {
                     AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
                     AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM;
@@ -793,20 +807,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // truck angle animation
             foreach (var p in Car.Parts)
             {
-                if (p.iMatrix <= 0)
+                if (p.Matrix <= 0)
                     continue;
                 Matrix m = Matrix.Identity;
-                m.Translation = TrainCarShape.SharedShape.Matrices[p.iMatrix].Translation;
+                m.Translation = TrainCarShape.SharedShape.Matrices[p.Matrix].Translation;
                 m.M11 = p.Cos;
                 m.M13 = p.Sin;
                 m.M31 = -p.Sin;
                 m.M33 = p.Cos;
 
                 // To cancel out any vibration, apply the inverse here. If no vibration is present, this matrix will be Matrix.Identity.
-                TrainCarShape.XNAMatrices[p.iMatrix] = Car.VibrationInverseMatrix * m;
+                TrainCarShape.XNAMatrices[p.Matrix] = Car.VibrationInverseMatrix * m;
             }
 
-            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Car.Simulator.Settings.SimpleControlPhysics)
+            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Viewer.Settings.SimpleControlPhysics)
                 // Place the coupler in the centre of the car
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
             {
@@ -825,12 +839,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 float FuelControllerLevel = 0.0f;
 
                 // For coal load variation on locomotives determine the current fuel level - and whether locomotive is a tender or tank type locomotive.
-                if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSSteamLocomotive)
+                if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSSteamLocomotive)
                 {
 
                     var NonTenderSteamLocomotive = MSTSWagon as MSTSSteamLocomotive;
 
-                    if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == TrainCar.EngineTypes.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0))
+                    if (MSTSWagon.WagonType == WagonType.Tender || MSTSWagon is MSTSLocomotive && (MSTSWagon.EngineType == EngineType.Steam && NonTenderSteamLocomotive.IsTenderRequired == 0.0))
                     {
 
                         if (MSTSWagon.TendersSteamLocomotive == null)
@@ -858,7 +872,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         FreightShape.XNAMatrices[0].M42 = MSTSWagon.FreightAnimMinLevelM + FuelControllerLevel * (MSTSWagon.FreightAnimMaxLevelM - MSTSWagon.FreightAnimMinLevelM);
                     }
                     // reproducing MSTS strange behavior; used to display loco crew when attached to tender
-                    else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender)
+                    else if (MSTSWagon.WagonType == WagonType.Tender)
                     {
                         //freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
                         freightLocation = Car.WorldPosition.ChangeTranslation(0, MSTSWagon.FreightAnimMaxLevelM, 0);
@@ -910,7 +924,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Get the current height above "sea level" for the relevant car
-            Car.CarHeightAboveSeaLevelM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
+            Car.CarHeightAboveSeaLevel = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
@@ -954,9 +968,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontCouplerAnimWidthM,
-                    Y = Car.FrontCouplerAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
+                    X = Car.FrontCouplerAnimation.Width,
+                    Y = Car.FrontCouplerAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM - Car.WagonFrontCouplerCurveExtM)
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -968,7 +982,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarAhead != null) // Display animated coupler if there is a car infront of this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     // If the car ahead does not have an animated coupler then location values will be zero for car ahaead, and no coupler will display. Hence do not correct coupler location 
                     if (Car.CarAhead.RearCouplerLocation != Vector3.Zero)
@@ -982,8 +996,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (absXc > 0.005 || absYc > 0.005 || absZc > 0.005)
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
-                            tileX = Car.CarAhead.RearCouplerLocationTileX;
-                            tileZ = Car.CarAhead.RearCouplerLocationTileZ;
+                            tileX = Car.CarAhead.WorldPosition.TileX;
+                            tileZ = Car.CarAhead.WorldPosition.TileZ;
                         }
                     }
                     couplerShape = FrontCouplerShape;
@@ -1005,9 +1019,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearCouplerAnimWidthM,
-                    Y = Car.RearCouplerAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearCouplerAnimation.Width,
+                    Y = Car.RearCouplerAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM - Car.WagonRearCouplerCurveExtM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 Vector3 placement = PositionCoupler(Car, displacement);
@@ -1018,12 +1032,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
-                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
+                    couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngle) * couplerPosition;
 
                     couplerShape = RearCouplerShape;
                     Car.RearCouplerLocation = couplerPosition.Translation;
-                    Car.RearCouplerLocationTileX = Car.WorldPosition.TileX;
-                    Car.RearCouplerLocationTileZ = Car.WorldPosition.TileZ;
 
                 }
                 else if (RearCouplerOpenShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
@@ -1042,9 +1054,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.FrontAirHoseAnimWidthM,
-                    Y = Car.FrontAirHoseAnimHeightM,
-                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
+                    X = Car.FrontAirHoseAnimation.Width,
+                    Y = Car.FrontAirHoseAnimation.Height,
+                    Z = (Car.FrontCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
                 };
 
                 if (Car.CarAhead != null) // Display animated coupler if there is a car behind this car
@@ -1088,9 +1100,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
-                    X = Car.RearAirHoseAnimWidthM,
-                    Y = Car.RearAirHoseAnimHeightM,
-                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
+                    X = Car.RearAirHoseAnimation.Width,
+                    Y = Car.RearAirHoseAnimation.Height,
+                    Z = -(Car.RearCouplerAnimation.Length + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
                 };
 
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
@@ -1238,7 +1250,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             try
             {
-                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(Viewer, MSTSWagon, smsFilePath));
+                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, smsFilePath));
             }
             catch (Exception error)
             {
@@ -1277,16 +1289,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Trace.TraceWarning("Cannot find track sound file {0}", filename);
                 return;
             }
-            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(Viewer, MSTSWagon, path));
+            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, path));
         }
 
         internal override void Mark()
         {
             TrainCarShape.Mark();
-            if (FreightShape != null)
-                FreightShape.Mark();
-            if (InteriorShape != null)
-                InteriorShape.Mark();
+            FreightShape?.Mark();
+            InteriorShape?.Mark();
+            FreightAnimations?.Mark();
         }
     }
 }

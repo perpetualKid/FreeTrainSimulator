@@ -35,7 +35,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
                 string loadingScreenWide = Simulator.Instance.Route.LoadingScreenWide;
                 loadingScreen = loadingScreenWide ?? loadingScreen;
             }
-            loadingScreen = loadingScreen ?? defaultScreen;
+            loadingScreen ??= defaultScreen;
             string path = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, loadingScreen);
             if (Path.GetExtension(path) == ".dds" && File.Exists(path))
             {

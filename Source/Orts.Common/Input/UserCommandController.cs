@@ -7,7 +7,15 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Input
 {
-    public class UserCommandController<T> where T : Enum
+    /// <summary>
+    /// Non-Generic base class just to enable holder-properties in non-generic types
+    /// </summary>
+    public class UserCommandController
+    {
+        public bool SuppressDownLevelEventHandling { get; set; }
+    }
+
+    public class UserCommandController<T>: UserCommandController where T : Enum
     {
         /// <summary>
         /// https://stackoverflow.com/questions/16968546/assigning-a-method-to-a-delegate-where-the-delegate-has-more-parameters-than-the?noredirect=1&lq=1
@@ -56,7 +64,7 @@ namespace Orts.Common.Input
         }
 
         private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
-        private List<UserCommandController<T>> layeredControllers;
+        private List<UserCommandController<T>> topLayerControllers;
 
         private readonly EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType> configurableUserCommands = new EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType>();
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
@@ -65,10 +73,10 @@ namespace Orts.Common.Input
 
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
+            for (int i = 0; i < (topLayerControllers?.Count ?? 0); i++)
             {
-                layeredControllers[i].Trigger(command, keyEventType, commandArgs, gameTime);
-                if (commandArgs.Handled)
+                topLayerControllers[i].Trigger(command, keyEventType, commandArgs, gameTime);
+                if (topLayerControllers[i].SuppressDownLevelEventHandling || commandArgs.Handled)
                     return;
             }
             configurableUserCommands[command, keyEventType]?.Invoke(commandArgs, gameTime);
@@ -76,10 +84,10 @@ namespace Orts.Common.Input
 
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
         {
-            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
+            for (int i = 0; i < (topLayerControllers?.Count ?? 0); i++)
             {
-                layeredControllers[i].Trigger(command, commandArgs, gameTime, modifier);
-                if (commandArgs.Handled)
+                topLayerControllers[i].Trigger(command, commandArgs, gameTime, modifier);
+                if (topLayerControllers[i].SuppressDownLevelEventHandling || commandArgs.Handled)
                     return;
             }
             commonUserCommandsArgs[command]?.Invoke(commandArgs, gameTime, modifier);
@@ -87,10 +95,10 @@ namespace Orts.Common.Input
 
         internal void Trigger(AnalogUserCommand command, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
+            for (int i = 0; i < (topLayerControllers?.Count ?? 0); i++)
             {
-                layeredControllers[i].Trigger(command, commandArgs, gameTime);
-                if (commandArgs.Handled)
+                topLayerControllers[i].Trigger(command, commandArgs, gameTime);
+                if (topLayerControllers[i].SuppressDownLevelEventHandling || commandArgs.Handled)
                     return;
             }
             analogUserCommandsArgs[command]?.Invoke(commandArgs, gameTime);
@@ -99,25 +107,25 @@ namespace Orts.Common.Input
         #region Layering
         public UserCommandController<T> AddTopLayerController()
         {
-            if (null == layeredControllers)
-                layeredControllers = new List<UserCommandController<T>>();
+            if (null == topLayerControllers)
+                topLayerControllers = new List<UserCommandController<T>>();
             UserCommandController<T> layeredController = new UserCommandController<T>();
-            layeredControllers.Add(layeredController);
+            topLayerControllers.Add(layeredController);
             return layeredController;
         }
 
         public bool RemoveTopLayerController(UserCommandController<T> commandController)
         {
-            return layeredControllers?.Remove(commandController) ?? false;
+            return topLayerControllers?.Remove(commandController) ?? false;
         }
 
         public bool TopLayerControllerBringOnTop(UserCommandController<T> commandController)
         {
             int index;
-            if (layeredControllers?.Count > 1 && (index = layeredControllers.IndexOf(commandController)) > -1)
+            if (topLayerControllers?.Count > 1 && (index = topLayerControllers.IndexOf(commandController)) > -1)
             {
-                layeredControllers.RemoveAt(index);
-                layeredControllers.Add(commandController);
+                topLayerControllers.RemoveAt(index);
+                topLayerControllers.Add(commandController);
                 return true;
             }
             return false;

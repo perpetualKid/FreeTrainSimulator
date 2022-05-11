@@ -87,16 +87,14 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="0.12.11" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.12.11" />
+    <PackageReference Include="GetText.NET" Version="1.1.4" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ActivityRunner\ActivityRunner.csproj" />
     <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+    <ProjectReference Include="..\..\Orts.Graphics\Orts.Graphics.csproj" />
     <ProjectReference Include="..\..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
-    <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
-    <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">

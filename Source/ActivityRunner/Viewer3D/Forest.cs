@@ -50,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D
             MaximumCenterlineOffset = Viewer.Simulator.Route.ForestClearDistance;
             CheckRoadsToo = Viewer.Simulator.Route.RemoveForestTreesFromRoads;
 
-            Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(viewer.Simulator, forest.TreeTexture));
+            Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(forest.TreeTexture));
             Primitive = new ForestPrimitive(Viewer, forest, position, MaximumCenterlineOffset, CheckRoadsToo);
         }
 
@@ -102,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObject forest, in WorldPosition position, out float objectRadius)
         {
             // To get consistent tree placement between sessions, derive the seed from the location.
-            var random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
+            Random random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
             List<TrackVectorSection> sections = new List<TrackVectorSection>();
             objectRadius = (float)Math.Sqrt(forest.ForestArea.Width * forest.ForestArea.Width + forest.ForestArea.Height * forest.ForestArea.Height) / 2;
 
@@ -179,11 +179,13 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < forest.Population; i++)
             {
                 VectorExtension.Transform(
-                    new Vector3((0.5f - (float)random.NextDouble()) * forest.ForestArea.Width, 0, (0.5f - (float)random.NextDouble()) * forest.ForestArea.Height), 
+#pragma warning disable CA5394 // Do not use insecure randomness
+                    new Vector3((0.5f - (float)random.NextDouble()) * forest.ForestArea.Width, 0, (0.5f - (float)random.NextDouble()) * forest.ForestArea.Height),
                     position.XNAMatrix, out Vector3 xnaTreePosition);
 
                 bool onTrack = false;
                 var scale = MathHelper.Lerp(forest.ScaleRange.LowerLimit, forest.ScaleRange.UpperLimit, (float)random.NextDouble());
+#pragma warning restore CA5394 // Do not use insecure randomness
                 var treeSize = new Vector3(forest.TreeSize.Width * scale, forest.TreeSize.Height * scale, 1);
                 var heightComputed = false;
                 if (MaximumCenterlineOffset > 0 && sections != null && sections.Count > 0)
@@ -195,7 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                var trackShape = Viewer.Simulator.TSectionDat.TrackShapes[section.ShapeIndex];
+                                var trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[section.ShapeIndex];
                                 if (trackShape != null && trackShape.TunnelShape)
                                 {
                                     xnaTreePosition.Y = tiles.LoadAndGetElevation(position.TileX, position.TileZ, xnaTreePosition.X, -xnaTreePosition.Z, false);
@@ -240,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SectionMap = new Dictionary<string, List<TrackVectorSection>>();
                 if (MaximumCenterlineOffset > 0)
                 {
-                    foreach (var node in Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes)
+                    foreach (var node in RuntimeData.Instance.TrackDB.TrackNodes)
                     {
                         if (!(node is TrackVectorNode trackVectorNode))
                             continue;
@@ -254,9 +256,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (CheckRoadsToo)
                 {
-                    if (Viewer.Simulator.RoadDatabase != null && Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes != null)
+                    if (RuntimeData.Instance.RoadTrackDB?.TrackNodes != null)
                     {
-                        foreach (var node in Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes)
+                        foreach (var node in RuntimeData.Instance.RoadTrackDB.TrackNodes)
                         {
                             if (!(node is TrackVectorNode trackVectorNode))
                                 continue;
@@ -280,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, int tileX, int tileZ, float treeWidth)
         {
-            trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+            trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
             if (trackSection == null)
                 return false;
             if (trackSection.Curved)
@@ -306,11 +308,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     sectPosition.Z *= -1;
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
+                    trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
                     if (trackSection == null) continue;
-                    var trackSectionLength = GetLength(trackSection);
-                    if (Math.Abs(sectPosToForest.X) > trackSectionLength + toAddX) continue;
-                    if (Math.Abs(sectPosToForest.Z) > trackSectionLength + toAddZ) continue;
+                    if (Math.Abs(sectPosToForest.X) > trackSection.Length + toAddX) 
+                        continue;
+                    if (Math.Abs(sectPosToForest.Z) > trackSection.Length + toAddZ) 
+                        continue;
                     sections.Add(section);
                 }
             }
@@ -353,8 +356,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return false;
             var radiansAlongCurve = (float)Math.Asin(rotated.z / trackSection.Radius);
             var lon = radiansAlongCurve * trackSection.Radius;
-            var trackSectionLength = GetLength(trackSection);
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return false;
 
             return true;
@@ -379,18 +381,12 @@ namespace Orts.ActivityRunner.Viewer3D
             // Calculate distance along and away from the track centerline.
             float lat, lon;
             (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
-            var trackSectionLength = GetLength(trackSection);
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;
-            if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
+            if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)
                 return false;
 
             return true;
-        }
-
-        private static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         public override void Draw()
@@ -432,7 +428,6 @@ namespace Orts.ActivityRunner.Viewer3D
             // Enable alpha blending for everything: this allows distance scenery to appear smoothly.
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
-            graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
@@ -446,6 +441,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
+                    // SamplerStates can only be set after the ShaderPasses.Current.Apply().
+                    graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
+
                     item.RenderPrimitive.Draw();
                 }
             }

@@ -9,14 +9,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class SharedShapeManager
     {
-        private readonly Viewer viewer;
-
-        private readonly Dictionary<string, SharedShape> sharedShapes = new Dictionary<string, SharedShape>();
-        private Dictionary<string, bool> shapeMarks;
+        private readonly Dictionary<string, SharedShape> sharedShapes = new Dictionary<string, SharedShape>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, bool> shapeMarks = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         internal SharedShapeManager(Viewer viewer)
         {
-            this.viewer = viewer;
             SharedShape.Initialize(viewer);
             BaseShape.Initialize(viewer);
         }
@@ -29,7 +26,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (path == null || path == SharedShape.Empty.FilePath)
                 return SharedShape.Empty;
 
-            path = path.ToLowerInvariant();
             if (!sharedShapes.ContainsKey(path))
             {
                 try
@@ -47,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public void Mark()
         {
-            shapeMarks = new Dictionary<string, bool>(sharedShapes.Count);
+            shapeMarks.Clear();
             foreach (var path in sharedShapes.Keys)
                 shapeMarks.Add(path, false);
         }
@@ -61,7 +57,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public void Sweep()
         {
             foreach (var path in shapeMarks.Where(kvp => !kvp.Value).Select(kvp => kvp.Key))
+            {
+                sharedShapes[path].Dispose();
                 sharedShapes.Remove(path);
+            }
         }
 
         public string GetStatus()

@@ -15,22 +15,25 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
-    public class SharedShape
+    public class SharedShape: IDisposable
     {
-        private static readonly List<string> shapeWarnings = new List<string>();
+        private static readonly HashSet<string> shapeWarnings = new HashSet<string>();
 
         // This data is common to all instances of the shape
-        public IList<string> MatrixNames { get; private set; } = new List<string>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> MatrixNames { get; private set; } = new List<string>();
+#pragma warning restore CA1002 // Do not expose generic lists
         public Matrix[] Matrices = Array.Empty<Matrix>();  // the original natural pose for this shape - shared by all instances
         public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
         public int RootSubObjectIndex;
         public string SoundFileName = "";
-        public float BellAnimationFPS = 8;
+        public float CustomAnimationFPS = 8;
 
 
         protected static Viewer viewer;
+        private bool disposedValue;
         public readonly string FilePath;
         public readonly string ReferencePath;
 
@@ -49,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             SharedShape.viewer = viewer;
         }
 
-        public static SharedShape Empty = new SharedShape();
+        public static SharedShape Empty { get; } = new SharedShape();
         /// <summary>
         /// MSTS shape from shape file
         /// </summary>
@@ -58,9 +61,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public SharedShape(string filePath)
         {
             FilePath = filePath;
-            if (filePath.Contains('\0'))
+            if (filePath.Contains('\0', StringComparison.OrdinalIgnoreCase))
             {
-                var parts = filePath.Split('\0');
+                string[] parts = filePath.Split('\0');
                 FilePath = parts[0];
                 ReferencePath = parts[1];
             }
@@ -90,12 +93,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
                 textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;
-                if (FilePath != null && FilePath.Contains("\\global\\")) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
+                if (FilePath != null && FilePath.Contains("\\global\\", StringComparison.OrdinalIgnoreCase))
+                    textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
                 HasNightSubObj = sdFile.Shape.EsdSubObject;
-                if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\"))
+                if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\", StringComparison.OrdinalIgnoreCase))
                     textureFlags |= Helpers.TextureFlags.Underground;
                 SoundFileName = sdFile.Shape.EsdSoundFileName;
-                BellAnimationFPS = sdFile.Shape.EsdBellAnimationFps;
+                CustomAnimationFPS = sdFile.Shape.EsdCustomAnimationFps;
             }
 
             Matrices = sFile.Shape.Matrices.ToArray();
@@ -145,9 +149,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
         }
 
-        public class LodControl
+        public class LodControl: IDisposable
         {
             public DistanceLevel[] DistanceLevels;
+            private bool disposedValue;
 
             public LodControl(Formats.Msts.Models.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
@@ -165,13 +170,36 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 foreach (var dl in DistanceLevels)
                     dl.Mark();
             }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (DistanceLevel distanceLevel in DistanceLevels)
+                        {
+                            distanceLevel.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
-        public class DistanceLevel
+        public class DistanceLevel: IDisposable
         {
             public float ViewingDistance;
             public float ViewSphereRadius;
             public SubObject[] SubObjects;
+            private bool disposedValue;
 
             public DistanceLevel(Formats.Msts.Models.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
@@ -203,9 +231,31 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 foreach (var so in SubObjects)
                     so.Mark();
             }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (SubObject subObject in SubObjects)
+                        {
+                            subObject.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
-        public class SubObject
+        public class SubObject: IDisposable
         {
             private static readonly SceneryMaterialOptions[] UVTextureAddressModeMap = new[] {
                 SceneryMaterialOptions.TextureAddressModeWrap,
@@ -233,6 +283,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             };
 
             public ShapePrimitive[] ShapePrimitives;
+            private bool disposedValue;
 
 #if DEBUG_SHAPE_HIERARCHY
             public SubObject(sub_object sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, int subObjectIndex, SFile sFile, SharedShape sharedShape)
@@ -280,7 +331,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                                 hierarchyIndex = hierarchy[hierarchyIndex];
                             }
                             hierarchyList.Add(hierarchyIndex);
-                            Trace.TraceWarning("Ignored invalid primitive hierarchy {1} in shape {0}", sharedShape.FilePath, String.Join(" ", hierarchyList.Select(hi => hi.ToString()).ToArray()));
+                            Trace.TraceWarning("Ignored invalid primitive hierarchy {1} in shape {0}", sharedShape.FilePath, string.Join(" ", hierarchyList.Select(hi => $"{hi}").ToArray()));
                             break;
                         }
                         hierarchyIndex = hierarchy[hierarchyIndex];
@@ -326,9 +377,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         var texture = sFile.Shape.Textures[primitiveState.TextureIndices[0]];
                         var imageName = sFile.Shape.ImageNames[texture.ImageIndex];
                         if (String.IsNullOrEmpty(sharedShape.ReferencePath))
-                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, textureFlags, imageName), (int)options, texture.MipMapLODBias);
+                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(textureFlags, imageName), (int)options, texture.MipMapLODBias);
                         else
-                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(viewer.Simulator, textureFlags, sharedShape.ReferencePath, imageName), (int)options, texture.MipMapLODBias);
+                            material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(textureFlags, sharedShape.ReferencePath, imageName), (int)options, texture.MipMapLODBias);
                     }
                     else
                     {
@@ -425,6 +476,28 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 foreach (var prim in ShapePrimitives)
                     prim.Mark();
             }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (ShapePrimitive shapePrimitive in ShapePrimitives)
+                        {
+                            shapePrimitive.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         public class VertexBufferSet
@@ -519,12 +592,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             PrepareFrame(frame, location, Matrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags, bool[] matrixVisible = null)
         {
-            PrepareFrame(frame, location, animatedXNAMatrices, null, flags);
+            PrepareFrame(frame, location, animatedXNAMatrices, null, flags, matrixVisible);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags, bool[] matrixVisible = null)
         {
             var lodBias = ((float)viewer.Settings.LODBias / 100 + 1);
 
@@ -575,9 +648,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     ? lodControl.DistanceLevels[lodControl.DistanceLevels.Length - 1]
                     : displayDetail;
 
-                // If set, extend the lowest LOD to the maximum viewing distance.
-                if (viewer.Settings.LODViewingExtention && displayDetailLevel == lodControl.DistanceLevels.Length - 1)
-                    distanceDetail.ViewingDistance = float.MaxValue;
+                distanceDetail.ViewingDistance = float.MaxValue;
 
                 for (var i = 0; i < displayDetail.SubObjects.Length; i++)
                 {
@@ -591,6 +662,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     {
                         Matrix startingPoint = Matrix.Identity;
                         var hi = shapePrimitive.HierarchyIndex;
+                        if (matrixVisible != null && !matrixVisible[hi])
+                            continue;
                         while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length)
                         {
                             startingPoint = MatrixExtension.Multiply(in startingPoint, in animatedXNAMatrices[hi]);
@@ -629,6 +702,28 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             viewer.ShapeManager.Mark(this);
             foreach (var lod in LodControls)
                 lod.Mark();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (LodControl lodControl in LodControls)
+                    {
+                        lodControl.Dispose();
+                    }
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 

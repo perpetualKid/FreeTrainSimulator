@@ -216,7 +216,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                             || UnitMetric && speed % 100 == 0
                             || !UnitMetric && speed % 40 == 0)
                         {
-                            var textWidth = FontDialSpeeds.MeasureString(speed.ToString()) / Scale;
+                            var textWidth = FontDialSpeeds.MeasureString($"{speed}") / Scale;
                             GetXY(RadiusText, angle, ref x, ref y);
                             x -= textWidth / 2f * (1f + (float)Math.Sin(angle));
                             y -= textHeight / 2f * (1f - (float)Math.Cos(angle));
@@ -229,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                                     case 140: x += textWidth / 6f; y -= textHeight / 6f; break;
                                 }
 
-                            DialSpeeds.Add(new TextPrimitive(new Point((int)x, (int)y), Color.White, speed.ToString(), FontDialSpeeds));
+                            DialSpeeds.Add(new TextPrimitive(new Point((int)x, (int)y), Color.White, $"{speed}", FontDialSpeeds));
                         }
                     }
                     else
@@ -366,10 +366,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             for (int i = 0, d = 1; i < CurrentSpeed.Length; i++, d *= 10)
             {
                 CurrentSpeed[i].Color = SpeedColor;
-                CurrentSpeed[i].Text = (SpeedText >= d || SpeedText == 0 && d == 1) ? (SpeedText / d % 10).ToString() : String.Empty;
+                CurrentSpeed[i].Text = (SpeedText >= d || SpeedText == 0 && d == 1) ? $"{(SpeedText / d % 10)}" : string.Empty;
             }
 
-            ReleaseSpeed.Text = releaseSpeed > 0 ? releaseSpeed.ToString() : String.Empty;
+            ReleaseSpeed.Text = releaseSpeed > 0 ? $"{releaseSpeed}" : string.Empty;
         }
 
         public override void PrepareFrame(ETCSStatus status)
@@ -539,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             float dist = status.TargetDistanceM.Value;
             
-            var text = (((int)(dist / 10)) * 10).ToString();
+            var text = $"{((int)(dist / 10)) * 10}";
             var fontSize = TargetDistanceFont.MeasureString(text) / Scale;
             TargetDistanceText = new TextPrimitive(new Point((int)(54 - fontSize), (int)(30 - FontHeightTargetDistance) / 2), ColorGrey, text, TargetDistanceFont);
 

@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+
 using Orts.Common;
 using Orts.Settings.Store;
 
@@ -31,7 +32,9 @@ namespace Orts.Settings
 
     public class UserSettings : SettingsBase
     {
-        public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
+        private static readonly string[] subSettings = new string[] { "FolderSettings", "Input", "RailDriver", "Dispatcher" };
+
+    public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
@@ -40,7 +43,9 @@ namespace Orts.Settings
 
         private readonly Dictionary<string, object> customDefaultValues = new Dictionary<string, object>();
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static UserSettings()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             //TODO: user settings (as any other runtime data) may not be saved in exe folder (which might be under \Program Files if installed via installer)
             // default user settings are searched in order: Json, Ini, Registry
@@ -100,8 +105,6 @@ namespace Orts.Settings
         [Default(true)]
         public bool SpeedControl { get; set; }
         [Default(false)]
-        public bool ViewDispatcher { get; set; }
-        [Default(false)]
         public bool GraduatedRelease { get; set; }
         [Default(false)]
         public bool RetainersOnAllCars { get; set; }
@@ -116,7 +119,7 @@ namespace Orts.Settings
         [Default(MeasurementUnit.Route)]
         public MeasurementUnit MeasurementUnit { get; set; }
         [Default(false)]
-        public bool DisableTCSScripts { get; set; }        
+        public bool DisableTCSScripts { get; set; }
         [Default(true)]
         public bool StartGamePaused { get; set; }
 
@@ -133,15 +136,13 @@ namespace Orts.Settings
         public bool FullScreen { get; set; }
         [Default(true)]
         public bool NativeFullscreenResolution { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool DynamicShadows { get; set; }
         [Default(false)]
         public bool ShadowAllShapes { get; set; }
-        [Default(true)]
-        public bool FastFullScreenAltTab { get; set; }
         [Default(false)]
         public bool WindowGlass { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool ModelInstancing { get; set; }
         [Default(true)]
         public bool Wire { get; set; }
@@ -167,6 +168,18 @@ namespace Orts.Settings
         public string WindowSize { get; set; }
         [Default(20)]
         public int DayAmbientLight { get; set; }
+        #region Game Window Settings
+        [Default(new string[]
+        {
+            nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen, centered
+            nameof(WindowSetting.Size) + "=1024, 768"    // absolute pixels
+        })]
+        public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
+
+        [Default(-1)]
+        public int WindowScreen { get; set; }
+
+        #endregion
 
         // Simulation settings:
         [Default(true)]
@@ -176,15 +189,7 @@ namespace Orts.Settings
         [Default(false)]
         public bool BreakCouplers { get; set; }
         [Default(false)]
-        public bool CurveResistanceDependent { get; set; }
-        [Default(false)]
         public bool CurveSpeedDependent { get; set; }
-        [Default(false)]
-        public bool TunnelResistanceDependent { get; set; }
-        [Default(false)]
-        public bool WindResistanceDependent { get; set; }
-        [Default(false)]
-        public bool OverrideNonElectrifiedRoutes { get; set; }
         [Default(true)]
         public bool HotStart { get; set; }
         [Default(true)]
@@ -231,7 +236,6 @@ namespace Orts.Settings
         public bool UpdatePreReleases { get; set; }
         #endregion
 
-
         // Timetable settings:
         [Default(true)]
         public bool TTUseRestartDelays { get; set; }
@@ -262,10 +266,6 @@ namespace Orts.Settings
         [Default(false)]
         public bool AuxActionEnabled { get; set; }
         [Default(false)]
-        public bool CircularSpeedGauge { get; set; }
-        [Default(false)]
-        public bool LODViewingExtention { get; set; }
-        [Default(false)]
         public bool PreferDDSTexture { get; set; }
         [Default(false)]
         public bool UseLocationPassingPaths { get; set; }
@@ -281,8 +281,6 @@ namespace Orts.Settings
         public bool AdhesionProportionalToWeather { get; set; }
         [Default(false)]
         public bool NoForcedRedAtStationStops { get; set; }
-        [Default(false)]
-        public bool ConditionalLoadOfDayOrNightTextures { get; set; }
         [Default(100)]
         public int PrecipitationBoxHeight { get; set; }
         [Default(500)]
@@ -370,6 +368,8 @@ namespace Orts.Settings
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_TrainOperations { get; set; }
         [Default(new[] { 50, 50 })]
+        public int[] WindowPosition_TrainDpu { get; set; }
+        [Default(new[] { 50, 50 })]
         public int[] WindowPosition_CarOperations { get; set; }
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_ComposeMessage { get; set; }
@@ -380,7 +380,6 @@ namespace Orts.Settings
         [Default(false)]
         [DoNotSave]
         public bool MultiplayerClient { get; set; }
-
         #endregion
 
         public FolderSettings FolderSettings { get; private set; }
@@ -389,11 +388,13 @@ namespace Orts.Settings
 
         public RailDriverSettings RailDriver { get; private set; }
 
+        public DispatcherSettings Dispatcher { get; private set; }
+
         public UserSettings() :
             this(Array.Empty<string>())
         { }
 
-        public UserSettings(IEnumerable<string> options) : 
+        public UserSettings(IEnumerable<string> options) :
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
         }
@@ -408,6 +409,7 @@ namespace Orts.Settings
             FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
+            Dispatcher = new DispatcherSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
@@ -417,16 +419,19 @@ namespace Orts.Settings
             if (customDefaultValues.ContainsKey(property.Name))
                 return customDefaultValues[property.Name];
 
-            if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
-                return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;
-
-            throw new InvalidDataException($"UserSetting {property.Name} has no default value.");
+            object defaultValue = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value;
+            Type propertyType = property.PropertyType;
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+            {
+                defaultValue = InitializeEnumArrayDefaults(propertyType, defaultValue);
+            }
+            return defaultValue ?? new InvalidDataException($"UserSetting {property.Name} has no default value.");
         }
 
         protected override PropertyInfo[] GetProperties()
         {
             if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+                properties = base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
             return properties;
         }
 
@@ -455,6 +460,7 @@ namespace Orts.Settings
             FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
+            Dispatcher.Save();
             properties = null;
         }
 

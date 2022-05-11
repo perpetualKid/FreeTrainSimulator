@@ -15,16 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using static Orts.Formats.Msts.FolderStructure.ContentFolder;
+using Orts.Common;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
@@ -46,25 +43,25 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             Underground = 0x40000000,
         }
 
-        public static string GetForestTextureFile(Simulator simulator, string textureName)
+        public static string GetForestTextureFile(string textureName)
         {
-            return GetRouteTextureFile(simulator, Helpers.TextureFlags.Spring | Helpers.TextureFlags.Autumn | Helpers.TextureFlags.Winter | Helpers.TextureFlags.SpringSnow | Helpers.TextureFlags.AutumnSnow | Helpers.TextureFlags.WinterSnow, textureName);
+            return GetRouteTextureFile(TextureFlags.Spring | TextureFlags.Autumn | TextureFlags.Winter | TextureFlags.SpringSnow | TextureFlags.AutumnSnow | TextureFlags.WinterSnow, textureName);
         }
 
-        public static string GetNightTextureFile(Simulator simulator, string textureFilePath)
+        public static string GetNightTextureFile(string textureFilePath)
         {
             var texturePath = Path.GetDirectoryName(textureFilePath);
             var textureName = Path.GetFileName(textureFilePath);
             var nightTexturePath = !File.Exists(texturePath + @"\Night\" + textureName) ? Path.GetDirectoryName(texturePath) + @"\Night\" : texturePath + @"\Night\";
 
-            if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && File.Exists(nightTexturePath + textureName))
+            if (!string.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && File.Exists(nightTexturePath + textureName))
             {
                 return nightTexturePath + textureName;
             }
-            else if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
+            else if (!string.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
             {
                 var alternativeTexture = Path.ChangeExtension(nightTexturePath + textureName, ".dds");
-                if (simulator.Settings.PreferDDSTexture && !String.IsNullOrEmpty(alternativeTexture.ToLower()) && File.Exists(alternativeTexture))
+                if (Simulator.Instance.Settings.PreferDDSTexture && !string.IsNullOrEmpty(alternativeTexture) && File.Exists(alternativeTexture))
                 {
                     return alternativeTexture;
                 }
@@ -83,26 +80,27 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             }
         }
 
-        public static string GetRouteTextureFile(Simulator simulator, TextureFlags textureFlags, string textureName)
+        public static string GetRouteTextureFile(TextureFlags textureFlags, string textureName)
         {
-            return GetTextureFile(simulator, textureFlags, simulator.RouteFolder.TexturesFolder, textureName);
+            return GetTextureFile(textureFlags, Simulator.Instance.RouteFolder.TexturesFolder, textureName);
         }
 
-        public static string GetTransferTextureFile(Simulator simulator, string textureName)
+        public static string GetTransferTextureFile(string textureName)
         {
-            return GetTextureFile(simulator, TextureFlags.Snow, simulator.RouteFolder.TexturesFolder, textureName);
+            return GetTextureFile(TextureFlags.Snow, Simulator.Instance.RouteFolder.TexturesFolder, textureName);
         }
 
-        public static string GetTerrainTextureFile(Simulator simulator, string textureName)
+        public static string GetTerrainTextureFile(string textureName)
         {
-            return GetTextureFile(simulator, TextureFlags.Snow, simulator.RouteFolder.TerrainTexturesFolder, textureName);
+            return GetTextureFile(TextureFlags.Snow, Simulator.Instance.RouteFolder.TerrainTexturesFolder, textureName);
         }
 
-        public static string GetTextureFile(Simulator simulator, TextureFlags textureFlags, string texturePath, string textureName)
+        public static string GetTextureFile(TextureFlags textureFlags, string texturePath, string textureName)
         {
             string alternativePath = null;
+            Simulator simulator = Simulator.Instance;
             if ((textureFlags & TextureFlags.Snow) != 0 || (textureFlags & TextureFlags.SnowTrack) != 0)
-                if (IsSnow(simulator))
+                if (IsSnow())
                     alternativePath = "Snow";
             else if ((textureFlags & TextureFlags.Spring) != 0 && simulator.Season == SeasonType.Spring && simulator.WeatherType != WeatherType.Snow)
                 alternativePath = "Spring";
@@ -123,12 +121,12 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 return Path.Combine(texturePath, textureName);
         }
 
-        public static bool IsSnow(Simulator simulator)
+        public static bool IsSnow()
         {
             // MSTS shows snow textures:
             //   - In winter, no matter what the weather is.
             //   - In spring and autumn, if the weather is snow.
-            return (simulator.Season == SeasonType.Winter) || ((simulator.Season != SeasonType.Summer) && (simulator.WeatherType == WeatherType.Snow));
+            return (Simulator.Instance.Season == SeasonType.Winter) || ((Simulator.Instance.Season != SeasonType.Summer) && (Simulator.Instance.WeatherType == WeatherType.Snow));
         }
 
         private static readonly Dictionary<string, SceneryMaterialOptions> TextureAddressingModeNames = new Dictionary<string, SceneryMaterialOptions> {

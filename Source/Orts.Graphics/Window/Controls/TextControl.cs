@@ -1,9 +1,5 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
+﻿using System.Drawing;
 
-using Microsoft.Xna.Framework.Graphics;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls
@@ -18,7 +14,7 @@ namespace Orts.Graphics.Window.Controls
         {
         }
 
-        public override void Initialize()
+        internal override void Initialize()
         {
             base.Initialize();
         }

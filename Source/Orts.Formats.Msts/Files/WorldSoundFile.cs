@@ -18,6 +18,7 @@
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -27,7 +28,7 @@ namespace Orts.Formats.Msts.Files
     {
         public TrackItemSound TrackItemSound { get; private set; }
 
-        public WorldSoundFile(string fileName, TrackItem[] trItems)
+        public WorldSoundFile(string fileName, int trackItemsCount)
         {
             if (File.Exists(fileName))
             {
@@ -35,7 +36,7 @@ namespace Orts.Formats.Msts.Files
                 using (STFReader stf = new STFReader(fileName, false))
                 {
                     stf.ParseFile(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tr_worldsoundfile", ()=>{ TrackItemSound = new TrackItemSound(stf, trItems); }),
+                        new STFReader.TokenProcessor("tr_worldsoundfile", ()=>{ TrackItemSound = new TrackItemSound(stf, trackItemsCount); }),
                     });
                     if (TrackItemSound == null)
                         STFException.TraceWarning(stf, "Missing TR_WorldSoundFile statement");

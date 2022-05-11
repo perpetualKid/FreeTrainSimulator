@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.IO;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Xna;
-using Orts.Formats.Msts;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.Formats.OR.Models
@@ -12,8 +12,6 @@ namespace Orts.Formats.OR.Models
     public abstract class WeatherCondition
     {
         public float Time { get; protected set; }               // time of change
-
-        private static Random random { get; } = new Random();
 
         internal protected virtual bool TryParse(JsonReader reader)
         {
@@ -31,12 +29,12 @@ namespace Orts.Formats.OR.Models
         }
 
         // check value, set random value if allowed and value not set
-        protected float CheckValue(float value, bool randomize, float minValue, float maxValue, TimeSpan duration, string description)
+        protected static float CheckValue(float value, bool randomize, float minValue, float maxValue, TimeSpan duration, string description)
         {
             // overcast
             if (value < 0 && randomize)
             {
-                value = (random.Next((int)maxValue * 100) / 100);  // ensure there is a value if range is 0 - 1
+                value = StaticRandom.Next((int)(maxValue * 100)) / 100f;  // ensure there is a value if range is 0 - 1
             }
             else
             {

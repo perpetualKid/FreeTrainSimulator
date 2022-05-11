@@ -33,23 +33,23 @@ namespace Orts.ContentManager.Models
 
     public class Car
     {
-        public readonly CarType Type;
-        public readonly string Name;
-        public readonly string Description;
+        public CarType Type { get; }
+        public string Name { get; }
+        public string Description { get; }
 
-        public Car(Content content)
+        public Car(ContentBase content)
         {
-            Debug.Assert(content.Type == ContentType.Car);
+            Debug.Assert(content?.Type == ContentType.Car);
             if (System.IO.Path.GetExtension(content.PathName).Equals(".eng", StringComparison.OrdinalIgnoreCase))
             {
-                var file = new EngineFile(content.PathName);
+                EngineFile file = new EngineFile(content.PathName);
                 Type = CarType.Engine;
                 Name = file.Name;
                 Description = file.Description;
             }
             else if (System.IO.Path.GetExtension(content.PathName).Equals(".wag", StringComparison.OrdinalIgnoreCase))
             {
-                var file = new WagonFile(content.PathName);
+                WagonFile file = new WagonFile(content.PathName);
                 Type = CarType.Wagon;
                 Name = file.Name;
                 Description = "";

@@ -9,12 +9,12 @@
     //================================================================================================//
     internal class Milepost
     {
-        public uint TrackItemId { get; }
+        public int TrackItemId { get; }
         public int TrackCircuitReference { get; private set; } = -1;
         public float TrackCircuitOffset { get; private set; }
         public float Value { get; }
 
-        public Milepost(uint trItemId, float value)
+        public Milepost(int trItemId, float value)
         {
             TrackItemId = trItemId;
             Value = value;

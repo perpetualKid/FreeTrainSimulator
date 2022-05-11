@@ -39,8 +39,8 @@ namespace Orts.Simulation.RollingStocks
     public class MSTSControlTrailerCar : MSTSLocomotive
     {
 
-        public MSTSControlTrailerCar(Simulator simulator, string wagFile): 
-            base(simulator, wagFile)
+        public MSTSControlTrailerCar(string wagFile): 
+            base(wagFile)
         {
 
             PowerSupply = new ScriptedControlCarPowerSupply(this);

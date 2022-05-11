@@ -18,35 +18,35 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+
 using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing
 {
-    
+
     /// <summary>
     /// Class to define common methods related to autoconnecting a path. Autoconnecting means really searching
     /// for a possible connection between two nodes, and creating the path if the user wants to.
     /// </summary>
-    public class AutoConnectTools
+    internal class AutoConnectTools
     {
         /// <summary>The list/collection of junction indexes that are not allowed during path auto-fixing</summary>
-        private Collection<int> DisAllowedJunctionIndexes { get; set; }
+        private Collection<int> DisAllowedJunctionIndexes { get; }
 
         /// <summary>maximum number of nodes we will try before we conclude not reconnection is possible.</summary>
         protected const int maxNumberNodesToCheckForAutoFix = 20;
 
         /// <summary>The node that is connected from, does that need to be reverse to enable the connection?</summary>
-        protected bool FromNodeNeedsReverse;
+        protected bool FromNodeNeedsReverse { get; set; }
         /// <summary>The node that is connected to, does that need to be reverse to enable the connection?</summary>
-        protected bool ToNodeNeedsReverse;
+        protected bool ToNodeNeedsReverse { get; set; }
 
         /// <summary>Returns the node that is being used for reconnecting, once a connection has been found</summary>
-        public TrainpathNode ReconnectTrainpathNode { get { return autoConnectToNodeOptions.ActualReconnectNode.OriginalNode; } }
+        public TrainpathNode ReconnectTrainpathNode => autoConnectToNodeOptions.ActualReconnectNode.OriginalNode;
 
         #region private members to store the path
         /// <summary>List of TVNs that describe how to connect two nodes (via which TrackVectorNodes the connection is made)</summary>
-        private List<int> linkingTvns;
+        private readonly List<int> linkingTvns;
 
         /// <summary>True when the connection is made on the same track from one vector node to the next</summary>
         private bool sameTrackConnect;
@@ -79,7 +79,7 @@ namespace ORTS.TrackViewer.Editing
         {
             DisAllowedJunctionIndexes.Add(junctionIndex);
         }
-  
+
         /// <summary>
         /// Try to find a connection between two given nodes. Depth-first search via main track at junctions.
         /// Also reversing the start or reconnectNode is tried, in case one of these nodes has a non-defined orientation 
@@ -108,7 +108,7 @@ namespace ORTS.TrackViewer.Editing
             // We try to find a connection between two non-broken nodes.
             // We store the connection as a stack of linking tvns (track-node-vector-indexes)
             // The connection will only contain junctions (apart from maybe start and end=reconnect nodes)
-            
+
             autoConnectFromNode = new ConnectableNode(fromNode, true, true);
             autoConnectToNodeOptions = new ReconnectNodeOptions(true);
             autoConnectToNodeOptions.AddNode(toNode, false); // only one option here
@@ -172,7 +172,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="modificationTools">The tool set that is used to actually modify the path</param>
         /// <param name="isMainPath">Do we add the node to the main path or not</param>
-        public void CreateFoundConnection(ModificationTools modificationTools, bool isMainPath)
+        internal void CreateFoundConnection(ModificationTools modificationTools, bool isMainPath)
         {
             CreateFoundConnection(modificationTools, isMainPath, false);
         }
@@ -183,8 +183,11 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="modificationTools">The tool set that is used to actually modify the path</param>
         /// <param name="isMainPath">Do we add the node to the main path or not</param>
         /// <param name="isFromNodeDirectionOK">Set this to true when the FromNode has already been set to correct orientation elsewhere</param>
-        public void CreateFoundConnection(ModificationTools modificationTools, bool isMainPath, bool isFromNodeDirectionOK)
+        internal void CreateFoundConnection(ModificationTools modificationTools, bool isMainPath, bool isFromNodeDirectionOK)
         {
+            if (null == modificationTools)
+                throw new ArgumentNullException(nameof(modificationTools));
+
             ConnectableNode autoConnectToNode = autoConnectToNodeOptions.ActualReconnectNode;
 
 
@@ -205,9 +208,9 @@ namespace ORTS.TrackViewer.Editing
                 autoConnectFromNode = swap;
             }
 
-            
+
             TrainpathNode currentNode = autoConnectFromNode.OriginalNode;
-            
+
             if ((currentNode is TrainpathVectorNode) && !sameTrackConnect)
             {   // in case the first node is a vector node (and not a direct connect), go to its junction first
                 currentNode = modificationTools.AddAdditionalNode(currentNode, isMainPath);
@@ -239,11 +242,11 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="searchForward">Do you want the reconnect nodes forward or backwards along the path?</param>
         /// <param name="includeLastVectorNode">Is a vectorNode (start, end, wait, reverse) allowed?</param>
         /// <returns>List of possible reconnect nodes. Might be empty</returns>
-        public List<TrainpathNode> FindReconnectNodeCandidates(TrainpathNode startNode, bool searchForward, bool includeLastVectorNode)
+        public static Collection<TrainpathNode> FindReconnectNodeCandidates(TrainpathNode startNode, bool searchForward, bool includeLastVectorNode)
         {
-            List<TrainpathNode> reconnectNodeCandidates = new List<TrainpathNode>();
+            Collection<TrainpathNode> reconnectNodeCandidates = new Collection<TrainpathNode>();
 
-            TrainpathNode mainNode = startNode;
+            TrainpathNode mainNode = startNode ?? throw new ArgumentNullException(nameof(startNode));
             //follow the train path and see what we find
             while (true)
             {
@@ -325,7 +328,7 @@ namespace ORTS.TrackViewer.Editing
             bool foundConnection = autoConnectToNodeOptions.FoundConnectionSameTrack(autoConnectFromNode, firstTvnIndex);
             return foundConnection;
         }
-            
+
         /// <summary>
         /// Try to find a connection. Depth-first search via main track at junctions. Stores the found connection in a list of 
         /// TrackNodeVectorIndexes (tvn's). No reversing of the nodes will be allowed. 
@@ -338,9 +341,10 @@ namespace ORTS.TrackViewer.Editing
         {
             linkingTvns.Clear();
             sameTrackConnect = false;
-            
+
             int firstJunctionIndex = autoConnectFromNode.ConnectingJunctionIndex;
-            if (DisAllowedJunctionIndexes.Contains(firstJunctionIndex)) {
+            if (DisAllowedJunctionIndexes.Contains(firstJunctionIndex))
+            {
                 return false;
             }
 
@@ -426,7 +430,7 @@ namespace ORTS.TrackViewer.Editing
 
             return succeeded;
         }
-        
+
         /// <summary>
         /// Can a node in a path be reversed without breaking something?
         /// </summary>
@@ -463,7 +467,7 @@ namespace ORTS.TrackViewer.Editing
 
             return incomingAllowsReversal && outgoingAllowsReversal;
         }
-        
+
         #endregion
 
         #region debug methods
@@ -472,7 +476,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public string LinkingTvnsAsString()
         {
-            return String.Join(",", this.linkingTvns.Select(o => o.ToString()).ToArray());
+            return string.Join(",", linkingTvns.Select(o => $"{o}").ToArray());
         }
         #endregion
     }
@@ -483,12 +487,12 @@ namespace ORTS.TrackViewer.Editing
     /// This allows the Start node to be changed (e.g. regarding exact location on track, or perhaps moved to another
     /// track), and still be able to find reconnections.
     /// </summary>
-    public class ContinuousAutoConnecting:AutoConnectTools
+    internal class ContinuousAutoConnecting : AutoConnectTools
     {
         /// <summary>The Start/From node needs to be reversed to be able to make the connection</summary>
-        public bool NeedsReverse { get { return this.FromNodeNeedsReverse;} }
+        public bool NeedsReverse => FromNodeNeedsReverse;
         /// <summary>The connection is made forward along the path from the Start/From node</summary>
-        private bool isForward;
+        private readonly bool isForward;
 
         //static Dictionary<bool, Drawing.DebugWindow> debugWindows = new Dictionary<bool, Drawing.DebugWindow>();
         //static ContinuousAutoConnecting()
@@ -506,8 +510,8 @@ namespace ORTS.TrackViewer.Editing
         public ContinuousAutoConnecting(TrainpathNode startNode, bool isConnectingForward)
         {
             isForward = isConnectingForward;
-            List<TrainpathNode> reconnectNodes = this.FindReconnectNodeCandidates(startNode, isConnectingForward, true);
-            
+            Collection<TrainpathNode> reconnectNodes = FindReconnectNodeCandidates(startNode, isConnectingForward, true);
+
             autoConnectToNodeOptions = new ReconnectNodeOptions(isConnectingForward);
             int count = 0;
             foreach (TrainpathNode node in reconnectNodes)

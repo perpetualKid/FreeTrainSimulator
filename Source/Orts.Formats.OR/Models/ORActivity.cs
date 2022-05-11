@@ -20,7 +20,6 @@ namespace Orts.Formats.OR.Models
         {
             // General TAB
             public int GraduatedBrakeRelease { get; internal set; } = -1;
-            public int ViewDispatcherWindow { get; internal set; } = -1;
             public int RetainersOnAllCars { get; internal set; } = -1;
             public int SoundSpeedControl { get; internal set; } = -1;
 
@@ -64,7 +63,6 @@ namespace Orts.Formats.OR.Models
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 // General TAB
                 new STFReader.TokenProcessor("ortsgraduatedbrakerelease", ()=>{ Options.GraduatedBrakeRelease = stf.ReadIntBlock(Options.GraduatedBrakeRelease); IsActivityOverride = true; }),
-                new STFReader.TokenProcessor("ortsviewdispatchwindow", ()=>{ Options.ViewDispatcherWindow = stf.ReadIntBlock(Options.ViewDispatcherWindow); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortsretainersonallcars", ()=>{ Options.RetainersOnAllCars = stf.ReadIntBlock(Options.RetainersOnAllCars); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortssoundspeedcontrol", ()=>{ Options.SoundSpeedControl = stf.ReadIntBlock(Options.SoundSpeedControl); IsActivityOverride = true; }),
 

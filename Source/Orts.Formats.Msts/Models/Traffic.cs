@@ -17,7 +17,9 @@ namespace Orts.Formats.Msts.Models
     {
         public string Name { get; private set; }
         public int Serial { get; private set; }
-        public IList<ServiceTraffics> ServiceTraffics { get; } = new List<ServiceTraffics>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<ServiceTraffics> ServiceTraffics { get; } = new List<ServiceTraffics>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal ServiceTraffic(STFReader stf)
         {
@@ -205,7 +207,9 @@ namespace Orts.Formats.Msts.Models
     {
         public string Name { get; private set; }
         public TrafficFile TrafficFile { get; private set; }
-        public IList<Services> Services { get; } = new List<Services>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<Services> Services { get; } = new List<Services>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal Traffic(STFReader stf)
         {

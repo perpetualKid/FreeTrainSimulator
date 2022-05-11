@@ -1,5 +1,7 @@
 ﻿using System;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -24,13 +26,13 @@ namespace Orts.Graphics.Window
 
         public WindowManager Owner { get; }
 
-        protected bool Dragged { get; private set; }
+        protected bool CapturedForDragging { get; private set; }
 
         public ref readonly Rectangle Borders => ref borderRect;
 
         public ref readonly Point RelativeLocation => ref location;
 
-        public string Caption { get; }
+        public string Caption { get; protected set; }
 
         public event EventHandler OnWindowClosed;
 
@@ -40,12 +42,17 @@ namespace Orts.Graphics.Window
 
         public int ZOrder { get; protected set; }
 
-        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
+        internal ControlLayout CapturedControl { get; set; }
+
+        public Catalog Catalog { get; }
+
+        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog = null)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = relativeLocation;
             borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
-            Caption = caption;
+            Catalog = catalog ?? CatalogManager.Catalog;
+            Caption = catalog?.GetString(caption) ?? caption;
         }
 
         internal protected virtual void Initialize()
@@ -64,14 +71,21 @@ namespace Orts.Graphics.Window
             OnWindowClosed?.Invoke(this, EventArgs.Empty);
             return Owner.CloseWindow(this);
         }
-        
-        public virtual bool ToggleVisibility()
+
+        public virtual void ToggleVisibility()
         {
-            return Owner.ToggleWindow(this);
+            if (Owner.WindowOpen(this))
+                Close();
+            else
+                Open();
         }
+
+        public virtual void TabAction(UserCommandArgs args)
+        { }
 
         internal protected virtual void Update(GameTime gameTime)
         {
+            windowLayout.Update(gameTime);
         }
 
         internal protected virtual void WindowDraw()
@@ -99,6 +113,21 @@ namespace Orts.Graphics.Window
         protected virtual void SizeChanged()
         {
             Resize();
+        }
+
+        protected void Resize(Point size)
+        {
+            borderRect.Size = new Point((int)(size.X * Owner.DpiScaling), (int)(size.Y * Owner.DpiScaling));
+            UpdateLocation();
+            Resize();
+        }
+
+        protected void Relocate(Point location)
+        {
+            this.location = new Point(
+                (int)Math.Round(100.0 * location.X / (Owner.ClientBounds.Width - borderRect.Width)),
+                (int)Math.Round(100.0 * location.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+            UpdateLocation();
         }
 
         private void Resize()
@@ -131,24 +160,39 @@ namespace Orts.Graphics.Window
 
         internal void HandleMouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)
         {
-            _ = position;
-            _ = keyModifiers;
-
-            borderRect.Offset(delta.ToPoint());
-            location = new Point(
-                (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
-                (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
-            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
-            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
-            xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
-            Dragged = true;
+            if (CapturedForDragging || !windowLayout.HandleMouseDrag(new WindowMouseEvent(this, position, delta, keyModifiers)))
+            {
+                borderRect.Offset(delta.ToPoint());
+                location = new Point(
+                    (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
+                    (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+                borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
+                borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
+                xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
+                CapturedForDragging = true;
+            }
         }
 
         internal void HandleMouseReleased(Point position, KeyModifiers keyModifiers)
         {
-            if (!Dragged)
-                windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
-            Dragged = false;
+            if (!CapturedForDragging)
+                windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+            CapturedForDragging = false;
+        }
+
+        internal void HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
+        {
+            windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
+        }
+
+        internal void HandleMouseClicked(Point position, KeyModifiers keyModifiers)
+        { 
+            windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+        }
+
+        internal void HandleMouseDown(Point position, KeyModifiers keyModifiers)
+        {
+            windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         internal protected void Layout()
@@ -159,11 +203,19 @@ namespace Orts.Graphics.Window
             this.windowLayout = windowLayout;
         }
 
-        protected virtual ControlLayout Layout(ControlLayout layout)
+        protected internal virtual void FocusSet()
+        { }
+
+        protected internal virtual void FocusLost()
+        { }
+
+        protected virtual ControlLayout Layout(ControlLayout layout, float headerScaling = 1.0f)
         {
+            System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold, Color.White));
+            Label headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, HorizontalAlignment.Center, headerFont, Color.White);
+            layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
             return layout;
         }
@@ -172,29 +224,29 @@ namespace Orts.Graphics.Window
         {
             if (windowVertexBuffer == null)
             {
-                // Edges/corners are 32px (1/4th texture image size).
-                int gp = 32; 
+                // Edges/corners size. 32px is 1/4th texture image size
+                int gp = Math.Min(24, borderRect.Height / 2);
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + 00, 0), new Vector2(0.75f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + 00, 0), new Vector2(1.00f / 2, 0.00f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + 00, 0), new Vector2(0.25f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + 00, 0), new Vector2(0.75f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + 00, 0), new Vector2(1.00f / 2.001f, 0.00f / 1.001f)),
 					//  4  5  6  7
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + gp, 0), new Vector2(0.00f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + gp, 0), new Vector2(0.25f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + gp, 0), new Vector2(0.75f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + gp, 0), new Vector2(1.00f / 2, 0.25f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + gp, 0), new Vector2(0.00f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + gp, 0), new Vector2(0.25f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + gp, 0), new Vector2(0.75f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + gp, 0), new Vector2(1.00f / 2.001f, 0.25f / 1.001f)),
 					//  8  9 10 11
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - gp, 0), new Vector2(0.00f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - gp, 0), new Vector2(0.25f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - gp, 0), new Vector2(0.75f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - gp, 0), new Vector2(1.00f / 2, 0.75f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - gp, 0), new Vector2(0.00f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - gp, 0), new Vector2(0.25f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - gp, 0), new Vector2(0.75f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - gp, 0), new Vector2(1.00f / 2.001f, 0.75f / 1.001f)),
 					// 12 13 14 15
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - 00, 0), new Vector2(0.00f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - 00, 0), new Vector2(0.25f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - 00, 0), new Vector2(0.00f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - 00, 0), new Vector2(0.25f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - 00, 0), new Vector2(0.75f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - 00, 0), new Vector2(1.00f / 2.001f, 1.00f / 1.001f)),
                 };
                 windowVertexBuffer = new VertexBuffer(Owner.Game.GraphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
                 windowVertexBuffer.SetData(vertexData);

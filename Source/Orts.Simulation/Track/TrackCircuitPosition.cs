@@ -57,9 +57,9 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            TrackNode tn = train.FrontTDBTraveller.TN;
+            TrackNode tn = train.FrontTDBTraveller.TrackNode;
             float offset = train.FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction.Reverse();
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
             tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
@@ -89,9 +89,9 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            TrackNode tn = train.RearTDBTraveller.TN;
+            TrackNode tn = train.RearTDBTraveller.TrackNode;
             float offset = train.RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction.Reverse();
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
             tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
@@ -224,7 +224,7 @@ namespace Orts.Simulation.Track
             if (null == trackCircuitCrossReferecenList)
                 throw new ArgumentNullException(nameof(trackCircuitCrossReferecenList));
 
-            int crossRefIndex = trackCircuitCrossReferecenList.GetCrossReferenceIndex(offset, (int)direction);
+            int crossRefIndex = trackCircuitCrossReferecenList.GetCrossReferenceIndex(offset, direction);
 
             if (crossRefIndex < 0)
                 return;
@@ -232,7 +232,7 @@ namespace Orts.Simulation.Track
             TrackCircuitSectionCrossReference crossReference = trackCircuitCrossReferecenList[crossRefIndex];
             TrackCircuitSectionIndex = crossReference.Index;
             Direction = direction;
-            Offset = offset - crossReference.OffsetLength[(int)direction];
+            Offset = offset - crossReference.OffsetLength[direction];
         }
     }
 

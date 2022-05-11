@@ -20,9 +20,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 
+using Orts.Common.Calc;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -37,17 +38,14 @@ namespace Orts.Simulation.World
         private readonly Dictionary<int, Hazard> currentHazards;
         private readonly Dictionary<string, HazardFile> hazardFiles;
 
-        public HazardManager(Simulator simulator)
+        public HazardManager()
         {
-            if (null == simulator)
-                throw new ArgumentNullException(nameof(simulator));
-
             currentHazards = new Dictionary<int, Hazard>();
             hazardFiles = new Dictionary<string, HazardFile>();
-            hazards = simulator.TrackDatabase != null && simulator.TrackDatabase.TrackDB != null ? GetHazardsFromDB(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
+            hazards = RuntimeData.Instance.TrackDB != null ? GetHazardsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
         }
 
-        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
+        private static Dictionary<int, Hazard> GetHazardsFromDB(List<TrackNode> trackNodes, List<TrackItem> trItemTable)
         {
             return (from trackNode in trackNodes
                     where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
@@ -70,14 +68,14 @@ namespace Orts.Simulation.World
                 //based on act setting for frequency
                 if (Simulator.Instance.ActivityFile != null)
                 {
-                    if (hazards[itemID].Animal && (RandomNumberGenerator.GetInt32(100) > Simulator.Instance.ActivityFile.Activity.Header.Animals))
+                    if (hazards[itemID].Animal && (StaticRandom.Next(100) > Simulator.Instance.ActivityFile.Activity.Header.Animals))
                         return null;
                 }
                 else //in explore mode
                 {
                     if (!hazards[itemID].Animal)
                         return null;//not show worker in explore mode
-                    if (RandomNumberGenerator.GetInt32(100) > 20)
+                    if (StaticRandom.Next(100) > 20)
                         return null;//show 10% animals
                 }
                 currentHazards.Add(itemID, hazards[itemID]);
@@ -148,9 +146,9 @@ namespace Orts.Simulation.World
 
         public void Update(in WorldLocation playerLocation, int approachDist, int scaredDist)
         {
-            if (State == HazardState.Idle1 && RandomNumberGenerator.GetInt32(10) == 0)
+            if (State == HazardState.Idle1 && StaticRandom.Next(10) == 0)
                 State = HazardState.Idle2;
-            else if (State == HazardState.Idle2 && RandomNumberGenerator.GetInt32(5) == 0)
+            else if (State == HazardState.Idle2 && StaticRandom.Next(5) == 0)
                     State = HazardState.Idle1;
 
             bool within = WorldLocation.Within(Location, playerLocation, scaredDist);

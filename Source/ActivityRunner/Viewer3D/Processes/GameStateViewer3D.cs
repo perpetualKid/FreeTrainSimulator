@@ -22,8 +22,8 @@ using System;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 // We must create these forms on the main thread (Render) or they won't pump events correctly.
 
-                if (MultiPlayerManager.IsMultiPlayer() || Game.Settings.ViewDispatcher)
+                if (MultiPlayerManager.IsMultiPlayer())
                 {
                     Program.DebugViewer = new DispatchViewer(Viewer);
                     Program.DebugViewer.Hide();
@@ -81,8 +81,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Viewer.EndRender(frame);
         }
 
-        internal override void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
+        internal override void Update(RenderFrame frame, GameTime gameTime)
         {
+            double totalRealSeconds = gameTime.TotalGameTime.TotalSeconds;
             // Every 250ms, check for new things to load and kick off the loader.
             if (lastLoadRealTime + 0.25 < totalRealSeconds && Game.LoaderProcess.Finished)
             {
@@ -120,8 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     elapsedRealTime += averageElapsedRealTime[i] / averageElapsedRealTime.Length;
             }
 
-            // TODO: ComputeFPS should be called in UpdaterProcess.Update() but needs delta time.
-            Game.RenderProcess.ComputeFPS(elapsedRealTime);
             Viewer.Update(frame, elapsedRealTime);
         }
 

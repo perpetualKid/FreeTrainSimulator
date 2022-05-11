@@ -92,10 +92,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             if (ssb is TrackSoundSource)
                             {
                                 var ts = (TrackSoundSource)ssb;
-                                if (ts._activeInSource != null)
-                                    AddToForm (ts._activeInSource);
-                                if (ts._activeOutSource != null)
-                                    AddToForm(ts._activeOutSource);
+                                if (ts.ActiveInSource != null)
+                                    AddToForm (ts.ActiveInSource);
+                                if (ts.ActiveOutSource != null)
+                                    AddToForm(ts.ActiveOutSource);
                             }
                     }
 

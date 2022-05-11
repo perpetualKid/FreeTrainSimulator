@@ -42,7 +42,7 @@ namespace ORTS.TrackViewer.UserInterface
     public static class TVUserInput
     {
         /// <summary>Boolean describing whether the keyboard and/or mouse state has been changed</summary>
-        public static bool Changed;  // flag UpdaterProcess that its time to handle keyboard input
+        public static bool Changed { get; private set; }  // flag UpdaterProcess that its time to handle keyboard input
                                      //public static bool ComposingMessage;
 
         private static KeyboardState KeyboardState;
@@ -51,19 +51,20 @@ namespace ORTS.TrackViewer.UserInterface
         private static MouseState LastMouseState;
 
         /// <summary>Return the current x-location of the mouse pointer</summary>
-        public static int MouseLocationX { get { return MouseState.X; } }
+        public static int MouseLocationX => MouseState.X;
         /// <summary>Return the current y-location of the mouse pointer</summary>
-        public static int MouseLocationY { get { return MouseState.Y; } }
+        public static int MouseLocationY => MouseState.Y;
 
         [DllImport("user32.dll")]
+#pragma warning disable CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
         private static extern short GetAsyncKeyState(Keys key);
+#pragma warning restore CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
 
         /// <summary>
         /// Call this to update the mouse and keyboard states.
         /// </summary>
         public static void Update()
         {
-            //if (MultiPlayer.MPManager.IsMultiPlayer() && MultiPlayer.MPManager.Instance().ComposingText) return;
             LastKeyboardState = KeyboardState;
             LastMouseState = MouseState;
             // Make sure we have an "idle" (everything released) keyboard and mouse state if the window isn't active.

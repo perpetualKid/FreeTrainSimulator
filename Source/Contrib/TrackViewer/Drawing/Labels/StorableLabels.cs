@@ -33,11 +33,11 @@ namespace ORTS.TrackViewer.Drawing.Labels
     {
         /// <summary> The 'list' of labels </summary>
         [JsonProperty("LabelList")]
-        public IEnumerable<StorableLabel> Labels { get { return _labels; } }
+        public IEnumerable<StorableLabel> Labels => _labels;
 
         /// <summary> The internal list of labels </summary>
         [JsonIgnore]
-        private List<StorableLabel> _labels = new List<StorableLabel>();
+        private readonly List<StorableLabel> _labels = new List<StorableLabel>();
 
         /// <summary>
         /// Constructor
@@ -51,7 +51,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         /// <param name="text">The text of the label</param>
         public void Add(in WorldLocation location, string text)
         {
-            var newLabel = new StorableLabel(location, text);
+            StorableLabel newLabel = new StorableLabel(location, text);
             _labels.Add(newLabel);
         }
 
@@ -97,15 +97,16 @@ namespace ORTS.TrackViewer.Drawing.Labels
     /// <summary>
     /// Struct to store a single label that can be drawn upon the track
     /// </summary>
-    [Serializable]
-    public struct StorableLabel
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct StorableLabel
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         /// <summary> The text of the label </summary>
         [JsonProperty("LabelText")]
-        public string LabelText;
+        public string LabelText { get; }
         /// <summary> The MSTS location of the label </summary>
         [JsonProperty("WorldLocation")]
-        public WorldLocation WorldLocation { get; private set; }
+        public WorldLocation WorldLocation { get; }
 
         /// <summary>
         /// Constructor

@@ -26,7 +26,9 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -62,16 +64,16 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
             CarSpawnerObj = carSpawnerObj;
 
-            if (viewer.Simulator.RoadDatabase == null || viewer.Simulator.CarSpawnerLists == null)
+            if (RuntimeData.Instance.RoadTrackDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
             var start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
             var end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
-            var trItems = viewer.Simulator.RoadDatabase.RoadTrackDB.TrItemTable;
+            var trItems = RuntimeData.Instance.RoadTrackDB.TrackItems;
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
-            Traveller = new Traveller(viewer.Simulator.TSectionDat, viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, startLocation);
+            Traveller = new Traveller(startLocation, true);
             Length = Traveller.DistanceTo(endLocation);
             if (Length < 0)
             {
@@ -83,8 +85,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             var sortedLevelCrossings = new SortedList<float, Simulation.World.LevelCrossingItem>();
             for (var crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection(); )
-                if (crossingTraveller.IsTrack && (crossingTraveller.TN as TrackVectorNode).TrackItemIndices != null)
-                    foreach (var trItemRef in (crossingTraveller.TN as TrackVectorNode).TrackItemIndices)
+                if ((crossingTraveller.TrackNode as TrackVectorNode)?.TrackItemIndices != null)
+                    foreach (var trItemRef in (crossingTraveller.TrackNode as TrackVectorNode).TrackItemIndices)
                         if (Viewer.Simulator.LevelCrossings.RoadCrossingItems.ContainsKey(trItemRef))
                             sortedLevelCrossings[Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef].DistanceTo(Traveller)] = Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef];
 
@@ -105,7 +107,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Cars = cars = newCars;
 
                 LastSpawnedTime = 0;
-                NextSpawnTime = CarSpawnerObj.CarFrequency * (0.75f + (float)Viewer.Random.NextDouble() / 2);
+                NextSpawnTime = CarSpawnerObj.CarFrequency * (0.75f + (float)StaticRandom.NextDouble() / 2f);
             }
 
             if (cars.Any(car => car.Travelled > Length))
@@ -256,7 +258,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Spawner = spawner;
             CarSpawnerListIdx = carSpawnerListIdx;
-            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
+            Type = StaticRandom.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
             Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx][Type].Distance;
             // Front and rear travellers approximate wheel positions at 25% and 75% along vehicle.
             FrontTraveller = new Traveller(spawner.Traveller);
@@ -265,7 +267,7 @@ namespace Orts.ActivityRunner.Viewer3D
             RearTraveller.Move(Length * 0.85f);
             // Travelled is the center of the vehicle.
             Travelled = Length * 0.50f;
-            Speed = SpeedMax = averageSpeed * (0.75f + (float)Viewer.Random.NextDouble() / 2);
+            Speed = SpeedMax = averageSpeed * (0.75f + (float)StaticRandom.NextDouble() / 2);
             IgnoreXRotation = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].IgnoreXRotation;
         }
 

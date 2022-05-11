@@ -19,13 +19,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Parsers;
+
 using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Parsers;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -33,89 +34,78 @@ namespace ORTS.TrackViewer.Drawing
     /// Class to contain all information loaded for the route that is not Trackviewer specific. So basically loading all relevant route files,
     /// like TrackDB for rails and roads, TsectionDat, without further processing
     /// </summary>
-    public class RouteData
+    public class RouteData: RuntimeData
     {
-        /// <summary>Name of the route</summary>
-        public string RouteName { get; private set; }
-        /// <summary>Track Section Data, public such that other classes have access as well</summary>
-        public TrackSectionsFile TsectionDat { get; private set; }
-        /// <summary>Track database, public such that other classes have access as well</summary>
-        public TrackDB TrackDB { get; private set; }
-        /// <summary>Road track database</summary>
-        public RoadTrackDB RoadTrackDB { get; set; }
-        /// <summary>The signal config file containing, for instance, the information to distinguish normal and non-normal signals</summary>
-        public SignalConfigurationFile SigcfgFile { get; set; }
-
-        private string storedRoutePath;
-        private Dictionary<uint, string> signalFileNames;
+        private static string storedRoutePath;
+        private static Dictionary<int, string> signalFileNames;
 
         /// <summary>
         /// Constructor. Loads all the relevant files for the route
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public RouteData(string routePath, MessageDelegate messageDelegate)
+        public static void Load(string routePath, MessageDelegate messageDelegate)
         {
-            this.storedRoutePath = routePath;
+            storedRoutePath = routePath;
+            TrackSectionsFile tsectionDat;
+            RoadDatabaseFile RDB = null;
+            TrackDatabaseFile TDB = null;
+            SignalConfigurationFile sigcfgFile = null;
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             RouteFile TRK = new RouteFile(FolderStructure.Route(routePath).TrackFileName);
-            RouteName = TRK.Route.Name;
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TrackDatabaseFile TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
-            this.TrackDB = TDB.TrackDB;
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
+            TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
 
-            messageDelegate(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
             string BasePath = Path.GetDirectoryName(Path.GetDirectoryName(routePath));
             if (Directory.Exists(routePath + @"\Openrails") && File.Exists(routePath + @"\Openrails\TSECTION.DAT"))
-                TsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
             else if (Directory.Exists(routePath + @"\GLOBAL") && File.Exists(routePath + @"\GLOBAL\TSECTION.DAT"))
-                TsectionDat = new TrackSectionsFile(routePath + @"\GLOBAL\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(routePath + @"\GLOBAL\TSECTION.DAT");
             else
-                TsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
+                tsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
             if (File.Exists(routePath + @"\TSECTION.DAT"))
-                TsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
+                tsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
 
             string roadTrackFileName = routePath + @"\" + TRK.Route.FileName + ".rdb";
-            try
+            if (File.Exists(roadTrackFileName))
             {
-                messageDelegate(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
+                messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
 
-                RoadDatabaseFile RDB = new RoadDatabaseFile(roadTrackFileName);
-                RoadTrackDB = RDB.RoadTrackDB;
+                RDB = new RoadDatabaseFile(roadTrackFileName);
             }
-            catch
-            {
-            } 
 
-            string ORfilepath = System.IO.Path.Combine(routePath, "OpenRails");
+            string ORfilepath = Path.Combine(routePath, "OpenRails");
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))
             {
-                SigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
+                sigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
             }
             else if (File.Exists(routePath + @"\sigcfg.dat"))
             {
-                SigcfgFile = new SignalConfigurationFile(routePath + @"\sigcfg.dat", false);
+                sigcfgFile = new SignalConfigurationFile(routePath + @"\sigcfg.dat", false);
             }
             else
             {
                 //sigcfgFile = null; // default initialization
             }
+
+            Initialize(TRK.Route.Name, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>
         /// Get the filename of the file where the signal shape is defined.
         /// </summary>
         /// <param name="signalIndex">The index (from the .tdb) of the signal</param>
-        public string GetSignalFilename(uint signalIndex)
+        public static string GetSignalFilename(int signalIndex)
         {
             if (signalFileNames == null)
             {
-                signalFileNames = new Dictionary<uint, string>();
-                var WFilePath = this.storedRoutePath + @"\WORLD\";
+                signalFileNames = new Dictionary<int, string>();
+                string WFilePath = storedRoutePath + @"\WORLD\";
 
-                var Tokens = new List<TokenID>
+                HashSet<TokenID> Tokens = new HashSet<TokenID>
                 {
                     TokenID.Signal
                 };
@@ -125,11 +115,13 @@ namespace ORTS.TrackViewer.Drawing
                 {
                     wfiles = Directory.GetFiles(WFilePath, "*.w");
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     wfiles = Array.Empty<string>();
                 }
-                foreach (var fileName in wfiles)
+                foreach (string fileName in wfiles)
                 {
                     if (Path.GetFileName(fileName).Length != 17)
                         continue;
@@ -147,25 +139,23 @@ namespace ORTS.TrackViewer.Drawing
 
                     // loop through all signals
 
-                    foreach (var worldObject in WFile.Objects)
+                    foreach (WorldObject worldObject in WFile.Objects)
                     {
                         if (worldObject.GetType() != typeof(SignalObject)) continue;
 
-                        var thisWorldObject = worldObject as SignalObject;
+                        SignalObject thisWorldObject = worldObject as SignalObject;
                         if (thisWorldObject.SignalUnits == null) continue; //this has no unit, will ignore it and treat it as static in scenary.cs
 
-                        foreach (var si in thisWorldObject.SignalUnits)
+                        foreach (SignalUnit si in thisWorldObject.SignalUnits)
                         {
-                            uint trItemId = si.TrackItem;
-                            this.signalFileNames[trItemId] = thisWorldObject.FileName;
+                            signalFileNames[si.TrackItem] = thisWorldObject.FileName;
                         }
                     }
                 }
             }
 
-            string signalFileName;
-            signalFileNames.TryGetValue(signalIndex, out signalFileName);
-            if (String.IsNullOrEmpty(signalFileName))
+            signalFileNames.TryGetValue(signalIndex, out string signalFileName);
+            if (string.IsNullOrEmpty(signalFileName))
             {
                 return "unknown";
             }
@@ -192,7 +182,7 @@ namespace ORTS.TrackViewer.Drawing
     /// 
     /// At last there are a number of utility methods like GetLength, UIDlocation.
     /// </summary>
-    public class DrawTrackDB
+    internal class DrawTrackDB
     {
         #region public members
         // Maximal and minimal tile numbers from the track database
@@ -226,13 +216,13 @@ namespace ORTS.TrackViewer.Drawing
 
         #region private members
         /// <summary>Track Section Data</summary>
-        private TrackSectionsFile tsectionDat;
+        private readonly TrackSectionsFile tsectionDat;
         /// <summary>Track database</summary>
-        private TrackDB trackDB;
+        private readonly TrackDB trackDB;
         /// <summary>Road track database</summary>
-        private RoadTrackDB roadTrackDB;
+        private readonly RoadTrackDB roadTrackDB;
         /// <summary>The signal config file to distinguish normal and non-normal signals</summary>
-        private SignalConfigurationFile sigcfgFile;
+        private readonly SignalConfigurationFile sigcfgFile;
 
         /// <summary>Normally highlights are based on mouse location. When searching this is overridden</summary>
         private bool IsHighlightOverridden;
@@ -244,7 +234,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Table of road-track-items. Basically a copy of roadTrackDB.TrItemTable, but then using drawable track items </summary>
         private DrawableTrackItem[] roadTrackItemTable;
         /// <summary>Direction-angle of track indexed by tracknode index (of the endnode)</summary>
-        private Dictionary<uint, float> endnodeAngles = new Dictionary<uint, float>();
+        private readonly Dictionary<int, float> endnodeAngles = new Dictionary<int, float>();
 
         // various fields to optimize drawing efficiency
         private int tileXIndexStart;
@@ -259,12 +249,13 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routeData">information about the route</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public DrawTrackDB(RouteData routeData, MessageDelegate messageDelegate)
+        public DrawTrackDB(MessageDelegate messageDelegate)
         {
-            this.tsectionDat = routeData.TsectionDat;
-            this.trackDB = routeData.TrackDB;
-            this.roadTrackDB = routeData.RoadTrackDB;
-            this.sigcfgFile = routeData.SigcfgFile;
+            RuntimeData routeData = RuntimeData.Instance;
+            tsectionDat = routeData.TSectionDat;
+            trackDB = routeData.TrackDB;
+            roadTrackDB = routeData.RoadTrackDB;
+            sigcfgFile = routeData.SignalConfigFile;
 
             messageDelegate(TrackViewer.catalog.GetString("Finding the angles to draw signals, endnodes, ..."));
 
@@ -290,7 +281,7 @@ namespace ORTS.TrackViewer.Drawing
             MinTileZ = +1000000;
             MaxTileX = -1000000;
             MaxTileZ = -1000000;
-            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
@@ -321,7 +312,7 @@ namespace ORTS.TrackViewer.Drawing
                     DrawableTrackItem trackItem = railTrackItemTable[trackItemIndex];
                     if (trackItem is DrawableSignalItem signalItem)
                     {
-                        signalItem.FindAngle(tsectionDat, trackDB, trackVectorNode);
+                        signalItem.FindAngle(trackDB, trackVectorNode);
                         signalItem.DetermineIfNormal(sigcfgFile);
                     }
                 }
@@ -333,7 +324,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         private void FindEndnodeOrientations()
         {
-            for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 TrackNode tn = trackDB.TrackNodes[tni];
                 if (tn == null) continue;
@@ -357,13 +348,15 @@ namespace ORTS.TrackViewer.Drawing
                         endnodeAngles[tn.Index] = tvs.Direction.Y;
                         try
                         { // try to get even better in case the last section is curved
-                            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+                            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
                             if (trackSection.Curved)
                             {
                                 endnodeAngles[tn.Index] += MathHelper.ToRadians(trackSection.Angle);
                             }
                         }
+#pragma warning disable CA1031 // Do not catch general exception types
                         catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
                     }
                 }
             }
@@ -453,7 +446,7 @@ namespace ORTS.TrackViewer.Drawing
             InitIndexedLists(availableRoadItemIndexes);
 
             // find rail track tracknodes
-            for (uint tni = 0; tni < trackDB.TrackNodes.Length; tni++)
+            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
             {
                 TrackVectorNode tn = trackDB.TrackNodes[tni] as TrackVectorNode;
 
@@ -479,7 +472,7 @@ namespace ORTS.TrackViewer.Drawing
 
             if (roadTrackDB != null && roadTrackDB.TrackNodes != null)
             {
-                for (uint tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
+                for (int tni = 0; tni < roadTrackDB.TrackNodes.Count; tni++)
                 {
                     if (!(roadTrackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
@@ -503,8 +496,8 @@ namespace ORTS.TrackViewer.Drawing
             trackDB.AddTrackItems(Array.Empty<TrackItem>());
 
             // find rail track items
-            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Length];
-            for (int i = 0; i < trackDB.TrackItems.Length; i++)
+            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Count];
+            for (int i = 0; i < trackDB.TrackItems.Count; i++)
             {
                 TrackItem trackItem = trackDB.TrackItems[i];
                 DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
@@ -513,12 +506,12 @@ namespace ORTS.TrackViewer.Drawing
             }
 
             // find road track items
-            if (roadTrackDB != null && roadTrackDB.TrItemTable != null)
+            if (roadTrackDB != null && roadTrackDB.TrackItems != null)
             {
-                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrItemTable.Length];
-                for (int i = 0; i < roadTrackDB.TrItemTable.Length; i++)
+                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrackItems.Count];
+                for (int i = 0; i < roadTrackDB.TrackItems.Count; i++)
                 {
-                    TrackItem trackItem = roadTrackDB.TrItemTable[i];
+                    TrackItem trackItem = roadTrackDB.TrackItems[i];
                     DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
                     roadTrackItemTable[i] = drawableTrackItem;
                     AddLocationToAvailableList(drawableTrackItem.WorldLocation, availableRoadItemIndexes, drawableTrackItem);
@@ -591,7 +584,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="trackVectorSectionIndex">Index of the vector section in the tracknode</param>
         /// <param name="useRailTracks">Must we use rail or road tracks</param>
         /// <returns>A list of world locations on the vector section</returns>
-        private List<WorldLocation> FindLocationList(uint trackNodeIndex, int trackVectorSectionIndex, bool useRailTracks)
+        private List<WorldLocation> FindLocationList(int trackNodeIndex, int trackVectorSectionIndex, bool useRailTracks)
         {
             List<WorldLocation> resultList = new List<WorldLocation>();
 
@@ -601,10 +594,10 @@ namespace ORTS.TrackViewer.Drawing
             TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
             if (tvs == null) return resultList;
 
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return resultList;
 
-            float trackSectionLength = DrawTrackDB.GetLength(trackSection);
+            float trackSectionLength = trackSection.Length;
             
             // We want to make sure all tiles that a track crosses are noted.
             // To do this, we make a box around the track (straight or curved), and for all locations of that box
@@ -673,7 +666,7 @@ namespace ORTS.TrackViewer.Drawing
             PrepareDrawing(drawArea);
             closestRailTrack.Reset();
 
-            bool[] hasBeenDrawn = new bool[trackDB.TrackNodes.Length];
+            bool[] hasBeenDrawn = new bool[trackDB.TrackNodes.Count];
             for (int xindex = tileXIndexStart; xindex <= tileXIndexStop; xindex++)
             {
                 for (int zindex = tileZIndexStart; zindex <= tileZIndexStop; zindex++)
@@ -820,7 +813,7 @@ namespace ORTS.TrackViewer.Drawing
         private void DrawTrackSection(DrawArea drawArea, TrackVectorNode tn, TrackVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
         {
             if (tvs == null) return;
-            TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;
@@ -948,7 +941,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The eturn the (center) location of a tracknode or WorldLocation.None if no tracknode could be identified</returns>
         public WorldLocation TrackNodeHighlightOverride(int tni)
         {
-            if ((tni < 0) || (tni >= trackDB.TrackNodes.Length)) return WorldLocation.None;
+            if ((tni < 0) || (tni >= trackDB.TrackNodes.Count)) return WorldLocation.None;
             TrackNode tn = trackDB.TrackNodes[tni];
             if (tn == null)
                 return WorldLocation.None;
@@ -982,7 +975,7 @@ namespace ORTS.TrackViewer.Drawing
         public WorldLocation TrackNodeHighlightOverrideRoad(int tni)
         {
             if (roadTrackDB == null) return WorldLocation.None;
-            if ((tni < 0) || (tni >= roadTrackDB.TrackNodes.Length)) return WorldLocation.None;
+            if ((tni < 0) || (tni >= roadTrackDB.TrackNodes.Count)) return WorldLocation.None;
             TrackNode tn = roadTrackDB.TrackNodes[tni];
             if (tn == null) return WorldLocation.None;
 
@@ -1109,15 +1102,6 @@ namespace ORTS.TrackViewer.Drawing
 
         #region Utilities
         /// <summary>
-        /// Returns length of a tracksection. 
-        /// </summary>
-        /// <remarks>Same method as in Traveller.cs, but that one is not public</remarks>
-        public static float GetLength(TrackSection trackSection)
-        {
-            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
-        }
-
-        /// <summary>
         /// return a single location that can be used to zoom around a track vector node
         /// </summary>
         /// <param name="tn">The trackNode self, assumed to be a vector node</param>
@@ -1181,7 +1165,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="trackVectorSectionIndex"></param>
         /// <param name="distanceAlongSection"></param>
         /// <param name="useRailTracks">Must we use rail or road tracks</param>
-        public WorldLocation FindLocation(uint trackNodeIndex, int trackVectorSectionIndex, float distanceAlongSection, bool useRailTracks)
+        public WorldLocation FindLocation(int trackNodeIndex, int trackVectorSectionIndex, float distanceAlongSection, bool useRailTracks)
         {
             try
             {
@@ -1190,11 +1174,13 @@ namespace ORTS.TrackViewer.Drawing
                 
                 TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
 
-                TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
+                TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
 
                 return FindLocationInSection(tvs, trackSection, distanceAlongSection);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 return WorldLocation.None;
             }

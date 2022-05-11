@@ -18,7 +18,11 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public abstract class TrackItem
     {
+        //there exist two Parameter to locate a TrackItem, which define the same point
+        //TrItemSData() is the distance in meters from the starting point of a track part
+        //TrItemRData() is a three-dimensional coordinate in space, for the same object
         private protected WorldLocation location;
+
         /// <summary>
         /// The name of the item (used for the label shown by F6)
         /// </summary>
@@ -27,7 +31,7 @@ namespace Orts.Formats.Msts.Models
         public ref readonly WorldLocation Location => ref location;
 
         /// <summary>Id if track item</summary>
-        public uint TrackItemId { get; internal protected set; }
+        public int TrackItemId { get; internal protected set; }
         /// <summary>Extra data 1, related to location along section</summary>
         public float SData1 { get; protected set; }
         /// <summary>Extra data 2</summary>
@@ -48,7 +52,7 @@ namespace Orts.Formats.Msts.Models
         private protected void ParseTrackItemId(STFReader stf, int index)
         {
             stf.MustMatchBlockStart();
-            TrackItemId = stf.ReadUInt(null);
+            TrackItemId = stf.ReadInt(null);
             Debug.Assert(index == TrackItemId, "Index Mismatch");
             stf.SkipRestOfBlock();
         }
@@ -87,9 +91,9 @@ namespace Orts.Formats.Msts.Models
     public class CrossoverItem : TrackItem
     {
         /// <summary>Index to the tracknode</summary>
-        public uint TrackNode { get; private set; }
+        public int TrackNode { get; private set; }
         /// <summary>Index to the shape ID</summary>
-        public uint ShapeId { get; private set; }
+        public int ShapeId { get; private set; }
         /// <summary>
         /// Default constructor used during file parsing.
         /// </summary>
@@ -105,8 +109,8 @@ namespace Orts.Formats.Msts.Models
 
                 new STFReader.TokenProcessor("crossovertritemdata", ()=>{
                     stf.MustMatchBlockStart();
-                    TrackNode = stf.ReadUInt(null);
-                    ShapeId = stf.ReadUInt(null);
+                    TrackNode = stf.ReadInt(null);
+                    ShapeId = stf.ReadInt(null);
                     stf.SkipRestOfBlock();
                 }),
             });
@@ -129,7 +133,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Type of signal</summary>
         public string SignalType { get; private set; }
         /// <summary></summary>
-        public IList<TrackItemSignalDirection> SignalDirections { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackItemSignalDirection> SignalDirections { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -181,21 +187,21 @@ namespace Orts.Formats.Msts.Models
     public class TrackItemSignalDirection
     {
         /// <summary>Index to the junction track node</summary>
-        public uint TrackNode { get; private set; }
+        public int TrackNode { get; private set; }
         ///// <summary>Used with junction signals, appears to be either 1 or 0</summary>
         //public uint SData1 { get; private set; }
         /// <summary>Used with junction signals, appears to be either 1 or 0</summary>
-        public uint LinkLRPath { get; private set; }
+        public int LinkLRPath { get; private set; }
         ///// <summary>Used with junction signals, appears to be either 1 or 0</summary>
         //public uint SData3 { get; private set; }
 
         internal TrackItemSignalDirection(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            TrackNode = stf.ReadUInt(null);
+            TrackNode = stf.ReadInt(null);
             //SData1 = stf.ReadUInt(null);
             stf.ReadUInt(null);
-            LinkLRPath = stf.ReadUInt(null);
+            LinkLRPath = stf.ReadInt(null);
             //SData3 = stf.ReadUInt(null);
             stf.ReadUInt(null);
             stf.SkipRestOfBlock();
@@ -379,9 +385,9 @@ namespace Orts.Formats.Msts.Models
     public class SoundRegionItem : TrackItem
     {
         /// <summary>Sound region data 1</summary>
-        public uint SoundRegionData1 { get; private set; }
+        public int SoundRegionData1 { get; private set; }
         /// <summary>Sound region data 2</summary>
-        public uint SoundRegionData2 { get; private set; }
+        public int SoundRegionData2 { get; private set; }
         /// <summary>Sound region data 3</summary>
         public float SoundRegionData3 { get; private set; }
 
@@ -400,8 +406,8 @@ namespace Orts.Formats.Msts.Models
 
                 new STFReader.TokenProcessor("tritemsrdata", ()=>{
                     stf.MustMatchBlockStart();
-                    SoundRegionData1 = stf.ReadUInt(null);
-                    SoundRegionData2 = stf.ReadUInt(null);
+                    SoundRegionData1 = stf.ReadInt(null);
+                    SoundRegionData2 = stf.ReadInt(null);
                     SoundRegionData3 = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
@@ -457,7 +463,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Flags 1 for a siding ???</summary>
         public string Flags1 { get; private set; }
         /// <summary>Flags 2 for a siding, probably the index of the other end of the siding.</summary>
-        public uint LinkedSidingId { get; private set; }
+        public int LinkedSidingId { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -476,7 +482,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("sidingtritemdata", ()=> {
                     stf.MustMatchBlockStart();
                     Flags1 = stf.ReadString();
-                    LinkedSidingId = stf.ReadUInt(null);
+                    LinkedSidingId = stf.ReadInt(null);
                     stf.SkipRestOfBlock();
                 }),
             });
@@ -494,11 +500,11 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Flags 1 for a platform ???</summary>
         public string Flags1 { get; private set; }
         /// <summary>Minimum waiting time at the platform</summary>
-        public uint PlatformMinWaitingTime { get; private set; }
+        public int PlatformMinWaitingTime { get; private set; }
         /// <summary>Number of passengers waiting at the platform</summary>
-        public uint PlatformNumPassengersWaiting { get; private set; }
+        public int PlatformNumPassengersWaiting { get; private set; }
         /// <summary>TrItem Id of the other end of the platform</summary>
-        public uint LinkedPlatformItemId { get; private set; }
+        public int LinkedPlatformItemId { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -515,12 +521,12 @@ namespace Orts.Formats.Msts.Models
 
                 new STFReader.TokenProcessor("platformname", ()=>{ ItemName = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("station", ()=>{ Station = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("platformminwaitingtime", ()=>{ PlatformMinWaitingTime = stf.ReadUIntBlock(null); }),
-                new STFReader.TokenProcessor("platformnumpassengerswaiting", ()=>{ PlatformNumPassengersWaiting = stf.ReadUIntBlock(null); }),
+                new STFReader.TokenProcessor("platformminwaitingtime", ()=>{ PlatformMinWaitingTime = stf.ReadIntBlock(null); }),
+                new STFReader.TokenProcessor("platformnumpassengerswaiting", ()=>{ PlatformNumPassengersWaiting = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("platformtritemdata", ()=>{
                     stf.MustMatchBlockStart();
                     Flags1 = stf.ReadString();
-                    LinkedPlatformItemId = stf.ReadUInt(null);
+                    LinkedPlatformItemId = stf.ReadInt(null);
                     stf.SkipRestOfBlock();
                 }),
             });

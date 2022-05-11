@@ -17,7 +17,7 @@ namespace Orts.Formats.Msts.Models
         public bool EsdSnapable { get; private set; }
         public bool EsdSubObject { get; private set; }
         public string EsdSoundFileName { get; private set; } = string.Empty;
-        public float EsdBellAnimationFps { get; private set; } = 8;
+        public float EsdCustomAnimationFps { get; private set; } = 8;
 
         public ShapeDescriptor()
         {
@@ -39,7 +39,8 @@ namespace Orts.Formats.Msts.Models
                             EsdBoundingBox = null;
                     }),
                     new STFReader.TokenProcessor("esd_ortssoundfilename", ()=>{ EsdSoundFileName = stf.ReadStringBlock(null); }),
-                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ EsdBellAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
+                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ EsdCustomAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
+                    new STFReader.TokenProcessor("esd_ortscustomanimationfps", ()=>{ EsdCustomAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
                 });
             // TODO - some objects have no bounding box - ie JP2BillboardTree1.sd
             //if (ESD_Bounding_Box == null) throw new STFException(stf, "Missing ESD_Bound_Box statement");
@@ -287,7 +288,9 @@ namespace Orts.Formats.Msts.Models
 
     public class Matrices : List<Matrix>
     {
-        public IList<string> MatrixNames { get; } = new List<string>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> MatrixNames { get; } = new List<string>();
+#pragma warning restore CA1002 // Do not expose generic lists
 
         internal Matrices(SBR block)
         {
@@ -602,7 +605,9 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; private set; }
         public uint Flags { get; private set; }
         public int ShaderIndex { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] TextureIndices { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public float ZBias { get; private set; }
         public int VertexStateIndex { get; private set; }
         public int AlphaTestMode { get; private set; }
@@ -715,7 +720,9 @@ namespace Orts.Formats.Msts.Models
     public class DistanceLevelHeader
     {
         public float DistanceLevelSelection { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] Hierarchy { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal DistanceLevelHeader(SBR block)
         {
@@ -778,8 +785,10 @@ namespace Orts.Formats.Msts.Models
         public uint SourceVertexFormatFlags { get; private set; }
         public uint DestinationVertexFormatFlags { get; private set; }
         public GeometryInfo GeometryInfo { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] SubObjectShaders { get; private set; }
         public int[] SubObjectLightConfigs { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public int SubObjectID { get; private set; }
 
         internal SubObjectHeader(SBR block)
@@ -833,7 +842,9 @@ namespace Orts.Formats.Msts.Models
         public int PointLists { get; private set; }
         public int NodeXTriLists { get; private set; }
         public GeometryNodes GeometryNodes { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] GeometryNodeMap { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal GeometryInfo(SBR block)
         {
@@ -930,7 +941,9 @@ namespace Orts.Formats.Msts.Models
         public int NormalIndex { get; private set; }
         public uint Color1 { get; private set; }
         public uint Color2 { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] VertexUVs { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal Vertex(SBR block)
         {
@@ -1026,8 +1039,10 @@ namespace Orts.Formats.Msts.Models
     public class IndexedTriList
     {
         public VertexIndices VertexIndices { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] NormalIndices { get; private set; }
         public uint[] Flags { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal IndexedTriList(SBR block)
         {

@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly string EventNameLabel;
 
-        public ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
+        protected ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
             : base(log, pauseDurationS)
         {
             EventNameLabel = eventNameLabel;
@@ -87,6 +87,41 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Receiver == null) return;
             Receiver.RefillChangeTo(target);
             // Report();
+        }
+    }
+
+
+    [Serializable()]
+    public sealed class SelectScreenCommand : BooleanCommand
+    {
+        public static Viewer Receiver { get; set; }
+
+        private readonly string screen;
+        private readonly int display;
+
+        public SelectScreenCommand(CommandLog log, bool targetState, string screen, int display)
+            : base(log, targetState)
+        {
+            this.screen = screen;
+            this.display = display;
+
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (targetState)
+            {
+                var finalReceiver = Receiver.Camera  is CabCamera3D ?
+                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D:
+                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer;
+                finalReceiver.ActiveScreen[display] = screen;
+            }
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
         }
     }
 
@@ -185,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + " - " + CarPosition.ToString();
+            return $"{base.ToString()} - {CarPosition}";
         }
     }
 
@@ -276,7 +311,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         public static Viewer Receiver { get; set; }
 
-        public UseCameraCommand( CommandLog log )
+        protected UseCameraCommand( CommandLog log )
             : base(log)
         {
         }
@@ -513,7 +548,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Viewer Receiver { get; set; }
         protected double EndTime;
 
-        public MoveCameraCommand( CommandLog log, double startTime, double endTime )
+        protected MoveCameraCommand( CommandLog log, double startTime, double endTime )
             : base(log)
         {
             Time = startTime;
@@ -936,7 +971,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            if (Receiver.Camera.AttachedCar.PassengerViewpoints.Count == 1)
+            if (Receiver.Camera.AttachedCar.PassengerViewpoints?.Count == 1)
                 Receiver.PassengerCamera.SwitchSideCameraCar(Receiver.Camera.AttachedCar);
             else Receiver.PassengerCamera.ChangePassengerViewPoint(Receiver.Camera.AttachedCar);
             // Report();

@@ -34,9 +34,8 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling
@@ -58,7 +57,6 @@ namespace Orts.Simulation.Signalling
         public List<Signal> Signals { get; private set; }
 
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectiondat;
 
         public int OrtsSignalTypeCount { get; private set; }
 
@@ -89,8 +87,7 @@ namespace Orts.Simulation.Signalling
 
             OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
 
-            trackDB = Simulator.Instance.TrackDatabase.TrackDB;
-            tsectiondat = Simulator.Instance.TSectionDat;
+            trackDB = RuntimeData.Instance.TrackDB;
 
             // read SIGSCR files
 
@@ -98,7 +95,7 @@ namespace Orts.Simulation.Signalling
             SignalScriptProcessing.Initialize(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
 
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
-            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<uint, SignalWorldInfo>();
+            ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<int, SignalWorldInfo>();
             ConcurrentDictionary<int, uint> platformSidesList = new ConcurrentDictionary<int, uint>();
             ConcurrentDictionary<int, int> speedPostWorldLookup = new ConcurrentDictionary<int, int>();
             ConcurrentDictionary<int, SpeedPostWorldObject> speedPostWorldList = new ConcurrentDictionary<int, SpeedPostWorldObject>();
@@ -107,7 +104,7 @@ namespace Orts.Simulation.Signalling
             BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -130,7 +127,7 @@ namespace Orts.Simulation.Signalling
             //
             // Create trackcircuit database
             //
-            CreateTrackCircuits(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat);
+            CreateTrackCircuits(trackDB.TrackItems, trackDB.TrackNodes);
 
             //
             // Process platform information
@@ -301,9 +298,9 @@ namespace Orts.Simulation.Signalling
         /// Read all world files to get signal flags
         /// </summary>
         private void BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
-            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
+            ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
         {
-            List<TokenID> Tokens = new List<TokenID>
+            HashSet<TokenID> Tokens = new HashSet<TokenID>
             {
                 TokenID.Signal,
                 TokenID.Speedpost,
@@ -328,7 +325,7 @@ namespace Orts.Simulation.Signalling
                                 bool invalid = false;
                                 foreach (SignalUnit signalUnit in signalObject.SignalUnits)
                                 {
-                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Length ||
+                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Count ||
                                         Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileX - worldObject.WorldPosition.TileX) > 1 ||
                                         Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
                                     {
@@ -343,7 +340,7 @@ namespace Orts.Simulation.Signalling
                                 // if valid, add signal
                                 SignalWorldInfo signalWorldInfo = new SignalWorldInfo(signalObject, sigcfg);
                                 signalWorldList.Add(signalWorldInfo);
-                                foreach (KeyValuePair<uint, uint> reference in signalWorldInfo.HeadReference)
+                                foreach (KeyValuePair<int, int> reference in signalWorldInfo.HeadReference)
                                 {
                                     if (!signalWorldLookup.TryAdd(reference.Key, signalWorldInfo))
                                         Trace.TraceWarning($"Key {reference.Key} already exists for SignalWorldInfo");
@@ -353,10 +350,9 @@ namespace Orts.Simulation.Signalling
                             {
                                 int index = Interlocked.Increment(ref speedPostIndex);
                                 speedpostWorldList.TryAdd(index, new SpeedPostWorldObject(speedPostObj));
-                                int thisSpeedPostId = speedpostWorldList.Count - 1;
                                 foreach (int trItemId in speedPostObj.TrackItemIds.TrackDbItems)
                                 {
-                                    speedpostLookup.TryAdd(trItemId, thisSpeedPostId);
+                                    speedpostLookup.TryAdd(trItemId, index);
                                 }
                             }
                             else if (worldObject is PlatformObject platformObject)
@@ -414,8 +410,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat,
-                TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
+        private void BuildSignalList(List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
             //  Determine the number of signals in the track Objects list
@@ -426,11 +421,11 @@ namespace Orts.Simulation.Signalling
 
             Signal.Initialize(this, trackNodes, trackItems);
 
-            Dictionary<uint, Signal> signalHeadList = new Dictionary<uint, Signal>();
+            Dictionary<int, Signal> signalHeadList = new Dictionary<int, Signal>();
 
-            for (int i = 1; i < trackNodes.Length; i++)
+            for (int i = 1; i < trackNodes.Count; i++)
             {
-                ScanSection(trackItems, trackNodes, i, tsectiondat, tdbfile, platformList, signalHeadList);
+                ScanSection(trackItems, trackNodes, i, platformList, signalHeadList);
             }
 
             //  Only continue if one or more signals in route.
@@ -459,7 +454,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split backfacing signals
         /// </summary>
-        private void SplitBackfacing(TrackItem[] trackItems, TrackNode[] trackNodes)
+        private void SplitBackfacing(List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
             List<Signal> backfacingSignals = new List<Signal>();
             // Loop through all signals to check on Backfacing heads
@@ -481,7 +476,7 @@ namespace Orts.Simulation.Signalling
                     // use the TDBreference to find the actual head
                     bool backfacingHeads = false;
 
-                    foreach (KeyValuePair<uint, uint> headRef in signal.WorldObject.HeadReference)
+                    foreach (KeyValuePair<int, int> headRef in signal.WorldObject.HeadReference)
                     {
                         foreach (int headIndex in signal.WorldObject.Backfacing)
                         {
@@ -545,7 +540,7 @@ namespace Orts.Simulation.Signalling
                                         newSignal.TrackItemRefIndex = i;
 
                                         // remove this key from the original signal //
-                                        signal.WorldObject.HeadReference.Remove((uint)tdbRef);
+                                        signal.WorldObject.HeadReference.Remove(tdbRef);
                                     }
                                 }
                             }
@@ -567,7 +562,7 @@ namespace Orts.Simulation.Signalling
                                         signal.TrackItemRefIndex = i;
 
                                         // remove this key from the new signal //
-                                        newSignal.WorldObject.HeadReference.Remove((uint)tdbRef);
+                                        newSignal.WorldObject.HeadReference.Remove(tdbRef);
                                     }
                                 }
                             }
@@ -587,7 +582,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(TrackItem[] trackItems, TrackNode[] trackNodes, int index, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, Dictionary<uint, Signal> signalHeadList)
+        private void ScanSection(List<TrackItem> trackItems, List<TrackNode> trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -605,7 +600,7 @@ namespace Orts.Simulation.Signalling
                         // Track Item is signal
                         if (trackItems[tdbRef] is SignalItem sigItem)
                         {
-                            if (AddSignal(index, i, sigItem, tdbRef, tsectiondat, tdbfile, signalHeadList))
+                            if (AddSignal(index, i, sigItem, tdbRef, signalHeadList))
                             {
                                 sigItem.SignalObject = Signals.Count - 1;
                             }
@@ -619,7 +614,7 @@ namespace Orts.Simulation.Signalling
                         {
                             if (!speedItem.IsMilePost)
                             {
-                                AddSpeed(index, i, speedItem, tdbRef, tsectiondat, tdbfile);
+                                AddSpeed(index, i, speedItem, tdbRef);
                                 speedItem.SignalObject = Signals.Count - 1;
 
                             }
@@ -660,7 +655,7 @@ namespace Orts.Simulation.Signalling
         /// Merge Heads
         /// </summary>
 
-        private void MergeHeads(ConcurrentBag<SignalWorldInfo> signalWorldList, Dictionary<uint, Signal> signalHeadList)
+        private void MergeHeads(ConcurrentBag<SignalWorldInfo> signalWorldList, Dictionary<int, Signal> signalHeadList)
         {
             foreach (SignalWorldInfo signalWorldInfo in signalWorldList)
             {
@@ -669,7 +664,7 @@ namespace Orts.Simulation.Signalling
                 if (signalWorldInfo.HeadReference.Count > 1)
                 {
 
-                    foreach (KeyValuePair<uint, uint> thisReference in signalWorldInfo.HeadReference)
+                    foreach (KeyValuePair<int, int> thisReference in signalWorldInfo.HeadReference)
                     {
                         if (signalHeadList.ContainsKey(thisReference.Key))
                         {
@@ -707,24 +702,28 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Signal to the list
         /// </summary>
-        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, Dictionary<uint, Signal> signalHeadList)
+        private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<int, Signal> signalHeadList)
         {
-            if (!(tdbfile.TrackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
+            if (!(trackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
             {
                 Trace.TraceInformation("Reference to invalid track node {0} for Signal {1}\n", trackNode, tdbRef);
                 return false;
             }
 
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Traveller.TravellerDirection)(1 - sigItem.Direction));
+            Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = true, IsSpeedSignal = false, TrackDirection = sigItem.Direction, TrackNode = trackNode, TrackItemRefIndex = nodeIndex
+                IsSignal = true,
+                IsSpeedSignal = false,
+                TrackDirection = sigItem.Direction,
+                TrackNode = trackNode,
+                TrackItemRefIndex = nodeIndex
 
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
 
-            if (signalHeadList.ContainsKey((uint)tdbRef))
+            if (signalHeadList.ContainsKey(tdbRef))
             {
                 Trace.TraceInformation("Invalid double TDBRef {0} in node {1}\n", tdbRef, trackNode);
                 return false;
@@ -732,7 +731,7 @@ namespace Orts.Simulation.Signalling
             else
             {
                 Signals.Add(signal);
-                signalHeadList.Add((uint)tdbRef, signal);
+                signalHeadList.Add(tdbRef, signal);
             }
             return true;
         } // AddSignal
@@ -742,13 +741,17 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// This method adds a new Speedpost to the list
         /// </summary>
-        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile)
+        private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Traveller.TravellerDirection.Backward);
+            Traveller traveller = new Traveller(trackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = false, IsSpeedSignal = false, TrackDirection = TrackDirection.Ahead, TrackNode = trackNode, TrackItemRefIndex = nodeIndex,
+                IsSignal = false,
+                IsSpeedSignal = false,
+                TrackDirection = TrackDirection.Ahead,
+                TrackNode = trackNode,
+                TrackItemRefIndex = nodeIndex,
             };
             signal.AddHead(nodeIndex, tdbRef, speedItem);
 
@@ -756,11 +759,11 @@ namespace Orts.Simulation.Signalling
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
             if (Math.Abs(delta_float) < (Math.PI / 2))
             {
-                signal.TrackDirection = ((TrackDirection)(int)signal.TdbTraveller.Direction).Reverse();
+                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction;
             }
             else
             {
-                signal.TrackDirection = (TrackDirection)(int)signal.TdbTraveller.Direction;
+                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction.Reverse();
                 signal.TdbTraveller.ReverseDirection();
             }
             Signals.Add(signal);
@@ -773,7 +776,7 @@ namespace Orts.Simulation.Signalling
 
         private int AddMilepost(SpeedPostItem speedItem, int tdbRef)
         {
-            Milepost milepost = new Milepost((uint)tdbRef, speedItem.Distance);
+            Milepost milepost = new Milepost(tdbRef, speedItem.Distance);
             milepostList.Add(milepost);
 
             foundMileposts = milepostList.Count;
@@ -799,7 +802,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Add info from signal world objects to signal
         /// </summary>
-        private void AddWorldInfo(ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, int> speedpostWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList)
+        private void AddWorldInfo(ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, int> speedpostWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList)
         {
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
@@ -809,7 +812,7 @@ namespace Orts.Simulation.Signalling
                     foreach (SignalHead head in signal.SignalHeads)
                     {
                         // get reference using TDB index from head
-                        if (signalWorldLookup.TryGetValue(Convert.ToUInt32(head.TDBIndex), out SignalWorldInfo result))
+                        if (signalWorldLookup.TryGetValue(head.TDBIndex, out SignalWorldInfo result))
                             signal.WorldObject = result;
                     }
                 }
@@ -832,11 +835,11 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// FindByTrackItem : find required signalObj + signalHead
         /// </summary>
-        public KeyValuePair<Signal, SignalHead>? FindByTrackItem(uint trackItem)
+        public KeyValuePair<Signal, SignalHead>? FindByTrackItem(int trackItem)
         {
             foreach (Signal signal in Signals)
                 foreach (SignalHead head in signal.SignalHeads)
-                    if ((trackDB.TrackNodes[signal.TrackNode] as TrackVectorNode).TrackItemIndices[head.TrackItemIndex] == (int)trackItem)
+                    if ((trackDB.TrackNodes[signal.TrackNode] as TrackVectorNode).TrackItemIndices[head.TrackItemIndex] == trackItem)
                         return new KeyValuePair<Signal, SignalHead>(signal, head);
             return null;
         }//FindByTrItem
@@ -1142,13 +1145,13 @@ namespace Orts.Simulation.Signalling
             return returnItem;
         }
 
-        public (Signal Signal, float Distance) GetSignalItemInfo(TrackCircuitCrossReferences trackCircuitXRefList, float offset, int direction, float routeLength)
+        public (Signal Signal, float Distance) GetSignalItemInfo(TrackCircuitCrossReferences trackCircuitXRefList, float offset, TrackDirection direction, float routeLength)
         {
             if (null == trackCircuitXRefList)
                 throw new ArgumentNullException(nameof(trackCircuitXRefList));
 
             TrackCircuitPosition position = new TrackCircuitPosition();
-            position.SetPosition(trackCircuitXRefList, offset, (TrackDirection)direction);
+            position.SetPosition(trackCircuitXRefList, offset, direction);
             TrackCircuitPartialPathRoute route = BuildTempRoute(null, position.TrackCircuitSectionIndex, position.Offset, position.Direction, routeLength, true, false, false);
             SignalItemInfo signalInfo = GetNextObjectInRoute(null, route, 0, position.Offset, -1, SignalItemType.Signal, position);
 
@@ -1188,18 +1191,18 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Create Track Circuits
         /// <summary>
-        private void CreateTrackCircuits(TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
+        private void CreateTrackCircuits(List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
 
             // Create dummy element as first to keep indexes equal
             TrackCircuitSection.TrackCircuitList.Add(new TrackCircuitSection(this));
 
             // Create new default elements from existing base
-            for (int i = 1; i < trackNodes.Length; i++)
+            for (int i = 1; i < trackNodes.Count; i++)
             {
                 TrackNode trackNode = trackNodes[i];
                 TrackCircuitSection defaultSection =
-                    new TrackCircuitSection(trackNode, i, tsectiondat);
+                    new TrackCircuitSection(trackNode, i);
                 TrackCircuitSection.TrackCircuitList.Add(defaultSection);
             }
 
@@ -1211,7 +1214,7 @@ namespace Orts.Simulation.Signalling
             int originalNodes = TrackCircuitSection.TrackCircuitList.Count;
             for (int i = 1; i < originalNodes; i++)
             {
-                ProcessNodes(i, trackItems, trackNodes, tsectiondat, crossoverList);
+                ProcessNodes(i, trackItems, trackNodes, crossoverList);
             }
 
             // Delete MilepostList as it is no more needed
@@ -1224,7 +1227,7 @@ namespace Orts.Simulation.Signalling
             int nextNode = originalNodes;
             foreach (KeyValuePair<int, CrossOverInfo> crossOver in crossoverList)
             {
-                nextNode = SplitNodesCrossover(crossOver.Value, tsectiondat, nextNode);
+                nextNode = SplitNodesCrossover(crossOver.Value, nextNode);
             }
 
             // loop through original default elements
@@ -1283,17 +1286,18 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ProcessNodes
         /// </summary>
-        private void ProcessNodes(int nodeIndex, TrackItem[] trackItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat, Dictionary<int, CrossOverInfo> crossoverList)
+        private void ProcessNodes(int nodeIndex, List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             // Check if original tracknode had trackitems
             TrackCircuitSection circuit = TrackCircuitSection.TrackCircuitList[nodeIndex];
 
-            if (trackNodes[circuit.OriginalIndex] is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0)
+            TrackVectorNode tvn = trackNodes[circuit.OriginalIndex] as TrackVectorNode;
+            if (tvn != null && tvn.TrackItemIndices.Length > 0)
             {
                 // Create TDBtraveller at start of section to calculate distances
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller traveller = new Traveller(tsectiondat, trackNodes, tvn, firstSection.Location, Traveller.TravellerDirection.Forward);
+                Traveller traveller = new Traveller(tvn, firstSection.Location, Direction.Forward);
 
 
                 // Process all items (do not split yet)
@@ -1303,7 +1307,7 @@ namespace Orts.Simulation.Signalling
                     int tdbRef = tvn.TrackItemIndices[i];
                     if (trackItems[tdbRef] != null)
                     {
-                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller, trackNodes, lastDistance, crossoverList);
+                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller, tvn, lastDistance, crossoverList);
                     }
                 }
             }
@@ -1313,7 +1317,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// InsertNode
         /// </summary>
-        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, Traveller traveller, TrackNode[] trackNodes, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
+        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, Traveller traveller, TrackNode circuitNode, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             float[] newLastDistance = new float[2] { lastDistance[0], lastDistance[1] };
@@ -1401,7 +1405,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[milepost.TrackItemId];
+                        TrackItem milepostTrItem = trackDB.TrackItems[milepost.TrackItemId];
                         float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);
@@ -1413,10 +1417,10 @@ namespace Orts.Simulation.Signalling
             // Insert crossover in special crossover list
             else if (trackItem is CrossoverItem crossOver)
             {
-                float cdist = traveller.DistanceTo(trackNodes[circuit.OriginalIndex], crossOver.Location);
+                float cdist = traveller.DistanceTo(circuitNode, crossOver.Location);
 
-                int crossOverId = (int)crossOver.TrackItemId;
-                int crossId = (int)crossOver.TrackNode;
+                int crossOverId = crossOver.TrackItemId;
+                int crossId = crossOver.TrackNode;
 
                 // search in Dictionary for combined item //
 
@@ -1437,7 +1441,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split on Signals
         /// </summary>
-        private int SplitNodesSignals(int node, int nextNode)
+        private static int SplitNodesSignals(int node, int nextNode)
         {
             int index = node;
             List<int> addIndex = new List<int>();
@@ -1519,7 +1523,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split CrossOvers
         /// </summary>
-        private int SplitNodesCrossover(CrossOverInfo crossOver, TrackSectionsFile tsectiondat, int nextNode)
+        private static int SplitNodesCrossover(CrossOverInfo crossOver, int nextNode)
         {
             bool processCrossOver = true;
             int sectionIndex0 = 0;
@@ -1559,7 +1563,7 @@ namespace Orts.Simulation.Signalling
                 TrackCircuitSection.SplitSection(sectionIndex0, newSection0, crossOver.Details[Location.NearEnd].Position);
                 TrackCircuitSection.SplitSection(sectionIndex1, newSection1, crossOver.Details[Location.FarEnd].Position);
 
-                TrackCircuitSection.AddCrossoverJunction(sectionIndex0, newSection0, sectionIndex1, newSection1, jnSection, crossOver, tsectiondat);
+                TrackCircuitSection.AddCrossoverJunction(sectionIndex0, newSection0, sectionIndex1, newSection1, jnSection, crossOver);
             }
 
             return nextNode;
@@ -1569,7 +1573,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Get cross-over section index
         /// </summary>
-        private int GetCrossOverSectionIndex(CrossOverInfo.Detail crossOver)
+        private static int GetCrossOverSectionIndex(CrossOverInfo.Detail crossOver)
         {
             int sectionIndex = crossOver.SectionIndex;
             float position = crossOver.Position;
@@ -1618,7 +1622,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Check pin links
         /// </summary>
-        private int PerformLinkTest(int node, int nextNode)
+        private static int PerformLinkTest(int node, int nextNode)
         {
 
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
@@ -1688,7 +1692,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set active pins for non-junction links
         /// </summary>
-        private void SetActivePins(int node)
+        private static void SetActivePins(int node)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
 
@@ -1746,7 +1750,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes
         /// </summary>
-        private void SetCrossReference(int node, TrackNode[] trackNodes)
+        private static void SetCrossReference(int node, List<TrackNode> trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType != TrackCircuitType.Crossover)
@@ -1755,7 +1759,7 @@ namespace Orts.Simulation.Signalling
                 float offset0 = section.OffsetLength[Location.NearEnd];
                 float offset1 = section.OffsetLength[Location.FarEnd];
 
-                TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength.ToArray());
+                TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength[Location.NearEnd], section.OffsetLength[Location.FarEnd]);
 
                 bool inserted = false;
 
@@ -1763,12 +1767,12 @@ namespace Orts.Simulation.Signalling
                 for (int i = 0; i < crossReference.Count && !inserted; i++)
                 {
                     TrackCircuitSectionCrossReference reference = crossReference[i];
-                    if (offset0 < reference.OffsetLength[0])
+                    if (offset0 < reference.OffsetLength[TrackDirection.Ahead])
                     {
                         crossReference.Insert(i, newReference);
                         inserted = true;
                     }
-                    else if (offset1 > reference.OffsetLength[1])
+                    else if (offset1 > reference.OffsetLength[TrackDirection.Reverse])
                     {
                         crossReference.Insert(i, newReference);
                         inserted = true;
@@ -1786,7 +1790,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes for CrossOver items
         /// </summary>
-        private void SetCrossReferenceCrossOver(int node, TrackNode[] trackNodes)
+        private static void SetCrossReferenceCrossOver(int node, List<TrackNode> trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType == TrackCircuitType.Crossover)
@@ -1796,7 +1800,7 @@ namespace Orts.Simulation.Signalling
                     int prevIndex = section.Pins[TrackDirection.Ahead, pinLocation].Link;
                     TrackCircuitSection prevSection = TrackCircuitSection.TrackCircuitList[prevIndex];
 
-                    TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength.ToArray());
+                    TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(section.Index, section.Length, section.OffsetLength[Location.NearEnd], section.OffsetLength[Location.FarEnd]);
                     TrackNode trackNode = trackNodes[prevSection.OriginalIndex];
                     TrackCircuitCrossReferences crossReference = trackNode.TrackCircuitCrossReferences;
 
@@ -1806,8 +1810,8 @@ namespace Orts.Simulation.Signalling
                         TrackCircuitSectionCrossReference reference = crossReference[i];
                         if (reference.Index == prevIndex)
                         {
-                            newReference.OffsetLength[0] = reference.OffsetLength[0];
-                            newReference.OffsetLength[1] = reference.OffsetLength[1] + reference.Length;
+                            newReference.OffsetLength[TrackDirection.Ahead] = reference.OffsetLength[TrackDirection.Ahead];
+                            newReference.OffsetLength[TrackDirection.Reverse] = reference.OffsetLength[TrackDirection.Reverse] + reference.Length;
                             crossReference.Insert(i, newReference);
                             inserted = true;
                         }
@@ -2744,7 +2748,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Process Platforms
         /// </summary>
-        private void ProcessPlatforms(Dictionary<int, int> platformList, TrackItem[] trackItems, TrackNode[] trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
+        private void ProcessPlatforms(Dictionary<int, int> platformList, List<TrackItem> trackItems, List<TrackNode> trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
         {
             foreach (KeyValuePair<int, int> platformIndex in platformList)
             {
@@ -2759,7 +2763,7 @@ namespace Orts.Simulation.Signalling
                 TrackNode trackNode = trackNodes[platformIndex.Value];
 
                 // check if entry already created for related entry
-                int relatedIndex = (int)platform.LinkedPlatformItemId;
+                int relatedIndex = platform.LinkedPlatformItemId;
 
                 PlatformDetails platformDetails;
                 Location refIndex;
@@ -2806,7 +2810,7 @@ namespace Orts.Simulation.Signalling
                 for (int iXRef = trackNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && sectionIndex < 0; iXRef--)
                 {
                     if (platform.SData1 <
-                     (trackNode.TrackCircuitCrossReferences[iXRef].OffsetLength[1] + trackNode.TrackCircuitCrossReferences[iXRef].Length))
+                     (trackNode.TrackCircuitCrossReferences[iXRef].OffsetLength[TrackDirection.Reverse] + trackNode.TrackCircuitCrossReferences[iXRef].Length))
                     {
                         sectionIndex = trackNode.TrackCircuitCrossReferences[iXRef].Index;
                         crossrefIndex = iXRef;
@@ -2882,7 +2886,7 @@ namespace Orts.Simulation.Signalling
                 {
                     platformDetails.Name = platform.Station;
                     platformDetails.MinWaitingTime = platform.PlatformMinWaitingTime;
-                    platformDetails.NumPassengersWaiting = (int)platform.PlatformNumPassengersWaiting;
+                    platformDetails.NumPassengersWaiting = platform.PlatformNumPassengersWaiting;
                 }
                 else if (!splitPlatform)
                 {
@@ -2954,7 +2958,8 @@ namespace Orts.Simulation.Signalling
                                 {
                                     foreach (SignalHead signalHead in section.EndSignals[TrackDirection.Ahead].SignalHeads)
                                     {
-                                        if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
+                                        if (signalHead.ApproachControlLimitPositionM != null)
+                                            approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
                                 if (!section.EndSignals[TrackDirection.Ahead].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
@@ -3005,7 +3010,8 @@ namespace Orts.Simulation.Signalling
                                 {
                                     foreach (SignalHead signalHead in section.EndSignals[TrackDirection.Reverse].SignalHeads)
                                     {
-                                        if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
+                                        if (signalHead.ApproachControlLimitPositionM != null)
+                                            approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
                                 if (!section.EndSignals[TrackDirection.Reverse].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
@@ -3048,7 +3054,7 @@ namespace Orts.Simulation.Signalling
         /// Resolve split platforms
         /// </summary>
         private static void ResolveSplitPlatform(PlatformDetails platformDetails, int secondSectionIndex, PlatformItem secondPlatform, TrackVectorNode secondNode,
-                    TrackItem[] trackItems, TrackNode[] trackNodes)
+                    List<TrackItem> trackItems, List<TrackNode> trackNodes)
         {
             // get all positions related to tile of first platform item
 
@@ -3328,6 +3334,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTunnels()
         {
+            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackNode node in trackDB.TrackNodes)
             {
@@ -3350,9 +3357,6 @@ namespace Orts.Simulation.Signalling
 
                         TrackSection TS = tsectiondat.TrackSections[section.SectionIndex];
 
-                        // determine length
-                        float length = TS.Curved ? MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius : TS.Length;
-
                         // check tunnel shape
 
                         bool tunnelShape = false;
@@ -3362,7 +3366,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
                             tunnelShape = shape.TunnelShape;
-                            shapePaths = Convert.ToInt32(shape.PathsNumber);
+                            shapePaths = shape.PathsNumber;
                         }
 
                         if (tunnelShape)
@@ -3370,13 +3374,13 @@ namespace Orts.Simulation.Signalling
                             numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
                             if (inTunnel)
                             {
-                                lastTunnel[1] += length;
+                                lastTunnel[1] += TS.Length;
                             }
                             else
                             {
                                 lastTunnel = new float[2];
                                 lastTunnel[0] = totalLength;
-                                lastTunnel[1] = length;
+                                lastTunnel[1] = TS.Length;
                                 inTunnel = true;
                             }
                         }
@@ -3387,7 +3391,7 @@ namespace Orts.Simulation.Signalling
                             inTunnel = false;
                             numPaths = -1;
                         }
-                        totalLength += length;
+                        totalLength += TS.Length;
                     }
 
                     // add last tunnel item
@@ -3408,7 +3412,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSectionCrossReference crossRefSection = node.TrackCircuitCrossReferences[i];
                             // forward direction
-                            float sectionStartOffset = crossRefSection.OffsetLength[1];
+                            float sectionStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
                             float sectionLength = crossRefSection.Length;
                             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
                             float startOffset;
@@ -3474,6 +3478,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTroughs()
         {
+            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackNode node in trackDB.TrackNodes)
             {
@@ -3496,9 +3501,6 @@ namespace Orts.Simulation.Signalling
 
                         TrackSection trackSection = tsectiondat.TrackSections[section.SectionIndex];
 
-                        // determine length
-                        float length = trackSection.Curved ? MathHelper.ToRadians(Math.Abs(trackSection.Angle)) * trackSection.Radius : trackSection.Length;
-
                         // check trough shape
 
                         bool troughShape = false;
@@ -3510,7 +3512,7 @@ namespace Orts.Simulation.Signalling
                             if (shape.FileName != null)
                             {
                                 troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                                shapePaths = Convert.ToInt32(shape.PathsNumber);
+                                shapePaths = shape.PathsNumber;
                             }
                         }
 
@@ -3519,13 +3521,13 @@ namespace Orts.Simulation.Signalling
                             numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
                             if (overTrough)
                             {
-                                lastTrough[1] += length;
+                                lastTrough[1] += trackSection.Length;
                             }
                             else
                             {
                                 lastTrough = new float[2];
                                 lastTrough[0] = totalLength;
-                                lastTrough[1] = length;
+                                lastTrough[1] = trackSection.Length;
                                 overTrough = true;
                             }
                         }
@@ -3536,7 +3538,7 @@ namespace Orts.Simulation.Signalling
                             overTrough = false;
                             numPaths = -1;
                         }
-                        totalLength += length;
+                        totalLength += trackSection.Length;
                     }
 
                     // add last tunnel item
@@ -3558,7 +3560,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSectionCrossReference crossRefSection = node.TrackCircuitCrossReferences[i];
                             // forward direction
-                            float tcsStartOffset = crossRefSection.OffsetLength[1];
+                            float tcsStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
                             float tcsLength = crossRefSection.Length;
                             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
 
@@ -3674,13 +3676,12 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //only used by MP to manually set a switch to a desired position
-        public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
+        public bool RequestSetSwitch(IJunction junctionSection, SwitchState targetState)
         {
-            if (null == switchNode)
-                throw new ArgumentNullException(nameof(switchNode));
+            if (null == junctionSection)
+                throw new ArgumentNullException(nameof(junctionSection));
 
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = junctionSection as TrackCircuitSection;
             bool switchReserved = (switchSection.CircuitState.SignalReserved >= 0 || switchSection.CircuitState.TrainClaimed.Count > 0);
             bool switchSet = false;
 
@@ -3691,7 +3692,7 @@ namespace Orts.Simulation.Signalling
 
             if (!switchSection.CircuitState.Occupied())
             {
-                switchSection.JunctionSetManual = desiredState;
+                switchSection.JunctionSetManual = targetState == SwitchState.SideRoute ? 1 - switchSection.JunctionDefaultRoute : switchSection.JunctionDefaultRoute;
                 (trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
@@ -3716,6 +3717,16 @@ namespace Orts.Simulation.Signalling
                 }
             }
             return switchSet;
+        }
+
+        //only used by MP to manually set a switch to a desired position
+        public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
+        {
+            if (null == switchNode)
+                throw new ArgumentNullException(nameof(switchNode));
+
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            return RequestSetSwitch(switchSection, (SwitchState)desiredState);
         }
 
         //================================================================================================//

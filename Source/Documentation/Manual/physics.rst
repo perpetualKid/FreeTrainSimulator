@@ -160,11 +160,17 @@ however if the modeler desires greater accuracy the following parameters can be 
 WAG/ENG file in the wagon section:
 
 ``ORTSLengthBogieCentre`` - length between bogie centres.
-``ORTSLengthCarBody`` - Length between car ends.
+
+``ORTSLengthCarBody`` - Length between car ends (typically measured between the coupler pivot points).
+
 ``ORTSLengthCouplerFace`` - length between coupler faces.
 
-``ORTSNumAxles`` - number of axles on the car.
-``ORTSNumBogies`` - number of bogies on the car.
+``ORTSNumberAxles`` - number of axles on the car.
+
+``ORTSNumberDriveAxles`` - number of driven axles on the locomotive. NB: Total axles on locomotive will be 
+``ORTSNumberAxles`` + ``ORTSNumberDriveAxles``.
+
+``ORTSNumberBogies`` - number of bogies on the car.
 
 .. _physics-adhesion:
 
@@ -683,6 +689,78 @@ Output performance is very different compared with MSTS. The output force
 is computed using the diesel engine torque characteristics to get results
 that are more precise.
 
+To indicate that the diesel is a mechanical transmission, ``ORTSDieselTransmissionType``
+needs to be set to "Mechanic".
+
+Two ORTS mechanical gearbox configurations can be set up.
+
+These two gearboxes can be selected by the use of the following parameter:
+
+``ORTSGearBoxType ( A )`` - represents a semi-automatic pre-selector gearbox that gives 
+a continuous power output that is not interrupted when changing gears.
+
+``ORTSGearBoxType ( B )`` - represents a semi-automatic pre-selector type gear box where 
+although there is a break in tractive effort when changing from one gear to another, 
+the engine speed is reduced by a shaft brake if needed, so that there is no need for 
+the driver to adjust the throttle.
+
+One of three possible types of main clutch are selectable for each of the above gear box 
+types, as follows:
+
+``ORTSMainClutchType ( Friction )`` - represents a mechanical friction clutch.
+
+``ORTSMainClutchType ( Fluid )`` - represents a fluid coupling. Where a transmission includes 
+both a friction clutch and a fluid coupling then ORTSMainClutchType ( “Fluid” ) should be 
+used in the eng file.
+
+``ORTSMainClutchType ( Scoop )`` - represents a fluid coupling that includes a scoop device to 
+disconnect the engine from the transmission at idle speed.
+
+``ORTSGearBoxFreeWheel`` - indicates whether a freewheel mechanism is included in the transmission.
+( 0 ) - should be used for transmissions that do not include a freewheel. This option will allow 
+‘engine braking’ to occur when appropriate.
+( 1 ) - should be used for transmissions that include a freewheel. This option will allow the train 
+to coast with the engine in gear.
+
+``GearBoxNumberOfGears`` - The number of gears available in the gear box.
+
+Currently only a BASIC model configuration is available (ie no user defined traction curves or 
+diesel engine curves are supported). OR calculates the tractive force curves for each gear based 
+on the "inbuilt" torque curve of a typical diesel engine. 
+
+``GearBoxMaxSpeedForGears`` - sets the maximum speed for each gear, corresponding to maximum engine 
+rpm and maximum power . As an example, the values for a typical British Railways first generation dmu are:
+
+GearBoxMaxSpeedForGears( 15.3 27 41 65.5 ) The default values are in mph, although other units can be entered. 
+In the above case the maximum permitted speed of the train is 70 mph; a small amount of ‘overspeed’ being allowed
+ in top gear. The fourth gear speed of 65.5 mph corresponds to the maximum engine rpm set in the eng file by 
+ ``DieselEngineMaxRPM``. The diesel engine may continue to ‘runaway’ above its normal ‘maximum speed’ until it 
+ reaches the maximum governed speed or ‘redline’ speed at which the engine governor will cut off the fuel 
+ supply until the engine speed is reduced. This speed can be set in basic Open Rails eng files using ``ORTSDieselEngineGovenorRpM``. 
+ In the case of the above train, then these would be
+
+DieselEngineMaxRPM( 1800 )
+ORTSDieselEngineGovenorRpM ( 2000 )
+
+If under any circumstances the engine reaches ``ORTSDieselEngineGovenorRpM`` then the diesel engine will automatically be shut down.
+
+"ORTSGearBoxTractiveForceAtSpeed" - The tractive force available in each gear at the speed indicated in GearBoxMaxSpeedForGears. Units 
+by default are in N, however lbf, N or kN. Published values for tractive effort of geared locomotives and multiple units 
+are generally those at the maximum speed for each gear.
+
+Hence a typical gear configuration for a diesel mechanic locomotive might look like the following:
+
+ ORTSDieselTransmissionType ( Mechanic )
+
+ ORTSGearBoxType ( B )
+ ORTSMainClutchType ( "Friction" )
+ ORTSGearBoxFreeWheel ( 0 )
+
+ GearBoxOperation( Manual )
+ GearBoxNumberOfGears( 6 )
+ GearBoxMaxSpeedForGears( 4.5mph 6mph 9mph 14.5mph 21mph 33mph )
+ ORTSGearBoxTractiveForceatSpeed( 35400lbf 26600lbf 17700lbf 11200lbf 7600lbf 4830lbf )
+
 .. _physics-traction-cut-off-relay:
 
 Traction cut-off relay
@@ -963,14 +1041,15 @@ a factor to reduce the value of M.E.P.
 
 Thus our formula from above becomes::
 
-    TE = Cyl/2 x (0.85 x BP x d2 x s) / D
+    TE = Cyl/2 x (C x BP x d2 x s) / D
 
 Where:
 
 - BP = Boiler Pressure (gauge pressure - psi)
-- 0.85 -- factor to account for losses in the engine, typically values
+- C = factor to account for losses in the engine, typically values
   between 0.7 and 0.85 were used by different manufacturers and railway
-  companies.
+  companies. Default is set @ 0.85. User can change by adding the 
+  ``ORTSTractiveEffortFactor`` parameter to the ENG file.
 
 Factor of Adhesion
 ..................
@@ -2031,18 +2110,111 @@ Some of the cab monitoring gauges provide visibility of what is happening on the
 the "closest" powered car near the Control car and uses its information.
 
 
-Engines -- Multiple Units in Same Consist or AI Engines
-=======================================================
+Multiple Units of Locomotives in Same Consist
+=============================================
 
-In an OR player train one locomotive is controlled by the player, while
-the other units are controlled by default by the train's MU (multiple
-unit) signals for braking and throttle position, etc. The
-player-controlled locomotive generates the MU signals which are passed
-along to every unit in the train. For AI trains, the AI software directly
-generates the MU signals, i.e. there is no player-controlled locomotive.
+In an OR player train one locomotive is controlled by the player, while 
+the other units are controlled by default by the train's MU (multiple 
+unit) signals for braking and throttle position, etc. The 
+player-controlled locomotive generates the MU signals which are passed 
+along to every unit in the train. 
+
+.. _distributed-power:
+
+Distributed Power
+-----------------
+
+This is applicable only to trains hauled by diesel locomotives equipped with 
+dynamic brakes.
+
+More locomotive groups may be present in American long freight trains; a 
+locomotive group is defined as a set of locomotives that have no wagons in 
+between. 
+Groups different from the group including the lead locomotive are called 
+remote groups.
+
+Remote groups can be controlled in two modes: *synchronous* or 
+*asynchronous*. Locomotives in the player train can be arranged to be part of 
+one of the two above control groups. So each locomotive group (except the lead one,
+which always belongs to the *sync* control group) 
+can be either part the *sync*  or of the *async* control group. However, if a 
+locomotive group is part of the *async* control group, all locomotive groups behind 
+it must also be part of the *async* control group.
+
+The arrangement can be changed during run, 
+which in real life is performed by using the locomotive's onboard computer 
+(e.g. Locotrol).
+
+This functionality is necessary in American long-train freight 
+operations. An example use case is when a train finished climbing a 
+mountain pass. At this point the lead locomotives have to start dynamic 
+braking driving downhill, while the trailing units still need to keep pushing 
+the train's end uphill. The locomotive driver has the possibility to build 
+the *fence*, i.e. move the last locomotive group to the *async* control group. 
+
+While locomotives in *sync* control group always copy the traction and dynamic 
+brake settings of the lead (man-controlled) locomotive, for locomotives in 
+*async* control group these can be adjusted independently. Other controls, like 
+reverser and air brake are always synchronized throughout the whole train, 
+and changing reverser setting or applying air brakes will force *async* 
+controlled locomotives to fall back to idle. 
+
+The *fence* between *sync* and *async* control groups can be moved back and forth 
+along the train. This is useful when there are one or more middle-train 
+locomotive groups in the consist. However it is not possible to move the 
+fence to separate two directly interconnected locomotives: such locomotives 
+can be rearranged only together.  
+
+If the driver dismantles the *fence*, by moving it after the last locomotive 
+group, all locomotive groups are moved back to *sync* control group, and 
+therefore all locomotives will work in sync with the leading one.
+All-sync operation is also the default, when the game starts. 
+
+Traction and dynamic brake settings for *sync* group can be controlled by the 
+usual keys: ``<A>`` and ``<D>``. The following additional controls are 
+available for controlling the *async* group settings:
+
+- Move To Back -- ``<Ctrl+Shift+O>``: Move one locomotive group to back (*async*) 
+  control group (*fence* is moved towards the front of the train).
+- Move To Front -- ``<Ctrl+O>``: Move one locomotive group to front (*sync*) 
+  control group (*fence* is moved towards the back of the train).
+- Traction -- ``<Ctrl+L>``: Switch *async* group to traction mode.
+- Idle -- ``<Ctrl+Shift+L>``: Switch *async* group to idle state.
+- Brake -- ``<Ctrl+'> (key two positions at the right of L)``: Switch *async* 
+  group to dynamic braking mode.
+- More -- ``<Ctrl+U>``: Increase *async* group traction or dynamic brake by a notch, 
+  depending on its mode setting.
+- Less -- ``<Ctrl+Shift+U>``: Decrease *async* group traction or dynamic brake by a notch, 
+  depending on its mode setting.
+
+HUD shows the sync--async configuration in line *Multiple Units* on main page.
+When it reads e.g. "2--2 | 1", then it means that front and middle-train 
+double-unit locomotives are controlled in *sync* with the leading unit, 
+while the trailing pushing unit is controlled *async* independently. 
+The actual set value of traction or dynamic brake of *async* group is shown in 
+lines *Throttle* and *Dynamic Brake*, respectively, in brackets, e.g.: 
+Throttle: 0% (50%).
+
+Distributed power info and commands can also be displayed and operated through 
+cabview controls, as explained :ref:`here <cabs-distributed-power>`
+
+The complete distributed power configuration is displayed in the 
+Distributed Power Info extended HUD page, where the state of all locomotives 
+in the train are shown, as well as in the *Train DPU Info* window, which is 
+displayed after pressing ``<Shift+F9>``, and which shows only the state of the first 
+locomotive of each locomotive group, as occurs also in displays of real 
+locomotives.
+
+.. image:: images/physics-dpu-window.png
+
+Engines of AI Trains
+--------------------
+
+For AI trains, the AI software directly generates the remote control
+signals, i.e. there is no player-controlled locomotive. 
 In this way, all engines use the same physics code for power and friction.
 
-This software model will ensure that non-player controlled engines will
+This software model will ensure that non-player controlled engines will 
 behave exactly the same way as player controlled ones.
 
 .. _physics-braking:
@@ -2092,24 +2264,8 @@ The operation of air single-pipe brakes is described in general below.
 
 The auxiliary reservoir needs to be charged by the brake pipe and,
 depending on the WAG file parameters setting, this can delay the brake
-release. When the *Graduated Release Air Brakes* box is not checked, the
-auxiliary reservoir is also charged by the emergency reservoir (until
-both are equal and then both are charged from the pipe). When the
-*Graduated Release Air Brakes* box is checked, the auxiliary reservoir is
-only charged from the brake pipe. The Open Rails software implements it
-this way because the emergency reservoir is used as the source of the
-reference pressure for regulating the brake cylinder pressure.
-
-The end result is that you will get a slower release when the *Graduated
-Release Air Brakes* box is checked. This should not be an issue with two
-pipe air brake systems because the second pipe can be the source of air
-for charging the auxiliary reservoirs.
-
-Open Rails software has modeled most of this graduated release car brake
-behavior based on the 26F control valve, but this valve is designed for
-use on locomotives. The valve uses a control reservoir to maintain the
-reference pressure and Open Rails software simply replaced the control
-reservoir with the emergency reservoir.
+release. The auxiliary reservoir is also charged by the emergency reservoir (until
+both are equal and then both are charged from the pipe).
 
 Increasing the :ref:`Brake Pipe Charging Rate <options-brake-pipe-charging>`
 (psi/s) value controls the charging rate. Increasing the value will reduce the
@@ -2891,6 +3047,8 @@ MaxAuxilaryChargingRate and EmergencyResChargingRate.
 
 .. index::
    single: BrakePipeVolume
+   single: ORTSEmergencyValveActuationRate
+   single: ORTSMainResPipeAuxResCharging
    single: ORTSMainResChargingRate
    single: ORTSEngineBrakeReleaseRate
    single: ORTSEngineBrakeApplicationRate
@@ -2912,6 +3070,14 @@ MaxAuxilaryChargingRate and EmergencyResChargingRate.
   brake servicetimefactor instead, but the Open Rails Development team
   doesn't believe this is worth the effort by the user for the added
   realism.
+- ``Wagon(ORTSEmergencyValveActuationRate`` -- Threshold rate for emergency
+  brake actuation of the triple valve. If the pressure in the brake pipe
+  decreases at a higher rate than specified, the triple valve will switch to
+  emergency mode.
+- ``Wagon(ORTSMainResPipeAuxResCharging`` -- Boolean value that indicates,
+  for twin pipe systems, if the main reservoir pipe is used for charging the auxiliary
+  reservoirs. If set to false, the main reservoir pipe will not be used
+  by the brake system.
 - ``Engine(ORTSMainResChargingRate`` -- Rate of main reservoir pressure change
   in psi per second when the compressor is on (default .4).
 - ``Engine(ORTSEngineBrakeReleaseRate`` -- Rate of engine brake pressure
@@ -4511,4 +4677,155 @@ UoM - Angle (deg, radians) - default is rad. Typically this value maybe between 
 
 - ``ORTSWheelFlangeLength`` - Wheel flange length is defined as the length of flange starting from the beginning of the maximum flange angle 
 to the point where flange angle reduces to 26.6 degrees. UoM - Distance (m, in, ft, etc) - default is m
+
+.. _physics-eot:
+
+EOT - End of train device
+=========================
+
+General
+-------
+
+See :ref:`here https://en.wikipedia.org/wiki/End-of-train_device` for basic info about EOTs.
+
+EOTs in Open Rails may be of three different levels (types)::
+
+- No communication: "dumb" EOTs, like flags or flashing lamps 
+- One way: the EOT is capable to transmit to the lead locomotive the brake pipe pressure at the end of the train
+- Two way: the EOT is also capable to receive a command to vent the air brake pipe.
+
+How to define an EOT
+--------------------
+
+EOTs must be defined within subfolders of the ``Trains\ORTS_EOT`` folder. These subfolders contain 
+the same file set present in a subfolder of the ``Trains\Trainset`` folder; the file defining an EOT 
+has the same format as a .wag file, but it must have an .eot extension. To define the level of the EOT 
+the following block must be added at the end of the .eot file (after the closing parenthesis of the 
+Wagon() block)::
+
+  ORTSEOT (
+	Level ( "level" )
+  )
+
+  
+level may assume following values: ``NoComm``, ``OneWay`` and ``TwoWay``.
+
+Usually EOTs were provided as a very short wagon for simulation with MSTS or OR. To upgrade it to 
+a functioning EOT for OR following simple steps are needed::
+
+- Create the ``Trains\ORTS_EOT`` folder
+- copy the EOT subfolder present in the ``Trains\Trainset`` folder into the ``Trains\ORTS_EOT`` folder
+- change the extension of the .wag file(s) to .eot
+- add at the end of the .eot file the ORTSEOT block.
+
+For Open Rails the EOT is a special type (a subclass) of wagon, with specific features. As 
+such it appears at the end of the train in the Train Operations window.
+
+How to attach and detach an EOT at the end of a train
+-----------------------------------------------------
+
+An EOT may be attached at the end of a train (be it player train or AI train) 
+already at game start, 
+by inserting at the end of the .con file a block like the following one::
+                  ORTSEot (
+                        EOTData ( EOT_OR TrainSimulations_EOT )
+                        UiD ( 203 )
+                )
+
+where ``ORTSEot`` and ``EOTData`` are fixed keywords, EOT_OR is the name of the .eot file 
+and TrainSimulations_EOT is the folder where EOT_OR.eot resides. TrainSimulations_EOT is 
+a subfolder of ``Trains\ORTS_EOT``.
+
+If an EOT is present at the end of the train since game start, it will be fully operating 
+from the beginning 
+(in one-way state if it is a one-way EOT, and in two-way state if it is a two-way EOT).
+
+An EOT may also be attached at the end of the actual player train using the EOT list window 
+
+
+.. image:: images/physics-eot.png
+   :scale: 80 %
+   :align: center
+
+which can be recalled by pressing ``<Ctrl+F9>``. Such window lists all .eot files present in 
+the subfolders of ``Trains\ORTS_EOT``. If the train has an EOT at the end of it, the related row 
+in the EOT list window will be red. If the train has no EOT at the end of it (no red row), it can 
+be attached at the end of the train with following sequence:
+
+- within the EOT list window click on the row showing the desired EOT; the row will become red 
+  and the EOT will physically appear at the end of the train
+- if it is an One Way or Two Way EOT type, connect its brake hose with the Car Operations 
+  Window (see :ref:`here <driving-car-operations>`)
+- using the Car Operations Window on the wagon preceding the EOT, open the rear angle cock.
+
+When an EOT is attached to the actual player train, a line indicating its presence will appear 
+in the Train Driving Window (F5). The EOT will be in Disarmed state (that is fully disabled).
+
+To detach an EOT from the end of the actual player train, recall the EOT list window and click 
+on the red row. The EOT will disappear. Always remember to detach the EOT when this 
+would occur in reality (e.g. when rear coupling other wagons, when decoupling the rear of the train 
+and in general before shunting).
+
+How to arm (enable) or disarm a one-way or two-way EOT 
+------------------------------------------------------
+
+The arm and disarm procedure must be performed from the cabview, as the controls are available only 
+through mouse. So it requires an equipped cabview. See :ref:`here <cabs-eot>` for a list of the 
+available controls. 
+
+The procedure for a two-way EOT is explained basing on the picture below, which shows a 
+sample case based on a cab of Borislav Miletic. 
+
+.. _physics-eot-display:
+
+.. image:: images/physics-eot-display.png
+   :scale: 100 %
+   :align: center
+
+.. _physics-eot-states:
+
+The possible states for a two-way EOT are following ones::
+  * Disarmed,
+  * CommTestOn,
+  * Armed,
+  * LocalTestOn,
+  * ArmNow,
+  * ArmedTwoWay
+  
+The EOT state is shown in the Train Driving window using above terminology, 
+while the latter is a bit different in the EOT setup display in the sample cab
+following a real case (but it may be modified).
+
+When the EOT is attached to the train with the EOT List window, the EOT is in 
+``Disarmed`` state. An EOT ID appears as a 5-digit random number. In the cab 
+the Comm Test field shows ``Failed``.
+
+By clicking on the key below the ``Comm Test`` soft button, the state in the 
+Train Driving window passes to the ``CommTestOn`` state. When the ``CommTestOn`` is 
+terminated, the state in the Train Driving window passes to the ``Armed`` state for 
+the one-way EOTs, and to the ``LocalTestOn`` state for the two-way EOTs.
+In the EOT setup display the Comm Test field shows  ``Passed`` and the EOT 
+Status Field shows ``One Way``. Now the ``Rear`` field shows the brake pipe 
+pressure at the end of the train.
+
+The LocalTestOn in two-way EOTs is about 25 seconds long. After such time 
+interval the state shown in the Train Driving window passes to the ``ArmNow`` state, and 
+the EOT status in the display shows ``Arm Now``.
+
+At this point the train driver must click the key below the ``Arm Two-Way`` soft button. 
+The EOT Passes to the ``ArmedTwoWay`` state, that is shown as ``Armed`` in the 
+EOT status within the EOT Status display.
+
+By clicking the key below the ``Request Disarm`` soft button, the EOT returns to 
+the ``Disarmed`` state.
+
+Emergency brake through EOT
+---------------------------
+
+Two-way EOTs, when in the ``ArmedTwoWay`` state, can be requested to vent the brake pipe 
+and therefore to cause an emergency brake. This occurs automatically when an Emergency 
+brake is triggered, and also manually when the ``ORTS_EOT_EMERGENCY_BRAKE`` 
+control is activated. The manual activation may also occur by pressing 
+``<Ctrl+Backspace>`` .
+
 

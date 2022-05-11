@@ -25,7 +25,9 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -71,7 +73,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool doorsLabelVisible; // Doors label visible
         private double clockDoorsTime; // Doors hide timing
 
-        bool derailLabelVisible = false;// DerailCoeff label visible
+        bool derailLabelVisible;// DerailCoeff label visible
         double clockDerailTime; //  DerailCoeff label visible
 
         private bool standardHUDMode = true;// Standard text
@@ -112,6 +114,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 KeyPressed = keyPressed;
             }
         }
+
+        private List<string> tokens = new List<string>()
+        {
+            Viewer.Catalog.GetString("BP"),
+            Viewer.Catalog.GetString("EQ"),
+            Viewer.Catalog.GetString("V")
+        };
 
         private string directionKeyInput;
         private string throttleKeyInput;
@@ -171,6 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("Gear")] = Viewer.Catalog.GetString("GEAR"),
             [Viewer.Catalog.GetString("Gradient")] = Viewer.Catalog.GetString("GRAD"),
             [Viewer.Catalog.GetString("Grate limit")] = Viewer.Catalog.GetString("GRAT"),
+            [Viewer.Catalog.GetString("Loco Groups")] = Viewer.Catalog.GetString("GRUP"),
             [Viewer.Catalog.GetString("Pantographs")] = Viewer.Catalog.GetString("PANT"),
             [Viewer.Catalog.GetString("Power")] = Viewer.Catalog.GetString("POWR"),
             [Viewer.Catalog.GetString("Regulator")] = Viewer.Catalog.GetString("REGL"),
@@ -193,6 +203,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("Apply Quick")] = Viewer.Catalog.GetString("ApplQ"),
             [Viewer.Catalog.GetString("Apply Slow")] = Viewer.Catalog.GetString("ApplS"),
             [Viewer.Catalog.GetString("coal")] = Viewer.Catalog.GetString("c"),
+            [Viewer.Catalog.GetString("Cont. Service")] = Viewer.Catalog.GetString("Serv"),
             [Viewer.Catalog.GetString("Emergency Braking Push Button")] = Viewer.Catalog.GetString("EmerBPB"),
             [Viewer.Catalog.GetString("Lap Self")] = Viewer.Catalog.GetString("LapS"),
             [Viewer.Catalog.GetString("Minimum Reduction")] = Viewer.Catalog.GetString("MRedc"),
@@ -200,6 +211,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("skid")] = Viewer.Catalog.GetString("Skid"),
             [Viewer.Catalog.GetString("slip warning")] = Viewer.Catalog.GetString("Warning"),
             [Viewer.Catalog.GetString("slip")] = Viewer.Catalog.GetString("Slip"),
+            [Viewer.Catalog.GetString("Vac. Cont. Service")] = Viewer.Catalog.GetString("Vac.Serv"),
             [Viewer.Catalog.GetString("water")] = Viewer.Catalog.GetString("w"),
         };
 
@@ -291,12 +303,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void DirectionCommand(Direction direction)
         {
-            if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
+            if ((Owner.Viewer.PlayerLocomotive.EngineType != EngineType.Steam &&
                 (Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Forward
                 || Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Reverse)
                 && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
                 || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
-                || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam &&
+                || (Owner.Viewer.PlayerLocomotive.EngineType == EngineType.Steam &&
                 Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive && mstsSteamLocomotive.CutoffController.MaximumValue == Math.Abs(Owner.Viewer.PlayerLocomotive.Train.MUReverserPercent / 100))
                 )
             {
@@ -439,7 +451,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.Initialize();
             // Reset window size
-            UpdateWindowSize();
+            if (Visible)
+                UpdateWindowSize();
 
         }
 
@@ -452,14 +465,22 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 int colWidth = listToLabel.Max(x => x.FirstColWidth) + (standardHUDMode ? 15 : 20);
                 int TimeHboxPositionY = 0;
+                // search wider
+                int tokenOffset = 0;
+                int tokenWidth = 0;
+                foreach (string data in tokens.Where((string d) => !string.IsNullOrWhiteSpace(d)))
+                {
+                    tokenWidth = Owner.TextFontDefault.MeasureString(data);
+                    tokenOffset = tokenWidth > tokenOffset ? tokenWidth : tokenOffset;
+                }
                 foreach (var data in listToLabel)
                 {
-                    if (data.FirstCol.Contains("NwLn"))
+                    if (data.FirstCol.Contains("NwLn", StringComparison.OrdinalIgnoreCase))
                     {
                         var hbox = vbox.AddLayoutHorizontalLineOfText();
                         hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
                     }
-                    else if (data.FirstCol.Contains("Sprtr"))
+                    else if (data.FirstCol.Contains("Sprtr", StringComparison.OrdinalIgnoreCase))
                     {
                         vbox.AddHorizontalSeparator();
                     }
@@ -522,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             indicator.Color = Color.White; // Default color
 
                             //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
-                            if (LastCol.Contains(':')) TimeHboxPositionY = hbox.Position.Y;
+                            if (LastCol.Contains(':', StringComparison.OrdinalIgnoreCase)) TimeHboxPositionY = hbox.Position.Y;
 
                             if (standardHUDMode)
                             {
@@ -536,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
 
                             // Font to bold, clickable label
-                            if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':')) // Time line.
+                            if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':', StringComparison.OrdinalIgnoreCase)) // Time line.
                             {
                                 hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (standardHUDMode ? 5 : 3), hbox.RemainingHeight, LastCol));
                                 LabelFontToBold.Color = Color.White;
@@ -544,7 +565,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else
                             {
-                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                var iniLastCol = Viewer.Catalog.GetString(LastCol).IndexOf(" ", StringComparison.OrdinalIgnoreCase);
+                                if (tokens.Any(LastCol.Contains) && iniLastCol >= 0)
+                                {
+                                    hbox.Add(indicator = new Label(tokenOffset + (standardHUDMode ? 5 : 3), hbox.RemainingHeight, LastCol[..iniLastCol]));
+                                    hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol[iniLastCol..Viewer.Catalog.GetString(LastCol).Length].TrimStart()));
+                                }
+                                else
+                                {
+                                    hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                }
                                 indicator.Color = Color.White; // Default color
                             }
                         }
@@ -558,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
                         }
                         // Separator line
-                        if (data.FirstCol.Contains("Sprtr"))
+                        if (data.FirstCol.Contains("Sprtr", StringComparison.OrdinalIgnoreCase))
                         {
                             hbox.AddHorizontalSeparator();
                         }
@@ -649,16 +679,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     foreach (var code in FirstColToAbbreviated)
                     {
-                        if (firstcol.Contains(code.Key))
+                        if (firstcol.Contains(code.Key, StringComparison.OrdinalIgnoreCase))
                         {
-                            firstcol = firstcol.Replace(code.Key, code.Value).TrimEnd();
+                            firstcol = firstcol.Replace(code.Key, code.Value, StringComparison.OrdinalIgnoreCase).TrimEnd();
                         }
                     }
                     foreach (var code in LastColToAbbreviated)
                     {
-                        if (lastcol.Contains(code.Key))
+                        if (lastcol.Contains(code.Key, StringComparison.OrdinalIgnoreCase))
                         {
-                            lastcol = lastcol.Replace(code.Key, code.Value).TrimEnd();
+                            lastcol = lastcol.Replace(code.Key, code.Value, StringComparison.OrdinalIgnoreCase).TrimEnd();
                         }
                     }
                 }
@@ -666,7 +696,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var firstColWidth = 0;
                 var lastColWidth = 0;
 
-                if (!firstcol.Contains("Sprtr"))
+                if (!firstcol.Contains("Sprtr", StringComparison.OrdinalIgnoreCase))
                 {
 
                     if (ColorCode.Keys.Any(firstcol.EndsWith))
@@ -746,6 +776,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var LocomotiveSteam = Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive;
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
+            var multipleUnitsConfiguration = Locomotive.GetMultipleUnitsConfiguration();
             var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
             var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPulled == PlayerTrain.Cars.Count - 1;
             var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPushed == PlayerTrain.Cars.Count - 1;
@@ -771,8 +802,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // First Block
             // Client and server may have a time difference.
-            if (Orts.MultiPlayer.MultiPlayerManager.IsClient())
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference), "", false);
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().serverTimeDifference), "", false);
             else
             {
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", false);
@@ -783,7 +814,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             InfoToLabel(string.Empty, Viewer.Catalog.GetString("Speed"),
-                FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Owner.Viewer.PlayerLocomotive.IsMetric) +
+                FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits) +
                 (ThisInfo.Speed < ThisInfo.AllowedSpeed - 1.0f ? "!??" :        // White
                 ThisInfo.Speed < ThisInfo.AllowedSpeed + 0.0f ? "?!!" :         // PaleGreen
                 ThisInfo.Speed < ThisInfo.AllowedSpeed + 5.0f ? "!!?" : "!!!"), "", false);// Orange : Red
@@ -813,12 +844,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // Direction
             if (string.Equals(directionKeyInput, arrowUp, StringComparison.OrdinalIgnoreCase) || string.Equals(directionKeyInput, arrowDown, StringComparison.OrdinalIgnoreCase))
             {
-                InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
+                InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == EngineType.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
                     (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + Owner.Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), "", false);
             }
             // Throttle
             InfoToLabel(throttleKeyInput, Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
-                $"{Owner.Viewer.PlayerLocomotive.ThrottlePercent:0}%", "", false);
+                $"{Math.Round(Owner.Viewer.PlayerLocomotive.ThrottlePercent):F0}%" +
+                    (Owner.Viewer.PlayerLocomotive is MSTSDieselLocomotive && Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Math.Round(Owner.Viewer.PlayerLocomotive.Train.DPThrottlePercent):F0}%)" : ""), "", false);
 
             // Cylinder Cocks
             if (Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive)
@@ -857,51 +889,63 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             string brakeInfoValue;
             int index;
 
-            if (BrakeStatus.Contains(Viewer.Catalog.GetString("EQ")))
+            if (BrakeStatus.Contains(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase))
             {
-                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 InfoToLabel(trainBrakeInput, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false);
                 trainBrakeInput = "";
-                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"));
-                brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC")) - index).TrimEnd();
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase);
+                if (BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) > 0)
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
+                else
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase);
+                brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
 
                 InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
 
-                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase))
                 {
                     var IndexOffset = Viewer.Catalog.GetString("EOT").Length + 1;
-                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    if (BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) > 0)
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase);
+                    else
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
 
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
 
-                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) + IndexOffset;
                     brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimStart();
 
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
                 }
                 else
                 {
-                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                    if (BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) > 0)
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase);
+                    else
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                     brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
+                    brakeInfoValue = brakeInfoValue.StartsWith(Viewer.Catalog.GetString("V"), StringComparison.OrdinalIgnoreCase) ? 
+                        brakeInfoValue.Replace(Viewer.Catalog.GetString("V"), Viewer.Catalog.GetString("V") + "  ", StringComparison.OrdinalIgnoreCase) : brakeInfoValue;
                     trainBrakeInput = "";
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
                 }
             }
-            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
+            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase))
             {
                 var IndexOffset = Viewer.Catalog.GetString("Lead").Length + 1;
-                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 InfoToLabel(trainBrakeInput, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false);
 
                 trainBrakeInput = "";
-                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + IndexOffset;
-                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase) + IndexOffset;
+                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase))
                 {
-                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
 
-                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) + IndexOffset;
                     brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
                 }
@@ -911,13 +955,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
                 }
             }
-            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase))
             {
-                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 InfoToLabel(trainBrakeInput, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false);
 
                 trainBrakeInput = "";
-                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                 brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
 
                 InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
@@ -931,10 +975,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
             }
 
-            if (EngineBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            if (EngineBrakeStatus.Contains(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase))
             {
-                InfoToLabel(engineBrakeInput, Viewer.Catalog.GetString("Engine brake"), EngineBrakeStatus.Substring(0, EngineBrakeStatus.IndexOf("BC")) + "$??", "", false);
-                index = EngineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                InfoToLabel(engineBrakeInput, Viewer.Catalog.GetString("Engine brake"), string.Concat(EngineBrakeStatus.AsSpan(0, EngineBrakeStatus.IndexOf("BC", StringComparison.OrdinalIgnoreCase)), "$??"), "", false);
+                index = EngineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                 brakeInfoValue = EngineBrakeStatus.Substring(index, EngineBrakeStatus.Length - index).TrimEnd();
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString(""), brakeInfoValue + "!??", "", false);
             }
@@ -948,7 +992,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     StartTime = Locomotive.DynamicBrakeCommandStartTime + Locomotive.DynamicBrakeDelayS;
                     DynBrakeSetup = true;
-                    InfoToLabel(arrowToRight, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??", "", false);
+                    InfoToLabel(arrowToRight, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??" +
+                        (Owner.Viewer.PlayerLocomotive is MSTSDieselLocomotive && Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Owner.Viewer.PlayerLocomotive.Train.DPDynamicBrakePercent:F0}%)" : string.Empty), "", false);
                 }
                 else if (DynBrakeSetup && StartTime < Owner.Viewer.Simulator.ClockTime)
                 {
@@ -976,7 +1021,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 else if (DynamicBrakeStatus.Length == 0 && DynamicBrakePercent < 0)
                 {
-                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Off"), "", false);
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Off") +
+                        (Owner.Viewer.PlayerLocomotive is MSTSDieselLocomotive && Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Owner.Viewer.PlayerLocomotive.Train.DPDynamicBrakePercent:F0}%)" : string.Empty), "", false);
                 }
             }
 
@@ -991,10 +1037,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         var parts = data.Split(new[] { " = " }, 2, StringSplitOptions.None);
                         var HeatColor = "!??"; // Color.White
-                        if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Steam usage")))
+                        if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Steam usage"), StringComparison.OrdinalIgnoreCase))
                         {
                         }
-                        else if (Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Boiler pressure")))
+                        else if (Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Boiler pressure"), StringComparison.OrdinalIgnoreCase))
                         {
                             MSTSSteamLocomotive steamloco = (MSTSSteamLocomotive)Owner.Viewer.PlayerLocomotive;
                             var bandUpper = steamloco.PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
@@ -1009,17 +1055,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             InfoToLabel(string.Empty, Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString(parts[1]), HeatColor, false);
                         }
-                        else if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels")))
+                        else if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels"), StringComparison.OrdinalIgnoreCase))
                         {
-                            InfoToLabel(string.Empty, parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1].Replace(" ", string.Empty)) : ""), "", false);
+                            InfoToLabel(string.Empty, parts[0].EndsWith("?", StringComparison.OrdinalIgnoreCase) || parts[0].EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1].Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase)) : ""), "", false);
                         }
-                        else if (parts[0].StartsWith(Viewer.Catalog.GetString("Gear")))
+                        else if (parts[0].StartsWith(Viewer.Catalog.GetString("Gear"), StringComparison.OrdinalIgnoreCase))
                         {
                             InfoToLabel(gearKeyInput, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false);
                         }
                         else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
                         {
-                            string pantograph = pantographKeyDown ? parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? arrowUp : arrowDown : "";
+                            string pantograph = pantographKeyDown ? parts[1].StartsWith(Viewer.Catalog.GetString("Up"), StringComparison.OrdinalIgnoreCase) ? arrowUp : arrowDown : "";
                             InfoToLabel(pantograph, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false);
                         }
                         else if (parts.Contains(Viewer.Catalog.GetString("Engine")))
@@ -1028,13 +1074,30 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         }
                         else
                         {
-                            InfoToLabel(string.Empty, parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false);
+                            InfoToLabel(string.Empty, parts[0].EndsWith("?", StringComparison.OrdinalIgnoreCase) || parts[0].EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false);
                         }
                     }
                 }
             }
 
             InfoToLabel(string.Empty, "Sprtr", "", "", true);
+
+
+            // EOT
+
+            if (Locomotive.Train.EndOfTrainDevice != null)
+            {
+
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("EOT"), $"{Locomotive.Train.EndOfTrainDevice.State}", string.Empty, false);
+                InfoToLabel(string.Empty, "Sprtr", "", "", true);
+            }
+
+            // Distributed Power
+            if (Owner.Viewer.PlayerLocomotive is MSTSDieselLocomotive && multipleUnitsConfiguration != null)
+            {
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Loco Groups"), $"{multipleUnitsConfiguration}", string.Empty, false);
+                InfoToLabel(string.Empty, "Sprtr", "", "", false);
+            }
 
             if (standardHUDMode)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("FPS"), $"{Owner.Viewer.RenderProcess.FrameRate.SmoothedValue:F0}", string.Empty, false);

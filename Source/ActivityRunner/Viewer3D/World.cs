@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -78,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Keep it silent while loading.
                 ALSoundSource.MuteAll();
                 // TODO: This looks kinda evil; do something about it.
-                GameSounds = new SoundSource(viewer, SoundEventSource.InGame, viewer.Simulator.RouteFolder.SoundFile("ingame.sms"), true);
+                GameSounds = new SoundSource(SoundEventSource.InGame, Simulator.Instance.RouteFolder.SoundFile("ingame.sms"), true);
                 Viewer.SoundProcess.AddSoundSources(GameSounds.SMSFolder + "\\" + GameSounds.SMSFileName, new List<SoundSourceBase>() { GameSounds });
                 Sounds = new WorldSounds(viewer);
             }
@@ -97,6 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Viewer.ShapeManager.Mark();
                 Viewer.MaterialManager.Mark();
                 Viewer.TextureManager.Mark();
+                Viewer.SignalTypeDataManager.Mark();
                 if (Viewer.Settings.UseMSTSEnv)
                     MSTSSky.Mark();
                 else
@@ -110,6 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Viewer.ShapeManager.Sweep();
                 Viewer.MaterialManager.Sweep();
                 Viewer.TextureManager.Sweep();
+                Viewer.SignalTypeDataManager.Sweep();
             }
         }
 

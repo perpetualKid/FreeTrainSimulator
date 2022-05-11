@@ -94,7 +94,7 @@ namespace Orts.Graphics
             {
                 if (!fontCache.TryGetValue(size, out Font result))
                 {
-                    result = FontFamily != null ? new Font(FontFamily, size * DpiScale, FontStyle, GraphicsUnit.Pixel) : new Font(FontName, size * DpiScale, FontStyle, GraphicsUnit.Pixel);
+                    result = FontFamily != null ? new Font(FontFamily, (int)Math.Round(size * DpiScale), FontStyle, GraphicsUnit.Pixel) : new Font(FontName, (int)Math.Round(size * DpiScale), FontStyle, GraphicsUnit.Pixel);
                     fontCache.Add(size, result);
                 }
                 return result;

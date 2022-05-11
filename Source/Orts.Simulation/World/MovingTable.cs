@@ -37,7 +37,7 @@ namespace Orts.Simulation.World
     {
         public static IEnumerable<MovingTable> ReadTurntableFile(string filePath)
         {
-            IList<MovingTable> result = new List<MovingTable>();
+            List<MovingTable> result = new List<MovingTable>();
             if (!File.Exists(filePath))
                 return result;
 
@@ -84,7 +84,9 @@ namespace Orts.Simulation.World
         private protected WorldPosition position = WorldPosition.None;
         // Dynamic data
         public ref readonly WorldPosition WorldPosition => ref position;
-        public IList<string> Animations { get; } = new List<string>();
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<string> Animations { get; } = new List<string>();
+#pragma warning restore CA1002 // Do not expose generic lists
         private protected Vector3 offset;
         public ref readonly Vector3 CenterOffset => ref offset; // shape offset of center of moving table;
         public bool ContinuousMotion { get; protected set; } // continuous motion on
@@ -97,7 +99,9 @@ namespace Orts.Simulation.World
         public Queue<int> WaitingTrains { get; } = new Queue<int>();    // Queue of trains waiting to access table
 
         // additions to manage rotation or transfer of wagons
-        public IList<TrainOnMovingTable> TrainsOnMovingTable { get; } = new List<TrainOnMovingTable>(); // List of trains on turntable or transfertable
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrainOnMovingTable> TrainsOnMovingTable { get; } = new List<TrainOnMovingTable>(); // List of trains on turntable or transfertable
+#pragma warning restore CA1002 // Do not expose generic lists
         private protected Matrix animationXNAMatrix = Matrix.Identity;
         private protected List<Matrix> relativeCarPositions;
         private protected Vector3 relativeFrontTravellerXNALocation;
@@ -309,7 +313,7 @@ namespace Orts.Simulation.World
                     relativeCarPositions = new List<Matrix>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
+                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
                         Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         relativeCarPositions.Add(relativeCarPosition);
                     }

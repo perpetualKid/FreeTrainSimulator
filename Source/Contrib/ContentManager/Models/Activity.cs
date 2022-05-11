@@ -17,6 +17,7 @@
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.OR.Parsers;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,19 +27,19 @@ namespace Orts.ContentManager.Models
 {
     public class Activity
     {
-        public readonly string Name;
-        public readonly string Description;
-        public readonly string Briefing;
+        public string Name { get; }
+        public string Description { get; }
+        public string Briefing { get; }
 
-        public readonly IEnumerable<string> PlayerServices;
-        public readonly IEnumerable<string> Services;
+        public IEnumerable<string> PlayerServices { get; }
+        public IEnumerable<string> Services { get; }
 
-        public Activity(Content content)
+        public Activity(ContentBase content)
         {
-            Debug.Assert(content.Type == ContentType.Activity);
+            Debug.Assert(content?.Type == ContentType.Activity);
             if (System.IO.Path.GetExtension(content.PathName).Equals(".act", StringComparison.OrdinalIgnoreCase))
             {
-                var file = new ActivityFile(content.PathName);
+                ActivityFile file = new ActivityFile(content.PathName);
                 Name = file.Activity.Header.Name;
                 Description = file.Activity.Header.Description;
                 Briefing = file.Activity.Header.Briefing;
@@ -50,16 +51,17 @@ namespace Orts.ContentManager.Models
                 else
                     Services = Array.Empty<string>();
             }
-            else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase))
+            else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase)
+                || System.IO.Path.GetExtension(content.PathName).Equals(".timetable-or", StringComparison.OrdinalIgnoreCase))
             {
                 // TODO: Make common timetable parser.
-                var file = new TimetableReader(content.PathName);
+                TimetableReader file = new TimetableReader(content.PathName);
                 Name = content.Name;
 
-                var services = new List<string>();
-                for (var column = 0; column < file.Strings[0].Length; column++)
+                List<string> services = new List<string>();
+                for (int column = 0; column < file.Strings[0].Length; column++)
                 {
-                    if (String.IsNullOrEmpty(file.Strings[0][column]) || file.Strings[0][column].StartsWith("#"))
+                    if (string.IsNullOrEmpty(file.Strings[0][column]) || file.Strings[0][column][0] == '#')
                         continue;
 
                     services.Add(file.Strings[0][column]);

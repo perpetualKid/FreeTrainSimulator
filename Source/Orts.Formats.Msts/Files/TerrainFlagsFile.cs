@@ -16,42 +16,32 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 
 namespace Orts.Formats.Msts.Files
 {
-    public class TerrainFlagsFile
+    public static class TerrainFlagsFile
     {
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-        private readonly byte[,] flags;
-
-        public TerrainFlagsFile(string fileName, int sampleCount)
+        /// <summary>
+        /// Returns an bit-array of vertex-hidden flags
+        /// </summary>
+        public static BitArray LoadTerrainFlagsFile(string fileName, int sampleCount)
         {
-            flags = new byte[sampleCount, sampleCount];
-#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
+            BitArray result = new BitArray(sampleCount * sampleCount);
             try
             {
                 using (BinaryReader reader = new BinaryReader(File.OpenRead(fileName)))
                     for (int z = 0; z < sampleCount; z++)
                         for (int x = 0; x < sampleCount; x++)
-                            flags[x, z] = reader.ReadByte();
+                            result[x * sampleCount + z] = (reader.ReadByte() & 0x04) == 0x04;
             }
-            catch (Exception error)
+            catch (IOException error)
             {
                 Trace.WriteLine(new FileLoadException(fileName, error));
             }
-        }
-
-        /// <summary>
-        /// Returns the vertex-hidden flag at a specific sample point.
-        /// </summary>
-        /// <param name="x">X coordinate; starts at west side, increases easterly.</param>
-        /// <param name="z">Z coordinate; starts at north side, increases southerly.</param>
-        /// <returns>Vertex-hidden flag.</returns>
-        public bool IsVertexHiddenAt(int x, int z)
-        {
-            return (flags[x, z] & 0x04) == 0x04;
+            return result;
         }
     }
 }

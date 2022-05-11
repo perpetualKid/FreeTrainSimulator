@@ -190,7 +190,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     public class Pantograph : ISubSystem<Pantograph>
     {
         private readonly MSTSWagon Wagon;
-        protected Simulator Simulator => Wagon.Simulator;
+        protected static readonly Simulator Simulator = Simulator.Instance;
 
         public PantographState State { get; private set; }
         public float DelayS { get; private set; }
@@ -366,11 +366,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                                 break;
                         }
 
-
                         if (!Simulator.Route.Electrified)
-                            Simulator.Confirmer.Warning(Simulator.Catalog.GetString("No power line!"));
-                        if (Simulator.Settings.OverrideNonElectrifiedRoutes)
-                            Simulator.Confirmer.Information(Simulator.Catalog.GetString("Power line condition overridden."));
+                            Simulator.Confirmer.Information(Simulator.Catalog.GetString("Pantograph raised even though this route is not electrified"));
                     }
                     break;
             }

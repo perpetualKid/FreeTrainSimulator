@@ -1,4 +1,6 @@
-﻿using Orts.Formats.Msts.Parsers;
+﻿using System.Collections.Generic;
+
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
@@ -11,12 +13,14 @@ namespace Orts.Formats.Msts.Models
         /// Array of all TrackNodes in the road database
         /// Warning, the first TrackNode is always null.
         /// </summary>
-        public TrackNode[] TrackNodes { get; private set; }
+#pragma warning disable CA1002 // Do not expose generic lists
+        public List<TrackNode> TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the road database
         /// </summary>
-        public TrackItem[] TrItemTable { get; private set; }
+        public List<TrackItem> TrackItems { get; private set; }
+#pragma warning restore CA1002 // Do not expose generic lists
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -29,21 +33,19 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
-                    TrackNodes = new TrackNode[count + 1];
-                    int idx = 1;
+                    TrackNodes = new List<TrackNode>(count + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tracknode", ()=>{ TrackNodes[idx] = TrackNode.ReadTrackNode(stf, idx, count); ++idx; }),
+                        new STFReader.TokenProcessor("tracknode", ()=>{ TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, count)); }),
                     });
                 }),
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
-                    TrItemTable = new TrackItem[count];
-                    int idx = -1;
-                    stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrItemTable[idx] = new RoadLevelCrossingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrItemTable[idx] = new EmptyItem(stf,idx); }),
-                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrItemTable[idx] = new RoadCarSpawner(stf,idx); })
+                    TrackItems = new List<TrackItem>(count);
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems.Add(new RoadLevelCrossingItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems.Add(new EmptyItem(stf, TrackItems.Count)); }),
+                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrackItems.Add(new RoadCarSpawner(stf, TrackItems.Count)); })
                     });
                 }),
             });
@@ -55,10 +57,10 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public class RoadLevelCrossingItem : TrackItem
     {
-        /// <summary>Direction along track: 0 or 1 depending on which way signal is facing</summary>
-        public uint Direction { get; private set; }
-        /// <summary>index to Signal Object Table</summary>
-        public int SignalObject { get; private set; }
+        ///// <summary>Direction along track: 0 or 1 depending on which way signal is facing</summary>
+        //public uint Direction { get; private set; }
+        ///// <summary>index to Signal Object Table</summary>
+        //public int SignalObject { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -67,7 +69,6 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         internal RoadLevelCrossingItem(STFReader stf, int idx)
         {
-            SignalObject = -1;
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),

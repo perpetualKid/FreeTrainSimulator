@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Simulation;
 using Orts.Simulation.World;
@@ -81,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // This procedure is only called once at the start of an activity.
             // Added random Wind.X value for rain and snow.
             // Max value used by randWind.Next is max value - 1.
-            Wind.X = Viewer.Simulator.WeatherType == WeatherType.Snow ? Viewer.Random.Next(2, 6) : Viewer.Random.Next(15, 21);
+            Wind.X = Viewer.Simulator.WeatherType == WeatherType.Snow ? StaticRandom.Next(2, 6) : StaticRandom.Next(15, 21);
                                     
             var gameTime = (float)Viewer.Simulator.GameTime;
             Pricipitation.Initialize(Viewer.Simulator.WeatherType, Wind);
@@ -331,9 +332,9 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < numToEmit; i++)
             {
                 WorldLocation temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ, 
-                    worldLocation.Location.X + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxWidthM), 
+                    worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM), 
                     0, 
-                    worldLocation.Location.Z + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxLengthM));
+                    worldLocation.Location.Z + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxLengthM));
                 temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, Heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
                 var position = new WorldPosition(temp);
 
@@ -503,7 +504,7 @@ namespace Orts.ActivityRunner.Viewer3D
             dynamicPrecipitationTexture[11] = rainTexture;
             for (int i = 1; i<=10; i++)
             {
-                var path = "Raindrop" + i.ToString() + ".png";
+                var path = $"Raindrop{i}.png";
                 dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
             }
             shader = Viewer.MaterialManager.PrecipitationShader;

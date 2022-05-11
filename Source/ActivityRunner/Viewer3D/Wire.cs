@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -40,7 +41,7 @@ using System.IO;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class Wire
+    public static class Wire
     {
         /// <summary>
         /// Decompose and add a wire on top of MSTS track section
@@ -64,13 +65,13 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
             try
             {
-                if (viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
+                if (RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
             }
             catch (Exception)
             {
                 return 0;
             }
-            SectionIndex[] SectionIdxs = viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
+            SectionIndex[] SectionIdxs = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
 
             foreach (SectionIndex id in SectionIdxs)
             {
@@ -86,13 +87,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
                 nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-                uint[] sections = id.TrackSections;
+                int[] sections = id.TrackSections;
 
                 for (int i = 0; i < sections.Length; i++)
                 {
                     float length, radius;
-                    uint sid = id.TrackSections[i];
-                    TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
+                    int sid = id.TrackSections[i];
+                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -101,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         length = section.Length;
                         radius = -1;
                         localProjectedV = localV + length * heading;
-                        displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                        displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, length,
                                                                 worldMatrix.XNAMatrix, out localProjectedV);
                     }
                     else
@@ -114,7 +115,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                         Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
-                        displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                        displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                                 worldMatrix.XNAMatrix, out localProjectedV);
 
                         heading = Vector3.Transform(heading, rot); // Heading change
@@ -156,7 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = viewer.Simulator.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
+                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -175,13 +176,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-            uint[] sections = path.TrackSections;
+            int[] sections = path.TrackSections;
 
             for (int i = 0; i < sections.Length; i++)
             {
                 float length, radius;
-                uint sid = path.TrackSections[i];
-                TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
+                int sid = path.TrackSections[i];
+                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -190,7 +191,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     length = section.Length;
                     radius = -1;
                     localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else
@@ -203,7 +204,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
@@ -254,7 +255,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
                 if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || trackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
+                    || trackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);
@@ -275,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + subsection.TrackSections[0].Length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
@@ -286,7 +287,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
+                    displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
