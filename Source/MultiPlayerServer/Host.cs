@@ -148,7 +148,7 @@ namespace Orts.MultiPlayerServer
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            if (reader.TryReadTo(out _, quitSeparator))
+            if (reader.TryReadTo(out ReadOnlySequence<byte> _, quitSeparator))
             {
                 if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                 {

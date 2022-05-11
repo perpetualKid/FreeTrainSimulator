@@ -13,7 +13,7 @@ namespace Orts.Launcher
         /// </summary>
         private static void Main()
         {
-            Process.Start(Path.Combine(Directory.GetCurrentDirectory(), "netcoreapp3.1", "Menu.exe"));
+            Process.Start(Path.Combine(Directory.GetCurrentDirectory(), "net6.0-windows", "Menu.exe"));
         }
     }
 }

@@ -34,6 +34,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 
+using ActivityEvent = Orts.Formats.Msts.Models.ActivityEvent;
+
 namespace Orts.Simulation.Activities
 {
 
