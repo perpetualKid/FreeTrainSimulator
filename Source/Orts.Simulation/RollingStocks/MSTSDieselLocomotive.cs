@@ -750,7 +750,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    if (DieselEngines.HasGearBox && DieselTransmissionType == MSTSDieselLocomotive.DieselTransmissionTypes.Mechanic)
+                    if (DieselEngines.HasGearBox && DieselTransmissionType == DieselTransmissionType.Mechanic)
                     {
                         TractiveForceN = DieselEngines.TractiveForceN;
                     }
