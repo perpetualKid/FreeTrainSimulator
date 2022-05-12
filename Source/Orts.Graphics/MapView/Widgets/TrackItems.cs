@@ -425,7 +425,7 @@ namespace Orts.Graphics.MapView.Widgets
             Size = 2f;
 
             SegmentBase segment = SegmentBase.SegmentBaseAt(Location, segments);
-            angle = segment.DirectionAt(Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2);
+            angle = segment?.DirectionAt(Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2) ?? 0;
 
             Normal = normalSignal;
             Vector3 shiftedLocation = source.Location.Location +
