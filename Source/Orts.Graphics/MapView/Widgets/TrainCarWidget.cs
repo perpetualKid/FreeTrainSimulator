@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Common.Xna;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Shapes;
-
-using static Orts.Common.Calc.Size;
 
 namespace Orts.Graphics.MapView.Widgets
 {
