@@ -21,8 +21,6 @@ namespace Orts.Graphics.MapView.Widgets
 
         public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
         {
-            List<SidingPath> sidings = new List<SidingPath>();
-
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
             while (sidingItemMappings.Count > 0)
             {
