@@ -82,15 +82,11 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 // else we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
                 TrackSection trackSection = trackSections.TryGet(vectorNode.TrackVectorSections[^1].SectionIndex);
-                if (null == trackSection)
-                    throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[^1].SectionIndex} not found in TSection.dat");
-
-                if (trackSection.Curved)
-                {
-                    return vectorNode.TrackVectorSections[^1].Direction.Y + MathHelper.ToRadians(trackSection.Angle);
-                }
-                else
-                    return vectorNode.TrackVectorSections[^1].Direction.Y;
+                return null == trackSection
+                    ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[^1].SectionIndex} not found in TSection.dat")
+                    : trackSection.Curved
+                    ? vectorNode.TrackVectorSections[^1].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
+                    : vectorNode.TrackVectorSections[^1].Direction.Y;
             }
         }
 
@@ -106,15 +102,11 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 // if the attached track is reverse, we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
                 TrackSection trackSection = trackSections.TryGet(vectorNode.TrackVectorSections[0].SectionIndex);
-                if (null == trackSection)
-                    throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[0].SectionIndex} not found in TSection.dat");
-
-                if (trackSection.Curved)
-                {
-                    return vectorNode.TrackVectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle);
-                }
-                else
-                    return vectorNode.TrackVectorSections[index].Direction.Y;
+                return null == trackSection
+                    ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[0].SectionIndex} not found in TSection.dat")
+                    : trackSection.Curved
+                    ? vectorNode.TrackVectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
+                    : vectorNode.TrackVectorSections[index].Direction.Y;
             }
             else
             {
