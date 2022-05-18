@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Xna.Framework;
 
@@ -301,6 +300,5 @@ namespace Orts.Graphics.MapView.Widgets
             }
 
         }
-
     }
 }

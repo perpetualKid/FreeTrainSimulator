@@ -82,7 +82,7 @@ namespace Orts.Graphics.MapView.Widgets
         /// <summary>
         /// Squared distance of the given point on the straight line vector or on the arc (curved line)
         /// Points which are not betwween the start and end point, are considered to return NaN.
-        /// For this, implementations will mostly allow for a small rounding offset (up to 1m)
+        /// For this, implementations will mostly allow for a small rounding tolerance (up to 1m) <seealso cref="proximityTolerance"/>
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
