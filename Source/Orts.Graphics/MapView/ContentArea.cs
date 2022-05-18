@@ -99,7 +99,7 @@ namespace Orts.Graphics.MapView
                     insetComponent?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
-                    PointWidget.UpdateColor<TrackSegment>(color);
+                    VectorWidget.UpdateColor<TrackSegment>(color);
                     break;
                 case ColorSetting.RailTrackEnd:
                     PointWidget.UpdateColor<TrackEndSegment>(color);
@@ -114,14 +114,14 @@ namespace Orts.Graphics.MapView
                     PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
                     break;
                 case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadSegment>(color);
+                    VectorWidget.UpdateColor<RoadSegment>(color);
                     break;
                 case ColorSetting.RoadTrackEnd:
                     PointWidget.UpdateColor<RoadEndSegment>(color);
                     break;
                 case ColorSetting.PathTrack:
-                    PointWidget.UpdateColor<PathSegment>(color);
-                    PointWidget.UpdateColor<TrainPathSegment>(color);
+                    VectorWidget.UpdateColor<PathSegment>(color);
+                    VectorWidget.UpdateColor<TrainPathSegment>(color);
                     break;
                 case ColorSetting.PathTrackEnd:
                     PointWidget.UpdateColor<PathEndTrackItem>(color);
@@ -137,15 +137,15 @@ namespace Orts.Graphics.MapView
                     break;
                 case ColorSetting.PlatformItem:
                     PointWidget.UpdateColor<PlatformTrackItem>(color);
-                    PointWidget.UpdateColor<PlatformPath>(color);
+                    VectorWidget.UpdateColor<PlatformPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<PlatformSegment>(color);
+                    VectorWidget.UpdateColor<PlatformSegment>(color);
                     break;
                 case ColorSetting.SidingItem:
                     PointWidget.UpdateColor<SidingTrackItem>(color);
-                    PointWidget.UpdateColor<SidingPath>(color);
+                    VectorWidget.UpdateColor<SidingPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<SidingSegment>(color);
+                    VectorWidget.UpdateColor<SidingSegment>(color);
                     break;
                 case ColorSetting.SpeedPostItem:
                     PointWidget.UpdateColor<SpeedPostTrackItem>(color);

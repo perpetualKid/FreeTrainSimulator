@@ -267,3 +267,4 @@ dotnet_diagnostic.CA1305.severity = suggestion
 dotnet_diagnostic.CA1304.severity = suggestion
 dotnet_diagnostic.CA1707.severity = silent
 dotnet_diagnostic.CA1708.severity = silent
+dotnet_code_quality.ca1051.exclude_structs = true

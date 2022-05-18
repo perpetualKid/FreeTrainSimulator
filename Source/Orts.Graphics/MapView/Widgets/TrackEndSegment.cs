@@ -22,11 +22,8 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly float Direction;
         internal readonly int TrackNodeIndex;
 
-        public TrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections)
+        public TrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): base(trackEndNode.UiD.Location)
         {
-            ref readonly WorldLocation location = ref trackEndNode.UiD.Location;
-            base.location = PointD.FromWorldLocation(location);
-            tile = new Tile(location.TileX, location.TileZ);
             Size = width;
 
             if (null == connectedVectorNode)

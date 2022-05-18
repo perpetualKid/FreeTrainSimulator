@@ -15,10 +15,8 @@ namespace Orts.Graphics.MapView.Widgets
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
 
-        internal TrainPathItem(in PointD location, SegmentBase trackSegment, PathNodeType nodeType)
+        internal TrainPathItem(in PointD location, SegmentBase trackSegment, PathNodeType nodeType): base(location)
         {
-            base.location = location;
-            tile = PointD.ToTile(location);
             textureType = nodeType switch
             {
                 PathNodeType.Start => BasicTextureType.PathStart,

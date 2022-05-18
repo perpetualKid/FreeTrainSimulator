@@ -25,12 +25,9 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly int TrackNodeIndex;
         internal readonly float Direction;
 
-        public JunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections)
+        public JunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): base(junctionNode.UiD.Location)
         {
             Size = diameter;
-            ref readonly WorldLocation location = ref junctionNode.UiD.Location;
-            base.location = PointD.FromWorldLocation(location);
-            base.tile = new Tile(location.TileX, location.TileZ);
             TrackNodeIndex = junctionNode.Index;
             Direction = MathHelper.WrapAngle(GetInboundSectionDirection(vectorNodes[0], junctionNode.TrackPins[0].Direction == TrackDirection.Reverse, trackSections));
 

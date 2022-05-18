@@ -10,7 +10,7 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class PathSegment : SegmentBase
     {
-        private protected PathSegment()
+        private protected PathSegment(): base()
         { }
 
         public PathSegment(SegmentBase source, float remainingLength, float startOffset, bool reverse) : base(source, remainingLength, startOffset, reverse)
@@ -32,7 +32,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         public BrokenPathSegment(in WorldLocation location) : base()
         {
-            base.location = PointD.FromWorldLocation(location);
+            SetLocation(location);
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

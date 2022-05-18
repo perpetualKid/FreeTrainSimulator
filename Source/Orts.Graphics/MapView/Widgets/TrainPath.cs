@@ -12,12 +12,8 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly List<TrainPath> trainPaths = new List<TrainPath>();
         private readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPathPath(in WorldLocation start, in WorldLocation end)
+        public TrainPathPath(in WorldLocation start, in WorldLocation end): base(start, end)
         {
-            this.tile = new Tile(start.TileX, start.TileZ);
-            location = PointD.FromWorldLocation(start);
-            this.otherTile = new Tile(end.TileX, end.TileZ);
-            this.vectorEnd = PointD.FromWorldLocation(end);
         }
 
 
@@ -106,7 +102,7 @@ namespace Orts.Graphics.MapView.Widgets
                 {
                     foreach (SegmentBase trackSegment in trackNodes)
                     {
-                        if (trackSegment.DistanceSquared(nodeLocation) < proximityTolerance)
+                        if (trackSegment.DistanceSquared(nodeLocation) < ProximityTolerance)
                         {
                             return trackSegment;
                         }

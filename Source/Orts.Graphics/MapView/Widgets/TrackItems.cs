@@ -23,12 +23,9 @@ namespace Orts.Graphics.MapView.Widgets
         private protected static System.Drawing.Font font;
         internal protected readonly int TrackItemId;
 
-        public TrackItemBase(TrackItem source)
+        public TrackItemBase(TrackItem source): base(source.Location)
         {
             Size = 3;
-            ref readonly WorldLocation location = ref source.Location;
-            base.location = PointD.FromWorldLocation(location);
-            base.tile = new Tile(location.TileX, location.TileZ);
             TrackItemId = source.TrackItemId;
         }
 
@@ -209,7 +206,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = GetColor<SidingTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -239,8 +236,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = GetColor<PlatformTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -274,7 +271,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -430,8 +427,7 @@ namespace Orts.Graphics.MapView.Widgets
             Normal = normalSignal;
             Vector3 shiftedLocation = source.Location.Location +
                     0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
-            WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);
-            base.location = PointD.FromWorldLocation(location);
+            SetLocation(new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation));
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

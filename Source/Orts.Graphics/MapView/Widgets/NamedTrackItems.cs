@@ -15,10 +15,8 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal int Count { get; }
 
-        protected NamedTrackItem(in PointD location, in Tile tile, string name, int itemCount = 1)
+        protected NamedTrackItem(in PointD location, string name, int itemCount = 1): base(location)
         {
-            base.location = location;
-            base.tile = tile;
             Name = name;
             Count = itemCount;
         }
@@ -26,21 +24,20 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class StationNameItem : NamedTrackItem
     {
-        public StationNameItem(in PointD location, in Tile tile, string name, int count = 1) : base(location, tile, name, count)
+        public StationNameItem(in PointD location, string name, int count = 1) : base(location, name, count)
         {
 
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<PlatformPath>(colorVariation);
+            Color fontColor = VectorWidget.GetColor<PlatformPath>(colorVariation);
             if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.1)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(location), fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+                TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
-        public static List<StationNameItem> CreateStationItems(IEnumerable<IGrouping<string, PlatformPath>> stationPlatforms)
+        public static IEnumerable<StationNameItem> CreateStationItems(IEnumerable<IGrouping<string, PlatformPath>> stationPlatforms)
         {
-            List<StationNameItem> result = new List<StationNameItem>();
             foreach (IGrouping<string, PlatformPath> item in stationPlatforms)
             {
                 int count = 0;
@@ -55,34 +52,32 @@ namespace Orts.Graphics.MapView.Widgets
                 x /= count;
                 y /= count;
                 PointD location = new PointD(x, y);
-                Tile tile = PointD.ToTile(location);
-                result.Add(new StationNameItem(location, tile, item.Key, count));
+                yield return new StationNameItem(location, item.Key, count);
             }
-            return result;
         }
     }
 
     internal class PlatformNameItem : NamedTrackItem
     {
-        public PlatformNameItem(PlatformPath source): base(source.MidPoint, source.Tile, source.PlatformName)
+        public PlatformNameItem(PlatformPath source): base(source.MidPoint, source.PlatformName)
         { }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<PlatformPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            Color fontColor = VectorWidget.GetColor<PlatformPath>(colorVariation);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
 
     internal class SidingNameItem : NamedTrackItem
     {
-        public SidingNameItem(SidingPath source) : base(source.MidPoint, source.Tile, source.SidingName)
+        public SidingNameItem(SidingPath source) : base(source.MidPoint, source.SidingName)
         { }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = GetColor<SidingPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
+            Color fontColor = VectorWidget.GetColor<SidingPath>(colorVariation);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
 

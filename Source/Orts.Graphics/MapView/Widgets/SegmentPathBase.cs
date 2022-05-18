@@ -15,22 +15,15 @@ namespace Orts.Graphics.MapView.Widgets
         private protected readonly List<T> pathSegments = new List<T>();
         internal protected readonly PointD MidPoint;
 
-        private protected SegmentPathBase(PointD start, PointD end)
+        private protected SegmentPathBase(PointD start, PointD end): base(start, end)
         {
-            location = start;
-            tile = PointD.ToTile(start);
-            vectorEnd = end;
-            otherTile = PointD.ToTile(end);
-            MidPoint = Location + (vectorEnd - location) / 2.0;
+            MidPoint = Location + (Vector - Location) / 2.0;
         }
 
-        private protected SegmentPathBase(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
+        private protected SegmentPathBase(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements): 
+            base(start, end)
         {
-            location = start;
-            tile = PointD.ToTile(start);
-            vectorEnd = end;
-            otherTile = PointD.ToTile(end);
-            MidPoint = Location + (vectorEnd - location) / 2.0;
+            MidPoint = Location + (Vector - Location) / 2.0;
 
             SegmentBase startSegment;
             SegmentBase endSegment;
@@ -108,13 +101,10 @@ namespace Orts.Graphics.MapView.Widgets
 
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        private protected SegmentPathBase(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements)
+        private protected SegmentPathBase(TrackItemBase start, int startTrackNodeIndex, TrackItemBase end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements):
+            base(start.Location, end.Location)
         {
-            location = start.Location;
-            tile = start.Tile;
-            vectorEnd = end.Location;
-            otherTile = end.Tile;
-            MidPoint = Location + (vectorEnd - location) / 2.0;
+            MidPoint = Location + (Vector - Location) / 2.0;
 
             ref readonly PointD startLocation = ref start.Location;
             ref readonly PointD endLocation = ref end.Location;
@@ -211,14 +201,14 @@ namespace Orts.Graphics.MapView.Widgets
             foreach (SegmentBase segment in segments)
             {
                 //find the start vector section
-                if (segment.DistanceSquared(startLocation) < proximityTolerance)
+                if (segment.DistanceSquared(startLocation) < ProximityTolerance)
                 {
                     startSegment = segment;
                     if (null != endSegment)
                         break;
                 }
                 //find the end vector section
-                if (segment.DistanceSquared(endLocation) < proximityTolerance)
+                if (segment.DistanceSquared(endLocation) < ProximityTolerance)
                 {
                     endSegment = segment;
                     if (null != startSegment)
