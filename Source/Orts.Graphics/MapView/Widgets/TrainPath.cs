@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {

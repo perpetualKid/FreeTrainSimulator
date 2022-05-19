@@ -16,6 +16,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
+using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView
 {

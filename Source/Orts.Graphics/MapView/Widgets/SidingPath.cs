@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 
 using Orts.Common.Position;
+using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -10,7 +11,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         internal string SidingName { get; }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
+        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }

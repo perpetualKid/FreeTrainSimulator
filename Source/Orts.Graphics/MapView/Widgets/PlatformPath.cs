@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 
 using Orts.Common.Position;
+using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -11,7 +12,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal string PlatformName { get; }
         internal string StationName { get; }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
+        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;

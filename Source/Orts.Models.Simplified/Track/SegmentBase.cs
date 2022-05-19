@@ -8,7 +8,7 @@ using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace Orts.Models.Simplified.Track
 {
     /// <summary>
     /// A single segment along a track, covering a single TrackNodeSection as part of a Track Node
@@ -17,31 +17,31 @@ namespace Orts.Graphics.MapView.Widgets
     /// This is a base class for derived types like rail tracks, road tracks
     /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
-    internal abstract class SegmentBase : VectorPrimitive, INameValueInformationProvider
+    public abstract class SegmentBase : VectorPrimitive, INameValueInformationProvider
     {
         public abstract NameValueCollection DebugInfo { get; }
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        internal readonly bool Curved;
+        public bool Curved { get; }
 
         // Direction in Rad from -π to π from North (0) to South
-        internal float Direction;
-        internal float Length { get; private protected set; }
+        public float Direction { get; private protected set; }
+        public float Length { get; private protected set; }
         // Angular Size (Length) of the Arc in Degree
-        internal float Angle { get; private protected set; }
-        internal float Radius { get; private protected set; }
+        public float Angle { get; private protected set; }
+        public float Radius { get; private protected set; }
 
         private protected PointD centerPoint;
         private protected float centerToStartDirection;
         private protected float centerToEndDirection;
 
-        internal readonly int TrackNodeIndex;
-        internal readonly int TrackVectorSectionIndex;
+        public int TrackNodeIndex { get; }
+        public int TrackVectorSectionIndex { get; }
 
-        private protected SegmentBase(): base(PointD.None, PointD.None)
+        protected SegmentBase(): base(PointD.None, PointD.None)
         { }
 
-        private protected SegmentBase(in PointD start, in PointD end): base(start, end)
+        protected SegmentBase(in PointD start, in PointD end): base(start, end)
         {
             Length = (float)Vector.Distance(Location);
 
@@ -49,7 +49,7 @@ namespace Orts.Graphics.MapView.Widgets
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        public SegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
+        protected SegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -98,7 +98,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        private protected SegmentBase(SegmentBase source): base(source.Location, source.Vector)
+        protected SegmentBase(SegmentBase source): base(source.Location, source.Vector)
         {
             Size = source.Size;
             Curved = source.Curved;
@@ -113,7 +113,7 @@ namespace Orts.Graphics.MapView.Widgets
             centerToEndDirection = source.centerToEndDirection;
         }
 
-        private protected SegmentBase(SegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
+        protected SegmentBase(SegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
         {
             if (startOffset == 0 && remainingLength >= Length)//full path segment
                 return;
@@ -181,7 +181,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        private protected SegmentBase(SegmentBase source, in PointD start, in PointD end) : this(source)
+        protected SegmentBase(SegmentBase source, in PointD start, in PointD end) : this(source)
         {
             bool reverse = false;
 
