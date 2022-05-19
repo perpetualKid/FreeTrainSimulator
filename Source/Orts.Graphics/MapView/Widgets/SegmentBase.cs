@@ -17,7 +17,7 @@ namespace Orts.Graphics.MapView.Widgets
     /// This is a base class for derived types like rail tracks, road tracks
     /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
-    internal abstract class SegmentBase : VectorWidget, INameValueInformationProvider
+    internal abstract class SegmentBase : VectorPrimitive, INameValueInformationProvider
     {
         public abstract NameValueCollection DebugInfo { get; }
         public Dictionary<string, FormatOption> FormattingOptions { get; }
@@ -98,7 +98,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        private protected SegmentBase(SegmentBase source): base(source)
+        private protected SegmentBase(SegmentBase source): base(source.Location, source.Vector)
         {
             Size = source.Size;
             Curved = source.Curved;

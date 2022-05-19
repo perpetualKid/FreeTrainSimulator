@@ -15,9 +15,9 @@ using Orts.Graphics.MapView.Shapes;
 namespace Orts.Graphics.MapView.Widgets
 {
     /// <summary>
-    /// Graphical representation of a track junction (switch( <seealso cref="PointWidget"/>
+    /// Graphical representation of a track junction (switch)
     /// </summary>
-    internal class JunctionSegment : PointWidget, INameValueInformationProvider
+    internal class JunctionSegment : PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
@@ -44,7 +44,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public Dictionary<string, FormatOption> FormattingOptions => null;
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = contentArea.Scale switch
             {
@@ -58,7 +58,7 @@ namespace Orts.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            Color drawColor = GetColor<JunctionSegment>(colorVariation);
+            Color drawColor = this.GetColor<JunctionSegment>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
@@ -150,7 +150,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = contentArea.Scale switch
             {
@@ -164,7 +164,7 @@ namespace Orts.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            Color drawColor = GetColor<JunctionSegment>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
+            Color drawColor = this.GetColor<JunctionSegment>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
             BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 

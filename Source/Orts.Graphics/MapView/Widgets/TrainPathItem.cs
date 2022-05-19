@@ -10,7 +10,7 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathItem : PointWidget
+    internal class TrainPathItem : PointPrimitive, IDrawable<PointPrimitive>
     {
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
@@ -33,7 +33,7 @@ namespace Orts.Graphics.MapView.Widgets
             Direction = trackSegment.DirectionAt(Location) + MathHelper.PiOver2;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = contentArea.Scale switch
             {

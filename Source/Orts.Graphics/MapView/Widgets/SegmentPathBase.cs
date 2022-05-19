@@ -10,7 +10,7 @@ namespace Orts.Graphics.MapView.Widgets
     /// base class for Paths which are formed as set (list) of multiple <see cref="SegmentBase"></see> segments
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal abstract class SegmentPathBase<T>: VectorWidget where T : SegmentBase
+    internal abstract class SegmentPathBase<T>: VectorPrimitive where T : SegmentBase
     {
         private protected readonly List<T> pathSegments = new List<T>();
         internal protected readonly PointD MidPoint;

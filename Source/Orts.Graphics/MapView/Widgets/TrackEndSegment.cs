@@ -12,7 +12,7 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackEndSegment: PointWidget, INameValueInformationProvider
+    internal class TrackEndSegment: PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
 
@@ -65,9 +65,9 @@ namespace Orts.Graphics.MapView.Widgets
         public Dictionary<string, FormatOption> FormattingOptions => null;
 
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<TrackEndSegment>(colorVariation);
+            Color drawColor = this.GetColor<TrackEndSegment>(colorVariation);
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length * scaleFactor), Direction, contentArea.SpriteBatch);
         }
     }
@@ -89,9 +89,9 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<RoadEndSegment>(colorVariation);
+            Color drawColor = this.GetColor<RoadEndSegment>(colorVariation);
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }

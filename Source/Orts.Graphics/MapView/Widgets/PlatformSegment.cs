@@ -8,7 +8,7 @@ using Orts.Graphics.MapView.Shapes;
 namespace Orts.Graphics.MapView.Widgets
 {
 
-    internal class PlatformSegment : SegmentBase
+    internal class PlatformSegment : SegmentBase, IDrawable<VectorPrimitive>
     {
         public PlatformSegment(SegmentBase source) : base(source)
         {
@@ -26,9 +26,9 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<PlatformSegment>(colorVariation);
+            Color drawColor = this.GetColor<PlatformSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else

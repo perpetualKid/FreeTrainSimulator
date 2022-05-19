@@ -33,7 +33,7 @@ namespace Orts.Graphics.MapView
 
         private readonly InsetComponent insetComponent;
 
-        private PointWidget nearestDispatchItem;
+        private PointPrimitive nearestDispatchItem;
         private TrainWidget nearestTrain;
 
         internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
@@ -66,10 +66,10 @@ namespace Orts.Graphics.MapView
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
-                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                            vectorwidget.Draw(ContentArea);
-                        else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                            pointWidget.Draw(ContentArea);
+                        if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea);
+                        else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea);
                     }
                 }
             }
@@ -87,7 +87,7 @@ namespace Orts.Graphics.MapView
                         train.DrawName(ContentArea);
                 }
             }
-            nearestDispatchItem?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+            (nearestDispatchItem as IDrawable<PointPrimitive>)?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
             nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
         }
 

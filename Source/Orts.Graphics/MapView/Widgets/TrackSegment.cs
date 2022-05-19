@@ -5,12 +5,13 @@ using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackSegment : SegmentBase
+    internal class TrackSegment : SegmentBase, IDrawable<VectorPrimitive>
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;
@@ -41,9 +42,9 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<TrackSegment>(colorVariation);
+            Color drawColor = this.GetColor<TrackSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
@@ -69,9 +70,9 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<RoadSegment>(colorVariation);
+            Color drawColor = this.GetColor<RoadSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else

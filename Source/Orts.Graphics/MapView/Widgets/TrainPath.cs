@@ -7,7 +7,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathPath : VectorWidget
+    internal class TrainPathPath : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         private readonly List<TrainPath> trainPaths = new List<TrainPath>();
         private readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
@@ -31,7 +31,7 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach(TrainPath path in trainPaths)
             {
@@ -158,7 +158,7 @@ namespace Orts.Graphics.MapView.Widgets
             return new TrainPathSegment(source, start, end);
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (TrainPathSegment segment in pathSegments)
             {

@@ -7,7 +7,7 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathSegment : SegmentBase
+    internal class TrainPathSegment : SegmentBase, IDrawable<VectorPrimitive>
     {
         public override NameValueCollection DebugInfo => null;
 
@@ -26,9 +26,9 @@ namespace Orts.Graphics.MapView.Widgets
             Size = 5;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<TrainPathSegment>(colorVariation);
+            Color drawColor = this.GetColor<TrainPathSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else

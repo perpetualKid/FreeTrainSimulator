@@ -88,21 +88,21 @@ namespace Orts.Graphics.MapView
                 {
                     foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
-                        if (item is VectorWidget vectorWidget)
+                        if (item is VectorPrimitive vectorPrimitive)
                         {
-                            double itemDistance = vectorWidget.DistanceSquared(position);
+                            double itemDistance = vectorPrimitive.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[viewItemSettings] = vectorWidget;
+                                nearestItems[viewItemSettings] = vectorPrimitive;
                                 distance = itemDistance;
                             }
                         }
-                        else if (item is PointWidget pointWidget)
+                        else if (item is PointPrimitive pointPrimitive)
                         {
-                            double itemDistance = pointWidget.Location.DistanceSquared(position);
+                            double itemDistance = pointPrimitive.Location.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[viewItemSettings] = pointWidget;
+                                nearestItems[viewItemSettings] = pointPrimitive;
                                 distance = itemDistance;
                             }
                         }
@@ -129,10 +129,14 @@ namespace Orts.Graphics.MapView
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
-                        if (item is VectorWidget vectorwidget && (ContentArea.InsideScreenArea(vectorwidget) || viewItemSettings == MapViewItemSettings.Paths))
-                            (vectorwidget).Draw(ContentArea);
-                        else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                            (pointWidget).Draw(ContentArea);
+                        if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                        {
+                            (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
+                        }
+                        else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                        {
+                            (item as IDrawable<PointPrimitive>).Draw(ContentArea);
+                        }
                     }
                 }
             }
@@ -140,14 +144,14 @@ namespace Orts.Graphics.MapView
             {
                 foreach (SegmentBase segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as SegmentBase).TrackNodeIndex])
                 {
-                    segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
             }
             if (null != nearestItems[MapViewItemSettings.Roads])
             {
                 foreach (SegmentBase segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as SegmentBase).TrackNodeIndex])
                 {
-                    segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
             }
 
@@ -155,10 +159,10 @@ namespace Orts.Graphics.MapView
             {
                 if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
                 {
-                    if (nearestItems[viewItemSettings] is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                        (vectorwidget).Draw(ContentArea, ColorVariation.Complement);
-                    else if (nearestItems[viewItemSettings] is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                        (pointWidget).Draw(ContentArea, ColorVariation.Complement);
+                    if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                        (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                    else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                        (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea, ColorVariation.Complement);
                 }
             }
         }

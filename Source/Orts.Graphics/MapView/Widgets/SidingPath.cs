@@ -2,15 +2,11 @@
 using System.Diagnostics;
 using System.Linq;
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
 using Orts.Common.Position;
-using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath: SegmentPathBase<SidingSegment>
+    internal class SidingPath: SegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>
     {
         internal string SidingName { get; }
 
@@ -43,7 +39,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (SidingSegment segment in pathSegments)
             {

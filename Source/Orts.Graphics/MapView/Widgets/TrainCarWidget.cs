@@ -15,7 +15,7 @@ namespace Orts.Graphics.MapView.Widgets
     /// <summary>
     /// a whole train as composition of multiple <see cref="TrainCarWidget"/> widgets
     /// </summary>
-    public class TrainWidget : VectorWidget
+    public class TrainWidget : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         public Dictionary<int, TrainCarWidget> Cars { get; } = new Dictionary<int, TrainCarWidget>();
 
@@ -46,11 +46,11 @@ namespace Orts.Graphics.MapView.Widgets
             return distance; ;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (TrainCarWidget car in Cars.Values)
             {
-                car.Draw(contentArea, colorVariation, scaleFactor);
+                ((IDrawable<TrainCarWidget>)car).Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 
@@ -61,7 +61,7 @@ namespace Orts.Graphics.MapView.Widgets
         }
     }
 
-    public class TrainCarWidget : PointWidget
+    public class TrainCarWidget : PointPrimitive, IDrawable<PointPrimitive>
     {
         // maximum width for unrestricted movement in the US, Canada, and Mexico is 10 feet, 6 inches
         // Loads less than 11 feet wide can generally move without restriction as to train handling
@@ -96,7 +96,7 @@ namespace Orts.Graphics.MapView.Widgets
             SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2));
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        void IDrawable<PointPrimitive>.Draw(ContentArea contentArea, ColorVariation colorVariation, double scaleFactor)
         {
             Size = contentArea.Scale switch
             {

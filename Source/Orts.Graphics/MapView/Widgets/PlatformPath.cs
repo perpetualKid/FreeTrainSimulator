@@ -6,7 +6,7 @@ using Orts.Common.Position;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : SegmentPathBase<PlatformSegment>
+    internal class PlatformPath : SegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>
     {
         internal string PlatformName { get; }
         internal string StationName { get; }
@@ -44,7 +44,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (PlatformSegment segment in pathSegments)
             {

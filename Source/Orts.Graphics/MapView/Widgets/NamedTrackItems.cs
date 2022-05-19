@@ -9,7 +9,7 @@ using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal abstract class NamedTrackItem : PointWidget
+    internal abstract class NamedTrackItem : PointPrimitive, IDrawable<PointPrimitive>
     {
         public string Name { get; }
 
@@ -20,6 +20,8 @@ namespace Orts.Graphics.MapView.Widgets
             Name = name;
             Count = itemCount;
         }
+
+        public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
     }
 
     internal class StationNameItem : NamedTrackItem
@@ -29,9 +31,9 @@ namespace Orts.Graphics.MapView.Widgets
 
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = VectorWidget.GetColor<PlatformPath>(colorVariation);
+            Color fontColor = this.GetColor<PlatformPath>(colorVariation);
             if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.1)
                 TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
@@ -62,9 +64,9 @@ namespace Orts.Graphics.MapView.Widgets
         public PlatformNameItem(PlatformPath source): base(source.MidPoint, source.PlatformName)
         { }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = VectorWidget.GetColor<PlatformPath>(colorVariation);
+            Color fontColor = this.GetColor<PlatformPath>(colorVariation);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
@@ -74,9 +76,9 @@ namespace Orts.Graphics.MapView.Widgets
         public SidingNameItem(SidingPath source) : base(source.MidPoint, source.SidingName)
         { }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = VectorWidget.GetColor<SidingPath>(colorVariation);
+            Color fontColor = this.GetColor<SidingPath>(colorVariation);
             TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }

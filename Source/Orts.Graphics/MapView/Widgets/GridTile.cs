@@ -6,14 +6,14 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class GridTile: VectorWidget, ITileCoordinate<Tile>
+    internal class GridTile: VectorPrimitive, IDrawable<VectorPrimitive>
     {
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;
 
         static GridTile()
         {
-            SetColors<GridTile>(Color.Black);
+//            WidgetColorCache.SetColors<GridTile>(Color.Black);
         }
 
         public GridTile(ITile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
@@ -27,9 +27,9 @@ namespace Orts.Graphics.MapView.Widgets
             return new WorldLocation(tile.X, tile.Z, x, 0, z);
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color color = GetColor<GridTile>(colorVariation);
+            Color color = this.GetColor<GridTile>(colorVariation);
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
             BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
