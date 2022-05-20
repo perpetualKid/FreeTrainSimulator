@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
@@ -18,14 +16,11 @@ namespace Orts.Models.Simplified.Track
     /// This is a base class for derived types like rail tracks, road tracks
     /// Multiple segments can form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
-    public abstract class TrackSegmentBase : VectorPrimitive, INameValueInformationProvider
+    public abstract class TrackSegmentBase : VectorPrimitive
     {
         private protected PointD centerPoint;
         private protected float centerToStartDirection;
         private protected float centerToEndDirection;
-
-        public abstract NameValueCollection DebugInfo { get; }
-        public Dictionary<string, FormatOption> FormattingOptions { get; }
 
         public bool Curved { get; }
 

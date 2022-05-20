@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 
@@ -12,7 +11,7 @@ using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackEndSegment: PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal class EndNode: PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
 
@@ -22,7 +21,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly float Direction;
         internal readonly int TrackNodeIndex;
 
-        public TrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): base(trackEndNode.UiD.Location)
+        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): base(trackEndNode.UiD.Location)
         {
             Size = width;
 
@@ -67,12 +66,12 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<TrackEndSegment>(colorVariation);
+            Color drawColor = this.GetColor<EndNode>(colorVariation);
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length * scaleFactor), Direction, contentArea.SpriteBatch);
         }
     }
 
-    internal class RoadEndSegment : TrackEndSegment
+    internal class RoadEndSegment : EndNode
     {
         public override NameValueCollection DebugInfo
         {

@@ -35,7 +35,5 @@ namespace Orts.Graphics.MapView.Widgets
             else
                 BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
-
-        public override NameValueCollection DebugInfo => null;
     }
 }

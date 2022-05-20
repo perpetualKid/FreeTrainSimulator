@@ -10,8 +10,6 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrainPathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        public override NameValueCollection DebugInfo => null;
-
         public TrainPathSegment(TrackSegmentBase source) : base(source)
         {
             Size = 5;

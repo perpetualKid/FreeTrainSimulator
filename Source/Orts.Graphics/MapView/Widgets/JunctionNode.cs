@@ -17,7 +17,7 @@ namespace Orts.Graphics.MapView.Widgets
     /// <summary>
     /// Graphical representation of a track junction (switch)
     /// </summary>
-    internal class JunctionSegment : PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal class JunctionNode : PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
@@ -25,7 +25,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal readonly int TrackNodeIndex;
         internal readonly float Direction;
 
-        public JunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): base(junctionNode.UiD.Location)
+        public JunctionNode(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): base(junctionNode.UiD.Location)
         {
             Size = diameter;
             TrackNodeIndex = junctionNode.Index;
@@ -58,7 +58,7 @@ namespace Orts.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            Color drawColor = this.GetColor<JunctionSegment>(colorVariation);
+            Color drawColor = this.GetColor<JunctionNode>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
@@ -115,9 +115,9 @@ namespace Orts.Graphics.MapView.Widgets
     }
 
     /// <summary>
-    /// Junction segment <seealso cref="JunctionSegment"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
+    /// Junction segment <seealso cref="JunctionNode"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
     /// </summary>
-    internal class ActiveJunctionSegment : JunctionSegment
+    internal class ActiveJunctionSegment : JunctionNode
     {
         private readonly float[] trackSectionAngles;
 
@@ -164,7 +164,7 @@ namespace Orts.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            Color drawColor = this.GetColor<JunctionSegment>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
+            Color drawColor = this.GetColor<JunctionNode>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
             BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 

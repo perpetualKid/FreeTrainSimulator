@@ -101,10 +101,10 @@ namespace Orts.Graphics.MapView
                     WidgetColorCache.UpdateColor<TrackSegment>(color);
                     break;
                 case ColorSetting.RailTrackEnd:
-                    WidgetColorCache.UpdateColor<TrackEndSegment>(color);
+                    WidgetColorCache.UpdateColor<EndNode>(color);
                     break;
                 case ColorSetting.RailTrackJunction:
-                    WidgetColorCache.UpdateColor<JunctionSegment>(color);
+                    WidgetColorCache.UpdateColor<JunctionNode>(color);
                     break;
                 case ColorSetting.RailTrackCrossing:
                     WidgetColorCache.UpdateColor<CrossOverTrackItem>(color);

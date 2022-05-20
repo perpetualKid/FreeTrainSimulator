@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
@@ -9,11 +8,6 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal interface IDrawable<T> where T : PointPrimitive
-    {
-        void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
-    }
-
     internal static class WidgetColorCache
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

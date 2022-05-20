@@ -1,10 +1,12 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
@@ -12,12 +14,14 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;
 
-        public override NameValueCollection DebugInfo
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual NameValueCollection DebugInfo
         {
             get
             {

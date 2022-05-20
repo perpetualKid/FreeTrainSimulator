@@ -189,8 +189,8 @@ namespace Orts.Graphics.MapView
                 throw new ArgumentNullException(nameof(trackSectionsFile));
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<TrackEndSegment> endSegments = new ConcurrentBag<TrackEndSegment>();
-            ConcurrentBag<JunctionSegment> junctionSegments = new ConcurrentBag<JunctionSegment>();
+            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
+            ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<JunctionNode>();
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
@@ -200,7 +200,7 @@ namespace Orts.Graphics.MapView
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
@@ -215,7 +215,7 @@ namespace Orts.Graphics.MapView
                         {
                             vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
                         }
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
+                        junctionSegments.Add(new JunctionNode(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             });
@@ -223,8 +223,8 @@ namespace Orts.Graphics.MapView
             insetComponent?.SetTrackSegments(trackSegments);
 
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
-            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
+            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
+            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
             TrackNodeSegments = trackSegments.Cast<TrackSegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
