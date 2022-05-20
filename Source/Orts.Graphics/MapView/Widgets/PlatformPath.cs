@@ -7,7 +7,7 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : SegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>
+    internal class PlatformPath : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
     {
         internal string PlatformName { get; }
         internal string StationName { get; }
@@ -47,7 +47,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (PlatformSegment segment in PathSegments)
+            foreach (PlatformSegment segment in SectionSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }

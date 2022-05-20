@@ -7,7 +7,7 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath: SegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>
+    internal class SidingPath: TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
     {
         internal string SidingName { get; }
 
@@ -42,7 +42,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (SidingSegment segment in PathSegments)
+            foreach (SidingSegment segment in SectionSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }

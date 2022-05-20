@@ -1,34 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 using Orts.Common.Position;
 
 namespace Orts.Models.Simplified.Track
 {
     /// <summary>
-    /// base class for Paths which are formed as set (list) of multiple <see cref="TrackSegmentBase"></see> segments
+    /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 
+    /// some <see cref="Formats.Msts.TrackVectorSection"/> of a <see cref="Formats.Msts.TrackNode"/>. 
+    /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class SegmentPathBase<T>: VectorPrimitive where T : TrackSegmentBase
+    public abstract class TrackSegmentSectionBase<T>: VectorPrimitive where T : TrackSegmentBase
     {
         private readonly PointD midPoint;
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        protected List<T> PathSegments { get; } = new List<T>();
+        protected List<T> SectionSegments { get; } = new List<T>();
 #pragma warning restore CA1002 // Do not expose generic lists
         public ref readonly PointD MidPoint => ref midPoint;
 
-        private protected SegmentPathBase(PointD start, PointD end): base(start, end)
+        private protected TrackSegmentSectionBase(PointD start, PointD end): base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected SegmentPathBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, Dictionary<int, List<TrackSegmentBase>> sourceElements):
+        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, Dictionary<int, List<TrackSegmentBase>> sourceElements):
             base(start, end)
         {
+            if (null == sourceElements)
+                throw new ArgumentNullException(nameof(sourceElements));
+
             midPoint = Location + (Vector - Location) / 2.0;
 
             TrackSegmentBase startSegment;
@@ -63,7 +66,7 @@ namespace Orts.Models.Simplified.Track
             if (startSegment == null || endSegment == null)
             {
 //                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
-                PathSegments.Add(CreateItem(start, end));
+                SectionSegments.Add(CreateItem(start, end));
                 return;
             }
 
@@ -73,34 +76,34 @@ namespace Orts.Models.Simplified.Track
             {
                 //start section
                 bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                PathSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
+                SectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
                 //interim sections
                 for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    PathSegments.Add(CreateItem(segments[i]));
+                    SectionSegments.Add(CreateItem(segments[i]));
                 }
                 //end section
                 reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                PathSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
+                SectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
             }
             else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
             {
                 //end section
                 bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                PathSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
+                SectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
                 //interim sections
                 for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    PathSegments.Add(CreateItem(segments[i]));
+                    SectionSegments.Add(CreateItem(segments[i]));
                 }
                 //start section
                 reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                PathSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
+                SectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
             }
             //on a single track vector section
             else
             {
-                PathSegments.Add(CreateItem(startSegment, start, end));
+                SectionSegments.Add(CreateItem(startSegment, start, end));
             }
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
@@ -110,11 +113,13 @@ namespace Orts.Models.Simplified.Track
             return double.NaN;
         }
 
+#pragma warning disable CA1716 // Identifiers should not match keywords
         protected abstract T CreateItem(in PointD start, in PointD end);
 
         protected abstract T CreateItem(TrackSegmentBase source);
 
         protected abstract T CreateItem(TrackSegmentBase source, in PointD start, in PointD end);
+#pragma warning restore CA1716 // Identifiers should not match keywords
 
         private static (TrackSegmentBase startSegment, TrackSegmentBase endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<TrackSegmentBase> segments)
         {

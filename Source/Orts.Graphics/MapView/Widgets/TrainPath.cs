@@ -45,7 +45,7 @@ namespace Orts.Graphics.MapView.Widgets
         }
     }
 
-    internal class TrainPath : SegmentPathBase<TrainPathSegment>
+    internal class TrainPath : TrackSegmentSectionBase<TrainPathSegment>
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
@@ -161,7 +161,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (TrainPathSegment segment in PathSegments)
+            foreach (TrainPathSegment segment in SectionSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }

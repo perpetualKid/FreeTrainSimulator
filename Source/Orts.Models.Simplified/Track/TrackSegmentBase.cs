@@ -16,7 +16,7 @@ namespace Orts.Models.Simplified.Track
     /// Main properties are Length, Direction (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size)
     /// This is a base class for derived types like rail tracks, road tracks
-    /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
+    /// Multiple segments can form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
     public abstract class TrackSegmentBase : VectorPrimitive, INameValueInformationProvider
     {
