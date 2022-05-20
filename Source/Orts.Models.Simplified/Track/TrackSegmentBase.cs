@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -11,14 +12,18 @@ using Orts.Formats.Msts.Models;
 namespace Orts.Models.Simplified.Track
 {
     /// <summary>
-    /// A single segment along a track, covering a single TrackNodeSection as part of a Track Node
-    /// Main properties are Length, Direction at starting point, the endpoint
+    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/>  as part of a <see cref="TrackNode"/>
+    /// Main properties are Length, Direction (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size)
     /// This is a base class for derived types like rail tracks, road tracks
     /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
-    public abstract class SegmentBase : VectorPrimitive, INameValueInformationProvider
+    public abstract class TrackSegmentBase : VectorPrimitive, INameValueInformationProvider
     {
+        private protected PointD centerPoint;
+        private protected float centerToStartDirection;
+        private protected float centerToEndDirection;
+
         public abstract NameValueCollection DebugInfo { get; }
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
@@ -31,17 +36,13 @@ namespace Orts.Models.Simplified.Track
         public float Angle { get; private protected set; }
         public float Radius { get; private protected set; }
 
-        private protected PointD centerPoint;
-        private protected float centerToStartDirection;
-        private protected float centerToEndDirection;
-
         public int TrackNodeIndex { get; }
         public int TrackVectorSectionIndex { get; }
 
-        protected SegmentBase(): base(PointD.None, PointD.None)
+        protected TrackSegmentBase(): base(PointD.None, PointD.None)
         { }
 
-        protected SegmentBase(in PointD start, in PointD end): base(start, end)
+        protected TrackSegmentBase(in PointD start, in PointD end): base(start, end)
         {
             Length = (float)Vector.Distance(Location);
 
@@ -49,8 +50,13 @@ namespace Orts.Models.Simplified.Track
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        protected SegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
         {
+            if (null == trackVectorSection)
+                throw new ArgumentNullException(nameof(trackVectorSection));
+            if (null == trackSections)
+                throw new ArgumentNullException(nameof(trackSections));
+
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
@@ -98,7 +104,7 @@ namespace Orts.Models.Simplified.Track
             }
         }
 
-        protected SegmentBase(SegmentBase source): base(source.Location, source.Vector)
+        protected TrackSegmentBase(TrackSegmentBase source): base(source?.Location ?? throw new ArgumentNullException(nameof(source)), source.Vector)
         {
             Size = source.Size;
             Curved = source.Curved;
@@ -113,8 +119,11 @@ namespace Orts.Models.Simplified.Track
             centerToEndDirection = source.centerToEndDirection;
         }
 
-        protected SegmentBase(SegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
+        protected TrackSegmentBase(TrackSegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
         {
+            if (null == source)
+                throw new ArgumentNullException(nameof(source));
+
             if (startOffset == 0 && remainingLength >= Length)//full path segment
                 return;
             //remainingLength is in m down the track, startOffset is either in m for straight, or in Rad for Curved
@@ -181,7 +190,7 @@ namespace Orts.Models.Simplified.Track
             }
         }
 
-        protected SegmentBase(SegmentBase source, in PointD start, in PointD end) : this(source)
+        protected TrackSegmentBase(TrackSegmentBase source, in PointD start, in PointD end) : this(source)
         {
             bool reverse = false;
 
@@ -220,6 +229,12 @@ namespace Orts.Models.Simplified.Track
         }
 
         #region math
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns>Returns the distance (squared) of the given point from this track segment at the closest point, 
+        /// or NaN if the point is not along (perpedicular) the track</returns>
         public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;
@@ -257,11 +272,16 @@ namespace Orts.Models.Simplified.Track
         }
         #endregion
 
-        public static SegmentBase SegmentBaseAt(in PointD location, IEnumerable<SegmentBase> segments)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="segments"></param>
+        /// <returns>Returns the segment at a given location, or null of not found</returns>
+        public static TrackSegmentBase SegmentBaseAt(in PointD location, IEnumerable<TrackSegmentBase> segments)
         {
-            foreach (SegmentBase segment in segments)
+            foreach (TrackSegmentBase segment in segments ?? Enumerable.Empty<TrackSegmentBase>())
             {
-                //find the start vector section
                 if (segment.DistanceSquared(location) < ProximityTolerance)
                 {
                     return segment;
@@ -270,6 +290,11 @@ namespace Orts.Models.Simplified.Track
             return null;
         }
 
+        /// <summary>
+        /// Direction (Heading from North) at an arbitrary point along the current track segment
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
         public float DirectionAt(in PointD location)
         {
             if (Curved)

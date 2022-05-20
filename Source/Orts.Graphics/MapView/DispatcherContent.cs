@@ -37,7 +37,7 @@ namespace Orts.Graphics.MapView
         private PointPrimitive nearestDispatchItem;
         private TrainWidget nearestTrain;
 
-        internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
+        internal Dictionary<int, List<TrackSegmentBase>> TrackNodeSegments { get; private set; }
 
         public Dictionary<int, TrainWidget> Trains { get; } = new Dictionary<int, TrainWidget>();
 
@@ -146,7 +146,7 @@ namespace Orts.Graphics.MapView
             if (null == TrackNodeSegments)
                 return;
             Traveller traveller = new Traveller(trainTraveller);
-            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<SegmentBase> trackSegments))
+            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegmentBase> trackSegments))
             {
                 PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
                 remainingPathLength -= PathSegments[^1].Length;
@@ -237,7 +237,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.Cast<SegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
+            TrackNodeSegments = trackSegments.Cast<TrackSegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
 
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()

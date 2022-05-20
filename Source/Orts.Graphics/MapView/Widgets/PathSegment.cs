@@ -9,12 +9,12 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PathSegment : SegmentBase, IDrawable<VectorPrimitive>
+    internal class PathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         private protected PathSegment(): base()
         { }
 
-        public PathSegment(SegmentBase source, float remainingLength, float startOffset, bool reverse) : base(source, remainingLength, startOffset, reverse)
+        public PathSegment(TrackSegmentBase source, float remainingLength, float startOffset, bool reverse) : base(source, remainingLength, startOffset, reverse)
         {
         }
 

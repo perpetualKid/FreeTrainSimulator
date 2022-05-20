@@ -49,7 +49,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, Dictionary<int, List<SegmentBase>> sourceElements) :
+        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, Dictionary<int, List<TrackSegmentBase>> sourceElements) :
             base(start, startTrackNodeIndex, end, endTrackNodeIndex, sourceElements)
         {
 
@@ -93,15 +93,15 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        public static TrainPathPath CreateTrainPath(PathFile pathFile, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static TrainPathPath CreateTrainPath(PathFile pathFile, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
         {
             TrainPathPath result = new TrainPathPath(pathFile.PathNodes[0].Location, pathFile.PathNodes[^1].Location);
 
-            SegmentBase NodeSegmentByLocation(in PointD nodeLocation)
+            TrackSegmentBase NodeSegmentByLocation(in PointD nodeLocation)
             {
-                foreach (List<SegmentBase> trackNodes in trackNodeSegments.Values)
+                foreach (List<TrackSegmentBase> trackNodes in trackNodeSegments.Values)
                 {
-                    foreach (SegmentBase trackSegment in trackNodes)
+                    foreach (TrackSegmentBase trackSegment in trackNodes)
                     {
                         if (trackSegment.DistanceSquared(nodeLocation) < ProximityTolerance)
                         {
@@ -131,8 +131,8 @@ namespace Orts.Graphics.MapView.Widgets
                     PointD nodeLocation = PointD.FromWorldLocation(node.Location);
                     PointD nextNodeLocation = PointD.FromWorldLocation(nextPoint.Location);
 
-                    SegmentBase nodeSegment = NodeSegmentByLocation(nodeLocation);
-                    SegmentBase nextNodeSegment = NodeSegmentByLocation(nextNodeLocation);
+                    TrackSegmentBase nodeSegment = NodeSegmentByLocation(nodeLocation);
+                    TrackSegmentBase nextNodeSegment = NodeSegmentByLocation(nextNodeLocation);
 
                     if (nodeSegment == null || nextNodeSegment == null)
                         return null;
@@ -149,19 +149,19 @@ namespace Orts.Graphics.MapView.Widgets
             return new TrainPathSegment(start, end);
         }
 
-        protected override TrainPathSegment CreateItem(SegmentBase source)
+        protected override TrainPathSegment CreateItem(TrackSegmentBase source)
         {
             return new TrainPathSegment(source);
         }
 
-        protected override TrainPathSegment CreateItem(SegmentBase source, in PointD start, in PointD end)
+        protected override TrainPathSegment CreateItem(TrackSegmentBase source, in PointD start, in PointD end)
         {
             return new TrainPathSegment(source, start, end);
         }
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (TrainPathSegment segment in pathSegments)
+            foreach (TrainPathSegment segment in PathSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }

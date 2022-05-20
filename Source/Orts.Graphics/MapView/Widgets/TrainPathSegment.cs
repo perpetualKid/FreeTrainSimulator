@@ -8,16 +8,16 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathSegment : SegmentBase, IDrawable<VectorPrimitive>
+    internal class TrainPathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         public override NameValueCollection DebugInfo => null;
 
-        public TrainPathSegment(SegmentBase source) : base(source)
+        public TrainPathSegment(TrackSegmentBase source) : base(source)
         {
             Size = 5;
         }
 
-        public TrainPathSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        public TrainPathSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
             Size = 5;
         }

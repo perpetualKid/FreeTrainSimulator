@@ -12,7 +12,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal string PlatformName { get; }
         internal string StationName { get; }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
+        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
@@ -21,7 +21,7 @@ namespace Orts.Graphics.MapView.Widgets
                 PlatformName = PlatformName[StationName.Length..];
         }
 
-        public static IEnumerable<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static IEnumerable<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
         {
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.Id);
             while (platformItemMappings.Count > 0)
@@ -47,7 +47,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (PlatformSegment segment in pathSegments)
+            foreach (PlatformSegment segment in PathSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
@@ -63,12 +63,12 @@ namespace Orts.Graphics.MapView.Widgets
             return new PlatformSegment(start, end);
         }
 
-        protected override PlatformSegment CreateItem(SegmentBase source)
+        protected override PlatformSegment CreateItem(TrackSegmentBase source)
         {
             return new PlatformSegment(source);
         }
 
-        protected override PlatformSegment CreateItem(SegmentBase source, in PointD start, in PointD end)
+        protected override PlatformSegment CreateItem(TrackSegmentBase source, in PointD start, in PointD end)
         {
             return new PlatformSegment(source, start, end);
         }

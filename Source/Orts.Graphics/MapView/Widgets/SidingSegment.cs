@@ -9,14 +9,14 @@ using Orts.Models.Simplified.Track;
 namespace Orts.Graphics.MapView.Widgets
 {
 
-    internal class SidingSegment : SegmentBase, IDrawable<VectorPrimitive>
+    internal class SidingSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        public SidingSegment(SegmentBase source) : base(source)
+        public SidingSegment(TrackSegmentBase source) : base(source)
         {
             Size = 3;
         }
 
-        public SidingSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        public SidingSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
             Size = 3;
         }

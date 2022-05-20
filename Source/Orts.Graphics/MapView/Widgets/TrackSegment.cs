@@ -12,7 +12,7 @@ using Orts.Models.Simplified.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrackSegment : SegmentBase, IDrawable<VectorPrimitive>
+    internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;

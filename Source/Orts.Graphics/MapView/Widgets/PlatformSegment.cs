@@ -9,14 +9,14 @@ using Orts.Models.Simplified.Track;
 namespace Orts.Graphics.MapView.Widgets
 {
 
-    internal class PlatformSegment : SegmentBase, IDrawable<VectorPrimitive>
+    internal class PlatformSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        public PlatformSegment(SegmentBase source) : base(source)
+        public PlatformSegment(TrackSegmentBase source) : base(source)
         {
             Size = 3;
         }
 
-        public PlatformSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        public PlatformSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
             Size = 3;
         }

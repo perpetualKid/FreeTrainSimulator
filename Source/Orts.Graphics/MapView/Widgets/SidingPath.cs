@@ -11,12 +11,12 @@ namespace Orts.Graphics.MapView.Widgets
     {
         internal string SidingName { get; }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
+        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }
 
-        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
         {
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
             while (sidingItemMappings.Count > 0)
@@ -42,7 +42,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (SidingSegment segment in pathSegments)
+            foreach (SidingSegment segment in PathSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
@@ -53,12 +53,12 @@ namespace Orts.Graphics.MapView.Widgets
             return new SidingSegment(start, end);
         }
 
-        protected override SidingSegment CreateItem(SegmentBase source)
+        protected override SidingSegment CreateItem(TrackSegmentBase source)
         {
             return new SidingSegment(source);
         }
 
-        protected override SidingSegment CreateItem(SegmentBase source, in PointD start, in PointD end)
+        protected override SidingSegment CreateItem(TrackSegmentBase source, in PointD start, in PointD end)
         {
             return new SidingSegment(source, start, end);
         }
