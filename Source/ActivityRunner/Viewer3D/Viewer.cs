@@ -215,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public CommandLog Log { get { return Simulator.Log; } }
         public static bool ClockTimeBeforeNoon => Simulator.Instance.ClockTime % 86400 < 43200;
-        
+
         // After dawn and before dusk, so definitely daytime
         public bool Daytime => (MaterialManager.sunDirection.Y > 0.05f && ClockTimeBeforeNoon) || (MaterialManager.sunDirection.Y > 0.15f && !ClockTimeBeforeNoon);
 
@@ -514,8 +514,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // This ensures that a) we have all the required objects loaded when the 3D view first appears and b) that
             // all loading is performed on a single thread that we can handle in debugging and tracing.
             World.LoadPrep();
-                MaterialManager.LoadPrep();
-                LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            MaterialManager.LoadPrep();
+            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             Load();
 
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
@@ -750,7 +750,7 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.CameraVibrate, KeyEventType.KeyPressed, () =>
             {
                 Settings.CarVibratingLevel = (Settings.CarVibratingLevel + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel }"));
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel}"));
                 Settings.Save("CarVibratingLevel");
             });
             UserCommandController.AddEvent(UserCommand.DebugToggleConfirmations, KeyEventType.KeyPressed, () =>
@@ -995,7 +995,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 dispatcherThread.Start();
             }
             else
-            { 
+            {
                 dispatcherWindow?.BringToFront();
             }
         }
@@ -1629,20 +1629,15 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Count; j++)
+            foreach (TrackNode junctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
             {
-                TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
-                if (tn is TrackJunctionNode)
+                Vector3 xnaCenter = Camera.XnaLocation(junctionNode.UiD.Location);
+                float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
+
+                if (bestD > d)
                 {
-
-                    Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);
-                    float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
-
-                    if (bestD > d)
-                    {
-                        bestTn = tn;
-                        bestD = d;
-                    }
+                    bestTn = junctionNode;
+                    bestD = d;
                 }
             }
             if (bestTn != null)

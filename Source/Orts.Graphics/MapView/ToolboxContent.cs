@@ -174,9 +174,7 @@ namespace Orts.Graphics.MapView
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            TrainPathPath trainpath = TrainPath.CreateTrainPath(path, TrackNodeSegments);
-            var test = new List<TrainPathPath>() { trainpath };
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPathPath, Tile>(test);
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPathPath, Tile>(new List<TrainPathPath>() { TrainPath.CreateTrainPath(path, TrackNodeSegments) });
             //            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path, TrackNodeSegments) });
         }
         #endregion
@@ -201,7 +199,7 @@ namespace Orts.Graphics.MapView
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
+                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
                         endSegments.Add(new EndNode(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
@@ -215,7 +213,7 @@ namespace Orts.Graphics.MapView
                         List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
                         foreach (TrackPin pin in trackJunctionNode.TrackPins)
                         {
-                            vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
+                            vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
                         }
                         junctionSegments.Add(new JunctionNode(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
                         break;

@@ -35,7 +35,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>The TrPin index of the siding route of a junction node</summary>
         private static int[] sidingRouteIndex;
 
-        private static List<TrackNode> trackNodes;
+        private static TrackNodes trackNodes;
         private static TrackSectionsFile tsectionDat;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackNodesIn">The tracknodes</param>
         /// <param name="tsectionDatIn">Track section Data</param>
-        public static void Initialize(List<TrackNode> trackNodesIn, TrackSectionsFile tsectionDatIn)
+        public static void Initialize(TrackNodes trackNodesIn, TrackSectionsFile tsectionDatIn)
         {
             trackNodes = trackNodesIn;
             tsectionDat = tsectionDatIn;

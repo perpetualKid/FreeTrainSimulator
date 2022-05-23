@@ -10772,7 +10772,7 @@ namespace Orts.Simulation.Physics
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
-                        TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
+                        TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[section.OriginalIndex];
                         if (section.Pins[sectionDirection, Location.FarEnd].Link != -1)
                         {
                             //facing
@@ -12431,7 +12431,7 @@ namespace Orts.Simulation.Physics
                             }
                             else
                             {
-                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
+                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[expectedTracIndex], new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), expectedTDir);
                             }
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;

@@ -395,7 +395,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetFacingPoint()
         {
-            TrackJunctionNode tn = TrackDB.TrackNodes[JunctionIndex] as TrackJunctionNode;
+            TrackJunctionNode tn = TrackDB.TrackNodes.JunctionNodes[JunctionIndex];
             if (tn == null) return;  // Leave IsFacingPoint to what it is.
                 
             //First try using the next main index
@@ -436,14 +436,12 @@ namespace ORTS.TrackViewer.Editing
             //Probably this can be faster, by just finding the TrPins from this and next junction and find the common one.
             int nextJunctionIndex = (nextNode as TrainpathJunctionNode).JunctionIndex;
 
-            for (int i = 0; i < TrackDB.TrackNodes.Count; i++)
+            foreach (TrackVectorNode tn in TrackDB.TrackNodes.VectorNodes)
             {
-                if (!(TrackDB.TrackNodes[i] is TrackVectorNode tn))
-                    continue;
                 if ((tn.JunctionIndexAtStart() == JunctionIndex && tn.JunctionIndexAtEnd() == nextJunctionIndex)
                    || (tn.JunctionIndexAtEnd() == JunctionIndex && tn.JunctionIndexAtStart() == nextJunctionIndex))
                 {
-                    return i;
+                    return tn.Index;
                 }
             }
             return -1;
@@ -510,7 +508,7 @@ namespace ORTS.TrackViewer.Editing
             // it is a junction. Place a traveller onto the tracknode and find the orientation from it.
             try
             {   //for broken paths the tracknode doesn't exit or the traveller cannot be placed.
-                TrackVectorNode linkingTN = TrackDB.TrackNodes[linkingTvnIndex] as TrackVectorNode;
+                TrackVectorNode linkingTN = TrackDB.TrackNodes.VectorNodes[linkingTvnIndex];
                 Traveller traveller = new Traveller(linkingTN, Location, Direction.Forward);
                 if (linkingTN.JunctionIndexAtStart() != JunctionIndex)
                 {   // the tracknode is oriented in the other direction.
@@ -535,8 +533,9 @@ namespace ORTS.TrackViewer.Editing
         {
             if (IsBroken) return false;
 
-            TrackNode tn = TrackDB.TrackNodes[JunctionIndex];
-            if (tn == null) return false;
+            TrackJunctionNode tn = TrackDB.TrackNodes.JunctionNodes[JunctionIndex];
+            if (tn == null) 
+                return false;
 
             foreach (TrackPin pin in tn.TrackPins)
             {
@@ -598,7 +597,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetLocationFromTrackNode()
         {
-            Location = TrackDB.TrackNodes[JunctionIndex].UiD.Location;
+            Location = TrackDB.TrackNodes.JunctionNodes[JunctionIndex].UiD.Location;
         }
 
         /// <summary>
@@ -701,7 +700,7 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
-            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            TrackVectorNode tn = TrackDB.TrackNodes.VectorNodes[TvnIndex];
             Traveller traveller = new Traveller(tn, Location, Direction.Forward);
             CopyDataFromTraveller(traveller);
             trackAngleForward = traveller.RotY; // traveller also has TvnIndex, tvs, offset, etc, but we are not using that (should be consistent though)
@@ -778,7 +777,7 @@ namespace ORTS.TrackViewer.Editing
         private float GetSectionStartDistance()
         {
             float distanceFromStart = 0;
-            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            TrackVectorNode tn = TrackDB.TrackNodes.VectorNodes[TvnIndex];
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
                 TrackVectorSection tvs = tn.TrackVectorSections[tvsi];

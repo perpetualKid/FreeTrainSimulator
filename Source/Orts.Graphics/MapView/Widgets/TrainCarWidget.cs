@@ -50,7 +50,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             foreach (TrainCarWidget car in Cars.Values)
             {
-                ((IDrawable<TrainCarWidget>)car).Draw(contentArea, colorVariation, scaleFactor);
+                ((IDrawable<PointPrimitive>)car).Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 

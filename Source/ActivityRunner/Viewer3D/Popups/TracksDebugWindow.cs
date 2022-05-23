@@ -67,9 +67,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var camera = Owner.Viewer.Camera;
                 TrackDB tdb = RuntimeData.Instance.TrackDB;
                 RoadTrackDB rdb = RuntimeData.Instance.RoadTrackDB;
-                foreach (var trackNode in tdb.TrackNodes.Where(
-                    tn => tn is TrackVectorNode trackVectorNode
-                    && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1
+                foreach (var trackNode in tdb.TrackNodes.VectorNodes.Where(
+                    trackVectorNode => Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                 {
                     var currentPosition = new Traveller(trackNode);

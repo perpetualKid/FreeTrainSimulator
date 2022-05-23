@@ -73,9 +73,9 @@ namespace Orts.Graphics.MapView.Widgets
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
 
             //linking TrackItems to TrackNodes
-            foreach (TrackNode node in trackDb.TrackNodes)
+            foreach (TrackVectorNode trackVectorNode in trackDb.TrackNodes.VectorNodes)
             {
-                if (node is TrackVectorNode trackVectorNode && trackVectorNode.TrackItemIndices?.Length > 0)
+                if (trackVectorNode.TrackItemIndices?.Length > 0)
                 {
                     foreach (int trackItemIndex in trackVectorNode.TrackItemIndices)
                     {

@@ -230,7 +230,7 @@ namespace Orts.Simulation.AIs
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
-            TrackJunctionNode tn = RuntimeData.Instance.TrackDB.TrackNodes[junctionIndex] as TrackJunctionNode;
+            TrackJunctionNode tn = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionIndex];
             if (tn == null || tn.TrackPins[0].Link == vectorIndex)
                 return false;
             return true;
@@ -370,20 +370,18 @@ namespace Orts.Simulation.AIs
 
             //both this node and the next node are junctions: find the vector node connecting them.
             var iCand = -1;
-            for (int i = 0; i < RuntimeData.Instance.TrackDB.TrackNodes.Count; i++)
+            foreach (TrackVectorNode vectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
             {
-                if (!(RuntimeData.Instance.TrackDB.TrackNodes[i] is TrackVectorNode tn))
-                    continue;
-                if (tn.TrackPins[0].Link == junctionIndexThis && tn.TrackPins[1].Link == junctionIndexNext)
+                if (vectorNode.TrackPins[0].Link == junctionIndexThis && vectorNode.TrackPins[1].Link == junctionIndexNext)
                 {
-                    iCand = i;
-                    if (i != previousNextMainTVNIndex) break;
+                    iCand = vectorNode.Index;
+                    if (iCand != previousNextMainTVNIndex) break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
-                else if (tn.TrackPins[1].Link == junctionIndexThis && tn.TrackPins[0].Link == junctionIndexNext)
+                else if (vectorNode.TrackPins[1].Link == junctionIndexThis && vectorNode.TrackPins[0].Link == junctionIndexNext)
                 {
-                    iCand = i;
-                    if (i != previousNextMainTVNIndex) break;
+                    iCand = vectorNode.Index;
+                    if (iCand != previousNextMainTVNIndex) break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
             }

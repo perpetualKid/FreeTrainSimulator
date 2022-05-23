@@ -14,7 +14,7 @@ namespace Orts.Formats.Msts.Models
         /// Warning, the first TrackNode is always null.
         /// </summary>
 #pragma warning disable CA1002 // Do not expose generic lists
-        public List<TrackNode> TrackNodes { get; private set; }
+        public TrackNodes TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the road database
@@ -33,7 +33,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
-                    TrackNodes = new List<TrackNode>(count + 1) { null };
+                    TrackNodes = new TrackNodes(count + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tracknode", ()=>{ TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, count)); }),
                     });

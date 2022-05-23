@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -329,6 +331,202 @@ namespace Orts.Formats.Msts.Models
         }
     } // TrackType
 
+    #region Index/Enumerable helpers for TrackNodes
+    //Enables List-like (index-based or IEnumerable) access to the Junctions in the TrackNodes
+    public abstract class PartialTrackNodeList<T> : IList<T> where T: TrackNode
+    {
+        private readonly List<int> junctions;
+        private readonly TrackNodes parent;
+
+        internal PartialTrackNodeList(TrackNodes parent)
+        {
+            this.parent = parent;
+            junctions = new List<int>();
+        }
+
+        public T this[int index] { get => parent[index] as T; set => throw new NotImplementedException(); }
+
+        public bool IsReadOnly => true;
+
+        public int Count => junctions.Count;
+
+        public void Add(T item)
+        {
+            junctions.Add(item?.Index ?? throw new ArgumentNullException(nameof(item)));
+        }
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(T item)
+        {
+            return junctions.Contains(item?.Index ?? throw new ArgumentNullException(nameof(item)));
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return new NodeEnumerator<T>(junctions, parent);
+        }
+
+        public int IndexOf(T item) => item?.Index ?? throw new ArgumentNullException(nameof(item));
+
+        public void Insert(int index, T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return new NodeEnumerator<T>(junctions, parent);
+        }
+
+        private class NodeEnumerator<TNodeType> : IEnumerator<TNodeType> where TNodeType : TrackNode
+        {
+            private readonly List<int> junctions;
+            private readonly TrackNodes trackNodes;
+            private int current;
+
+            public NodeEnumerator(List<int> junctions, TrackNodes trackNodes)
+            {
+                this.junctions = junctions;
+                this.trackNodes = trackNodes;
+                current = -1;
+            }
+
+            public TNodeType Current => trackNodes[junctions[current]] as TNodeType;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                //Avoids going beyond the end of the collection.
+                return ++current < junctions.Count;
+            }
+
+            public void Reset()
+            {
+                current = -1;
+            }
+        }
+    }
+
+    public sealed class JunctionList : PartialTrackNodeList<TrackJunctionNode>
+    {
+        public JunctionList(TrackNodes parent) : base(parent)
+        {
+        }
+    }
+
+    public sealed class VectorNodeList : PartialTrackNodeList<TrackVectorNode>
+    {
+        public VectorNodeList(TrackNodes parent) : base(parent)
+        {
+        }
+    }
+
+    public sealed class EndNodeList : PartialTrackNodeList<TrackEndNode>
+    {
+        public EndNodeList(TrackNodes parent) : base(parent)
+        {
+        }
+    }
+
+    #endregion
+
+    public class TrackNodes : IList<TrackNode>
+    {
+        private readonly List<TrackNode> nodes;
+
+        public VectorNodeList VectorNodes { get; }
+        public JunctionList JunctionNodes { get; }
+        public EndNodeList EndNodes { get; }
+
+        public TrackNodes(int capacity)
+        {
+            nodes = new List<TrackNode>(capacity);
+            JunctionNodes = new JunctionList(this);
+            VectorNodes = new VectorNodeList(this);
+            EndNodes = new EndNodeList(this);
+        }
+
+        public TrackNode this[int index] { get => nodes[index]; set => throw new NotImplementedException(); }
+
+        public int Count => nodes.Count;
+
+        public bool IsReadOnly => true;
+
+        public void Add(TrackNode item)
+        {
+            nodes.Add(item);
+            switch (item)
+            {
+                case TrackVectorNode vectorNode:
+                    VectorNodes.Add(vectorNode);
+                    break;
+                case TrackJunctionNode junctionNode:
+                    JunctionNodes.Add(junctionNode);
+                    break;
+                case TrackEndNode endNode:
+                    EndNodes.Add(endNode);
+                    break;
+            }
+        }
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(TrackNode item) => nodes.Contains(item);
+
+        public void CopyTo(TrackNode[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerator<TrackNode> GetEnumerator() => nodes.GetEnumerator();
+
+        public int IndexOf(TrackNode item) => nodes.IndexOf(item);
+
+        public void Insert(int index, TrackNode item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(TrackNode item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
     #region TrackDataBase
     /// <summary>
     /// This class represents the Track Database.
@@ -338,12 +536,12 @@ namespace Orts.Formats.Msts.Models
         private readonly Dictionary<string, TrackJunctionNode> junctionNodes = new Dictionary<string, TrackJunctionNode>();
 
         /// <summary>
-        /// Array of all TrackNodes in the track database
+        /// All TrackNodes in the track database
         /// Warning, the first TrackNode is always null.
         /// </summary>
-#pragma warning disable CA1002 // Do not expose generic lists
-        public List<TrackNode> TrackNodes { get; private set; }
+        public TrackNodes TrackNodes { get; private set; }
 
+#pragma warning disable CA1002 // Do not expose generic lists
         /// <summary>
         /// Array of all Track Items (TrItem) in the track database
         /// </summary>
@@ -361,7 +559,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int numberOfTrackNodes = stf.ReadInt(null);
-                    TrackNodes = new List<TrackNode>(numberOfTrackNodes + 1) { null };
+                    TrackNodes = new TrackNodes(numberOfTrackNodes + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tracknode", ()=>{
                             TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, numberOfTrackNodes));
@@ -695,31 +893,31 @@ namespace Orts.Formats.Msts.Models
 
                 //try //so many things can be in conflict for trackshapes, tracksections etc.
                 //{
-                    TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
-                    SectionIndex[] sectionIndices = trackShape.SectionIndices;
+                TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
+                SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
-                    for (int index = 0; index < sectionIndices.Length; index++)
+                for (int index = 0; index < sectionIndices.Length; index++)
+                {
+                    if (index == trackShape.MainRoute)
+                        continue;
+                    int[] sections = sectionIndices[index].TrackSections;
+
+                    for (int i = 0; i < sections.Length; i++)
                     {
-                        if (index == trackShape.MainRoute)
-                            continue;
-                        int[] sections = sectionIndices[index].TrackSections;
+                        int sid = sectionIndices[index].TrackSections[i];
+                        TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
 
-                        for (int i = 0; i < sections.Length; i++)
+                        if (section.Curved)
                         {
-                            int sid = sectionIndices[index].TrackSections[i];
-                            TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
-
-                            if (section.Curved)
-                            {
-                                angle = section.Angle;
-                                break;
-                            }
+                            angle = section.Angle;
+                            break;
                         }
                     }
-//                }
-//#pragma warning disable CA1031 // Do not catch general exception types
-//                catch (Exception) { }
-//#pragma warning restore CA1031 // Do not catch general exception types
+                }
+                //                }
+                //#pragma warning disable CA1031 // Do not catch general exception types
+                //                catch (Exception) { }
+                //#pragma warning restore CA1031 // Do not catch general exception types
                 return angle;
             }
         }
