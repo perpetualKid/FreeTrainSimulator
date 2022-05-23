@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Orts.Common.Position;
 
-namespace Orts.Models.Simplified.Track
+namespace Orts.Models.Track
 {
     /// <summary>
     /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 

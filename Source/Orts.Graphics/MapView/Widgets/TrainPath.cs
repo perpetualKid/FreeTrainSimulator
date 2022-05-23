@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Simplified.Track;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {

@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Open Rails Simplified Models Library</Description>
-    <AssemblyTitle>Open Rails Simplified Models Library</AssemblyTitle>
+    <Description>Open Rails Entity Models Library</Description>
+    <AssemblyTitle>Open Rails Entity Models Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
-    <AssemblyName>Orts.Models.Simplified</AssemblyName>
-    <RootNamespace>Orts.Models.Simplified</RootNamespace>
+    <AssemblyName>Orts.Models</AssemblyName>
+    <RootNamespace>Orts.Models</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />

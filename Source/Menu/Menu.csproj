@@ -21,7 +21,7 @@
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-    <ProjectReference Include="..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
+    <ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Updater\Orts.Updater.csproj" />
   </ItemGroup>

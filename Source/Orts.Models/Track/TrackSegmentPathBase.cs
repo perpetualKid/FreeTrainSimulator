@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Orts.Common.Position;
 
-namespace Orts.Models.Simplified.Track
+namespace Orts.Models.Track
 {
     /// <summary>
     /// A collection of one or more <see cref="TrackSegmentSectionBase{T}"/> forming a train's path.

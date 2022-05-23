@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Simplified.Track
+namespace Orts.Models.Track
 {
     /// <summary>
     /// A single segment along a track, covering a single <see cref="TrackVectorSection"/>  as part of a <see cref="TrackNode"/>
