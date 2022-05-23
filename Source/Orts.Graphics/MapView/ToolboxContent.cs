@@ -173,8 +173,10 @@ namespace Orts.Graphics.MapView
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPathPath, Tile>(new List<TrainPathPath>() { TrainPath.CreateTrainPath(path, TrackNodeSegments)});
+
+            TrainPathPath trainpath = TrainPath.CreateTrainPath(path, TrackNodeSegments);
+            var test = new List<TrainPathPath>() { trainpath };
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPathPath, Tile>(test);
             //            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path, TrackNodeSegments) });
         }
         #endregion

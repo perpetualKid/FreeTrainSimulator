@@ -8,47 +8,21 @@ using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class EndNode: PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal class EndNode: EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
         protected const int Length = 2;
 
-        internal readonly float Direction;
-        internal readonly int TrackNodeIndex;
-
-        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): base(trackEndNode.UiD.Location)
+        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
+            base(trackEndNode, connectedVectorNode, trackSections)
         {
             Size = width;
-
-            if (null == connectedVectorNode)
-                return;
-            if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
-            {
-                //find angle at beginning of vector node
-                TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
-                Direction = tvs.Direction.Y;
-            }
-            else
-            {
-                //find angle at end of vector node
-                TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
-                Direction = trackVectorSection.Direction.Y;
-                // try to get even better in case the last section is curved
-                TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
-                if (null == trackSection)
-                    throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
-                if (trackSection.Curved)
-                {
-                    Direction += MathHelper.ToRadians(trackSection.Angle);
-                }
-            }
-            Direction -= MathHelper.PiOver2;
-            TrackNodeIndex = trackEndNode.Index;
         }
 
         public virtual NameValueCollection DebugInfo

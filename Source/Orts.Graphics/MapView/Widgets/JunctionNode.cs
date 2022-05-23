@@ -11,26 +11,22 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView.Shapes;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
     /// <summary>
     /// Graphical representation of a track junction (switch)
     /// </summary>
-    internal class JunctionNode : PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal class JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
 
-        internal readonly int TrackNodeIndex;
-        internal readonly float Direction;
-
-        public JunctionNode(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): base(junctionNode.UiD.Location)
+        public JunctionNode(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
+            base(junctionNode, vectorNodes, trackSections)
         {
             Size = diameter;
-            TrackNodeIndex = junctionNode.Index;
-            Direction = MathHelper.WrapAngle(GetInboundSectionDirection(vectorNodes[0], junctionNode.TrackPins[0].Direction == TrackDirection.Reverse, trackSections));
-
         }
 
         public NameValueCollection DebugInfo
@@ -61,57 +57,6 @@ namespace Orts.Graphics.MapView.Widgets
             Color drawColor = this.GetColor<JunctionNode>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
-
-        // find the direction angle of the facing (in) track 
-        private protected static float GetInboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections)
-        {
-            if (null == vectorNode)
-                return 0;
-            if (vectorNode.TrackVectorSections.Length < 1)
-                throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");
-            // find the direction angle of the facing (in) track 
-            if (reverse)
-            {
-                // if the attached track is reverse, we can take just the angle
-                return vectorNode.TrackVectorSections[0].Direction.Y + MathHelper.Pi;
-            }
-            else
-            {
-                // else we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                TrackSection trackSection = trackSections.TryGet(vectorNode.TrackVectorSections[^1].SectionIndex);
-                return null == trackSection
-                    ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[^1].SectionIndex} not found in TSection.dat")
-                    : trackSection.Curved
-                    ? vectorNode.TrackVectorSections[^1].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
-                    : vectorNode.TrackVectorSections[^1].Direction.Y;
-            }
-        }
-
-        // find the direction angle of the trailing (out) track 
-        private protected static float GetOutboundSectionDirection(TrackVectorNode vectorNode, bool reverse, TrackSections trackSections, int index)
-        {
-            if (vectorNode.TrackVectorSections.Length < 1)
-                throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");
-            if (vectorNode.TrackVectorSections.Length < 1 + index)
-                return float.NaN;
-            // find the direction angle of the trailing (out) track 
-            if (reverse)
-            {
-                // if the attached track is reverse, we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                TrackSection trackSection = trackSections.TryGet(vectorNode.TrackVectorSections[0].SectionIndex);
-                return null == trackSection
-                    ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[0].SectionIndex} not found in TSection.dat")
-                    : trackSection.Curved
-                    ? vectorNode.TrackVectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
-                    : vectorNode.TrackVectorSections[index].Direction.Y;
-            }
-            else
-            {
-                // else we can take just the angle
-                return vectorNode.TrackVectorSections[^(1 + index)].Direction.Y + MathHelper.Pi;
-            }
-        }
-
     }
 
     /// <summary>
