@@ -335,24 +335,24 @@ namespace Orts.Formats.Msts.Models
     //Enables List-like (index-based or IEnumerable) access to the Junctions in the TrackNodes
     public abstract class PartialTrackNodeList<T> : IList<T> where T: TrackNode
     {
-        private readonly List<int> junctions;
+        private readonly List<int> elements;
         private readonly TrackNodes parent;
 
         internal PartialTrackNodeList(TrackNodes parent)
         {
             this.parent = parent;
-            junctions = new List<int>();
+            elements = new List<int>();
         }
 
         public T this[int index] { get => parent[index] as T; set => throw new NotImplementedException(); }
 
         public bool IsReadOnly => true;
 
-        public int Count => junctions.Count;
+        public int Count => elements.Count;
 
         public void Add(T item)
         {
-            junctions.Add(item?.Index ?? throw new ArgumentNullException(nameof(item)));
+            elements.Add(item?.Index ?? throw new ArgumentNullException(nameof(item)));
         }
 
         public void Clear()
@@ -362,7 +362,7 @@ namespace Orts.Formats.Msts.Models
 
         public bool Contains(T item)
         {
-            return junctions.Contains(item?.Index ?? throw new ArgumentNullException(nameof(item)));
+            return elements.Contains(item?.Index ?? throw new ArgumentNullException(nameof(item)));
         }
 
         public void CopyTo(T[] array, int arrayIndex)
@@ -372,7 +372,7 @@ namespace Orts.Formats.Msts.Models
 
         public IEnumerator GetEnumerator()
         {
-            return new NodeEnumerator<T>(junctions, parent);
+            return new NodeEnumerator<T>(elements, parent);
         }
 
         public int IndexOf(T item) => item?.Index ?? throw new ArgumentNullException(nameof(item));
@@ -394,23 +394,23 @@ namespace Orts.Formats.Msts.Models
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return new NodeEnumerator<T>(junctions, parent);
+            return new NodeEnumerator<T>(elements, parent);
         }
 
         private class NodeEnumerator<TNodeType> : IEnumerator<TNodeType> where TNodeType : TrackNode
         {
-            private readonly List<int> junctions;
+            private readonly List<int> elements;
             private readonly TrackNodes trackNodes;
             private int current;
 
-            public NodeEnumerator(List<int> junctions, TrackNodes trackNodes)
+            public NodeEnumerator(List<int> elements, TrackNodes trackNodes)
             {
-                this.junctions = junctions;
+                this.elements = elements;
                 this.trackNodes = trackNodes;
                 current = -1;
             }
 
-            public TNodeType Current => trackNodes[junctions[current]] as TNodeType;
+            public TNodeType Current => trackNodes[elements[current]] as TNodeType;
 
             object IEnumerator.Current => Current;
 
@@ -421,7 +421,7 @@ namespace Orts.Formats.Msts.Models
             public bool MoveNext()
             {
                 //Avoids going beyond the end of the collection.
-                return ++current < junctions.Count;
+                return ++current < elements.Count;
             }
 
             public void Reset()
@@ -433,21 +433,21 @@ namespace Orts.Formats.Msts.Models
 
     public sealed class JunctionList : PartialTrackNodeList<TrackJunctionNode>
     {
-        public JunctionList(TrackNodes parent) : base(parent)
+        internal JunctionList(TrackNodes parent) : base(parent)
         {
         }
     }
 
     public sealed class VectorNodeList : PartialTrackNodeList<TrackVectorNode>
     {
-        public VectorNodeList(TrackNodes parent) : base(parent)
+        internal VectorNodeList(TrackNodes parent) : base(parent)
         {
         }
     }
 
     public sealed class EndNodeList : PartialTrackNodeList<TrackEndNode>
     {
-        public EndNodeList(TrackNodes parent) : base(parent)
+        internal EndNodeList(TrackNodes parent) : base(parent)
         {
         }
     }

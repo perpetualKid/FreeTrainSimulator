@@ -11,22 +11,25 @@ namespace Orts.Models.Track
     /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class TrackSegmentSectionBase<T>: VectorPrimitive where T : TrackSegmentBase
+    public abstract class TrackSegmentSectionBase<T> : VectorPrimitive, ITrackNode where T : TrackSegmentBase
     {
         private readonly PointD midPoint;
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        protected List<T> SectionSegments { get; } = new List<T>();
+        public List<T> SectionSegments { get; } = new List<T>();
 #pragma warning restore CA1002 // Do not expose generic lists
         public ref readonly PointD MidPoint => ref midPoint;
 
-        private protected TrackSegmentSectionBase(PointD start, PointD end): base(start, end)
+        public int TrackNodeIndex { get; }
+
+        private protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end): base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
+            TrackNodeIndex = trackNodeIndex;
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, Dictionary<int, List<TrackSegmentBase>> sourceElements):
+        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, TrackModel.SegmentSectionList sourceElements):
             base(start, end)
         {
             if (null == sourceElements)
@@ -41,7 +44,7 @@ namespace Orts.Models.Track
             // simple case, both are on the same tracknode
             if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                if (!sourceElements.TryGetValue(startTrackNodeIndex, out segments))
+                if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
                 (startSegment, endSegment) = EvaluteSegments(start, end, segments);
@@ -50,13 +53,13 @@ namespace Orts.Models.Track
             else
             {
                 //check if the this was close enough on the other tracknode, maybe just a rounding error
-                if (!sourceElements.TryGetValue(startTrackNodeIndex, out segments))
+                if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
                 (startSegment, endSegment) = EvaluteSegments(start, end, segments);
 
                 if (startSegment == null || endSegment == null)
                 {
-                    if (!sourceElements.TryGetValue(endTrackNodeIndex, out segments))
+                    if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                         throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
                     (startSegment, endSegment) = EvaluteSegments(start, end, segments);
@@ -105,6 +108,7 @@ namespace Orts.Models.Track
             {
                 SectionSegments.Add(CreateItem(startSegment, start, end));
             }
+            TrackNodeIndex = SectionSegments[0].TrackNodeIndex;
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 

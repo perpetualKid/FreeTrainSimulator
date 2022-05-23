@@ -21,15 +21,15 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private readonly MapViewItemSettings[] drawItems = { 
-            MapViewItemSettings.Platforms, 
-            MapViewItemSettings.Sidings, 
-            MapViewItemSettings.Tracks, 
-            MapViewItemSettings.EndNodes, 
-            MapViewItemSettings.JunctionNodes, 
-            MapViewItemSettings.Signals, 
-            MapViewItemSettings.StationNames, 
-            MapViewItemSettings.PlatformNames, 
+        private readonly MapViewItemSettings[] drawItems = {
+            MapViewItemSettings.Platforms,
+            MapViewItemSettings.Sidings,
+            MapViewItemSettings.Tracks,
+            MapViewItemSettings.EndNodes,
+            MapViewItemSettings.JunctionNodes,
+            MapViewItemSettings.Signals,
+            MapViewItemSettings.StationNames,
+            MapViewItemSettings.PlatformNames,
             MapViewItemSettings.SidingNames};
 
         private readonly InsetComponent insetComponent;
@@ -37,7 +37,7 @@ namespace Orts.Graphics.MapView
         private PointPrimitive nearestDispatchItem;
         private TrainWidget nearestTrain;
 
-        internal Dictionary<int, List<TrackSegmentBase>> TrackNodeSegments { get; private set; }
+        internal TrackModel TrackModel = new TrackModel();
 
         public Dictionary<int, TrainWidget> Trains { get; } = new Dictionary<int, TrainWidget>();
 
@@ -79,7 +79,7 @@ namespace Orts.Graphics.MapView
                 if (ContentArea.InsideScreenArea(segment))
                     segment.Draw(ContentArea, ColorVariation.None, 1.5);
             }
-            foreach(TrainWidget train in Trains.Values)
+            foreach (TrainWidget train in Trains.Values)
             {
                 if (ContentArea.InsideScreenArea(train))
                 {
@@ -122,7 +122,7 @@ namespace Orts.Graphics.MapView
             }
             distance = 2500;
             nearestTrain = null;
-            foreach(TrainWidget train in Trains.Values)
+            foreach (TrainWidget train in Trains.Values)
             {
                 double itemDistance = train.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -143,10 +143,11 @@ namespace Orts.Graphics.MapView
         {
             float remainingPathLength = 2000;
             PathSegments.Clear();
-            if (null == TrackNodeSegments)
+            if (TrackModel.SegmentSections.Count == 0)
                 return;
             Traveller traveller = new Traveller(trainTraveller);
-            if (traveller.TrackNodeType == TrackNodeType.Track && TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out List<TrackSegmentBase> trackSegments))
+            List<TrackSegmentBase> trackSegments;
+            if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = TrackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
             {
                 PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
                 remainingPathLength -= PathSegments[^1].Length;
@@ -157,7 +158,7 @@ namespace Orts.Graphics.MapView
                 switch (traveller.TrackNodeType)
                 {
                     case TrackNodeType.Track:
-                        if (TrackNodeSegments.TryGetValue(traveller.TrackNode.Index, out trackSegments))
+                        if ((trackSegments = TrackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
                         {
                             PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
                             remainingPathLength -= PathSegments[^1].Length;
@@ -237,7 +238,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.Cast<TrackSegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
+            TrackModel.SetTrackSegments(trackSegments, junctionSegments, endSegments);
 
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
@@ -250,15 +251,15 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
-                RuntimeData.Instance.TrackDB?.TrackItems, 
-                RuntimeData.Instance.SignalConfigFile, 
-                RuntimeData.Instance.TrackDB, 
-                TrackNodeSegments).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+                RuntimeData.Instance.TrackDB?.TrackItems,
+                RuntimeData.Instance.SignalConfigFile,
+                RuntimeData.Instance.TrackDB,
+                TrackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
 
-            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackModel.SegmentSections);
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
-            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackModel.SegmentSections);
             contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
 
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));

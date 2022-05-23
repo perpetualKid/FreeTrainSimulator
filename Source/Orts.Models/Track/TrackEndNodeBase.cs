@@ -7,7 +7,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public abstract class EndNodeBase: PointPrimitive
+    public abstract class EndNodeBase: PointPrimitive, ITrackNode
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }

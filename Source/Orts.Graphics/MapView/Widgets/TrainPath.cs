@@ -48,7 +48,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, Dictionary<int, List<TrackSegmentBase>> sourceElements) :
+        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, TrackModel.SegmentSectionList sourceElements) :
             base(start, startTrackNodeIndex, end, endTrackNodeIndex, sourceElements)
         {
 
@@ -92,15 +92,15 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        public static TrainPathPath CreateTrainPath(PathFile pathFile, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
+        public static TrainPathPath CreateTrainPath(PathFile pathFile, TrackModel.SegmentSectionList trackNodeSegments)
         {
             TrainPathPath result = new TrainPathPath(pathFile.PathNodes[0].Location, pathFile.PathNodes[^1].Location);
 
             TrackSegmentBase NodeSegmentByLocation(in PointD nodeLocation)
             {
-                foreach (List<TrackSegmentBase> trackNodes in trackNodeSegments.Values)
+                foreach (TrackSegmentSection trackNodes in trackNodeSegments)
                 {
-                    foreach (TrackSegmentBase trackSegment in trackNodes)
+                    foreach (TrackSegmentBase trackSegment in trackNodes.SectionSegments)
                     {
                         if (trackSegment.DistanceSquared(nodeLocation) < ProximityTolerance)
                         {

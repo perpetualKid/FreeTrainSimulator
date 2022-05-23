@@ -9,7 +9,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public abstract class JunctionNodeBase : PointPrimitive
+    public abstract class JunctionNodeBase : PointPrimitive, ITrackNode
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }

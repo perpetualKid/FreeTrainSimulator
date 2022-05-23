@@ -65,7 +65,7 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, TrackModel.SegmentSectionList trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)
@@ -417,7 +417,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public ISignal Signal { get; }
 
-        public SignalTrackItem(SignalItem source, List<TrackSegmentBase> segments, bool normalSignal) : base(source)
+        public SignalTrackItem(SignalItem source, TrackSegmentSection segments, bool normalSignal) : base(source)
         {
             if (source.SignalObject > -1)
             {
@@ -425,7 +425,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
             Size = 2f;
 
-            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segments);
+            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segments.SectionSegments);
             angle = segment?.DirectionAt(Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2) ?? 0;
 
             Normal = normalSignal;

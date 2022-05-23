@@ -11,12 +11,12 @@ namespace Orts.Graphics.MapView.Widgets
     {
         internal string SidingName { get; }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
+        public SidingPath(SidingTrackItem start, SidingTrackItem end, TrackModel.SegmentSectionList trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }
 
-        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<TrackSegmentBase>> trackNodeSegments)
+        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, TrackModel.SegmentSectionList trackNodeSegments)
         {
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
             while (sidingItemMappings.Count > 0)
