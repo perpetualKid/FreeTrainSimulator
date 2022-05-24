@@ -1,69 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Security.Cryptography.X509Certificates;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace Orts.Models.Track
 {
     /// <summary>
-    /// A single segment along a track, covering a single TrackNodeSection as part of a Track Node
-    /// Main properties are Length, Direction at starting point, the endpoint
+    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/>  as part of a <see cref="TrackNode"/>
+    /// Main properties are Length, Direction (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size)
     /// This is a base class for derived types like rail tracks, road tracks
-    /// Multiple segments can form a path as part of a <see cref="SegmentPathBase{T}"/>, for paths following a track (train paths, platforms, sidings)
+    /// Multiple segments can form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track (train paths, platforms, sidings)
     /// </summary>
-    internal abstract class SegmentBase : VectorWidget, INameValueInformationProvider
+    public abstract class TrackSegmentBase : VectorPrimitive
     {
-        public abstract NameValueCollection DebugInfo { get; }
-        public Dictionary<string, FormatOption> FormattingOptions { get; }
-
-        internal readonly bool Curved;
-
-        // Direction in Rad from -π to π from North (0) to South
-        internal float Direction;
-        internal float Length { get; private protected set; }
-        // Angular Size (Length) of the Arc in Degree
-        internal float Angle { get; private protected set; }
-        internal float Radius { get; private protected set; }
-
         private protected PointD centerPoint;
         private protected float centerToStartDirection;
         private protected float centerToEndDirection;
 
-        internal readonly int TrackNodeIndex;
-        internal readonly int TrackVectorSectionIndex;
+        public bool Curved { get; }
 
-        private protected SegmentBase()
+        // Direction in Rad from -π to π from North (0) to South
+        public float Direction { get; private protected set; }
+        public float Length { get; private protected set; }
+        // Angular Size (Length) of the Arc in Degree
+        public float Angle { get; private protected set; }
+        public float Radius { get; private protected set; }
+
+        public int TrackNodeIndex { get; }
+        public int TrackVectorSectionIndex { get; }
+
+        protected TrackSegmentBase(): base(PointD.None, PointD.None)
         { }
 
-        private protected SegmentBase(in PointD start, in PointD end)
+        protected TrackSegmentBase(in PointD start, in PointD end): base(start, end)
         {
-            location = start;
-            vectorEnd = end;
-            Length = (float)vectorEnd.Distance(location);
+            Length = (float)Vector.Distance(Location);
 
-            WorldLocation loc = PointD.ToWorldLocation(start);
-            tile = new Tile(loc.TileX, loc.TileZ);
-            loc = PointD.ToWorldLocation(end);
-            otherTile = new Tile(loc.TileX, loc.TileZ);
             PointD origin = end - start;
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        public SegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
         {
+            if (null == trackVectorSection)
+                throw new ArgumentNullException(nameof(trackVectorSection));
+            if (null == trackSections)
+                throw new ArgumentNullException(nameof(trackSections));
+
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
 
-            base.location = PointD.FromWorldLocation(location);
-            tile = new Tile(location.TileX, location.TileZ);
+            SetLocation(location);
 
             TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
 
@@ -90,9 +83,9 @@ namespace Orts.Graphics.MapView.Widgets
                 double sinArotated = Math.Sin(trackVectorSection.Direction.Y + angleRadians);
                 double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
-                vectorEnd = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ);
+                SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ));
 
-                centerPoint = base.location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
+                centerPoint = base.Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
                 centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
             }
@@ -102,19 +95,13 @@ namespace Orts.Graphics.MapView.Widgets
 
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
-                vectorEnd = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X + sinA * Length, location.TileZ * WorldLocation.TileSize + location.Location.Z + cosA * Length);
+                SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X + sinA * Length, location.TileZ * WorldLocation.TileSize + location.Location.Z + cosA * Length));
             }
-
-            otherTile = new Tile(Tile.TileFromAbs(vectorEnd.X), Tile.TileFromAbs(vectorEnd.Y));
         }
 
-        private protected SegmentBase(SegmentBase source)
+        protected TrackSegmentBase(TrackSegmentBase source): base(source?.Location ?? throw new ArgumentNullException(nameof(source)), source.Vector)
         {
-            location = source.location;
-            tile = source.tile;
-            otherTile = source.otherTile;
             Size = source.Size;
-            vectorEnd = source.vectorEnd;
             Curved = source.Curved;
             Direction = source.Direction;
             Length = source.Length;
@@ -127,8 +114,11 @@ namespace Orts.Graphics.MapView.Widgets
             centerToEndDirection = source.centerToEndDirection;
         }
 
-        private protected SegmentBase(SegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
+        protected TrackSegmentBase(TrackSegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
         {
+            if (null == source)
+                throw new ArgumentNullException(nameof(source));
+
             if (startOffset == 0 && remainingLength >= Length)//full path segment
                 return;
             //remainingLength is in m down the track, startOffset is either in m for straight, or in Rad for Curved
@@ -145,13 +135,13 @@ namespace Orts.Graphics.MapView.Widgets
                     {
                         Direction += Angle - remainingArc;
                         Angle = remainingArc;
-                        location = centerPoint + new PointD(sign * Math.Sin(Direction) * Radius, sign * Math.Cos(Direction) * Radius);
+                        SetLocation(centerPoint + new PointD(sign * Math.Sin(Direction) * Radius, sign * Math.Cos(Direction) * Radius));
                     }
                 }
                 else
                 {
                     Direction += sign * startOffset;
-                    location = centerPoint + new PointD(sign * Math.Sin(Direction) * Radius, sign * Math.Cos(Direction) * Radius);
+                    SetLocation(centerPoint + new PointD(sign * Math.Sin(Direction) * Radius, sign * Math.Cos(Direction) * Radius));
                     Angle -= sign * startOffset;
                     if (Math.Abs(remainingArc) < Math.Abs(Angle))
                         Angle = remainingArc;
@@ -186,21 +176,21 @@ namespace Orts.Graphics.MapView.Widgets
                     }
                 }
 
-                double dx = vectorEnd.X - location.X;
-                double dy = vectorEnd.Y - location.Y;
+                double dx = Vector.X - Location.X;
+                double dy = Vector.Y - Location.Y;
                 double scale = startOffset / source.Length;
-                location = new PointD(location.X + dx * scale, location.Y + dy * scale);
+                SetLocation(new PointD(Location.X + dx * scale, Location.Y + dy * scale));
                 scale = endOffset / source.Length;
-                vectorEnd = new PointD(location.X + dx * scale, location.Y + dy * scale);
+                SetVector(new PointD(Location.X + dx * scale, Location.Y + dy * scale));
             }
         }
 
-        private protected SegmentBase(SegmentBase source, in PointD start, in PointD end) : this(source)
+        protected TrackSegmentBase(TrackSegmentBase source, in PointD start, in PointD end) : this(source)
         {
             bool reverse = false;
 
             //figure which end is closer to start vs end
-            if (start.DistanceSquared(location) > start.DistanceSquared(vectorEnd) && end.DistanceSquared(location) < end.DistanceSquared(vectorEnd))
+            if (start.DistanceSquared(Location) > start.DistanceSquared(Vector) && end.DistanceSquared(Location) < end.DistanceSquared(Vector))
                 reverse = true;
 
             //TODO 20220407 may need/want to map the start/end point onto the actual track, as they may be slightly skewed/offset from the track
@@ -208,23 +198,21 @@ namespace Orts.Graphics.MapView.Widgets
 
             if (reverse)
             {
-                location = end;
-                vectorEnd = start;
+                SetVector(end, start);
             }
             else
             {
-                location = start;
-                vectorEnd = end;
+                SetVector(start, end);
             }
 
             if (Curved)
             {
-                PointD deltaStart = location - centerPoint;
+                PointD deltaStart = Location - centerPoint;
                 float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
                 Direction -= deltaAngle;
                 Angle += deltaAngle;
-                PointD deltaEnd = vectorEnd - centerPoint;
+                PointD deltaEnd = Vector - centerPoint;
                 deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
                 Angle += deltaAngle;
@@ -236,6 +224,12 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         #region math
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns>Returns the distance (squared) of the given point from this track segment at the closest point, 
+        /// or NaN if the point is not along (perpedicular) the track</returns>
         public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;
@@ -250,9 +244,9 @@ namespace Orts.Graphics.MapView.Widgets
                     return (distanceSquared = (centerPoint.Distance(point) - Radius)) * distanceSquared;
 
                 if (Angle > 0 && ((angle < centerToStartDirection) || (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection))))
-                    return (distanceSquared = point.DistanceSquared(location)) > proximityTolerance ? double.NaN : distanceSquared;
+                    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
                 if (Angle < 0 && ((angle < centerToEndDirection) || (centerToEndDirection > centerToStartDirection && (angle > centerToEndDirection || angle < centerToStartDirection))))
-                    return (distanceSquared = point.DistanceSquared(vectorEnd)) > proximityTolerance ? double.NaN : distanceSquared;
+                    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
 
                 return double.NaN;
             }
@@ -260,25 +254,30 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 distanceSquared = Length * Length;
                 // Calculate the t that minimizes the distance.
-                double t = (point - location).DotProduct(vectorEnd - location) / distanceSquared;
+                double t = (point - Location).DotProduct(Vector - Location) / distanceSquared;
 
                 // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
                 // (else if needed could return the distance from either start or end point)
                 if (t < 0)
-                    return (distanceSquared = point.DistanceSquared(location)) > proximityTolerance ? double.NaN : distanceSquared;
+                    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
                 else if (t > 1)
-                    return (distanceSquared = point.DistanceSquared(vectorEnd)) > proximityTolerance ? double.NaN : distanceSquared;
-                return point.DistanceSquared(location + (vectorEnd - location) * t);
+                    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
+                return point.DistanceSquared(Location + (Vector - Location) * t);
             }
         }
         #endregion
 
-        public static SegmentBase SegmentBaseAt(in PointD location, IEnumerable<SegmentBase> segments)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="segments"></param>
+        /// <returns>Returns the segment at a given location, or null of not found</returns>
+        public static TrackSegmentBase SegmentBaseAt(in PointD location, IEnumerable<TrackSegmentBase> segments)
         {
-            foreach (SegmentBase segment in segments)
+            foreach (TrackSegmentBase segment in segments ?? Enumerable.Empty<TrackSegmentBase>())
             {
-                //find the start vector section
-                if (segment.DistanceSquared(location) < proximityTolerance)
+                if (location.DistanceSquared(segment.Location) <= ProximityTolerance)
                 {
                     return segment;
                 }
@@ -286,6 +285,11 @@ namespace Orts.Graphics.MapView.Widgets
             return null;
         }
 
+        /// <summary>
+        /// Direction (Heading from North) at an arbitrary point along the current track segment
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
         public float DirectionAt(in PointD location)
         {
             if (Curved)
@@ -301,6 +305,5 @@ namespace Orts.Graphics.MapView.Widgets
             }
 
         }
-
     }
 }

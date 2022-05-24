@@ -11365,7 +11365,7 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train);
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
-            TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
 
             formedTrain.RearTDBTraveller = new Traveller(DetachNode);
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);

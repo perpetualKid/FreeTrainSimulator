@@ -609,7 +609,7 @@ namespace ORTS.TrackViewer.Editing
             if (tvnIndex < 0)
                 return stationNames;
 
-            TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
+            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[tvnIndex];
             if (tvn == null)
                 return stationNames;
             if (tvn.TrackItemIndices == null)

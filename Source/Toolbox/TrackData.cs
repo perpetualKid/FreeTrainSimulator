@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Models.Track;
 
 namespace Orts.Toolbox
 {
@@ -14,6 +15,7 @@ namespace Orts.Toolbox
     {
         internal static async Task LoadTrackData(string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
         {
+            TrackModel.Reset();
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
             TrackDB trackDB = null;

@@ -2,24 +2,21 @@
 using System.Diagnostics;
 using System.Linq;
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
 using Orts.Common.Position;
-using Orts.Graphics.DrawableComponents;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath: SegmentPathBase<SidingSegment>
+    internal class SidingPath: TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
     {
         internal string SidingName { get; }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
+        public SidingPath(SidingTrackItem start, SidingTrackItem end, IList<TrackSegmentSection> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
         }
 
-        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, IList<TrackSegmentSection> trackNodeSegments)
         {
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
             while (sidingItemMappings.Count > 0)
@@ -43,9 +40,9 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (SidingSegment segment in pathSegments)
+            foreach (SidingSegment segment in SectionSegments)
             {
                 segment.Draw(contentArea, colorVariation, scaleFactor);
             }
@@ -56,12 +53,12 @@ namespace Orts.Graphics.MapView.Widgets
             return new SidingSegment(start, end);
         }
 
-        protected override SidingSegment CreateItem(SegmentBase source)
+        protected override SidingSegment CreateItem(TrackSegmentBase source)
         {
             return new SidingSegment(source);
         }
 
-        protected override SidingSegment CreateItem(SegmentBase source, in PointD start, in PointD end)
+        protected override SidingSegment CreateItem(TrackSegmentBase source, in PointD start, in PointD end)
         {
             return new SidingSegment(source, start, end);
         }

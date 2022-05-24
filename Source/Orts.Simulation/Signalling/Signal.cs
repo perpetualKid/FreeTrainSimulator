@@ -47,7 +47,7 @@ namespace Orts.Simulation.Signalling
 
     public class Signal : ISignal
     {
-        private static List<TrackNode> trackNodes;
+        private static TrackNodes trackNodes;
         private static List<TrackItem> trackItems;
 
         private static SignalEnvironment signalEnvironment; //back reference to the signal environment
@@ -119,7 +119,7 @@ namespace Orts.Simulation.Signalling
 
         public bool CallOnEnabled { get; internal set; }      // set if signal script file uses CallOn functionality
 
-        internal static void Initialize(SignalEnvironment signals, List<TrackNode> trackNodes, List<TrackItem> trackItems)
+        internal static void Initialize(SignalEnvironment signals, TrackNodes trackNodes, List<TrackItem> trackItems)
         {
             signalEnvironment = signals;               // reference to overlaying Signal class
             Signal.trackNodes = trackNodes;

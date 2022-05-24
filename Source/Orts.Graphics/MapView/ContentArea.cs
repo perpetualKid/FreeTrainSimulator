@@ -38,8 +38,7 @@ namespace Orts.Graphics.MapView
 
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
-        private readonly SpriteBatch spriteBatch;
-        internal SpriteBatch SpriteBatch => spriteBatch;
+        internal SpriteBatch SpriteBatch { get; }
 
         private readonly FontManagerInstance fontManager;
 
@@ -75,7 +74,7 @@ namespace Orts.Graphics.MapView
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
@@ -99,56 +98,56 @@ namespace Orts.Graphics.MapView
                     insetComponent?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
-                    PointWidget.UpdateColor<TrackSegment>(color);
+                    WidgetColorCache.UpdateColor<TrackSegment>(color);
                     break;
                 case ColorSetting.RailTrackEnd:
-                    PointWidget.UpdateColor<TrackEndSegment>(color);
+                    WidgetColorCache.UpdateColor<EndNode>(color);
                     break;
                 case ColorSetting.RailTrackJunction:
-                    PointWidget.UpdateColor<JunctionSegment>(color);
+                    WidgetColorCache.UpdateColor<JunctionNode>(color);
                     break;
                 case ColorSetting.RailTrackCrossing:
-                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
+                    WidgetColorCache.UpdateColor<CrossOverTrackItem>(color);
                     break;
                 case ColorSetting.RailLevelCrossing:
-                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                    WidgetColorCache.UpdateColor<LevelCrossingTrackItem>(color);
                     break;
                 case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadSegment>(color);
+                    WidgetColorCache.UpdateColor<RoadSegment>(color);
                     break;
                 case ColorSetting.RoadTrackEnd:
-                    PointWidget.UpdateColor<RoadEndSegment>(color);
+                    WidgetColorCache.UpdateColor<RoadEndSegment>(color);
                     break;
                 case ColorSetting.PathTrack:
-                    PointWidget.UpdateColor<PathSegment>(color);
-                    PointWidget.UpdateColor<TrainPathSegment>(color);
+                    WidgetColorCache.UpdateColor<PathSegment>(color);
+                    WidgetColorCache.UpdateColor<TrainPathSegment>(color);
                     break;
                 case ColorSetting.PathTrackEnd:
-                    PointWidget.UpdateColor<PathEndTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathEndTrackItem>(color);
                     break;
                 case ColorSetting.PathTrackIntermediate:
-                    PointWidget.UpdateColor<PathIntermediateTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathIntermediateTrackItem>(color);
                     break;
                 case ColorSetting.PathJunction:
-                    PointWidget.UpdateColor<PathJunctionTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathJunctionTrackItem>(color);
                     break;
                 case ColorSetting.PathReversal:
-                    PointWidget.UpdateColor<PathReversalTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathReversalTrackItem>(color);
                     break;
                 case ColorSetting.PlatformItem:
-                    PointWidget.UpdateColor<PlatformTrackItem>(color);
-                    PointWidget.UpdateColor<PlatformPath>(color);
+                    WidgetColorCache.UpdateColor<PlatformTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PlatformPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<PlatformSegment>(color);
+                    WidgetColorCache.UpdateColor<PlatformSegment>(color);
                     break;
                 case ColorSetting.SidingItem:
-                    PointWidget.UpdateColor<SidingTrackItem>(color);
-                    PointWidget.UpdateColor<SidingPath>(color);
+                    WidgetColorCache.UpdateColor<SidingTrackItem>(color);
+                    WidgetColorCache.UpdateColor<SidingPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<SidingSegment>(color);
+                    WidgetColorCache.UpdateColor<SidingSegment>(color);
                     break;
                 case ColorSetting.SpeedPostItem:
-                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
+                    WidgetColorCache.UpdateColor<SpeedPostTrackItem>(color);
                     break;
             }
         }
@@ -414,9 +413,9 @@ namespace Orts.Graphics.MapView
 
         public override void Draw(GameTime gameTime)
         {
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
             Content.Draw(bottomLeft, topRight);
-            spriteBatch.End();
+            SpriteBatch.End();
             base.Draw(gameTime);
             SuppressDrawing = true;
         }
@@ -450,17 +449,17 @@ namespace Orts.Graphics.MapView
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(PointWidget pointWidget)
+        internal bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
-            ref readonly PointD location = ref pointWidget.Location;
+            ref readonly PointD location = ref pointPrimitive.Location;
             return location.X > TopLeftArea.X && location.X < BottomRightArea.X && location.Y < TopLeftArea.Y && location.Y > BottomRightArea.Y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(VectorWidget vectorWidget)
+        internal bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
-            ref readonly PointD start = ref vectorWidget.Location;
-            ref readonly PointD end = ref vectorWidget.Vector;
+            ref readonly PointD start = ref vectorPrimitive.Location;
+            ref readonly PointD end = ref vectorPrimitive.Vector;
             bool outside = (start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > BottomRightArea.X && end.X > BottomRightArea.X) ||
                 (start.Y > TopLeftArea.Y && end.Y > TopLeftArea.Y) || (start.Y < BottomRightArea.Y && end.Y < BottomRightArea.Y);
             return !outside;
@@ -478,7 +477,7 @@ namespace Orts.Graphics.MapView
         {
             if (disposing)
             {
-                spriteBatch?.Dispose();
+                SpriteBatch?.Dispose();
                 inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
 

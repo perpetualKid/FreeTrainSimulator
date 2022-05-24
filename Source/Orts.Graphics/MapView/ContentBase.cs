@@ -66,7 +66,7 @@ namespace Orts.Graphics.MapView
             // if there is only one tile, limit the dimensions to the extend of the track within that tile
             if (contentItems[MapViewItemSettings.Grid].Count == 1)
             {
-                foreach (TrackEndSegment trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
+                foreach (EndNode trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
                 {
                     minX = Math.Min(minX, trackEndSegment.Location.X);
                     minY = Math.Min(minY, trackEndSegment.Location.Y);

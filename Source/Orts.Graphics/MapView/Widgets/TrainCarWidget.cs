@@ -15,7 +15,7 @@ namespace Orts.Graphics.MapView.Widgets
     /// <summary>
     /// a whole train as composition of multiple <see cref="TrainCarWidget"/> widgets
     /// </summary>
-    public class TrainWidget : VectorWidget
+    public class TrainWidget : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         public Dictionary<int, TrainCarWidget> Cars { get; } = new Dictionary<int, TrainCarWidget>();
 
@@ -29,10 +29,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public void UpdatePosition(in WorldLocation front, in WorldLocation rear)
         {
-            location = PointD.FromWorldLocation(front);
-            tile = new Tile(front.TileX, front.TileZ);
-            vectorEnd = PointD.FromWorldLocation(rear);
-            otherTile = new Tile(rear.TileX, rear.TileZ);
+            SetVector(front, rear);
         }
 
         public override double DistanceSquared(in PointD point)
@@ -43,28 +40,28 @@ namespace Orts.Graphics.MapView.Widgets
                 double current = car.DistanceSquared(point);
                 if (current < distance)
                     distance = current;
-                if (distance < proximityTolerance)
+                if (distance <= ProximityTolerance)
                     break;
             }
             return distance; ;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (TrainCarWidget car in Cars.Values)
             {
-                car.Draw(contentArea, colorVariation, scaleFactor);
+                ((IDrawable<PointPrimitive>)car).Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 
         internal void DrawName(ContentArea contentArea)
         {
             Color fontColor = Color.Red;
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(location), fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
 
-    public class TrainCarWidget : PointWidget
+    public class TrainCarWidget : PointPrimitive, IDrawable<PointPrimitive>
     {
         // maximum width for unrestricted movement in the US, Canada, and Mexico is 10 feet, 6 inches
         // Loads less than 11 feet wide can generally move without restriction as to train handling
@@ -74,14 +71,13 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly float length;
         private Color color;
 
-        public TrainCarWidget(in WorldPosition position, float length, WagonType wagonType)
+        public TrainCarWidget(in WorldPosition position, float length, WagonType wagonType): base()
         {
             this.length = length > 3 ? length - 1f : length - 0.5f; //visually shortening traincar a bit to have a visible space between them
-            tile = new Tile(position.TileX, position.TileZ);
             //using the rotation vector 2D to get the car orientation
             angle = (float)Math.Atan2(position.XNAMatrix.Forward.Z, position.XNAMatrix.Forward.X);
             // offsetting the starting point location half the car length, since position is centre of the car
-            location = PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2);
+            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2));
             color = wagonType switch
             {
                 WagonType.Engine => Color.Red,
@@ -94,14 +90,13 @@ namespace Orts.Graphics.MapView.Widgets
 
         public void UpdatePosition(in WorldPosition position)
         {
-            tile = new Tile(position.TileX, position.TileZ);
             //using the rotation vector 2D to get the car orientation
             angle = (float)Math.Atan2(position.XNAMatrix.Forward.Z, position.XNAMatrix.Forward.X);
             // offsetting the starting point location half the car length, since position is centre of the car
-            location = PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2);
+            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2));
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        void IDrawable<PointPrimitive>.Draw(ContentArea contentArea, ColorVariation colorVariation, double scaleFactor)
         {
             Size = contentArea.Scale switch
             {
@@ -113,26 +108,26 @@ namespace Orts.Graphics.MapView.Widgets
                 double i when i < 8 => carSize * 1.1f,
                 _ => carSize,
             };
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in location),
+            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
                 contentArea.WorldToScreenSize(length), angle, contentArea.SpriteBatch);
         }
 
         #region math
-        public double DistanceSquared(in PointD point)
+        public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;
-            PointD vectorEnd = new PointD(location.X + Math.Cos(angle) * length, location.Y - Math.Sin(angle) * length);
+            PointD vectorEnd = new PointD(Location.X + Math.Cos(angle) * length, Location.Y - Math.Sin(angle) * length);
             distanceSquared = length * length;
             // Calculate the t that minimizes the distance.
-            double t = (point - location).DotProduct(vectorEnd - location) / distanceSquared;
+            double t = (point - Location).DotProduct(vectorEnd - Location) / distanceSquared;
 
             // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
             // (else if needed could return the distance from either start or end point)
             if (t < 0)
-                return (distanceSquared = point.DistanceSquared(location)) > proximityTolerance ? double.NaN : distanceSquared;
+                return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
             else if (t > 1)
-                return (distanceSquared = point.DistanceSquared(vectorEnd)) > proximityTolerance ? double.NaN : distanceSquared;
-            return point.DistanceSquared(location + (vectorEnd - location) * t);
+                return (distanceSquared = point.DistanceSquared(vectorEnd)) > ProximityTolerance ? double.NaN : distanceSquared;
+            return point.DistanceSquared(Location + (vectorEnd - Location) * t);
         }
         #endregion
 

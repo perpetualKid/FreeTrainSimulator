@@ -573,7 +573,7 @@ namespace Orts.Simulation.Timetables
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
             TrackCircuitSection thisSection = thisPath[0].TrackCircuitSection;
-            TrackVectorNode thisTDBsection = RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode thisTDBsection = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex];
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
@@ -628,7 +628,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.AccessPath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[trackNodeIndex].TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -700,7 +700,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.StoragePath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[trackNodeIndex].TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -2345,7 +2345,7 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoute[0][0].TrackCircuitSection;
-            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
+            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex]);
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",

@@ -101,9 +101,9 @@ namespace Orts.Simulation.Track
         {
             get
             {
-                if (CircuitType != TrackCircuitType.Junction)
-                    return SwitchState.Invalid;
-                return (RuntimeData.Instance.TrackDB.TrackNodes[OriginalIndex] as TrackJunctionNode).SelectedRoute == JunctionDefaultRoute ? SwitchState.MainRoute : SwitchState.SideRoute;
+                return CircuitType != TrackCircuitType.Junction
+                    ? SwitchState.Invalid
+                    : (RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[OriginalIndex]).SelectedRoute == JunctionDefaultRoute ? SwitchState.MainRoute : SwitchState.SideRoute;
             }
         }
 

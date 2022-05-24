@@ -127,10 +127,10 @@ namespace Orts.Simulation
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            List<TrackNode> trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
-            for (int j = 1; j < trackNodes.Count; j++)
+            TrackNodes trackNodes = RuntimeData.Instance.TrackDB.TrackNodes;
+            foreach (TrackVectorNode tvn in trackNodes.VectorNodes)
             {
-                if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
+                if (tvn.TrackVectorSections != null)
                 {
                     int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
                         (trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
@@ -139,7 +139,7 @@ namespace Orts.Simulation
                         if (tvn.TrackVectorSections.Length > (int)nSections)
                         {
                             i = tvn.TrackVectorSections[trackVectorSection].Flag1 / 2;
-                            trackNodesIndex[i] = j;
+                            trackNodesIndex[i] = tvn.Index;
                             trackVectorSectionsIndex[i] = trackVectorSection;
                             trackNodesOrientation[i] = tvn.TrackVectorSections[trackVectorSection].Flag1 % 2 == 0;
 

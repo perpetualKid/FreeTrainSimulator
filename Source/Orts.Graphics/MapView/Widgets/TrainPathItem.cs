@@ -7,18 +7,17 @@ using Microsoft.Xna.Framework;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Shapes;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathItem : PointWidget
+    internal class TrainPathItem : PointPrimitive, IDrawable<PointPrimitive>
     {
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
 
-        internal TrainPathItem(in PointD location, SegmentBase trackSegment, PathNodeType nodeType)
+        internal TrainPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType): base(location)
         {
-            base.location = location;
-            tile = PointD.ToTile(location);
             textureType = nodeType switch
             {
                 PathNodeType.Start => BasicTextureType.PathStart,
@@ -35,7 +34,7 @@ namespace Orts.Graphics.MapView.Widgets
             Direction = trackSegment.DirectionAt(Location) + MathHelper.PiOver2;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = contentArea.Scale switch
             {

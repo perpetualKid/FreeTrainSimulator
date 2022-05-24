@@ -45,7 +45,7 @@ namespace Orts.Simulation.World
             hazards = RuntimeData.Instance.TrackDB != null ? GetHazardsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
         }
 
-        private static Dictionary<int, Hazard> GetHazardsFromDB(List<TrackNode> trackNodes, List<TrackItem> trItemTable)
+        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNodes trackNodes, List<TrackItem> trItemTable)
         {
             return (from trackNode in trackNodes
                     where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
