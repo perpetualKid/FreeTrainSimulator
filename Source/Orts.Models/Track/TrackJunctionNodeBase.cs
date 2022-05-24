@@ -85,5 +85,9 @@ namespace Orts.Models.Track
             }
         }
 
+        public bool JunctionNodeAt(in PointD location)
+        {
+            return location.DistanceSquared(Location) <= ProximityTolerance;
+        }
     }
 }

@@ -102,7 +102,7 @@ namespace Orts.Graphics.MapView.Widgets
                 {
                     foreach (TrackSegmentBase trackSegment in trackNodes.SectionSegments)
                     {
-                        if (trackSegment.DistanceSquared(nodeLocation) < ProximityTolerance)
+                        if (trackSegment.DistanceSquared(nodeLocation) <= ProximityTolerance)
                         {
                             return trackSegment;
                         }
@@ -121,7 +121,8 @@ namespace Orts.Graphics.MapView.Widgets
                 if (node.NextMainNode > -1)
                 {
                     if (node.Junction)
-                    { 
+                    {
+                        JunctionNodeBase junctionNode = TrackModel.Instance.JunctionBaseAt(PointD.FromWorldLocation(node.Location));
                         // find the junction node
                         // get all connected track nodes
                     }

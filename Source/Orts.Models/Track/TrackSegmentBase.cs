@@ -277,7 +277,7 @@ namespace Orts.Models.Track
         {
             foreach (TrackSegmentBase segment in segments ?? Enumerable.Empty<TrackSegmentBase>())
             {
-                if (segment.DistanceSquared(location) < ProximityTolerance)
+                if (location.DistanceSquared(segment.Location) <= ProximityTolerance)
                 {
                     return segment;
                 }

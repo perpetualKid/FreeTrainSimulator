@@ -132,14 +132,14 @@ namespace Orts.Models.Track
             foreach (TrackSegmentBase segment in segments)
             {
                 //find the start vector section
-                if (segment.DistanceSquared(startLocation) < ProximityTolerance)
+                if (segment.DistanceSquared(startLocation) <= ProximityTolerance)
                 {
                     startSegment = segment;
                     if (null != endSegment)
                         break;
                 }
                 //find the end vector section
-                if (segment.DistanceSquared(endLocation) < ProximityTolerance)
+                if (segment.DistanceSquared(endLocation) <= ProximityTolerance)
                 {
                     endSegment = segment;
                     if (null != startSegment)

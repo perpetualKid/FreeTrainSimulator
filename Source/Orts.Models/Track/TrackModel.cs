@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Orts.Formats.Msts.Models;
+using Orts.Common.Position;
 
 namespace Orts.Models.Track
 {
@@ -33,7 +33,7 @@ namespace Orts.Models.Track
 
             public void Clear()
             {
-                throw new NotImplementedException();
+                elements.Clear();
             }
 
             public bool Contains(T item)
@@ -144,6 +144,35 @@ namespace Orts.Models.Track
                 Junctions.Add(junctionNode);
             foreach (EndNodeBase endNode in endNodes)
                 EndNodes.Add(endNode);
+        }
+
+        public static void Reset()
+        {
+            Instance.elements.Clear();
+            Instance.Junctions.Clear();
+            Instance.EndNodes.Clear();
+            Instance.SegmentSections.Clear();
+        }
+
+        public TrackSegmentBase SegmentBaseAt(in PointD location)
+        {
+            TrackSegmentBase result;
+            foreach (TrackSegmentSection section in SegmentSections)
+            {
+                if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
+                    return result;
+            }
+            return null;
+        }
+
+        public JunctionNodeBase JunctionBaseAt(in PointD location)
+        {
+            foreach (JunctionNodeBase junctionNode in Junctions)
+            {
+                if (junctionNode.JunctionNodeAt(location))
+                    return junctionNode;
+            }
+            return null;
         }
 
     }

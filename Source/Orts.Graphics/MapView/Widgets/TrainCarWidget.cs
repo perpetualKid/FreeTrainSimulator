@@ -40,7 +40,7 @@ namespace Orts.Graphics.MapView.Widgets
                 double current = car.DistanceSquared(point);
                 if (current < distance)
                     distance = current;
-                if (distance < ProximityTolerance)
+                if (distance <= ProximityTolerance)
                     break;
             }
             return distance; ;
