@@ -65,7 +65,7 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, TrackModel.SegmentSectionList trackNodeSegments)
+        public static List<TrackItemBase> CreateTrackItems(IList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, IList<TrackSegmentSection> trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             if (trackItems == null)

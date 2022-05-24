@@ -12,7 +12,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal string PlatformName { get; }
         internal string StationName { get; }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, TrackModel.SegmentSectionList trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
+        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, IList<TrackSegmentSection> trackNodeSegments) : base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
@@ -21,7 +21,7 @@ namespace Orts.Graphics.MapView.Widgets
                 PlatformName = PlatformName[StationName.Length..];
         }
 
-        public static IEnumerable<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, TrackModel.SegmentSectionList trackNodeSegments)
+        public static IEnumerable<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, IList<TrackSegmentSection> trackNodeSegments)
         {
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.Id);
             while (platformItemMappings.Count > 0)

@@ -48,7 +48,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly List<TrainPathItem> pathPoints = new List<TrainPathItem>();
 
-        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, TrackModel.SegmentSectionList sourceElements) :
+        public TrainPath(PointD start, int startTrackNodeIndex, PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements) :
             base(start, startTrackNodeIndex, end, endTrackNodeIndex, sourceElements)
         {
 
@@ -92,7 +92,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        public static TrainPathPath CreateTrainPath(PathFile pathFile, TrackModel.SegmentSectionList trackNodeSegments)
+        public static TrainPathPath CreateTrainPath(PathFile pathFile, IList<TrackSegmentSection> trackNodeSegments)
         {
             TrainPathPath result = new TrainPathPath(pathFile.PathNodes[0].Location, pathFile.PathNodes[^1].Location);
 

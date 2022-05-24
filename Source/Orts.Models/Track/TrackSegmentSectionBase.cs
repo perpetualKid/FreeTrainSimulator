@@ -29,7 +29,7 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, TrackModel.SegmentSectionList sourceElements):
+        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements):
             base(start, end)
         {
             if (null == sourceElements)
