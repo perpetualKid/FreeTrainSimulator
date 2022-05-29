@@ -234,7 +234,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlHeadlightDecrease] = new UserCommandKeyInput(0x23, KeyModifiers.Shift);
             commands[UserCommand.ControlHeadlightIncrease] = new UserCommandKeyInput(0x23);
             commands[UserCommand.ControlHorn] = new UserCommandKeyInput(0x39);
-            commands[UserCommand.ControlImmediateRefill] = new UserCommandKeyInput(0x14, KeyModifiers.Shift);
+            commands[UserCommand.ControlImmediateRefill] = new UserCommandKeyInput(0x14, KeyModifiers.Control);
             commands[UserCommand.ControlInitializeBrakes] = new UserCommandKeyInput(0x35, KeyModifiers.Shift);
             commands[UserCommand.ControlInjector1] = new UserCommandKeyInput(0x17);
             commands[UserCommand.ControlInjector1Decrease] = new UserCommandKeyInput(0x25, KeyModifiers.Shift);
@@ -254,6 +254,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlOdoMeterReset] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
             commands[UserCommand.ControlOdoMeterDirection] = new UserCommandKeyInput(0x2C, KeyModifiers.Control | KeyModifiers.Shift);
             commands[UserCommand.ControlRefill] = new UserCommandKeyInput(0x14);
+            commands[UserCommand.ControlDiscreteUnload] = new UserCommandKeyInput(0x14, KeyModifiers.Shift);
             commands[UserCommand.ControlRetainersOff] = new UserCommandKeyInput(0x1A, KeyModifiers.Shift);
             commands[UserCommand.ControlRetainersOn] = new UserCommandKeyInput(0x1B, KeyModifiers.Shift);
             commands[UserCommand.ControlReverserBackward] = new UserCommandKeyInput(0x1F);
@@ -339,7 +340,7 @@ namespace Orts.Settings
             commands[UserCommand.GameExternalCabController] = new UserCommandKeyInput(0x29);
             commands[UserCommand.GameFullscreen] = new UserCommandKeyInput(0x1C, KeyModifiers.Alt);
             commands[UserCommand.GameMultiPlayerDispatcher] = new UserCommandKeyInput(0x0A, KeyModifiers.Control);
-            commands[UserCommand.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Control);
+            commands[UserCommand.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Alt);
             commands[UserCommand.GamePause] = new UserCommandKeyInput(Keys.Pause);
             commands[UserCommand.GamePauseMenu] = new UserCommandKeyInput(0x01);
             commands[UserCommand.GameQuit] = new UserCommandKeyInput(0x3E, KeyModifiers.Alt);

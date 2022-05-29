@@ -275,7 +275,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (File.Exists(WFilePath))
             {
                 // We have an OR-specific addition to world file
-                WFile.InsertORSpecificData(WFilePath);
+                WFile.InsertORSpecificData(WFilePath, null);
             }
 
             // to avoid loop checking for every object this pre-check is performed
@@ -465,8 +465,13 @@ namespace Orts.ActivityRunner.Viewer3D
                         else
                             SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
                     }
-                    else if (worldObject.GetType() == typeof(PickupObject))
+                    else if (worldObject is PickupObject pickupObject)
                     {
+                        if (pickupObject.PickupType == PickupType.Container)
+                        {
+                            SceneryObjects.Add(new ContainerHandlingItemShape(shapeFilePath, pickupObject, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, pickupObject));
+                        }
+                        else
                         SceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
                         PickupList.Add((PickupObject)worldObject);
                     }
@@ -475,7 +480,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
                     }
                 }
-                catch (Exception error)
+                catch (Exception error) when (error is Exception)
                 {
                     Trace.WriteLine(new FileLoadException($"{worldMatrix} scenery object {worldObject.UiD} failed to load", error));
                 }

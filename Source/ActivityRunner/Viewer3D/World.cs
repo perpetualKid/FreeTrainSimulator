@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
+using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Simulation;
@@ -40,6 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly SceneryDrawer Scenery;
         public readonly TrainDrawer Trains;
         public readonly RoadCarViewer RoadCars;
+        public readonly ContainersViewer Containers;
         public readonly SoundSource GameSounds;
         public readonly WorldSounds Sounds;
         private readonly int PerformanceInitialViewingDistance;
@@ -75,6 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Scenery = new SceneryDrawer(viewer);
             Trains = new TrainDrawer(viewer);
             RoadCars = new RoadCarViewer(viewer);
+            Containers = new ContainersViewer(viewer);
             // Then sound.
             if (viewer.Settings.SoundDetailLevel > 0)
             {
@@ -93,6 +96,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Scenery.Load();
             Trains.Load();
             RoadCars.Load();
+            Containers.Load();
             if (TileX != VisibleTileX || TileZ != VisibleTileZ)
             {
                 TileX = VisibleTileX;
@@ -110,6 +114,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Scenery.Mark();
                 Trains.Mark();
                 RoadCars.Mark();
+                Containers.Mark();
                 Viewer.ShapeManager.Sweep();
                 Viewer.MaterialManager.Sweep();
                 Viewer.TextureManager.Sweep();
@@ -177,6 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Scenery.LoadPrep();
             Trains.LoadPrep();
             RoadCars.LoadPrep();
+            Containers.LoadPrep();
             VisibleTileX = Viewer.Camera.TileX;
             VisibleTileZ = Viewer.Camera.TileZ;
             PerformanceTune = Viewer.Settings.PerformanceTuner;
@@ -192,6 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Terrain.PrepareFrame(frame, elapsedTime);
             Scenery.PrepareFrame(frame, elapsedTime);
             Trains.PrepareFrame(frame, elapsedTime);
+            Containers.PrepareFrame(frame, elapsedTime);
             RoadCars.PrepareFrame(frame, elapsedTime);
         }
     }

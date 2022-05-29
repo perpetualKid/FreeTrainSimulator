@@ -21,6 +21,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
 
 namespace Orts.Formats.Msts.Parsers
@@ -130,6 +132,11 @@ namespace Orts.Formats.Msts.Parsers
         public abstract float ReadFloat();
         public abstract string ReadString();
         public abstract bool EndOfBlock();
+
+        public Vector3 ReadVector3()
+        {
+            return new Vector3(ReadFloat(), ReadFloat(), ReadFloat());
+        }
 
         public void VerifyID(TokenID desiredID)
         {

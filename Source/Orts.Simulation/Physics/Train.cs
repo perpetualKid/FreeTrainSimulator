@@ -3643,6 +3643,8 @@ namespace Orts.Simulation.Physics
                     car.UpdatedTraveller(traveller, elapsedTime, distance, SpeedMpS);
                 }
                 length += car.CarLengthM;
+                // update position of container in discrete freight animations
+                car.UpdateFreightAnimationDiscretePositions();
             }
 
             FrontTDBTraveller = traveller;

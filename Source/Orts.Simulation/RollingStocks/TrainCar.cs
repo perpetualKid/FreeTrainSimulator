@@ -596,6 +596,26 @@ namespace Orts.Simulation.RollingStocks
             powerInfo.Update(null);
         }
 
+        /// <summary>
+        /// update position of discrete freight animations (e.g. containers)
+        /// </summary>  
+        public void UpdateFreightAnimationDiscretePositions()
+        {
+            if (FreightAnimations?.Animations != null)
+            {
+                foreach (FreightAnimation freightAnim in FreightAnimations.Animations)
+                {
+                    if (freightAnim is FreightAnimationDiscrete freightAnimationDiscrete)
+                    {
+                        if (freightAnimationDiscrete.Loaded && freightAnimationDiscrete.Container != null)
+                        {
+                            World.Container container = freightAnimationDiscrete.Container;
+                            container.SetWorldPosition(new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(container.RelativeContainerMatrix, freightAnimationDiscrete.Wagon.WorldPosition.XNAMatrix)));
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Initialise Train Temperatures
@@ -1798,6 +1818,7 @@ namespace Orts.Simulation.RollingStocks
             carHeatCurrentCompartmentHeatJ = inf.ReadDouble();
             carSteamHeatMainPipeSteamPressurePSI = inf.ReadDouble();
             carHeatCompartmentHeaterOn = inf.ReadBoolean();
+            FreightAnimations?.LoadDataList?.Clear();
         }
 
         //================================================================================================//
@@ -1866,6 +1887,22 @@ namespace Orts.Simulation.RollingStocks
         public virtual bool GetCabFlipped()
         {
             return false;
+        }
+
+        //<comment>
+        //Initializes the physics of the car taking into account its variable discrete loads
+        //</comment>
+        public void InitializeLoadPhysics()
+        {
+            // TODO
+        }
+
+        //<comment>
+        //Updates the physics of the car taking into account its variable discrete loads
+        //</comment>
+        public void UpdateLoadPhysics()
+        {
+            // TODO
         }
 
         public virtual float GetCouplerZeroLengthM()

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+
+using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
-    public class WorkOrderWagons: List<WorkOrderWagon>
+    public class WorkOrderWagons : List<WorkOrderWagon>
     {
         public uint UiD { get; private set; }
 
@@ -85,6 +89,7 @@ namespace Orts.Formats.Msts.Models
         public bool IsEngine { get; private set; }
         public bool IsEOT { get; private set; }
         public bool Flip { get; private set; }
+        public IList<LoadData> LoadDataList { get; private set; }
 
         internal Wagon(STFReader stf)
         {
@@ -95,13 +100,15 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("enginedata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatchBlockEnd(); IsEngine = true; }),
                 new STFReader.TokenProcessor("wagondata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatchBlockEnd(); }),
                 new STFReader.TokenProcessor("eotdata", ()=>{ stf.MustMatch("("); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); IsEOT = true;  }),
+                new STFReader.TokenProcessor("loaddata", ()=>
+                {
+                    stf.MustMatch("(");
+                    LoadDataList ??= new List<LoadData>();
+                    LoadDataList.Add(new LoadData(stf));
+                    stf.MustMatch(")");
+                }),
             });
         }
-
-        //public string GetName(uint uId, List<Wagon> wagonList)
-        //{
-        //    return wagonList.Find((w) => w.UiD == uId)?.Name ?? "<unknown name>";
-        //}
     }
 
 }

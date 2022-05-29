@@ -167,7 +167,10 @@ namespace Orts.Simulation
         public string PathName { get; set; } = "<unknown>";
         public float InitialTileX { get; private set; }
         public float InitialTileZ { get; private set; }
-        public HazardManager HazardManager { get; private set; }
+        public HazardManager HazardManager { get; }
+        public FuelManager FuelManager { get; }
+
+        public ContainerManager ContainerManager { get; }
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
@@ -292,7 +295,9 @@ namespace Orts.Simulation
 
             Confirmer = new Confirmer(this);
             HazardManager = new HazardManager();
+            FuelManager = new FuelManager(this);
             ScriptManager = new ScriptManager();
+            ContainerManager = new ContainerManager(this);
             Log = new CommandLog(this);
         }
 
@@ -358,7 +363,7 @@ namespace Orts.Simulation
         public void Start(CancellationToken cancellationToken)
         {
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
-            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
@@ -367,6 +372,10 @@ namespace Orts.Simulation
 
             MultiPlayerManager.Instance().RememberOriginalSwitchState();
 
+            if (ActivityFile?.Activity?.Header?.LoadStationsOccupancyFile != null)
+            {
+                ContainerManager.LoadOccupancyFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsOccupancyFile, ".lso")));
+            }
             // start activity logging if required
             if (Settings.EvaluationStationStops && ActivityRun != null)
             {
@@ -416,6 +425,7 @@ namespace Orts.Simulation
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
+            ContainerManager.FreightAnimNeedsInitialization = false;
             ClockTime = inf.ReadDouble();
             Season = (SeasonType)inf.ReadInt32();
             WeatherType = (WeatherType)inf.ReadInt32();
@@ -439,7 +449,7 @@ namespace Orts.Simulation
 
             // initialization of turntables
             int movingTableIndex = inf.ReadInt32();
-            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             if (MovingTables.Count >= 0)
             {
                 foreach (MovingTable movingTable in MovingTables)
@@ -450,6 +460,7 @@ namespace Orts.Simulation
             ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
+            ContainerManager.Restore(inf);
             MultiPlayerManager.Instance().RememberOriginalSwitchState(); // this prepares a string that must then be passed to clients
         }
 
@@ -476,7 +487,8 @@ namespace Orts.Simulation
                 foreach (MovingTable movingtable in MovingTables)
                     movingtable.Save(outf);
             }
-            Activities.Activity.Save(outf, ActivityRun);
+            Activity.Save(outf, ActivityRun);
+            ContainerManager.Save(outf);
         }
 
         private Train InitializeTrains(CancellationToken cancellationToken)
@@ -585,8 +597,7 @@ namespace Orts.Simulation
             }
 
             // Must be done before trains so that during turntable rotation train follows it
-            if (ActiveMovingTable != null)
-                ActiveMovingTable.Update();
+            ActiveMovingTable?.Update();
 
             // Represent conditions at the specified clock time.
             List<Train> movingTrains = new List<Train>();
@@ -669,6 +680,8 @@ namespace Orts.Simulation
             LevelCrossings?.Update(elapsedClockSeconds);
             ActivityRun?.Update();
             HazardManager?.Update(elapsedClockSeconds);
+            FuelManager.Update();
+            ContainerManager.Update();
             if (Settings.ActivityEvalulation)
                 ActivityEvaluation.Instance.Update();
         }
@@ -1074,6 +1087,7 @@ namespace Orts.Simulation
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                     if (car is EndOfTrainDevice endOfTrain)
                         train.EndOfTrainDevice = endOfTrain;
+                    car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
 
                     train.Length += car.CarLengthM;
 
@@ -1273,6 +1287,7 @@ namespace Orts.Simulation
                             car.CarID = activityObject.ID + " - " + car.UiD;
                             if (car is EndOfTrainDevice endOfTrain)
                                 train.EndOfTrainDevice = endOfTrain;
+                            car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
                         }
                         catch (Exception error)
                         {

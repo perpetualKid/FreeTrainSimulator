@@ -322,6 +322,7 @@ namespace Orts.Simulation.World
                 {
                     traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
                         Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
+                    traincar.UpdateFreightAnimationDiscretePositions();
                     relativeCarPositions++;
                 }
             }

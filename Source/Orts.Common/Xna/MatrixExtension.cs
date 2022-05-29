@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
+
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Xna
@@ -97,10 +99,7 @@ namespace Orts.Common.Xna
         public static float MatrixToYAngle(this in Matrix m)
         {    // Assuming the angles are in radians.
 
-            if (m.M21 == 0.998)
-                return (float)Math.Atan2(-m.M31, m.M11);
-            else            // singularity at poles
-                return (float)Math.Atan2(m.M13, m.M33);
+            return m.M21 == 0.998 ? (float)Math.Atan2(-m.M31, m.M11) : (float)Math.Atan2(m.M13, m.M33);
         }
 
         public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
@@ -110,6 +109,35 @@ namespace Orts.Common.Xna
             return matrix;
         }
 
+        public static void SaveMatrix(BinaryWriter outf, Matrix matrix)
+        {
+            ArgumentNullException.ThrowIfNull(outf);
+            outf.Write(matrix.M11);
+            outf.Write(matrix.M12);
+            outf.Write(matrix.M13);
+            outf.Write(matrix.M14);
+            outf.Write(matrix.M21);
+            outf.Write(matrix.M22);
+            outf.Write(matrix.M23);
+            outf.Write(matrix.M24);
+            outf.Write(matrix.M31);
+            outf.Write(matrix.M32);
+            outf.Write(matrix.M33);
+            outf.Write(matrix.M34);
+            outf.Write(matrix.M41);
+            outf.Write(matrix.M42);
+            outf.Write(matrix.M43);
+            outf.Write(matrix.M44);
+        }
 
+        public static Matrix RestoreMatrix(BinaryReader inf)
+        {
+            ArgumentNullException.ThrowIfNull(inf);
+            return new Matrix(
+                inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(),
+                inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(),
+                inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(),
+                inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle());
+        }
     }
 }

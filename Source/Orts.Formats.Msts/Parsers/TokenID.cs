@@ -1706,7 +1706,19 @@ namespace Orts.Formats.Msts.Parsers
         OrtsListName, // ORTS specific for multi-carspawnerlists
         OrtsSoundFileName, // ORTS specific for individual level crossing sounds
         OrtsPantographToggle3,
-        OrtsPantographToggle4
+        OrtsPantographToggle4,
+        // ORTS Specific for container stations
+        OrtsCraneSound,
+        OrtsMaxStackedContainers,
+        OrtsStackLocations,
+        OrtsStackLocationsLength,
+        OrtsPickingSurfaceYOffset,
+        OrtsPickingSurfaceRelativeTopStartPosition,
+        OrtsMaxGrabberSpan,
+        StackLocation,
+        MaxStackedContainers,
+        Length,
+        Flipped,
     }
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

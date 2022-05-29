@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D
             visibleCars.Add(Viewer.PlayerLocomotive);
             foreach (var train in Viewer.Simulator.Trains)
                 foreach (var car in train.Cars)
-                    if (ApproximateDistance(Viewer.Camera.CameraWorldLocation, car.WorldPosition.WorldLocation) < removeDistance && car != Viewer.PlayerLocomotive)
+                    if (WorldLocation.ApproximateDistance(Viewer.Camera.CameraWorldLocation, car.WorldPosition.WorldLocation) < removeDistance && car != Viewer.PlayerLocomotive)
                         visibleCars.Add(car);
             VisibleCars = visibleCars;
             PlayerCar = Viewer.Simulator.PlayerLocomotive;
@@ -154,15 +154,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 car is MSTSWagon ? new MSTSWagonViewer(Viewer, car as MSTSWagon) :
                 null;
             return carViewer;
-        }
-
-        private static float ApproximateDistance(in WorldLocation a, in WorldLocation b)
-        {
-            var dx = a.Location.X - b.Location.X;
-            var dz = a.Location.Z - b.Location.Z;
-            dx += (a.TileX - b.TileX) * 2048;
-            dz += (a.TileZ - b.TileZ) * 2048;
-            return Math.Abs(dx) + Math.Abs(dz);
         }
     }
 }

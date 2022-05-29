@@ -13,7 +13,7 @@ namespace Orts.Formats.Msts
 {
     public static class FolderStructure
     {
-        private const string OR = "OpenRails";
+        public const string OpenRailsSpecificFolder = "OpenRails";
         private const string Global = "Global";
 
 #pragma warning disable CA1034 // Nested types should not be visible
@@ -50,9 +50,9 @@ namespace Orts.Formats.Msts
 
                 public string ActivitiesFolder => Path.Combine(routeFolder, "Activities");
 
-                public string OpenRailsActivitiesFolder => Path.Combine(ActivitiesFolder, OR);
+                public string OpenRailsActivitiesFolder => Path.Combine(ActivitiesFolder, OpenRailsSpecificFolder);
 
-                public string OpenRailsRouteFolder => Path.Combine(routeFolder, OR);
+                public string OpenRailsRouteFolder => Path.Combine(routeFolder, OpenRailsSpecificFolder);
 
                 public string EnvironmentTexturesFolder => Path.Combine(routeFolder, "EnvFiles", "Textures");
 
@@ -138,7 +138,7 @@ namespace Orts.Formats.Msts
                     get 
                     {
                         string tsectionFile;
-                        if (File.Exists(tsectionFile = Path.Combine(routeFolder, OR, tsection)))
+                        if (File.Exists(tsectionFile = Path.Combine(routeFolder, OpenRailsSpecificFolder, tsection)))
                             return tsectionFile;
                         else if (File.Exists(tsectionFile = Path.Combine(routeFolder, Global, tsection)))   // doesn't seem to be a valid option, but might have been used so keep for now
                             return tsectionFile;
@@ -154,7 +154,7 @@ namespace Orts.Formats.Msts
                     get
                     {
                         string signalConfig;
-                        if (File.Exists(signalConfig = Path.Combine(routeFolder, OR, "sigcfg.dat")))
+                        if (File.Exists(signalConfig = Path.Combine(routeFolder, OpenRailsSpecificFolder, "sigcfg.dat")))
                         {
                             ORSignalConfigFile = true;
                             return signalConfig;
@@ -166,7 +166,7 @@ namespace Orts.Formats.Msts
                 public bool ORSignalConfigFile { get; private set; }
 
                 public string CarSpawnerFile => Path.Combine(routeFolder, "carspawn.dat");
-                public string OpenRailsCarSpawnerFile => Path.Combine(routeFolder, OR, "carspawn.dat");
+                public string OpenRailsCarSpawnerFile => Path.Combine(routeFolder, OpenRailsSpecificFolder, "carspawn.dat");
 
                 #endregion
             }
@@ -290,7 +290,7 @@ namespace Orts.Formats.Msts
         public static ContentFolder.RouteFolder RouteFromActivity(string activityPath)
         {
             string traversal = "..\\..";
-            if (Path.GetFileName(Path.GetDirectoryName(activityPath)).Equals(OR, StringComparison.OrdinalIgnoreCase))
+            if (Path.GetFileName(Path.GetDirectoryName(activityPath)).Equals(OpenRailsSpecificFolder, StringComparison.OrdinalIgnoreCase))
                 traversal = "..\\..\\..";
             string routePath = Path.GetFullPath(Path.Combine(activityPath, traversal));
             string routeName = Path.GetFileName(routePath);
