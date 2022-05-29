@@ -35,6 +35,8 @@ namespace Orts.Formats.OR.Files
             {
                 case "":
                 case "Container":
+                    // Ignore these items.
+                    break;
                 case "Container.":
                     ContainerParameters = new ContainerParameters(item);
                     break;

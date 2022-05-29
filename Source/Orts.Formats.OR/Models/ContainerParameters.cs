@@ -26,8 +26,6 @@ namespace Orts.Formats.OR.Models
 {
     public class ContainerParameters
     {
-        private int index;
-
         public string Name { get; private set; }
         public string ShapeFileName { get; private set; }
         public string ContainerType { get; private set; }
@@ -45,33 +43,17 @@ namespace Orts.Formats.OR.Models
             // get values
             switch (item.Path)
             {
-                case "Container.":
-                    break;
-                case "Container.Name":
+                case "Name":
                     Name = item.AsString("");
                     break;
-                case "Container.Shape":
+                case "Shape":
                     ShapeFileName = item.AsString(ShapeFileName);
                     break;
-                case "Container.ContainerType":
+                case "ContainerType":
                     ContainerType = item.AsString("40ftHC");
                     break;
-                case "Container.IntrinsicShapeOffset[]":
-                    switch (index)
-                    {
-                        case 0:
-                            IntrinsicShapeOffset = new Vector3(item.AsFloat(0.0f), IntrinsicShapeOffset.Y, IntrinsicShapeOffset.Z);
-                            break;
-                        case 1:
-                            IntrinsicShapeOffset = new Vector3(IntrinsicShapeOffset.X, item.AsFloat(0.0f), IntrinsicShapeOffset.Z);
-                            break;
-                        case 2:
-                            IntrinsicShapeOffset = new Vector3(IntrinsicShapeOffset.X, IntrinsicShapeOffset.Y, item.AsFloat(0.0f));
-                            break;
-                        default:
-                            return false;
-                    }
-                    index++;
+                case "IntrinsicShapeOffset[]":
+                    IntrinsicShapeOffset = item.AsVector3(Vector3.Zero);
                     break;
                 default:
                     return false;

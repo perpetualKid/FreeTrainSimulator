@@ -30,7 +30,7 @@ namespace Orts.Formats.OR.Files
 
     public class LoadStationsOccupancyFile
     {
-        public List<LoadStationOccupancy> LoadStationsOccupancy { get; } = new List<LoadStationOccupancy>();
+        public List<ContainerStationOccupancy> LoadStationsOccupancy { get; } = new List<ContainerStationOccupancy>();
 
         public LoadStationsOccupancyFile(string fileName)
         {
@@ -43,16 +43,11 @@ namespace Orts.Formats.OR.Files
             {
                 case "":
                     break;
+                case "ContainerStationsOccupancy[]":
+                    // Ignore these items.
+                    break;
                 case "ContainerStationsOccupancy[].":
-                    break;
-                case "ContainerStationsOccupancy[].LoadStationID.":
                     LoadStationsOccupancy.Add(new ContainerStationOccupancy(item));
-                    break;
-                case "ContainerStationsOccupancy[].LoadData[].":
-                    break;
-                case "ContainerStationsOccupancy[].LoadData[].File":
-                    ContainerStationOccupancy contStationOccupancy = LoadStationsOccupancy[^1] as ContainerStationOccupancy;
-                    contStationOccupancy.LoadData.Add(new LoadDataEntry(item));
                     break;
                 default:
                     return false;

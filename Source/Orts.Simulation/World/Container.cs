@@ -580,15 +580,15 @@ namespace Orts.Simulation.World
         public void PreloadContainerStation(PickupObject pickupObject)
         {
             // Search if ContainerStation present in file
-            foreach (LoadStationOccupancy loadStationOccupancy in containerManager.LoadStationsOccupancyFile.LoadStationsOccupancy)
+            foreach (ContainerStationOccupancy loadStationOccupancy in containerManager.LoadStationsOccupancyFile.LoadStationsOccupancy)
             {
-                var tileX = int.Parse(loadStationOccupancy.WorldFile.Substring(1, 7));
-                var tileZ = int.Parse(loadStationOccupancy.WorldFile.Substring(8, 7));
-                if (tileX == Location.TileX && tileZ == Location.TileZ && loadStationOccupancy.UiD == pickupObject.UiD)
+                var tileX = int.Parse(loadStationOccupancy.LoadStationId.WorldFile.Substring(1, 7));
+                var tileZ = int.Parse(loadStationOccupancy.LoadStationId.WorldFile.Substring(8, 7));
+                if (tileX == Location.TileX && tileZ == Location.TileZ && loadStationOccupancy.LoadStationId.UiD == pickupObject.UiD)
                 {
                     string trainSetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
 
-                    foreach (LoadDataEntry loadDataEntry in (loadStationOccupancy as ContainerStationOccupancy).LoadData)
+                    foreach (LoadDataEntry loadDataEntry in loadStationOccupancy.LoadData)
                     {
                         string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName,".loa"));
                         if (!File.Exists(loadFilePath))
