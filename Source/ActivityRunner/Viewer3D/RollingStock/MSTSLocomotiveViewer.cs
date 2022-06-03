@@ -713,14 +713,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                                     VectorExtension.Transform(new Vector3(0, 0, -intake.OffsetM), car.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
-                                    var intakeLocation = new WorldLocation(
+                                    WorldLocation intakeLocation = new WorldLocation(
                                         car.WorldPosition.TileX, car.WorldPosition.TileZ,
                                         intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-                                    var d2 = (float)WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
+                                    float d2 = (float)WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (intake.Type == PickupType.Container && containerStation != null &&
                                         (wagon.Train.FrontTDBTraveller.TrackNode.Index == containerStation.TrackNode.Index ||
-                                        wagon.Train.FrontTDBTraveller.TrackNode.Index == containerStation.TrackNode.Index) &&
+                                        wagon.Train.RearTDBTraveller.TrackNode.Index == containerStation.TrackNode.Index) &&
                                         d2 < containerStation.MinZSpan * containerStation.MinZSpan)
                                     // for container it's enough if the intake is within the reachable range of the container crane
                                     {

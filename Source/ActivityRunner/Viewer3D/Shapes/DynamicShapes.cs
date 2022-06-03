@@ -1018,7 +1018,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private Controller controllerZ;
         private Controller controllerGrabber01;
         private Controller controllerGrabber02;
-        private SoundSource soundSource;
         // To detect transitions that trigger sounds
         protected bool OldMoveX;
         protected bool OldMoveY;
@@ -1099,7 +1098,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixZIndex], out absAnimationMatrix);
             MatrixExtension.Multiply(absAnimationMatrix, WorldPosition.XNAMatrix, out absAnimationMatrix);
             containerHandlingItem.PassSpanParameters(((LinearKey)controllerZ[0]).Position.Z, ((LinearKey)controllerZ[1]).Position.Z,
-                ((LinearKey)controllerGrabber01[0]).Position.Z, ((LinearKey)controllerGrabber02[0]).Position.Z);
+                ((LinearKey)controllerGrabber01[0]).Position.Z - ((LinearKey)controllerGrabber01[1]).Position.Z, ((LinearKey)controllerGrabber02[0]).Position.Z - ((LinearKey)controllerGrabber02[1]).Position.Z);
             containerHandlingItem.ReInitPositionOffset(absAnimationMatrix);
 
             linearkeyPosition0 = ref ((LinearKey)controllerX[0]).Position;
@@ -1255,7 +1254,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 {
                     ref readonly Vector3 grabber01Position0 = ref ((LinearKey)controllerGrabber01[0]).Position;
                     ref readonly Vector3 grabber01Position1 = ref ((LinearKey)controllerGrabber01[1]).Position;
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetGrabber01 - grabber01Position0.Z) / (grabber01Position1.Z - grabber01Position0.Z)) * controllerGrabber01[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.TargetGrabber01 - grabber01Position0.Z + grabber01Position1.Z) / (grabber01Position1.Z - grabber01Position0.Z)) * controllerGrabber01[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyGrabber01 - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyGrabber01 < animationTarget)
                     {
@@ -1277,7 +1276,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         animationKeyGrabber01 = 0;
                     ref readonly Vector3 grabber02Position0 = ref ((LinearKey)controllerGrabber02[0]).Position;
                     ref readonly Vector3 grabber02Position1 = ref ((LinearKey)controllerGrabber02[1]).Position;
-                    float animationTarget2 = Math.Abs((containerHandlingItem.TargetGrabber02 - grabber02Position0.Z) / (grabber02Position1.Z - grabber02Position0.Z)) * controllerGrabber02[1].Frame;
+                    float animationTarget2 = Math.Abs((containerHandlingItem.TargetGrabber02 - grabber02Position0.Z + grabber02Position1.Z) / (grabber02Position1.Z - grabber02Position0.Z)) * controllerGrabber02[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyGrabber01 - animationTarget2) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyGrabber02 < animationTarget2)
                     {

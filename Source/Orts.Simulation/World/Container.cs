@@ -66,8 +66,9 @@ namespace Orts.Simulation.World
 #pragma warning restore CA1002 // Do not expose generic lists
     }
 
-    public class Container: IWorldPosition
+    public class Container : IWorldPosition
     {
+        private static readonly char[] directorySeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         private WorldPosition worldPosition;
         public string Name;
         public string ShapeFileName;
@@ -133,33 +134,6 @@ namespace Orts.Simulation.World
                    ContainerStation = containerStation;
                }*/
 
-        public Container(STFReader stf, FreightAnimationDiscrete freightAnimDiscrete)
-        {
-            Wagon = freightAnimDiscrete.Wagon;
-            BaseShapeFileFolderSlash = Path.GetDirectoryName(freightAnimDiscrete.Wagon.WagFilePath) + @"\";
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[]
-            {
-                new STFReader.TokenProcessor("shape", ()=>{ ShapeFileName = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("intrinsicshapeoffset", ()=>
-                {
-                    IntrinsicShapeOffset = stf.ReadVector3Block(STFReader.Units.Distance,  new Vector3(0, 0, 0));
-                    IntrinsicShapeOffset.Z *= -1;
-                }),
-                new STFReader.TokenProcessor("containertype", ()=>
-                {
-                    var containerTypeString = stf.ReadStringBlock(null);
-                    Enum.TryParse<ContainerType>(containerTypeString, out var containerType);
-                    ContainerType = containerType;
-                    ComputeDimensions();
-                 }),
-                new STFReader.TokenProcessor("flip", ()=>{ Flipped = stf.ReadBoolBlock(true);}),
-                new STFReader.TokenProcessor("loadweight", ()=>{ MassKG = stf.ReadFloatBlock(STFReader.Units.Mass, 0);
-                }),
-            });
-            ComputeWorldPosition(freightAnimDiscrete);
-        }
-
         public Container(FreightAnimationDiscrete freightAnimDiscreteSource, FreightAnimationDiscrete freightAnimDiscrete, bool stacked = false)
         {
             ArgumentNullException.ThrowIfNull(freightAnimDiscreteSource);
@@ -183,8 +157,6 @@ namespace Orts.Simulation.World
             Wagon = wagon;
             ContainerStation = containerStation;
             LoadFilePath = loadFilePath;
-            BaseShapeFileFolderSlash = wagon != null ? Path.GetDirectoryName(wagon.WagFilePath) + @"\" : Path.GetDirectoryName(LoadFilePath) + @"\";
-
         }
 
         public void Copy(Container source)
@@ -203,6 +175,9 @@ namespace Orts.Simulation.World
 
         public Container(BinaryReader inf, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingItem containerStation, bool fromContainerStation, int stackLocationIndex = 0)
         {
+            ArgumentNullException.ThrowIfNull(containerStation);
+            ArgumentNullException.ThrowIfNull(freightAnimDiscrete);
+
             if (fromContainerStation)
                 ContainerStation = containerStation;
             else
@@ -258,12 +233,15 @@ namespace Orts.Simulation.World
                     break;
                 case ContainerType.C45ft:
                     LengthM = 13.7f;
+                    HeightM = 2.9f;
                     break;
                 case ContainerType.C48ft:
                     LengthM = 14.6f;
+                    HeightM = 2.9f;
                     break;
                 case ContainerType.C53ft:
                     LengthM = 16.15f;
+                    HeightM = 2.9f;
                     break;
                 default:
                     break;
@@ -313,20 +291,23 @@ namespace Orts.Simulation.World
                 MatrixExtension.SaveMatrix(outf, RelativeContainerMatrix);
         }
 
-        public void LoadFromContainerFile(string loadFilePath)
+        public void LoadFromContainerFile(string loadFilePath, string baseFolder)
         {
             ContainerFile containerFile = new ContainerFile(loadFilePath);
             ContainerParameters containerParameters = containerFile.ContainerParameters;
             Name = containerParameters.Name;
-            ShapeFileName = containerParameters.ShapeFileName;
+
+            ShapeFileName = @"..\" + containerParameters.ShapeFileName;
             _ = Enum.TryParse(containerParameters.ContainerType, out ContainerType);
+            string root = containerParameters.ShapeFileName[..containerParameters.ShapeFileName.IndexOfAny(directorySeparators)];
+            BaseShapeFileFolderSlash = Path.Combine(baseFolder, root) + Path.DirectorySeparatorChar;
             ComputeDimensions();
             IntrinsicShapeOffset = containerParameters.IntrinsicShapeOffset;
             IntrinsicShapeOffset.Z *= -1;
         }
 
         public void SetWorldPosition(in WorldPosition position)
-        { 
+        {
             worldPosition = position;
         }
 
@@ -439,7 +420,7 @@ namespace Orts.Simulation.World
         public float MinZSpan;
         public float Grabber01Max;
         public float Grabber02Max;
-        public float MaxGrabberSpan;
+        public int GrabberArmsParts;
         private FreightAnimationDiscrete LinkedFreightAnimation;
         public float LoadingEndDelayS { get; protected set; } = 3f;
         public float UnloadingStartDelayS { get; protected set; } = 2f;
@@ -483,7 +464,7 @@ namespace Orts.Simulation.World
 
         }
 
-        public ContainerHandlingItem(WorldPosition shapePosition, FuelPickupItem item, PickupObject pickupObject):
+        public ContainerHandlingItem(WorldPosition shapePosition, FuelPickupItem item, PickupObject pickupObject) :
             base(item.TrackNode, item.Location)
         {
             worldPosition = shapePosition;
@@ -508,7 +489,7 @@ namespace Orts.Simulation.World
             }
             PickingSurfaceYOffset = pickupObject.PickingSurfaceYOffset;
             PickingSurfaceRelativeTopStartPosition = pickupObject.PickingSurfaceRelativeTopStartPosition;
-            MaxGrabberSpan = pickupObject.MaxGrabberSpan;
+            GrabberArmsParts = pickupObject.GrabberArmsParts;
             DelayTimer = new Timer(this);
             // preload containers if not at restore time
             if (containerManager.LoadStationsOccupancyFile != null)
@@ -590,7 +571,7 @@ namespace Orts.Simulation.World
 
                     foreach (LoadDataEntry loadDataEntry in loadStationOccupancy.LoadData)
                     {
-                        string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName,".loa"));
+                        string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName, ".loa"));
                         if (!File.Exists(loadFilePath))
                         {
                             Trace.TraceWarning($"Ignored missing load {loadFilePath}");
@@ -611,7 +592,7 @@ namespace Orts.Simulation.World
                 container.Copy(containerManager.LoadedContainers[loadFilePath]);
             else
             {
-                container.LoadFromContainerFile(loadFilePath);
+                container.LoadFromContainerFile(loadFilePath, Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder);
                 containerManager.LoadedContainers.Add(loadFilePath, container);
             }
             ContainerStackLocation stackLocation = StackLocations[stackLocationIndex];
@@ -691,101 +672,111 @@ namespace Orts.Simulation.World
                     break;
                 case ContainerStationStatus.LoadRaiseToLayOnWagon:
                     if (subMissionTerminated || messageWritten)
+                    {
                         if (Math.Abs(LinkedFreightAnimation.Wagon.SpeedMpS) < 0.01f)
                         {
-                            MoveY = false;
-                            TargetX = PickingSurfaceRelativeTopStartPosition.X;
                             WorldPosition animWorldPosition = LinkedFreightAnimation.Wagon.WorldPosition;
-                            //                var translation = Matrix.CreateTranslation(LinkedFreightAnimation.Offset);
-                            //                animWorldPosition.XNAMatrix = translation * animWorldPosition.XNAMatrix;
                             Matrix relativeAnimationPosition = Matrix.Multiply(animWorldPosition.XNAMatrix, InitialInvAnimationXNAMatrix);
-                            // compute where within the free space to lay down the container
-                            FreightAnimations freightAnims = LinkedFreightAnimation.FreightAnimations;
-                            float offsetZ = LinkedFreightAnimation.Offset.Z;
-                            if (Math.Abs(LinkedFreightAnimation.LoadingAreaLength - HandledContainer.LengthM) > 0.01)
+                            if (!messageWritten)
                             {
-                                FreightAnimationDiscrete loadedFreightAnim = new FreightAnimationDiscrete(LinkedFreightAnimation, LinkedFreightAnimation.FreightAnimations);
-                                Vector3 offset = loadedFreightAnim.Offset;
-                                IntakePoint loadedIntakePoint = loadedFreightAnim.LinkedIntakePoint;
-                                if (!(HandledContainer.ContainerType == ContainerType.C20ft && LinkedFreightAnimation.LoadPosition == LoadPosition.Center &&
-                                    LinkedFreightAnimation.LoadingAreaLength + 0.01f >= 12.19))
-                                    if (LinkedFreightAnimation.LoadingAreaLength == freightAnims.LoadingAreaLength && !freightAnims.DoubleStacker)
+                                MoveY = false;
+                                TargetX = PickingSurfaceRelativeTopStartPosition.X;
+                                // compute where within the free space to lay down the container
+                                FreightAnimations freightAnims = LinkedFreightAnimation.FreightAnimations;
+                                float offsetZ = LinkedFreightAnimation.Offset.Z;
+                                if (Math.Abs(LinkedFreightAnimation.LoadingAreaLength - HandledContainer.LengthM) > 0.01)
+                                {
+                                    FreightAnimationDiscrete loadedFreightAnim = new FreightAnimationDiscrete(LinkedFreightAnimation, LinkedFreightAnimation.FreightAnimations);
+                                    Vector3 offset = loadedFreightAnim.Offset;
+                                    IntakePoint loadedIntakePoint = loadedFreightAnim.LinkedIntakePoint;
+                                    if (!(HandledContainer.ContainerType == ContainerType.C20ft && LinkedFreightAnimation.LoadPosition == LoadPosition.Center &&
+                                        LinkedFreightAnimation.LoadingAreaLength + 0.01f >= 12.19))
                                     {
-                                        loadedFreightAnim.LoadPosition = LoadPosition.Rear;
-                                        offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
-                                        loadedFreightAnim.Offset = offset;
-                                    }
-                                    else if (loadedFreightAnim.LoadPosition != LoadPosition.Center && loadedFreightAnim.LoadPosition != LoadPosition.Above)
-                                        switch (loadedFreightAnim.LoadPosition)
+                                        if (LinkedFreightAnimation.LoadingAreaLength == freightAnims.LoadingAreaLength && !freightAnims.DoubleStacker)
                                         {
-                                            case LoadPosition.Front:
-                                                offset.Z = freightAnims.Offset.Z - (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
-                                                loadedFreightAnim.Offset = offset;
-                                                break;
-                                            case LoadPosition.Rear:
-                                                offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
-                                                loadedFreightAnim.Offset = offset;
-                                                break;
-                                            case LoadPosition.CenterFront:
-                                                offset.Z = freightAnims.Offset.Z - HandledContainer.LengthM / 2;
-                                                loadedFreightAnim.Offset = offset;
-                                                break;
-                                            case LoadPosition.CenterRear:
-                                                offset.Z = freightAnims.Offset.Z + HandledContainer.LengthM / 2;
-                                                loadedFreightAnim.Offset = offset;
-                                                break;
-                                            default:
-                                                break;
+                                            loadedFreightAnim.LoadPosition = LoadPosition.Rear;
+                                            offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
+                                            loadedFreightAnim.Offset = offset;
                                         }
-                                    else
-                                    if (LinkedFreightAnimation.LoadingAreaLength == freightAnims.LoadingAreaLength && !freightAnims.DoubleStacker)
-                                    {
-                                        loadedFreightAnim.LoadPosition = LoadPosition.Rear;
-                                        offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
-                                        loadedFreightAnim.Offset = offset;
+                                        else if (loadedFreightAnim.LoadPosition != LoadPosition.Center && loadedFreightAnim.LoadPosition != LoadPosition.Above)
+                                        {
+                                            switch (loadedFreightAnim.LoadPosition)
+                                            {
+                                                case LoadPosition.Front:
+                                                    offset.Z = freightAnims.Offset.Z - (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
+                                                    loadedFreightAnim.Offset = offset;
+                                                    break;
+                                                case LoadPosition.Rear:
+                                                    offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
+                                                    loadedFreightAnim.Offset = offset;
+                                                    break;
+                                                case LoadPosition.CenterFront:
+                                                    offset.Z = freightAnims.Offset.Z - HandledContainer.LengthM / 2;
+                                                    loadedFreightAnim.Offset = offset;
+                                                    break;
+                                                case LoadPosition.CenterRear:
+                                                    offset.Z = freightAnims.Offset.Z + HandledContainer.LengthM / 2;
+                                                    loadedFreightAnim.Offset = offset;
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        }
                                     }
                                     else
+                                    // don't lay down a short container in the middle of the wagon
                                     {
-                                        loadedFreightAnim.LoadPosition = LoadPosition.CenterFront;
-                                        offset.Z = freightAnims.Offset.Z - HandledContainer.LengthM / 2;
-                                        loadedFreightAnim.Offset = offset;
+                                        if (LinkedFreightAnimation.LoadingAreaLength == freightAnims.LoadingAreaLength && !freightAnims.DoubleStacker)
+                                        {
+                                            loadedFreightAnim.LoadPosition = LoadPosition.Rear;
+                                            offset.Z = freightAnims.Offset.Z + (freightAnims.LoadingAreaLength - HandledContainer.LengthM) / 2;
+                                            loadedFreightAnim.Offset = offset;
+                                        }
+                                        else
+                                        {
+                                            loadedFreightAnim.LoadPosition = LoadPosition.CenterFront;
+                                            offset.Z = freightAnims.Offset.Z - HandledContainer.LengthM / 2;
+                                            loadedFreightAnim.Offset = offset;
+                                        }
                                     }
-                                loadedFreightAnim.LoadingAreaLength = HandledContainer.LengthM;
-                                loadedIntakePoint.OffsetM = -loadedFreightAnim.Offset.Z;
-                                freightAnims.Animations.Add(loadedFreightAnim);
-                                loadedFreightAnim.Container = HandledContainer;
-                                freightAnims.UpdateEmptyFreightAnims(HandledContainer.LengthM);
-                                // Too early to have container on wagon
-                                loadedFreightAnim.Container = null;
-                                LinkedFreightAnimation = loadedFreightAnim;
-                            }
-                            else
-                            {
-                                freightAnims.EmptyAnimations.Remove(LinkedFreightAnimation);
-                                freightAnims.Animations.Add(LinkedFreightAnimation);
-                                (freightAnims.Animations.Last() as FreightAnimationDiscrete).Container = HandledContainer;
-                                freightAnims.EmptyAbove();
-                                (freightAnims.Animations.Last() as FreightAnimationDiscrete).Container = null;
+                                    loadedFreightAnim.LoadingAreaLength = HandledContainer.LengthM;
+                                    loadedIntakePoint.OffsetM = -loadedFreightAnim.Offset.Z;
+                                    freightAnims.Animations.Add(loadedFreightAnim);
+                                    loadedFreightAnim.Container = HandledContainer;
+                                    freightAnims.UpdateEmptyFreightAnims(HandledContainer.LengthM);
+                                    // Too early to have container on wagon
+                                    loadedFreightAnim.Container = null;
+                                    LinkedFreightAnimation = loadedFreightAnim;
+                                }
+                                else
+                                {
+                                    freightAnims.EmptyAnimations.Remove(LinkedFreightAnimation);
+                                    freightAnims.Animations.Add(LinkedFreightAnimation);
+                                    (freightAnims.Animations.Last() as FreightAnimationDiscrete).Container = HandledContainer;
+                                    freightAnims.EmptyAbove();
+                                    (freightAnims.Animations.Last() as FreightAnimationDiscrete).Container = null;
 
 
+                                }
                             }
                             TargetZ = PickingSurfaceRelativeTopStartPosition.Z - relativeAnimationPosition.Translation.Z - LinkedFreightAnimation.Offset.Z *
                                 (WagonFlipped ? -1 : 1);
-                            /*                           if (TargetZ < PickingSurfaceRelativeTopStartPosition.Z)
-                                                       {
-                                                           if (!messageWritten)
-                                                           {
-                                                               Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetStringFmt("Wagon out of range: move wagon towards crane by {0} metres",
-                                                                   PickingSurfaceRelativeTopStartPosition.Z - TargetZ));
-                                                               messageWritten = true;
-                                                           }
-                                                       }
-                                                       else*/
+                            if (Math.Abs(TargetZ) > MinZSpan)
+                            {
+                                if (!messageWritten)
+                                {
+                                    Simulator.Instance.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Wagon out of range: move wagon towards crane by {0} metres",
+                                        Math.Abs(TargetZ) - MinZSpan));
+                                    messageWritten = true;
+                                }
+                            }
+                            else
                             {
                                 MoveX = MoveZ = true;
                                 Status = ContainerStationStatus.LoadHorizontallyMoveToLayOnWagon;
                             }
                         }
+                    }
                     break;
                 case ContainerStationStatus.LoadHorizontallyMoveToLayOnWagon:
                     if (subMissionTerminated)
@@ -1068,8 +1059,8 @@ namespace Orts.Simulation.World
 
         private void SetGrabbers(Container container)
         {
-            TargetGrabber01 = Math.Min(Grabber01Max, (container.LengthM - MaxGrabberSpan) / 2 + Grabber01Max);
-            TargetGrabber02 = Math.Max(Grabber02Max, (-container.LengthM + MaxGrabberSpan) / 2 + Grabber02Max);
+            TargetGrabber01 = Math.Min(Grabber01Max, (container.LengthM - Container.Length20ftM) / GrabberArmsParts);
+            TargetGrabber02 = Math.Max(Grabber02Max, (-container.LengthM + Container.Length20ftM) / GrabberArmsParts);
             MoveGrabber = true;
         }
 
@@ -1083,6 +1074,8 @@ namespace Orts.Simulation.World
                 if (!StackLocations[i].Usable)
                     continue;
                 if (StackLocations[i].Containers?.Count >= StackLocations[i].MaxStackedContainers)
+                    continue;
+                if (StackLocations[i].Length + 0.01f < HandledContainer.LengthM)
                     continue;
                 if (StackLocations[i].Containers?.Count > 0 && StackLocations[i].Containers[0]?.LengthM != HandledContainer.LengthM)
                     continue;
@@ -1111,10 +1104,12 @@ namespace Orts.Simulation.World
 
         public bool CheckForEligibleStackPosition(Container container)
         {
-            var checkLength = container.LengthM > Container.Length20ftM + 0.01f && StackLocationsLength + 0.01f >= Container.Length40ftM ? StackLocationsCount / 2 : StackLocationsCount;
+            int checkLength = container.LengthM > Container.Length20ftM + 0.01f && StackLocationsLength + 0.01f >= Container.Length40ftM ? StackLocationsCount / 2 : StackLocationsCount;
             for (int i = 0; i < checkLength; i++)
             {
                 if (!StackLocations[i].Usable)
+                    continue;
+                if (StackLocations[i].Length + 0.02 < container.LengthM)
                     continue;
                 if (StackLocations[i].Containers?.Count >= StackLocations[i].MaxStackedContainers)
                     continue;
@@ -1183,9 +1178,9 @@ namespace Orts.Simulation.World
         {
             ArgumentNullException.ThrowIfNull(source);
             MaxStackedContainers = source.MaxStackedContainers;
-            Length = 6.095f;
+            Length = source.Length + 0.01f >= Container.Length40ftM ? Container.Length20ftM : 0;
             Flipped = source.Flipped;
-            Position = new Vector3(source.Position.X, source.Position.Y, source.Position.Z + Length * (Flipped ? -1 : 1));
+            Position = new Vector3(source.Position.X, source.Position.Y, source.Position.Z + 6.095f * (Flipped ? -1 : 1));
         }
     }
 }

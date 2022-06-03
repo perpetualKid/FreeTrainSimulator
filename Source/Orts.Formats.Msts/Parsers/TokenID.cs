@@ -1714,7 +1714,7 @@ namespace Orts.Formats.Msts.Parsers
         OrtsStackLocationsLength,
         OrtsPickingSurfaceYOffset,
         OrtsPickingSurfaceRelativeTopStartPosition,
-        OrtsMaxGrabberSpan,
+        OrtsGrabberArmsParts,
         StackLocation,
         MaxStackedContainers,
         Length,

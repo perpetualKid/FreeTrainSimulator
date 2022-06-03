@@ -423,7 +423,7 @@ namespace Orts.Formats.Msts.Models
         public StackLocationItems StackLocations { get; private set; }
         public float PickingSurfaceYOffset { get; private set; }
         public Vector3 PickingSurfaceRelativeTopStartPosition { get; private set; }
-        public float MaxGrabberSpan { get; private set; }
+        public int GrabberArmsParts { get; private set; } = 2;
         public string CraneSound { get; private set; }
 
         /// <summary>
@@ -459,8 +459,8 @@ namespace Orts.Formats.Msts.Models
                 case TokenID.OrtsPickingSurfaceRelativeTopStartPosition:
                     PickingSurfaceRelativeTopStartPosition = subBlock.ReadVector3();
                     break;
-                case TokenID.OrtsMaxGrabberSpan:
-                    MaxGrabberSpan = subBlock.ReadFloat();
+                case TokenID.OrtsGrabberArmsParts:
+                    GrabberArmsParts = subBlock.ReadInt();
                     break;
                 case TokenID.OrtsCraneSound:
                     CraneSound = subBlock.ReadString();

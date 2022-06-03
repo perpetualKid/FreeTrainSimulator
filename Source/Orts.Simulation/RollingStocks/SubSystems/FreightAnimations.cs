@@ -61,7 +61,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public IntakePoint GeneralIntakePoint { get; private set; }
         public bool DoubleStacker { get; private set; }
         public MSTSWagon Wagon { get; private set; }
+        public const float EmptySuperpositionTolerance = 0.10f;
         public List<LoadData> LoadDataList { get; private set; }
+        public const float FullSuperpositionTolerance = 0.2f;
 
         // additions to manage consequences of variable weight on friction and brake forces
         public float EmptyORTSDavis_A { get; private set; } = -9999;
@@ -309,7 +311,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
                 else
                 {
-                    container.LoadFromContainerFile(loadFilePath);
+                    container.LoadFromContainerFile(loadFilePath, Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder);
                     containerManager.LoadedContainers.Add(loadFilePath, container);
                 }
                 Vector3 offset = new Vector3(0, 0, 0);
@@ -478,67 +480,68 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 if (anim.LoadPosition == LoadPosition.Above)
                     return;
-                if (containerLengthM >= LoadingAreaLength - 0.02)
-                    return;
-                Vector3 offset = anim.Offset;
-                switch (anim.LoadPosition)
+                if (containerLengthM < LoadingAreaLength - EmptySuperpositionTolerance)
                 {
-                    case LoadPosition.Center:
-                        if ((LoadingAreaLength + 0.02f - anim.Container.LengthM) / 2 > 6.10f)
-                        {
-                            // one empty area behind, one in front
-                            var emptyLength = (LoadingAreaLength - anim.Container.LengthM) / 2;
-                            offset.Z = Offset.Z + LoadingAreaLength / 2 - (LoadingAreaLength - anim.Container.LengthM) / 4;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset, emptyLength));
-                            offset.Z = Offset.Z - LoadingAreaLength / 2 + (LoadingAreaLength - anim.Container.LengthM) / 4;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset, emptyLength));
-                        }
-                        break;
-                    case LoadPosition.CenterRear:
-                        // one empty area in front, check if enough place for the rear one
-                        offset = Offset;
-                        offset.Z -= LoadingAreaLength / 4;
-                        EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, DoubleStacker ? LoadPosition.CenterFront : LoadPosition.Front,
-                            offset, LoadingAreaLength / 2));
-                        if (LoadingAreaLength / 2 + 0.01f - containerLengthM > 6.10)
-                        {
-                            offset.Z = Offset.Z + anim.Container.LengthM / 2 + LoadingAreaLength / 4;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset,
-                                LoadingAreaLength / 2 - containerLengthM));
-                        }
-                        break;
-                    case LoadPosition.CenterFront:
-                        offset = Offset;
-                        offset.Z += LoadingAreaLength / 4;
-                        EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, DoubleStacker ? LoadPosition.CenterRear : LoadPosition.Rear,
-                            offset, LoadingAreaLength / 2));
-                        if (LoadingAreaLength / 2 + 0.01f - containerLengthM > 6.10)
-                        {
-                            offset.Z = Offset.Z - containerLengthM / 2 - LoadingAreaLength / 4;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset,
-                                LoadingAreaLength / 2 - containerLengthM));
-                        }
-                        break;
-                    case LoadPosition.Rear:
-                        if (LoadingAreaLength + 0.02f - containerLengthM > 6.10f)
-                        {
+                    Vector3 offset = anim.Offset;
+                    switch (anim.LoadPosition)
+                    {
+                        case LoadPosition.Center:
+                            if ((LoadingAreaLength + EmptySuperpositionTolerance - anim.Container.LengthM) / 2 > Container.Length20ftM)
+                            {
+                                // one empty area behind, one in front
+                                var emptyLength = (LoadingAreaLength - anim.Container.LengthM) / 2;
+                                offset.Z = Offset.Z + LoadingAreaLength / 2 - (LoadingAreaLength - anim.Container.LengthM) / 4;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset, emptyLength));
+                                offset.Z = Offset.Z - LoadingAreaLength / 2 + (LoadingAreaLength - anim.Container.LengthM) / 4;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset, emptyLength));
+                            }
+                            break;
+                        case LoadPosition.CenterRear:
+                            // one empty area in front, check if enough place for the rear one
                             offset = Offset;
-                            offset.Z -= anim.Container.LengthM / 2;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset,
-                            LoadingAreaLength - containerLengthM));
-                        }
-                        break;
-                    case LoadPosition.Front:
-                        if (LoadingAreaLength + 0.02f - containerLengthM > 6.10f)
-                        {
+                            offset.Z -= LoadingAreaLength / 4;
+                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, DoubleStacker ? LoadPosition.CenterFront : LoadPosition.Front,
+                                offset, LoadingAreaLength / 2));
+                            if (LoadingAreaLength / 2 + 0.01f - containerLengthM > 6.10)
+                            {
+                                offset.Z = Offset.Z + anim.Container.LengthM / 2 + LoadingAreaLength / 4;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset,
+                                    LoadingAreaLength / 2 - containerLengthM));
+                            }
+                            break;
+                        case LoadPosition.CenterFront:
                             offset = Offset;
-                            offset.Z += containerLengthM / 2;
-                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset,
-                            LoadingAreaLength - containerLengthM));
-                        }
-                        break;
-                    default:
-                        break;
+                            offset.Z += LoadingAreaLength / 4;
+                            EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, DoubleStacker ? LoadPosition.CenterRear : LoadPosition.Rear,
+                                offset, LoadingAreaLength / 2));
+                            if (LoadingAreaLength / 2 + EmptySuperpositionTolerance - containerLengthM > Container.Length20ftM)
+                            {
+                                offset.Z = Offset.Z - containerLengthM / 2 - LoadingAreaLength / 4;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset,
+                                    LoadingAreaLength / 2 - containerLengthM));
+                            }
+                            break;
+                        case LoadPosition.Rear:
+                            if (LoadingAreaLength + EmptySuperpositionTolerance - containerLengthM > Container.Length20ftM)
+                            {
+                                offset = Offset;
+                                offset.Z -= anim.Container.LengthM / 2;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Front, offset,
+                                LoadingAreaLength - containerLengthM));
+                            }
+                            break;
+                        case LoadPosition.Front:
+                            if (LoadingAreaLength + EmptySuperpositionTolerance - containerLengthM > Container.Length20ftM)
+                            {
+                                offset = Offset;
+                                offset.Z += containerLengthM / 2;
+                                EmptyAnimations.Add(new FreightAnimationDiscrete(this, null, LoadPosition.Rear, offset,
+                                LoadingAreaLength - containerLengthM));
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             else
@@ -695,9 +698,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                             emptyAnim.Offset = offset;
                             emptyAnim.LinkedIntakePoint.OffsetM = -emptyAnim.Offset.Z;
                             emptyAnim.LoadingAreaLength -= anim.LoadingAreaLength;
-                            if (Math.Abs(emptyAnim.Offset.Z - Offset.Z) < 0.02f)
+                            if (Math.Abs(emptyAnim.Offset.Z - Offset.Z) < FullSuperpositionTolerance)
                                 emptyAnim.LoadPosition = LoadPosition.Center;
-                            else if (Math.Abs(emptyAnim.LoadingAreaLength + anim.LoadingAreaLength - LoadingAreaLength / 2) < 0.02f)
+                            else if (Math.Abs(emptyAnim.LoadingAreaLength + anim.LoadingAreaLength - LoadingAreaLength / 2) < FullSuperpositionTolerance)
                                 emptyAnim.LoadPosition = anim.LoadPosition == LoadPosition.Front ? LoadPosition.CenterFront : LoadPosition.CenterRear;
                             continue;
                         }
