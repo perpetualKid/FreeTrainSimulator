@@ -46,6 +46,7 @@ namespace Orts.Simulation.World
         C40ft,
         C40ftHC,
         C45ft,
+        C45ftHC,
         C48ft,
         C53ft
     }
@@ -90,50 +91,6 @@ namespace Orts.Simulation.World
         public Matrix RelativeContainerMatrix = Matrix.Identity;
         public MSTSWagon Wagon;
         public string LoadFilePath;
-
-
-        // generates container from FreightAnim
-        /*       public Container(Simulator simulator, string baseShapeFileFolderSlash, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingItem containerStation )
-               {
-                   Simulator = simulator;
-                   ShapeFileName = freightAnimDiscrete.ShapeFileName;
-                   BaseShapeFileFolderSlash = baseShapeFileFolderSlash;
-                   MassKG = freightAnimDiscrete.LoadWeightKG;
-                   ContainerType = freightAnimDiscrete.ContainerType;
-                   switch (ContainerType)
-                   {
-                       case ContainerType.C20ft:
-                           LengthM = 6.1f;
-                           break;
-                       case ContainerType.C40ft:
-                           LengthM = 12.19f;
-                           break;
-                       case ContainerType.C40ftHC:
-                           LengthM = 12.19f;
-                           HeightM = 2.9f;
-                           break;
-                       case ContainerType.C45ft:
-                           LengthM = 13.7f;
-                           break;
-                       case ContainerType.C48ft:
-                           LengthM = 14.6f;
-                           break;
-                       case ContainerType.C53ft:
-                           LengthM = 16.15f;
-                           break;
-                       default:
-                           break;
-                   }
-                   WorldPosition.XNAMatrix = freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix;
-                   WorldPosition.TileX = freightAnimDiscrete.Wagon.WorldPosition.TileX;
-                   WorldPosition.TileZ = freightAnimDiscrete.Wagon.WorldPosition.TileZ;
-                   var translation = Matrix.CreateTranslation(freightAnimDiscrete.XOffset, freightAnimDiscrete.YOffset, freightAnimDiscrete.ZOffset);
-                   WorldPosition.XNAMatrix = translation * WorldPosition.XNAMatrix;
-                   IntrinsicShapeOffset = freightAnimDiscrete.IntrinsicShapeOffset;
-
-                   ContainerStation = containerStation;
-               }*/
-
         public Container(FreightAnimationDiscrete freightAnimDiscreteSource, FreightAnimationDiscrete freightAnimDiscrete, bool stacked = false)
         {
             ArgumentNullException.ThrowIfNull(freightAnimDiscreteSource);
@@ -232,6 +189,9 @@ namespace Orts.Simulation.World
                     HeightM = 2.9f;
                     break;
                 case ContainerType.C45ft:
+                    LengthM = 13.7f;
+                    break;
+                case ContainerType.C45ftHC:
                     LengthM = 13.7f;
                     HeightM = 2.9f;
                     break;
