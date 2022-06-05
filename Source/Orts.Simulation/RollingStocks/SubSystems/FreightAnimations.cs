@@ -702,6 +702,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                                 emptyAnim.LoadPosition = LoadPosition.Center;
                             else if (Math.Abs(emptyAnim.LoadingAreaLength + anim.LoadingAreaLength - LoadingAreaLength / 2) < FullSuperpositionTolerance)
                                 emptyAnim.LoadPosition = anim.LoadPosition == LoadPosition.Front ? LoadPosition.CenterFront : LoadPosition.CenterRear;
+                            else if (emptyAnim.LoadingAreaLength + EmptySuperpositionTolerance > Container.Length20ftM)
+                                emptyAnim.LoadPosition = anim.LoadPosition == LoadPosition.Front ? LoadPosition.CenterRear : LoadPosition.CenterFront;
                             continue;
                         }
                     }
