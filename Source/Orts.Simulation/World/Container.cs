@@ -162,8 +162,6 @@ namespace Orts.Simulation.World
                         totalOffset.Y += containerStation.StackLocations[stackLocationIndex].Containers[iPos].HeightM;
                 totalOffset.Z *= -1;
                 totalOffset = Vector3.Transform(totalOffset, containerStation.WorldPosition.XNAMatrix);
-                //               WorldPosition = new WorldLocation(car.WorldPosition.TileX, car.WorldPosition.TileZ,
-                //                   totalOffset.X, totalOffset.Y, -totalOffset.Z);
                 worldPosition = containerStation.WorldPosition;
                 WorldPosition.SetTranslation(totalOffset);
             }
@@ -221,8 +219,6 @@ namespace Orts.Simulation.World
                     totalOffset.Y += stackLocation.Containers[iPos].HeightM;
             totalOffset.Z *= -1;
             totalOffset = Vector3.Transform(totalOffset, ContainerStation.WorldPosition.XNAMatrix);
-            //               WorldPosition = new WorldLocation(car.WorldPosition.TileX, car.WorldPosition.TileZ,
-            //                   totalOffset.X, totalOffset.Y, -totalOffset.Z);
             worldPosition = ContainerStation.WorldPosition;
             WorldPosition.SetTranslation(totalOffset);
         }
@@ -299,16 +295,6 @@ namespace Orts.Simulation.World
             this.simulator = simulator;
         }
 
-        /*        static Dictionary<int, FuelPickupItem> GetContainerHandlingItemsFromDB(TrackNode[] trackNodes, TrItem[] trItemTable)
-                {
-                    return (from trackNode in trackNodes
-                            where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
-                            from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
-                            where trItemTable[itemRef] != null && trItemTable[itemRef].ItemType == TrItem.trItemType.trPICKUP
-                            select new KeyValuePair<int, ContainerHandlingItem>(itemRef, new ContainerHandlingItem(trackNode, trItemTable[itemRef])))
-                            .ToDictionary(_ => _.Key, _ => _.Value);
-                }*/
-
         public void LoadPopulationFromFile(string fileName)
         {
             LoadStationsPopulationFile = new LoadStationsPopulationFile(fileName);
@@ -352,7 +338,6 @@ namespace Orts.Simulation.World
         public ContainerStackLocation[] StackLocations;
         public float StackLocationsLength = 12.19f;
         public int StackLocationsCount;
-        //       public int[] AllocatedContainerIndices;
         public float PickingSurfaceYOffset;
         public Vector3 PickingSurfaceRelativeTopStartPosition;
         public float TargetX;
@@ -590,9 +575,6 @@ namespace Orts.Simulation.World
                         Status = ContainerStationStatus.LoadHorizontallyMoveToPick;
                         TargetX = StackLocations[SelectedStackLocationIndex].Position.X;
                         TargetZ = StackLocations[SelectedStackLocationIndex].Position.Z + StackLocations[SelectedStackLocationIndex].Containers[StackLocations[SelectedStackLocationIndex].Containers.Count - 1].LengthM * (StackLocations[SelectedStackLocationIndex].Flipped ? -1 : 1) / 2;
-                        //                       TargetX = PickingSurfaceRelativeTopStartPosition.X;
-                        //                       TargetZ = PickingSurfaceRelativeTopStartPosition.Z - RelativeContainerPosition.Translation.Z + HandledContainer.IntrinsicShapeZOffset;
-                        //                       RelativeContainerPosition.M43 = HandledContainer.IntrinsicShapeZOffset;
                         MoveX = true;
                         MoveZ = true;
                     }
@@ -604,7 +586,6 @@ namespace Orts.Simulation.World
                         MoveZ = false;
                         MoveGrabber = false;
                         Status = ContainerStationStatus.LoadLowerToPick;
-                        //                       TargetY = HandledContainer.HeightM + HandledContainer.IntrinsicShapeYOffset - PickingSurfaceYOffset;
                         TargetY = ComputeTargetYBase(StackLocations[SelectedStackLocationIndex].Containers.Count - 1, SelectedStackLocationIndex) - PickingSurfaceYOffset;
                         RelativeContainerPosition.M42 = -TargetY + StackLocations[SelectedStackLocationIndex].Containers[StackLocations[SelectedStackLocationIndex].Containers.Count - 1].WorldPosition.XNAMatrix.M42 + InitialInvAnimationXNAMatrix.M42;
                         MoveY = true;
@@ -964,9 +945,6 @@ namespace Orts.Simulation.World
 
         public void PrepareForLoad(FreightAnimationDiscrete linkedFreightAnimation)
         {
-            //           var invAnimationXNAMatrix = Matrix.Invert(InitialAnimationXNAMatrix);
-            //           RelativeContainerPosition = new Matrix();
-            //           RelativeContainerPosition = Matrix.Multiply(Containers.Last().WorldPosition.XNAMatrix, invAnimationXNAMatrix);
             LinkedFreightAnimation = linkedFreightAnimation;
             SelectedStackLocationIndex = SelectLoadPosition();
             if (SelectedStackLocationIndex == -1)
