@@ -47,7 +47,7 @@ namespace Orts.Formats.Msts.Models
             public int FuelWater { get; internal protected set; } = 100;     // percent
             public int FuelCoal { get; internal protected set; } = 100;      // percent
             public int FuelDiesel { get; internal protected set; } = 100;   // percent
-            public string LoadStationsOccupancyFile { get; internal protected set; }
+            public string LoadStationsPopulationFile { get; internal protected set; }
         }
 
         public ActivityHeader Header { get; } = new ActivityHeader();
@@ -93,7 +93,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("fuelwater", ()=>{ Header.FuelWater = stf.ReadIntBlock(Header.FuelWater); }),
                 new STFReader.TokenProcessor("fuelcoal", ()=>{ Header.FuelCoal = stf.ReadIntBlock(Header.FuelCoal); }),
                 new STFReader.TokenProcessor("fueldiesel", ()=>{ Header.FuelDiesel = stf.ReadIntBlock(Header.FuelDiesel); }),
-                new STFReader.TokenProcessor("ortsloadstationsoccupancy", ()=>{ Header.LoadStationsOccupancyFile = stf.ReadStringBlock(null); }),
+                new STFReader.TokenProcessor("ortsloadstationspopulation", ()=>{ Header.LoadStationsPopulationFile = stf.ReadStringBlock(null); }),
             });
         }
 

@@ -372,9 +372,9 @@ namespace Orts.Simulation
 
             MultiPlayerManager.Instance().RememberOriginalSwitchState();
 
-            if (ActivityFile?.Activity?.Header?.LoadStationsOccupancyFile != null)
+            if (ActivityFile?.Activity?.Header?.LoadStationsPopulationFile != null)
             {
-                ContainerManager.LoadOccupancyFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsOccupancyFile, ".lso")));
+                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".lsp")));
             }
             // start activity logging if required
             if (Settings.EvaluationStationStops && ActivityRun != null)

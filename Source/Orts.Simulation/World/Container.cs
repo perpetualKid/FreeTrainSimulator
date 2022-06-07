@@ -289,7 +289,7 @@ namespace Orts.Simulation.World
 
         internal bool FreightAnimNeedsInitialization = true;
 
-        internal LoadStationsOccupancyFile LoadStationsOccupancyFile { get; private set; }
+        internal LoadStationsPopulationFile LoadStationsPopulationFile { get; private set; }
         public Dictionary<int, ContainerHandlingItem> ContainerHandlingItems { get; } = new Dictionary<int, ContainerHandlingItem>();
         public List<Container> Containers { get; } = new List<Container>();
         public Dictionary<string, Container> LoadedContainers { get; } = new Dictionary<string, Container>();
@@ -309,9 +309,9 @@ namespace Orts.Simulation.World
                             .ToDictionary(_ => _.Key, _ => _.Value);
                 }*/
 
-        public void LoadOccupancyFromFile(string fileName)
+        public void LoadPopulationFromFile(string fileName)
         {
-            LoadStationsOccupancyFile = new LoadStationsOccupancyFile(fileName);
+            LoadStationsPopulationFile = new LoadStationsPopulationFile(fileName);
         }
 
         public ContainerHandlingItem CreateContainerStation(WorldPosition shapePosition, int trackItemId, PickupObject pickupObject)
@@ -452,7 +452,7 @@ namespace Orts.Simulation.World
             GrabberArmsParts = pickupObject.GrabberArmsParts;
             DelayTimer = new Timer(this);
             // preload containers if not at restore time
-            if (containerManager.LoadStationsOccupancyFile != null)
+            if (containerManager.LoadStationsPopulationFile != null)
                 PreloadContainerStation(pickupObject);
         }
 
@@ -520,16 +520,18 @@ namespace Orts.Simulation.World
 
         public void PreloadContainerStation(PickupObject pickupObject)
         {
+            ArgumentNullException.ThrowIfNull(pickupObject);
+
             // Search if ContainerStation present in file
-            foreach (ContainerStationOccupancy loadStationOccupancy in containerManager.LoadStationsOccupancyFile.LoadStationsOccupancy)
+            foreach (ContainerStationPopulation loadStationPopulation in containerManager.LoadStationsPopulationFile.LoadStationsPopulation)
             {
-                var tileX = int.Parse(loadStationOccupancy.LoadStationId.WorldFile.Substring(1, 7));
-                var tileZ = int.Parse(loadStationOccupancy.LoadStationId.WorldFile.Substring(8, 7));
-                if (tileX == Location.TileX && tileZ == Location.TileZ && loadStationOccupancy.LoadStationId.UiD == pickupObject.UiD)
+                var tileX = int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(1, 7));
+                var tileZ = int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(8, 7));
+                if (tileX == Location.TileX && tileZ == Location.TileZ && loadStationPopulation.LoadStationId.UiD == pickupObject.UiD)
                 {
                     string trainSetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
 
-                    foreach (LoadDataEntry loadDataEntry in loadStationOccupancy.LoadData)
+                    foreach (LoadDataEntry loadDataEntry in loadStationPopulation.LoadData)
                     {
                         string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName, ".loa"));
                         if (!File.Exists(loadFilePath))

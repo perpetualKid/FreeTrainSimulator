@@ -51,13 +51,13 @@ namespace Orts.Formats.OR.Models
         }
     }
 
-    public class ContainerStationOccupancy
+    public class ContainerStationPopulation
     {
         public LoadStationId LoadStationId { get; private set; }
 
         public List<LoadDataEntry> LoadData { get; } = new List<LoadDataEntry>();
 
-        public ContainerStationOccupancy(JsonReader json)
+        public ContainerStationPopulation(JsonReader json)
         {
             ArgumentNullException.ThrowIfNull(json);
             json.ReadBlock(TryParse);
