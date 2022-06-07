@@ -255,7 +255,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             LoadingAreaLength = source.LoadingAreaLength;
             AboveLoadingAreaLength = source.AboveLoadingAreaLength;
             Offset = source.Offset;
-            GeneralIntakePoint = new IntakePoint(source.GeneralIntakePoint);
+            if (source.GeneralIntakePoint != null)
+                GeneralIntakePoint = new IntakePoint(source.GeneralIntakePoint);
             DoubleStacker = source.DoubleStacker;
             if (source.LoadDataList?.Count >= 0)
             {
@@ -313,6 +314,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public void Load(MSTSWagon wagon, IList<LoadData> loadDataList, bool listInWagFile = false)
         {
+            if (GeneralIntakePoint == null)
+                return;
             string TrainsetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
             if (loadDataList?.Count > 0)
             {
