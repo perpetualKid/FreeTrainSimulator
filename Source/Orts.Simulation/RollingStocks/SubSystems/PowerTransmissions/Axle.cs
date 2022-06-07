@@ -73,7 +73,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <summary>
         /// Axle drive type covered by DriveType interface
         /// </summary>
-        private readonly AxleDriveType driveType;
+        public AxleDriveType DriveType { get; private set; }
 
         /// <summary>
         /// Axle drive represented by a motor, covered by ElectricMotor interface
@@ -88,21 +88,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             set
             {
                 motor = value;
-                switch (driveType)
+                DriveType = motor != null ? AxleDriveType.MotorDriven : AxleDriveType.ForceDriven;
+                totalInertiaKgm2 = DriveType switch
                 {
-                    case AxleDriveType.NotDriven:
-                        break;
-                    case AxleDriveType.MotorDriven:
-                        //Total inertia considering gearbox
-                        totalInertiaKgm2 = inertiaKgm2 + transmissionRatio * transmissionRatio * motor.InertiaKgm2;
-                        break;
-                    case AxleDriveType.ForceDriven:
-                        totalInertiaKgm2 = inertiaKgm2;
-                        break;
-                    default:
-                        totalInertiaKgm2 = inertiaKgm2;
-                        break;
-                }
+                    AxleDriveType.MotorDriven => inertiaKgm2 + transmissionRatio * transmissionRatio * motor.Inertia,
+                    _ => inertiaKgm2,
+                };
             }
             get
             {
@@ -137,12 +128,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if (value <= 0.0)
                     throw new NotSupportedException("Inertia must be greater than zero");
                 inertiaKgm2 = value;
-                switch (driveType)
+                switch (DriveType)
                 {
                     case AxleDriveType.NotDriven:
                         break;
                     case AxleDriveType.MotorDriven:
-                        totalInertiaKgm2 = inertiaKgm2 + transmissionRatio * transmissionRatio * motor.InertiaKgm2;
+                        totalInertiaKgm2 = inertiaKgm2 + transmissionRatio * transmissionRatio * motor.Inertia;
                         break;
                     case AxleDriveType.ForceDriven:
                         totalInertiaKgm2 = inertiaKgm2;
@@ -353,7 +344,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public Axle(AxleDriveType driveType) : this()
         {
-            this.driveType = driveType;
+            DriveType = driveType;
         }
 
         /// <summary>
@@ -368,54 +359,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             transmissionEfficiency = 0.99f;
             SlipWarningTresholdPercent = 70.0f;
-            driveType = AxleDriveType.ForceDriven;
-
-            switch (driveType)
-            {
-                case AxleDriveType.NotDriven:
-                    break;
-                case AxleDriveType.MotorDriven:
-                    totalInertiaKgm2 = inertiaKgm2 + transmissionRatio * transmissionRatio * motor.InertiaKgm2;
-                    break;
-                case AxleDriveType.ForceDriven:
-                    totalInertiaKgm2 = inertiaKgm2;
-                    break;
-                default:
-                    totalInertiaKgm2 = inertiaKgm2;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Creates motor driven axle class instance
-        /// - sets TransmissionEfficiency to 0.99 (99%)
-        /// - sets SlipWarningThresholdPercent to 70%
-        /// - sets axle DriveType to MotorDriven
-        /// - updates totalInertiaKgm2 parameter
-        /// </summary>
-        /// <param name="electricMotor">Electric motor connected with the axle</param>
-        public Axle(ElectricMotor electricMotor)
-        {
-            motor = electricMotor;
-            motor.AxleConnected = this;
-            transmissionEfficiency = 0.99f;
-            driveType = AxleDriveType.MotorDriven;
-
-            switch (driveType)
-            {
-                case AxleDriveType.NotDriven:
-                    totalInertiaKgm2 = inertiaKgm2;
-                    break;
-                case AxleDriveType.MotorDriven:
-                    totalInertiaKgm2 = inertiaKgm2 + transmissionRatio * transmissionRatio * motor.InertiaKgm2;
-                    break;
-                case AxleDriveType.ForceDriven:
-                    totalInertiaKgm2 = inertiaKgm2;
-                    break;
-                default:
-                    totalInertiaKgm2 = inertiaKgm2;
-                    break;
-            }
+            DriveType = AxleDriveType.ForceDriven;
+            totalInertiaKgm2 = inertiaKgm2;
         }
 
         /// <summary>
@@ -449,10 +394,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             double axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionLimit);
 
             double motiveAxleForceN = -axleForceN - DampingNs * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
-            if (driveType == AxleDriveType.ForceDriven)
+            if (DriveType == AxleDriveType.ForceDriven)
                 motiveAxleForceN += DriveForceN * transmissionEfficiency;
-            else if (driveType == AxleDriveType.MotorDriven)
-                motiveAxleForceN += motor.DevelopedTorqueNm * transmissionEfficiency * WheelRadiusM;
+            else if (DriveType == AxleDriveType.MotorDriven)
+                motiveAxleForceN += motor.GetDevelopedTorqueNm((float)(axleSpeedMpS * transmissionRatio / WheelRadiusM)) * transmissionEfficiency / WheelRadiusM;
 
             // Dissipative forces: they will never increase wheel speed
             double frictionalForceN = BrakeRetardForceN + FrictionN;
@@ -477,13 +422,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             return (totalAxleForceN * forceToAccelerationFactor, axleSpeedMpS / WheelRadiusM, axleForceN);
         }
 
+        /// <summary>
+        /// Integrates the wheel rotation movement using a RK4 method,
+        /// calculating the required number of substeps
+        /// Outputs: wheel speed, wheel angular position and motive force
+        /// </summary>
         private void Integrate(double elapsedClockSeconds)
         {
             if (elapsedClockSeconds <= 0)
                 return;
             float prevSpeedMpS = AxleSpeedMpS;
 
-            if (Math.Abs(integratorError) > Math.Max(SlipSpeedMpS, 1) / 1000)
+            if (Math.Abs(integratorError) > Math.Max((Math.Abs(SlipSpeedMpS) - 1) * 0.01f, 0.001f))
             {
                 ++NumOfSubstepsPS;
                 waitBeforeSpeedingUp = 100;
@@ -504,7 +454,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             for (int i = 0; i < NumOfSubstepsPS; i++)
             {
                 (double, double, double) k1 = GetAxleMotionVariation(AxleSpeedMpS);
-                if (i == 0 && k1.Item1 * dt > Math.Max(SlipSpeedMpS, 1) / 100)
+                if (i == 0 && k1.Item1 * dt > Math.Max((Math.Abs(SlipSpeedMpS) - 1) * 10, 1) / 100)
                 {
                     NumOfSubstepsPS = Math.Min(NumOfSubstepsPS + 5, 50);
                     dt = elapsedClockSeconds / NumOfSubstepsPS;
@@ -525,6 +475,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if (Math.Max(BrakeRetardForceN, FrictionN) > Math.Abs(DriveForceN - AxleForceN))
                     Reset();
             }
+        }
+
+        /// <summary>
+        /// Work in progress. Calculates wheel creep assuming that wheel inertia
+        /// is low, removing the need of an integrator
+        /// Useful for slow CPUs
+        /// </summary>
+        private void StationaryCalculation(float elapsedClockSeconds)
+        {
+            (double, double, double) res = GetAxleMotionVariation(AxleSpeedMpS);
+            double force = res.Item1 / forceToAccelerationFactor + res.Item3;
+            double maxAdhesiveForce = AxleWeightN * AdhesionLimit;
+            if (maxAdhesiveForce == 0)
+                return;
+            double forceRatio = force / maxAdhesiveForce;
+            double absForceRatio = Math.Abs(forceRatio);
+            double characteristicTime = WheelSlipThresholdMpS / (maxAdhesiveForce * forceToAccelerationFactor);
+            if (absForceRatio > 1 || IsWheelSlip || Math.Abs(res.Item1 * elapsedClockSeconds) < WheelSlipThresholdMpS)
+            {
+                Integrate(elapsedClockSeconds);
+                return;
+            }
+            NumOfSubstepsPS = 1;
+            if (absForceRatio < 0.001f)
+            {
+                AxleSpeedMpS = TrainSpeedMpS;
+                AxleForceN = 0;
+                return;
+            }
+            float x = (float)((1 - Math.Sqrt(1 - forceRatio * forceRatio)) / forceRatio);
+            AxleSpeedMpS = (float)(TrainSpeedMpS + Speed.MeterPerSecond.FromKpH(AdhesionK * x / AdhesionLimit));
+            AxleForceN = (float)(force + res.Item3) / 2;
         }
 
         /// <summary>
@@ -549,11 +531,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             if (AxleForceN == 0)
                 CompensatedAxleForceN = 0;
 
-            if (driveType == AxleDriveType.MotorDriven)
-            {
-                motor.RevolutionsRad = AxleSpeedMpS * transmissionRatio / WheelRadiusM;
-                motor.Update(timeSpan);
-            }
+            motor?.Update(timeSpan);
+
             if (timeSpan > 0.0f)
             {
                 SlipDerivationMpSS = (SlipSpeedMpS - previousSlipSpeedMpS) / (float)timeSpan;
@@ -595,11 +574,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         ///             2*K*umax^2*dV
         ///     u = ---------------------
         ///           umax^2*dv^2 + K^2
-        /// For high slip speeds (after the inflexion point of u), the formula is
-        /// replaced with an exponentially decaying function (with smooth coupling)
-        /// reaching a 40% of maximum adhesion at infinity. Quick fix until
-        /// further investigation is done to get a single formula that provides
-        /// non zero adhesion at infinity.
+        /// 
+        /// For high slip speeds the formula is replaced with an exponentially 
+        /// decaying function (with smooth coupling) which reaches 40% of
+        /// maximum adhesion at infinity. The transition point between equations
+        /// is at dV = sqrt(3)*K/umax (inflection point)
+        /// 
         /// </summary>
         /// <param name="slipSpeedMpS">Difference between train speed and wheel speed</param>
         /// <param name="speedMpS">Current speed</param>

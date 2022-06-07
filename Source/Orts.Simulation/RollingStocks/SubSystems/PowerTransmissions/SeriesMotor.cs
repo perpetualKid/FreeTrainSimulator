@@ -60,7 +60,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public float TerminalVoltageV { set; get; }
 
-        public float ArmatureVoltageV => ArmatureCurrentA * ArmatureResistanceOhms + BackEMFvoltageV;
+        public float ArmatureVoltageV => ArmatureCurrentA * ArmatureResistanceOhms + BackEMFVoltage;
         
         public float StartingResistorOhms { set; get; }
         
@@ -95,8 +95,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 return shuntResistorOhms == 0.0f ? shuntRatio * 100.0f : 1.0f - shuntResistorOhms / (FieldResistanceOhms + shuntResistorOhms);
             }
         }
-
-        public float BackEMFvoltageV { get; private set; }
+        public float BackEMFVoltage { get; private set; }
 
         public float MotorConstant { set; get; }
 
@@ -114,18 +113,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             return temp;
         }
 
-        public SeriesMotor()
-        {
-            nominalCurrentA = 1000.0f;
-            nominalRevolutionsRad = 300.0f;
-            nominalVoltageV = 1500.0f;
-        }
+        public SeriesMotor(float nomCurrentA, float nomVoltageV, float nomRevolutionsRad, Axle axle) : base(axle)
 
-        public SeriesMotor(float nomCurrentA, float nomVoltageV, float nomRevolutionsRad)
         {
             nominalCurrentA = nomCurrentA;
             nominalVoltageV = nomVoltageV;
             nominalRevolutionsRad = nomRevolutionsRad;
+        }
+
+        public override float GetDevelopedTorqueNm(float motorSpeedRadpS)
+        {
+            BackEMFVoltage = motorSpeedRadpS * fieldWb;
+            return fieldWb * ArmatureCurrentA/* - (frictionTorqueNm * revolutionsRad / NominalRevolutionsRad * revolutionsRad / NominalRevolutionsRad)*/;
         }
 
         public override void Update(double timeSpan)
@@ -133,11 +132,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             ArmatureCurrentA = shuntResistorOhms == 0.0f
                 ? FieldCurrentA / (1.0f - shuntRatio)
                 : (FieldResistanceOhms + ShuntResistorOhms) / ShuntResistorOhms * FieldCurrentA;
-            if ((BackEMFvoltageV * FieldCurrentA) >= 0.0f)
+            if ((BackEMFVoltage * FieldCurrentA) >= 0.0f)
             {
                 FieldCurrentA += (float)timeSpan / FieldInductance *
                     (TerminalVoltageV
-                        - BackEMFvoltageV
+                        - BackEMFVoltage
                         - ArmatureResistanceOhms * ArmatureCurrentA
                         - FieldResistanceOhms * (1.0f - shuntRatio) * FieldCurrentA
                         - ArmatureCurrentA * StartingResistorOhms
@@ -151,8 +150,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
 
             UpdateField();
-            BackEMFvoltageV = RevolutionsRad * fieldWb;
-            DevelopedTorqueNm = fieldWb * ArmatureCurrentA - (FrictionTorqueNm * RevolutionsRad / nominalRevolutionsRad * RevolutionsRad / nominalRevolutionsRad);
 
             powerLossesW = ArmatureResistanceOhms * ArmatureCurrentA * ArmatureCurrentA +
                            FieldResistanceOhms * FieldCurrentA * FieldCurrentA;

@@ -424,7 +424,8 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeIntervention = -1;
         protected float PreviousDynamicBrakeIntervention = -1;
 
-        public TractionMotorType TractionMotorType { get; private set; }
+        public TractionMotorType TractionMotorType { get; private set; } = TractionMotorType.DC;
+
 
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem;
@@ -1604,6 +1605,10 @@ namespace Orts.Simulation.RollingStocks
                     Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", locoNumDrvAxles);
                 }
             }
+            if (TractionMotorType == TractionMotorType.AC)
+            {
+                InductionMotor motor = new InductionMotor(LocomotiveAxle, this);
+            }
 
 
             // Calculate minimum speed to pickup water
@@ -2020,6 +2025,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
                 DynamicBrakeForceN = 0; // Set dynamic brake force to zero if in Notch 0 position
+                
 
             UpdateFrictionCoefficient(elapsedClockSeconds); // Find the current coefficient of friction depending upon the weather
 
@@ -2311,11 +2317,6 @@ namespace Orts.Simulation.RollingStocks
                 if (TractionMotorType == TractionMotorType.AC)
                 {
                     AbsTractionSpeedMpS = AbsSpeedMpS;
-                    if (AbsWheelSpeedMpS > 1.1 * MaxSpeedMpS)
-                    {
-                        AverageForceN = TractiveForceN = 0;
-                        return;
-                    }
                 }
                 else
                 {
@@ -2693,14 +2694,24 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.DampingNs = MassKG / 1000.0f;
                 LocomotiveAxle.FrictionN = MassKG / 1000.0f;
 
-                if (SlipControlSystem == SlipControlType.Full)
+                if (LocomotiveAxle.Motor is InductionMotor motor)
                 {
-                    // Simple slip control
-                    // Motive force is reduced to the maximum adhesive force
-                    // In wheelslip situations, motive force is set to zero
+                    motor.SlipControl = SlipControlSystem == SlipControlType.Full;
+                    motor.TargetForce = MotiveForceN;
+                    motor.EngineMaxSpeed = MaxSpeedMpS;
+                }
+                else
+                {
+                    if (SlipControlSystem == SlipControlType.Full)
+                    {
+                        // Simple slip control
+                        // Motive force is reduced to the maximum adhesive force
+                        // In wheelslip situations, motive force is set to zero
                     MotiveForceN = LocomotiveAxle.IsWheelSlip
                         ? 0
                         : Math.Sign(MotiveForceN) * Math.Min(LocomotiveAxle.AdhesionLimit * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN));
+                    }
+                    LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 }
 
                 //Set axle model parameters
@@ -2708,7 +2719,6 @@ namespace Orts.Simulation.RollingStocks
                 // Inputs
                 LocomotiveAxle.BrakeRetardForceN = BrakeRetardForceN;
                 LocomotiveAxle.AxleWeightN = 9.81f * DrvWheelWeightKg;  //will be computed each time considering the tilting
-                LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;                //Set the train speed of the axle mod
                 LocomotiveAxle.Update(elapsedClockSeconds); //Main updater of the axle model
 

@@ -24,95 +24,46 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     public class ElectricMotor
     {
         private protected float powerLossesW;
-        private float frictionTorqueNm;
-        private float inertiaKgm2;
-        private float axleDiameterM;
-        private float transmissionRatio;
 
-        public float DevelopedTorqueNm { get; set; }
-
-        public float LoadTorqueNm { get; set; }
-
-        public float FrictionTorqueNm 
-        { 
-            get => frictionTorqueNm; 
-            set { frictionTorqueNm = Math.Abs(value); } 
-        }
-
-        public float InertiaKgm2
-        {
-            get => inertiaKgm2;
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Inertia must be greater than 0");
-                inertiaKgm2 = value;
-            }
-        }
-
-        public float RevolutionsRad { get; set; }
+        public float Inertia { get; }
 
         public float TemperatureK { get; private set; }
 
-        private readonly Integrator tempIntegrator = new Integrator();
+        private readonly Integrator temperatureIntegrator = new Integrator();
 
-        public float ThermalCoeffJ_m2sC { set; get; }
-        public float SpecificHeatCapacityJ_kg_C { set; get; }
-        public float SurfaceM { set; get; }
-        public float WeightKg { set; get; }
-        public float CoolingPowerW { set; get; }
+        public float ThermalCoeff { get; }
+        public float SpecificHeatCapacity { get; }
+        public float Surface { get; }
+        public float Weight { get; }
+        public float CoolingPower { set; get; }
 
-        public float TransmissionRatio
+        public Axle AxleConnected { get; }
+
+        public ElectricMotor(Axle axle)
         {
-            get => transmissionRatio;
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Transmission ratio must be greater than zero");
-                transmissionRatio = value;
-            }
+            Inertia = 1.0f;
+            TemperatureK = 273.0f;
+            ThermalCoeff = 50.0f;
+            SpecificHeatCapacity = 40.0f;
+            Surface = 2.0f;
+            Weight = 5.0f;
+            AxleConnected = axle;
+            AxleConnected.Motor = this;
+            AxleConnected.TransmissionRatio = 1;
         }
 
-        public float AxleDiameterM
+        public virtual float GetDevelopedTorqueNm(float motorRevolutions)
         {
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Axle diameter must be greater than zero");
-                axleDiameterM = value;
-            }
-            get => axleDiameterM;
-        }
-
-        public Axle AxleConnected { get; set; }
-
-        public ElectricMotor()
-        {
-            DevelopedTorqueNm = 0.0f;
-            LoadTorqueNm = 0.0f;
-            InertiaKgm2 = 1.0f;
-            RevolutionsRad = 0.0f;
-            AxleDiameterM = 1.0f;
-            TransmissionRatio = 1.0f;
-            TemperatureK = 0.0f;
-            ThermalCoeffJ_m2sC = 50.0f;
-            SpecificHeatCapacityJ_kg_C = 40.0f;
-            SurfaceM = 2.0f;
-            WeightKg = 5.0f;
+            return 0;
         }
 
         public virtual void Update(double timeSpan)
         {
-            //revolutionsRad += timeSpan / inertiaKgm2 * (developedTorqueNm + loadTorqueNm + (revolutionsRad == 0.0 ? 0.0 : frictionTorqueNm));
-            //if (revolutionsRad < 0.0)
-            //    revolutionsRad = 0.0;
-            TemperatureK = (float)tempIntegrator.Integrate(timeSpan, (temperatureK) => 1.0f/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
-
+            TemperatureK = (float)temperatureIntegrator.Integrate(timeSpan, (temperatureK) => 1.0f/(SpecificHeatCapacity * Weight)*((powerLossesW - CoolingPower) / (ThermalCoeff * Surface) - temperatureK));
         }
 
         public virtual void Reset()
         {
-            RevolutionsRad = 0.0f;
         }
     }
 }
