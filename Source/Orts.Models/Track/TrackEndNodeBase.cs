@@ -42,7 +42,12 @@ namespace Orts.Models.Track
             }
             Direction -= MathHelper.PiOver2;
             TrackNodeIndex = trackEndNode.Index;
-
         }
+
+        public bool EndNodeAt(in PointD location)
+        {
+            return location.DistanceSquared(Location) <= ProximityTolerance;
+        }
+
     }
 }

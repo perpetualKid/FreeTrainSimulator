@@ -175,5 +175,15 @@ namespace Orts.Models.Track
             return null;
         }
 
+        public EndNodeBase EndNodeBaseAt(in PointD location)
+        {
+            foreach (EndNodeBase endNode in EndNodes)
+            {
+                if (endNode.EndNodeAt(location))
+                    return endNode;
+            }
+            return null;
+        }
+
     }
 }
