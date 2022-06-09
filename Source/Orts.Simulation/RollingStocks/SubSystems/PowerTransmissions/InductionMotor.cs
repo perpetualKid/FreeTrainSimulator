@@ -42,9 +42,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
         }
 
-        public override float GetDevelopedTorqueNm(float motorSpeedRadpS)
+        public override float GetDevelopedTorqueNm(float motorSpeed)
         {
-            return requiredTorqueNm * MathHelper.Clamp((DriveSpeed - motorSpeedRadpS) / OptimalAsyncSpeed, -1, 1);
+            return requiredTorqueNm * MathHelper.Clamp((DriveSpeed - motorSpeed) / OptimalAsyncSpeed, -1, 1);
         }
 
         public override void Update(double timeSpan)
@@ -53,9 +53,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             if (SlipControl)
             {
                 if (TargetForce > 0)
-                    DriveSpeed = (AxleConnected.TrainSpeedMpS + AxleConnected.WheelSlipThresholdMpS * 0.99f) * linToAngFactor + OptimalAsyncSpeed;
+                    DriveSpeed = (AxleConnected.TrainSpeedMpS + AxleConnected.WheelSlipThresholdMpS * 0.95f) * linToAngFactor + OptimalAsyncSpeed;
                 else if (TargetForce < 0)
-                    DriveSpeed = (AxleConnected.TrainSpeedMpS - AxleConnected.WheelSlipThresholdMpS * 0.99f) * linToAngFactor - OptimalAsyncSpeed;
+                    DriveSpeed = (AxleConnected.TrainSpeedMpS - AxleConnected.WheelSlipThresholdMpS * 0.95f) * linToAngFactor - OptimalAsyncSpeed;
             }
             else
             {

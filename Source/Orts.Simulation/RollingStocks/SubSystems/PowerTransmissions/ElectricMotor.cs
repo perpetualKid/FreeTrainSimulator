@@ -52,7 +52,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             AxleConnected.TransmissionRatio = 1;
         }
 
-        public virtual float GetDevelopedTorqueNm(float motorRevolutions)
+        public virtual float GetDevelopedTorqueNm(float motorSpeed)
         {
             return 0;
         }

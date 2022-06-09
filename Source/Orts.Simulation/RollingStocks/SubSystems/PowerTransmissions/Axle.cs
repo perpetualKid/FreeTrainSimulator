@@ -386,40 +386,24 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         /// <summary>
-        /// Compute variation in axle dynamics. Calculates axle speed, axle angular position and rail force.
+        /// Compute variation in axle dynamics. Calculates axle speed, axle angular position and in/out forces.
         /// </summary>
-        private (double, double, double) GetAxleMotionVariation(double axleSpeedMpS)
+        public (double, double, double, double) GetAxleMotionVariation(double axleSpeedMpS)
         {
-            //Update axle force ( = k * loadTorqueNm)
-            double axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionLimit);
+            double axleOutForceN = AxleWeightN * SlipCharacteristics(axleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionLimit);
 
-            double motiveAxleForceN = -axleForceN - DampingNs * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
+            double axleInForceN = 0;
             if (DriveType == AxleDriveType.ForceDriven)
-                motiveAxleForceN += DriveForceN * transmissionEfficiency;
+                axleInForceN = DriveForceN * transmissionEfficiency;
             else if (DriveType == AxleDriveType.MotorDriven)
-                motiveAxleForceN += motor.GetDevelopedTorqueNm((float)(axleSpeedMpS * transmissionRatio / WheelRadiusM)) * transmissionEfficiency / WheelRadiusM;
+                axleInForceN = motor.GetDevelopedTorqueNm((float)(axleSpeedMpS * transmissionRatio / WheelRadiusM)) * transmissionEfficiency / WheelRadiusM;
 
-            // Dissipative forces: they will never increase wheel speed
-            double frictionalForceN = BrakeRetardForceN + FrictionN;
+            double totalAxleForceN = axleInForceN - axleOutForceN - DampingNs * (axleSpeedMpS - TrainSpeedMpS); // Force transmitted to rail + heat losses
             // + slipDerivationMpSS * dampingNs TODO: Integrator does not allow derivatives of integration variable, is damping required?
 
-            double totalAxleForceN = motiveAxleForceN - Math.Sign(axleSpeedMpS) * frictionalForceN;
-            if (Math.Abs(axleSpeedMpS) < 0.01f)
-            {
-                if (Math.Abs(TrainSpeedMpS) < 0.01f)
-                    frictionalForceN += FrictionN; // Set a starting friction to avoid oscillations
-                if (motiveAxleForceN > frictionalForceN)
-                    totalAxleForceN = motiveAxleForceN - frictionalForceN;
-                else if (motiveAxleForceN < -frictionalForceN)
-                    totalAxleForceN = motiveAxleForceN + frictionalForceN;
-                else
-                {
-                    totalAxleForceN = 0;
-                    axleForceN = 0;
-                    frictionalForceN -= Math.Abs(motiveAxleForceN);
-                }
-            }
-            return (totalAxleForceN * forceToAccelerationFactor, axleSpeedMpS / WheelRadiusM, axleForceN);
+            totalAxleForceN -= Math.Sign(axleSpeedMpS) * (BrakeRetardForceN + FrictionN); // Dissipative forces: they will never increase wheel speed
+
+            return (totalAxleForceN * forceToAccelerationFactor, axleSpeedMpS / WheelRadiusM, axleOutForceN, axleInForceN);
         }
 
         /// <summary>
@@ -450,31 +434,40 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             NumOfSubstepsPS = Math.Max(Math.Min(NumOfSubstepsPS, 50), 1);
             double dt = elapsedClockSeconds / NumOfSubstepsPS;
             double hdt = dt / 2.0f;
-            double axleForceSumN = 0;
+            double axleInForceSumN = 0;
+            double axleOutForceSumN = 0;
             for (int i = 0; i < NumOfSubstepsPS; i++)
             {
-                (double, double, double) k1 = GetAxleMotionVariation(AxleSpeedMpS);
-                if (i == 0 && k1.Item1 * dt > Math.Max((Math.Abs(SlipSpeedMpS) - 1) * 10, 1) / 100)
+                (double, double, double, double) k1 = GetAxleMotionVariation(AxleSpeedMpS);
+                if (i == 0)
                 {
-                    NumOfSubstepsPS = Math.Min(NumOfSubstepsPS + 5, 50);
-                    dt = elapsedClockSeconds / NumOfSubstepsPS;
-                    hdt = dt / 2;
+                    if (k1.Item1 * dt > Math.Max((Math.Abs(SlipSpeedMpS) - 1) * 10, 1) / 100)
+                    {
+                        NumOfSubstepsPS = Math.Min(NumOfSubstepsPS + 5, 50);
+                        dt = elapsedClockSeconds / NumOfSubstepsPS;
+                        hdt = dt / 2;
+                    }
+                    if (Math.Sign(AxleSpeedMpS + k1.Item1 * dt) != Math.Sign(AxleSpeedMpS) && BrakeRetardForceN + FrictionN > Math.Abs(DriveForceN - k1.Item3))
+                    {
+                        AxlePositionRad += (float)(AxleSpeedMpS * hdt);
+                        AxlePositionRad = MathHelper.WrapAngle(AxlePositionRad);
+                        AxleSpeedMpS = 0;
+                        AxleForceN = 0;
+                        DriveForceN = (float)k1.Item4;
+                        return;
+                    }
                 }
-                (double, double, double) k2 = GetAxleMotionVariation(AxleSpeedMpS + k1.Item1 * hdt);
-                (double, double, double) k3 = GetAxleMotionVariation(AxleSpeedMpS + k2.Item1 * hdt);
-                (double, double, double) k4 = GetAxleMotionVariation(AxleSpeedMpS + k3.Item1 * dt);
+                (double, double, double, double) k2 = GetAxleMotionVariation(AxleSpeedMpS + k1.Item1 * hdt);
+                (double, double, double, double) k3 = GetAxleMotionVariation(AxleSpeedMpS + k2.Item1 * hdt);
+                (double, double, double, double) k4 = GetAxleMotionVariation(AxleSpeedMpS + k3.Item1 * dt);
                 AxleSpeedMpS += (integratorError = (float)((k1.Item1 + 2 * (k2.Item1 + k3.Item1) + k4.Item1) * dt / 6.0f));
                 AxlePositionRad += (float)((k1.Item2 + 2 * (k2.Item2 + k3.Item2) + k4.Item2) * dt / 6.0f);
-                axleForceSumN += (float)(k1.Item3 + 2 * (k2.Item3 + k3.Item3) + k4.Item3);
+                axleOutForceSumN += (k1.Item3 + 2 * (k2.Item3 + k3.Item3) + k4.Item3);
+                axleInForceSumN += (k1.Item4 + 2 * (k2.Item4 + k3.Item4) + k4.Item4);
             }
-            AxleForceN = (float)(axleForceSumN / (NumOfSubstepsPS * 6));
+            AxleForceN = (float)axleOutForceSumN / (NumOfSubstepsPS * 6);
+            DriveForceN = (float)axleInForceSumN / (NumOfSubstepsPS * 6);
             AxlePositionRad = MathHelper.WrapAngle(AxlePositionRad);
-
-            if ((prevSpeedMpS > 0 && AxleSpeedMpS <= 0) || (prevSpeedMpS < 0 && AxleSpeedMpS >= 0))
-            {
-                if (Math.Max(BrakeRetardForceN, FrictionN) > Math.Abs(DriveForceN - AxleForceN))
-                    Reset();
-            }
         }
 
         /// <summary>
@@ -484,7 +477,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// </summary>
         private void StationaryCalculation(float elapsedClockSeconds)
         {
-            (double, double, double) res = GetAxleMotionVariation(AxleSpeedMpS);
+            (double, double, double, double) res = GetAxleMotionVariation(AxleSpeedMpS);
             double force = res.Item1 / forceToAccelerationFactor + res.Item3;
             double maxAdhesiveForce = AxleWeightN * AdhesionLimit;
             if (maxAdhesiveForce == 0)
@@ -519,6 +512,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public void Update(double timeSpan)
         {
             forceToAccelerationFactor = WheelRadiusM * WheelRadiusM / totalInertiaKgm2;
+
+            motor?.Update(timeSpan);
+
             Integrate(timeSpan);
             // TODO: We should calculate brake force here
             // Adding and substracting the brake force is correct for normal operation,
@@ -530,8 +526,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             CompensatedAxleForceN = AxleForceN + Math.Sign(TrainSpeedMpS) * BrakeRetardForceN;
             if (AxleForceN == 0)
                 CompensatedAxleForceN = 0;
-
-            motor?.Update(timeSpan);
 
             if (timeSpan > 0.0f)
             {
@@ -586,7 +580,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <param name="K">Slip speed correction</param>
         /// <param name="umax">Relative weather conditions, usually from 0.2 to 1.0</param>
         /// <returns>Relative force transmitted to the rail</returns>
-        private static double SlipCharacteristics(float slipSpeedMpS, float speedMpS, float K, float umax)
+        private static double SlipCharacteristics(double slipSpeedMpS, double speedMpS, double K, double umax)
         {
             double slipSpeedKpH = Speed.MeterPerSecond.ToKpH(slipSpeedMpS);
             double x = slipSpeedKpH * umax / K; // Slip percentage
