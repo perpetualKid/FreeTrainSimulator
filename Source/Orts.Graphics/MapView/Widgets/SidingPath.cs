@@ -16,8 +16,8 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
         {
-            public SidingSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation, IList<TrackSegmentSection> trackNodeSegments) :
-                base(trackNodeIndex, startLocation, endLocation, trackNodeSegments)
+            public SidingSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -45,14 +45,14 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end, IList<TrackSegmentSection> trackNodeSegments) : 
-            base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackNodeSegments)
+        public SidingPath(SidingTrackItem start, SidingTrackItem end) : 
+            base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
 
             if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
             {
-                PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, end.Location, trackNodeSegments));
+                PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, end.Location));
             }
             else
             {
@@ -61,8 +61,8 @@ namespace Orts.Graphics.MapView.Widgets
                 if (trackPins.Length == 1)
                 {
                     PointD junctionLocation = PointD.FromWorldLocation((RuntimeData.Instance.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
-                    PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, junctionLocation, trackNodeSegments));
-                    PathSections.Add(new SidingSection(end.TrackVectorNode.Index, junctionLocation, end.Location, trackNodeSegments));
+                    PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, junctionLocation));
+                    PathSections.Add(new SidingSection(end.TrackVectorNode.Index, junctionLocation, end.Location));
                 }
                 else
                 {
@@ -71,8 +71,9 @@ namespace Orts.Graphics.MapView.Widgets
             }    
         }
 
-        public static IEnumerable<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems, IList<TrackSegmentSection> trackNodeSegments)
+        public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems)
         {
+            List<SidingPath> result = new List<SidingPath>();
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
             while (sidingItemMappings.Count > 0)
             {
@@ -86,13 +87,14 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
                     }
                     _ = sidingItemMappings.Remove(end.Id);
-                    yield return new SidingPath(start, end, trackNodeSegments);
+                    result.Add(new SidingPath(start, end));
                 }
                 else
                 {
                     Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.Id} not found.");
                 }
             }
+            return result;
         }
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

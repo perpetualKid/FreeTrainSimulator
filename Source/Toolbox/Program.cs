@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Windows.Forms;
 
+using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 
@@ -16,6 +17,7 @@ namespace Orts.Toolbox
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             using (GameWindow game = new GameWindow())
             {
                 if (Debugger.IsAttached)
@@ -32,6 +34,8 @@ namespace Orts.Toolbox
                     catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
                     {
+                        // Log the error first in case we're burning.
+                        Trace.WriteLine(new FatalException(ex));
                         string errorSummary = ex.GetType().FullName + ": " + ex.Message;
                         string logFile = game.LogFileName;
                         if (string.IsNullOrEmpty(logFile))

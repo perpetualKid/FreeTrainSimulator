@@ -15,11 +15,13 @@ namespace Orts.Models.Track
         protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
             base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            if (null == connectedVectorNode)
-                return;
             if (null == trackSections)
                 throw new ArgumentNullException(nameof(trackSections));
 
+            TrackNodeIndex = trackEndNode.Index;
+
+            if (null == connectedVectorNode)
+                return;
             if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
             {
                 //find angle at beginning of vector node
@@ -41,7 +43,6 @@ namespace Orts.Models.Track
                 }
             }
             Direction -= MathHelper.PiOver2;
-            TrackNodeIndex = trackEndNode.Index;
         }
 
         public bool EndNodeAt(in PointD location)

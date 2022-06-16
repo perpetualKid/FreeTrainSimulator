@@ -63,7 +63,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.hazardsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pickupsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.soundRegionsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tileGidVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tileGridVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.pathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -173,7 +173,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.viewTrackItemsToolStripMenuItem,
             this.viewRoadItemsToolStripMenuItem,
             this.viewInteractivesToolStripMenuItem,
-            this.tileGidVisibleToolStripMenuItem,
+            this.tileGridVisibleToolStripMenuItem,
             this.toolStripSeparator6,
             this.pathToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
@@ -387,12 +387,12 @@ namespace Orts.Toolbox.WinForms.Controls
             this.soundRegionsVisibleToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.soundRegionsVisibleToolStripMenuItem.Text = "Sound Regions";
             // 
-            // tileGidVisibleToolStripMenuItem
+            // tileGridVisibleToolStripMenuItem
             // 
-            this.tileGidVisibleToolStripMenuItem.CheckOnClick = true;
-            this.tileGidVisibleToolStripMenuItem.Name = "tileGidVisibleToolStripMenuItem";
-            this.tileGidVisibleToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
-            this.tileGidVisibleToolStripMenuItem.Text = "Tile Gid";
+            this.tileGridVisibleToolStripMenuItem.CheckOnClick = true;
+            this.tileGridVisibleToolStripMenuItem.Name = "tileGridVisibleToolStripMenuItem";
+            this.tileGridVisibleToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.tileGridVisibleToolStripMenuItem.Text = "Tile Grid";
             // 
             // toolStripSeparator6
             // 
@@ -767,7 +767,7 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripComboBox roadTrackEndColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripMenuItem trackLevelCrossingsVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem roadLevelCrossingsVisibleToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem tileGidVisibleToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tileGridVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem roadCarSpawnersVisibleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewInteractivesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem primarySignalsVisibleToolStripMenuItem;

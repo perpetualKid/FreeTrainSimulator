@@ -7,7 +7,8 @@ namespace Orts.Models.Track
 {
     public class TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
     {
-        public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments): base(trackNodeIndex, PointD.None, PointD.None)
+        public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments): 
+            base(trackNodeIndex)
         { 
             SectionSegments.AddRange(trackSegments);
             SectionSegments.Sort((t1, t2) => t1.TrackVectorSectionIndex.CompareTo(t2.TrackVectorSectionIndex));

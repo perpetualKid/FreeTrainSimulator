@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Orts.Common.Position;
 
@@ -22,18 +23,15 @@ namespace Orts.Models.Track
 
         public int TrackNodeIndex { get; }
 
-        private protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end): base(start, end)
+        private protected TrackSegmentSectionBase(int trackNodeIndex) : base(PointD.None, PointD.None)
         {
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end, IList<TrackSegmentSection> sourceElements) : base(start, end)
+        protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end) : base(start, end)
         {
-            if (null == sourceElements)
-                throw new ArgumentNullException(nameof(sourceElements));
-
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
 
@@ -41,14 +39,14 @@ namespace Orts.Models.Track
             TrackSegmentBase endSegment;
             List<TrackSegmentBase> segments;
 
-            if ((segments = sourceElements[trackNodeIndex]?.SectionSegments) == null)
+            if ((segments = TrackModel.Instance.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             (startSegment, endSegment) = EvaluteSegments(start, end, segments);
 
             if (startSegment == null || endSegment == null)
             {
-                //                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
+                Trace.TraceWarning($"Start or End point not on track for Track Vector Node {trackNodeIndex}. This will be shown as straight line in the map view.");
                 SectionSegments.Add(CreateItem(start, end));
                 return;
             }
