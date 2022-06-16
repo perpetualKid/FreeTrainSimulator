@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,9 +17,18 @@ namespace Orts.Models.Track
     /// <typeparam name="T"></typeparam>
     public abstract class TrackSegmentPathBase<T> : VectorPrimitive where T : TrackSegmentBase
     {
-#pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrackSegmentSectionBase<T>> PathSectionSections { get; } = new List<TrackSegmentSectionBase<T>>();
-#pragma warning restore CA1002 // Do not expose generic lists
+        private readonly PointD midPoint;
 
+#pragma warning disable CA1002 // Do not expose generic lists
+        protected List<TrackSegmentSectionBase<T>> PathSections { get; } = new List<TrackSegmentSectionBase<T>>();
+#pragma warning restore CA1002 // Do not expose generic lists
+        public ref readonly PointD MidPoint => ref midPoint;
+
+        protected TrackSegmentPathBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements) :
+            base(start, end)
+        {
+
+            midPoint = Location + (Vector - Location) / 2.0;
+        }
     }
 }

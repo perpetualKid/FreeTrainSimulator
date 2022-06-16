@@ -1042,14 +1042,27 @@ namespace Orts.Formats.Msts.Models
 
         public static readonly TrackPin Empty = new TrackPin(-1, (TrackDirection)(-1));
     }
-    #endregion
 
-    /// <summary>
-    /// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
-    /// as well as a cross reference to the entry in the world file
-    /// </summary>
-    //[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
-    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldId}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}")]
+    public class TrackPinComparer : IEqualityComparer<TrackPin>
+    {
+        public bool Equals(TrackPin x, TrackPin y)
+        {
+            return x != null && y != null && x.Link == y.Link;
+        }
+
+        public int GetHashCode(TrackPin obj)
+        {
+            return obj?.Link ?? -1;
+        }
+    }
+#endregion
+
+/// <summary>
+/// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
+/// as well as a cross reference to the entry in the world file
+/// </summary>
+//[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
+[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldId}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}")]
     public class UiD
     {
         private readonly WorldLocation location;

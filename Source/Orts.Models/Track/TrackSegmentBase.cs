@@ -232,6 +232,9 @@ namespace Orts.Models.Track
         /// or NaN if the point is not along (perpedicular) the track</returns>
         public override double DistanceSquared(in PointD point)
         {
+            if (point == Location || point == Vector)
+                return 0;
+
             double distanceSquared;
             if (Curved)
             {

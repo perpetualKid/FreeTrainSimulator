@@ -369,9 +369,9 @@ namespace Orts.Graphics.Window
 
         public override void Update(GameTime gameTime)
         {
-            foreach (WindowBase window in windows)
+            for (int i = 0; i < windows.Count; i++)
             {
-                window.Update(gameTime);
+                windows[i].Update(gameTime);
             }
             base.Update(gameTime);
         }

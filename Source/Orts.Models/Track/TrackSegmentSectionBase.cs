@@ -29,6 +29,67 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
+        protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end, IList<TrackSegmentSection> sourceElements) : base(start, end)
+        {
+            if (null == sourceElements)
+                throw new ArgumentNullException(nameof(sourceElements));
+
+            midPoint = Location + (Vector - Location) / 2.0;
+            TrackNodeIndex = trackNodeIndex;
+
+            TrackSegmentBase startSegment;
+            TrackSegmentBase endSegment;
+            List<TrackSegmentBase> segments;
+
+            if ((segments = sourceElements[trackNodeIndex]?.SectionSegments) == null)
+                throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
+
+            (startSegment, endSegment) = EvaluteSegments(start, end, segments);
+
+            if (startSegment == null || endSegment == null)
+            {
+                //                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
+                SectionSegments.Add(CreateItem(start, end));
+                return;
+            }
+
+            //find all vector sections in between (understanding which direction to go)
+            //build a path between the two
+            if (startSegment.TrackVectorSectionIndex < endSegment.TrackVectorSectionIndex)
+            {
+                //start section
+                bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
+                SectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
+                //interim sections
+                for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
+                {
+                    SectionSegments.Add(CreateItem(segments[i]));
+                }
+                //end section
+                reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
+                SectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
+            }
+            else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
+            {
+                //end section
+                bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
+                SectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
+                //interim sections
+                for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
+                {
+                    SectionSegments.Add(CreateItem(segments[i]));
+                }
+                //start section
+                reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
+                SectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
+            }
+            //on a single track vector section
+            else
+            {
+                SectionSegments.Add(CreateItem(startSegment, start, end));
+            }
+        }
+
         protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements):
             base(start, end)
         {

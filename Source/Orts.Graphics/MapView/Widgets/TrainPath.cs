@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
@@ -137,6 +138,7 @@ namespace Orts.Graphics.MapView.Widgets
                     if (nodeSegment == null || nextNodeSegment == null)
                         return null;
 
+                    var test = RuntimeData.Instance.TrackDB.TrackNodes[nodeSegment.TrackNodeIndex];
                     result.Add(new TrainPath(PointD.FromWorldLocation(node.Location), nodeSegment.TrackNodeIndex, PointD.FromWorldLocation(nextPoint.Location), nextNodeSegment.TrackNodeIndex, trackNodeSegments));
                     result.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType));
                 }
