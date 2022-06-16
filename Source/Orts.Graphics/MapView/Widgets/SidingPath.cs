@@ -67,6 +67,7 @@ namespace Orts.Graphics.MapView.Widgets
                 else
                 {
                     Trace.TraceWarning($"Siding ends are not connected by at most one Junction Node for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}.");
+                    Debug.Assert(false);
                 }
             }    
         }
@@ -99,12 +100,9 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (TrackSegmentSectionBase<SidingSegment> segmentSection in PathSections)
+            foreach (SidingSection segmentSection in PathSections)
             {
-                foreach (SidingSegment segment in segmentSection.SectionSegments)
-                {
-                    segment.Draw(contentArea, colorVariation, scaleFactor);
-                }
+                segmentSection.Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 

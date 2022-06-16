@@ -121,6 +121,7 @@ namespace Orts.Graphics.MapView
                 case ColorSetting.PathTrack:
                     WidgetColorCache.UpdateColor<PathSegment>(color);
                     WidgetColorCache.UpdateColor<TrainPathSegment>(color);
+                    WidgetColorCache.UpdateColor<TrainPath>(color);
                     break;
                 case ColorSetting.PathTrackEnd:
                     WidgetColorCache.UpdateColor<PathEndTrackItem>(color);

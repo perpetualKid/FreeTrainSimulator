@@ -45,11 +45,11 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end) : 
+        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end) :
             base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
-            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
+            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
             //Strip the station name out of platform name (only if they are not equal)
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[StationName.Length..];
@@ -103,12 +103,9 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (TrackSegmentSectionBase<PlatformSegment> segmentSection in PathSections)
+            foreach (PlatformSection segmentSection in PathSections)
             {
-                foreach (PlatformSegment segment in segmentSection.SectionSegments)
-                {
-                    segment.Draw(contentArea, colorVariation, scaleFactor);
-                }
+                segmentSection.Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 
