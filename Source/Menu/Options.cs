@@ -496,6 +496,11 @@ namespace Orts.Menu
 
         private void ButtonContentDelete_Click(object sender, EventArgs e)
         {
+            DeleteContent();
+        }
+
+        private void DeleteContent()
+        {
             bindingSourceContent.RemoveCurrent();
             // ResetBindings() is to work around a bug in the binding and/or data grid where by deleting the bottom item doesn't show the selection moving to the new bottom item.
             bindingSourceContent.ResetBindings(false);
@@ -533,6 +538,17 @@ namespace Orts.Menu
         {
             if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
             {
+                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.Path).StartsWith(".."))
+                {
+                    // Block added because a succesful Update operation will empty the Open Rails folder and lose any content stored within it.
+                    MessageBox.Show(catalog.GetString
+                        ($"Cannot use content from any folder inside the Open Rails folder {RuntimeInfo.ProgramRoot}\n\n")
+                        , "Invalid content location"
+                        , MessageBoxButtons.OK
+                        , MessageBoxIcon.Error);
+                    DeleteContent();
+                    return;
+                }
                 // Duplicate names lead to an exception, so append " copy" if not unique
                 string suffix = "";
                 bool isNameUnique = true;
