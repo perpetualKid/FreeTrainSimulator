@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
 using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
@@ -16,6 +13,10 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
         {
+            public SidingSection(int trackNodeIndex) : base(trackNodeIndex)
+            {
+            }
+
             public SidingSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackNodeIndex, startLocation, endLocation)
             {
@@ -45,37 +46,20 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end) : 
+        public SidingPath(SidingTrackItem start, SidingTrackItem end) :
             base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
-
-            if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
+            if (PathSections.Count == 0)
             {
-                PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, end.Location));
+                Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
             }
-            else
-            {
-                // find the junction on either end
-                TrackPin[] trackPins = start.TrackVectorNode.TrackPins.Intersect(end.TrackVectorNode.TrackPins, new TrackPinComparer()).ToArray();
-                if (trackPins.Length == 1)
-                {
-                    PointD junctionLocation = PointD.FromWorldLocation((RuntimeData.Instance.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
-                    PathSections.Add(new SidingSection(start.TrackVectorNode.Index, start.Location, junctionLocation));
-                    PathSections.Add(new SidingSection(end.TrackVectorNode.Index, junctionLocation, end.Location));
-                }
-                else
-                {
-                    Trace.TraceWarning($"Siding ends are not connected by at most one Junction Node for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}.");
-                    Debug.Assert(false);
-                }
-            }    
         }
 
         public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems)
         {
             List<SidingPath> result = new List<SidingPath>();
-            Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.Id);
+            Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.TrackItemId);
             while (sidingItemMappings.Count > 0)
             {
                 int sourceId = sidingItemMappings.Keys.First();
@@ -83,16 +67,16 @@ namespace Orts.Graphics.MapView.Widgets
                 _ = sidingItemMappings.Remove(sourceId);
                 if (sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
                 {
-                    if (end.LinkedId != start.Id)
+                    if (end.LinkedId != start.TrackItemId)
                     {
-                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
+                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
-                    _ = sidingItemMappings.Remove(end.Id);
+                    _ = sidingItemMappings.Remove(end.TrackItemId);
                     result.Add(new SidingPath(start, end));
                 }
                 else
                 {
-                    Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.Id} not found.");
+                    Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.TrackItemId} not found.");
                 }
             }
             return result;
@@ -109,6 +93,16 @@ namespace Orts.Graphics.MapView.Widgets
         public override double DistanceSquared(in PointD point)
         {
             return double.NaN;
+        }
+
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        {
+            return new SidingSection(trackNodeIndex, start, end);
+        }
+
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(int trackNodeIndex)
+        {
+            return new SidingSection(trackNodeIndex);
         }
     }
 

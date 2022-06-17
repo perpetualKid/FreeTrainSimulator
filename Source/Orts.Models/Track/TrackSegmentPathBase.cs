@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
@@ -24,10 +23,66 @@ namespace Orts.Models.Track
 #pragma warning restore CA1002 // Do not expose generic lists
         public ref readonly PointD MidPoint => ref midPoint;
 
+#pragma warning disable CA2214 // Do not call overridable methods in constructors
         protected TrackSegmentPathBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex) :
             base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
+            TrackVectorNode startVectorNode = RuntimeData.Instance.TrackDB.TrackNodes[startTrackNodeIndex] as TrackVectorNode;
+            TrackVectorNode endVectorNode = RuntimeData.Instance.TrackDB.TrackNodes[endTrackNodeIndex] as TrackVectorNode;
+
+            (int startJunction, int endJunction, int intermediaryNode)? ConnectAcrossIntermediary()
+            {
+                for (int i = 0; i < startVectorNode.TrackPins.Length; i++)
+                {
+                    for (int j = 0; j < endVectorNode.TrackPins.Length; j++)
+                    {
+                        TrackPin[] trackPins = RuntimeData.Instance.TrackDB.TrackNodes[startVectorNode.TrackPins[i].Link].TrackPins.
+                            Intersect(RuntimeData.Instance.TrackDB.TrackNodes[endVectorNode.TrackPins[j].Link].TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
+                        if (trackPins.Length == 1)
+                            return (startVectorNode.TrackPins[i].Link, endVectorNode.TrackPins[j].Link, trackPins[0].Link);
+                    }
+                }
+                return null;
+            }
+
+            if (startTrackNodeIndex == endTrackNodeIndex)
+            {
+                PathSections.Add(AddSection(startTrackNodeIndex, start, end));
+            }
+            else
+            {
+                // check the links are connected through (the same) junction node on either end
+                TrackPin[] trackPins = startVectorNode.TrackPins.Intersect(endVectorNode.TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
+                if (trackPins.Length == 1)
+                {
+                    PointD junctionLocation = PointD.FromWorldLocation((RuntimeData.Instance.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
+                    PathSections.Add(AddSection(startTrackNodeIndex, start, junctionLocation));
+                    PathSections.Add(AddSection(endTrackNodeIndex, junctionLocation, end));
+                }
+                else
+                {
+                    // check if the links connected through a single intermediary track node across the junction nodes on either end
+                    (int startJunction, int endJunction, int intermediaryNode)? intermediary;
+                    if ((intermediary = ConnectAcrossIntermediary()) != null)
+                    {
+                        PathSections.Add(AddSection(startTrackNodeIndex, start, TrackModel.Instance.Junctions[intermediary.Value.startJunction].Location));
+                        PathSections.Add(AddSection(intermediary.Value.intermediaryNode));
+                        PathSections.Add(AddSection(endTrackNodeIndex, TrackModel.Instance.Junctions[intermediary.Value.endJunction].Location, end));
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"Start and End sections are not connected through the same Junction Node or at most one intermediary Track Node in between on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
+                    }
+                }
+            }
+
         }
+#pragma warning restore CA2214 // Do not call overridable methods in constructors
+
+#pragma warning disable CA1716 // Identifiers should not match keywords
+        protected abstract TrackSegmentSectionBase<T> AddSection(int trackNodeIndex, in PointD start, in PointD end);
+        protected abstract TrackSegmentSectionBase<T> AddSection(int trackNodeIndex);
+#pragma warning restore CA1716 // Identifiers should not match keywords
     }
 }

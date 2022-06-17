@@ -91,7 +91,8 @@ namespace Orts.Graphics.MapView.Widgets
                     {
                         if (node.Junction && nextNode.Junction)
                         {
-                            TrackPin[] trackPins = RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.TrackNodeIndex].TrackPins.Intersect(RuntimeData.Instance.TrackDB.TrackNodes[nextJunctionNode.TrackNodeIndex].TrackPins, new TrackPinComparer()).ToArray();
+                            TrackPin[] trackPins = RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.TrackNodeIndex].TrackPins.
+                                Intersect(RuntimeData.Instance.TrackDB.TrackNodes[nextJunctionNode.TrackNodeIndex].TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
                             if (trackPins.Length == 1)
                             {
                                 PathSections.Add(new TrainPathSection(TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex, nodeLocation, nextNodeLocation));
@@ -137,6 +138,16 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 pathItem.Draw(contentArea, colorVariation, scaleFactor);
             }
+        }
+
+        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(int trackNodeIndex)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

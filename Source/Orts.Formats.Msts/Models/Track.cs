@@ -1045,6 +1045,8 @@ namespace Orts.Formats.Msts.Models
 
     public class TrackPinComparer : IEqualityComparer<TrackPin>
     {
+        private TrackPinComparer() { }
+
         public bool Equals(TrackPin x, TrackPin y)
         {
             return x != null && y != null && x.Link == y.Link;
@@ -1054,6 +1056,8 @@ namespace Orts.Formats.Msts.Models
         {
             return obj?.Link ?? -1;
         }
+
+        public static TrackPinComparer LinkOnlyComparer { get; } = new TrackPinComparer();
     }
 #endregion
 

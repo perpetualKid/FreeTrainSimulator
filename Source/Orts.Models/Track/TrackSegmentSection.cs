@@ -8,10 +8,8 @@ namespace Orts.Models.Track
     public class TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
     {
         public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments): 
-            base(trackNodeIndex)
-        { 
-            SectionSegments.AddRange(trackSegments);
-            SectionSegments.Sort((t1, t2) => t1.TrackVectorSectionIndex.CompareTo(t2.TrackVectorSectionIndex));
+            base(trackNodeIndex, trackSegments)
+        {
         }
 
         protected override TrackSegmentBase CreateItem(in PointD start, in PointD end)

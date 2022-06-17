@@ -191,7 +191,6 @@ namespace Orts.Graphics.MapView.Widgets
     internal class SidingTrackItem : TrackItemBase
     {
         internal readonly string SidingName;
-        internal readonly int Id;
         internal readonly int LinkedId;
 
         internal TrackVectorNode TrackVectorNode;
@@ -200,7 +199,6 @@ namespace Orts.Graphics.MapView.Widgets
         {
             TrackVectorNode = trackItemNodes[source.TrackItemId];
             SidingName = source.ItemName;
-            Id = source.TrackItemId;
             LinkedId = source.LinkedSidingId;
             Size = 5f;
         }
@@ -219,7 +217,6 @@ namespace Orts.Graphics.MapView.Widgets
     {
         internal readonly string PlatformName;
         internal readonly string StationName;
-        internal readonly int Id;
         internal readonly int LinkedId;
 
         internal TrackVectorNode TrackVectorNode;
@@ -230,7 +227,6 @@ namespace Orts.Graphics.MapView.Widgets
             TrackVectorNode = trackItemNodes[source.TrackItemId];
             PlatformName = source.ItemName;
             StationName = source.Station;
-            Id = source.TrackItemId;
             LinkedId = source.LinkedPlatformItemId;
             Size = 7f;
         }

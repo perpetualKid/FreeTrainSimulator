@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
@@ -23,13 +25,46 @@ namespace Orts.Models.Track
 
         public int TrackNodeIndex { get; }
 
-        private protected TrackSegmentSectionBase(int trackNodeIndex) : base(PointD.None, PointD.None)
+        private protected TrackSegmentSectionBase(int trackNodeIndex, IEnumerable<T> trackSegments) : base()
         {
+            SectionSegments.AddRange(trackSegments);
+            SectionSegments.Sort((t1, t2) => t1.TrackVectorSectionIndex.CompareTo(t2.TrackVectorSectionIndex));
+
+            if (SectionSegments.Count == 1)
+            {
+                SetVector(SectionSegments[0].Location, SectionSegments[0].Vector);
+            }
+            else
+            {
+                TrackSegmentBase startSegment = SectionSegments[0];
+                TrackSegmentBase endSegment = SectionSegments[^1];
+
+                bool reverse = startSegment.Location.DistanceSquared(SectionSegments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(SectionSegments[startSegment.TrackVectorSectionIndex + 1].Location);
+                PointD start = reverse ? startSegment.Vector : startSegment.Location;
+
+                //end section
+                reverse = endSegment.Location.DistanceSquared(SectionSegments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(SectionSegments[endSegment.TrackVectorSectionIndex - 1].Location);
+                PointD end = reverse ? endSegment.Location: endSegment.Vector;
+
+                SetVector(start, end);
+            }
+
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
+        protected TrackSegmentSectionBase(int trackNodeIndex) : base()
+        {
+            SetVector(TrackModel.Instance.SegmentSections[trackNodeIndex].Location, TrackModel.Instance.SegmentSections[trackNodeIndex].Vector);
+            foreach (TrackSegmentBase segment in TrackModel.Instance.SegmentSections[trackNodeIndex].SectionSegments)
+            {
+                SectionSegments.Add(CreateItem(segment));
+            }
+            midPoint = Location + (Vector - Location) / 2.0;
+            TrackNodeIndex = trackNodeIndex;
+        }
+
         protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end) : base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
@@ -88,7 +123,7 @@ namespace Orts.Models.Track
             }
         }
 
-        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements):
+        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements) :
             base(start, end)
         {
             if (null == sourceElements)
@@ -127,7 +162,7 @@ namespace Orts.Models.Track
 
             if (startSegment == null || endSegment == null)
             {
-//                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
+                //                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
                 SectionSegments.Add(CreateItem(start, end));
                 return;
             }

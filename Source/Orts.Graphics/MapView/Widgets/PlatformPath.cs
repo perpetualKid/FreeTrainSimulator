@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 
 using Orts.Common.Position;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
@@ -16,6 +16,11 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
+            public PlatformSection(int trackNodeIndex) :
+                base(trackNodeIndex)
+            {
+            }
+
             public PlatformSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackNodeIndex, startLocation, endLocation)
             {
@@ -54,31 +59,16 @@ namespace Orts.Graphics.MapView.Widgets
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[StationName.Length..];
 
-            if (start.TrackVectorNode.Index == end.TrackVectorNode.Index)
+            if (PathSections.Count == 0)
             {
-                PathSections.Add(new PlatformSection(start.TrackVectorNode.Index, start.Location, end.Location));
-            }
-            else
-            {
-                // find the junction on either end
-                TrackPin[] trackPins = start.TrackVectorNode.TrackPins.Intersect(end.TrackVectorNode.TrackPins, new TrackPinComparer()).ToArray();
-                if (trackPins.Length == 1)
-                {
-                    PointD junctionLocation = PointD.FromWorldLocation((RuntimeData.Instance.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
-                    PathSections.Add(new PlatformSection(start.TrackVectorNode.Index, start.Location, junctionLocation));
-                    PathSections.Add(new PlatformSection(end.TrackVectorNode.Index, junctionLocation, end.Location));
-                }
-                else
-                {
-                    Trace.TraceWarning($"Platform ends are not connected by at most one Junction Node for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}.");
-                }
+                Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
             }
         }
 
         public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
-            Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.Id);
+            Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
             while (platformItemMappings.Count > 0)
             {
                 int sourceId = platformItemMappings.Keys.First();
@@ -86,16 +76,16 @@ namespace Orts.Graphics.MapView.Widgets
                 _ = platformItemMappings.Remove(sourceId);
                 if (platformItemMappings.TryGetValue(start.LinkedId, out PlatformTrackItem end))
                 {
-                    if (end.LinkedId != start.Id)
+                    if (end.LinkedId != start.TrackItemId)
                     {
-                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
+                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
-                    _ = platformItemMappings.Remove(end.Id);
+                    _ = platformItemMappings.Remove(end.TrackItemId);
                     result.Add(new PlatformPath(start, end));
                 }
                 else
                 {
-                    Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.Id} not found.");
+                    Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.TrackItemId} not found.");
                 }
             }
             return result;
@@ -113,5 +103,16 @@ namespace Orts.Graphics.MapView.Widgets
         {
             return double.NaN;
         }
+
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        {
+            return new PlatformSection(trackNodeIndex, start, end);
+        }
+
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex)
+        {
+            return new PlatformSection(trackNodeIndex);
+        }
+
     }
 }
