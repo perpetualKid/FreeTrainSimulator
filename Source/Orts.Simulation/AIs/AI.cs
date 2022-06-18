@@ -74,8 +74,8 @@ namespace Orts.Simulation.AIs
             {
                 foreach (var sd in simulator.ActivityFile.Activity.Traffic.Services)
                 {
-                    AITrain train = CreateAITrain(sd, simulator.ActivityFile.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
-                    if (cancellationToken.IsCancellationRequested) // ping loader watchdog
+                    _ = CreateAITrain(sd, simulator.ActivityFile.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
+                    if (cancellationToken.IsCancellationRequested)
                         return;
                 }
             }
@@ -349,7 +349,7 @@ namespace Orts.Simulation.AIs
                     simulator.SignalEnvironment.Update(true);
                     ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
-                        return; // ping watchdog process
+                        return; 
                 }
             }
         }
@@ -389,7 +389,7 @@ namespace Orts.Simulation.AIs
 
                     ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
-                        return; // ping watchdog process
+                        return; 
                 }
 
                 // prerun finished - check if train from which player train originates has run and is finished
@@ -545,7 +545,7 @@ namespace Orts.Simulation.AIs
                         simulator.SignalEnvironment.Update(true);
                         ClockTime = runTime;
                         runTime += deltaTime;
-                        if (cancellation.IsCancellationRequested) // ping loader watchdog
+                        if (cancellation.IsCancellationRequested)
                             return;
 
                         int fullsec = Convert.ToInt32(runTime);
