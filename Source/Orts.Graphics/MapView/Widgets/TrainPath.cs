@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts;
@@ -16,6 +17,11 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class TrainPathSection : TrackSegmentSectionBase<TrainPathSegment>, IDrawable<VectorPrimitive>
         {
+            public TrainPathSection(int trackNodeIndex) :
+                base(trackNodeIndex)
+            {
+            }
+
             public TrainPathSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackNodeIndex, startLocation, endLocation)
             {
@@ -49,7 +55,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        public TrainPath(PathFile pathFile): base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), 0, PointD.FromWorldLocation(pathFile.PathNodes[^1].Location), 0)
+        public TrainPath(PathFile pathFile)
+            : base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
         {
             static TrackSegmentBase NodeSegmentByLocation(in PointD nodeLocation)
             {
@@ -142,12 +149,12 @@ namespace Orts.Graphics.MapView.Widgets
 
         protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
         {
-            throw new System.NotImplementedException();
+            return new TrainPathSection(trackNodeIndex, start, end);
         }
 
         protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(int trackNodeIndex)
         {
-            throw new System.NotImplementedException();
+            return new TrainPathSection(trackNodeIndex);
         }
     }
 }

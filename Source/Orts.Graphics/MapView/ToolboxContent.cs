@@ -29,6 +29,7 @@ namespace Orts.Graphics.MapView
 
         //backreferences to draw whole TrackNode segment (all track vector sections) out of the current track vector section
         internal Dictionary<int, List<TrackSegmentBase>> RoadTrackNodeSegments { get; private set; }
+        private TrainPath currentPath;
 
         public ToolboxContent(Game game) :
             base(game)
@@ -121,21 +122,28 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItemSetting in EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
+                if (viewSettings[viewItemSetting] && contentItems[viewItemSetting] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
+                    if (viewItemSetting == MapViewItemSettings.Paths)
                     {
-                        // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
-                        // but the performance impact/overhead seems invariant
-                        if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                        currentPath?.Draw(ContentArea);
+                    }
+                    else
+                    {
+                        foreach (ITileCoordinate<Tile> item in contentItems[viewItemSetting].BoundingBox(bottomLeft, topRight))
                         {
-                            (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
-                        }
-                        else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
-                        {
-                            (item as IDrawable<PointPrimitive>).Draw(ContentArea);
+                            // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
+                            // but the performance impact/overhead seems invariant
+                            if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            {
+                                (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
+                            }
+                            else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            {
+                                (item as IDrawable<PointPrimitive>).Draw(ContentArea);
+                            }
                         }
                     }
                 }
@@ -173,8 +181,9 @@ namespace Orts.Graphics.MapView
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
-            //            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path, TrackNodeSegments) });
+            //            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
+            currentPath = new TrainPath(path);
         }
         #endregion
 

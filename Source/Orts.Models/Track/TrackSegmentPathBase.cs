@@ -23,6 +23,12 @@ namespace Orts.Models.Track
 #pragma warning restore CA1002 // Do not expose generic lists
         public ref readonly PointD MidPoint => ref midPoint;
 
+        protected TrackSegmentPathBase(in PointD start, in PointD end)
+            : base(start, end)
+        {
+            midPoint = Location + (Vector - Location) / 2.0;
+        }
+
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
         protected TrackSegmentPathBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex) :
             base(start, end)
