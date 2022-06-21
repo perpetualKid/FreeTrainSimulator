@@ -17,6 +17,7 @@ namespace Orts.Toolbox
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             using (GameWindow game = new GameWindow())
             {
                 if (Debugger.IsAttached)
@@ -25,7 +26,6 @@ namespace Orts.Toolbox
                 }
                 else
                 {
-                    Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
                     try
                     {
                         game.Run();
