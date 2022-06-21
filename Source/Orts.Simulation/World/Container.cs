@@ -461,7 +461,7 @@ namespace Orts.Simulation.World
 
                     foreach (LoadDataEntry loadDataEntry in loadStationPopulation.LoadData)
                     {
-                        string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName, ".loa"));
+                        string loadFilePath = Path.Combine(trainSetFolder, loadDataEntry.FolderName, Path.ChangeExtension(loadDataEntry.FileName, ".load-or"));
                         if (!File.Exists(loadFilePath))
                         {
                             Trace.TraceWarning($"Ignored missing load {loadFilePath}");

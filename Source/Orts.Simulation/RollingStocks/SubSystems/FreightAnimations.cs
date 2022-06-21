@@ -321,7 +321,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 foreach (LoadData loadData in loadDataList)
                 {
-                    string loadFilePath = Path.Combine(TrainsetFolder, loadData.Folder, Path.ChangeExtension(loadData.Name, ".loa"));
+                    string loadFilePath = Path.Combine(TrainsetFolder, loadData.Folder, Path.ChangeExtension(loadData.Name, ".load-or"));
                     if (!File.Exists(loadFilePath))
                     {
                         Trace.TraceWarning($"Ignored missing load {loadFilePath}");
