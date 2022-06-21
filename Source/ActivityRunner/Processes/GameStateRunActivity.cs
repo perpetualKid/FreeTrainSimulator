@@ -41,6 +41,7 @@ using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -307,6 +308,18 @@ namespace Orts.ActivityRunner.Processes
             Simulator simulator = Simulator.Instance;
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
                 return; //no save for multiplayer sessions yet
+
+            if (ContainerManager.ActiveOperationsCounter > 0)
+            // don't save if performing a container load/unload
+            {
+                Simulator.Instance.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("Game save is not allowed during container load/unload"));
+                return;
+            }
+
+            // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
+            // that are likely to match the previously chosen route and activity.
+            // Append the current date and time, so that each file is unique.
+            // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
 
             string fileStem = simulator.SaveFileName;
 
