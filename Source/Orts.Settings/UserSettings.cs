@@ -172,7 +172,7 @@ namespace Orts.Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen, centered
-            nameof(WindowSetting.Size) + "=1024, 768"    // absolute pixels
+            nameof(WindowSetting.Size) + "=1024,768"    // absolute pixels
         })]
         public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
 
