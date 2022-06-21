@@ -164,15 +164,13 @@ namespace Orts.Settings
         public int ViewingFOV { get; set; }
         [Default(49)]
         public int WorldObjectDensity { get; set; }
-        [Default("1024x768")]
-        public string WindowSize { get; set; }
         [Default(20)]
         public int DayAmbientLight { get; set; }
         #region Game Window Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen, centered
-            nameof(WindowSetting.Size) + "=1024, 768"    // absolute pixels
+            nameof(WindowSetting.Size) + "=1024,768"    // absolute pixels
         })]
         public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
 
