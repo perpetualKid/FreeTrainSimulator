@@ -164,8 +164,6 @@ namespace Orts.Settings
         public int ViewingFOV { get; set; }
         [Default(49)]
         public int WorldObjectDensity { get; set; }
-        [Default("1024x768")]
-        public string WindowSize { get; set; }
         [Default(20)]
         public int DayAmbientLight { get; set; }
         #region Game Window Settings
