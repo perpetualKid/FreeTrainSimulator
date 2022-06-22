@@ -68,12 +68,12 @@ namespace Orts.Graphics.MapView
             {
                 if (contentItems[MapViewItemSettings.EndNodes].ItemCount > 0)
                 {
-                    foreach (TrackEndSegment trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
+                    foreach (EndNode endNode in contentItems[MapViewItemSettings.EndNodes])
                     {
-                        minX = Math.Min(minX, trackEndSegment.Location.X);
-                        minY = Math.Min(minY, trackEndSegment.Location.Y);
-                        maxX = Math.Max(maxX, trackEndSegment.Location.X);
-                        maxY = Math.Max(maxY, trackEndSegment.Location.Y);
+                        minX = Math.Min(minX, endNode.Location.X);
+                        minY = Math.Min(minY, endNode.Location.Y);
+                        maxX = Math.Max(maxX, endNode.Location.X);
+                        maxY = Math.Max(maxY, endNode.Location.Y);
                     }
                 }
                 else
