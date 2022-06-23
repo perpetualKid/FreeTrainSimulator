@@ -10,6 +10,7 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Graphics;
+using System.Xml.XPath;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -180,7 +181,8 @@ namespace Orts.Toolbox.WinForms.Controls
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
         {
-            Invoke((MethodInvoker)delegate {
+            Invoke((MethodInvoker)delegate
+            {
                 SuspendLayout();
                 menuItemRoutes.DropDownItems.Clear();
                 foreach (Route route in routes)
@@ -201,7 +203,7 @@ namespace Orts.Toolbox.WinForms.Controls
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
                 await parent.LoadRoute(route).ConfigureAwait(false);
-                
+
                 //PopulatePaths(paths);
             }
         }
@@ -331,10 +333,9 @@ namespace Orts.Toolbox.WinForms.Controls
 
         internal void PopulatePaths(IEnumerable<Models.Simplified.Path> paths)
         {
-
-            Invoke((MethodInvoker)delegate {
-                SuspendLayout();
-                LoadPathToolStripMenuItem.DropDownItems.Clear();
+            Invoke((MethodInvoker)delegate
+            {
+                List<ToolStripMenuItem> menuItems = new List<ToolStripMenuItem>();
                 foreach (Models.Simplified.Path path in paths)
                 {
                     ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
@@ -342,8 +343,11 @@ namespace Orts.Toolbox.WinForms.Controls
                         Tag = path,
                     };
                     pathItem.Click += LoadPathToolStripMenuItem_Click;
-                    LoadPathToolStripMenuItem.DropDownItems.Add(pathItem);
+                    menuItems.Add(pathItem);
                 }
+                SuspendLayout();
+                LoadPathToolStripMenuItem.DropDownItems.Clear();
+                LoadPathToolStripMenuItem.DropDownItems.AddRange(menuItems.ToArray());
                 ResumeLayout();
             });
         }
@@ -354,13 +358,13 @@ namespace Orts.Toolbox.WinForms.Controls
             {
                 await parent.LoadPath(path).ConfigureAwait(false);
             }
-            
-               
+
+
         }
 
         private void EnableEditToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         #endregion

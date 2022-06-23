@@ -87,7 +87,7 @@ namespace Orts.Graphics.MapView.Widgets
                     // both points are on a (the same) tracksegment
                     // one node is a junction
                     // both nodes are a junction
-
+                    // in either variant, there could be any number of trailing junctions in between
                     PathNode nextNode = pathFile.PathNodes[node.NextMainNode];
                     PointD nextNodeLocation = PointD.FromWorldLocation(nextNode.Location);
 
@@ -102,12 +102,12 @@ namespace Orts.Graphics.MapView.Widgets
                                 Intersect(RuntimeData.Instance.TrackDB.TrackNodes[nextJunctionNode.TrackNodeIndex].TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
                             if (trackPins.Length == 1)
                             {
-                                PathSections.Add(new TrainPathSection(TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex, nodeLocation, nextNodeLocation));
+                                PathSections.Add(new TrainPathSection(TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex));//, nodeLocation, nextNodeLocation);
                             }
                             else
                             {
                                 Trace.TraceWarning($"Invalid Data.");
-                                Debug.Assert(false);
+//                                Debug.Assert(false);
                             }
                         }
                         else if (node.Junction)
@@ -123,7 +123,13 @@ namespace Orts.Graphics.MapView.Widgets
                     else
                     {
                         TrackSegmentBase nextNodeSegment = NodeSegmentByLocation(nextNodeLocation);
-                        PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, PointD.FromWorldLocation(node.Location), PointD.FromWorldLocation(nextNode.Location)));
+                        if (nodeSegment.TrackNodeIndex != nextNodeSegment.TrackNodeIndex)
+                        { 
+                        }
+                        else
+                        {
+                            PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, PointD.FromWorldLocation(node.Location), PointD.FromWorldLocation(nextNode.Location)));
+                        }
                     }
                 }
                 pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType));

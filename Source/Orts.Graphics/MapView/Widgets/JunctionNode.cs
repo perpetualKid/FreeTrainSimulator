@@ -23,8 +23,8 @@ namespace Orts.Graphics.MapView.Widgets
         private const int diameter = 3;
         private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
 
-        public JunctionNode(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
-            base(junctionNode, vectorNodes, trackSections)
+        public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
+            base(junctionNode, mainRoute, vectorNodes, trackSections)
         {
             Size = diameter;
         }
@@ -68,7 +68,8 @@ namespace Orts.Graphics.MapView.Widgets
 
         public IJunction Junction { get; }
 
-        public ActiveJunctionSegment(TrackJunctionNode junctionNode, List<TrackVectorNode> vectorNodes, TrackSections trackSections) : base(junctionNode, vectorNodes, trackSections)
+        public ActiveJunctionSegment(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) : 
+            base(junctionNode, mainRoute, vectorNodes, trackSections)
         {
             trackSectionAngles = new float[vectorNodes.Count - 1];
             Junction = RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(junctionNode.TrackCircuitCrossReferences[0].Index);

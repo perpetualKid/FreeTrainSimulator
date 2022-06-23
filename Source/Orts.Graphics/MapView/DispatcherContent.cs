@@ -226,7 +226,7 @@ namespace Orts.Graphics.MapView
                         {
                             vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
                         }
-                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, vectorNodes, trackSectionsFile.TrackSections));
+                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, trackSectionsFile.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             });
