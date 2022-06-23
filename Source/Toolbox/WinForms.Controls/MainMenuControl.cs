@@ -8,9 +8,8 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
-using Orts.Models.Simplified;
 using Orts.Graphics;
-using System.Xml.XPath;
+using Orts.Models.Simplified;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -200,11 +199,22 @@ namespace Orts.Toolbox.WinForms.Controls
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Route route)
             {
+                UncheckOtherMenuItems(menuItem);
                 await parent.LoadRoute(route).ConfigureAwait(false);
+            }
+        }
 
-                //PopulatePaths(paths);
+        internal void PreSelectRoute(string routeName)
+        {
+            foreach (object dropdownItem in menuItemRoutes.DropDownItems)
+            {
+                if (dropdownItem is ToolStripMenuItem menuItem && menuItem.Text == routeName)
+                {
+                    UncheckOtherMenuItems(menuItem);
+                    break;
+                }
             }
         }
 
@@ -239,7 +249,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             if (sender is ToolStripMenuItem folderItem)
             {
-                UncheckOtherFolderMenuItems(folderItem);
+                UncheckOtherMenuItems(folderItem);
                 if (folderItem.Tag is Folder folder)
                 {
                     parent.UnloadRoute();
@@ -261,7 +271,7 @@ namespace Orts.Toolbox.WinForms.Controls
             return null;
         }
 
-        private static void UncheckOtherFolderMenuItems(ToolStripMenuItem selectedMenuItem)
+        private static void UncheckOtherMenuItems(ToolStripMenuItem selectedMenuItem)
         {
             selectedMenuItem.Checked = true;
 
@@ -310,7 +320,6 @@ namespace Orts.Toolbox.WinForms.Controls
             {
                 SystemInfo.OpenBrowser(RuntimeInfo.WikiLink);
             }
-
         }
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -346,20 +355,36 @@ namespace Orts.Toolbox.WinForms.Controls
                     menuItems.Add(pathItem);
                 }
                 SuspendLayout();
-                LoadPathToolStripMenuItem.DropDownItems.Clear();
-                LoadPathToolStripMenuItem.DropDownItems.AddRange(menuItems.ToArray());
+                loadPathToolStripMenuItem.DropDownItems.Clear();
+                loadPathToolStripMenuItem.DropDownItems.AddRange(menuItems.ToArray());
                 ResumeLayout();
             });
         }
 
+        internal void ClearPathMenu()
+        {
+            loadPathToolStripMenuItem.DropDownItems.Clear();
+        }
+
         private async void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Models.Simplified.Path path)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Models.Simplified.Path path)
             {
                 await parent.LoadPath(path).ConfigureAwait(false);
+                UncheckOtherMenuItems(menuItem);
             }
+        }
 
-
+        internal void PreSelectPath(string pathFile)
+        {
+            foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
+            {
+                if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as Models.Simplified.Path)?.FilePath == pathFile)
+                {
+                    UncheckOtherMenuItems(menuItem);
+                    break;
+                }
+            }
         }
 
         private void EnableEditToolStripMenuItem_Click(object sender, EventArgs e)
@@ -368,7 +393,5 @@ namespace Orts.Toolbox.WinForms.Controls
         }
 
         #endregion
-
-
     }
 }

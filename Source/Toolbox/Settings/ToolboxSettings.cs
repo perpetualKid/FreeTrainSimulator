@@ -74,6 +74,9 @@ namespace Orts.Toolbox.Settings
         public string[] RouteSelection { get; set; }
 
         [Default(new string[0])]
+        public string[] PathSelection { get; set; }
+
+        [Default(new string[0])]
         public string[] LastLocation { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
 

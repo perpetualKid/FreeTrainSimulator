@@ -29,6 +29,7 @@ namespace Orts.Toolbox
     {
         private Folder selectedFolder;
         private Route selectedRoute;
+        private Path selectedPath; // going forward, there may be multiple paths selected at once
         private IEnumerable<Route> routes;
         private IEnumerable<Path> paths;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
@@ -90,33 +91,42 @@ namespace Orts.Toolbox
             paths = await pathTask.ConfigureAwait(false);
             mainmenu.PopulatePaths(paths);
             windowManager[WindowType.StatusWindow].Close();
-            selectedRoute = route;
-           
+            selectedRoute = route;           
         }
 
         internal async Task LoadPath(Path path)
         {
             PathFile patFile = new PathFile(path.FilePath);
+            selectedPath = path;
             ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        internal async Task PreSelectRoute(string[] selection)
+        internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
         {
-            if (selection?.Length > 0)
+            if (routeSelection?.Length > 0)
             {
-                Folder folder = mainmenu.SelectContentFolder(selection[0]);
+                Folder folder = mainmenu.SelectContentFolder(routeSelection[0]);
                 await FindRoutes(folder).ConfigureAwait(false);
 
-                if (selection.Length > 1 && Settings.RestoreLastView)
+                if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
-                    Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    Route route = routes?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
-
+                        mainmenu.PreSelectRoute(route.Name);
+                        if (pathSelection.Length > 0)
+                        {
+                            // only restore first path for now
+                            Path path = paths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            if (null != path)
+                            {
+                                await LoadPath(path).ConfigureAwait(false);
+                                mainmenu.PreSelectPath(path.FilePath);
+                            }
+                        }
                     }
-
                 }
             }
         }
@@ -125,6 +135,9 @@ namespace Orts.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
+            paths = null;
+            selectedPath = null;
+            mainmenu.ClearPathMenu();
         }
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)

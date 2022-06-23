@@ -257,14 +257,17 @@ namespace Orts.Toolbox
                 Settings.LastLocation = location;
             }
             string[] routeSelection = null;
+            string[] pathSelection = null;
             if (selectedFolder != null)
             {
-                if (selectedRoute != null)
-                    routeSelection = new string[] { selectedFolder.Name, selectedRoute.Name };
-                else
-                    routeSelection = new string[] { selectedFolder.Name };
+                routeSelection = selectedRoute != null ? 
+                    (new string[] { selectedFolder.Name, selectedRoute.Name }) : 
+                    (new string[] { selectedFolder.Name });
+
+                pathSelection = selectedPath != null ? new string[] { selectedPath.FilePath } : null;
             }
             Settings.RouteSelection = routeSelection;
+            Settings.PathSelection = pathSelection;
             Settings.Save();
         }
 
@@ -449,7 +452,7 @@ namespace Orts.Toolbox
             base.Initialize();
 
             await Task.WhenAll(initTasks).ConfigureAwait(false);
-            await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
+            await PreSelectRoute(Settings.RouteSelection, Settings.PathSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
             if (Settings.RestoreLastView)
             {
