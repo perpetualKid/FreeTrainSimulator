@@ -140,6 +140,12 @@ namespace Orts.Toolbox
             mainmenu.ClearPathMenu();
         }
 
+        internal void UnloadPath()
+        {
+            selectedPath = null;
+            ((ToolboxContent)contentArea?.Content).InitializePath(null);
+        }
+
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {
             if (cts != null)

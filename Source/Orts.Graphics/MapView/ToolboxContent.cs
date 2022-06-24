@@ -47,6 +47,8 @@ namespace Orts.Graphics.MapView
             await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
 
             ContentArea.Initialize();
+            //just put an empty list so the draw method does not skip the paths
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
 
             DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
             DebugInfo["Track Nodes"] = $"{TrackModel.Instance.SegmentSections.Count}";
@@ -148,6 +150,10 @@ namespace Orts.Graphics.MapView
                     }
                 }
             }
+            // skip highlighting closest track items if a path is loaded
+            if (currentPath != null)
+                return;
+
             if (null != nearestItems[MapViewItemSettings.Tracks])
             {
                 foreach (TrackSegmentBase segment in TrackModel.Instance.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
@@ -178,12 +184,14 @@ namespace Orts.Graphics.MapView
         #region additional content (Paths)
         public void InitializePath(PathFile path)
         {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-
-            //            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { new TrainPath(path) });
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
-            currentPath = new TrainPath(path);
+            if (path != null)
+            {
+                currentPath = new TrainPath(path);
+            }
+            else
+            { 
+                currentPath = null;
+            }
         }
         #endregion
 

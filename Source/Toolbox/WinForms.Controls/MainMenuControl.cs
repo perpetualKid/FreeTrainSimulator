@@ -17,7 +17,6 @@ namespace Orts.Toolbox.WinForms.Controls
     {
         private readonly GameWindow parent;
 
-
         internal MainMenuControl(GameWindow game)
         {
             parent = game;
@@ -201,8 +200,16 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Route route)
             {
-                UncheckOtherMenuItems(menuItem);
-                await parent.LoadRoute(route).ConfigureAwait(false);
+                if (menuItem.Checked)
+                {
+                    menuItem.Checked = false;
+                    parent.UnloadRoute();
+                }
+                else
+                {
+                    UncheckOtherMenuItems(menuItem);
+                    await parent.LoadRoute(route).ConfigureAwait(false);
+                }
             }
         }
 
@@ -370,8 +377,16 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Models.Simplified.Path path)
             {
-                await parent.LoadPath(path).ConfigureAwait(false);
-                UncheckOtherMenuItems(menuItem);
+                if (menuItem.Checked)
+                {
+                    parent.UnloadPath();
+                    menuItem.Checked = false;
+                }
+                else
+                {
+                    await parent.LoadPath(path).ConfigureAwait(false);
+                    UncheckOtherMenuItems(menuItem);
+                }
             }
         }
 

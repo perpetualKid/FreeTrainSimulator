@@ -274,16 +274,13 @@ namespace Orts.Models.Track
         #endregion
 
         /// <summary>
-        /// 
+        /// Returns the segment at a given location, or null of not found
         /// </summary>
-        /// <param name="location"></param>
-        /// <param name="segments"></param>
-        /// <returns>Returns the segment at a given location, or null of not found</returns>
         public static TrackSegmentBase SegmentBaseAt(in PointD location, IEnumerable<TrackSegmentBase> segments)
         {
             foreach (TrackSegmentBase segment in segments ?? Enumerable.Empty<TrackSegmentBase>())
             {
-                if (location.DistanceSquared(segment.Location) <= ProximityTolerance)
+                if (segment.DistanceSquared(location) <= ProximityTolerance)
                 {
                     return segment;
                 }
@@ -294,8 +291,6 @@ namespace Orts.Models.Track
         /// <summary>
         /// Direction (Heading from North) at an arbitrary point along the current track segment
         /// </summary>
-        /// <param name="location"></param>
-        /// <returns></returns>
         public float DirectionAt(in PointD location)
         {
             if (Curved)
