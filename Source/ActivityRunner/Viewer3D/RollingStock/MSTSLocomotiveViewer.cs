@@ -3600,7 +3600,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
     public class ThreeDimCabDigit
     {
-        private const int MaxDigits = 6;
+        private int MaxDigits = 6;
         private PoseableShape TrainCarShape;
         private VertexPositionNormalTexture[] VertexList;
         private int NumVertices;
@@ -3628,10 +3628,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             { AceFile = ""; }
 
             CVFR = (CabViewDigitalRenderer)c;
+            if (CVFR.Control is CabViewDigitalClockControl digital &&  digital.ControlType == CabViewControlType.Clock && digital.Accuracy > 0)
+                MaxDigits = 8;
+
             Viewer = viewer;
             TrainCarShape = trainCarShape;
             XNAMatrix = TrainCarShape.SharedShape.Matrices[iMatrix];
-            var maxVertex = 32;// every face has max 5 digits, each has 2 triangles
+            var maxVertex = (MaxDigits + 2) * 4;// every face has max 8 digits, each has 2 triangles
                                //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
             Material = FindMaterial(false);//determine normal material
                                            // Create and populate a new ShapePrimitive
