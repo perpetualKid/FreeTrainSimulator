@@ -37,6 +37,33 @@ your train will be in motion or stopped. To look around in the simulation, you
 can select different views using the keyboard, as described in 
 :ref:`Changing the View <driving-changing-view>`.
 
+Cab Letter-Boxing
+----------------
+
+OR manages not only cab interiors using 2D images in a MSTS-compatible
+way, but also supports 3D models. Most 2D cab images follow MSTS practice,
+being 1024 x 768 pixels to suit monitors with a 4:3 aspect ratio.
+
+.. image:: images/options-2dstretch_1.png
+
+So, the problem arises -- how to display these 4:3 cabs on a 16:9 or 16:10
+monitor?
+
+One possibility is to enlarge these images to fill the width of wider monitors, 
+as shown in the image below.
+
+In doing so, we lose a portion from the top and bottom of the image. 
+You can use the Up and Down Arrow keys to pan and reveal these missing portions.
+
+.. image:: images/options-2dstretch_2.png
+
+Instead of enlarging the image, OR can also 'letterbox' it by showing the full height
+and filling the missing space with black bars. 
+You can activate this mode in-game by pressing Ctrl+1.
+
+.. image:: images/options-2dstretch_3.png
+
+
 Open Rails Driving Controls
 ===========================
 
@@ -815,17 +842,14 @@ Map Window
 ==========
 
 Use the map window to monitor and control train operation. 
-The :ref:`Map window <options-map-window>` option must be selected prior to starting the simulation.
 
-The map window is opened and closed by pressing ``<Ctrl+9>``. 
-After the map window  has been selected with ``<Alt+Tab>``, successive 
-Alt+Tabs will toggle between the OR window and the dispatcher window.
+The map window is opened and closed from the graphics window by pressing ``<Ctrl+9>``. 
+You can toggle between the graphics window and an opened map window by pressing ``<Alt+Tab>``.
  
 The map window contains 2 tabs: Dispatcher and Timetable. Both provide maps of
 the route with each train following its own path.
 
-The map window is resizable and can also be maximized, e.g. on a 
-second display. 
+The map window is resizable and can also be maximized, e.g. on a second display. 
 
 To pan, use the left mouse button to drag the map around.
 
@@ -1469,13 +1493,12 @@ The commands for each of the views are described below.
     The cab itself can be hidden with the ``<Shift+1>`` key. (The 2D view is 
     constructed from three 2D images, so the actual camera position can only be 
     modified by editing the contents of the .cvf file.) If there is a mismatch 
-    between the aspect ratio of the (optionally stretched) cab and the aspect 
+    between the aspect ratio of the cab and the aspect 
     ratio of the monitor, OR will clip the cab and show only the portion that fits 
-    within the display, as described in 
-    :ref:`2D cab stretching <options-cab-stretch>`. This clip can be panned around 
+    within the display. This clip can be panned around 
     to reveal the rest of the cab with the ``<Up>``, ``<Down>``, ``<Alt+Left>``, 
     and ``<Alt+Right>`` keys. Alternatively, if placed into letterboxing mode, 
-    which activates with the ``<Ctrl+1>`` key, OR will render the full cab 
+    by using the ``<Ctrl+1>`` key, OR will render the full cab 
     without a clip and cover the remaining space with black bars.
   - In case the 3D view is selected, the camera position and view direction are fully player 
     controllable.
@@ -2255,35 +2278,52 @@ This applies to both Timetable Mode and Activity Mode.
 Extended HUD for Debug Information
 ----------------------------------
 
-The last extended HUD display shows Debug information.
+The last extended HUD display shows Debug information containing:
 
-The first line (``Logging enabled``) refers to logging as described in 
-paragraphs 6.6 and 6.7.
+- Logging enabled: :ref:`logging status <driving-logfile>`
+- Build: date and time Open Rails was compiled
+- CPU: processor utilization by Open Rails
+- GPU: frame rate, frame time percentiles and graphics feature level
+- Memory: number of core memory objects loaded (textures, materials, shapes, and tiles) plus garbage collection statistics
+- CPU Memory:
 
-A wide variety of parameters is shown, from frame wait and render speeds 
-in milliseconds, to number of primitives, Process Thread resource 
-utilization and number of Logical CPUs from the system's bios. They are 
-very useful in case of OR stuttering, to find out where the bottleneck is.
+  - Private: virtual memory allocated just for Open Rails (not shared with other applications)
+  - Working set: physical memory in use by Open Rails (including any shared with other applications)
+  - Private working set: physical memory in use just for Open Rails
+  - Managed: virtual memory allocated by the .NET runtime (CLR)
+  - Virtual: virtual memory allocated for any purpose (private + shared + others)
 
-.. index::
-   single: tile
+- GPU Memory: 
 
-The values in the ``Camera`` line refer to the two tile coordinates and to 
-the three coordinates within the tile.
+  - Committed: all graphics memory allocated for Open Rails
+  - Dedicated: physical graphics card memory in use by Open Rails
+  - Shared: system memory shared with the graphics card in use by Open Rails
+
+- Adapter: name and dedicated physical memory of graphics card
+- Shadow maps: distance and size of each shadow map level (and texture size)
+- Shadow primitives: total primitives (rendered items) and breakdown by shadow map level
+- Render primitives: total primitives (rendered items) and breakdown by rendering sequence (``RenderPrimitiveSequence`` in the code)
+- Render/Updater/Loader/Sound process: percentage of time each process is active and waiting
+- Camera: tile X, tile Z, X, Y, Z, altitude, LOD bias, effective viewing distance, effective distant mountain viewing distance
 
 .. image:: images/driving-hud-debug.png
-    :align: center
-    :scale: 80%
+
+The primary measurements for comparing and analysing performance are the first column of values (some lines are skipped), so for the image above we have:
+
+- CPU: 10% - *very low (warning at 75%)*
+- GPU: 58 FPS - *good (warning at <55 FPS with 60 Hz vertical sync)*
+- CPU Memory: 211 MB private - *very low (~3% of 8 GB)*
+- GPU Memory: 493 MB committed - *low (~24% of 2 GB)*
+- Highest process (Render): 47% - *moderate (warning at 75%)*
+
+Also shown are the following graphs of:
+
+- Memory: working set
+- GCs: garbage collections
+- Frame time: how long each frame takes to render
+- Render/Updater/Loader/Sound process: same as textual display above
 
 .. image:: images/driving-hud-debug-graphs.png
-    :align: center
-    :scale: 80%
-
-At the bottom of the picture, some moving graphs are displayed that show 
-the actual load of the computer.
-
-Referring to memory use, about at least 400 MB must remain free to 
-avoid out-of-memory exceptions
 
 Viewing Interactive Track Items
 -------------------------------

@@ -355,7 +355,7 @@ The diesel locomotive model in ORTS simulates the behavior of two basic
 types of diesel engine driven locomotives-- diesel-electric and
 diesel-mechanical. The diesel engine model is the same for both types, but
 acts differently because of the different type of load. Basic controls
-(direction, throttle, dynamic brake, air brakes) are common across all
+(direction, throttle, and brakes) are common across all
 classes of engines. Diesel engines can be started or stopped by pressing
 the START/STOP key (``<Shift+Y>`` in English keyboards). The starting and
 stopping sequence is driven by a *starter* logic, which can be customized,
@@ -4118,10 +4118,8 @@ railway tunnels by Sirong YI*, Liangtao NIE, Yanheng CHEN, Fangfang QIN**
 Tunnel Friction -- Application in OR
 ====================================
 
-To enable this calculation capability it is necessary to select the
-:ref:`Tunnel dependent resistance <options-tunnel-resistance>` option on the
-Open Rails Menu. The implication of tunnel resistance is designed to model the
-relative impact, and does not take into account multiple trains in the tunnel
+Tunnel resistance is designed to model the
+relative impact on the current train, and does not take into account multiple trains in the tunnel
 at the same time.
 
 Tunnel resistance values can be seen in the :ref:`Train Forces HUD
@@ -4686,7 +4684,7 @@ EOT - End of train device
 General
 -------
 
-See :ref:`here https://en.wikipedia.org/wiki/End-of-train_device` for basic info about EOTs.
+See `https://en.wikipedia.org/wiki/End-of-train_device` for basic info about EOTs.
 
 EOTs in Open Rails may be of three different levels (types)::
 
