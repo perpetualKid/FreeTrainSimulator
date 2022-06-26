@@ -715,7 +715,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                             {
                                 float serviceVariationFactor = Math.Min(trainPipeTimeVariationS / serviceTimeFactor, 0.95f);
                                 float pressureDiffPSI = serviceTimeFactor * lead.BrakeSystem.BrakeLine1PressurePSI;
-                                if (lead.BrakeSystem.BrakeLine1PressurePSI > train.BrakeSystem.EqualReservoirPressurePSIorInHg)
+                                if (lead.BrakeSystem.BrakeLine1PressurePSI - pressureDiffPSI > train.BrakeSystem.EqualReservoirPressurePSIorInHg)
                                     pressureDiffPSI = lead.BrakeSystem.BrakeLine1PressurePSI - train.BrakeSystem.EqualReservoirPressurePSIorInHg;
                                 lead.BrakeSystem.BrakeLine1PressurePSI -= pressureDiffPSI;
                             }
@@ -988,7 +988,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             if (car.Train.LeadLocomotive?.BrakeSystem is SMEBrakeSystem)
             {
                 // Set values for SME type brake
-                brakeInfo["SrvPipe"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);                
+                brakeInfo["SrvPipe"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
                 brakeInfo["StrPipe"] = TwoPipes ? FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
             }
             else
