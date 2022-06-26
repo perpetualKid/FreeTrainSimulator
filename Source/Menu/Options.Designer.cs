@@ -218,6 +218,7 @@ namespace Orts.Menu
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.checkLODViewingExtension = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -827,6 +828,7 @@ namespace Orts.Menu
             // 
             // tabPageVideo
             // 
+            this.tabPageVideo.Controls.Add(this.checkLODViewingExtension);
             this.tabPageVideo.Controls.Add(this.panel1);
             this.tabPageVideo.Controls.Add(this.checkBoxFullScreenNativeResolution);
             this.tabPageVideo.Controls.Add(this.labelMSAACount);
@@ -2837,6 +2839,16 @@ namespace Orts.Menu
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
+            // checkLODViewingExtension
+            // 
+            this.checkLODViewingExtension.AutoSize = true;
+            this.checkLODViewingExtension.Location = new System.Drawing.Point(6, 141);
+            this.checkLODViewingExtension.Name = "checkLODViewingExtension";
+            this.checkLODViewingExtension.Size = new System.Drawing.Size(268, 19);
+            this.checkLODViewingExtension.TabIndex = 25;
+            this.checkLODViewingExtension.Text = "Extend object maximum viewing distance to horizon";
+            this.checkLODViewingExtension.UseVisualStyleBackColor = true;
+            // 
             // label5
             // 
             this.label5.AutoSize = true;
@@ -3150,5 +3162,6 @@ namespace Orts.Menu
         private System.Windows.Forms.PictureBox pbAlerter;
         private System.Windows.Forms.CheckBox checkElectricPowerConnected;
         private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.CheckBox checkLODViewingExtension;
     }
 }

@@ -56,6 +56,16 @@ Control confirmations can also be toggled on and off at runtime using the
 key combination Ctrl-Alt-F10. 
 
 
+Graduated release air brakes
+----------------------------
+
+Selecting this option allows a partial release of the brakes. Generally
+speaking, operating with the option checked is equivalent to passenger
+standard and unchecked is equivalent to freight standard. A complete
+description of this option can be found :ref:`here <physics-braking>`.
+
+
+
 .. _options-retainers:
 
 Retainer valve on all cars
@@ -260,53 +270,19 @@ distance, anti-aliasing, or world object density.
 The default setting is checked.
 
 
-.. _options-cab-stretch:
-
-% Cab 2D stretch
-----------------
-
-OR manages not only cab interiors using 2D images in a MSTS-compatible
-way, but also supports 3D models. Most 2D cab images follow MSTS practice,
-being 1024 x 768 pixels to suit monitors with a 4:3 aspect ratio.
-
-So, the problem arises -- how to display these 4:3 cabs on a 16:9 or 16:10
-monitor?
-
-One possibility is to stretch these images horizontally to match other
-aspect ratios, as shown in the image below.
-
-.. image:: images/options-2dstretch_1.png
-
-To respect the proportions however, by default OR does no stretching and
-shows the full width of the cab interior, thus losing a portion from the
-top and bottom of the image. You can use the Up and Down Arrow keys to pan
-and reveal these missing portions.
-
-Therefore the setting for % Cab 2D Stretch has a default value of 0
-providing no stretching and a maximum value of 100 which stretches the
-picture so as to cover the complete display. Intermediate values provide a
-blend of panning and stretching.
-
-.. image:: images/options-2dstretch_2.png
-
-OR can also pillarbox or letterbox the cab by filling the missing space with 
-black bars. You can activate this mode in-game by pressing Ctrl+1. It overrides 
-any stretching.
-
-.. image:: images/options-2dstretch_3.png
-
 Viewing distance
 ----------------
 
-This option defines the maximum distance at which terrain is displayed. 
+This option defines the maximum distance at which terrain and objects are displayed. 
 Where the content provides "Distant Mountains", these are displayed independently (see below).
-
-Note: Some routes are optimized for the standard MSTS maximum viewing distance (2km).
 
 Note: When the option to tune settings automatically is applied, then this 
 value will be overridden and dynamically changed to maintain a target frame rate.
 
+Note: Some routes are optimized for a viewing distance of 2km as this is the maximum provided by MSTS.
+
 The default distance is 2km.
+
 
 Distant mountains
 -----------------
@@ -317,9 +293,32 @@ Note: "Distant Mountains" are present in the route if it has a folder called LO_
 
 The default setting is checked.
 
-The default distance is 40km
+The default distance is 40km.
 
 .. image:: images/options-mountains.png
+
+
+Extend object maximum viewing distance to horizon
+-------------------------------------------------
+
+With this option selected, all objects viewable up to the viewing distance
+(as defined above) are displayed, even if they have a level of detail (LOD) that is less distant. 
+
+Without this option, ORTS only displays objects up to their peak distance set by their level of detail (LOD) 
+or the viewing distance, whichever is less. 
+
+Selecting this option shows all the objects that should be in view but it may reduce the frame rate.
+MSTS limits the viewing distance to just 2km and the peak LOD distances are usually 2km, so this option
+is especially useful for viewing routes created for MSTS at distances above 2km.
+
+However, for routes that make good use of LOD settings, showing the objects that should be in view can be 
+achieved at higher frame rates by unchecking this option.
+For example, if the viewing distance is 10km and the content has been created with some large objects having 
+peak distance LODs set at 5km and smaller objects having LODs which are much shorter, then this strategy
+will show all the objects that should be in view without reducing the frame rate.
+
+The default setting is checked.
+
 
 Viewing vertical FOV
 --------------------

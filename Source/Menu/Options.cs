@@ -131,6 +131,7 @@ namespace Orts.Menu
             labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
             numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
             numericDistantMountainsViewingDistance.Value = this.settings.DistantMountainsViewingDistance / 1000;
+            checkLODViewingExtension.Checked = this.settings.LODViewingExtension;
             numericViewingFOV.Value = this.settings.ViewingFOV;
             numericWorldObjectDensity.Value = this.settings.WorldObjectDensity;
             comboWindowSize.Text = $"{this.settings.WindowSettings[WindowSetting.Size][0]}x{this.settings.WindowSettings[WindowSetting.Size][1]}";
@@ -307,6 +308,7 @@ namespace Orts.Menu
             settings.ViewingDistance = (int)numericViewingDistance.Value;
             settings.DistantMountains = checkDistantMountains.Checked;
             settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
+            settings.LODViewingExtension = checkLODViewingExtension.Checked;
             settings.ViewingFOV = (int)numericViewingFOV.Value;
             settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
             settings.WindowSettings[WindowSetting.Size] = GetValidWindowSize(comboWindowSize.Text);
