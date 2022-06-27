@@ -172,8 +172,8 @@ namespace Orts.Settings
                     }
                     else
                         builder.Append($"{item}={value[item]?.ToString()}");
+                    builder.Append(';');
                 }
-                builder.Append(';');
             }
             if (builder[^1] == ';')
                 builder.Length--;
