@@ -13,7 +13,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         static GridTile()
         {
-//            WidgetColorCache.SetColors<GridTile>(Color.Black);
+            WidgetColorCache.SetColors<GridTile>(Color.Black);
         }
 
         public GridTile(ITile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
