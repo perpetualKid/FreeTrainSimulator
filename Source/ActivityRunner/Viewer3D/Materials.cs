@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var alternativeTexture = Path.ChangeExtension(path, ".dds");
 
-                        if (Viewer.Settings.PreferDDSTexture && File.Exists(alternativeTexture))
+                        if (File.Exists(alternativeTexture))
                         {
                             DDSLib.DDSFromFile(alternativeTexture, GraphicsDevice, true, out texture);
                         }
@@ -515,13 +515,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public abstract class Material
     {
-        protected readonly Viewer Viewer;
+        private protected readonly Viewer viewer;
         private readonly string key;
-        protected static GraphicsDevice graphicsDevice;
+        private protected static GraphicsDevice graphicsDevice;
 
         protected Material(Viewer viewer, string key)
         {
-            Viewer = viewer;
+            this.viewer = viewer;
             this.key = key;
         }
 
@@ -554,11 +554,11 @@ namespace Orts.ActivityRunner.Viewer3D
             return key?.Length % 10 ?? 0;
         }
 
-        public Camera CurrentCamera { get { return Viewer.Camera; } }
+        public Camera CurrentCamera { get { return viewer.Camera; } }
 
         public virtual void Mark()
         {
-            Viewer.MaterialManager.Mark(this);
+            viewer.MaterialManager.Mark(this);
         }
     }
 
@@ -739,27 +739,27 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!String.IsNullOrEmpty(nightTexturePath))
-                    nightTexture = Viewer.TextureManager.Get(nightTexturePath.ToLower());
-                dayTexture = Viewer.TextureManager.Get(texturePath, true);
+                    nightTexture = base.viewer.TextureManager.Get(nightTexturePath.ToLower());
+                dayTexture = base.viewer.TextureManager.Get(texturePath, true);
             }
             else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Daytime)
             {
                 viewer.NightTexturesNotLoaded = true;
-                dayTexture = Viewer.TextureManager.Get(texturePath, true);
+                dayTexture = base.viewer.TextureManager.Get(texturePath, true);
             }
 
             else if ((options & SceneryMaterialOptions.NightTexture) != 0 && viewer.Nighttime)
             {
                 var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!String.IsNullOrEmpty(nightTexturePath))
-                    nightTexture = Viewer.TextureManager.Get(nightTexturePath.ToLower());
+                    nightTexture = base.viewer.TextureManager.Get(nightTexturePath.ToLower());
                 if (nightTexture != SharedMaterialManager.MissingTexture)
                 {
                     viewer.DayTexturesNotLoaded = true;
                 }
             }
             else
-                dayTexture = Viewer.TextureManager.Get(texturePath, true);
+                dayTexture = base.viewer.TextureManager.Get(texturePath, true);
 
             // Record the number of bits in the alpha channel of the original ace file
             var missingTexture = SharedMaterialManager.MissingTexture;
@@ -772,7 +772,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // map shader techniques from Name to their index to avoid costly name-based lookups at runtime
             //this can be static as the techniques are constant for all scenery
             //possible mask values are 0x00, 0x10, 0x20, 0x30 and 0x40 as well 0x30|0x40, so we use a int[8] to map the values/0x10 by single-digit index (leaves two blanks in the array at 0x50 and 0x60)
-            shader = Viewer.MaterialManager.SceneryShader;
+            shader = base.viewer.MaterialManager.SceneryShader;
             if (null == shaderTechniqueLookup)
             {
                 shaderTechniqueLookup = new int[8];
@@ -813,7 +813,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var nightTexturePath = Helpers.GetNightTextureFile(texturePath);
                 if (!string.IsNullOrEmpty(nightTexturePath))
                 {
-                    nightTexture = Viewer.TextureManager.Get(nightTexturePath);
+                    nightTexture = viewer.TextureManager.Get(nightTexturePath);
                     result = true;
                 }
             }
@@ -825,7 +825,7 @@ namespace Orts.ActivityRunner.Viewer3D
             bool result = false;
             if (dayTexture == SharedMaterialManager.MissingTexture && !String.IsNullOrEmpty(texturePath))
             {
-                dayTexture = Viewer.TextureManager.Get(texturePath);
+                dayTexture = viewer.TextureManager.Get(texturePath);
                 result = true;
             }
             return result;
@@ -902,8 +902,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     throw new InvalidDataException("Options has unexpected SceneryMaterialOptions.SpecularMask value.");
             }
 
-            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) ||
-            Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
+            if (nightTextureEnabled && ((undergroundTextureEnabled && viewer.MaterialManager.sunDirection.Y < -0.085f || viewer.Camera.IsUnderground) ||
+            viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
             //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
             //    (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
             {
@@ -974,8 +974,8 @@ namespace Orts.ActivityRunner.Viewer3D
             //    return nightTexture;
 
             //return dayTexture;
-            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)
-                || Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
+            if (nightTextureEnabled && ((undergroundTextureEnabled && viewer.MaterialManager.sunDirection.Y < -0.085f || viewer.Camera.IsUnderground)
+                || viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
                 return nightTexture;
             return dayTexture;
         }
@@ -1014,8 +1014,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(dayTexture);
-            Viewer.TextureManager.Mark(nightTexture);
+            viewer.TextureManager.Mark(dayTexture);
+            viewer.TextureManager.Mark(nightTexture);
             base.Mark();
         }
     }
@@ -1039,7 +1039,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ShadowMapMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            int shadowMapResolution = Viewer.Settings.ShadowMapResolution;
+            int shadowMapResolution = base.viewer.Settings.ShadowMapResolution;
             blurVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
             blurVertexBuffer.SetData(new[] {
                new VertexPositionTexture(new Vector3(-1, +1, 0), new Vector2(0, 0)),
@@ -1047,16 +1047,16 @@ namespace Orts.ActivityRunner.Viewer3D
                new VertexPositionTexture(new Vector3(+1, +1, 0), new Vector2(shadowMapResolution, 0)),
                new VertexPositionTexture(new Vector3(+1, -1, 0), new Vector2(shadowMapResolution, shadowMapResolution)),
             });
-            shader = Viewer.MaterialManager.ShadowMapShader;
+            shader = base.viewer.MaterialManager.ShadowMapShader;
         }
 
         public void SetState(Mode mode)
         {
             shader.CurrentTechnique = shader.Techniques[(int)mode]; //order of techniques equals order in ShadowMap.fx, avoiding costly name-based lookups at runtime
 
-            for (int i = 0; i < Viewer.MaterialManager.ShadowMapShaders.Length; i++)
+            for (int i = 0; i < viewer.MaterialManager.ShadowMapShaders.Length; i++)
             {
-                Viewer.MaterialManager.ShadowMapShaders[i].CurrentTechnique = Viewer.MaterialManager.ShadowMapShaders[i].Techniques[(int)mode];
+                viewer.MaterialManager.ShadowMapShaders[i].CurrentTechnique = viewer.MaterialManager.ShadowMapShaders[i].Techniques[(int)mode];
             }
 
             shaderPasses = shader.CurrentTechnique.Passes;

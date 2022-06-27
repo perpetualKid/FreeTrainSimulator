@@ -225,11 +225,9 @@ namespace Orts.Menu
             trackLODBias.Value = this.settings.LODBias;
             TrackLODBias_ValueChanged(null, null);
             checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
-            checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
             checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
             checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
             trackAdhesionFactor.Value = this.settings.AdhesionFactor;
-            checkAdhesionPropToWeather.Checked = this.settings.AdhesionProportionalToWeather;
             trackAdhesionFactorChange.Value = this.settings.AdhesionFactorChange;
             TrackAdhesionFactor_ValueChanged(null, null);
             checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;   // Inverted as "Show warnings" is better UI than "Suppress warnings"
@@ -371,11 +369,9 @@ namespace Orts.Menu
             settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
             settings.LODBias = trackLODBias.Value;
             settings.SignalLightGlow = checkSignalLightGlow.Checked;
-            settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
             settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
             settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
             settings.AdhesionFactor = (int)trackAdhesionFactor.Value;
-            settings.AdhesionProportionalToWeather = checkAdhesionPropToWeather.Checked;
             settings.AdhesionFactorChange = (int)trackAdhesionFactorChange.Value;
             settings.SuppressShapeWarnings = !checkShapeWarnings.Checked;
             settings.PrecipitationBoxHeight = (int)precipitationBoxHeight.Value;
@@ -421,8 +417,9 @@ namespace Orts.Menu
         private void SetAdhesionLevelValue()
         {
             int level = trackAdhesionFactor.Value - trackAdhesionFactorChange.Value;
-            if (checkAdhesionPropToWeather.Checked)
-                level -= 40;
+
+            // Allowance to make adhesion proportional to rain/snow/fog
+            level -= 40;
 
             if (level > 159)
                 AdhesionLevelValue.Text = catalog.GetString("Very easy");

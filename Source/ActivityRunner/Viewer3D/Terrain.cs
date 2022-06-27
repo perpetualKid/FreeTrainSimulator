@@ -505,11 +505,11 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, terrainTexture)
         {
             var textures = terrainTexture.Split('\0');
-            patchTexture = Viewer.TextureManager.Get(textures[0], defaultTexture);
-            patchTextureOverlay = textures.Length > 1 ? Viewer.TextureManager.Get(textures[1]) : null;
+            patchTexture = base.viewer.TextureManager.Get(textures[0], defaultTexture);
+            patchTextureOverlay = textures.Length > 1 ? base.viewer.TextureManager.Get(textures[1]) : null;
             var converted = textures.Length > 2 && Int32.TryParse(textures[2], out OverlayScale);
             OverlayScale = OverlayScale != 0 && converted ?  OverlayScale : 32;
-            shader = Viewer.MaterialManager.SceneryShader;
+            shader = base.viewer.MaterialManager.SceneryShader;
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "TerrainPS")
@@ -554,8 +554,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(patchTexture);
-            Viewer.TextureManager.Mark(patchTextureOverlay);
+            viewer.TextureManager.Mark(patchTexture);
+            viewer.TextureManager.Mark(patchTextureOverlay);
             base.Mark();
         }
     }

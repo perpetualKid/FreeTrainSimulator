@@ -201,7 +201,6 @@ namespace Orts.Menu
             this.AdhesionLevelLabel = new System.Windows.Forms.Label();
             this.trackAdhesionFactorChange = new System.Windows.Forms.TrackBar();
             this.trackAdhesionFactor = new System.Windows.Forms.TrackBar();
-            this.checkAdhesionPropToWeather = new System.Windows.Forms.CheckBox();
             this.checkSignalLightGlow = new System.Windows.Forms.CheckBox();
             this.checkUseMSTSEnv = new System.Windows.Forms.CheckBox();
             this.labelPerformanceTunerTarget = new System.Windows.Forms.Label();
@@ -214,7 +213,6 @@ namespace Orts.Menu
             this.label6 = new System.Windows.Forms.Label();
             this.numericUseSuperElevation = new System.Windows.Forms.NumericUpDown();
             this.ElevationText = new System.Windows.Forms.Label();
-            this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.checkLODViewingExtension = new System.Windows.Forms.CheckBox();
@@ -2300,7 +2298,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.AdhesionLevelLabel);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactorChange);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactor);
-            this.tabPageExperimental.Controls.Add(this.checkAdhesionPropToWeather);
             this.tabPageExperimental.Controls.Add(this.checkSignalLightGlow);
             this.tabPageExperimental.Controls.Add(this.checkUseMSTSEnv);
             this.tabPageExperimental.Controls.Add(this.labelPerformanceTunerTarget);
@@ -2313,7 +2310,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.label6);
             this.tabPageExperimental.Controls.Add(this.numericUseSuperElevation);
             this.tabPageExperimental.Controls.Add(this.ElevationText);
-            this.tabPageExperimental.Controls.Add(this.checkPreferDDSTexture);
             this.tabPageExperimental.Controls.Add(this.label5);
             this.tabPageExperimental.Location = new System.Drawing.Point(4, 24);
             this.tabPageExperimental.Name = "tabPageExperimental";
@@ -2642,17 +2638,6 @@ namespace Orts.Menu
             this.trackAdhesionFactor.Value = 130;
             this.trackAdhesionFactor.ValueChanged += new System.EventHandler(this.TrackAdhesionFactor_ValueChanged);
             // 
-            // checkAdhesionPropToWeather
-            // 
-            this.checkAdhesionPropToWeather.AutoSize = true;
-            this.checkAdhesionPropToWeather.Location = new System.Drawing.Point(324, 231);
-            this.checkAdhesionPropToWeather.Name = "checkAdhesionPropToWeather";
-            this.checkAdhesionPropToWeather.Size = new System.Drawing.Size(238, 19);
-            this.checkAdhesionPropToWeather.TabIndex = 29;
-            this.checkAdhesionPropToWeather.Text = "Adhesion proportional to rain/snow/fog";
-            this.checkAdhesionPropToWeather.UseVisualStyleBackColor = true;
-            this.checkAdhesionPropToWeather.CheckedChanged += new System.EventHandler(this.AdhesionPropToWeatherCheckBox_CheckedChanged);
-            // 
             // checkSignalLightGlow
             // 
             this.checkSignalLightGlow.AutoSize = true;
@@ -2833,16 +2818,6 @@ namespace Orts.Menu
             this.ElevationText.Size = new System.Drawing.Size(90, 15);
             this.ElevationText.TabIndex = 1;
             this.ElevationText.Text = "Super-elevation";
-            // 
-            // checkPreferDDSTexture
-            // 
-            this.checkPreferDDSTexture.AutoSize = true;
-            this.checkPreferDDSTexture.Location = new System.Drawing.Point(324, 186);
-            this.checkPreferDDSTexture.Name = "checkPreferDDSTexture";
-            this.checkPreferDDSTexture.Size = new System.Drawing.Size(233, 19);
-            this.checkPreferDDSTexture.TabIndex = 23;
-            this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
-            this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
             // pbSoundVolumePercent
             // 
@@ -3077,7 +3052,6 @@ namespace Orts.Menu
         private System.Windows.Forms.NumericUpDown numericDataLogTSInterval;
         private System.Windows.Forms.CheckBox checkDataLogTrainSpeed;
         private System.Windows.Forms.CheckBox checkUseMSTSEnv;
-        private System.Windows.Forms.CheckBox checkPreferDDSTexture;
         private System.Windows.Forms.Label labelLanguage;
         private System.Windows.Forms.ComboBox comboLanguage;
         private System.Windows.Forms.Label labelDistantMountainsViewingDistance;
@@ -3100,7 +3074,6 @@ namespace Orts.Menu
         private System.Windows.Forms.TrackBar trackAdhesionFactorChange;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TrackBar trackAdhesionFactor;
-        private System.Windows.Forms.CheckBox checkAdhesionPropToWeather;
         private System.Windows.Forms.CheckBox checkModelInstancing;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;

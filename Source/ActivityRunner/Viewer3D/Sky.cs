@@ -462,14 +462,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public SkyMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            skyShader = Viewer.MaterialManager.SkyShader;
+            skyShader = base.viewer.MaterialManager.SkyShader;
             // TODO: This should happen on the loader thread.
-            skyTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png"));
-            starTextureN = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
-            starTextureS = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_S.png"));
-            moonTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
-            moonMask = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png"));
-            cloudTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Clouds01.png"));
+            skyTexture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "SkyDome1.png"));
+            starTextureN = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Starmap_N.png"));
+            starTextureS = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Starmap_S.png"));
+            moonTexture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "MoonMap.png"));
+            moonMask = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "MoonMask.png"));
+            cloudTexture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Clouds01.png"));
 
             skyShader.SkyMapTexture = skyTexture;
             skyShader.StarMapTexture = starTextureN;
@@ -482,23 +482,23 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
-                Viewer.World.Sky.solarDirection.Y,
-                Viewer.Simulator.Weather.OvercastFactor);
+                viewer.World.Sky.solarDirection.Y,
+                viewer.Simulator.Weather.OvercastFactor);
 
             //if (Viewer.Settings.DistantMountains) SharedMaterialManager.FogCoeff *= (3 * (5 - Viewer.Settings.DistantMountainsFogValue) + 0.5f);
 
-            if (Viewer.World.Sky.ResetTexture) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
+            if (viewer.World.Sky.ResetTexture) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
                 skyShader.StarMapTexture = starTextureN;
             else
                 skyShader.StarMapTexture = starTextureS;
-            skyShader.Random = Viewer.World.Sky.moonPhase; // Keep setting this before LightVector for the preshader to work correctly
-            skyShader.LightVector = Viewer.World.Sky.solarDirection;
-            skyShader.Time = (float)Viewer.Simulator.ClockTime / 100000;
+            skyShader.Random = viewer.World.Sky.moonPhase; // Keep setting this before LightVector for the preshader to work correctly
+            skyShader.LightVector = viewer.World.Sky.solarDirection;
+            skyShader.Time = (float)viewer.Simulator.ClockTime / 100000;
             skyShader.MoonScale = SkyConstants.skyRadius / 20;
-            skyShader.Overcast = Viewer.Simulator.Weather.OvercastFactor;
-            skyShader.SetFog(Viewer.Simulator.Weather.FogVisibilityDistance, ref SharedMaterialManager.FogColor);
-            skyShader.WindSpeed = Viewer.World.Sky.windSpeed;
-            skyShader.WindDirection = Viewer.World.Sky.windDirection; // Keep setting this after Time and Windspeed. Calculating displacement here.
+            skyShader.Overcast = viewer.Simulator.Weather.OvercastFactor;
+            skyShader.SetFog(viewer.Simulator.Weather.FogVisibilityDistance, ref SharedMaterialManager.FogColor);
+            skyShader.WindSpeed = viewer.World.Sky.windSpeed;
+            skyShader.WindDirection = viewer.World.Sky.windDirection; // Keep setting this after Time and Windspeed. Calculating displacement here.
             for (var i = 0; i < 5; i++)
                 graphicsDevice.SamplerStates[i] = SamplerState.LinearWrap;
 
@@ -506,7 +506,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
             skyShader.CurrentTechnique = skyShader.Techniques[0]; //["Sky"];
-            Viewer.World.Sky.Primitive.drawIndex = 1;
+            viewer.World.Sky.Primitive.drawIndex = 1;
 
             graphicsDevice.BlendState = BlendState.Opaque;
 
@@ -530,15 +530,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Moon
             skyShader.CurrentTechnique = skyShader.Techniques[1]; //["Moon"];
-            Viewer.World.Sky.Primitive.drawIndex = 2;
+            viewer.World.Sky.Primitive.drawIndex = 2;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
 
             // Send the transform matrices to the shader
-            int skyRadius = Viewer.World.Sky.Primitive.skyRadius;
-            int cloudRadiusDiff = Viewer.World.Sky.Primitive.cloudDomeRadiusDiff;
-            Matrix translation = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
+            int skyRadius = viewer.World.Sky.Primitive.skyRadius;
+            int cloudRadiusDiff = viewer.World.Sky.Primitive.cloudDomeRadiusDiff;
+            Matrix translation = Matrix.CreateTranslation(viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
             //Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
             MatrixExtension.Multiply(in translation, in view, out Matrix moonMatrix);
             MatrixExtension.Multiply(in moonMatrix, in Camera.XNASkyProjection, out Matrix moonMatrixView);
@@ -558,7 +558,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Clouds
             skyShader.CurrentTechnique = skyShader.Techniques[2]; //["Clouds"];
-            Viewer.World.Sky.Primitive.drawIndex = 3;
+            viewer.World.Sky.Primitive.drawIndex = 3;
 
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
@@ -623,12 +623,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(skyTexture);
-            Viewer.TextureManager.Mark(starTextureN);
-            Viewer.TextureManager.Mark(starTextureS);
-            Viewer.TextureManager.Mark(moonTexture);
-            Viewer.TextureManager.Mark(moonMask);
-            Viewer.TextureManager.Mark(cloudTexture);
+            viewer.TextureManager.Mark(skyTexture);
+            viewer.TextureManager.Mark(starTextureN);
+            viewer.TextureManager.Mark(starTextureS);
+            viewer.TextureManager.Mark(moonTexture);
+            viewer.TextureManager.Mark(moonMask);
+            viewer.TextureManager.Mark(cloudTexture);
             base.Mark();
         }
     }
