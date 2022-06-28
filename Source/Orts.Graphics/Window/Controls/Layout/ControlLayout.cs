@@ -105,12 +105,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             return InternalAdd(new ControlLayoutVertical(Window, width, RemainingHeight));
         }
 
-        //public ControlLayout AddLayoutScrollboxHorizontal(int height)
-        //{
-        //    var sb = InternalAdd(new ControlLayoutScrollboxHorizontal(RemainingWidth, height));
-        //    sb.Initialize();
-        //    return sb.Client;
-        //}
+        public ControlLayout AddLayoutScrollboxHorizontal(int height)
+        {
+            return InternalAdd(new HorizontalScrollboxControlLayout(Window, RemainingWidth, height)).Client;
+        }
 
         public ControlLayout AddLayoutScrollboxVertical(int width)
         {
