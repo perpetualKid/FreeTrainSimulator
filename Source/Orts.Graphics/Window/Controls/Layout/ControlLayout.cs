@@ -30,9 +30,9 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public virtual int CurrentTop => 0;
 
-        public HorizontalAlignment HorizontalChildAlignment { get; protected set; } = HorizontalAlignment.Left;
+        public HorizontalAlignment HorizontalChildAlignment { get; set; } = HorizontalAlignment.Left;
 
-        public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
+        public VerticalAlignment VerticalChildAlignment { get; set; } = VerticalAlignment.Top;
 
         public int Count => ((ICollection<WindowControl>)Controls).Count;
 
@@ -52,7 +52,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public void Add(WindowControl item)
         {
-            InternalAdd(item);
+            _ = InternalAdd(item);
         }
 
         public void AddSpace(int width, int height)

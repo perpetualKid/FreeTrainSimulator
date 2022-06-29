@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
@@ -30,7 +24,6 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
             layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
-
             ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
             int width = (int)(line.RemainingWidth * 0.8);
             line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
@@ -47,6 +40,7 @@ namespace Orts.Toolbox.PopupWindows
             line.Add(chkRestoreView);
 
             return layout;
+
         }
     }
 }

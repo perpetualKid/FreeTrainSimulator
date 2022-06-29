@@ -50,15 +50,15 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             int thumbPosition = ScrollbarScrollLength * scrollPosition / ContentScrollLength;
             // Top button
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y, size, size), topButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y, size, size), topButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
             // Top gutter
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + size, thumbPosition, size), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + size, thumbPosition, size), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
             // Thumb
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + size + thumbPosition, size, size), ThumbVisible ? thumbClipping : gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + size + thumbPosition, size, size), ThumbVisible ? thumbClipping : gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
             // Bottom gutter
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + 2 * size + thumbPosition, Bounds.Height - 3 * size - thumbPosition, size), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + 2 * size + thumbPosition, Bounds.Height - 3 * size - thumbPosition, size), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
             // Bottom button
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + Bounds.Height - size, size, size), bottomButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + Bounds.Height - size, size, size), bottomButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
 
             RasterizerState rasterizer = spriteBatch.GraphicsDevice.RasterizerState;
             Rectangle scissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
@@ -164,15 +164,15 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             int thumbPosition = ScrollbarScrollLength * scrollPosition / ContentScrollLength;
             // Left button
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X, offset.Y + Bounds.Y + Bounds.Height - size, size, size), topButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X, offset.Y + Bounds.Y + Bounds.Height - size, size, size), topButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
             // Left gutter
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + size, offset.Y + Bounds.Y + Bounds.Height - size, thumbPosition, size), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + size, offset.Y + Bounds.Y + Bounds.Height - size, thumbPosition, size), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
             // Thumb
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + size + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - size, size, size), ThumbVisible ? thumbClipping : gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + size + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - size, size, size), ThumbVisible ? thumbClipping : gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
             // Right gutter
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + 2 * size + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - size, Bounds.Width - 3 * size - thumbPosition, size), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + 2 * size + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - size, Bounds.Width - 3 * size - thumbPosition, size), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
             // Right button
-            spriteBatch.Draw(Window.Owner.scrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + Bounds.Height - size, size, size), bottomButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - size, offset.Y + Bounds.Y + Bounds.Height - size, size, size), bottomButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
 
             RasterizerState rasterizer = spriteBatch.GraphicsDevice.RasterizerState;
             Rectangle scissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
