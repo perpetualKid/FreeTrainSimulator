@@ -10,5 +10,6 @@
         HelpWindow,
         TrackNodeInfoWindow,
         SettingsWindow,
+        LogWindow,
     }
 }

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
+using Orts.Common.Logging;
+
 namespace Orts.Common.Info
 {
     public static class RuntimeInfo
@@ -44,6 +46,8 @@ namespace Orts.Common.Info
         public static string LocalesFolder { get; } = Path.Combine(ProgramRoot, "Locales");
 
         public static string DocumentationFolder { get; } = Path.Combine(ProgramRoot, "Documentation");
+
+        public static string LogFile(string path, string fileNamePattern) => Path.Combine(path, LoggingUtil.CustomizeLogFileName(fileNamePattern));
 
         static RuntimeInfo()
         {

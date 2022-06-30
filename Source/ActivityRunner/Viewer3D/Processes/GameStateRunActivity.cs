@@ -687,7 +687,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (Game.Settings.Logging)
             {
-                logFileName = Path.Combine(Game.Settings.LoggingPath, LoggingUtil.CustomizeLogFileName(Game.Settings.LoggingFilename));
+                logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
                 LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly, appendLog);
                 Game.Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);

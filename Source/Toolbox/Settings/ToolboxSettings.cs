@@ -155,6 +155,7 @@ namespace Orts.Toolbox.Settings
             nameof(WindowType.HelpWindow) + "=10,90",
             nameof(WindowType.TrackNodeInfoWindow) + "=10,70",
             nameof(WindowType.SettingsWindow) + "=70,70",
+            nameof(WindowType.LogWindow) + "=30,70",
         })]
         public EnumArray<int[], WindowType> WindowLocations { get; set; }
 
@@ -168,6 +169,7 @@ namespace Orts.Toolbox.Settings
             nameof(WindowType.HelpWindow) + "=True",
             nameof(WindowType.TrackNodeInfoWindow) + "=True",
             nameof(WindowType.SettingsWindow) + "=True",
+            nameof(WindowType.LogWindow) + "=False",
         })]
         public EnumArray<bool, WindowType> WindowStatus { get; set; }
 

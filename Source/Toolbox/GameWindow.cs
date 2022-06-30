@@ -100,7 +100,7 @@ namespace Orts.Toolbox
 
             if (Settings.UserSettings.Logging)
             {
-                LogFileName = System.IO.Path.Combine(Settings.UserSettings.LoggingPath, LoggingUtil.CustomizeLogFileName(Settings.LogFilename));
+                LogFileName = RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename);
                 LoggingUtil.InitLogging(LogFileName, Settings.UserSettings.LogErrorsOnly, false);
                 Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
@@ -402,6 +402,11 @@ namespace Orts.Toolbox
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[WindowType.SettingsWindow].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[WindowType.LogWindow].ToggleVisibility();
+            });
             #endregion
 
             #region popup windows
@@ -449,6 +454,11 @@ namespace Orts.Toolbox
             {
                 SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.WindowLocations[WindowType.SettingsWindow].ToPoint());
                 return settingsWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
+            {
+                LoggingWindow loggingWindow = new LoggingWindow(windowManager, RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename), Settings.WindowLocations[WindowType.LogWindow].ToPoint());
+                return loggingWindow;
             }));
             #endregion
 
