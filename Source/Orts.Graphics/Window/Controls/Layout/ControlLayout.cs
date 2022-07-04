@@ -86,7 +86,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
-{
+        {
             return AddLayoutHorizontal(Window.Owner.TextFontDefault.Height);
         }
 
@@ -184,7 +184,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDrag(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || c is ControlLayout controlLayout && TestForDragging(controlLayout)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || TestForDragging(c)))
                 if (control.HandleMouseDrag(e))
                     return true;
             return base.HandleMouseDrag(e);
@@ -193,6 +193,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         private bool TestForDragging(ControlLayout controlLayout)
         {
             return controlLayout == Window.CapturedControl || controlLayout.Controls.Where((c) => c is ControlLayout controlLayout && TestForDragging(controlLayout)).Any();
+        }
+
+        private bool TestForDragging(WindowControl control)
+        {
+            return control == Window.CapturedControl || control is ControlLayout controlLayout && controlLayout.Controls.Where((c) => TestForDragging(c)).Any();
         }
 
         internal override void MoveBy(int x, int y)

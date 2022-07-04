@@ -36,9 +36,8 @@ namespace Orts.Toolbox.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling);
-//            layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
 
-            layout.Add(new Label(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, Graphics.HorizontalAlignment.Left, FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.AliceBlue));
+            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, Graphics.HorizontalAlignment.Left, FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.AliceBlue));
             return layout;
         }
     }

@@ -42,7 +42,7 @@ namespace Orts.Graphics.Window
 
         public int ZOrder { get; protected set; }
 
-        internal ControlLayout CapturedControl { get; set; }
+        internal WindowControl CapturedControl { get; set; }
 
         public Catalog Catalog { get; }
 
