@@ -21,7 +21,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly string logText;
 
         public LoggingWindow(WindowManager owner, string logFile, Point relativeLocation, Catalog catalog = null) : 
-            base(owner, "Logging", relativeLocation, new Point(400, 300), catalog)
+            base(owner, "Logging", relativeLocation, new Point(-50, 300), catalog)
         {
             if (File.Exists(logFile))
             {
@@ -37,7 +37,8 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
 
-            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, Graphics.HorizontalAlignment.Left, FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.AliceBlue));
+            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, HorizontalAlignment.Left, true,
+                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.AliceBlue));
             return layout;
         }
     }

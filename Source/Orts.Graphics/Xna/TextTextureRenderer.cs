@@ -16,6 +16,19 @@ namespace Orts.Graphics.Xna
         [ThreadStatic]
         private static Bitmap measureBitmap;
 
+        public static Size Measure(string text, Font font)
+        {
+            using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
+            {
+                return measureGraphics.MeasureString(text, font).ToSize();
+            }
+        }
+
+        public static Size Measure(string text, Font font, System.Drawing.Graphics measureGraphics)
+        {
+            return measureGraphics?.MeasureString(text, font).ToSize() ?? throw new ArgumentNullException(nameof(measureGraphics));
+        }
+
         public static void Resize(string text, Font font, ref Texture2D texture, GraphicsDevice graphicsDevice)
         {
             using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
