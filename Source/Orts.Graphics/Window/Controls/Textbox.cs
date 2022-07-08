@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls
@@ -14,6 +15,7 @@ namespace Orts.Graphics.Window.Controls
     {
         private static readonly char[] whitespaces = { ' ', '\t', '\r', '\n' };
         private const int mouseClickScrollDelay = 100;
+        private Rectangle clientArea;
 
         private string[] lines;
         private string text;
@@ -33,9 +35,15 @@ namespace Orts.Graphics.Window.Controls
 
         private int verticalScrollPosition;
         private int horizontalScrollPosition;
+        private int horizontalThumbPosition;
+        private int verticalThumbPosition;
+        private int verticalScrollbarLeft;
+        private int horizontalScrollbarTop;
 
         private int horizontalScrollSize;
         private int verticalScrollSize;
+        private int bottomGutterFactor;
+        private int rightGutterFactor;
 
         private int visibleLines;
         private int lineHeight;
@@ -97,50 +105,61 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            int thumbPosition;
-            if (!wordWrap)
+            if (horizontalScrollSize > -1)
             {
-                thumbPosition = horizontalScrollSize > 0 ? (Bounds.Width - 4 * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize : 0;
                 // Left button
-                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X, offset.Y + Bounds.Y + Bounds.Height - scrollbarSize, scrollbarSize, scrollbarSize), topButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X, offset.Y + horizontalScrollbarTop, scrollbarSize, scrollbarSize), topButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 // Left gutter
-                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + scrollbarSize, offset.Y + Bounds.Y + Bounds.Height - scrollbarSize, thumbPosition, scrollbarSize), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + scrollbarSize, offset.Y + horizontalScrollbarTop, horizontalThumbPosition, scrollbarSize), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 // Thumb
-                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + scrollbarSize + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - scrollbarSize, scrollbarSize, scrollbarSize), horizontalScrollSize > 0 ? thumbClipping : gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + scrollbarSize + horizontalThumbPosition, offset.Y + horizontalScrollbarTop, scrollbarSize, scrollbarSize), thumbClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 // Right gutter
-                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + 2 * scrollbarSize + thumbPosition, offset.Y + Bounds.Y + Bounds.Height - scrollbarSize, Bounds.Width - 4 * scrollbarSize - thumbPosition, scrollbarSize), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + 2 * scrollbarSize + horizontalThumbPosition, offset.Y + horizontalScrollbarTop, Bounds.Width - (2 + rightGutterFactor) * scrollbarSize - horizontalThumbPosition, scrollbarSize), gutterClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 // Right button
-                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - 2 * scrollbarSize, offset.Y + Bounds.Y + Bounds.Height - scrollbarSize, scrollbarSize, scrollbarSize), bottomButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - rightGutterFactor * scrollbarSize, offset.Y + horizontalScrollbarTop, scrollbarSize, scrollbarSize), bottomButtonClipping, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
             }
-            thumbPosition = verticalScrollSize > 0 ? (Bounds.Height - 4 * scrollbarSize) * verticalScrollPosition / verticalScrollSize : 0;
-            // Top button
-            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - scrollbarSize, offset.Y + Bounds.Y, scrollbarSize, scrollbarSize), topButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
-            // Top gutter
-            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - scrollbarSize, offset.Y + Bounds.Y + scrollbarSize, thumbPosition, scrollbarSize), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
-            // Thumb
-            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - scrollbarSize, offset.Y + Bounds.Y + scrollbarSize + thumbPosition, scrollbarSize, scrollbarSize), verticalScrollSize > 0 ? thumbClipping : gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
-            // Bottom gutter
-            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - scrollbarSize, offset.Y + Bounds.Y + 2 * scrollbarSize + thumbPosition, Bounds.Height - 4 * scrollbarSize - thumbPosition, scrollbarSize), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
-            // Bottom button
-            spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + Bounds.X + Bounds.Width - scrollbarSize, offset.Y + Bounds.Y + Bounds.Height - 2 * scrollbarSize, scrollbarSize, scrollbarSize), bottomButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
-
+            if (verticalScrollSize > -1)
+            {
+                // Top button
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + verticalScrollbarLeft, offset.Y + Bounds.Y, scrollbarSize, scrollbarSize), topButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+                // Top gutter
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + verticalScrollbarLeft, offset.Y + Bounds.Y + scrollbarSize, verticalThumbPosition, scrollbarSize), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+                // Thumb
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + verticalScrollbarLeft, offset.Y + Bounds.Y + scrollbarSize + verticalThumbPosition, scrollbarSize, scrollbarSize), thumbClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+                // Bottom gutter
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + verticalScrollbarLeft, offset.Y + Bounds.Y + 2 * scrollbarSize + verticalThumbPosition, Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize - verticalThumbPosition, scrollbarSize), gutterClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+                // Bottom button
+                spriteBatch.Draw(Window.Owner.ScrollbarTexture, new Rectangle(offset.X + verticalScrollbarLeft, offset.Y + Bounds.Bottom - bottomGutterFactor * scrollbarSize, scrollbarSize, scrollbarSize), bottomButtonClipping, Color.White, MathHelper.PiOver2, rotateOrigin, SpriteEffects.None, 0);
+            }
             RasterizerState rasterizer = spriteBatch.GraphicsDevice.RasterizerState;
             Rectangle scissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, scissorTestRasterizer);
-            spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset.X + Bounds.X, offset.Y + Bounds.Y, Bounds.Width - 4 - scrollbarSize, Bounds.Height - 4 - scrollbarSize);
+            spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset + Bounds.Location, clientArea.Size);
             spriteBatch.GraphicsDevice.RasterizerState = scissorTestRasterizer;
 
             int lineNumber = lineHeight > 0 ? verticalScrollPosition / lineHeight : 0;
             for (int i = lineNumber; i < lineNumber + visibleLines && i < lines.Length; i++)
             {
                 Texture2D lineTexture = textureHolder.PrepareResource(lines[i], font);
-                spriteBatch.Draw(lineTexture, (Bounds.Location + offset + new Point(GetAlignmentOffset(lineTexture.Width), 0) - new Point(horizontalScrollPosition, verticalScrollPosition) + new Point(0, i * lineHeight)).ToVector2(), TextColor);
+                spriteBatch.Draw(lineTexture,
+                    new Vector2(
+                        Bounds.Location.X + offset.X + GetAlignmentOffset(lineTexture.Width) - horizontalScrollPosition,
+                        Bounds.Location.Y + offset.Y - verticalScrollPosition + i * lineHeight),
+                    TextColor);
+                ;
             }
             base.Draw(spriteBatch, offset);
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, rasterizer, null);
             spriteBatch.GraphicsDevice.ScissorRectangle = scissorRectangle;
+        }
+
+        internal override void Initialize()
+        {
+            base.Initialize();
+            verticalScrollbarLeft = Bounds.Right - scrollbarSize;
+            horizontalScrollbarTop = Bounds.Bottom - scrollbarSize;
         }
 
         private void InitializeText()
@@ -152,13 +171,15 @@ namespace Orts.Graphics.Window.Controls
             }
             int longestLineIndex = -1;
             int lineLength = 0;
+            clientArea = new Rectangle(0, 0, Bounds.Width - scrollbarSize - 4, Bounds.Height - scrollbarSize - 4);
             if (wordWrap)
             {
-                lines = WrapLines(text, font, Bounds.Width - scrollbarSize - 4).ToArray();
+                lines = WrapLines(text, font, clientArea.Width).ToArray();
                 Texture2D texture = textureHolder.PrepareResource(lines[0], font);
                 lineHeight = texture.Height;
-                lineWidth = Bounds.Width - scrollbarSize + 4;
-                horizontalScrollSize = -1; 
+                lineWidth = clientArea.Width;
+                horizontalScrollSize = -1;
+                clientArea.Height = Bounds.Height;
             }
             else
             {
@@ -174,9 +195,28 @@ namespace Orts.Graphics.Window.Controls
                 Texture2D texture = textureHolder.PrepareResource(lines[longestLineIndex], font);
                 lineHeight = texture.Height;
                 lineWidth = texture.Width;
-                horizontalScrollSize = texture.Width + scrollbarSize + 4 - Bounds.Width;
+                if (texture.Width < clientArea.Width)
+                {
+                    horizontalScrollSize = -1;
+                    clientArea.Height = Bounds.Height;
+                }
+                else
+                {
+                    horizontalScrollSize = texture.Width - clientArea.Width;
+                }
             }
-            verticalScrollSize = lines.Length * lineHeight + (wordWrap ? 0 : scrollbarSize + 4) - Bounds.Height;
+            if (lines.Length * lineHeight < clientArea.Height)
+            {
+                verticalScrollSize = -1;
+                clientArea.Width = Bounds.Width;
+
+            }
+            else
+            {
+                verticalScrollSize = lines.Length * lineHeight + (wordWrap ? 0 : scrollbarSize + 4) - Bounds.Height;
+                bottomGutterFactor = horizontalScrollSize < 0 ? 1 : 2;
+            }
+            rightGutterFactor = verticalScrollSize < 0 ? 1 : 2;
             visibleLines = Bounds.Height / lineHeight;
         }
 
@@ -212,7 +252,7 @@ namespace Orts.Graphics.Window.Controls
                     && e.Movement != Point.Zero)
             {
                 Window.CapturedControl = this;
-                SetVerticalScrollPosition(verticalScrollPosition + e.Movement.Y * verticalScrollSize / (Bounds.Height - 4 * scrollbarSize));
+                SetVerticalScrollPosition(verticalScrollPosition + e.Movement.Y * verticalScrollSize / (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize));
                 return true;
             }
             else if (e.MousePosition.X > Bounds.Left + scrollbarSize && e.MousePosition.X < Bounds.Right - scrollbarSize &&
@@ -220,7 +260,7 @@ namespace Orts.Graphics.Window.Controls
                     && e.Movement != Point.Zero)
             {
                 Window.CapturedControl = this;
-                SetHorizontalScrollPosition(horizontalScrollPosition + e.Movement.X * horizontalScrollSize / (Bounds.Width - 4 * scrollbarSize));
+                SetHorizontalScrollPosition(horizontalScrollPosition + e.Movement.X * horizontalScrollSize / (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize));
                 return true;
             }
             return Window.CapturedControl == this || base.HandleMouseDrag(e);
@@ -230,12 +270,16 @@ namespace Orts.Graphics.Window.Controls
         {
             position = MathHelper.Clamp(position, 0, horizontalScrollSize);
             horizontalScrollPosition = position;
+            horizontalThumbPosition = horizontalScrollSize > 0 ? (Bounds.Width - (verticalScrollSize > -1 ? 4 : 3) * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize : 0;
+
         }
 
         private void SetVerticalScrollPosition(int position)
         {
             position = MathHelper.Clamp(position, 0, verticalScrollSize);
             verticalScrollPosition = position;
+            verticalThumbPosition = verticalScrollSize > 0 ? (Bounds.Height - (horizontalScrollSize > -1 ? 4 : 3) * scrollbarSize) * verticalScrollPosition / verticalScrollSize : 0;
+
         }
 
         private DateTime ticks;
@@ -245,36 +289,36 @@ namespace Orts.Graphics.Window.Controls
             if (ticks.AddMilliseconds(mouseClickScrollDelay) > DateTime.UtcNow)
                 return true;
             ticks = DateTime.UtcNow;
-            if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && e.MousePosition.X < Bounds.Right - scrollbarSize)//horizontal scrollbar
+            if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && e.MousePosition.X < Bounds.Right - (rightGutterFactor - 1) * scrollbarSize)//horizontal scrollbar
             {
                 // Mouse down occured within the scrollbar.
                 if (e.MousePosition.X < Bounds.Left + scrollbarSize)
                     // Mouse down occured on left button.
                     SetHorizontalScrollPosition(horizontalScrollPosition - Window.Owner.TextFontDefault.Height);
-                else if (e.MousePosition.X < Bounds.Left + scrollbarSize + (Bounds.Width - 4 * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
+                else if (e.MousePosition.X < Bounds.Left + scrollbarSize + (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
                     // Mouse down occured on left gutter.
                     SetHorizontalScrollPosition(horizontalScrollPosition - Bounds.Width);
-                else if (e.MousePosition.X > Bounds.Width - 2 * scrollbarSize)
+                else if (e.MousePosition.X > Bounds.Width - rightGutterFactor * scrollbarSize)
                     // Mouse down occured on right button.
                     SetHorizontalScrollPosition(horizontalScrollPosition + Window.Owner.TextFontDefault.Height);
-                else if (e.MousePosition.X > Bounds.Left + 2 * scrollbarSize + (Bounds.Width - 4 * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
+                else if (e.MousePosition.X > Bounds.Left + rightGutterFactor * scrollbarSize + (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
                     // Mouse down occured on right gutter.
                     SetHorizontalScrollPosition(horizontalScrollPosition + Bounds.Width);
                 return true;
             }
-            else if (e.MousePosition.X > Bounds.Right - scrollbarSize && e.MousePosition.Y < Bounds.Bottom - scrollbarSize)
+            else if (e.MousePosition.X > Bounds.Right - scrollbarSize && e.MousePosition.Y < Bounds.Bottom - (bottomGutterFactor - 1) * scrollbarSize)//vertical scrollbar
             {
                 // Mouse down occured within the scrollbar.
                 if (e.MousePosition.Y < Bounds.Top + scrollbarSize)
                     // Mouse down occured on top button.
                     SetVerticalScrollPosition(verticalScrollPosition - Window.Owner.TextFontDefault.Height);
-                else if (e.MousePosition.Y < Bounds.Top + scrollbarSize + (Bounds.Height - 4 * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
+                else if (e.MousePosition.Y < Bounds.Top + scrollbarSize + (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
                     // Mouse down occured on top gutter.
                     SetVerticalScrollPosition(verticalScrollPosition - Bounds.Height);
-                else if (e.MousePosition.Y > Bounds.Bottom - 2 * scrollbarSize)
+                else if (e.MousePosition.Y > Bounds.Bottom - bottomGutterFactor * scrollbarSize)
                     // Mouse down occured on bottom button.
                     SetVerticalScrollPosition(verticalScrollPosition + Window.Owner.TextFontDefault.Height);
-                else if (e.MousePosition.Y > Bounds.Top + 2 * scrollbarSize + (Bounds.Height - 4 * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
+                else if (e.MousePosition.Y > Bounds.Top + bottomGutterFactor * scrollbarSize + (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
                     // Mouse down occured on bottom gutter.
                     SetVerticalScrollPosition(verticalScrollPosition + Bounds.Height);
                 return true;
