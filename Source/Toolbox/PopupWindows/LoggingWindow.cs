@@ -37,8 +37,8 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
 
-            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, HorizontalAlignment.Left, true,
-                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.AliceBlue));
+            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, HorizontalAlignment.Left, false,
+                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.White));
             return layout;
         }
     }
