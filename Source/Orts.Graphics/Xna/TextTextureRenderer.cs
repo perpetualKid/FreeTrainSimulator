@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Graphics.Xna
@@ -12,33 +13,42 @@ namespace Orts.Graphics.Xna
         private static Texture2D emptyTexture;
         [ThreadStatic]
         private static Brush whiteBrush;
+        [ThreadStatic]
+        private static Bitmap measureBitmap;
+
+        public static Size Measure(string text, Font font)
+        {
+            using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
+            {
+                return measureGraphics.MeasureString(text, font).ToSize();
+            }
+        }
+
+        public static Size Measure(string text, Font font, System.Drawing.Graphics measureGraphics)
+        {
+            return measureGraphics?.MeasureString(text, font).ToSize() ?? throw new ArgumentNullException(nameof(measureGraphics));
+        }
 
         public static void Resize(string text, Font font, ref Texture2D texture, GraphicsDevice graphicsDevice)
         {
-            using (Bitmap measureBitmap = new Bitmap(1, 1))
+            using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
             {
-                using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap))
+                Size size = measureGraphics.MeasureString(text, font).ToSize();
+                if (size.ToPoint() != texture?.Bounds.Size)
                 {
-                    Size size = measureGraphics.MeasureString(text, font).ToSize();
-                    if (size.ToPoint() != texture?.Bounds.Size)
-                    {
-                        Texture2D current = texture;
-                        texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
-                        current?.Dispose();
-                    }
+                    Texture2D current = texture;
+                    texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
+                    current?.Dispose();
                 }
             }
         }
 
         public static Texture2D Resize(string text, Font font, GraphicsDevice graphicsDevice)
         {
-            using (Bitmap measureBitmap = new Bitmap(1, 1))
+            using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
             {
-                using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap))
-                {
-                    Size size = measureGraphics.MeasureString(text, font).ToSize();
-                    return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
-                }
+                Size size = measureGraphics.MeasureString(text, font).ToSize();
+                return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
             }
         }
 
@@ -83,7 +93,5 @@ namespace Orts.Graphics.Xna
                 }
             }
         }
-
-
     }
 }

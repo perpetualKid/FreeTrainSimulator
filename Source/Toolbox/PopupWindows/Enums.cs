@@ -9,5 +9,7 @@
         LocationWindow,
         HelpWindow,
         TrackNodeInfoWindow,
+        SettingsWindow,
+        LogWindow,
     }
 }

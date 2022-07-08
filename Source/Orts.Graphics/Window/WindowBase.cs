@@ -42,7 +42,7 @@ namespace Orts.Graphics.Window
 
         public int ZOrder { get; protected set; }
 
-        internal ControlLayout CapturedControl { get; set; }
+        internal WindowControl CapturedControl { get; set; }
 
         public Catalog Catalog { get; }
 
@@ -50,6 +50,18 @@ namespace Orts.Graphics.Window
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = relativeLocation;
+            if (size.X < 0)
+            {
+                if (size.X < -100)
+                    throw new ArgumentOutOfRangeException(nameof(size), "Relative window size must be defined in range between -0 to -100 (% of game window size)");
+                size.X = (int)(owner.ClientBounds.Width * -size.X / 100);
+            }
+            if (size.Y < 0)
+            {
+                if (size.X < -100)
+                    throw new ArgumentOutOfRangeException(nameof(size), "Relative window size must be defined in range between -0 to -100 (% of game window size)");
+                size.Y = (int)(owner.ClientBounds.Height * -size.Y / 100);
+            }
             borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
             Catalog = catalog ?? CatalogManager.Catalog;
             Caption = catalog?.GetString(caption) ?? caption;

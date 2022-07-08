@@ -77,13 +77,5 @@ namespace Orts.Graphics.Window.Controls
             spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             base.Draw(spriteBatch, offset);
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-            }
-            base.Dispose(disposing);
-        }
     }
 }

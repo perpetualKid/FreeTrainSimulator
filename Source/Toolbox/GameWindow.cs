@@ -100,17 +100,16 @@ namespace Orts.Toolbox
 
             if (Settings.UserSettings.Logging)
             {
-                LogFileName = System.IO.Path.Combine(Settings.UserSettings.LoggingPath, LoggingUtil.CustomizeLogFileName(Settings.LogFilename));
+                LogFileName = RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename);
                 LoggingUtil.InitLogging(LogFileName, Settings.UserSettings.LogErrorsOnly, false);
                 Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
 
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
-            if (Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length)
-                currentScreen = System.Windows.Forms.Screen.AllScreens[Settings.Screen];
-            else
-                currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
+            currentScreen = Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length
+                ? System.Windows.Forms.Screen.AllScreens[Settings.Screen]
+                : System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
 
             LoadSettings();
@@ -216,18 +215,13 @@ namespace Orts.Toolbox
             windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(Settings.WindowSettings[WindowSetting.Size][1]) / 100.0);
 
             windowPosition = PointExtension.ToPoint(Settings.WindowSettings[WindowSetting.Location]);
-            if (windowPosition != PointExtension.EmptyPoint)
-            {
-                windowPosition = new Point(
+            windowPosition = windowPosition != PointExtension.EmptyPoint
+                ? new Point(
                     currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
-                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
-            }
-            else
-            {
-                windowPosition = new Point(
+                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100)
+                : new Point(
                     currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
                     currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
-            }
 
             BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
         }
@@ -260,8 +254,8 @@ namespace Orts.Toolbox
             string[] pathSelection = null;
             if (selectedFolder != null)
             {
-                routeSelection = selectedRoute != null ? 
-                    (new string[] { selectedFolder.Name, selectedRoute.Name }) : 
+                routeSelection = selectedRoute != null ?
+                    (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
                 pathSelection = selectedPath != null ? new string[] { selectedPath.FilePath } : null;
@@ -269,6 +263,7 @@ namespace Orts.Toolbox
             Settings.RouteSelection = routeSelection;
             Settings.PathSelection = pathSelection;
             Settings.Save();
+            Settings.UserSettings.Save();
         }
 
         private void LoadLanguage()
@@ -306,7 +301,7 @@ namespace Orts.Toolbox
         private void SetScreenMode(ScreenMode targetMode)
         {
             syncing = true;
-            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            _ = windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
@@ -382,25 +377,35 @@ namespace Orts.Toolbox
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
             userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[WindowType.DebugScreen].ToggleVisibility();
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[WindowType.LocationWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[WindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[WindowType.TrackNodeInfoWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[WindowType.SettingsWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[WindowType.LogWindow].ToggleVisibility();
             });
             #endregion
 
@@ -444,6 +449,16 @@ namespace Orts.Toolbox
                 TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<WindowBase>(() =>
+            {
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.WindowLocations[WindowType.SettingsWindow].ToPoint());
+                return settingsWindow;
+            }));
+            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
+            {
+                LoggingWindow loggingWindow = new LoggingWindow(windowManager, RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename), Settings.WindowLocations[WindowType.LogWindow].ToPoint());
+                return loggingWindow;
             }));
             #endregion
 
@@ -545,10 +560,7 @@ namespace Orts.Toolbox
                 double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
                 frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
                 this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-                if (frameRate.SmoothedValue < slowFps)
-                    FormattingOptions["FPS"] = FormatOption.RegularRed;
-                else
-                    FormattingOptions["FPS"] = null;
+                FormattingOptions["FPS"] = frameRate.SmoothedValue < slowFps ? FormatOption.RegularRed : null;
             }
         }
 

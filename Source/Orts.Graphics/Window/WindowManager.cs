@@ -33,7 +33,7 @@ namespace Orts.Graphics.Window
         private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
 
         private readonly Texture2D windowTexture;
-        internal Texture2D scrollbarTexture;
+        internal Texture2D ScrollbarTexture { get; }
 
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
@@ -82,7 +82,7 @@ namespace Orts.Graphics.Window
             }
             using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png")))
             {
-                scrollbarTexture = Texture2D.FromStream(GraphicsDevice, stream);
+                ScrollbarTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }
 
             WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;

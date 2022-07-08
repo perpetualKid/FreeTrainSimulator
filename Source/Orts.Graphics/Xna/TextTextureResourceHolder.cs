@@ -10,10 +10,14 @@ namespace Orts.Graphics.Xna
         private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
         private readonly System.Drawing.Graphics measureGraphics;
 
-        public TextTextureResourceHolder(Game game) : base(game)
+        public TextTextureResourceHolder(Game game) : this(game, 60)
+        {
+        }
+
+        public TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
         {
             measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
-            SweepInterval = 60;
+            SweepInterval = sweepInterval;
         }
 
         public Texture2D PrepareResource(string text, System.Drawing.Font font)

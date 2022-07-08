@@ -30,9 +30,9 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public virtual int CurrentTop => 0;
 
-        public HorizontalAlignment HorizontalChildAlignment { get; protected set; } = HorizontalAlignment.Left;
+        public HorizontalAlignment HorizontalChildAlignment { get; set; } = HorizontalAlignment.Left;
 
-        public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
+        public VerticalAlignment VerticalChildAlignment { get; set; } = VerticalAlignment.Top;
 
         public int Count => ((ICollection<WindowControl>)Controls).Count;
 
@@ -52,7 +52,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public void Add(WindowControl item)
         {
-            InternalAdd(item);
+            _ = InternalAdd(item);
         }
 
         public void AddSpace(int width, int height)
@@ -86,7 +86,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
-{
+        {
             return AddLayoutHorizontal(Window.Owner.TextFontDefault.Height);
         }
 
@@ -105,12 +105,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             return InternalAdd(new ControlLayoutVertical(Window, width, RemainingHeight));
         }
 
-        //public ControlLayout AddLayoutScrollboxHorizontal(int height)
-        //{
-        //    var sb = InternalAdd(new ControlLayoutScrollboxHorizontal(RemainingWidth, height));
-        //    sb.Initialize();
-        //    return sb.Client;
-        //}
+        public ControlLayout AddLayoutScrollboxHorizontal(int height)
+        {
+            return InternalAdd(new HorizontalScrollboxControlLayout(Window, RemainingWidth, height)).Client;
+        }
 
         public ControlLayout AddLayoutScrollboxVertical(int width)
         {
@@ -186,7 +184,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDrag(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || c is ControlLayout controlLayout && TestForDragging(controlLayout)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || TestForDragging(c)))
                 if (control.HandleMouseDrag(e))
                     return true;
             return base.HandleMouseDrag(e);
@@ -195,6 +193,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         private bool TestForDragging(ControlLayout controlLayout)
         {
             return controlLayout == Window.CapturedControl || controlLayout.Controls.Where((c) => c is ControlLayout controlLayout && TestForDragging(controlLayout)).Any();
+        }
+
+        private bool TestForDragging(WindowControl control)
+        {
+            return control == Window.CapturedControl || control is ControlLayout controlLayout && controlLayout.Controls.Where((c) => TestForDragging(c)).Any();
         }
 
         internal override void MoveBy(int x, int y)

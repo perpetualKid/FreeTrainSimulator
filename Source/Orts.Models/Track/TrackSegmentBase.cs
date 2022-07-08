@@ -268,7 +268,8 @@ namespace Orts.Models.Track
                 //    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
                 //else if (t > 1)
                 //    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
-                return (t < 0 || t > 1  || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
+//                return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
+                return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
             }
         }
         #endregion
