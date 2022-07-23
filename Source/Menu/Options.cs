@@ -22,7 +22,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 
 using GetText;
@@ -397,7 +396,7 @@ namespace Orts.Menu
             Match match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
-                return new int[2] {int.Parse(match.Groups[1].ValueSpan), int.Parse(match.Groups[2].ValueSpan) };
+                return new int[2] { int.Parse(match.Groups[1].ValueSpan), int.Parse(match.Groups[2].ValueSpan) };
             }
             return settings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
         }
@@ -416,7 +415,7 @@ namespace Orts.Menu
         {
             SetAdhesionLevelValue();
             AdhesionFactorValueLabel.Text = $"{trackAdhesionFactor.Value}%";
-            AdhesionFactorChangeValueLabel.Text = $"{ trackAdhesionFactorChange.Value}%";
+            AdhesionFactorChangeValueLabel.Text = $"{trackAdhesionFactorChange.Value}%";
         }
 
         private void SetAdhesionLevelValue()
@@ -666,13 +665,29 @@ namespace Orts.Menu
             await updateManager.RunUpdateProcess(buttonUpdaterExecute.Tag as string).ConfigureAwait(false);
         }
         #region Help for General Options
+        // The icons all share the same code which assumes they are named according to a simple scheme as follows:
+        //   1. To add a new Help Icon, copy an existing one and paste it onto the tab.
+        //   2. Give it the same name as the associated control but change the prefix to "pb" for Picture Box.
+        //   3. Add a Click event named HelpIcon_Click to each HelpIcon
+        //      Do not add code for this event (or press Return/double click in the Properties field which creates a code stub for you). 
+        //   4. Add MouseEnter/Leave events to each HelpIcon, label and checkbox:
+        //     - MouseEnter event named HelpIcon_MouseEnter
+        //     - MouseLeave event named HelpIcon_MouseLeave
+        //     Numeric controls do not have MouseEnter/Leave events so, for them, use:
+        //     - Enter event named HelpIcon_MouseEnter
+        //     - Leave event named HelpIcon_MouseLeave
+        //      Do not add code for these events (or press Return/double click in the Properties field which creates a code stub for you). 
+        //   5. Add an entry to InitializeHelpIcons() which links the icon to the control and, if there is one, the label.
+        //      This link will highlight the icon when the user hovers (mouses over) the control or the label.
+        //   6. Add an entry to HelpIcon_Click() which opens the user's browser with the correct help page.
+        //      The URL can be found from visiting the page and hovering over the title of the section.
+
         /// <summary>
         /// Allows multiple controls to change a single help icon with their hover events.
         /// </summary>
         private class HelpIconHover
         {
             private readonly PictureBox icon;
-            private int hoverCount;
 
             public HelpIconHover(PictureBox pb)
             {
@@ -681,19 +696,17 @@ namespace Orts.Menu
 
             public void Enter()
             {
-                hoverCount++;
-                SetImage();
+                SetHoverState(true);
             }
 
             public void Leave()
             {
-                hoverCount--;
-                SetImage();
+                SetHoverState(false);
             }
 
-            private void SetImage()
+            private void SetHoverState(bool state)
             {
-                icon.Image = hoverCount > 0 ? Properties.Resources.InfoHover : Properties.Resources.Info;
+                icon.Image = state ? Properties.Resources.InfoHover : Properties.Resources.Info;
             }
         }
 
@@ -702,6 +715,7 @@ namespace Orts.Menu
             // static mapping of picture boxes to controls
             (PictureBox, Control[], string)[] helpIconControls = new (PictureBox, Control[], string)[]
             {
+                // General Tab
                 (pbAlerter, new[] { checkAlerter }, "/options.html#alerter-in-cab"),
                 (pbControlConfirmations, new[] { checkConfirmations }, "/options.html#control-confirmations"),
                 (pbRetainers, new[] { checkRetainers }, "/options.html#retainer-valve-on-all-cars"),
@@ -713,6 +727,12 @@ namespace Orts.Menu
                 (pbEnableTcsScripts, new[] { checkEnableTCSScripts }, "/options.html#disable-tcs-scripts"),
                 (pbEnableWebServer, new[] { checkEnableWebServer }, "/options.html#enable-web-server"),
                 (pbOverspeedMonitor, new[] { checkSpeedMonitor }, "/options.html#overspeed-monitor"),
+
+                // Audio tab
+                (pbSoundVolumePercent, new Control[] { labelSoundVolume, numericSoundVolumePercent }, "/options.html#audio-options"),
+                (pbSoundDetailLevel, new Control[]  { labelSoundDetailLevel, numericSoundDetailLevel },"/options.html#audio-options"),
+                (pbExternalSoundPassThruPercent, new Control[]  { labelExternalSound, numericExternalSoundPassThruPercent },"/options.html#audio-options"),
+
             };
             foreach ((PictureBox pb, Control[] controls, string url) in helpIconControls)
             {
