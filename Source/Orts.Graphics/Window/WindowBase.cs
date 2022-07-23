@@ -38,6 +38,8 @@ namespace Orts.Graphics.Window
 
         public bool Modal { get; protected set; }
 
+        public bool CloseButton { get; protected set; } = true;
+
         public bool Interactive { get; protected set; } = true;
 
         public int ZOrder { get; protected set; }
@@ -86,10 +88,7 @@ namespace Orts.Graphics.Window
 
         public virtual void ToggleVisibility()
         {
-            if (Owner.WindowOpen(this))
-                Close();
-            else
-                Open();
+            _ = Owner.WindowOpen(this) ? Close() : Open();
         }
 
         public virtual void TabAction(UserCommandArgs args)
@@ -188,29 +187,29 @@ namespace Orts.Graphics.Window
         internal void HandleMouseReleased(Point position, KeyModifiers keyModifiers)
         {
             if (!CapturedForDragging)
-                windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+                _ = windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
             CapturedForDragging = false;
         }
 
         internal void HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
         {
-            windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
+            _ = windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
         }
 
         internal void HandleMouseClicked(Point position, KeyModifiers keyModifiers)
-        { 
-            windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+        {
+            _ = windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         internal void HandleMouseDown(Point position, KeyModifiers keyModifiers)
         {
-            windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
+            _ = windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         internal protected void Layout()
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);
-            Layout(windowLayout);
+            _ = Layout(windowLayout);
             windowLayout.Initialize();
             this.windowLayout = windowLayout;
         }
@@ -223,13 +222,26 @@ namespace Orts.Graphics.Window
 
         protected virtual ControlLayout Layout(ControlLayout layout, float headerScaling = 1.0f)
         {
+            if (layout == null)
+                throw new ArgumentNullException(nameof(layout));
             System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
+            if (CloseButton)
+            {
+                Label closeLabel = new Label(this, layout.RemainingWidth - (int)(2 * Owner.DpiScaling) - (int)(this.Owner.DefaultFontSize * 1.5), (int)(2 * Owner.DpiScaling), (int)(this.Owner.DefaultFontSize * 1.5), this.Owner.DefaultFontSize, "❎");
+                closeLabel.OnClick += CloseLabel_OnClick;
+                layout.Add(closeLabel);
+            }
             // Pad window by 4px, add caption and separator between to content area.
-            layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
             Label headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, HorizontalAlignment.Center, headerFont, Color.White);
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
             return layout;
+        }
+
+        private void CloseLabel_OnClick(object sender, MouseClickEventArgs e)
+        {
+            Close();
         }
 
         private void InitializeBuffers()

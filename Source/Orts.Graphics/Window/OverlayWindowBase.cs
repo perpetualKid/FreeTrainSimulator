@@ -11,6 +11,7 @@ namespace Orts.Graphics.Window
             base(owner, caption, relativeLocation, size)
         {
             Interactive = false;
+            CloseButton = false;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
