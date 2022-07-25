@@ -19,6 +19,6 @@
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <PackageReference Include="GetText.NET" Version="1.1.4" />
+    <PackageReference Include="GetText.NET" Version="1.3.8" />
   </ItemGroup>
 </Project>
