@@ -22,6 +22,7 @@ namespace Orts.Toolbox.PopupWindows
             base(owner, "Loading Route", relativeLocation, new Point(300, 70))
         {
             Interactive = false;
+            CloseButton = false;
             ZOrder = 70;
         }
 

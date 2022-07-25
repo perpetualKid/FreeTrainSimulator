@@ -167,8 +167,11 @@ namespace Orts.Graphics.Window.Controls
             if (string.IsNullOrEmpty(text))
             {
                 lines = Array.Empty<string>();
+                horizontalScrollSize = -1;
+                verticalScrollSize = -1;
                 return;
             }
+
             int longestLineIndex = -1;
             int lineLength = 0;
             clientArea = new Rectangle(0, 0, Bounds.Width - scrollbarSize - 4, Bounds.Height - scrollbarSize - 4);
