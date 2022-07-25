@@ -49,6 +49,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 using GetText;
@@ -6827,23 +6828,48 @@ namespace Orts.Simulation.Physics
             // get next signal
 
             // forward
+            float distanceToSignalForward = 0;
+            float lengthOffset = PresentPosition[Direction.Forward].Offset;
             NextSignalObject[0] = null;
             for (int i = 0; i < ValidRoute[0].Count && NextSignalObject[0] == null; i++)
             {
                 TrackCircuitRouteElement routeElement = ValidRoute[0][i];
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
                 NextSignalObject[0] = section.EndSignals[routeElement.Direction];
+                if (i >= PresentPosition[Direction.Forward].RouteListIndex)
+                {
+                    distanceToSignalForward += section.Length - lengthOffset;
+                    lengthOffset = 0;
+                }
             }
 
             // backward
+            float distanceToSignalBackward = 0;
+            lengthOffset = 0;
+            int presentIndex = -1;
             NextSignalObject[1] = null;
             for (int i = 0; i < ValidRoute[1].Count && NextSignalObject[1] == null; i++)
             {
                 TrackCircuitRouteElement routeElement = ValidRoute[1][i];
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
                 NextSignalObject[1] = section.EndSignals[routeElement.Direction];
+                if (presentIndex == -1 && PresentPosition[Direction.Backward].TrackCircuitSectionIndex == routeElement.TrackCircuitSection.Index)
+                {
+                    lengthOffset = -PresentPosition[Direction.Backward].Offset + TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length;
+                    presentIndex = i;
+                }
+                if (presentIndex != -1 && presentIndex <= i)
+                {
+                    distanceToSignalBackward += section.Length - lengthOffset;
+                    lengthOffset = 0;
+                }
             }
 
+            DistanceToSignal = null;
+            if (MUDirection != MidpointDirection.Reverse && NextSignalObject[0] != null)
+                DistanceToSignal = distanceToSignalForward;
+            if (MUDirection == MidpointDirection.Reverse && NextSignalObject[1] != null)
+                DistanceToSignal = distanceToSignalBackward;
             // clear all build up distance actions
             RequiredActions.RemovePendingAIActionItems(true);
         }
