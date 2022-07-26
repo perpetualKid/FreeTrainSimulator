@@ -6,7 +6,7 @@
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
     <PackageReference Include="RailDriver" Version="1.1.4" />
     <PackageReference Include="System.Management" Version="6.0.0" />
     <PackageReference Include="GetText.NET" Version="1.3.8" />
