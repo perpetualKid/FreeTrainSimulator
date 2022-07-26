@@ -175,7 +175,7 @@ namespace Orts.Settings
                     builder.Append(';');
                 }
             }
-            if (builder[^1] == ';')
+            if (builder.Length > 0 && builder[^1] == ';')
                 builder.Length--;
             return builder.ToString();
 

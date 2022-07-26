@@ -457,7 +457,7 @@ namespace Orts.Toolbox
             }));
             windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
             {
-                LoggingWindow loggingWindow = new LoggingWindow(windowManager, RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename), Settings.WindowLocations[WindowType.LogWindow].ToPoint());
+                LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.WindowLocations[WindowType.LogWindow].ToPoint());
                 return loggingWindow;
             }));
             #endregion
