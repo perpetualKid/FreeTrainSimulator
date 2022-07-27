@@ -2,15 +2,17 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Orts.Graphics.Window.Controls
 {
     public class Label : TextControl
     {
         private string text;
-        public string Text 
-        { 
+        public string Text
+        {
             get => text;
-            set { text = value; Initialize(); } 
+            set { text = value; Initialize(); }
         }
 
         public HorizontalAlignment Alignment { get; }
@@ -44,6 +46,16 @@ namespace Orts.Graphics.Window.Controls
         public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align, Color color)
             : this(window, 0, 0, width, height, text, align, null, color)
         {
+        }
+
+        internal System.Drawing.Font Font
+        {
+            get => font;
+            set
+            {
+                this.font = value ?? Window?.Owner.TextFontDefault;
+                Initialize();
+            }
         }
 
         internal override void Initialize()
