@@ -139,6 +139,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                 if (control.Visible)
                     control.Draw(spriteBatch, offset);
             }
+            base.Draw(spriteBatch, offset);
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
