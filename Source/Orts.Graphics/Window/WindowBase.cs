@@ -91,9 +91,6 @@ namespace Orts.Graphics.Window
             _ = Owner.WindowOpen(this) ? Close() : Open();
         }
 
-        public virtual void TabAction(UserCommandArgs args)
-        { }
-
         internal protected virtual void Update(GameTime gameTime)
         {
             windowLayout.Update(gameTime);

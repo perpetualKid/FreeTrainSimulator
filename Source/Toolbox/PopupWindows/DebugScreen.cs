@@ -74,7 +74,7 @@ namespace Orts.Toolbox.PopupWindows
             return base.Close();
         }
 
-        public override void TabAction(UserCommandArgs args)
+        private void TabAction(UserCommandArgs args)
         {
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {

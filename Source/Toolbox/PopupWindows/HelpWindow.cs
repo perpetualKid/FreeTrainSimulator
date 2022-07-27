@@ -19,19 +19,6 @@ namespace Orts.Toolbox.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            //just sample/test code for a horizontal scroll layout
-            //layout = base.Layout(layout, headerScaling);
-            //layout = layout.AddLayoutScrollboxHorizontal(50);//(layout.RemainingHeight);
-
-            //foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-            //{
-            //    ControlLayoutVertical column = layout.AddLayoutVertical(120);
-            //    int width = 100;//column.RemainingWidth / 2;
-            //    column.Add(new Label(this, width, 16, command.GetLocalizedDescription()));
-            //    column.Add(new Label(this, width, 16, InputSettings.UserCommands[command]?.ToString()));
-            //}
-            //return layout;
-
             layout = base.Layout(layout, headerScaling);
             layout = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
 

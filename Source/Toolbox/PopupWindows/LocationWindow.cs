@@ -55,7 +55,7 @@ namespace Orts.Toolbox.PopupWindows
             return layout;
         }
 
-        public override void TabAction(UserCommandArgs args)
+        private void TabAction(UserCommandArgs args)
         {
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
@@ -63,7 +63,6 @@ namespace Orts.Toolbox.PopupWindows
                 updateRequired = true;
                 Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
                 Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
-                base.TabAction(args);
             }
         }
 

@@ -41,11 +41,10 @@ namespace Orts.Toolbox.PopupWindows
             trackNodeInfoGrid.InformationProvider = contentArea?.Content?.TrackNodeInfo;            
         }
 
-        public override void TabAction(UserCommandArgs args)
+        private void TabAction(UserCommandArgs args)
         {
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
-                base.TabAction(args);
             }
         }
 
