@@ -227,7 +227,7 @@ namespace Orts.Graphics.Window
             System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
             if (CloseButton)
             {
-                Label closeLabel = new Label(this, layout.RemainingWidth - (int)(2 * Owner.DpiScaling) - (int)(this.Owner.DefaultFontSize * 1.5), (int)(2 * Owner.DpiScaling), (int)(this.Owner.DefaultFontSize * 1.5), this.Owner.DefaultFontSize, "❎");
+                Label closeLabel = new Label(this, layout.RemainingWidth - (int)(2 * Owner.DpiScaling) - Owner.TextFontDefault.Height, (int)(2 * Owner.DpiScaling), Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, "❎");
                 closeLabel.OnClick += CloseLabel_OnClick;
                 layout.Add(closeLabel);
             }
