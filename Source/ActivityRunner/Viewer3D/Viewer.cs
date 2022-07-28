@@ -1375,7 +1375,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, smsFilePath));
+                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, World.Trains.GetViewer(car), smsFilePath));
             }
             catch (Exception error)
             {

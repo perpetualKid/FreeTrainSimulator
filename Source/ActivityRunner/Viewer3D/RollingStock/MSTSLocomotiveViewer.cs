@@ -78,7 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     try
                     {
                         Viewer.SoundProcess.AddSoundSources(script, new List<SoundSourceBase>() {
-                            new SoundSource(Locomotive, Locomotive.TrainControlSystem.Sounds[script])});
+                            new SoundSource(Locomotive, this, Locomotive.TrainControlSystem.Sounds[script])});
                     }
                     catch (Exception error)
                     {
