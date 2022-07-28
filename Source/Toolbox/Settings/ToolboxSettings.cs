@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
-using Microsoft.CodeAnalysis;
-
 using Orts.Common;
 using Orts.Graphics;
 using Orts.Settings;
@@ -61,13 +59,13 @@ namespace Orts.Toolbox.Settings
         #region Toolbox Settings
         [Default(new string[]
         {
-            nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen
-            nameof(WindowSetting.Size) + "=75, 75"    // % of screen size
+            $"{nameof(WindowSetting.Location)}=50,50",  // % of the windows Screen
+            $"{nameof(WindowSetting.Size)}=75,75"    // % of screen size
         })]
         public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
 
         [Default(0)]
-        public int Screen { get; set; }
+        public int WindowScreen { get; set; }
 
 #pragma warning disable CA1819 // Properties should not return arrays
         [Default(new string[0])]
@@ -119,29 +117,29 @@ namespace Orts.Toolbox.Settings
         public string LogFilename { get; set; }
 
         [Default(new string[]{
-            $"{nameof(ColorSetting.Background)}=DarkGray",
-            $"{nameof(ColorSetting.RailTrack)}=Blue",
-            $"{nameof(ColorSetting.RailTrackEnd)}=BlueViolet",
-            $"{nameof(ColorSetting.RailTrackJunction)}=DarkMagenta",
-            $"{nameof(ColorSetting.RailTrackCrossing)}=Firebrick",
-            $"{nameof(ColorSetting.RailLevelCrossing)}=Crimson",
-            $"{nameof(ColorSetting.RoadTrack)}=Olive",
-            $"{nameof(ColorSetting.RoadTrackEnd)}=ForestGreen",
-            $"{nameof(ColorSetting.RoadLevelCrossing)}=DeepPink",
-            $"{nameof(ColorSetting.PathTrack)}=Gold",
-            $"{nameof(ColorSetting.PathTrackEnd)}=Gold",
-            $"{nameof(ColorSetting.PathTrackIntermediate)}=Gold",
-            $"{nameof(ColorSetting.PathJunction)}=Gold",
-            $"{nameof(ColorSetting.PathReversal)}=Gold",
-            $"{nameof(ColorSetting.RoadCarSpawner)}=White",
-            $"{nameof(ColorSetting.SignalItem)}=White",
-            $"{nameof(ColorSetting.PlatformItem)}=Navy",
-            $"{nameof(ColorSetting.SidingItem)}=ForestGreen",
-            $"{nameof(ColorSetting.SpeedPostItem)}=RoyalBlue",
-            $"{nameof(ColorSetting.HazardItem)}=White",
-            $"{nameof(ColorSetting.PickupItem)}=White",
-            $"{nameof(ColorSetting.SoundRegionItem)}=White",
-            $"{nameof(ColorSetting.LevelCrossingItem)}=White",
+            $"{nameof(ColorSetting.Background)}={nameof(Microsoft.Xna.Framework.Color.DarkGray)}",
+            $"{nameof(ColorSetting.RailTrack)}={nameof(Microsoft.Xna.Framework.Color.Blue)}",
+            $"{nameof(ColorSetting.RailTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.BlueViolet)}",
+            $"{nameof(ColorSetting.RailTrackJunction)}={nameof(Microsoft.Xna.Framework.Color.DarkMagenta)}",
+            $"{nameof(ColorSetting.RailTrackCrossing)}={nameof(Microsoft.Xna.Framework.Color.Firebrick)}",
+            $"{nameof(ColorSetting.RailLevelCrossing)}={nameof(Microsoft.Xna.Framework.Color.Crimson)}",
+            $"{nameof(ColorSetting.RoadTrack)}={nameof(Microsoft.Xna.Framework.Color.Olive)}",
+            $"{nameof(ColorSetting.RoadTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.ForestGreen)}",
+            $"{nameof(ColorSetting.RoadLevelCrossing)}={nameof(Microsoft.Xna.Framework.Color.DeepPink)}",
+            $"{nameof(ColorSetting.PathTrack)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
+            $"{nameof(ColorSetting.PathTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
+            $"{nameof(ColorSetting.PathTrackIntermediate)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
+            $"{nameof(ColorSetting.PathJunction)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
+            $"{nameof(ColorSetting.PathReversal)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
+            $"{nameof(ColorSetting.RoadCarSpawner)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.SignalItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.PlatformItem)}={nameof(Microsoft.Xna.Framework.Color.Navy)}",
+            $"{nameof(ColorSetting.SidingItem)}={nameof(Microsoft.Xna.Framework.Color.ForestGreen)}",
+            $"{nameof(ColorSetting.SpeedPostItem)}={nameof(Microsoft.Xna.Framework.Color.RoyalBlue)}",
+            $"{nameof(ColorSetting.HazardItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.PickupItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.SoundRegionItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.LevelCrossingItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
         })]
         public EnumArray<string, ColorSetting> ColorSettings { get; set; }
 
@@ -157,7 +155,7 @@ namespace Orts.Toolbox.Settings
             $"{nameof(WindowType.SettingsWindow)}=70,70",
             $"{nameof(WindowType.LogWindow)}=30,70",
         })]
-        public EnumArray<int[], WindowType> WindowLocations { get; set; }
+        public EnumArray<int[], WindowType> PopupLocations { get; set; }
 
         [Default(new string[]
         {
@@ -171,7 +169,22 @@ namespace Orts.Toolbox.Settings
             $"{nameof(WindowType.SettingsWindow)}=True",
             $"{nameof(WindowType.LogWindow)}=False",
         })]
-        public EnumArray<bool, WindowType> WindowStatus { get; set; }
+        public EnumArray<bool, WindowType> PopupStatus { get; set; }
+
+        [Default(new string[]
+        {
+            $"{nameof(WindowType.QuitWindow)}=\"\"",
+            $"{nameof(WindowType.AboutWindow)}=",
+            $"{nameof(WindowType.StatusWindow)}=",
+            $"{nameof(WindowType.DebugScreen)}=\"\"",
+            $"{nameof(WindowType.LocationWindow)}=\"\"",
+            $"{nameof(WindowType.HelpWindow)}=",
+            $"{nameof(WindowType.TrackNodeInfoWindow)}=",
+            $"{nameof(WindowType.SettingsWindow)}=",
+            $"{nameof(WindowType.LogWindow)}=",
+        })]
+        public EnumArray<string, WindowType> PopupSettings { get; set; }
+
 
         [Default("Segoe UI")]
         public string TextFont { get; set; }

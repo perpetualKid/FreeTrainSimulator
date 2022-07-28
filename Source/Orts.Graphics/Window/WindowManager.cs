@@ -235,7 +235,7 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
-            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
+//            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -247,7 +247,7 @@ namespace Orts.Graphics.Window
             }
             else if (mouseActiveWindow != null && userCommandArgs is ScrollCommandArgs scrollCommandArgs)
             {
-                mouseActiveWindow.HandleMouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
+                userCommandArgs.Handled = mouseActiveWindow.HandleMouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
             }
         }
 
@@ -280,7 +280,7 @@ namespace Orts.Graphics.Window
                 else if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
-                    mouseActiveWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
+                    _ = mouseActiveWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
                 }
             }
         }
@@ -293,7 +293,7 @@ namespace Orts.Graphics.Window
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
                 {
                     userCommandArgs.Handled = true;
-                    modalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
+                    _ = modalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
                 else if (mouseActiveWindow != null)
                 {
@@ -307,7 +307,7 @@ namespace Orts.Graphics.Window
                             windows = updatedWindowList;
                         }
                     }
-                    mouseActiveWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
+                    _ = mouseActiveWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
             }
         }
@@ -341,7 +341,7 @@ namespace Orts.Graphics.Window
                         mouseActiveWindow.FocusLost();
                         mouseActiveWindow = null;
                     }
-                    mouseActiveWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers);
+                    _ = (mouseActiveWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
                 }
             }
         }

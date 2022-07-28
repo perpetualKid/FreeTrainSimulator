@@ -65,6 +65,12 @@ namespace Orts.Common.Input
             }
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
             currentMouseState = Mouse.GetState(Game.Window);
+            MouseState otherMouseState = Mouse.GetState();
+
+            if (!Game.GraphicsDevice.Viewport.Bounds.Contains(currentMouseState.Position))
+            {
+                return;
+            }
 
             if (currentMouseState != previousMouseState && previousMouseState != default)
             {

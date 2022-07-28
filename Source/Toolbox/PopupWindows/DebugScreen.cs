@@ -1,6 +1,5 @@
 ﻿
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
@@ -9,6 +8,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
+using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -23,18 +23,21 @@ namespace Orts.Toolbox.PopupWindows
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
         private readonly UserCommandController<UserCommand> userCommandController;
-
+        private readonly ToolboxSettings toolboxSettings;
         private DebugScreenInformation currentDebugScreen;
 
-        public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
+        public DebugScreen(WindowManager owner, ToolboxSettings settings, string caption, Color backgroundColor) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
             ZOrder = 0;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            toolboxSettings = settings;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
             UpdateBackgroundColor(backgroundColor);
+            _ = EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.DebugScreen], out currentDebugScreen);
+            currentProvider[currentDebugScreen].Visible = true;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -82,6 +85,7 @@ namespace Orts.Toolbox.PopupWindows
                     currentProvider[currentDebugScreen].Visible = false;
                 currentDebugScreen = currentDebugScreen.Next();
                 currentProvider[currentDebugScreen].Visible = true;
+                toolboxSettings.PopupSettings[WindowType.DebugScreen] = currentDebugScreen.ToString();
             }
         }
     }

@@ -12,6 +12,7 @@ using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -26,12 +27,17 @@ namespace Orts.Toolbox.PopupWindows
         private bool updateRequired;
 
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly ToolboxSettings toolboxSettings;
 
-        public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
+        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation) :
             base(owner, "World Coordinates", relativeLocation, new Point(200, 48))
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            toolboxSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            if (!bool.TryParse(toolboxSettings.PopupSettings[WindowType.LocationWindow], out useWorldCoordinates))
+                useWorldCoordinates = true;
+            Resize();
         }
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
@@ -60,10 +66,16 @@ namespace Orts.Toolbox.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 useWorldCoordinates = !useWorldCoordinates;
+                toolboxSettings.PopupSettings[WindowType.LocationWindow] = useWorldCoordinates.ToString();
                 updateRequired = true;
-                Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
-                Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
+                Resize();
             }
+        }
+
+        private void Resize()
+        {
+            Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+            Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 64));
         }
 
         public override bool Open()

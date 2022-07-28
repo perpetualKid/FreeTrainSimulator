@@ -181,26 +181,28 @@ namespace Orts.Graphics.Window
             }
         }
 
-        internal void HandleMouseReleased(Point position, KeyModifiers keyModifiers)
+        internal bool HandleMouseReleased(Point position, KeyModifiers keyModifiers)
         {
+            bool result = false;
             if (!CapturedForDragging)
-                _ = windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+                result = windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
             CapturedForDragging = false;
+            return result;
         }
 
-        internal void HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
+        internal bool HandleMouseScroll(Point position, int scrollDelta, KeyModifiers keyModifiers)
         {
-            _ = windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
+            return windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, scrollDelta, keyModifiers));
         }
 
-        internal void HandleMouseClicked(Point position, KeyModifiers keyModifiers)
+        internal bool HandleMouseClicked(Point position, KeyModifiers keyModifiers)
         {
-            _ = windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+            return windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
-        internal void HandleMouseDown(Point position, KeyModifiers keyModifiers)
+        internal bool HandleMouseDown(Point position, KeyModifiers keyModifiers)
         {
-            _ = windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
+            return windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         internal protected void Layout()

@@ -107,8 +107,8 @@ namespace Orts.Toolbox
             }
 
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
-            currentScreen = Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length
-                ? System.Windows.Forms.Screen.AllScreens[Settings.Screen]
+            currentScreen = Settings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
+                ? System.Windows.Forms.Screen.AllScreens[Settings.WindowScreen]
                 : System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
 
@@ -233,16 +233,16 @@ namespace Orts.Toolbox
 
             Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            Settings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
             foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    Settings.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                    Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
                 }
                 if (windowType != WindowType.QuitWindow)
-                    Settings.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
+                    Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
             if (null != contentArea)
@@ -412,11 +412,11 @@ namespace Orts.Toolbox
             #region popup windows
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.WindowLocations[WindowType.AboutWindow].ToPoint());
+            windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[WindowType.StatusWindow].ToPoint());
+            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[WindowType.AboutWindow].ToPoint());
             windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
             {
-                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
+                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[WindowType.QuitWindow].ToPoint());
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
                 quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
                 quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
@@ -425,7 +425,7 @@ namespace Orts.Toolbox
 
             windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, "Debug", BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
@@ -435,29 +435,29 @@ namespace Orts.Toolbox
 
             windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
             windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<WindowBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, Settings.WindowLocations[WindowType.HelpWindow].ToPoint());
+                HelpWindow helpWindow = new HelpWindow(windowManager, Settings.PopupLocations[WindowType.HelpWindow].ToPoint());
                 return helpWindow;
             }));
             windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<WindowBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.TrackNodeInfoWindow].ToPoint());
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[WindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<WindowBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.WindowLocations[WindowType.SettingsWindow].ToPoint());
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
                 return settingsWindow;
             }));
             windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
             {
-                LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.WindowLocations[WindowType.LogWindow].ToPoint());
+                LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[WindowType.LogWindow].ToPoint());
                 return loggingWindow;
             }));
             #endregion
@@ -473,7 +473,7 @@ namespace Orts.Toolbox
             {
                 foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
                 {
-                    if (Settings.WindowStatus[windowType])
+                    if (Settings.PopupStatus[windowType])
                         windowManager[windowType].Open();
                 }
             }
