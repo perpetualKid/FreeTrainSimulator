@@ -364,13 +364,13 @@ namespace Orts.Graphics.MapView
             Zoom(-ZoomAmplifier(commandArgs));
         }
 
-        private DateTime nextUpdate;
+        private long nextUpdate;
         private void Zoom(int steps)
         {
-            if (DateTime.UtcNow > nextUpdate)
+            if (Environment.TickCount64 > nextUpdate)
             {
                 UpdateScale(steps);
-                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+                nextUpdate = Environment.TickCount64 + 30;
             }
         }
 

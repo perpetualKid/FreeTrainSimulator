@@ -285,13 +285,13 @@ namespace Orts.Graphics.Window.Controls
 
         }
 
-        private DateTime ticks;
+        private long ticks;
 
         private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (ticks.AddMilliseconds(mouseClickScrollDelay) > DateTime.UtcNow)
+            if (Environment.TickCount64 < ticks)
                 return true;
-            ticks = DateTime.UtcNow;
+            ticks = Environment.TickCount64 + mouseClickScrollDelay;
             if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && e.MousePosition.X < Bounds.Right - (rightGutterFactor - 1) * scrollbarSize)//horizontal scrollbar
             {
                 // Mouse down occured within the scrollbar.

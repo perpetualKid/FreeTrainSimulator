@@ -9,6 +9,7 @@ namespace Orts.Graphics.Window.Controls.Layout
     public abstract class ScrollboxControlLayout : ControlLayout
     {
         protected const int mouseClickScrollDelay = 100;
+        private protected long scrollDelayTicks;
 
         public ControlLayout Client { get; private protected set; }
 
@@ -131,13 +132,11 @@ namespace Orts.Graphics.Window.Controls.Layout
             scrollPosition = position;
         }
 
-        private DateTime ticks;
-
         private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (ticks.AddMilliseconds(mouseClickScrollDelay) > DateTime.UtcNow)
+            if (Environment.TickCount64 < scrollDelayTicks)
                 return true;
-            ticks = DateTime.UtcNow;
+            scrollDelayTicks = Environment.TickCount64 + mouseClickScrollDelay;
             if (e.MousePosition.X > Bounds.Right - scrollbarSize)
             {
                 // Mouse down occured within the scrollbar.
@@ -246,13 +245,11 @@ namespace Orts.Graphics.Window.Controls.Layout
             scrollPosition = position;
         }
 
-        private DateTime ticks;
-
         private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (ticks.AddMilliseconds(mouseClickScrollDelay) > DateTime.UtcNow)
+            if (Environment.TickCount64 < scrollDelayTicks)
                 return true;
-            ticks = DateTime.UtcNow;
+            scrollDelayTicks = Environment.TickCount64 + mouseClickScrollDelay;
             if (e.MousePosition.Y > Bounds.Height - scrollbarSize)
             {
                 // Mouse down occured within the scrollbar.
