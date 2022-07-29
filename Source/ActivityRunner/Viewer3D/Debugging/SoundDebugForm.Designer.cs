@@ -17,6 +17,8 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
+
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
     partial class SoundDebugForm
@@ -32,11 +34,16 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            try
             {
-                components.Dispose();
+                if (disposing && (components != null))
+                {
+                    components.Dispose();
+                }
+                base.Dispose(disposing);
             }
-            base.Dispose(disposing);
+            catch (InvalidOperationException)
+            { }
         }
 
         #region Windows Form Designer generated code

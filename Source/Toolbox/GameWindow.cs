@@ -349,7 +349,6 @@ namespace Orts.Toolbox
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
             TextShape.Initialize(this, spriteBatch);
-            BasicShapes.Initialize(spriteBatch);
 
             UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
 
@@ -496,8 +495,6 @@ namespace Orts.Toolbox
 
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
-            BasicShapes.LoadContent(GraphicsDevice);
             //DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
             //Components.Add(clock);
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));

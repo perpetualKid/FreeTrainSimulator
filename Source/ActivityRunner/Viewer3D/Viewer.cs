@@ -55,6 +55,8 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.World;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.ActivityRunner.Viewer3D
 {
     public class Viewer
@@ -89,13 +91,14 @@ namespace Orts.ActivityRunner.Viewer3D
         private Thread dispatcherThread;
         private Dispatcher.DispatcherWindow dispatcherWindow;
 
+        private Orts.Graphics.Window.WindowManager<ViewerWindowType> windowManager;
+
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
         public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
         public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
         public PauseWindow PauseWindow { get; private set; } // Game paused window (special)
         public ActivityWindow ActivityWindow { get; private set; } // Activity notices window
-        public QuitWindow QuitWindow { get; private set; } // Escape window
         public HelpWindow HelpWindow { get; private set; } // F1 window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
@@ -458,7 +461,6 @@ namespace Orts.ActivityRunner.Viewer3D
             NoticeWindow = new NoticeWindow(WindowManager);
             PauseWindow = new PauseWindow(WindowManager);
             ActivityWindow = new ActivityWindow(WindowManager);
-            QuitWindow = new QuitWindow(WindowManager);
             HelpWindow = new HelpWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
@@ -480,6 +482,16 @@ namespace Orts.ActivityRunner.Viewer3D
             TTDetachWindow = new TTDetachWindow(WindowManager);
             EOTListWindow = new EOTListWindow(WindowManager);
             WindowManager.Initialize();
+
+            windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
+            windowManager.WindowOpacity = 0.4f;
+            windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager);
+                return quitWindow;
+            }));
+
+            Game.Components.Add(windowManager);
 
             InfoDisplay = new InfoDisplay(this);
 
@@ -532,7 +544,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible);
+                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () =>
+                {
+                    Pause(!Simulator.GamePaused);
+                });
                 UserCommandController.AddEvent(UserCommand.GamePause, KeyEventType.KeyPressed, () => Simulator.GamePaused = !Simulator.GamePaused);
                 UserCommandController.AddEvent(UserCommand.DebugSpeedUp, KeyEventType.KeyPressed, () =>
                 {
@@ -1281,7 +1296,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (Simulator.Settings.ReplayPauseBeforeEnd)
                     {
                         // Reveal Quit Menu
-                        QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
+                        //QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
+                        Pause(true);
                         Log.PauseState = ReplayPauseState.During;
                     }
                     else
@@ -1464,9 +1480,27 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void ResumeReplaying()
         {
+            Simulator.GamePaused = false;
+            if (Log.PauseState == ReplayPauseState.During)
+                Log.PauseState = ReplayPauseState.Done;
+
             Log.CameraReplaySuspended = false;
             if (SuspendedCamera != null)
                 SuspendedCamera.Activate();
+        }
+
+        public void Pause(bool pause)
+        {
+            if (pause)
+            {
+                Simulator.GamePaused = true;
+                _ = windowManager[ViewerWindowType.QuitWindow].Open();
+            }
+            else
+            {
+                Simulator.GamePaused = false;
+                _ = windowManager[ViewerWindowType.QuitWindow].Close();
+            }
         }
 
         public void ChangeCab()

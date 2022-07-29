@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
 using Orts.Graphics.Window.Controls.Layout;
 
@@ -38,20 +39,22 @@ namespace Orts.Graphics.Window
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
 
-        private const float opacityDefault = 0.6f;
+        private float opacityDefault = 0.6f;
         private Matrix xnaView;
         private Matrix xnaProjection;
+
         internal ref readonly Matrix XNAView => ref xnaView;
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
         private Rectangle clientBounds;
         internal ref readonly Rectangle ClientBounds => ref clientBounds;
+
         public float DpiScaling { get; private set; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
 
-        public string DefaultFont { get; } = "Segoe UI";
-        public int DefaultFontSize { get; } = 12;
+        public string DefaultFont { get; } = "Arial";//"Segoe UI";
+        public int DefaultFontSize { get; } = 14;
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
@@ -61,6 +64,12 @@ namespace Orts.Graphics.Window
         internal Texture2D WhiteTexture { get; }
 
         public UserCommandController UserCommandController { get; private set; }
+
+        public float WindowOpacity 
+        {
+            get => WindowShader.Opacity;
+            set => WindowShader.Opacity = opacityDefault = value;
+        }
 
         private protected WindowManager(Game game) :
             base(game)
@@ -80,14 +89,16 @@ namespace Orts.Graphics.Window
                 });
             }
 
+            spriteBatch = new SpriteBatch(GraphicsDevice);
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
+            BasicShapes.Initialize(spriteBatch);
+            BasicShapes.LoadContent(game.GraphicsDevice);
 
             MaterialManager.Initialize(game.GraphicsDevice);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             DrawOrder = 100;
 
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             //TODO 20211104 needs to move to a TextureManager
             using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png")))
             {
@@ -103,6 +114,7 @@ namespace Orts.Graphics.Window
             WindowShader.Opacity = opacityDefault;
             WindowShader.WindowTexture = windowTexture;
 
+            FontManager.ScalingFactor = DpiScaling;
             TextFontDefault = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Regular)[DefaultFontSize];
             TextFontDefaultBold = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Bold)[DefaultFontSize];
 

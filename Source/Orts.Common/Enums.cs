@@ -1009,4 +1009,10 @@ namespace Orts.Common
         TrainInfo,
     }
 
+    public enum ViewerWindowType
+    { 
+        DebugScreen,
+        QuitWindow,
+        HelpWindow,
+    }
 }

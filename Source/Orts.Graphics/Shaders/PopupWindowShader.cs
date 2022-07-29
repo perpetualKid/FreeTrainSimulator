@@ -14,6 +14,7 @@ namespace Orts.Graphics.Shaders
 
         public float Opacity
         {
+            get => Parameters["Opacity"].GetValueSingle();
             set => Parameters["Opacity"].SetValue(value);
         }
 

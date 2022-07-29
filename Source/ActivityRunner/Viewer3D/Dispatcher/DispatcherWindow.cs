@@ -152,7 +152,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             TextShape.Initialize(this, spriteBatch);
-            BasicShapes.Initialize(spriteBatch);
             InputSettings.Initialize();
             userCommandController = new UserCommandController<UserCommand>();
 
@@ -215,7 +214,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         {
 
             TrackModel.Reset();
-            BasicShapes.LoadContent(GraphicsDevice);
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();

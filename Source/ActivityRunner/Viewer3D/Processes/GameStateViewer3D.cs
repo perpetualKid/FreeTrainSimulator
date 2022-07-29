@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public GameStateViewer3D(Viewer viewer)
         {
             Viewer = viewer;
-            Viewer.Simulator.GamePaused = Viewer.QuitWindow.Visible = viewer.Settings.StartGamePaused;
+            Viewer.Pause(viewer.Settings.StartGamePaused);
         }
 
         internal override void BeginRender(RenderFrame frame)

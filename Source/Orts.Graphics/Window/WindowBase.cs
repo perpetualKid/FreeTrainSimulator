@@ -224,14 +224,19 @@ namespace Orts.Graphics.Window
             if (layout == null)
                 throw new ArgumentNullException(nameof(layout));
             System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
+            layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling));
             if (CloseButton)
             {
-                Label closeLabel = new Label(this, layout.RemainingWidth - (int)(2 * Owner.DpiScaling) - Owner.TextFontDefault.Height, (int)(2 * Owner.DpiScaling), Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, "❎");
+                ControlLayout buttonLine = layout.AddLayoutHorizontal();
+                buttonLine.HorizontalChildAlignment = HorizontalAlignment.Right;
+                buttonLine.VerticalChildAlignment = VerticalAlignment.Top;
+                Label closeLabel = new Label(this, 0, 0, headerFont.Height, headerFont.Height, "❎", HorizontalAlignment.Right, headerFont, Color.White);
+                //❎❌
                 closeLabel.OnClick += CloseLabel_OnClick;
-                layout.Add(closeLabel);
+                buttonLine.Add(closeLabel);
             }
             // Pad window by 4px, add caption and separator between to content area.
-            layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout = layout.AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
             Label headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, HorizontalAlignment.Center, headerFont, Color.White);
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
