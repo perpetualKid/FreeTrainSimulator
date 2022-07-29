@@ -46,7 +46,7 @@ namespace Orts.Graphics.Window
         internal readonly PopupWindowShader WindowShader;
         private Rectangle clientBounds;
         internal ref readonly Rectangle ClientBounds => ref clientBounds;
-        public float DpiScaling { get; }
+        public float DpiScaling { get; private set; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
 
@@ -65,8 +65,21 @@ namespace Orts.Graphics.Window
         private protected WindowManager(Game game) :
             base(game)
         {
-            DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-            clientBounds = Game.Window.ClientBounds;
+            try
+            {
+                DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
+                clientBounds = Game.Window.ClientBounds;
+            }
+            catch (InvalidOperationException) //potential cross thread operation if we are in a different thread
+            {
+                if (Application.OpenForms.Count > 0 && Application.OpenForms[0].InvokeRequired) // no way to know which window we are, so just trying the first one
+                    Application.OpenForms[0].Invoke(() =>
+                {
+                    DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
+                    clientBounds = Game.Window.ClientBounds;
+                });
+            }
+
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
@@ -235,7 +248,7 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
-//            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
+            //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

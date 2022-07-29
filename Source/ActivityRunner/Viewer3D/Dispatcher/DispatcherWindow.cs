@@ -26,6 +26,7 @@ using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
+using Orts.Models.Track;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
@@ -166,7 +167,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            EnumArray<Type, DispatcherWindowType> windowTypes = new EnumArray<Type, DispatcherWindowType>();
             windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
             windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
@@ -213,6 +213,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
+
+            TrackModel.Reset();
             BasicShapes.LoadContent(GraphicsDevice);
 
             Simulator simulator = Simulator.Instance;

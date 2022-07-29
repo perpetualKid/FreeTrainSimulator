@@ -17,22 +17,21 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.ActivityRunner.Processes;
-using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Common.Info;
-using Orts.Graphics;
-using Orts.Graphics.Xna;
-
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
-using static Swan.Terminal;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Processes;
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Common.Info;
+using Orts.Graphics;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {

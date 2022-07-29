@@ -410,7 +410,6 @@ namespace Orts.Toolbox
             #endregion
 
             #region popup windows
-            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[WindowType.StatusWindow].ToPoint());
             windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[WindowType.AboutWindow].ToPoint());
