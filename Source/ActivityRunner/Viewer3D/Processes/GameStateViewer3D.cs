@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         public GameStateViewer3D(Viewer viewer)
         {
-            Viewer = viewer;
+            Viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
             Viewer.Pause(viewer.Settings.StartGamePaused);
         }
 
