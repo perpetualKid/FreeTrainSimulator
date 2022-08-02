@@ -69,7 +69,7 @@ namespace Orts.Graphics.Window.Controls
                 FormatOption formatOption = null;
                 if ((InformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
                 {
-                    currentFont = FontManager.Scaled(Window.Owner.DefaultFont, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
+                    currentFont = FontManager.Scaled(Window.Owner.DefaultFontName, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
                 }
 
                 hashCode = HashCode.Combine(identifier, formatOption);

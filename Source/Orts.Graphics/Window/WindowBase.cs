@@ -223,7 +223,7 @@ namespace Orts.Graphics.Window
         {
             if (layout == null)
                 throw new ArgumentNullException(nameof(layout));
-            System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
+            System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
             layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling));
             if (CloseButton)
             {

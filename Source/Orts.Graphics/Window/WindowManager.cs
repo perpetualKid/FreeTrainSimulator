@@ -53,7 +53,7 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
 
-        public string DefaultFont { get; } = "Arial";//"Segoe UI";
+        public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
         public int DefaultFontSize { get; } = 14;
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
@@ -115,8 +115,8 @@ namespace Orts.Graphics.Window
             WindowShader.WindowTexture = windowTexture;
 
             FontManager.ScalingFactor = DpiScaling;
-            TextFontDefault = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Regular)[DefaultFontSize];
-            TextFontDefaultBold = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Bold)[DefaultFontSize];
+            TextFontDefault = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Regular)[DefaultFontSize];
+            TextFontDefaultBold = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Bold)[DefaultFontSize];
 
             UpdateSize();
         }
