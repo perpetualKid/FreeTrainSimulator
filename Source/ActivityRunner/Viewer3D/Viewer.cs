@@ -485,6 +485,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
             windowManager.WindowOpacity = 0.4f;
+            windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
                 PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager);
@@ -999,6 +1000,11 @@ namespace Orts.ActivityRunner.Viewer3D
             UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
             UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
             UpdaterProcess.GameComponents.Add(railDriverInputGameComponent);
+        }
+
+        private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)
+        {
+            forceMouseVisible = e.ModalWindowOpen;
         }
 
         private void ToggleDispatcherView()
