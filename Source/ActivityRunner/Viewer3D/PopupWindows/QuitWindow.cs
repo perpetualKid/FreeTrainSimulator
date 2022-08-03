@@ -21,7 +21,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         UserCommandController<UserCommand> userCommandController;
 
         public QuitWindow(WindowManager owner) :
-            base(owner, "Pause Menu", new Point(50, 50), new Point(300, 125))
+            base(owner, "Pause Menu", new Point(50, 50), new Point(300, 108))
         {
             Modal = true;
             if (MultiPlayerManager.IsMultiPlayer())

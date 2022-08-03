@@ -54,7 +54,7 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefaultBold { get; }
 
         public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
-        public int DefaultFontSize { get; } = 14;
+        public int DefaultFontSize { get; } = 12;
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;

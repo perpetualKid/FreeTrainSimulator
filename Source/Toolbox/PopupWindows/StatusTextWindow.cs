@@ -28,7 +28,8 @@ namespace Orts.Toolbox.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
-            layout = base.Layout(layout, 1.5f);
+            layout = base.Layout(layout, 1.5f).AddLayoutVertical();
+            layout.VerticalChildAlignment = VerticalAlignment.Center;
             ControlLayoutHorizontal statusTextLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             routeLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, HorizontalAlignment.Center, Color.Orange);
             statusTextLine.Add(routeLabel);
