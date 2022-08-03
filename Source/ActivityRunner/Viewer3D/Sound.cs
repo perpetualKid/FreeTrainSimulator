@@ -199,11 +199,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private bool carOnCurve;
         private readonly MSTSWagonViewer wagonViewer;
 
-        public TrackSoundSource(MSTSWagon car, MSTSWagonViewer carViewer) :
+        public TrackSoundSource(MSTSWagonViewer carViewer) :
             base(carViewer)
         {
             wagonViewer = TrainCar as MSTSWagonViewer ?? throw new InvalidCastException(nameof(carViewer));
-            Car = car;
+            Car = TrainCar.Car as MSTSWagon ?? throw new InvalidCastException(nameof(carViewer));
             inSources = new List<SoundSource>();
             outSources = new List<SoundSource>();
 
@@ -231,9 +231,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
             }
             if (insideSound)
-                inSources.Add(new SoundSource(Car, fullPath));
+                inSources.Add(new SoundSource(Car, TrainCar, fullPath));
             else
-                outSources.Add(new SoundSource(Car, fullPath));
+                outSources.Add(new SoundSource(Car, TrainCar, fullPath));
         }
 
         public override void Uninitialize()
@@ -582,7 +582,8 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="viewer"></param>
         /// <param name="car"></param>
         /// <param name="smsFilePath"></param>
-        public SoundSource(MSTSWagon car, string smsFilePath)
+        public SoundSource(MSTSWagon car, TrainCarViewer carViewer, string smsFilePath): 
+            base(carViewer)
         {
             Car = car;
             Initialize(car.WorldPosition.WorldLocation, SoundEventSource.Car, smsFilePath);
@@ -2579,14 +2580,14 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             break;
                         case OrtsActivitySoundFileType.Cab:
                             var playerLoco = (MSTSWagon)Program.Viewer.Simulator.PlayerLocomotive;
-                            ActivitySounds = new SoundSource(playerLoco, ORTSActSoundFile);
+                            ActivitySounds = new SoundSource(playerLoco, Program.Viewer.World.Trains.GetViewer(playerLoco), ORTSActSoundFile);
                             Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             break;
                         case OrtsActivitySoundFileType.Pass:
                             if (Program.Viewer.Camera.Style == Camera.Styles.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
-                                ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile);
+                                ActivitySounds = new SoundSource(selectedWagon, Program.Viewer.World.Trains.GetViewer(selectedWagon), ORTSActSoundFile);
                                 Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             }
                             break;

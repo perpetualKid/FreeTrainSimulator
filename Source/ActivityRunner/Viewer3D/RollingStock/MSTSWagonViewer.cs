@@ -328,7 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             LoadCarSounds(wagonFolderSlash);
             //if (!(MSTSWagon is MSTSLocomotive))
             //    LoadTrackSounds();
-            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, this));
+            Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(this));
 
             // Determine if it has first pantograph. So we can match unnamed panto parts correctly
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
@@ -1250,7 +1250,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             try
             {
-                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, smsFilePath));
+                Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, this, smsFilePath));
             }
             catch (Exception error)
             {
@@ -1289,7 +1289,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Trace.TraceWarning("Cannot find track sound file {0}", filename);
                 return;
             }
-            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, path));
+            Viewer.SoundProcess.AddSoundSource(this, new SoundSource(MSTSWagon, this, path));
         }
 
         internal override void Mark()
