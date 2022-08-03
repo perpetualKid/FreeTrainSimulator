@@ -18,10 +18,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class QuitWindow : WindowBase
     {
-        UserCommandController<UserCommand> userCommandController;
+        private readonly UserCommandController<UserCommand> userCommandController;
 
-        public QuitWindow(WindowManager owner) :
-            base(owner, "Pause Menu", new Point(50, 50), new Point(300, 108))
+        public QuitWindow(WindowManager owner, Point relativeLocation) :
+            base(owner, "Pause Menu", relativeLocation, new Point(280, 112))
         {
             Modal = true;
             if (MultiPlayerManager.IsMultiPlayer())
@@ -85,12 +85,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController.RemoveEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, QuitGame);
             return base.Close();
         }
+
         private void QuitGame(UserCommandArgs args)
         {
             args.Handled = true;
             _ = Close();
         }
-
-
     }
 }

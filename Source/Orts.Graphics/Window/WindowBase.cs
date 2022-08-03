@@ -289,8 +289,6 @@ namespace Orts.Graphics.Window
                 windowIndexBuffer = new IndexBuffer(Owner.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
                 windowIndexBuffer.SetData(indexData);
             }
-            Owner.Game.GraphicsDevice.SetVertexBuffer(windowVertexBuffer);
-            Owner.Game.GraphicsDevice.Indices = windowIndexBuffer;
             xnaWorld = Matrix.CreateWorld(new Vector3(borderRect.X, borderRect.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
         }
 

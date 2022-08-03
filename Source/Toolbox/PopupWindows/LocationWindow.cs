@@ -18,7 +18,6 @@ namespace Orts.Toolbox.PopupWindows
 {
     public class LocationWindow : WindowBase
     {
-        private const double piRad = 180 / Math.PI;
         private ContentArea contentArea;
         private Label locationLabel;
         private Label tileLabel;
@@ -75,7 +74,7 @@ namespace Orts.Toolbox.PopupWindows
         private void Resize()
         {
             Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
-            Resize(useWorldCoordinates ? new Point(200, 44) : new Point(220, 56));
+            Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 60));
         }
 
         public override bool Open()
@@ -102,30 +101,9 @@ namespace Orts.Toolbox.PopupWindows
                 if (useWorldCoordinates)
                 {
                     (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
-
-                    longitude *= piRad; // E/W
-                    latitude *= piRad;  // N/S
-                    char hemisphere = latitude >= 0 ? 'N' : 'S';
-                    char direction = longitude >= 0 ? 'E' : 'W';
-                    longitude = Math.Abs(longitude);
-                    latitude = Math.Abs(latitude);
-                    int longitudeDegree = (int)Math.Truncate(longitude);
-                    int latitudeDegree = (int)Math.Truncate(latitude);
-
-                    longitude -= longitudeDegree;
-                    latitude -= latitudeDegree;
-                    longitude *= 60;
-                    latitude *= 60;
-                    int longitudeMinute = (int)Math.Truncate(longitude);
-                    int latitudeMinute = (int)Math.Truncate(latitude);
-                    longitude -= longitudeMinute;
-                    latitude -= latitudeMinute;
-                    longitude *= 60;
-                    latitude *= 60;
-                    int longitudeSecond = (int)Math.Truncate(longitude);
-                    int latitudeSecond = (int)Math.Truncate(latitude);
-
-                    locationLabel.Text = $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}";
+                    (string latitudeText, string longitudeText) = EarthCoordinates.ToString(latitude, longitude);
+                    locationLabel.Text = $"{latitudeText} {longitudeText}";
+                    
                 }
                 else
                 {

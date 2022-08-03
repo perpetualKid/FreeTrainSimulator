@@ -1014,5 +1014,7 @@ namespace Orts.Common
         DebugScreen,
         QuitWindow,
         HelpWindow,
+        ActivityWindow,
+        CompassWindow,
     }
 }

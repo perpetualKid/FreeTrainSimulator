@@ -14,7 +14,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public AboutWindow(WindowManager owner, Point location) : 
-            base(owner, "About", location, new Point(180, 56))
+            base(owner, "About", location, new Point(180, 60))
         {
             Modal = true;
             ZOrder = 100;

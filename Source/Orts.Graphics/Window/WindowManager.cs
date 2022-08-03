@@ -54,9 +54,9 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefaultBold { get; }
 
         public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
-        public int DefaultFontSize { get; } = 12;
+        public int DefaultFontSize { get; } = 13;
 
-        //publish some events to allow interaction between XNA WindowManager and outside Window world
+        //publish some events to allow interaction between Graphcis WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
 
         public bool SuppressDrawing { get; private set; }
@@ -446,7 +446,7 @@ namespace Orts.Graphics.Window
             set => windows[window] = value;
         }
 
-        public bool WindowInitialized(TWindowType window) => lazyWindows[window]?.IsValueCreated ?? true;
+        public bool WindowInitialized(TWindowType window) => lazyWindows[window]?.IsValueCreated ?? false;
 
         public bool WindowOpened(TWindowType window) => (lazyWindows[window]?.IsValueCreated ?? false) && WindowOpen(windows[window]);
 

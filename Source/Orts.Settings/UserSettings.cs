@@ -343,8 +343,6 @@ namespace Orts.Settings
         public bool Multiplayer { get; set; }
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_Activity { get; set; }
-        [Default(new[] { 50, 0 })]
-        public int[] WindowPosition_Compass { get; set; }
         [Default(new[] { 100, 100 })]
         public int[] WindowPosition_DriverAid { get; set; }
         [Default(new[] { 50, 50 })]
@@ -355,8 +353,6 @@ namespace Orts.Settings
         public int[] WindowPosition_HUDScroll { get; set; }
         [Default(new[] { 0, 100 })]
         public int[] WindowPosition_NextStation { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_Quit { get; set; }
         [Default(new[] { 0, 50 })]
         public int[] WindowPosition_Switch { get; set; }
         [Default(new[] { 100, 0 })]
@@ -373,6 +369,26 @@ namespace Orts.Settings
         public int[] WindowPosition_ComposeMessage { get; set; }
         [Default(new[] { 100, 0 })]
         public int[] WindowPosition_TrainList { get; set; }
+
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=50,50",
+            $"{nameof(ViewerWindowType.HelpWindow)}=20,70",
+            $"{nameof(ViewerWindowType.DebugScreen)}=0,0",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=50,30",
+            $"{nameof(ViewerWindowType.CompassWindow)}=50,0",
+        })]
+        public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
+
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=False",
+            $"{nameof(ViewerWindowType.DebugScreen)}=False",
+            $"{nameof(ViewerWindowType.HelpWindow)}=True",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=False",
+            $"{nameof(ViewerWindowType.CompassWindow)}=False",
+        })]
+        public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
         // Menu-game communication settings:
         [Default(false)]

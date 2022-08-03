@@ -29,7 +29,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), $"Exit {RuntimeInfo.ApplicationName}", relativeLocation, new Point(430, 78))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), $"Exit {RuntimeInfo.ApplicationName}", relativeLocation, new Point(430, 82))
         {
             Modal = true;
             ZOrder = 100;

@@ -44,6 +44,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Settings.Util;
 using Orts.Simulation;
@@ -112,7 +113,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
         public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
         public NextStationWindow NextStationWindow { get; private set; } // F10 window
-        public CompassWindow CompassWindow { get; private set; } // 0 window
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
@@ -336,6 +336,21 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
+        private void SaveSettings()
+        {
+            foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
+            {
+                if (windowManager.WindowInitialized(windowType))
+                {
+                    Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                }
+                if (windowType != ViewerWindowType.QuitWindow)
+                    Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+            }
+
+            Settings.Save(nameof(Settings.PopupLocations));
+        }
+
         public void Save(BinaryWriter outf, string fileStem)
         {
             outf.Write(Simulator.Trains.IndexOf(PlayerTrain));
@@ -474,7 +489,6 @@ namespace Orts.ActivityRunner.Viewer3D
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
             TrainDpuWindow = new TrainDpuWindow(WindowManager);
             NextStationWindow = new NextStationWindow(WindowManager);
-            CompassWindow = new CompassWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
@@ -488,8 +502,21 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager);
+                PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint());
                 return quitWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, "", Point.Zero, Point.Zero);
+                return activityWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.CompassWindow compassWindow = new PopupWindows.CompassWindow(
+                    windowManager, 
+                    Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), 
+                    this);
+                return compassWindow;
             }));
 
             Game.Components.Add(windowManager);
@@ -636,10 +663,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayCompassWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    CompassWindow.TabAction();
-                else
-                    CompassWindow.Visible = !CompassWindow.Visible;
+                windowManager[ViewerWindowType.CompassWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DebugTracks, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
@@ -1588,6 +1612,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void Terminate()
         {
+            SaveSettings();
             dispatcherWindow?.Close();
             InfoDisplay.Terminate();
         }

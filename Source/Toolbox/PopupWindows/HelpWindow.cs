@@ -13,7 +13,7 @@ namespace Orts.Toolbox.PopupWindows
     public class HelpWindow : WindowBase
     {
         public HelpWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Help", relativeLocation, new Point(360, 125))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Help", relativeLocation, new Point(360, 134))
         {
         }
 

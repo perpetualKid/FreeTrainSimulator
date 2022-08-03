@@ -174,14 +174,14 @@ namespace Orts.Toolbox.Settings
         [Default(new string[]
         {
             $"{nameof(WindowType.QuitWindow)}=\"\"",
-            $"{nameof(WindowType.AboutWindow)}=",
-            $"{nameof(WindowType.StatusWindow)}=",
+            $"{nameof(WindowType.AboutWindow)}=\"\"",
+            $"{nameof(WindowType.StatusWindow)}=\"\"",
             $"{nameof(WindowType.DebugScreen)}=\"\"",
             $"{nameof(WindowType.LocationWindow)}=\"\"",
-            $"{nameof(WindowType.HelpWindow)}=",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=",
-            $"{nameof(WindowType.SettingsWindow)}=",
-            $"{nameof(WindowType.LogWindow)}=",
+            $"{nameof(WindowType.HelpWindow)}=\"\"",
+            $"{nameof(WindowType.TrackNodeInfoWindow)}=\"\"",
+            $"{nameof(WindowType.SettingsWindow)}=\"\"",
+            $"{nameof(WindowType.LogWindow)}=\"\"",
         })]
         public EnumArray<string, WindowType> PopupSettings { get; set; }
 

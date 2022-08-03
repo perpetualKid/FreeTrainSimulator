@@ -171,6 +171,8 @@ namespace Orts.ActivityRunner.Viewer3D
         private Matrix xnaView;
         public ref Matrix XnaView => ref xnaView;
 
+        public bool ViewChanged { get; private set; }
+
         private Matrix projection;
         private static Matrix skyProjection;
         private static Matrix distantMountainProjection;
@@ -253,7 +255,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer.Camera = this;
             Viewer.Simulator.PlayerIsInCab = Style == Styles.Cab || Style == Styles.ThreeDimCab;
             Update(ElapsedTime.Zero);
+            Matrix currentView = xnaView;
             xnaView = GetCameraView();
+            ViewChanged = currentView != xnaView; 
             SoundBaseTile = new Point(cameraLocation.TileX, cameraLocation.TileZ);
         }
 
@@ -301,7 +305,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="elapsedTime"></param>
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
+            Matrix currentView = xnaView;
             xnaView = GetCameraView();
+            ViewChanged = currentView != xnaView;
             frame.SetCamera(this);
             frustumLeft.X = -xnaView.M11 * frustumRightProjected.X + xnaView.M13 * frustumRightProjected.Z;
             frustumLeft.Y = -xnaView.M21 * frustumRightProjected.X + xnaView.M23 * frustumRightProjected.Z;
