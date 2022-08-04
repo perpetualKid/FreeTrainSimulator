@@ -26,6 +26,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
@@ -37,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     /// <summary>
     /// Provides the foundation for running the game.
     /// </summary>
-    public class GameHost : Microsoft.Xna.Framework.Game
+    public class GameHost : Game
     {
         /// <summary>
         /// Gets the <see cref="UserSettings"/> for the game.
@@ -81,6 +83,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private readonly Stack<GameState> gameStates;
 
+        public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
         /// </summary>
@@ -96,6 +100,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             SoundProcess = new SoundProcess(this);
             WebServerProcess = new WebServerProcess(this);
             gameStates = new Stack<GameState>();
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            foreach(GameComponent component in GameComponents)
+                component.Initialize();
         }
 
         protected override void BeginRun()
@@ -128,9 +139,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        protected override void Draw(Microsoft.Xna.Framework.GameTime gameTime)
+        protected override void Draw(GameTime gameTime)
         {
-            RenderProcess.Draw();
+            RenderProcess.Draw(gameTime);
             base.Draw(gameTime);
         }
 

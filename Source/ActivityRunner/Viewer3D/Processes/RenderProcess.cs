@@ -370,17 +370,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             game.State.BeginRender(CurrentFrame);
         }
 
-        internal void Draw()
+        internal void Draw(GameTime gameTime)
         {
             if (Debugger.IsAttached)
             {
-                CurrentFrame.Draw();
+                CurrentFrame.Draw(gameTime);
             }
             else
             {
                 try
                 {
-                    CurrentFrame.Draw();
+                    CurrentFrame.Draw(gameTime);
                 }
                 catch (Exception error)
                 {

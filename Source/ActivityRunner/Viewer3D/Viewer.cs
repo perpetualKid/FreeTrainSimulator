@@ -517,7 +517,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return compassWindow;
             }));
 
-            Game.Components.Add(windowManager);
+            Game.GameComponents.Add(windowManager);
 
             InfoDisplay = new InfoDisplay(this);
 
@@ -1019,9 +1019,9 @@ namespace Orts.ActivityRunner.Viewer3D
             InitReplay();
 
             //only add here at the end, so they do not fire during load process already
-            UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
-            UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
-            UpdaterProcess.GameComponents.Add(railDriverInputGameComponent);
+            Game.GameComponents.Add(keyboardInputGameComponent);
+            Game.GameComponents.Add(mouseInputGameComponent);
+            Game.GameComponents.Add(railDriverInputGameComponent);
         }
 
         private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)

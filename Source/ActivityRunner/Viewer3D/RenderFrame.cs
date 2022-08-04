@@ -551,7 +551,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return RenderPrimitive.SequenceForOpaque[(int)group];
         }
 
-        public void Draw()
+        public void Draw(GameTime gameTime)
         {
             if (logRenderFrame)
             {
@@ -571,6 +571,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Trace.WriteLine(string.Empty);
                 logRenderFrame = false;
             }
+            foreach (GameComponent component in game.GameComponents)
+                if (component.Enabled && component is DrawableGameComponent drawableGameComponent)
+                    drawableGameComponent.Draw(gameTime);
         }
 
         private void DrawShadows(bool logging )

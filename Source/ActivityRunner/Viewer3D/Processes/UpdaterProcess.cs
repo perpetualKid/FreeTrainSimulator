@@ -35,7 +35,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private readonly GameHost game;
         private readonly Thread thread;
 
-        public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
         private RenderFrame CurrentFrame;
         private GameTime gameTime;
         private bool disposedValue;
@@ -53,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         public void Stop()
         {
-            foreach (GameComponent component in GameComponents)
+            foreach (GameComponent component in game.GameComponents)
                 component.Enabled = false;
             State.SignalTerminate();
         }
@@ -117,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             try
             {
                 CurrentFrame.Clear();
-                foreach (GameComponent component in GameComponents)
+                foreach (GameComponent component in game.GameComponents)
                     if (component.Enabled)
                         component.Update(gameTime);
                 if (game.State != null)
