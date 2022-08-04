@@ -596,16 +596,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (Locomotive.CabViewpoints != null)
                 {
-                    ThreeDimentionCabViewer tmp3DViewer = null;
                     try
                     {
-                        tmp3DViewer = new ThreeDimentionCabViewer(Viewer, this.Locomotive, this); //this constructor may throw an error
+                        ThreeDimentionCabViewer tmp3DViewer = new ThreeDimentionCabViewer(Viewer, this.Locomotive, this);
                         CabViewer3D = tmp3DViewer; //if not catching an error, we will assign it
                         Has3DCabRenderer = true;
                     }
-                    catch (Exception error)
+                    catch (Exception error) when (error is Exception)
                     {
-                        Trace.WriteLine(new Exception("Could not load 3D cab.", error));
+                        Trace.TraceWarning("Could not load 3D cab. {0}", error);
                     }
                 }
             }
@@ -613,9 +612,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         internal override void Mark()
         {
-            foreach (var pdl in ParticleDrawers.Values)
-                foreach (var pd in pdl)
-                    pd.Mark();
             CabRenderer?.Mark();
             CabRenderer3D?.Mark();
             CabViewer3D?.Mark();

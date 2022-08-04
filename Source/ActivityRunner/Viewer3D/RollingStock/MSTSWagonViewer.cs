@@ -1281,6 +1281,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             FrontAirHoseDisconnectedShape?.Mark();
             RearAirHoseShape?.Mark();
             RearAirHoseDisconnectedShape?.Mark();
+
+            foreach (var pdl in ParticleDrawers.Values)
+            {
+                foreach (var pd in pdl)
+                {
+                    pd.Mark();
+                }
+            }
         }
     }
 }
