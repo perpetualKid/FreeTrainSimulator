@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner
             string path = Path.Combine(RuntimeInfo.ApplicationFolder, "Native", (Environment.Is64BitProcess) ? "x64" : "x86");
             NativeMethods.SetDllDirectory(path);
 
-            using (Game game = new Game(settings))
+            using (GameHost game = new GameHost(settings))
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 game.PushState(new GameStateRunActivity(args));

@@ -28,17 +28,16 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Common.Logging;
-using Orts.Settings;
 using Orts.Graphics.Xna;
+using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     /// <summary>
     /// Provides the foundation for running the game.
     /// </summary>
-    public class Game : Microsoft.Xna.Framework.Game
+    public class GameHost : Microsoft.Xna.Framework.Game
     {
         /// <summary>
         /// Gets the <see cref="UserSettings"/> for the game.
@@ -83,10 +82,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private readonly Stack<GameState> gameStates;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Game"/> based on the specified <see cref="UserSettings"/>.
+        /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
         /// </summary>
         /// <param name="settings">The <see cref="UserSettings"/> for the game to use.</param>
-        public Game(UserSettings settings)
+        public GameHost(UserSettings settings)
         {
             Settings = settings;
             ContentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
@@ -185,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         }
 
         /// <summary>
-        /// Updates the calling thread's <see cref="Thread.CurrentUICulture"/> to match the <see cref="Game"/>'s <see cref="Settings"/>.
+        /// Updates the calling thread's <see cref="Thread.CurrentUICulture"/> to match the <see cref="GameHost"/>'s <see cref="Settings"/>.
         /// </summary>
         public void SetThreadLanguage()
         {
@@ -218,7 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         ">>> Click OK to report this error on the GitHub bug tracker <<<",
                         $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                 if (openTracker == DialogResult.OK)
-                    Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
+                    SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
             }
             // Stop the world!
             Exit();

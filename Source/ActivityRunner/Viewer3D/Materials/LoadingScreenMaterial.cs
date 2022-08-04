@@ -10,12 +10,12 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
 {
     internal class LoadingScreenMaterial : LoadingMaterial
     {
-        public LoadingScreenMaterial(Game game)
+        public LoadingScreenMaterial(GameHost game)
             : base(game)
         {
         }
 
-        private static bool IsWideScreen(Game game)
+        private static bool IsWideScreen(GameHost game)
         {
             float x = game.RenderProcess.DisplaySize.X;
             float y = game.RenderProcess.DisplaySize.Y;
@@ -23,7 +23,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
             return (x / y > 1.5);
         }
 
-        protected override Texture2D GetTexture(Game game)
+        protected override Texture2D GetTexture(GameHost game)
         {
             Texture2D texture;
             GraphicsDevice gd = game.RenderProcess.GraphicsDevice;

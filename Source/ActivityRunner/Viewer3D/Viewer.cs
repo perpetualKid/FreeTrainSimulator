@@ -56,8 +56,6 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.World;
 
-using static Orts.Common.Calc.Dynamics;
-
 namespace Orts.ActivityRunner.Viewer3D
 {
     public class Viewer
@@ -80,7 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignalTypeDataManager SignalTypeDataManager { get; private set; }
         public Point DisplaySize { get { return RenderProcess.DisplaySize; } }
         // Components
-        public Orts.ActivityRunner.Viewer3D.Processes.Game Game { get; private set; }
+        public GameHost Game { get; private set; }
         public Simulator Simulator { get; private set; }
         public World World { get; private set; }
         private SoundSource ViewerSounds { get; set; }
@@ -269,7 +267,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="simulator">The <see cref="Simulator"/> with which the viewer runs.</param>
         /// <param name="game">The <see cref="Game"/> with which the viewer runs.</param>
-        public Viewer(Simulator simulator, Processes.Game game)
+        public Viewer(Simulator simulator, Processes.GameHost game)
         {
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;

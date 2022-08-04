@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public Profiler Profiler { get; } = new Profiler("Updater");
 
         private readonly ProcessState State = new ProcessState("Updater");
-        private readonly Game game;
+        private readonly GameHost game;
         private readonly Thread thread;
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
@@ -40,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private GameTime gameTime;
         private bool disposedValue;
 
-        public UpdaterProcess(Game game)
+        public UpdaterProcess(GameHost game)
         {
             this.game = game;
             thread = new Thread(UpdaterThread);

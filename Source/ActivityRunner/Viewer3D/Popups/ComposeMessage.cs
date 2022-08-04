@@ -33,9 +33,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private readonly StringBuilder messageText = new StringBuilder();
 
         private readonly KeyboardInputHandler<UserCommand> keyboardInput;
-        private readonly Game game;
+        private readonly GameHost game;
 
-        public ComposeMessage(WindowManager owner, KeyboardInputHandler<UserCommand> keyboardInput, Game game)
+        public ComposeMessage(WindowManager owner, KeyboardInputHandler<UserCommand> keyboardInput, GameHost game)
             : base(owner, DecorationSize.X + owner.TextFontDefault.Height * 37, DecorationSize.Y + owner.TextFontDefault.Height * 2 + ControlLayout.SeparatorSize * 1, Viewer.Catalog.GetString("Compose Message (e.g.   receiver1, receiver2: message body)"))
         {
             this.keyboardInput = keyboardInput;

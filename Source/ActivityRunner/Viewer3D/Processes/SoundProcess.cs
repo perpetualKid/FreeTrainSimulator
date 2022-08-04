@@ -34,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     {
         public readonly Profiler Profiler = new Profiler("Sound");
         private readonly ProcessState State = new ProcessState("Sound");
-        private readonly Game Game;
+        private readonly GameHost Game;
         private readonly Thread Thread;
 
         // THREAD SAFETY:
@@ -58,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private ORTSActSoundSources ORTSActSoundSourceList; // Dictionary of activity sound sources
 
-        public SoundProcess(Game game)
+        public SoundProcess(GameHost game)
         {
             Game = game;
             Thread = new Thread(SoundThread);

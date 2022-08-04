@@ -30,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     {
         private bool disposedValue;
 
-        internal Game Game { get; set; }
+        internal GameHost Game { get; set; }
 
         /// <summary>
         /// Called just before a frame is drawn.

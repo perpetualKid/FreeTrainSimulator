@@ -21,15 +21,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Common.Xna;
-using Orts.Settings;
-using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -216,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class RenderFrame
     {
-        private readonly Game game;
+        private readonly GameHost game;
 
         // Shared shadow map data.
         private static RenderTarget2D[] shadowMap;
@@ -256,7 +255,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly bool dynamicShadows;
         private bool logRenderFrame;
 
-        public RenderFrame(Game game)
+        public RenderFrame(GameHost game)
         {
             shadowMapCount = RenderProcess.ShadowMapCount;
             dynamicShadows = game.Settings.DynamicShadows;

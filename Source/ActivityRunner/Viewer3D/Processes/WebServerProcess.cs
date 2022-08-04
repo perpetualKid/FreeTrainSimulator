@@ -36,13 +36,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     {
         private readonly Profiler Profiler = new Profiler("WebServer");
         private readonly ProcessState State = new ProcessState("WebServer");
-        private readonly Game Game;
+        private readonly GameHost game;
         private readonly Thread Thread;
         private readonly CancellationTokenSource StopServer = new CancellationTokenSource();
 
-        public WebServerProcess(Game game)
+        public WebServerProcess(GameHost game)
         {
-            Game = game;
+            this.game = game;
             Thread = new Thread(WebServerThread);
         }
 
@@ -61,22 +61,22 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private void WebServerThread()
         {
             Profiler.SetThread();
-            Game.SetThreadLanguage();
-            if (!Game.Settings.WebServer)
+            game.SetThreadLanguage();
+            if (!game.Settings.WebServer)
                 return;
 
             string contentPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Content\\Web");
             EndPointManager.UseIpv6 = true;
             try
             {
-                using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{Game.Settings.WebServerPort}", contentPath))
+                using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{game.Settings.WebServerPort}", contentPath))
                     server.RunAsync(StopServer.Token).Wait();
             }
             catch (AggregateException ex)
             {
                 if (ex.InnerException is SocketException)
                 {
-                    Trace.TraceWarning($"Port {Game.Settings.WebServerPort} is already in use. Continuing without webserver");
+                    Trace.TraceWarning($"Port {game.Settings.WebServerPort} is already in use. Continuing without webserver");
                 }
                 else
                 {

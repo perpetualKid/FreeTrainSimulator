@@ -5,7 +5,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
 {
     internal class LoadingBarMaterial : LoadingMaterial
     {
-        public LoadingBarMaterial(Game game)
+        public LoadingBarMaterial(GameHost game)
             : base(game)
         {
         }

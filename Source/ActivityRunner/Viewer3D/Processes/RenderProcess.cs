@@ -46,7 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         public Profiler Profiler { get; private set; }
 
-        private readonly Game game;
+        private readonly GameHost game;
         private readonly Form windowForm;
         private bool syncing;
         private Point windowPosition;
@@ -80,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public static float[] ShadowMapLimit; // diameter of shadow map far edge from camera
         private bool disposedValue;
 
-        internal RenderProcess(Game game)
+        internal RenderProcess(GameHost game)
         {
             this.game = game;
             windowForm = (Form)Control.FromHandle(game.Window.Handle);

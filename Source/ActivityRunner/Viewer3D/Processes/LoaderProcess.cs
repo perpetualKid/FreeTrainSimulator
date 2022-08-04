@@ -30,12 +30,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     {
         public Profiler Profiler { get; } = new Profiler("Loader");
         private readonly ProcessState processState = new ProcessState("Loader");
-        private readonly Game game;
+        private readonly GameHost game;
         private readonly Thread thread;
         private readonly CancellationTokenSource cancellationTokenSource;
         private bool disposedValue;
 
-        public LoaderProcess(Game game)
+        public LoaderProcess(GameHost game)
         {
             this.game = game;
             thread = new Thread(LoaderThread);
