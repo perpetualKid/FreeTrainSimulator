@@ -126,6 +126,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Parse(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
+
             switch (lowercasetoken)
             {
                 case "engine(vigilancemonitor":
@@ -316,6 +318,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.AltitudeM = () => Locomotive.WorldPosition.Location.Y;
                 script.CurrentGradientPercent = () => Locomotive.CurrentElevationPercent;
                 script.LineSpeedMpS = () => (float)Simulator.Route.SpeedLimit;
+                script.SignedDistanceM = () => Locomotive.Train.DistanceTravelledM;
                 script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 script.IsColdStart = () => Locomotive.Train.ColdStart;
                 script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
