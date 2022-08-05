@@ -28,6 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             this.viewer = viewer;
             lat = Catalog.GetString($"Lat:");
             lon = Catalog.GetString($"Lon:");
+            CloseButton = false;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -47,10 +48,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
             if (viewer.Camera.ViewChanged || forceUpdate)
             {
-                double heading = Math.Acos(viewer.Camera.XnaView.M11);
+                double heading = Math.Round(Math.Acos(viewer.Camera.XnaView.M11), 3);
                 if (viewer.Camera.XnaView.M13 > 0)
                     heading = 2 * Math.PI - heading;
-                compassControl.Heading = (int)MathHelper.ToDegrees((float)heading);
+                compassControl.Heading = (int)(heading * 180 / Math.PI);
 
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(viewer.Camera.CameraWorldLocation);
                 (string latitudeText, string longitudeText) = EarthCoordinates.ToString(latitude, longitude);

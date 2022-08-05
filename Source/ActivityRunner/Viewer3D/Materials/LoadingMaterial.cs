@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
+using Orts.Common.Info;
 using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
@@ -29,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
 
         protected virtual Texture2D GetTexture(GameHost game)
         {
-            return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(game.ContentPath, "Loading.png"));
+            return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(RuntimeInfo.ContentFolder, "Loading.png"));
         }
 
         public override void SetState(Material previousMaterial)

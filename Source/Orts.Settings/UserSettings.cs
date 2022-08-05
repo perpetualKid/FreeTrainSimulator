@@ -353,8 +353,6 @@ namespace Orts.Settings
         public int[] WindowPosition_HUDScroll { get; set; }
         [Default(new[] { 0, 100 })]
         public int[] WindowPosition_NextStation { get; set; }
-        [Default(new[] { 0, 50 })]
-        public int[] WindowPosition_Switch { get; set; }
         [Default(new[] { 100, 0 })]
         public int[] WindowPosition_TrackMonitor { get; set; }
         [Default(new[] { 50, 50 })]
@@ -377,6 +375,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.DebugScreen)}=0,0",
             $"{nameof(ViewerWindowType.ActivityWindow)}=50,30",
             $"{nameof(ViewerWindowType.CompassWindow)}=50,0",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=0,50",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -384,9 +383,10 @@ namespace Orts.Settings
         {
             $"{nameof(ViewerWindowType.QuitWindow)}=False",
             $"{nameof(ViewerWindowType.DebugScreen)}=False",
-            $"{nameof(ViewerWindowType.HelpWindow)}=True",
+            $"{nameof(ViewerWindowType.HelpWindow)}=False",
             $"{nameof(ViewerWindowType.ActivityWindow)}=False",
             $"{nameof(ViewerWindowType.CompassWindow)}=False",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 

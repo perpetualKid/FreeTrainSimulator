@@ -106,7 +106,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
-        public SwitchWindow SwitchWindow { get; private set; } // F8 window
         public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
         public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
@@ -267,7 +266,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="simulator">The <see cref="Simulator"/> with which the viewer runs.</param>
         /// <param name="game">The <see cref="Game"/> with which the viewer runs.</param>
-        public Viewer(Simulator simulator, Processes.GameHost game)
+        public Viewer(Simulator simulator, GameHost game)
         {
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;
@@ -296,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
             WellKnownCameras.Add(ThreeDimCabCamera = new CabCamera3D(this));
 
-            ContentPath = Game.ContentPath;
+            ContentPath = RuntimeInfo.ContentFolder;
             Trace.Write(" ENV");
             ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
 
@@ -347,6 +346,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             Settings.Save(nameof(Settings.PopupLocations));
+            Settings.Save(nameof(Settings.PopupStatus));
         }
 
         public void Save(BinaryWriter outf, string fileStem)
@@ -481,7 +481,6 @@ namespace Orts.ActivityRunner.Viewer3D
             TrainDrivingWindow = new TrainDrivingWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
-            SwitchWindow = new SwitchWindow(WindowManager);
             TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
             MultiPlayerWindow = new MultiPlayerWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
@@ -511,10 +510,18 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
                 PopupWindows.CompassWindow compassWindow = new PopupWindows.CompassWindow(
-                    windowManager, 
-                    Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), 
+                    windowManager,
+                    Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(),
                     this);
                 return compassWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.SwitchWindow switchWindow = new PopupWindows.SwitchWindow(
+                    windowManager,
+                    Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint(),
+                    this);
+                return switchWindow;
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -633,10 +640,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplaySwitchWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    SwitchWindow.TabAction();
-                else
-                    SwitchWindow.Visible = !SwitchWindow.Visible;
+                windowManager[ViewerWindowType.SwitchWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainOperationsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
@@ -1022,6 +1026,12 @@ namespace Orts.ActivityRunner.Viewer3D
             Game.GameComponents.Add(keyboardInputGameComponent);
             Game.GameComponents.Add(mouseInputGameComponent);
             Game.GameComponents.Add(railDriverInputGameComponent);
+
+            foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
+            {
+                if (Settings.PopupStatus[windowType])
+                    windowManager[windowType].Open();
+            }
         }
 
         private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)

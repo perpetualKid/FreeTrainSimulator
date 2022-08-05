@@ -1016,5 +1016,6 @@ namespace Orts.Common
         HelpWindow,
         ActivityWindow,
         CompassWindow,
+        SwitchWindow,
     }
 }

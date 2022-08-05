@@ -47,11 +47,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public UserSettings Settings { get; private set; }
 
         /// <summary>
-        /// Gets the directory path containing game-specific content.
-        /// </summary>
-        public string ContentPath { get; private set; }
-
-        /// <summary>
         /// Exposes access to the <see cref="RenderProcess"/> for the game.
         /// </summary>
         public RenderProcess RenderProcess { get; private set; }
@@ -92,8 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public GameHost(UserSettings settings)
         {
             Settings = settings;
-            ContentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
-            Exiting += new System.EventHandler<System.EventArgs>(Game_Exiting);
+            Exiting += Game_Exiting;
             RenderProcess = new RenderProcess(this);
             UpdaterProcess = new UpdaterProcess(this);
             LoaderProcess = new LoaderProcess(this);
@@ -120,7 +114,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             base.BeginRun();
         }
 
-        protected override void Update(Microsoft.Xna.Framework.GameTime gameTime)
+        protected override void Update(GameTime gameTime)
         {
             // The first Update() is called before the window is displayed, with a gameTime == 0. The second is called
             // after the window is displayed.
@@ -158,7 +152,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             UpdaterProcess.Stop();
             LoaderProcess.Stop();
             SoundProcess.Stop();
-            // WebServerProcess.Stop(); Again
             WebServerProcess.Stop();
         }
 
