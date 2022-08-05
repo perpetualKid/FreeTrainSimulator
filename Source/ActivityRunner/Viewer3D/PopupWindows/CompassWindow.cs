@@ -17,7 +17,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label longitudeLabel;
         private CompassControl compassControl;
         private readonly Viewer viewer;
-        private bool forceUpdate = true;
 
         private readonly string lat;
         private readonly string lon;
@@ -42,11 +41,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return layout;
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
 
-            if (viewer.Camera.ViewChanged || forceUpdate)
+            if (viewer.Camera.ViewChanged || shouldUpdate)
             {
                 double heading = Math.Round(Math.Acos(viewer.Camera.XnaView.M11), 3);
                 if (viewer.Camera.XnaView.M13 > 0)
@@ -57,8 +56,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (string latitudeText, string longitudeText) = EarthCoordinates.ToString(latitude, longitude);
                 latitudeLabel.Text = $"{lat} {latitudeText}";
                 longitudeLabel.Text = $"{lon} {longitudeText}";
-
-                forceUpdate = false;
             }
         }
     }

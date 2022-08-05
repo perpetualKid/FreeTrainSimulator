@@ -91,9 +91,9 @@ namespace Orts.Graphics.Window
             _ = Owner.WindowOpen(this) ? Close() : Open();
         }
 
-        internal protected virtual void Update(GameTime gameTime)
+        internal protected virtual void Update(GameTime gameTime, bool shouldUpdate)
         {
-            windowLayout.Update(gameTime);
+            windowLayout.Update(gameTime, shouldUpdate);
         }
 
         internal protected virtual void WindowDraw()

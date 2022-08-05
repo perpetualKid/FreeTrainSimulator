@@ -122,14 +122,14 @@ namespace Orts.Graphics.Window.Controls.Layout
                 control.Initialize();
         }
 
-        internal override void Update(GameTime gameTime)
+        internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
             foreach (WindowControl control in Controls)
             {
                 if (control.Visible)
-                    control.Update(gameTime);
+                    control.Update(gameTime, shouldUpdate);
             }
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

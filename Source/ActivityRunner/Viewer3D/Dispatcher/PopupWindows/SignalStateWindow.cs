@@ -63,16 +63,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             }
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
 {
-            if (null != signal)
+            if (shouldUpdate && null != signal)
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)
                 {
                     signalStateInformation.DebugInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
                 }
             }
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
 
         public override bool Close()

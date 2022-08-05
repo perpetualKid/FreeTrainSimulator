@@ -54,7 +54,7 @@ namespace Orts.Graphics.Window.Controls
             clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
         }
 
-        internal override void Update(GameTime gameTime)
+        internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
             if (null == InformationProvider?.DebugInfo)
                 return;
@@ -80,7 +80,7 @@ namespace Orts.Graphics.Window.Controls
                 lineOffset += font.Size * LineSpacing;
             }
             //
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

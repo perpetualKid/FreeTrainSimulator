@@ -68,12 +68,15 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base.Initialize();
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            UpdateEye();
-            UpdateDirection();
-            UpdateSwitchState();
-            base.Update(gameTime);
+            if (shouldUpdate)
+            {
+                UpdateEye();
+                UpdateDirection();
+                UpdateSwitchState();
+            }
+            base.Update(gameTime, shouldUpdate);
         }
 
         private void UpdateEye()

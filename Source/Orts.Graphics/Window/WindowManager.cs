@@ -12,7 +12,6 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
-using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Graphics.Window
 {
@@ -38,6 +37,7 @@ namespace Orts.Graphics.Window
 
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
+        private long nextWindowUpdate;
 
         private float opacityDefault = 0.6f;
         private Matrix xnaView;
@@ -394,9 +394,15 @@ namespace Orts.Graphics.Window
 
         public override void Update(GameTime gameTime)
         {
+            bool shouldUpdate = Environment.TickCount64 > nextWindowUpdate;
+            if (shouldUpdate)
+            {
+                nextWindowUpdate = Environment.TickCount64 + 100;
+            }
+
             for (int i = 0; i < windows.Count; i++)
             {
-                windows[i].Update(gameTime);
+                windows[i].Update(gameTime, shouldUpdate);
             }
             base.Update(gameTime);
         }

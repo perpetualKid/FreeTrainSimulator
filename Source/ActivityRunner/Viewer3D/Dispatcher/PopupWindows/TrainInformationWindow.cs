@@ -57,10 +57,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             }
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            base.Update(gameTime);
-            if (train != null)
+            base.Update(gameTime, shouldUpdate);
+            if (shouldUpdate && train != null)
             {
                 trainInformation.DebugInfo[Catalog.GetString("Speed")] = FormatStrings.FormatSpeedDisplay(train.SpeedMpS, Simulator.Instance.MetricUnits);
                 trainInformation.DebugInfo["Gradient"] = $"{-locomotive?.CurrentElevationPercent:F1}%";

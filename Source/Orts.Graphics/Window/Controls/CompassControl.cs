@@ -26,13 +26,13 @@ namespace Orts.Graphics.Window.Controls
             halfPoint = new Point(halfWidth, 0);
         }
 
-        internal override void Update(GameTime gameTime)
+        internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
             int northLocation = (Heading % 360) * markerScaling;
             if (northLocation < Bounds.Width)
                 northLocation += 360 * markerScaling;
             clippingRectangle = new Rectangle(northLocation - halfWidth, 0, Bounds.Width, compassTexture.Height);
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

@@ -36,7 +36,7 @@ namespace Orts.Graphics.Window.Controls
         internal virtual void Initialize()
         { }
 
-        internal virtual void Update(GameTime gameTime)
+        internal virtual void Update(GameTime gameTime, bool shouldUpdate)
         { }
 
         internal virtual void Draw(SpriteBatch spriteBatch, Point offset)

@@ -98,11 +98,6 @@ namespace Orts.Graphics.Window.Controls
         {
         }
 
-        internal override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-        }
-
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             if (horizontalScrollSize > -1)

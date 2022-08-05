@@ -90,7 +90,7 @@ namespace Orts.Toolbox.PopupWindows
             return base.Close();
         }
 
-        protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
             ref readonly PointD worldPoint = ref (contentArea == null ? ref PointD.None : ref contentArea.WorldPosition);
             if (previousWorldPoint != worldPoint || updateRequired)
@@ -111,7 +111,7 @@ namespace Orts.Toolbox.PopupWindows
                     locationLabel.Text = $"Location (x, z) {location.Location.X,4:00.##} {location.Location.Z,4:00.##}";
                 }
             }
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
     }
 }
