@@ -126,7 +126,6 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
-        public string EOTPath;      // ie c:\program files\microsoft games\train simulator\trains\ORTS_EOT
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -201,7 +200,6 @@ namespace Orts.Simulation
 
         public MovingTable ActiveMovingTable { get; set; }
 
-        public FullEOTPaths FullEOTPaths { get; }
         // Replay functionality!
         public CommandLog Log { get; set; }
         public List<ICommand> ReplayCommandList { get; set; }
@@ -292,15 +290,6 @@ namespace Orts.Simulation
                 Trace.Write(" EXTCLOCK");
                 ClockFile cf = new ClockFile(clockFile, RouteFolder.ShapesFolder);
                 Clocks = cf.Clocks;
-            }
-
-            EOTPath = RouteFolder.ContentFolder.TrainSetsFolder + @"\TRAINS\ORTS_EOT\";
-
-            // Generate a list of EOTs that may be used to attach at end of train
-            if (Directory.Exists(EOTPath))
-            {
-                Trace.Write(" EOT");
-                FullEOTPaths = new FullEOTPaths(EOTPath);
             }
 
             Confirmer = new Confirmer(this, 1.5);

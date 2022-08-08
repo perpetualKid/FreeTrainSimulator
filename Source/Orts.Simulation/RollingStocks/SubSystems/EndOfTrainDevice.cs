@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -35,20 +36,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         NoComm,
         OneWay,
         TwoWay
-    }
-
-    public class FullEOTPaths : List<string>
-    {
-        public FullEOTPaths(string eotPath)
-        {
-            foreach (string directory in Directory.EnumerateDirectories(eotPath))
-            {
-                foreach (string file in Directory.EnumerateFiles(directory, "*.eot"))
-                {
-                    Add(file);
-                }
-            }
-        }
     }
 
     public enum EoTState
@@ -66,7 +53,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float CommTestDelayS { get; protected set; } = 5f;
         public float LocalTestDelayS { get; protected set; } = 25f;
 
-        private static readonly Random IDRandom = new Random();
         public int ID { get; private set; }
         public EoTState State { get; set; }
         public bool EOTEmergencyBrakingOn { get; private set; }
@@ -78,7 +64,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             : base(wagPath)
         {
             State = EoTState.Disarmed;
-            ID = IDRandom.Next(0, 99999);
+            ID = StaticRandom.Next(0, 99999);
             delayTimer = new Timer(this);
         }
 
@@ -113,7 +99,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             UpdateState();
             if (simulator.PlayerLocomotive.Train == Train && State == EoTState.ArmedTwoWay &&
                 (EOTEmergencyBrakingOn ||
-                (simulator.PlayerLocomotive as MSTSLocomotive).TrainBrakeController.GetStatus().ToLower().StartsWith("emergency")))
+                (simulator.PlayerLocomotive as MSTSLocomotive).TrainBrakeController.GetStatus().StartsWith("emergency", StringComparison.OrdinalIgnoreCase)))
                 Train.Cars.Last().BrakeSystem.AngleCockBOpen = true;
             else
                 Train.Cars.Last().BrakeSystem.AngleCockBOpen = false;
@@ -159,6 +145,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
+            if (null == stf)
+                throw new ArgumentNullException(nameof(stf));
             switch (lowercasetoken)
             {
                 case "ortseot(level":
@@ -175,6 +163,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
             outf.Write(ID);
             outf.Write((int)State);
             base.Save(outf);
@@ -182,6 +172,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Restore(BinaryReader inf)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
             ID = inf.ReadInt32();
             State = (EoTState)(inf.ReadInt32());
             delayTimer = new Timer(this);
@@ -208,14 +200,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public override void Copy(MSTSWagon source)
         {
             base.Copy(source);
-            EndOfTrainDevice eotcopy = (EndOfTrainDevice)source;
-            level = eotcopy.level;
+            level = (source as EndOfTrainDevice)?.level ?? throw new InvalidCastException();
         }
 
-        public float GetDataOf(CabViewControl cvc)
+        public float GetDataOf(CabViewControl cabViewControl)
         {
+            if (null == cabViewControl)
+                throw new ArgumentNullException(nameof(cabViewControl));
             float data = 0;
-            switch (cvc.ControlType)
+            switch (cabViewControl.ControlType)
             {
                 case CabViewControlType.Orts_Eot_Id:
                     data = ID;

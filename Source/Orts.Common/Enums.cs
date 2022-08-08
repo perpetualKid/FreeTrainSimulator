@@ -1017,5 +1017,6 @@ namespace Orts.Common
         ActivityWindow,
         CompassWindow,
         SwitchWindow,
+        EndOfTrainDeviceWindow,
     }
 }

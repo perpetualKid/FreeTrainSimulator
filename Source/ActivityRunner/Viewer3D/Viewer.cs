@@ -115,7 +115,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
         public TrainListWindow TrainListWindow { get; private set; } // for switching driven train
         public TTDetachWindow TTDetachWindow { get; private set; } // for detaching player train in timetable mode
-        public EOTListWindow EOTListWindow { get; private set; } // to select EOT
 
         // Route Information
         public TileManager Tiles { get; private set; }
@@ -491,7 +490,6 @@ namespace Orts.ActivityRunner.Viewer3D
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
             TrainListWindow = new TrainListWindow(WindowManager);
             TTDetachWindow = new TTDetachWindow(WindowManager);
-            EOTListWindow = new EOTListWindow(WindowManager);
             WindowManager.Initialize();
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
@@ -520,6 +518,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 PopupWindows.SwitchWindow switchWindow = new PopupWindows.SwitchWindow(
                     windowManager,
                     Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint(),
+                    this);
+                return switchWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.EndOfTrainDeviceWindow switchWindow = new PopupWindows.EndOfTrainDeviceWindow(
+                    windowManager,
+                    Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint(),
                     this);
                 return switchWindow;
             }));
@@ -683,7 +689,10 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayBasicHUDToggle, KeyEventType.KeyPressed, HUDWindow.ToggleBasicHUD);
             UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () => TrainListWindow.Visible = !TrainListWindow.Visible);
-            UserCommandController.AddEvent(UserCommand.DisplayEOTListWindow, KeyEventType.KeyPressed, () => EOTListWindow.Visible = !EOTListWindow.Visible);
+            UserCommandController.AddEvent(UserCommand.DisplayEOTListWindow, KeyEventType.KeyPressed, () =>
+            {
+                windowManager[ViewerWindowType.EndOfTrainDeviceWindow].ToggleVisibility();
+            });
             UserCommandController.AddEvent(UserCommand.DisplayStationLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))

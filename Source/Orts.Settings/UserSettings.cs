@@ -376,6 +376,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.ActivityWindow)}=50,30",
             $"{nameof(ViewerWindowType.CompassWindow)}=50,0",
             $"{nameof(ViewerWindowType.SwitchWindow)}=0,50",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=20,50",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -387,6 +388,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.ActivityWindow)}=False",
             $"{nameof(ViewerWindowType.CompassWindow)}=False",
             $"{nameof(ViewerWindowType.SwitchWindow)}=False",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
