@@ -59,9 +59,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (sender is Label currentLabel)
             {
-                //foreach (Label label in eotLabels)
-                //    label.TextColor = label == currentLabel ? Color.OrangeRed : Color.White;
-
                 TrainCar playerLocomotive = Simulator.Instance.PlayerLocomotive;
                 if (playerLocomotive == null)
                     return;

@@ -38,7 +38,7 @@ namespace Orts.Graphics.Shaders
             }
         }
 
-        public virtual void SetState(EffectShader previousShader) { }
+        public virtual void SetState() { }
 
         public virtual void ResetState() { }
 

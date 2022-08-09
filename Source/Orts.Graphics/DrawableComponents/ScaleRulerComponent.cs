@@ -197,7 +197,7 @@ namespace Orts.Graphics.DrawableComponents
                     Marshal.Copy(bmd.Scan0, bytes, 0, bytes.Length);
 
                     // copy our buffer to the texture
-                    Texture2D texture = new Texture2D(Game.GraphicsDevice, bmpSurface.Width, bmpSurface.Height, false, SurfaceFormat.Bgra32);
+                    Texture2D texture = new Texture2D(Game.GraphicsDevice, bmpSurface.Width, bmpSurface.Height, false, SurfaceFormat.Color);
                     texture.SetData(bytes);
                     // unlock the bitmap data
                     bmpSurface.UnlockBits(bmd);

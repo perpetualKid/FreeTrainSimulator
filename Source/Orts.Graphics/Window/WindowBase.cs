@@ -107,9 +107,9 @@ namespace Orts.Graphics.Window
             foreach (EffectPass pass in Owner.WindowShader.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                Owner.Game.GraphicsDevice.SetVertexBuffer(windowVertexBuffer);
-                Owner.Game.GraphicsDevice.Indices = windowIndexBuffer;
-                Owner.Game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
+                Owner.GraphicsDevice.SetVertexBuffer(windowVertexBuffer);
+                Owner.GraphicsDevice.Indices = windowIndexBuffer;
+                Owner.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
             }
         }
 
@@ -276,7 +276,7 @@ namespace Orts.Graphics.Window
                     new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - 00, 0), new Vector2(0.75f / 2.001f, 1.00f / 1.001f)),
                     new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - 00, 0), new Vector2(1.00f / 2.001f, 1.00f / 1.001f)),
                 };
-                windowVertexBuffer = new VertexBuffer(Owner.Game.GraphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
+                windowVertexBuffer = new VertexBuffer(Owner.GraphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
                 windowVertexBuffer.SetData(vertexData);
             }
             if (windowIndexBuffer == null)
@@ -286,7 +286,7 @@ namespace Orts.Graphics.Window
                     11, 6, 10, 5, 9, 4, 8,
                     12, 9, 13, 10, 14, 11, 15,
                 };
-                windowIndexBuffer = new IndexBuffer(Owner.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                windowIndexBuffer = new IndexBuffer(Owner.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
                 windowIndexBuffer.SetData(indexData);
             }
             xnaWorld = Matrix.CreateWorld(new Vector3(borderRect.X, borderRect.Y, 0), -Vector3.UnitZ, Vector3.UnitY);

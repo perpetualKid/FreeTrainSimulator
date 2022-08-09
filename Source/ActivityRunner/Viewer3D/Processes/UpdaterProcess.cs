@@ -116,9 +116,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             try
             {
                 CurrentFrame.Clear();
-                foreach (GameComponent component in game.GameComponents)
-                    if (component.Enabled)
-                        component.Update(gameTime);
+                for (int i = 0; i < game.GameComponents.Count; i++)
+                {
+                    if ((game.GameComponents[i] is GameComponent gameComponent) && gameComponent.Enabled)
+                        gameComponent.Update(gameTime);
+                }
                 if (game.State != null)
                 {
                     game.State.Update(CurrentFrame, gameTime);

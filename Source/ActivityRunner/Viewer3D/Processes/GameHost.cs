@@ -18,6 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -77,6 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
         private readonly Stack<GameState> gameStates;
+        private ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
@@ -86,6 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <param name="settings">The <see cref="UserSettings"/> for the game to use.</param>
         public GameHost(UserSettings settings)
         {
+            GameComponents.ComponentAdded += GameComponents_ComponentAdded;
             Settings = settings;
             Exiting += Game_Exiting;
             RenderProcess = new RenderProcess(this);
@@ -96,11 +99,21 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             gameStates = new Stack<GameState>();
         }
 
+        private void GameComponents_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
+        {
+            addedComponents.Enqueue(e.GameComponent as GameComponent);
+        }
+
         protected override void Initialize()
         {
             base.Initialize();
-            foreach(GameComponent component in GameComponents)
+            foreach (GameComponent component in GameComponents)
                 component.Initialize();
+        }
+
+        protected override void LoadContent()
+        {
+            base.LoadContent();
         }
 
         protected override void BeginRun()
@@ -118,6 +131,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             // The first Update() is called before the window is displayed, with a gameTime == 0. The second is called
             // after the window is displayed.
+            if (!addedComponents.IsEmpty)
+                while (addedComponents.TryDequeue(out GameComponent component))
+                    component.Initialize();
             if (State == null)
                 Exit();
             else

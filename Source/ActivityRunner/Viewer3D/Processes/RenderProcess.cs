@@ -378,6 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
             else
             {
+#pragma warning disable CA1031 // Do not catch general exception types
                 try
                 {
                     CurrentFrame.Draw(gameTime);
@@ -386,6 +387,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     game.ProcessReportError(error);
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
         }
 

@@ -92,8 +92,6 @@ namespace Orts.Graphics.Window
             spriteBatch = new SpriteBatch(GraphicsDevice);
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
-            BasicShapes.Initialize(spriteBatch);
-            BasicShapes.LoadContent(game.GraphicsDevice);
 
             MaterialManager.Initialize(game.GraphicsDevice);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
@@ -188,8 +186,10 @@ namespace Orts.Graphics.Window
                 Matrix.CreateScale(1.0f, -1.0f, 1.0f);
             // Project into a flat view of the same size as the viewport.
             xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
-            foreach (WindowBase window in windows)
-                window.UpdateLocation();
+            for (int i = 0; i < windows.Count; i++)
+            {
+                windows[i].UpdateLocation();
+            }
         }
 
         internal bool OpenWindow(WindowBase window)
@@ -373,20 +373,23 @@ namespace Orts.Graphics.Window
 
         public override void Initialize()
         {
+            BasicShapes.Initialize(spriteBatch);
+            BasicShapes.LoadContent(Game.GraphicsDevice);
             base.Initialize();
         }
 
         public override void Draw(GameTime gameTime)
         {
-            foreach (WindowBase window in windows)
+            for (int i = 0; i < windows.Count; i++)
             {
-                WindowShader.SetState(null);
+                WindowBase window = windows[i];
+                WindowShader.SetState();
                 WindowShader.Opacity = window == mouseActiveWindow ? opacityDefault * 1.2f : opacityDefault;
                 window.WindowDraw();
-                WindowShader.ResetState();
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null);
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, null, null);
                 window.Draw(spriteBatch);
                 spriteBatch.End();
+                WindowShader.ResetState();
             }
             base.Draw(gameTime);
             SuppressDrawing = true;
@@ -431,11 +434,11 @@ namespace Orts.Graphics.Window
 
         public override void Initialize()
         {
+            base.Initialize();
             foreach (WindowBase window in windows)
             {
                 window?.Initialize();
             }
-            base.Initialize();
         }
 
         public WindowBase this[TWindowType window]

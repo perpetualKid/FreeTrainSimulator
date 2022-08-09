@@ -37,7 +37,7 @@ namespace Orts.Graphics.Xna
                 if (size.ToPoint() != texture?.Bounds.Size)
                 {
                     Texture2D current = texture;
-                    texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
+                    texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
                     current?.Dispose();
                 }
             }
@@ -48,14 +48,14 @@ namespace Orts.Graphics.Xna
             using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
             {
                 Size size = measureGraphics.MeasureString(text, font).ToSize();
-                return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
+                return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
             }
         }
 
         public static Texture2D Resize(string text, Font font, GraphicsDevice graphicsDevice, System.Drawing.Graphics measureGraphics)
         {
             Size size = measureGraphics?.MeasureString(text, font).ToSize() ?? throw new ArgumentNullException(nameof(measureGraphics));
-            return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Bgra32)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
+            return (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
         }
 
         public static void RenderText(string text, Font font, Texture2D texture)
