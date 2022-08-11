@@ -400,14 +400,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeed);
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeedTimeS);
                     outf.Write(Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS);
-                    outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
-                    outf.Write(RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
-                    outf.Write(Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
-                    outf.Write(Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
-                    outf.Write(Simulator.Instance.DebriefEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
-                    outf.Write(simulator.PlayerLocomotive.DistanceTravelled + Popups.HelpWindow.DbfEvalDistanceTravelled);
                 }
             }
         }
@@ -490,14 +484,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Popups.TrackMonitor.DbfEvalOverSpeed = infDbfEval.ReadInt32();
                             Popups.TrackMonitor.DbfEvalOverSpeedTimeS = infDbfEval.ReadDouble();
                             Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS = infDbfEval.ReadDouble();
-                            RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving = infDbfEval.ReadInt32();
-                            RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped = infDbfEval.ReadInt32();
-                            Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh = infDbfEval.ReadInt32();
-                            Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh = infDbfEval.ReadInt32();
-                            Simulator.Instance.DebriefEvalOverSpeedCoupling = infDbfEval.ReadInt32();
                             Viewer.DbfEvalAutoPilotTimeS = infDbfEval.ReadDouble();
                             Viewer.DbfEvalIniAutoPilotTimeS = infDbfEval.ReadDouble();
-                            Popups.HelpWindow.DbfEvalDistanceTravelled = infDbfEval.ReadSingle();
                         }
                     }
                     else if (settings.ActivityEvalulation && !File.Exists(dbfevalfile))

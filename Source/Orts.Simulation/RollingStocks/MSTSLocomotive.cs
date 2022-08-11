@@ -4005,8 +4005,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
         //Debrief Eval
-        public static int DbfEvalFullTrainBrakeUnder8kmh;
-        public bool ldbfevalfulltrainbrakeunder8kmh;
+        private bool ldbfevalfulltrainbrakeunder8kmh;
 
         public override string GetTrainBrakeStatus()
         {
@@ -4016,10 +4015,8 @@ namespace Orts.Simulation.RollingStocks
 
             if (s == "Emergency" && train.LeadLocomotive != null && !ldbfevalfulltrainbrakeunder8kmh && train.LeadLocomotive.IsPlayerTrain && Math.Abs(train.SpeedMpS) < 2.22222)
             {
-
-                DbfEvalFullTrainBrakeUnder8kmh++;
+                Activities.ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh++;
                 ldbfevalfulltrainbrakeunder8kmh = true;
-                train.DbfEvalValueChanged = true;//Debrief eval
             }
             if (s != "Emergency" && ldbfevalfulltrainbrakeunder8kmh)
                 ldbfevalfulltrainbrakeunder8kmh = false;

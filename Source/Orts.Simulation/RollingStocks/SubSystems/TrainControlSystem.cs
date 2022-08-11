@@ -31,6 +31,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.Etcs;
+using Orts.Simulation.Activities;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
@@ -218,8 +219,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
         //Debrief Eval
-        public static int DbfevalFullBrakeAbove16kmh;
-        public bool ldbfevalfullbrakeabove16kmh;
+        private bool ldbfevalfullbrakeabove16kmh;
 
         public void Initialize()
         {
@@ -408,10 +408,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         //Debrief Eval
                         if (value && Locomotive.IsPlayerTrain && !ldbfevalfullbrakeabove16kmh && Math.Abs(Locomotive.SpeedMpS) > 4.44444)
                         {
-                            var train = Simulator.PlayerLocomotive.Train;//Debrief Eval
-                            DbfevalFullBrakeAbove16kmh++;
+                            ActivityEvaluation.Instance.FullBrakeAbove16kmh++;
                             ldbfevalfullbrakeabove16kmh = true;
-                            train.DbfEvalValueChanged = true;//Debrief eval
                         }
                         if (!value)
                             ldbfevalfullbrakeabove16kmh = false;

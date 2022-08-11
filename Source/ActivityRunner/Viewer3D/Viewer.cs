@@ -231,8 +231,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-        //        UserInputRailDriver RailDriver;
-
         public static double DbfEvalAutoPilotTimeS;//Debrief eval
         public static double DbfEvalIniAutoPilotTimeS;//Debrief eval  
         public bool DbfEvalAutoPilot;//DebriefEval

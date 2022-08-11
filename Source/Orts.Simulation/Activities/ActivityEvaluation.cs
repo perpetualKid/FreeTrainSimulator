@@ -14,6 +14,12 @@ namespace Orts.Simulation.Activities
         private int travellingTooFast;
         private int trainOverTurned;
         private int snappedBrakeHose;
+        private double distanceTravelled;
+        private int fullTrainBrakeUnder8kmh;
+        private int fullBrakeAbove16kmh;
+        private int overSpeedCoupling;
+        private int emergencyButtonStopped;
+        private int emergencyButtonMoving;
 
         private static ActivityEvaluation instance;
 
@@ -73,6 +79,66 @@ namespace Orts.Simulation.Activities
             }
         }
 
+        public double DistanceTravelled
+        {
+            get => distanceTravelled + Simulator.Instance.PlayerLocomotive.DistanceTravelled;
+            set
+            {
+                distanceTravelled = value;
+                Version++;
+            }
+        }
+
+        public int FullTrainBrakeUnder8kmh
+        {
+            get => fullTrainBrakeUnder8kmh;
+            set
+            {
+                fullTrainBrakeUnder8kmh = value;
+                Version++;
+            }
+        }
+
+        public int FullBrakeAbove16kmh
+        {
+            get => fullBrakeAbove16kmh;
+            set
+            {
+                fullBrakeAbove16kmh = value;
+                Version++;
+            }
+        }
+
+        public int OverSpeedCoupling
+        {
+            get => overSpeedCoupling;
+            set
+            {
+                overSpeedCoupling = value;
+                Version++;
+            }
+        }
+
+        public int EmergencyButtonStopped
+        {
+            get => emergencyButtonStopped;
+            set
+            {
+                emergencyButtonStopped = value;
+                Version++;
+            }
+        }
+
+        public int EmergencyButtonMoving
+        {
+            get => emergencyButtonMoving;
+            set
+            {
+                emergencyButtonMoving = value;
+                Version++;
+            }
+        }
+
         public static void Save(BinaryWriter outputStream)
         {
             if (null == outputStream)
@@ -84,7 +150,12 @@ namespace Orts.Simulation.Activities
             outputStream.Write(instance.TravellingTooFast);
             outputStream.Write(instance.TrainOverTurned);
             outputStream.Write(instance.SnappedBrakeHose);
-
+            outputStream.Write(instance.DistanceTravelled);
+            outputStream.Write(instance.FullTrainBrakeUnder8kmh);
+            outputStream.Write(instance.FullBrakeAbove16kmh);
+            outputStream.Write(instance.OverSpeedCoupling);
+            outputStream.Write(instance.EmergencyButtonStopped);
+            outputStream.Write(instance.EmergencyButtonMoving);
         }
 
         public static void Restore(BinaryReader inputStream)
@@ -93,10 +164,16 @@ namespace Orts.Simulation.Activities
                 throw new ArgumentNullException(nameof(inputStream));
             instance = new ActivityEvaluation
             {
-                CouplerBreaks = inputStream.ReadInt32(),
-                TravellingTooFast = inputStream.ReadInt32(),
-                TrainOverTurned = inputStream.ReadInt32(),
-                SnappedBrakeHose = inputStream.ReadInt32(),
+                couplerBreaks = inputStream.ReadInt32(),
+                travellingTooFast = inputStream.ReadInt32(),
+                trainOverTurned = inputStream.ReadInt32(),
+                snappedBrakeHose = inputStream.ReadInt32(),
+                distanceTravelled = inputStream.ReadDouble(),
+                fullTrainBrakeUnder8kmh = inputStream.ReadInt32(),
+                fullBrakeAbove16kmh = inputStream.ReadInt32(),
+                overSpeedCoupling = inputStream.ReadInt32(),
+                emergencyButtonStopped = inputStream.ReadInt32(),
+                emergencyButtonMoving = inputStream.ReadInt32(),
             };
         }
     }

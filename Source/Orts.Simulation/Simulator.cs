@@ -37,6 +37,7 @@ using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Scripting.Api;
 using Orts.Settings;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
@@ -149,8 +150,6 @@ namespace Orts.Simulation
         public Weather Weather { get; } = new Weather();
 
         public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
-
-        public int DebriefEvalOverSpeedCoupling { get; set; }//Debrief eval
 
         public SignalEnvironment SignalEnvironment { get; private set; }
         public AI AI { get; private set; }
@@ -850,7 +849,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, 1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                             foreach (TrainCar car in train.Cars)
                             {
@@ -878,7 +877,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                             for (int i = train.Cars.Count - 1; i >= 0; --i)
                             {
@@ -927,7 +926,7 @@ namespace Orts.Simulation
                                 _ = train.LeadLocomotive;
                                 train.LastCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DebriefEvalOverSpeedCoupling += 1;
+                                    ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                                 for (int i = 0; i < drivenTrain.Cars.Count; ++i)
                                 {
@@ -942,7 +941,7 @@ namespace Orts.Simulation
                             {
                                 drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DebriefEvalOverSpeedCoupling += 1;
+                                    ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                                 lead = drivenTrain.LeadLocomotive;
                                 for (int i = 0; i < train.Cars.Count; ++i)
@@ -974,7 +973,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                             TrainCar lead = drivenTrain.LeadLocomotive;
                             for (int i = 0; i < train.Cars.Count; ++i)

@@ -64,7 +64,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private Label statusLabel;//Debrief eval
         public string Star;//Debrief eval
         private StreamWriter wDbfEval;//Debrief eval
-        public static float DbfEvalDistanceTravelled;//Debrief eval
 
         private List<TabData> Tabs = new List<TabData>();
         private int ActiveTab;
@@ -302,7 +301,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         int dbfeval = 0;//Debrief eval
                         int nmissedstation = 0;//Debrief eval
                         string labeltext = "";
-                        int noverspeedcoupling = Simulator.Instance.DebriefEvalOverSpeedCoupling;
+                        int noverspeedcoupling = ActivityEvaluation.Instance.OverSpeedCoupling;
 
                         // Detect at arrival              
                         int dbfstationstopsremaining = 0;
@@ -552,18 +551,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if (actualStatusVisible)
                             {
                                 DbfEvalValues.Add("Train Overturned", ActivityEvaluation.Instance.TrainOverTurned);
-                                DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
+                                DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", ActivityEvaluation.Instance.FullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
                                 DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", ActivityEvaluation.Instance.CouplerBreaks);
-                                DbfEvalValues.Add("Coupling speed limits", Simulator.Instance.DebriefEvalOverSpeedCoupling);
+                                DbfEvalValues.Add("Coupling speed limits", ActivityEvaluation.Instance.OverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? ActivityEvaluation.Instance.TravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 
                                 DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
-                                DbfEvalValues.Add("Distance travelled", DbfEvalDistanceTravelled + locomotive.DistanceTravelled);
-                                DbfEvalValues.Add("Emergency applications while moving", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
-                                DbfEvalValues.Add("Emergency applications while stopped", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
-                                DbfEvalValues.Add("Full Train Brake applications under 5MPH/8KMH", MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
+                                DbfEvalValues.Add("Distance travelled", ActivityEvaluation.Instance.DistanceTravelled);
+                                DbfEvalValues.Add("Emergency applications while moving", ActivityEvaluation.Instance.EmergencyButtonMoving);
+                                DbfEvalValues.Add("Emergency applications while stopped", ActivityEvaluation.Instance.EmergencyButtonStopped);
+                                DbfEvalValues.Add("Full Train Brake applications under 5MPH/8KMH", ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh);
                                 if (lcurvespeeddependent) DbfEvalValues.Add("Hose breaks", ActivityEvaluation.Instance.SnappedBrakeHose);
 
                                 DbfEvalValues.Add("Over Speed", TrackMonitor.DbfEvalOverSpeed);
@@ -706,13 +705,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             labeltext = "  Autopilot Time=" + FormatStrings.FormatTime(autoPilotTime);
                             outmesssage(labeltext, colWidth * 3, true, 0);
 
-                            // var locomotive = Owner.Viewer.Simulator.PlayerLocomotive;                            
                             var cars = Owner.Viewer.PlayerTrain.Cars;
                             bool isMetric = Simulator.Instance.MetricUnits;
                             bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-                            float distancetravelled = locomotive.DistanceTravelled + DbfEvalDistanceTravelled;
                             //Distance travelled
-                            labeltext = "  Travelled=" + FormatStrings.FormatDistanceDisplay(distancetravelled, isMetric);
+                            labeltext = "  Travelled=" + FormatStrings.FormatDistanceDisplay(ActivityEvaluation.Instance.DistanceTravelled, isMetric);
                             outmesssage(labeltext, colWidth * 3, true, 0);
 
                             float nDieselvolume = 0, nCoalvolume = 0;
@@ -944,25 +941,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             outmesssagecolor(labeltext, colWidth, Color.Yellow, true, 6, 0);
 
                             //Full Brake applications under 5MPH / 8KMH. 2.
-                            int nfullbrakeappunder8kmh = Simulation.RollingStocks.MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh;
+                            int nfullbrakeappunder8kmh = ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh;
                             labeltext = "  Full Train Brake applications under 5MPH/8KMH=" + nfullbrakeappunder8kmh;
                             outmesssage(labeltext, colWidth * 8, true, 5);
                             nfullbrakeappunder8kmh = 2 * nfullbrakeappunder8kmh;
 
                             //Emergency applications MOVING. 20.
-                            int nebpbmoving = RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving;
+                            int nebpbmoving = ActivityEvaluation.Instance.EmergencyButtonMoving;
                             labeltext = "  Emergency applications while moving=" + nebpbmoving;
                             outmesssage(labeltext, colWidth * 8, true, 5);
                             nebpbmoving = 20 * nebpbmoving;
 
                             //Emergency applications while STOPPED. 5.
-                            int nebpbstopped = RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped;
+                            int nebpbstopped = ActivityEvaluation.Instance.EmergencyButtonStopped;
                             labeltext = "  Emergency applications while stopped=" + nebpbstopped;
                             outmesssage(labeltext, colWidth * 8, true, 5);
                             nebpbstopped = 5 * nebpbstopped;
 
                             //Alerter Penalty applications above 16KMH ~ 10MPH. 35.                            
-                            int nfullbrakeabove16kmh = Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh;
+                            int nfullbrakeabove16kmh = ActivityEvaluation.Instance.FullBrakeAbove16kmh;
                             labeltext = "  Alerter applications above 10MPH/16KMH=" + nfullbrakeabove16kmh;
                             outmesssage(labeltext, colWidth * 8, true, 5);
                             nfullbrakeabove16kmh = 35 * nfullbrakeabove16kmh;

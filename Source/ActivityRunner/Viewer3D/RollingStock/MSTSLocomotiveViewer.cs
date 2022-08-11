@@ -41,6 +41,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -60,9 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public ThreeDimentionCabViewer CabViewer3D { get; private set; }
         public CabRenderer CabRenderer3D { get; internal set; } //allow user to have different setting of .cvf file under CABVIEW3D
 
-        public static int DbfEvalEBPBstopped;//Debrief eval
-        public static int DbfEvalEBPBmoving;//Debrief eval
-        public bool lemergencybuttonpressed;
+        private bool lemergencybuttonpressed;
 
         public MSTSLocomotiveViewer(Viewer viewer, MSTSLocomotive car)
             : base(viewer, car)
@@ -146,11 +145,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 var train = Program.Viewer.PlayerLocomotive.Train;
                 if (Math.Abs(Locomotive.SpeedMpS) == 0)
-                    DbfEvalEBPBstopped++;
-                if (Math.Abs(Locomotive.SpeedMpS) > 0)
-                    DbfEvalEBPBmoving++;
+                    ActivityEvaluation.Instance.EmergencyButtonStopped++;
+                else
+                    ActivityEvaluation.Instance.EmergencyButtonMoving++;
                 lemergencybuttonpressed = true;
-                train.DbfEvalValueChanged = true;//Debrief eval
             }
             //Debrief eval
             if (lemergencybuttonpressed && !Locomotive.EmergencyButtonPressed)
