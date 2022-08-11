@@ -6,6 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Orts.Simulation.Physics;
+
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Simulation.Activities
 {
     public class ActivityEvaluation
@@ -20,10 +24,17 @@ namespace Orts.Simulation.Activities
         private int overSpeedCoupling;
         private int emergencyButtonStopped;
         private int emergencyButtonMoving;
+        private double autoPilotInitialTime;
+        private double autoPilotTime;
+        private bool autoPilotTimerRunning;
+        private bool overSpeedRunning;
+        private int overSpeed;
+        private double overSpeedInitialTime;
+        private double overSpeedTime;
 
         private static ActivityEvaluation instance;
 
-        public int Version { get; private set; }
+        public long Version { get; private set; }
 
         private ActivityEvaluation()
         { }
@@ -32,10 +43,31 @@ namespace Orts.Simulation.Activities
         {
             get
             {
-                if (null == instance && Simulator.Instance.Settings.ActivityEvalulation)
+                if (null == instance)
                     instance = new ActivityEvaluation();
                 return instance;
             }
+        }
+
+        public void Update()
+        {
+            TrainInfo trainInfo = Simulator.Instance.PlayerLocomotive.Train.GetTrainInfo();
+            bool overSpeedNow = Math.Abs(trainInfo.Speed) > trainInfo.AllowedSpeed + 5;
+
+            if (overSpeedNow && !overSpeedRunning)//Debrief Eval
+            {
+                overSpeedRunning = true;
+                overSpeedInitialTime = Simulator.Instance.ClockTime;
+            }
+            else if (overSpeedRunning && !overSpeedNow)//Debrief Eval
+            {
+                overSpeedRunning = false;
+                overSpeedTime += Simulator.Instance.ClockTime - overSpeedInitialTime;
+                overSpeed++;
+            }
+            if (overSpeedRunning || autoPilotTimerRunning)
+                Version++;
+
         }
 
         public int CouplerBreaks
@@ -139,6 +171,35 @@ namespace Orts.Simulation.Activities
             }
         }
 
+        public void StartAutoPilotTime()
+        {
+            if (!autoPilotTimerRunning)
+                autoPilotInitialTime = Simulator.Instance.ClockTime;
+            autoPilotTimerRunning = true;
+        }
+
+        public void StopAutoPilotTime()
+        {
+            if (autoPilotTimerRunning)
+                autoPilotTime += Simulator.Instance.ClockTime - autoPilotInitialTime;
+            autoPilotTimerRunning = false;
+        }
+
+        public double AutoPilotTime
+        {
+            get => autoPilotTimerRunning ? Simulator.Instance.ClockTime - autoPilotInitialTime + autoPilotTime : autoPilotTime;
+        }
+
+        public int OverSpeed
+        {
+            get => overSpeed;
+        }
+
+        public double OverSpeedTime
+        {
+            get => overSpeedRunning ? Simulator.Instance.ClockTime - overSpeedInitialTime + overSpeedTime : overSpeedTime;
+        }
+
         public static void Save(BinaryWriter outputStream)
         {
             if (null == outputStream)
@@ -156,6 +217,11 @@ namespace Orts.Simulation.Activities
             outputStream.Write(instance.OverSpeedCoupling);
             outputStream.Write(instance.EmergencyButtonStopped);
             outputStream.Write(instance.EmergencyButtonMoving);
+            outputStream.Write(instance.autoPilotInitialTime);
+            outputStream.Write(instance.AutoPilotTime);
+            outputStream.Write(instance.OverSpeed);
+            outputStream.Write(instance.overSpeedInitialTime);
+            outputStream.Write(instance.OverSpeedTime);
         }
 
         public static void Restore(BinaryReader inputStream)
@@ -174,6 +240,11 @@ namespace Orts.Simulation.Activities
                 overSpeedCoupling = inputStream.ReadInt32(),
                 emergencyButtonStopped = inputStream.ReadInt32(),
                 emergencyButtonMoving = inputStream.ReadInt32(),
+                autoPilotInitialTime = inputStream.ReadDouble(),
+                autoPilotTime = inputStream.ReadDouble(),
+                overSpeed = inputStream.ReadInt32(),
+                overSpeedInitialTime = inputStream.ReadDouble(),
+                overSpeedTime = inputStream.ReadDouble(),
             };
         }
     }

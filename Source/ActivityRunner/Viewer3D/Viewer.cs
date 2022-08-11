@@ -48,6 +48,7 @@ using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Settings.Util;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
@@ -227,13 +228,9 @@ namespace Orts.ActivityRunner.Viewer3D
         public bool tryLoadingNightTextures;
         public bool tryLoadingDayTextures;
 
-        public int poscounter = 1; // counter for print position info
-
         public Camera SuspendedCamera { get; private set; }
 
-        public static double DbfEvalAutoPilotTimeS;//Debrief eval
-        public static double DbfEvalIniAutoPilotTimeS;//Debrief eval  
-        public bool DbfEvalAutoPilot;//DebriefEval
+        private bool dbfEvalAutoPilot;//DebriefEval
 
         private bool lockShadows;
         private bool logRenderFrame;
@@ -970,7 +967,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl())
                         {
                             Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to player control"));
-                            DbfEvalAutoPilot = false;//Debrief eval
+                            ActivityEvaluation.Instance.StopAutoPilotTime();
                         }
                         break;
                     case TrainType.AiPlayerDriven:
@@ -981,8 +978,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (((AITrain)PlayerLocomotive.Train).SwitchToAutopilotControl())
                             {
                                 Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to autopilot"));
-                                DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
-                                DbfEvalAutoPilot = true;//Debrief eval
+                                ActivityEvaluation.Instance.StartAutoPilotTime();
                             }
                         }
                         break;
@@ -1454,17 +1450,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            var train = Program.Viewer.PlayerLocomotive.Train;//DebriefEval
-
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
-
-            if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000)
-            {
-                DbfEvalAutoPilotTimeS = DbfEvalAutoPilotTimeS + (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS);//Debrief eval
-                train.DbfEvalValueChanged = true;
-                DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
-            }
 
             //in the dispatcher window, when one clicks a train and "See in Game", will jump to see that train
             if (Program.DebugViewer != null && Program.DebugViewer.ClickedTrain == true)

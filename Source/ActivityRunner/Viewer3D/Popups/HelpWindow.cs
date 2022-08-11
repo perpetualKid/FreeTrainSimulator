@@ -57,7 +57,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private ControlLayout scrollbox;
         private ControlLayoutHorizontal line;
         private bool lDebriefEvalFile;//Debrief eval
-        private bool ldbfevalupdateautopilottime;//Debrief eval
         private bool actualStatusVisible; //Debrief eval
         private bool dbfevalActivityEnded; //Debrief eval
         private Label indicator;//Debrief eval
@@ -552,7 +551,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 DbfEvalValues.Add("Train Overturned", ActivityEvaluation.Instance.TrainOverTurned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", ActivityEvaluation.Instance.FullBrakeAbove16kmh);
-                                DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
+                                DbfEvalValues.Add("Auto pilot (Time)", ActivityEvaluation.Instance.AutoPilotTime);
                                 DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", ActivityEvaluation.Instance.CouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", ActivityEvaluation.Instance.OverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? ActivityEvaluation.Instance.TravellingTooFast : 0);
@@ -565,8 +564,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Full Train Brake applications under 5MPH/8KMH", ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh);
                                 if (lcurvespeeddependent) DbfEvalValues.Add("Hose breaks", ActivityEvaluation.Instance.SnappedBrakeHose);
 
-                                DbfEvalValues.Add("Over Speed", TrackMonitor.DbfEvalOverSpeed);
-                                DbfEvalValues.Add("Over Speed (Time)", TrackMonitor.DbfEvalOverSpeedTimeS);
+                                DbfEvalValues.Add("Over Speed", ActivityEvaluation.Instance.OverSpeed);
+                                DbfEvalValues.Add("Over Speed (Time)", ActivityEvaluation.Instance.OverSpeedTime);
                                 if (DbfEvalStationName.Count > 0)
                                 {
                                     DbfEvalValues.Add("Station stops missed", nmissedstation);
@@ -605,10 +604,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             dbfevalActivityEnded = true;
 
                             //If Autopilot control then update recorded time
-                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
+                            if (owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
                             {
-                                Viewer.DbfEvalAutoPilotTimeS = Viewer.DbfEvalAutoPilotTimeS + (owner.Viewer.Simulator.ClockTime - Viewer.DbfEvalIniAutoPilotTimeS);
-                                ldbfevalupdateautopilottime = true;
+                                ActivityEvaluation.Instance.StopAutoPilotTime();
                             }
                             //---------------------------------------------------------
                             //Report
@@ -699,7 +697,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             bool bEstimatedTime = elapsedTime > owner.Viewer.Simulator.ActivityFile.Activity.Header.StartTime.TotalSeconds;
 
                             //Auto pilot time.
-                            double autoPilotTime = Viewer.DbfEvalAutoPilotTimeS;
+                            double autoPilotTime = ActivityEvaluation.Instance.AutoPilotTime;
                             //Less usage better value
                             int nautoPilotTime = autoPilotTime > 0 ? Convert.ToInt16(autoPilotTime * 100 / elapsedTime) : 0;
                             labeltext = "  Autopilot Time=" + FormatStrings.FormatTime(autoPilotTime);
@@ -881,12 +879,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             outmesssagecolor(labeltext, colWidth, Color.Yellow, true, 6, 0);
                             //Over Speed
                             //Track Monitor Red.
-                            int nspeedred = TrackMonitor.DbfEvalOverSpeed;
+                            int nspeedred = ActivityEvaluation.Instance.OverSpeed;
                             labeltext = "  Over Speed=" + nspeedred;
                             outmesssage(labeltext, colWidth * 4, true, 2);
                             //Over Speed Time.
                             //Track Monitor Red. -1.5 per second. dbfEvalOverSpeedTimeS.
-                            double nspeedredtime = TrackMonitor.DbfEvalOverSpeedTimeS;
+                            double nspeedredtime = ActivityEvaluation.Instance.OverSpeedTime;
                             labeltext = "  Over Speed (Time)=" + FormatStrings.FormatTime(nspeedredtime);
                             outmesssage(labeltext, colWidth * 4, true, 2);
                             nspeedredtime = 1.5 * nspeedredtime;
@@ -1225,7 +1223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private ActivityTask LastActivityTask;
         private bool StoppedAt;
-        private int lastVersion = -1;
+        private long lastVersion = -1;
 
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {

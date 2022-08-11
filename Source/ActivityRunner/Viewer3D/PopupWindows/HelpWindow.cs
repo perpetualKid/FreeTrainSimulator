@@ -49,7 +49,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private ActivityTask lastActivityTask;
         private bool stoppedAt;
-        private int lastEvalautionVersion = -1;
+        private long lastEvalautionVersion = -1;
         private int lastLastEventID = -1;
 
         public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings) :

@@ -165,11 +165,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             StaticOnly,
         }
 
-        public static int DbfEvalOverSpeed;//Debrief eval
-        private bool istrackColorRed;//Debrief eval
-        public static Double DbfEvalOverSpeedTimeS;//Debrief eval
-        public static double DbfEvalIniOverSpeedTimeS;//Debrief eval
-
         private TrainInfo validInfo;
         private const int DesignWidth = 150; // All Width/X values are relative to this width.
 
@@ -364,25 +359,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             spriteBatch.Draw(MonitorTexture, new Rectangle(offset.X + trackOffset + trackRail1Offset, offset.Y, trackRailWidth, Position.Height), trackColor);
             spriteBatch.Draw(MonitorTexture, new Rectangle(offset.X + trackOffset + trackRail2Offset, offset.Y, trackRailWidth, Position.Height), trackColor);
-
-            if (trackColor == Color.Red && !istrackColorRed)//Debrief Eval
-            {
-                istrackColorRed = true;
-                DbfEvalIniOverSpeedTimeS = Simulator.Instance.ClockTime;
-            }            
-
-            if (istrackColorRed && trackColor != Color.Red)//Debrief Eval
-            {
-                istrackColorRed = false;
-                DbfEvalOverSpeed++;
-            }
-
-            if (istrackColorRed && (Simulator.Instance.ClockTime - DbfEvalIniOverSpeedTimeS) > 1.0000)//Debrief Eval
-            {
-                DbfEvalOverSpeedTimeS += (Simulator.Instance.ClockTime - DbfEvalIniOverSpeedTimeS);
-                train.DbfEvalValueChanged = true;
-                DbfEvalIniOverSpeedTimeS = Simulator.Instance.ClockTime;
-            }
         }
 
         private void drawAutoInfo(SpriteBatch spriteBatch, Point offset)

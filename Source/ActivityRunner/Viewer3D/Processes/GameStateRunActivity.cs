@@ -397,11 +397,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     {
                         outf.Write(ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding[i]);
                     }
-                    outf.Write(Popups.TrackMonitor.DbfEvalOverSpeed);
-                    outf.Write(Popups.TrackMonitor.DbfEvalOverSpeedTimeS);
-                    outf.Write(Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS);
-                    outf.Write(Viewer.DbfEvalAutoPilotTimeS);
-                    outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
                 }
             }
         }
@@ -481,11 +476,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             {
                                 ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Add(infDbfEval.ReadString());
                             }
-                            Popups.TrackMonitor.DbfEvalOverSpeed = infDbfEval.ReadInt32();
-                            Popups.TrackMonitor.DbfEvalOverSpeedTimeS = infDbfEval.ReadDouble();
-                            Popups.TrackMonitor.DbfEvalIniOverSpeedTimeS = infDbfEval.ReadDouble();
-                            Viewer.DbfEvalAutoPilotTimeS = infDbfEval.ReadDouble();
-                            Viewer.DbfEvalIniAutoPilotTimeS = infDbfEval.ReadDouble();
                         }
                     }
                     else if (settings.ActivityEvalulation && !File.Exists(dbfevalfile))

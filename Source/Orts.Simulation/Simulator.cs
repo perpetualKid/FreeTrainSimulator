@@ -668,6 +668,8 @@ namespace Orts.Simulation
             LevelCrossings?.Update(elapsedClockSeconds);
             ActivityRun?.Update();
             HazardManager?.Update(elapsedClockSeconds);
+            if (Settings.ActivityEvalulation)
+                ActivityEvaluation.Instance.Update();
         }
 
         internal void SetWeather(WeatherType weather, SeasonType season)
