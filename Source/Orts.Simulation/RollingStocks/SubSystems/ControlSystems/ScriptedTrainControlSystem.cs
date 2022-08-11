@@ -590,7 +590,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                     {
                         textAspect = functionHead.TextSignalAspect;
                         signalTypeName = functionHead.SignalType.Name;
-                        if (functionHead.DrawState >= 0)
+                        if (functionHead.SignalType.DrawStates.Any(d => d.Value.Index == functionHead.DrawState))
                         {
                             drawStateName = functionHead.SignalType.DrawStates.First(d => d.Value.Index == functionHead.DrawState).Value.Name;
                         }
