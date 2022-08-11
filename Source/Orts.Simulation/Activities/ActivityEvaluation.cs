@@ -31,6 +31,7 @@ namespace Orts.Simulation.Activities
         private int overSpeed;
         private double overSpeedInitialTime;
         private double overSpeedTime;
+        private int departBeforeBoarding;
 
         private static ActivityEvaluation instance;
 
@@ -51,8 +52,8 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            TrainInfo trainInfo = Simulator.Instance.PlayerLocomotive.Train.GetTrainInfo();
-            bool overSpeedNow = Math.Abs(trainInfo.Speed) > trainInfo.AllowedSpeed + 5;
+            bool overSpeedNow = Math.Abs(Simulator.Instance.PlayerLocomotive.Train.SpeedMpS) > 
+                Math.Min(Simulator.Instance.PlayerLocomotive.Train.AllowedMaxSpeedMpS, Simulator.Instance.PlayerLocomotive.Train.TrainMaxSpeedMpS) + 1.67; //3.8MpH/6.kmh
 
             if (overSpeedNow && !overSpeedRunning)//Debrief Eval
             {
@@ -200,6 +201,15 @@ namespace Orts.Simulation.Activities
             get => overSpeedRunning ? Simulator.Instance.ClockTime - overSpeedInitialTime + overSpeedTime : overSpeedTime;
         }
 
+        public int DepartBeforeBoarding
+        {
+            get => departBeforeBoarding;
+            set 
+            {
+                departBeforeBoarding = value;
+                Version++;
+            }
+        }
         public static void Save(BinaryWriter outputStream)
         {
             if (null == outputStream)
@@ -222,6 +232,7 @@ namespace Orts.Simulation.Activities
             outputStream.Write(instance.OverSpeed);
             outputStream.Write(instance.overSpeedInitialTime);
             outputStream.Write(instance.OverSpeedTime);
+            outputStream.Write(instance.DepartBeforeBoarding);
         }
 
         public static void Restore(BinaryReader inputStream)
@@ -245,6 +256,7 @@ namespace Orts.Simulation.Activities
                 overSpeed = inputStream.ReadInt32(),
                 overSpeedInitialTime = inputStream.ReadDouble(),
                 overSpeedTime = inputStream.ReadDouble(),
+                departBeforeBoarding = inputStream.ReadInt32(),
             };
         }
     }

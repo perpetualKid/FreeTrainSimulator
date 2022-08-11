@@ -316,7 +316,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             tabControl.UpdateTabLayout(tabControl.CurrentTab);
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders | tabControl.CurrentTab == TabSettings.ActivityEvaluation)
+                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders || tabControl.CurrentTab == TabSettings.ActivityEvaluation)
                     {
                         if (Simulator.Instance.ActivityRun.EventList != null)
                         {
@@ -328,7 +328,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             }
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation && Simulator.Instance.ActivityRun.Completed || ActivityEvaluation.Instance.Version != lastEvalautionVersion)
+                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation && 
+                        (Simulator.Instance.ActivityRun.Completed || ActivityEvaluation.Instance.Version != lastEvalautionVersion))
                     {
                         lastEvalautionVersion = ActivityEvaluation.Instance.Version;
                         tabControl.UpdateTabLayout(tabControl.CurrentTab);

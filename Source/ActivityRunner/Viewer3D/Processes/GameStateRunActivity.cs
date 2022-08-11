@@ -381,22 +381,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //Debrief Eval
             if (Viewer.Settings.ActivityEvalulation)
             {
-                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval"))
+                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval.save"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
                 using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.dbfeval.save", FileMode.Create, FileAccess.Write)))
                 {
                     ActivityEvaluation.Save(outf);
-                }
-
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.dbfeval", FileMode.Create, FileAccess.Write)))
-                {
-                    // Save debrief eval values.
-                    outf.Write(ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
-                    for (int i = 0; i < ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count; i++)
-                    {
-                        outf.Write(ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding[i]);
-                    }
                 }
             }
         }
@@ -465,22 +455,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             settings.ActivityEvalulation = false;
                         }
 
-                    }
-                    dbfevalfile = saveFile.Replace(".save", ".dbfeval", StringComparison.OrdinalIgnoreCase);
-                    if (settings.ActivityEvalulation && File.Exists(dbfevalfile))
-                    {
-                        using (BinaryReader infDbfEval = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
-                        {
-                            int nDepartBeforeBoarding = infDbfEval.ReadInt32();
-                            for (int i = 0; i < nDepartBeforeBoarding; i++)
-                            {
-                                ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Add(infDbfEval.ReadString());
-                            }
-                        }
-                    }
-                    else if (settings.ActivityEvalulation && !File.Exists(dbfevalfile))
-                    {   //Resume mode: .dbfeval file doesn't exist.
-                        settings.ActivityEvalulation = false;//avoid to generate a new report.
                     }
                 }
                 catch (Exception error)

@@ -557,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? ActivityEvaluation.Instance.TravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 
-                                DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
+                                DbfEvalValues.Add("Departure before passenger boarding completed", ActivityEvaluation.Instance.DepartBeforeBoarding);
                                 DbfEvalValues.Add("Distance travelled", ActivityEvaluation.Instance.DistanceTravelled);
                                 DbfEvalValues.Add("Emergency applications while moving", ActivityEvaluation.Instance.EmergencyButtonMoving);
                                 DbfEvalValues.Add("Emergency applications while stopped", ActivityEvaluation.Instance.EmergencyButtonStopped);
@@ -578,8 +578,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 }
                                 //TO DO: water consumption is not ready.
                                 //DbfEvalValues.Add("Water consumption", MSTSSteamLocomotive.DbfEvalCumulativeWaterConsumptionLbs);
-                                var train = Program.Viewer.PlayerLocomotive.Train;//Debrief Eval
-                                train.DbfEvalValueChanged = true;
 
                                 line = scrollbox.AddLayoutHorizontalLineOfText();
 
@@ -774,7 +772,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             double nstationmissed = 0;
                             double nstationdelayed = 0;
                             double nstationarrival = DbfEvalStationName.Count - dbfstationstopsremaining - nmissedstation;
-                            int ndepartbeforeboarding = ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count;
+                            int ndepartbeforeboarding = ActivityEvaluation.Instance.DepartBeforeBoarding;
                             var stationmissed = "";
 
                             if (DbfEvalStationName.Count > 0)
@@ -1253,13 +1251,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
             else if (!dragged && Tabs[ActiveTab].Tab == Tab.ActivityEvaluation && Owner.Viewer.Simulator.ActivityRun != null && !dbfevalActivityEnded)//Debrief Eval
             {
-
-                var train = Program.Viewer.PlayerLocomotive.Train;//Debrief Eval
-                if (train.DbfEvalValueChanged)//Debrief Eval
-                {
-                    train.DbfEvalValueChanged = false;//Debrief Eval
-                    Layout();
-                }
                 if (ActivityEvaluation.Instance.Version != lastVersion)
                 {
                     lastVersion = ActivityEvaluation.Instance.Version;

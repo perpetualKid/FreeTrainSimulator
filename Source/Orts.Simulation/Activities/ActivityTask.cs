@@ -88,9 +88,6 @@ namespace Orts.Simulation.Activities
         private Train playerTrain; // Shortcut to player train
 
         private bool debriefEvalDepartBeforeBoarding;//Debrief Eval
-#pragma warning disable CA1002 // Do not expose generic lists
-        public static List<string> DebriefEvalDepartBeforeBoarding { get; } = new List<string>();//Debrief Eval
-#pragma warning restore CA1002 // Do not expose generic lists
 
         public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, int arrivalTime, int departureTime, PlatformItem platformStart, PlatformItem platformeEnd)
         {
@@ -277,8 +274,7 @@ namespace Orts.Simulation.Activities
                             {
                                 Train train = simulator.PlayerLocomotive.Train;
                                 debriefEvalDepartBeforeBoarding = true;
-                                DebriefEvalDepartBeforeBoarding.Add(PlatformEnd1.Station);
-                                train.DbfEvalValueChanged = true;
+                                ActivityEvaluation.Instance.DepartBeforeBoarding++;
                             }
                         }
                         // May depart

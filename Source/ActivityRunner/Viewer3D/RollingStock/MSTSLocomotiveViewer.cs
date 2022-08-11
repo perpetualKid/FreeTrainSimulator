@@ -61,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public ThreeDimentionCabViewer CabViewer3D { get; private set; }
         public CabRenderer CabRenderer3D { get; internal set; } //allow user to have different setting of .cvf file under CABVIEW3D
 
-        private bool lemergencybuttonpressed;
+        private bool emergencyButtonPressed;
 
         public MSTSLocomotiveViewer(Viewer viewer, MSTSLocomotive car)
             : base(viewer, car)
@@ -141,18 +141,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             //Debrief eval
-            if (!lemergencybuttonpressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
+            if (!emergencyButtonPressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
             {
-                var train = Program.Viewer.PlayerLocomotive.Train;
                 if (Math.Abs(Locomotive.SpeedMpS) == 0)
                     ActivityEvaluation.Instance.EmergencyButtonStopped++;
                 else
                     ActivityEvaluation.Instance.EmergencyButtonMoving++;
-                lemergencybuttonpressed = true;
+                emergencyButtonPressed = true;
             }
-            //Debrief eval
-            if (lemergencybuttonpressed && !Locomotive.EmergencyButtonPressed)
-                lemergencybuttonpressed = false;
+            if (emergencyButtonPressed && !Locomotive.EmergencyButtonPressed)
+                emergencyButtonPressed = false;
         }
 
         public override void RegisterUserCommandHandling()
