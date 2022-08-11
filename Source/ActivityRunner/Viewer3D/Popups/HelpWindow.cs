@@ -85,10 +85,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var scrollbox = cl.AddLayoutScrollboxVertical(cl.RemainingWidth);
                 var keyWidth = scrollbox.RemainingWidth / KeyboardMap.MapWidth;
                 var keyHeight = 3 * keyWidth;
-                KeyboardMap.DrawKeyboardMap((rowBox) =>
-                {
-                }, 
-                (keyBox, keyScanCode, keyName) =>
+                KeyboardMap.DrawKeyboardMap((keyBox, keyScanCode, keyName) =>
                 {
                     var color = KeyboardMap.GetScanCodeColor(KeyboardMap.GetScanCodeCommands(keyScanCode, Owner.Viewer.Settings.Input.UserCommands));
                     if (color == Color.Transparent)
@@ -533,7 +530,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             line.AddHorizontalSeparator();
                         }
                         //-------------------------------------------------------------
-                        if (!owner.Viewer.Settings.DebriefActivityEval)
+                        if (!owner.Viewer.Settings.ActivityEvalulation)
                         {
                             line = scrollbox.AddLayoutHorizontalLineOfText();
                             line.Add(indicator = new Label(colWidth * 14, line.RemainingHeight, Viewer.Catalog.GetString("  The Debrief evaluation report is disabled.")));
@@ -602,7 +599,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         }
 
                         //Report when DebriefActivityEval and Activity is completed or finished or successful.
-                        if (owner.Viewer.Settings.DebriefActivityEval && (dbfevaliscompleted | dbfevalisfinished | dbfevalissuccessful))
+                        if (owner.Viewer.Settings.ActivityEvalulation && (dbfevaliscompleted | dbfevalisfinished | dbfevalissuccessful))
                         {
                             line = scrollbox.AddLayoutHorizontalLineOfText();
                             actualStatusVisible = false;//Enable scroll

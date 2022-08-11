@@ -70,6 +70,11 @@ namespace Orts.Graphics.Window.Controls.Layout
             Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
+        public ControlLayoutPanel AddLayoutPanel(int width, int height)
+        {
+            return InternalAdd(new ControlLayoutPanel(Window, width, height));
+        }
+
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)
         {
             return InternalAdd(new ControlLayoutOffset(Window, RemainingWidth, RemainingHeight, left, top, right, bottom));

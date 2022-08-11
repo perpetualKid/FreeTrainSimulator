@@ -379,7 +379,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             //Debrief Eval
-            if (Viewer.Settings.DebriefActivityEval)
+            if (Viewer.Settings.ActivityEvalulation)
             {
                 foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
@@ -455,7 +455,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                     //Restore Debrief eval data
                     string dbfevalfile = saveFile.Replace(".save", ".dbfeval", StringComparison.OrdinalIgnoreCase);
-                    if (settings.DebriefActivityEval && File.Exists(dbfevalfile))
+                    if (settings.ActivityEvalulation && File.Exists(dbfevalfile))
                     {
                         using (BinaryReader infDbfEval = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
                         {
@@ -481,9 +481,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Popups.HelpWindow.DbfEvalDistanceTravelled = infDbfEval.ReadSingle();
                         }
                     }
-                    else if (settings.DebriefActivityEval && !File.Exists(dbfevalfile))
+                    else if (settings.ActivityEvalulation && !File.Exists(dbfevalfile))
                     {   //Resume mode: .dbfeval file doesn't exist.
-                        settings.DebriefActivityEval = false;//avoid to generate a new report.
+                        settings.ActivityEvalulation = false;//avoid to generate a new report.
                     }
                 }
                 catch (Exception error)

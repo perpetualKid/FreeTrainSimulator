@@ -684,7 +684,7 @@ namespace Orts.Menu
         {
             checkBoxWarnings.Checked = settings.Logging;
             //Debrief activity evaluation
-            checkDebriefActivityEval.Checked = settings.DebriefActivityEval;
+            checkDebriefActivityEval.Checked = settings.ActivityEvalulation;
             //TO DO: Debrief TTactivity evaluation
             //checkDebriefTTActivityEval.Checked = Settings.DebriefTTActivityEval;
 
@@ -697,7 +697,7 @@ namespace Orts.Menu
             settings.Logging = checkBoxWarnings.Checked;
             settings.Multiplayer_User = textBoxMPUser.Text;
             //Debrief activity evaluation
-            settings.DebriefActivityEval = checkDebriefActivityEval.Checked;
+            settings.ActivityEvalulation = checkDebriefActivityEval.Checked;
             //TO DO: Debrief TTactivity evaluation
             //Settings.DebriefTTActivityEval = checkDebriefTTActivityEval.Checked;
 

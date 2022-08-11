@@ -117,6 +117,17 @@ namespace Orts.Graphics.MapView.Shapes
         }
 
         /// <summary>
+        /// Draw one of the (predefined) textures at the given location with the given angle
+        /// </summary>
+        /// <param name="texture">name by which the texture is internally known</param>
+        /// <param name="targetRectangle">area where the texture is drawn</param>
+        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
+        public static void DrawTexture(BasicTextureType texture, Rectangle targetRectangle, Color color, SpriteBatch spriteBatch = null)
+        {
+            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], targetRectangle, color);
+        }
+
+        /// <summary>
         /// Basic method to draw a line. Coordinates are in screen coordinates.
         /// </summary>
         /// <param name="width">Width of the line to draw </param>

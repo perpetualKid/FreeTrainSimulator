@@ -81,9 +81,7 @@ namespace Orts.Settings
         [Default(false)]
         public bool LogErrorsOnly { get; set; }
         [Default(false)]
-        public bool DebriefActivityEval { get; set; }
-        [Default(false)]
-        public bool DebriefTTActivityEval { get; set; }
+        public bool ActivityEvalulation { get; set; }
         [Default("")]
         public string Multiplayer_User { get; set; }
         [Default("127.0.0.1")]

@@ -222,7 +222,7 @@ namespace Orts.Menu
             if (null != save)
             {
                 //Debrief Eval
-                if (save.DebriefEvaluation && !settings.DebriefActivityEval)
+                if (save.DebriefEvaluation && !settings.ActivityEvalulation)
                 {
                     if (!AcceptOfNonvalidDbfSetup())
                         return;

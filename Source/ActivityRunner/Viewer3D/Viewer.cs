@@ -500,6 +500,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint());
                 return quitWindow;
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.HelpWindow helpWindow = new PopupWindows.HelpWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint(), this, Settings);
+                return helpWindow;
+            }));
             windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
                 PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, "", Point.Zero, Point.Zero);
@@ -628,7 +633,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
                     HelpWindow.TabAction();
                 else
+                {
                     HelpWindow.Visible = !HelpWindow.Visible;
+                    windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
+                }
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrackMonitorWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

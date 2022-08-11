@@ -13,7 +13,14 @@ namespace Orts.Graphics.Window.Controls.Layout
             base(window, offset, offset, width - offset * 2, height - offset * 2)
         {
         }
+    }
 
+    public class ControlLayoutPanel : ControlLayout
+    {
+        internal ControlLayoutPanel(WindowBase window, int width, int height) :
+            base(window, 0, 0, width, height)
+        {
+        }
     }
 
     public class ControlLayoutHorizontal : ControlLayout

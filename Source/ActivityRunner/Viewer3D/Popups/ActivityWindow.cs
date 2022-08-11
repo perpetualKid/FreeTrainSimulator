@@ -163,7 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         if (Activity.Completed)
                         {
-                            if (Owner.Viewer.Settings.DebriefActivityEval && !Owner.Viewer.HelpWindow.Visible)
+                            if (Owner.Viewer.Settings.ActivityEvalulation && !Owner.Viewer.HelpWindow.Visible)
                             {//Show evaluation info.
                                 Owner.Viewer.HelpWindow.Visible = false;
                                 //TO DO: Change next lines to one line. 
