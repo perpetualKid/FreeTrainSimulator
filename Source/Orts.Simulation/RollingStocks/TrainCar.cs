@@ -47,6 +47,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -112,13 +113,9 @@ namespace Orts.Simulation.RollingStocks
         public string OrgiginalConsist { get; internal set; } = string.Empty;
         #endregion
 
-        public static int DbfEvalTravellingTooFast;//Debrief eval
-        public static int DbfEvalTravellingTooFastSnappedBrakeHose;//Debrief eval
-        public bool dbfEvalsnappedbrakehose;//Debrief eval
-        public bool ldbfevalcurvespeed;//Debrief eval
+        private bool dbfEvalsnappedbrakehose;//Debrief eval
         private static float dbfmaxsafecurvespeedmps;//Debrief eval
-        public static int DbfEvalTrainOverturned;//Debrief eval
-        public bool ldbfevaltrainoverturned;
+        private bool ldbfevaltrainoverturned;
 
         // sound related variables
         public bool IsPartOfActiveTrain { get; internal set; } = true;
@@ -1358,7 +1355,6 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateCurveSpeedLimit()
         {
             float s = AbsSpeedMpS; // speed of train
-            Train train = simulator.PlayerLocomotive.Train;//Debrief Eval
 
             // get curve radius
 
@@ -1497,9 +1493,7 @@ namespace Orts.Simulation.RollingStocks
                                 if (dbfmaxsafecurvespeedmps != MaxSafeCurveSpeedMps)//Debrief eval
                                 {
                                     dbfmaxsafecurvespeedmps = MaxSafeCurveSpeedMps;
-                                    //ldbfevalcurvespeed = true;
-                                    DbfEvalTravellingTooFast++;
-                                    train.DbfEvalValueChanged = true;//Debrief eval
+                                    ActivityEvaluation.Instance.TravellingTooFast++;
                                 }
                             }
 
@@ -1532,8 +1526,7 @@ namespace Orts.Simulation.RollingStocks
                                 if (!ldbfevaltrainoverturned)
                                 {
                                     ldbfevaltrainoverturned = true;
-                                    DbfEvalTrainOverturned++;
-                                    train.DbfEvalValueChanged = true;//Debrief eval
+                                    ActivityEvaluation.Instance.TrainOverTurned++;
                                 }
                             }
                         }
@@ -1548,9 +1541,8 @@ namespace Orts.Simulation.RollingStocks
 
                             if (dbfEvalsnappedbrakehose)
                             {
-                                DbfEvalTravellingTooFastSnappedBrakeHose++;//Debrief eval
+                                ActivityEvaluation.Instance.SnappedBrakeHose++;
                                 dbfEvalsnappedbrakehose = false;
-                                train.DbfEvalValueChanged = true;//Debrief eval
                             }
 
                         }

@@ -49,7 +49,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private ActivityTask lastActivityTask;
         private bool stoppedAt;
-        public int lastLastEventID = -1;
+        private int lastEvalautionVersion = -1;
+        private int lastLastEventID = -1;
 
         public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings) :
             base(owner, "Help", relativeLocation, new Point(560, 380))
@@ -327,8 +328,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             }
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation && Simulator.Instance.ActivityRun.Completed)
+                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation && Simulator.Instance.ActivityRun.Completed || ActivityEvaluation.Instance.Version != lastEvalautionVersion)
                     {
+                        lastEvalautionVersion = ActivityEvaluation.Instance.Version;
                         tabControl.UpdateTabLayout(tabControl.CurrentTab);
                     }
                 }

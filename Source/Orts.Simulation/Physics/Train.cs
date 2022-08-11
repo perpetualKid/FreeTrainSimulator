@@ -197,7 +197,6 @@ namespace Orts.Simulation.Physics
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
-        public int NumOfCouplerBreaks { get; set; }//Debrief Eval 
         public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
         public TrainType TrainType { get; internal set; } = TrainType.Player;
@@ -1836,10 +1835,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (!numOfCouplerBreaksNoted)
                     {
-                        NumOfCouplerBreaks++;
-                        DbfEvalValueChanged = true;//Debrief eval
-
-                        Trace.WriteLine($"Num of coupler breaks: {NumOfCouplerBreaks}");
+                        ActivityEvaluation.Instance.CouplerBreaks++;
                         numOfCouplerBreaksNoted = true;
 
                         if (simulator.Settings.BreakCouplers)

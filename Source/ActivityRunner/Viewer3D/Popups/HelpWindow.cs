@@ -551,12 +551,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             DbfEvalValues.Clear();
                             if (actualStatusVisible)
                             {
-                                DbfEvalValues.Add("Train Overturned", TrainCar.DbfEvalTrainOverturned);
+                                DbfEvalValues.Add("Train Overturned", ActivityEvaluation.Instance.TrainOverTurned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
-                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", owner.Viewer.PlayerTrain.NumOfCouplerBreaks);
+                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", ActivityEvaluation.Instance.CouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", Simulator.Instance.DebriefEvalOverSpeedCoupling);
-                                DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
+                                DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? ActivityEvaluation.Instance.TravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 
                                 DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
@@ -564,7 +564,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Emergency applications while moving", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                                 DbfEvalValues.Add("Emergency applications while stopped", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
                                 DbfEvalValues.Add("Full Train Brake applications under 5MPH/8KMH", MSTSLocomotive.DbfEvalFullTrainBrakeUnder8kmh);
-                                if (lcurvespeeddependent) DbfEvalValues.Add("Hose breaks", TrainCar.DbfEvalTravellingTooFastSnappedBrakeHose);
+                                if (lcurvespeeddependent) DbfEvalValues.Add("Hose breaks", ActivityEvaluation.Instance.SnappedBrakeHose);
 
                                 DbfEvalValues.Add("Over Speed", TrackMonitor.DbfEvalOverSpeed);
                                 DbfEvalValues.Add("Over Speed (Time)", TrackMonitor.DbfEvalOverSpeedTimeS);
@@ -908,25 +908,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             //Durability                            
                             //Curve speeds exceeded. -3. dbfEvalTravellingTooFast
-                            int ncurvespeedexceeded = TrainCar.DbfEvalTravellingTooFast;
+                            int ncurvespeedexceeded = ActivityEvaluation.Instance.TravellingTooFast;
                             labeltext = lcurvespeeddependent ? "  Curve speeds exceeded=" + ncurvespeedexceeded : "  Curve dependent speed limit (Disabled)";
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncurvespeedexceeded = 3 * ncurvespeedexceeded;
 
                             //Hose Breaks.  -7. dbfEvalTravellingTooFastBrakeHose
-                            int nhosebreaks = TrainCar.DbfEvalTravellingTooFastSnappedBrakeHose;
+                            int nhosebreaks = ActivityEvaluation.Instance.SnappedBrakeHose;
                             labeltext = lcurvespeeddependent ? "  Hose breaks=" + nhosebreaks : "  Curve dependent speed limit (Disabled)";
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             nhosebreaks = 7 * nhosebreaks;
 
                             //Coupler Breaks. -10.
-                            int ncouplerbreaks = owner.Viewer.PlayerTrain.NumOfCouplerBreaks;
+                            int ncouplerbreaks = ActivityEvaluation.Instance.CouplerBreaks;
                             labeltext = (lbreakcouplers ? "  Coupler breaks=" : "  Coupler overloaded=") + ncouplerbreaks;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncouplerbreaks = 10 * ncouplerbreaks;
 
                             //Train Overturned. -20.
-                            int ntrainoverturned = TrainCar.DbfEvalTrainOverturned;
+                            int ntrainoverturned = ActivityEvaluation.Instance.TrainOverTurned;
                             labeltext = "  Train Overturned=" + ntrainoverturned;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ntrainoverturned = 20 * ntrainoverturned;
@@ -1228,7 +1228,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private ActivityTask LastActivityTask;
         private bool StoppedAt;
-        
+        private int lastVersion = -1;
+
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
 
@@ -1262,6 +1263,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (train.DbfEvalValueChanged)//Debrief Eval
                 {
                     train.DbfEvalValueChanged = false;//Debrief Eval
+                    Layout();
+                }
+                if (ActivityEvaluation.Instance.Version != lastVersion)
+                {
+                    lastVersion = ActivityEvaluation.Instance.Version;
                     Layout();
                 }
             }
