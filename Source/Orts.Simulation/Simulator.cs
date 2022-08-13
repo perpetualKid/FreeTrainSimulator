@@ -538,6 +538,108 @@ namespace Orts.Simulation
             return PlayerLocomotive;
         }
 
+        public void SetCommandReceivers()
+        {
+            ReverserCommand.Receiver = PlayerLocomotive;
+            NotchedThrottleCommand.Receiver = PlayerLocomotive;
+            ContinuousThrottleCommand.Receiver = PlayerLocomotive;
+            TrainBrakeCommand.Receiver = PlayerLocomotive;
+            EngineBrakeCommand.Receiver = PlayerLocomotive;
+            BrakemanBrakeCommand.Receiver = PlayerLocomotive;
+            DynamicBrakeCommand.Receiver = PlayerLocomotive;
+            InitializeBrakesCommand.Receiver = PlayerLocomotive.Train;
+            ResetOutOfControlModeCommand.Receiver = PlayerLocomotive.Train;
+            EmergencyPushButtonCommand.Receiver = PlayerLocomotive;
+            HandbrakeCommand.Receiver = PlayerLocomotive;
+            BailOffCommand.Receiver = PlayerLocomotive;
+            QuickReleaseCommand.Receiver = PlayerLocomotive;
+            BrakeOverchargeCommand.Receiver = PlayerLocomotive;
+            RetainersCommand.Receiver = PlayerLocomotive;
+            BrakeHoseConnectCommand.Receiver = PlayerLocomotive;
+            ToggleWaterScoopCommand.Receiver = PlayerLocomotive;
+            if (PlayerLocomotive is MSTSSteamLocomotive steamLocomotive)
+            {
+                ContinuousReverserCommand.Receiver = steamLocomotive;
+                ContinuousInjectorCommand.Receiver = steamLocomotive;
+                ContinuousSmallEjectorCommand.Receiver = steamLocomotive;
+                ContinuousLargeEjectorCommand.Receiver = steamLocomotive;
+                ToggleInjectorCommand.Receiver = steamLocomotive;
+                ToggleBlowdownValveCommand.Receiver = steamLocomotive;
+                ContinuousBlowerCommand.Receiver = steamLocomotive;
+                ContinuousDamperCommand.Receiver = steamLocomotive;
+                ContinuousFiringRateCommand.Receiver = steamLocomotive;
+                ToggleManualFiringCommand.Receiver = steamLocomotive;
+                ToggleCylinderCocksCommand.Receiver = steamLocomotive;
+                ToggleCylinderCompoundCommand.Receiver = steamLocomotive;
+                FireShovelfullCommand.Receiver = steamLocomotive;
+                AIFireOnCommand.Receiver = steamLocomotive;
+                AIFireOffCommand.Receiver = steamLocomotive;
+                AIFireResetCommand.Receiver = steamLocomotive;
+            }
+
+            PantographCommand.Receiver = PlayerLocomotive;
+            if (PlayerLocomotive is MSTSElectricLocomotive electricLocomotive)
+            {
+                CircuitBreakerClosingOrderCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerClosingOrderButtonCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerOpeningOrderButtonCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerClosingAuthorizationCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+            }
+
+            if (PlayerLocomotive is MSTSDieselLocomotive dieselLocomotive)
+            {
+                TractionCutOffRelayClosingOrderCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayClosingOrderButtonCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayOpeningOrderButtonCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayClosingAuthorizationCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TogglePlayerEngineCommand.Receiver = dieselLocomotive;
+                VacuumExhausterCommand.Receiver = dieselLocomotive;
+            }
+
+            ResetOdometerCommand.Receiver = PlayerLocomotive;
+            ToggleOdometerDirectionCommand.Receiver = PlayerLocomotive;
+            SanderCommand.Receiver = PlayerLocomotive;
+            AlerterCommand.Receiver = PlayerLocomotive;
+            HornCommand.Receiver = PlayerLocomotive;
+            BellCommand.Receiver = PlayerLocomotive;
+            ToggleCabLightCommand.Receiver = PlayerLocomotive;
+            WipersCommand.Receiver = PlayerLocomotive;
+            HeadlightCommand.Receiver = PlayerLocomotive;
+            ToggleDoorsLeftCommand.Receiver = PlayerLocomotive;
+            ToggleDoorsRightCommand.Receiver = PlayerLocomotive;
+            ToggleMirrorsCommand.Receiver = PlayerLocomotive;
+            CabRadioCommand.Receiver = PlayerLocomotive;
+            ToggleHelpersEngineCommand.Receiver = PlayerLocomotive;
+            BatterySwitchCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            BatterySwitchCloseButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            BatterySwitchOpenButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ToggleMasterKeyCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ServiceRetentionButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ServiceRetentionCancellationButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ElectricTrainSupplyCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            TCSButtonCommand.Receiver = PlayerLocomotive.TrainControlSystem;
+            TCSSwitchCommand.Receiver = PlayerLocomotive.TrainControlSystem;
+            ToggleGenericItem1Command.Receiver = PlayerLocomotive;
+            ToggleGenericItem2Command.Receiver = PlayerLocomotive;
+
+            //Distributed power
+            DistributedPowerMoveToFrontCommand.Receiver = PlayerLocomotive;
+            DistributedPowerMoveToBackCommand.Receiver = PlayerLocomotive;
+            DistributedPowerTractionCommand.Receiver = PlayerLocomotive;
+            DistributedPowerIdleCommand.Receiver = PlayerLocomotive;
+            DistributedPowerDynamicBrakeCommand.Receiver = PlayerLocomotive;
+            DistributedPowerIncreaseCommand.Receiver = PlayerLocomotive;
+            DistributedPowerDecreaseCommand.Receiver = PlayerLocomotive;
+
+            //EOT
+            EOTCommTestCommand.Receiver = PlayerLocomotive;
+            EOTDisarmCommand.Receiver = PlayerLocomotive;
+            EOTArmTwoWayCommand.Receiver = PlayerLocomotive;
+            EOTEmergencyBrakeCommand.Receiver = PlayerLocomotive;
+            ToggleEOTEmergencyBrakeCommand.Receiver = PlayerLocomotive;
+            EOTMountCommand.Receiver = PlayerLocomotive;
+        }
+
         internal static MSTSLocomotive SetPlayerLocomotive(Train playerTrain)
         {
             MSTSLocomotive playerLocomotive = null;
