@@ -84,11 +84,10 @@ namespace Orts.DataConverter
 
         private static void ShowHelp(List<IDataConverter> converters)
         {
-            var version = FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location);
-            Console.WriteLine("{0} {1}", version.FileDescription, VersionInfo.FullVersion);
+            Console.WriteLine("{0} {1}", RuntimeInfo.ApplicationFile, VersionInfo.FullVersion);
             Console.WriteLine();
             Console.WriteLine("Usage:");
-            Console.WriteLine("  {0} /input <INPUT> [/output] [<OUTPUT> [...]]", Path.GetFileNameWithoutExtension(version.FileName));
+            Console.WriteLine("  {0} /input <INPUT> [/output] [<OUTPUT> [...]]", Path.GetFileNameWithoutExtension(RuntimeInfo.ApplicationFile));
             Console.WriteLine();
             Console.WriteLine("Arguments:");
             Console.WriteLine("  <INPUT>   Specifies the file to read");
