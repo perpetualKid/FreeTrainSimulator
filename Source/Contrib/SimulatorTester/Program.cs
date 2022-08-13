@@ -17,18 +17,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
+
+using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Position;
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
-using System.Threading;
-using Orts.Common.Calc;
-using Orts.Common;
 
+[assembly: CLSCompliant(false)]
 namespace Orts.SimulatorTester
 {
     internal class Program
@@ -43,23 +44,22 @@ namespace Orts.SimulatorTester
 
             if (files.Count != 1 || options.Contains("help", StringComparer.InvariantCultureIgnoreCase))
             {
-                var version = FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-                Console.WriteLine("{0} {1}", version.FileDescription, VersionInfo.FullVersion);
+                Console.WriteLine("{0} {1}", RuntimeInfo.ApplicationName, VersionInfo.FullVersion);
                 Console.WriteLine();
                 Console.WriteLine("Usage:");
-                Console.WriteLine("  {0} [options] <SAVE_FILE>", Path.GetFileNameWithoutExtension(Application.ExecutablePath));
+                Console.WriteLine("  {0} [options] <SAVE_FILE>", Path.GetFileNameWithoutExtension(RuntimeInfo.ApplicationFile));
                 Console.WriteLine();
                 Console.WriteLine("Arguments:");
-                Console.WriteLine("  <SAVE_FILE>  {0} save file to use", Application.ProductName);
+                Console.WriteLine("  <SAVE_FILE>  {0} save file to use", RuntimeInfo.ProductName);
                 Console.WriteLine();
                 Console.WriteLine("Options:");
                 Console.WriteLine("  /quiet       Do not show summary of simulation (only exit code is set)");
-                Console.WriteLine("  /verbose     Show version and settings (similar to a {0} log)", Application.ProductName);
+                Console.WriteLine("  /verbose     Show version and settings (similar to a {0} log)", RuntimeInfo.ProductName);
                 Console.WriteLine("  /fps <FPS>   Set the simulation frame-rate [default: 10]");
                 Console.WriteLine("  /help        Show help and usage information");
-                Console.WriteLine("  ...and any standard {0} option", Application.ProductName);
+                Console.WriteLine("  ...and any standard {0} option", RuntimeInfo.ProductName);
                 Console.WriteLine();
-                Console.WriteLine("The {0} takes a save file and:", version.FileDescription);
+                Console.WriteLine("The {0} takes a save file and:", RuntimeInfo.ApplicationName);
                 Console.WriteLine("  - Loads the same activity as contained in the save file");
                 Console.WriteLine("  - Runs the simulation at the specified FPS for the same duration as the save file");
                 Console.WriteLine("  - Compares the final position with that contained in the save file");
