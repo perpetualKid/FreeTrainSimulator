@@ -78,7 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
         private readonly Stack<GameState> gameStates;
-        private ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
+        private readonly ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
@@ -137,7 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (State == null)
                 Exit();
             else
-                RenderProcess.Update(gameTime);
+                RenderProcess.Update(gameTime ?? throw new ArgumentNullException(nameof(gameTime)));
             base.Update(gameTime);
         }
 

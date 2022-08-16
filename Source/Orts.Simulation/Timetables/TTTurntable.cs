@@ -1125,7 +1125,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgiginalConsist = train.ForcedConsistName;
+                        car.OriginalConsist = train.ForcedConsistName;
                     }
                 }
 

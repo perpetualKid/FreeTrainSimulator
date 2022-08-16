@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -40,6 +42,16 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             TimetableBriefing,
             [Description("Procedures")]
             LocomotiveProcedures,
+        }
+
+        private enum EvaluationTabSettings
+        {
+            [Description("Overview")]
+            Overview,
+            [Description("Details")]
+            Details,
+            [Description("Report")]
+            Report,
         }
 
         private TabControl<TabSettings> tabControl;
@@ -278,9 +290,84 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 };
                 #endregion
                 #region Activity Evaluation
-                if (settings.ActivityEvalulation)
+                if (settings.ActivityEvalulation && Simulator.Instance.ActivityRun != null)
                 {
+                    tabControl.TabLayouts[TabSettings.ActivityEvaluation] = (layoutContainer) =>
+                    {
+                        TabControl<EvaluationTabSettings> evaluationTab = new TabControl<EvaluationTabSettings>(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, true);
+                        evaluationTab.TabLayouts[EvaluationTabSettings.Overview] = (evaluationLayoutContainer) =>
+                        {
+                            evaluationLayoutContainer = evaluationLayoutContainer.AddLayoutScrollboxVertical(evaluationLayoutContainer.RemainingWidth);
+                            int columnWidth = evaluationLayoutContainer.RemainingWidth / 3;
+                            AddEvaluationLine(evaluationLayoutContainer, "Activity:", Simulator.Instance.ActivityFile.Activity.Header.Name);
+                            AddEvaluationLine(evaluationLayoutContainer, "Start Time:", Simulator.Instance.ActivityFile.Activity.Header.StartTime.ToString());
+                            AddEvaluationLine(evaluationLayoutContainer, "Estimated Duration:", Simulator.Instance.ActivityFile.Activity.Header.Duration.ToString());
+                            evaluationLayoutContainer.AddHorizontalSeparator();
+                            AddEvaluationLine(evaluationLayoutContainer, "Timetable:", null);
+                            int stationStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "● Station Stops:", $"{stationStops}");
+                            int remainingStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "● Remaining Stops:", $"{remainingStops}");
+                            TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
+                            AddEvaluationLine(evaluationLayoutContainer, "● Current Delay:", $"{delay}", delay.TotalSeconds switch
+                            {
+                                > 120 => Color.OrangeRed,
+                                > 60 => Color.LightSalmon,
+                                0 => Color.White,
+                                < 0 => Color.LightSalmon,
+                                _ => Color.LightGreen,
+                            });
+                            int missedStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "● Missed Stops:", $"{missedStops}", missedStops > 0 ? Color.LightSalmon : Color.White);
+                            foreach (ActivityTaskPassengerStopAt item in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null))
+                            {
+                                ControlLayout line = evaluationLayoutContainer.AddLayoutHorizontalLineOfText();
+                                line.Add(new Label(this, columnWidth, line.RemainingHeight, $"\t{item.PlatformEnd1.ItemName}") { TextColor = Color.LightSalmon });
+                            }
+                            evaluationLayoutContainer.AddHorizontalSeparator();
+                            AddEvaluationLine(evaluationLayoutContainer, "Work orders:", null);
 
+                            int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                            Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "● Tasks:", $"{taskCount}");
+                            int taskDone = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                            Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "● Accomplished:", $"{taskDone}");
+                            AddEvaluationLine(evaluationLayoutContainer, "● Coupling speed exceeded:", $"{ActivityEvaluation.Instance.OverSpeedCoupling}");
+                        };
+                        evaluationTab.TabLayouts[EvaluationTabSettings.Details] = (evaluationLayoutContainer) =>
+                        {
+                            AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Alerter applications above 10Mph/16kmh", $"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Auto pilot Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}");
+                            AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
+                            if (Simulator.Instance.Settings.CurveSpeedDependent)
+                                AddEvaluationLine(evaluationLayoutContainer, "Curve speeds exceeded", $"= {ActivityEvaluation.Instance.TravellingTooFast}");
+                            if (Simulator.Instance.PlayerLocomotive.Train.Delay.HasValue)
+                                AddEvaluationLine(evaluationLayoutContainer, "Current delay in Activity", $"= {Simulator.Instance.PlayerLocomotive.Train.Delay}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Departure before boarding completed", $"= {ActivityEvaluation.Instance.DepartBeforeBoarding}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Distance travelled", $"= {FormatStrings.FormatDistanceDisplay(ActivityEvaluation.Instance.DistanceTravelled, Simulator.Instance.MetricUnits)}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while moving", $"= {ActivityEvaluation.Instance.EmergencyButtonMoving}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while stopped", $"= {ActivityEvaluation.Instance.EmergencyButtonStopped}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Full Train Brake applications under 5MPH/8KMH", $"= {ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh}");
+                            if (Simulator.Instance.Settings.CurveSpeedDependent)
+                                AddEvaluationLine(evaluationLayoutContainer, "Hose breaks", $"= {ActivityEvaluation.Instance.SnappedBrakeHose}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Over Speed", $"= {ActivityEvaluation.Instance.OverSpeed}");
+                            AddEvaluationLine(evaluationLayoutContainer, "Over Speed Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}");
+
+                            //if (DbfEvalStationName.Count > 0)
+                            //{
+                            //    DbfEvalValues.Add("Station stops missed", nmissedstation);
+                            //    DbfEvalValues.Add("Station stops remaining", dbfstationstopsremaining);
+                            //}
+                            //if (DbfEvalTaskName.Count > 0)
+                            //{
+                            //    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task", "Tasks", DbfEvalTaskName.Count)), DbfEvalTaskName.Count);
+                            //    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task accomplished", "Tasks accomplished", ndbfEvalTaskAccomplished)), ndbfEvalTaskAccomplished);
+                            //}
+                        };
+                        layoutContainer.Add(evaluationTab);
+                    };
                 }
                 #endregion
             }
@@ -307,7 +394,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 if (Simulator.Instance.ActivityRun != null)
                 {
-                    if (tabControl.CurrentTab == TabSettings.ActivityTimetable | tabControl.CurrentTab == TabSettings.ActivityEvaluation)
+                    if (tabControl.CurrentTab == TabSettings.ActivityTimetable)
                     {
                         if (lastActivityTask != Simulator.Instance.ActivityRun.ActivityTask || stoppedAt != (lastActivityTask is ActivityTaskPassengerStopAt preTest && preTest.ActualArrival != null))
                         {
@@ -316,7 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             tabControl.UpdateTabLayout(tabControl.CurrentTab);
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders || tabControl.CurrentTab == TabSettings.ActivityEvaluation)
+                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders)
                     {
                         if (Simulator.Instance.ActivityRun.EventList != null)
                         {
@@ -328,7 +415,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             }
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation && 
+                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation &&
                         (Simulator.Instance.ActivityRun.Completed || ActivityEvaluation.Instance.Version != lastEvalautionVersion))
                     {
                         lastEvalautionVersion = ActivityEvaluation.Instance.Version;
@@ -357,6 +444,22 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 tabControl?.TabAction();
             }
+        }
+
+        private void AddEvaluationLine(ControlLayout container, string text, string value)
+        {
+            ControlLayout line = container.AddLayoutHorizontalLineOfText();
+            line.Add(new Label(this, container.RemainingWidth / 3 * 2, line.RemainingHeight, text));
+            if (!string.IsNullOrEmpty(value))
+                line.Add(new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value));
+        }
+
+        private void AddEvaluationLine(ControlLayout container, string text, string value, Color textColor)
+        {
+            ControlLayout line = container.AddLayoutHorizontalLineOfText();
+            line.Add(new Label(this, container.RemainingWidth / 3 * 2, line.RemainingHeight, text));
+            if (!string.IsNullOrEmpty(value))
+                line.Add(new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value) { TextColor = textColor });
         }
     }
 }

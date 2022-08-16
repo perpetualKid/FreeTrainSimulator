@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -34,7 +35,7 @@ namespace Orts.Settings
     {
         private static readonly string[] subSettings = new string[] { "FolderSettings", "Input", "RailDriver", "Dispatcher" };
 
-    public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
+        public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
@@ -63,7 +64,7 @@ namespace Orts.Settings
                 Location = EnumExtension.GetDescription(StoreType.Registry);
             }
 
-            UserDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.ProductName);
+            UserDataFolder = RuntimeInfo.UserDataFolder;
 
             Directory.CreateDirectory(UserDataFolder);
             DeletedSaveFolder = Path.Combine(UserDataFolder, "Deleted Saves");
@@ -80,6 +81,8 @@ namespace Orts.Settings
         public bool Logging { get; set; }
         [Default(false)]
         public bool LogErrorsOnly { get; set; }
+        [Default(false)]
+        public bool LogSaveData { get; set; }
         [Default(false)]
         public bool ActivityEvalulation { get; set; }
         [Default("")]

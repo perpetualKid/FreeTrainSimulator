@@ -1758,12 +1758,12 @@ namespace Orts.Simulation.RollingStocks
                     WeightLoadController.Restore(inf);
                 }
             }
-            currentSteamHeatBoilerFuelCapacityL = inf.ReadSingle();
-            CarInsideTempC = inf.ReadSingle();
-            currentCarSteamHeatBoilerWaterCapacityL = inf.ReadSingle();
+            currentSteamHeatBoilerFuelCapacityL = inf.ReadDouble();
+            CarInsideTempC = inf.ReadDouble();
+            currentCarSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
 
             WheelBrakeSlideProtectionActive = inf.ReadBoolean();
-            WheelBrakeSlideProtectionTimerS = inf.ReadInt32();
+            WheelBrakeSlideProtectionTimerS = inf.ReadSingle();
             angleOfAttack = inf.ReadSingle();
             derailClimbDistance = inf.ReadSingle();
             DerailPossible = inf.ReadBoolean();

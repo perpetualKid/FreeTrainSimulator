@@ -99,7 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
         public PauseWindow PauseWindow { get; private set; } // Game paused window (special)
         public ActivityWindow ActivityWindow { get; private set; } // Activity notices window
-        public HelpWindow HelpWindow { get; private set; } // F1 window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
@@ -468,7 +467,6 @@ namespace Orts.ActivityRunner.Viewer3D
             NoticeWindow = new NoticeWindow(WindowManager);
             PauseWindow = new PauseWindow(WindowManager);
             ActivityWindow = new ActivityWindow(WindowManager);
-            HelpWindow = new HelpWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
@@ -625,13 +623,7 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save);
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    HelpWindow.TabAction();
-                else
-                {
-                    HelpWindow.Visible = !HelpWindow.Visible;
-                    windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
-                }
+                windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrackMonitorWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

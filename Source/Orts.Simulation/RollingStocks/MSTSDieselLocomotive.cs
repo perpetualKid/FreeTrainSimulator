@@ -574,7 +574,7 @@ namespace Orts.Simulation.RollingStocks
         {
             base.Restore(inf);
             DieselLevelL = inf.ReadSingle();
-            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadSingle();
+            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
             DieselEngines.Restore(inf);
             ControllerFactory.Restore(GearBoxController, inf);
 

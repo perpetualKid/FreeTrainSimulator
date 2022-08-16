@@ -163,16 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         if (Activity.Completed)
                         {
-                            if (Owner.Viewer.Settings.ActivityEvalulation && !Owner.Viewer.HelpWindow.Visible)
-                            {//Show evaluation info.
-                                Owner.Viewer.HelpWindow.Visible = false;
-                                //TO DO: Change next lines to one line. 
-                                Owner.Viewer.HelpWindow.TabAction();
-                                Owner.Viewer.HelpWindow.TabAction();
-                                Owner.Viewer.HelpWindow.TabAction();
-                                Owner.Viewer.HelpWindow.TabAction();
-                            }
-                            Visible = Activity.IsActivityWindowOpen = Owner.Viewer.HelpWindow.ActivityUpdated = Owner.Viewer.Simulator.GamePaused = true;
+                            Visible = Activity.IsActivityWindowOpen = Owner.Viewer.Simulator.GamePaused = true;
                             ComposeMenu(e.ActivityEvent.Name, Viewer.Catalog.GetString("This activity has ended {0}.\nFor a detailed evaluation, see the Help Window (F1).",
                                 Activity.Succeeded ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("without success")));
                             EndMenu();
@@ -196,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                         ResumeMenu();
                                         PopupTime = DateTime.UtcNow;
                                     }
-                                    Visible = Owner.Viewer.HelpWindow.ActivityUpdated = true;
+                                    Visible = true;
                                 }
                                 else
                                 {
@@ -211,7 +202,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             else NoPauseMenu();
                                         }
                                         PopupTime = DateTime.UtcNow;
-                                        Visible = Owner.Viewer.HelpWindow.ActivityUpdated = true;
+                                        Visible = true;
                                     }
                                 }                              
                             }

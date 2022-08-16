@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -123,26 +124,26 @@ namespace Orts.Graphics.Window.Controls.Layout
         internal override void Initialize()
         {
             base.Initialize();
-            foreach (WindowControl control in Controls)
-                control.Initialize();
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].Initialize();
         }
 
         internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            foreach (WindowControl control in Controls)
+            for (int i = 0; i < Controls.Count; i++)
             {
-                if (control.Visible)
-                    control.Update(gameTime, shouldUpdate);
+                if (Controls[i].Visible)
+                    Controls[i].Update(gameTime, shouldUpdate);
             }
             base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            foreach (WindowControl control in Controls)
+            for (int i = 0; i < Controls.Count; i++)
             {
-                if (control.Visible)
-                    control.Draw(spriteBatch, offset);
+                if (Controls[i].Visible)
+                    Controls[i].Draw(spriteBatch, offset);
             }
             base.Draw(spriteBatch, offset);
         }

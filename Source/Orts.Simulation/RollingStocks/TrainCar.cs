@@ -110,7 +110,7 @@ namespace Orts.Simulation.RollingStocks
         public string WagFilePath { get; }
         public string RealWagFilePath { get; internal set; } //we are substituting missing remote cars in MP, so need to remember this
         // original consist of which car was part (used in timetable for couple/uncouple options)
-        public string OrgiginalConsist { get; internal set; } = string.Empty;
+        public string OriginalConsist { get; internal set; } = string.Empty;
         #endregion
 
         private bool dbfEvalsnappedbrakehose;//Debrief eval
@@ -1786,7 +1786,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(SpeedMpS);
             outf.Write(CouplerSlackM);
             outf.Write(Headlight);
-            outf.Write(OrgiginalConsist);
+            outf.Write(OriginalConsist);
             outf.Write(PrevTiltingZRot);
             outf.Write(BrakesStuck);
             outf.Write(carHeatingInitialized);
@@ -1812,13 +1812,13 @@ namespace Orts.Simulation.RollingStocks
             prevSpeedMpS = SpeedMpS;
             CouplerSlackM = inf.ReadSingle();
             Headlight = inf.ReadInt32();
-            OrgiginalConsist = inf.ReadString();
+            OriginalConsist = inf.ReadString();
             PrevTiltingZRot = inf.ReadSingle();
             BrakesStuck = inf.ReadBoolean();
             carHeatingInitialized = inf.ReadBoolean();
-            steamHoseLeakRateRandom = inf.ReadSingle();
-            carHeatCurrentCompartmentHeatJ = inf.ReadSingle();
-            carSteamHeatMainPipeSteamPressurePSI = inf.ReadSingle();
+            steamHoseLeakRateRandom = inf.ReadDouble();
+            carHeatCurrentCompartmentHeatJ = inf.ReadDouble();
+            carSteamHeatMainPipeSteamPressurePSI = inf.ReadDouble();
             carHeatCompartmentHeaterOn = inf.ReadBoolean();
         }
 

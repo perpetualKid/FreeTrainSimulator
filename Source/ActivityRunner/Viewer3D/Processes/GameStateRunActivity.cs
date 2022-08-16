@@ -139,21 +139,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         internal override void Load()
         {
             // Load loading image first!
-            if (loading == null)
-                loading = new LoadingPrimitive(Game);
-            if (loadingBar == null)
-                loadingBar = new LoadingBarPrimitive(Game);
-            if (timetableLoadingBar == null)
-                timetableLoadingBar = new TimetableLoadingBarPrimitive(Game);
+            loading ??= new LoadingPrimitive(Game);
+            loadingBar ??= new LoadingBarPrimitive(Game);
+            timetableLoadingBar ??= new TimetableLoadingBarPrimitive(Game);
 
             // No action, check for data; for now assume any data is good data.
             if (actionType == ActionType.None && data.Any())
             {
                 // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
-                if (activityType != ActivityType.None || !options.Any())
-                    actionType = ActionType.Start;
-                else
-                    actionType = ActionType.Resume;
+                actionType = activityType != ActivityType.None || !options.Any() ? ActionType.Start : ActionType.Resume;
             }
 
 
@@ -322,13 +316,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
-            // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
-            // that are likely to match the previously chosen route and activity.
-            // Append the current date and time, so that each file is unique.
-            // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-            string fileStem = $"{(simulator.ActivityFile != null ? simulator.ActivityFileName : (!string.IsNullOrEmpty(simulator.TimetableFileName) ? $"{simulator.RouteFolder.RouteName} {simulator.TimetableFileName}" : simulator.RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : " ")}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
+            string fileStem = simulator.SaveFileName;
 
-            using (BinaryWriter outf = new BinaryWriter(new FileStream(Path.Combine(UserSettings.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
+            using (BinaryWriter outf = simulator.Settings.LogSaveData ? 
+                new LoggedBinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)) : 
+                new BinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
             {
                 // Save some version identifiers so we can validate on load.
                 outf.Write(VersionInfo.Version);
@@ -354,10 +346,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 // The Save command is the only command that doesn't take any action. It just serves as a marker.
                 _ = new SaveCommand(simulator.Log, fileStem);
-                simulator.Log.SaveLog(Path.Combine(UserSettings.UserDataFolder, fileStem + ".replay"));
+                simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
 
                 // Copy the logfile to the save folder
-                string logName = Path.Combine(UserSettings.UserDataFolder, fileStem + ".txt");
+                string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
 
                 if (File.Exists(logFileName))
                 {
@@ -381,10 +373,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //Debrief Eval
             if (Viewer.Settings.ActivityEvalulation)
             {
-                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval.save"))
+                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.eval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.dbfeval.save", FileMode.Create, FileAccess.Write)))
+                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
                 {
                     ActivityEvaluation.Save(outf);
                 }
@@ -404,7 +396,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // First use the .save file to check the validity and extract the route and activity.
             string saveFile = GetSaveFile(data);
             string versionOrBuild = string.Empty;
-            using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+            using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
             {
                 try // Because Restore() methods may try to read beyond the end of an out of date file.
                 {
@@ -434,20 +426,20 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         throw new InvalidDataException("Saved game stream position is incorrect.");
 
                     //Restore Debrief eval data                    
-                    string dbfevalfile = Path.ChangeExtension(saveFile, ".dbfeval.save");
+                    string evaluationFile = Path.ChangeExtension(saveFile, ".eval");
                     if (settings.ActivityEvalulation)
                     {
                         try
                         {
-                            if (File.Exists(dbfevalfile))
+                            if (File.Exists(evaluationFile))
                             {
-                                using (BinaryReader evalInput = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
+                                using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
                                 {
                                     ActivityEvaluation.Restore(evalInput);
                                 }
                             }
                             else
-                                //Resume mode: .dbfeval.save file doesn't exist, avoid to generate a new report.
+                                //Resume mode: .eval file doesn't exist, avoid to generate a new report.
                                 settings.ActivityEvalulation = false;
                         }
                         catch (IOException)
@@ -459,6 +451,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
                 catch (Exception error)
                 {
+                    inf.Close();
                     if (versionOrBuild == VersionInfo.Version)
                     {
                         // If the save version is the same as the program version, we can't be an incompatible save - it's just a bug.
@@ -974,20 +967,20 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (args.Length == 0)
             {
-                DirectoryInfo directory = new DirectoryInfo(UserSettings.UserDataFolder);
+                DirectoryInfo directory = new DirectoryInfo(RuntimeInfo.UserDataFolder);
                 FileInfo file = directory.EnumerateFiles("*.save")
                     .OrderByDescending(f => f.LastWriteTime)
                     .FirstOrDefault();
-                if (file == null)
-                    throw new FileNotFoundException($"Activity Save file '*.save' not found in folder {directory}");
-                return file.FullName;
+                return file == null
+                    ? throw new FileNotFoundException($"Activity Save file '*.save' not found in folder {directory}")
+                    : file.FullName;
             }
             string saveFile = args[0];
             if (!saveFile.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
             {
                 saveFile += ".save";
             }
-            return Path.Combine(UserSettings.UserDataFolder, saveFile);
+            return Path.Combine(RuntimeInfo.UserDataFolder, saveFile);
         }
 
         private static (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) GetSavedValues(BinaryReader inf)

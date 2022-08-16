@@ -103,7 +103,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Restore(BinaryReader inf)
         {
-            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadSingle();
+            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
             base.Restore(inf);
         }
 

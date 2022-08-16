@@ -2460,7 +2460,7 @@ namespace Orts.Simulation.Timetables
                     car.Flipped = consistDetails.Reversed ? !wagon.Flip : wagon.Flip;
                     car.CarID = $"{TTTrain.Number:0###}_{carId:0##}";
                     carId++;
-                    car.OrgiginalConsist = consistDetails.ConsistFile.ToLowerInvariant();
+                    car.OriginalConsist = consistDetails.ConsistFile.ToLowerInvariant();
 
                     car.SignalEvent(TrainEvent.Pantograph1Up);
 

@@ -648,10 +648,15 @@ namespace Orts.Formats.Msts
     #region Train Car and Engines
     public enum EngineType
     {
+        [Description("Unknown")]
         Unknown,
+        [Description("Steam")]
         Steam,
+        [Description("Diesel")]
         Diesel,
+        [Description("Electric")]
         Electric,
+        [Description("Control")]
         Control,
     }
 

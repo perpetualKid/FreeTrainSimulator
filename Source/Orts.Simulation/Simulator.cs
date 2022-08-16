@@ -44,7 +44,6 @@ using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -1871,8 +1870,6 @@ namespace Orts.Simulation
                 Trace.TraceWarning("Train {0} to restart not found", restartWaitingTrain.WaitingTrainToRestart);
         }
 
-
-
         /// <summary>
         /// Derive log-file name from route path and activity name
         /// </summary>
@@ -1887,13 +1884,13 @@ namespace Orts.Simulation
 
             logfile.Append(appendix);
 
-            string logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension(logfile.ToString(), "csv"));
+            string logfileName = Path.Combine(RuntimeInfo.UserDataFolder, Path.ChangeExtension(logfile.ToString(), "csv"));
 
             int logCount = 0;
 
             while (File.Exists(logfileName) && logCount < maxLogFiles)
             {
-                logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension($"{logfile}{logCount:00}", "csv"));
+                logfileName = Path.Combine(RuntimeInfo.UserDataFolder, Path.ChangeExtension($"{logfile}{logCount:00}", "csv"));
                 logCount++;
             }
 
@@ -1903,6 +1900,12 @@ namespace Orts.Simulation
             }
             return logfileName;
         }
+
+        // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
+        // that are likely to match the previously chosen route and activity.
+        // Append the current date and time, so that each file is unique.
+        // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
+        public string SaveFileName => $"{(ActivityFile != null ? ActivityFileName : (!string.IsNullOrEmpty(TimetableFileName) ? $"{RouteFolder.RouteName} {TimetableFileName}" : RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : string.Empty)}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
 
         internal void OnAllowedSpeedRaised(Train train)
         {

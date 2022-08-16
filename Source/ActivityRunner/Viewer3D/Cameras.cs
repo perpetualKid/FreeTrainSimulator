@@ -400,10 +400,6 @@ namespace Orts.ActivityRunner.Viewer3D
         // TODO: Add a way to record this zoom operation for Replay.
         private protected void ZoomByMouse(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers, float speedAdjustmentFactor = 1)
         {
-            // Will not zoom-in-out when help windows is up.
-            if (Viewer.HelpWindow.Visible)
-                return;
-
             float fieldOfView = MathHelper.Clamp(FieldOfView - GetSpeed(gameTime, commandArgs, modifiers, Viewer) * speedAdjustmentFactor / 10, 1, 135);
             _ = new FieldOfViewCommand(Viewer.Log, fieldOfView);
         }
