@@ -410,19 +410,44 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.OverSpeed}", Color.White)));
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Over Speed Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}");
                             activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}", Color.White)));
+
+                            if (Simulator.Instance.ActivityRun?.Tasks.OfType<ActivityTaskPassengerStopAt>().Count() > 0)
+                            {
+                                Func<(string text, Color textColor)> missedStopsFunc = () =>
+                                {
+                                    return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count()}", Color.White);
+                                };
+                                (string text, Color textColor) missedStops = missedStopsFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops missed:", missedStops.text, missedStops.textColor, 20);
+                                activityEvaluation.Add((functionLabel, missedStopsFunc));
+                                Func<(string text, Color textColor)> remainingStopsFunc = () =>
+                                {
+                                    return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
+                                };
+                                (string text, Color textColor) remainingStops = remainingStopsFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops remaining:", remainingStops.text, remainingStops.textColor, 20);
+                                activityEvaluation.Add((functionLabel, remainingStopsFunc));
+                            }
+                            
+                            int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>()
+                                .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                            if (taskCount > 0)
+                            {
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"= {taskCount}", 20);
+
+                                Func<(string text, Color textColor)> taskDoneFunc = () =>
+                                {
+                                    int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                                        Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                                    return ($"= {count}", Color.White);
+                                };
+                                (string text, Color textColor) taskDone = taskDoneFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks accomplished:", taskDone.text, 20);
+                                activityEvaluation.Add((functionLabel, taskDoneFunc));
+                            }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TrainOverTurned}", Color.White)));
 
-                            //if (DbfEvalStationName.Count > 0)
-                            //{
-                            //    DbfEvalValues.Add("Station stops missed", nmissedstation);
-                            //    DbfEvalValues.Add("Station stops remaining", dbfstationstopsremaining);
-                            //}
-                            //if (DbfEvalTaskName.Count > 0)
-                            //{
-                            //    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task", "Tasks", DbfEvalTaskName.Count)), DbfEvalTaskName.Count);
-                            //    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task accomplished", "Tasks accomplished", ndbfEvalTaskAccomplished)), ndbfEvalTaskAccomplished);
-                            //}
                         };
                         layoutContainer.Add(evaluationTab);
                     };
