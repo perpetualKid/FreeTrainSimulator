@@ -20,29 +20,15 @@ namespace Orts.Simulation.Activities
 {
     public class ActivityEvaluation
     {
-        private int couplerBreaks;
-        private int travellingTooFast;
-        private int trainOverTurned;
-        private int snappedBrakeHose;
         private double distanceTravelled;
-        private int fullTrainBrakeUnder8kmh;
-        private int fullBrakeAbove16kmh;
-        private int overSpeedCoupling;
-        private int emergencyButtonStopped;
-        private int emergencyButtonMoving;
         private double autoPilotInitialTime;
         private double autoPilotTime;
         private bool autoPilotTimerRunning;
         private bool overSpeedRunning;
-        private int overSpeed;
         private double overSpeedInitialTime;
         private double overSpeedTime;
-        private int departBeforeBoarding;
-
         private static ActivityEvaluation instance;
         private bool activityCompleted;
-
-        public long Version { get; private set; }
 
         private ActivityEvaluation()
         { }
@@ -74,10 +60,8 @@ namespace Orts.Simulation.Activities
             {
                 overSpeedRunning = false;
                 overSpeedTime += Simulator.Instance.ClockTime - overSpeedInitialTime;
-                overSpeed++;
+                OverSpeed++;
             }
-            if (overSpeedRunning || autoPilotTimerRunning)
-                Version++;
             if (Simulator.Instance.ActivityRun.Completed)
             {
                 activityCompleted = true;
@@ -85,46 +69,13 @@ namespace Orts.Simulation.Activities
             }
         }
 
-        public int CouplerBreaks
-        {
-            get => couplerBreaks;
-            set
-            {
-                couplerBreaks++;
-                Version++;
-                Trace.WriteLine($"Num of coupler breaks: {couplerBreaks}");
-            }
-        }
+        public int CouplerBreaks { get; set; }
 
-        public int TravellingTooFast
-        {
-            get => travellingTooFast;
-            set
-            {
-                travellingTooFast = value;
-                Version++;
-            }
-        }
+        public int TravellingTooFast { get; set; }
 
-        public int TrainOverTurned
-        {
-            get => trainOverTurned;
-            set
-            {
-                trainOverTurned = value;
-                Version++;
-            }
-        }
+        public int TrainOverTurned { get; set; }
 
-        public int SnappedBrakeHose
-        {
-            get => snappedBrakeHose;
-            set
-            {
-                snappedBrakeHose = value;
-                Version++;
-            }
-        }
+        public int SnappedBrakeHose { get; set; }
 
         public double DistanceTravelled
         {
@@ -132,59 +83,18 @@ namespace Orts.Simulation.Activities
             set
             {
                 distanceTravelled = value;
-                Version++;
             }
         }
 
-        public int FullTrainBrakeUnder8kmh
-        {
-            get => fullTrainBrakeUnder8kmh;
-            set
-            {
-                fullTrainBrakeUnder8kmh = value;
-                Version++;
-            }
-        }
+        public int FullTrainBrakeUnder8kmh { get; set; }
 
-        public int FullBrakeAbove16kmh
-        {
-            get => fullBrakeAbove16kmh;
-            set
-            {
-                fullBrakeAbove16kmh = value;
-                Version++;
-            }
-        }
+        public int FullBrakeAbove16kmh { get; set; }
 
-        public int OverSpeedCoupling
-        {
-            get => overSpeedCoupling;
-            set
-            {
-                overSpeedCoupling = value;
-                Version++;
-            }
-        }
+        public int OverSpeedCoupling { get; set; }
 
-        public int EmergencyButtonStopped
-        {
-            get => emergencyButtonStopped;
-            set
-            {
-                emergencyButtonStopped = value;
-                Version++;
-            }
-        }
+        public int EmergencyButtonStopped { get; set; }
 
-        public int EmergencyButtonMoving
-        {
-            get => emergencyButtonMoving;
-            set
-            {
-                emergencyButtonMoving = value;
-                Version++;
-            }
-        }
+        public int EmergencyButtonMoving { get; set; }
 
         public void StartAutoPilotTime()
         {
@@ -205,25 +115,15 @@ namespace Orts.Simulation.Activities
             get => autoPilotTimerRunning ? Simulator.Instance.ClockTime - autoPilotInitialTime + autoPilotTime : autoPilotTime;
         }
 
-        public int OverSpeed
-        {
-            get => overSpeed;
-        }
+        public int OverSpeed { get; private set; }
 
         public double OverSpeedTime
         {
             get => overSpeedRunning ? Simulator.Instance.ClockTime - overSpeedInitialTime + overSpeedTime : overSpeedTime;
         }
 
-        public int DepartBeforeBoarding
-        {
-            get => departBeforeBoarding;
-            set
-            {
-                departBeforeBoarding = value;
-                Version++;
-            }
-        }
+        public int DepartBeforeBoarding { get; set; }
+
         public static void Save(BinaryWriter outputStream)
         {
             if (null == outputStream)
@@ -256,23 +156,23 @@ namespace Orts.Simulation.Activities
                 throw new ArgumentNullException(nameof(inputStream));
             instance = new ActivityEvaluation
             {
-                couplerBreaks = inputStream.ReadInt32(),
-                travellingTooFast = inputStream.ReadInt32(),
-                trainOverTurned = inputStream.ReadInt32(),
-                snappedBrakeHose = inputStream.ReadInt32(),
+                CouplerBreaks = inputStream.ReadInt32(),
+                TravellingTooFast = inputStream.ReadInt32(),
+                TrainOverTurned = inputStream.ReadInt32(),
+                SnappedBrakeHose = inputStream.ReadInt32(),
                 distanceTravelled = inputStream.ReadDouble(),
-                fullTrainBrakeUnder8kmh = inputStream.ReadInt32(),
-                fullBrakeAbove16kmh = inputStream.ReadInt32(),
-                overSpeedCoupling = inputStream.ReadInt32(),
-                emergencyButtonStopped = inputStream.ReadInt32(),
-                emergencyButtonMoving = inputStream.ReadInt32(),
+                FullTrainBrakeUnder8kmh = inputStream.ReadInt32(),
+                FullBrakeAbove16kmh = inputStream.ReadInt32(),
+                OverSpeedCoupling = inputStream.ReadInt32(),
+                EmergencyButtonStopped = inputStream.ReadInt32(),
+                EmergencyButtonMoving = inputStream.ReadInt32(),
                 autoPilotTimerRunning = inputStream.ReadBoolean(),
                 autoPilotInitialTime = inputStream.ReadDouble(),
                 autoPilotTime = inputStream.ReadDouble(),
-                overSpeed = inputStream.ReadInt32(),
+                OverSpeed = inputStream.ReadInt32(),
                 overSpeedInitialTime = inputStream.ReadDouble(),
                 overSpeedTime = inputStream.ReadDouble(),
-                departBeforeBoarding = inputStream.ReadInt32(),
+                DepartBeforeBoarding = inputStream.ReadInt32(),
             };
         }
 
@@ -298,7 +198,7 @@ namespace Orts.Simulation.Activities
             builder.AppendLine($"  {"Route",-26}= {simulator.RouteName}");
             builder.AppendLine($"  {"Activity",-26}= {simulator.ActivityFile.Activity.Header.Name}");
             builder.AppendLine($"  {"Difficulty",-26}= {simulator.ActivityFile.Activity.Header.Difficulty}");
-            builder.AppendLine($"  {"Startime",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");
+            builder.AppendLine($"  {"Start Time",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");
             builder.AppendLine($"  {"Estimated Time",-26}= {simulator.ActivityFile.Activity.Header.Duration}");
             builder.AppendLine($"  {"Elapsed Time",-26}= {FormatStrings.FormatTime(simulator.ClockTime - simulator.ActivityFile.Activity.Header.StartTime.TotalSeconds)}");
             builder.AppendLine($"  {"Autopilot Time",-26}= {FormatStrings.FormatTime(AutoPilotTime)}");
@@ -391,7 +291,7 @@ namespace Orts.Simulation.Activities
                     builder.AppendLine($"  {"Departure before"}");
                     builder.AppendLine($"    {"boarding completed",-24}= {DepartBeforeBoarding}");
                     //Station departure before passenger boarding completed. -80.                                
-                    stationPenalty += departBeforeBoarding * 80;
+                    stationPenalty += DepartBeforeBoarding * 80;
                 }
                 else
                 {
@@ -476,7 +376,7 @@ namespace Orts.Simulation.Activities
                 builder.AppendLine(simulator.Settings.CurveSpeedDependent ? $"  {"Hose breaks",-26}= {SnappedBrakeHose}" : "  Curve dependent speed limit (Disabled)");
                 builder.AppendLine($"  {(simulator.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded"),-26}= {CouplerBreaks}");
                 builder.AppendLine($"  {"Train Overturned",-26}= {TrainOverTurned}");
-                int curveSpeedPenalty = 100 - (travellingTooFast + SnappedBrakeHose + CouplerBreaks + TrainOverTurned);
+                int curveSpeedPenalty = 100 - (TravellingTooFast + SnappedBrakeHose + CouplerBreaks + TrainOverTurned);
                 curveSpeedPenalty = curveSpeedPenalty > 100 ? 100 : curveSpeedPenalty;
                 builder.AppendLine($"  {"Overall rating total",-26}= {Convert.ToInt16(curveSpeedPenalty)}");
                 builder.AppendLine();

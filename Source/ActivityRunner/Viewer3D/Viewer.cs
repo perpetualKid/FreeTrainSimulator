@@ -623,7 +623,8 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save);
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrackMonitorWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

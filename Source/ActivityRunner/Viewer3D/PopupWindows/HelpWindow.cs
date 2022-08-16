@@ -61,9 +61,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private ActivityTask lastActivityTask;
         private bool stoppedAt;
-        private long lastEvalautionVersion = -1;
         private int lastLastEventID = -1;
-
+        private ControlLayout activityTimetableScrollbox;
+        private ControlLayout activityWorkOrderScrollbox;
+        private ControlLayout evaluationTab;
         public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings) :
             base(owner, "Help", relativeLocation, new Point(560, 380))
         {
@@ -129,22 +130,24 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     line.Add(new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString("Depart"), HorizontalAlignment.Center));
                     line.Add(new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString("Actual"), HorizontalAlignment.Center));
                     layoutContainer.AddHorizontalSeparator();
-                    ControlLayout scrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
+                    activityTimetableScrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
 
                     if (viewer.Simulator.ActivityRun != null)
                     {
                         foreach (ActivityTaskPassengerStopAt activityTask in viewer.Simulator.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>())
                         {
-                            line = scrollbox.AddLayoutHorizontalLineOfText();
+                            Label actualArrival, actualDeparture;
+                            line = activityTimetableScrollbox.AddLayoutHorizontalLineOfText();
                             line.Add(new Label(this, columnWidth * 3, line.RemainingHeight, activityTask.PlatformEnd1.Station));
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledArrival}", HorizontalAlignment.Center));
-                            line.Add(new Label(this, columnWidth, line.RemainingHeight,
+                            line.Add(actualArrival = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = Popups.NextStationWindow.GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
+                            { TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledDeparture}", HorizontalAlignment.Center));
-                            line.Add(new Label(this, columnWidth, line.RemainingHeight,
+                            line.Add(actualDeparture = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = Popups.NextStationWindow.GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
+                            { TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
+                            line.Tag = (activityTask, actualArrival, actualDeparture);
                         }
                     }
                 };
@@ -161,15 +164,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         line.Add(new Label(this, columnWidth * 6, line.RemainingHeight, Catalog.GetString("Status")));
                     }
                     layoutContainer.AddHorizontalSeparator();
-                    ControlLayout scrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
+                    activityWorkOrderScrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
+                    List<(EventWrapper, Label)> activityEvents = new List<(EventWrapper, Label)>();
+                    activityWorkOrderScrollbox.Tag = activityEvents;
                     bool addSeparator = false;
                     foreach (EventWrapper eventWrapper in Simulator.Instance.ActivityRun.EventList ?? Enumerable.Empty<EventWrapper>())
                     {
                         if (eventWrapper.ActivityEvent is ActionActivityEvent activityEvent)
                         {
                             if (addSeparator)
-                                scrollbox.AddHorizontalSeparator();
-                            ControlLayout line = scrollbox.AddLayoutHorizontalLineOfText();
+                                activityWorkOrderScrollbox.AddHorizontalSeparator();
+                            ControlLayout line = activityWorkOrderScrollbox.AddLayoutHorizontalLineOfText();
                             // Task column
                             switch (activityEvent.Type)
                             {
@@ -178,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     line.Add(new Label(this, columnWidth * 4, line.RemainingHeight, Catalog.GetString("Assemble Train")));
                                     if (activityEvent.Type == EventType.AssembleTrainAtLocation)
                                     {
-                                        line = scrollbox.AddLayoutHorizontalLineOfText();
+                                        line = activityWorkOrderScrollbox.AddLayoutHorizontalLineOfText();
                                         line.Add(new Label(this, columnWidth * 4, line.RemainingHeight, Catalog.GetString("At Location")));
                                     }
                                     break;
@@ -200,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 {
                                     if (locationShown)
                                     {
-                                        line = scrollbox.AddLayoutHorizontalLineOfText();
+                                        line = activityWorkOrderScrollbox.AddLayoutHorizontalLineOfText();
                                         line.AddSpace(columnWidth * 4, 0);
                                     }
 
@@ -273,12 +278,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                         locationShown = true;
                                     }
                                     // Status column
-                                    if (eventWrapper.TimesTriggered == 1 && wagonIdx == 0)
+                                    if (wagonIdx == 0)
                                     {
-                                        line.Add(new Label(this, columnWidth * 6, line.RemainingHeight, Catalog.GetString("Done")));
+                                        Label statusLabel;
+                                        line.Add(statusLabel = new Label(this, columnWidth * 6, line.RemainingHeight, eventWrapper.TimesTriggered == 1 ? "Done" : string.Empty));
+                                        activityEvents.Add((eventWrapper, statusLabel));
                                     }
-                                    else
-                                        line.Add(new Label(this, columnWidth, line.RemainingHeight, ""));
                                     wagonIdx++;
 
                                     addSeparator = true;
@@ -294,8 +299,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     tabControl.TabLayouts[TabSettings.ActivityEvaluation] = (layoutContainer) =>
                     {
-                        TabControl<EvaluationTabSettings> evaluationTab = new TabControl<EvaluationTabSettings>(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, true);
-                        evaluationTab.TabLayouts[EvaluationTabSettings.Overview] = (evaluationLayoutContainer) =>
+                        List<(Label, Func<(string, Color)>)> activityEvaluation = new List<(Label, Func<(string, Color)>)>();
+                        Label functionLabel;
+                        evaluationTab = new TabControl<EvaluationTabSettings>(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, true);
+                        evaluationTab.Tag = activityEvaluation;
+                        (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Overview] = (evaluationLayoutContainer) =>
                         {
                             evaluationLayoutContainer = evaluationLayoutContainer.AddLayoutScrollboxVertical(evaluationLayoutContainer.RemainingWidth);
                             int columnWidth = evaluationLayoutContainer.RemainingWidth / 3;
@@ -305,20 +313,39 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             evaluationLayoutContainer.AddHorizontalSeparator();
                             AddEvaluationLine(evaluationLayoutContainer, "Timetable:", null);
                             int stationStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Count();
-                            AddEvaluationLine(evaluationLayoutContainer, "● Station Stops:", $"{stationStops}");
-                            int remainingStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count();
-                            AddEvaluationLine(evaluationLayoutContainer, "● Remaining Stops:", $"{remainingStops}");
-                            TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
-                            AddEvaluationLine(evaluationLayoutContainer, "● Current Delay:", $"{delay}", delay.TotalSeconds switch
+                            AddEvaluationLine(evaluationLayoutContainer, "Station Stops:", $"{stationStops}", 20);
+                            Func<(string text, Color textColor)> remainingStopsFunc = () =>
                             {
-                                > 120 => Color.OrangeRed,
-                                > 60 => Color.LightSalmon,
-                                0 => Color.White,
-                                < 0 => Color.LightSalmon,
-                                _ => Color.LightGreen,
-                            });
-                            int missedStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count();
-                            AddEvaluationLine(evaluationLayoutContainer, "● Missed Stops:", $"{missedStops}", missedStops > 0 ? Color.LightSalmon : Color.White);
+                                return ($"{Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
+                            };
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Remaining Stops:", remainingStopsFunc().text, 20);
+                            activityEvaluation.Add((functionLabel, remainingStopsFunc));
+
+                            Func<(string text, Color textColor)> delayFunc = () =>
+                            {
+                                TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
+                                return ($"{delay}", delay.TotalSeconds switch
+                                {
+                                    > 120 => Color.OrangeRed,
+                                    > 60 => Color.LightSalmon,
+                                    0 => Color.White,
+                                    < 0 => Color.LightSalmon,
+                                    _ => Color.LightGreen,
+                                });
+                            };
+                            (string text, Color textColor) = delayFunc();
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Current Delay:", text, textColor, 20);
+                            activityEvaluation.Add((functionLabel, delayFunc));
+
+                            Func<(string text, Color textColor)> missedStopsFunc = () =>
+                            {
+                                int count = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count();
+                                return ($"{count}", count > 0 ? Color.LightSalmon : Color.White);
+                            };
+                            (string text, Color textColor) missedStops = missedStopsFunc();
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Missed Stops:", missedStops.text, missedStops.textColor, 20);
+                            activityEvaluation.Add((functionLabel, missedStopsFunc));
+
                             foreach (ActivityTaskPassengerStopAt item in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null))
                             {
                                 ControlLayout line = evaluationLayoutContainer.AddLayoutHorizontalLineOfText();
@@ -327,33 +354,64 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             evaluationLayoutContainer.AddHorizontalSeparator();
                             AddEvaluationLine(evaluationLayoutContainer, "Work orders:", null);
 
-                            int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
-                            Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
-                            AddEvaluationLine(evaluationLayoutContainer, "● Tasks:", $"{taskCount}");
-                            int taskDone = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
-                            Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
-                            AddEvaluationLine(evaluationLayoutContainer, "● Accomplished:", $"{taskDone}");
-                            AddEvaluationLine(evaluationLayoutContainer, "● Coupling speed exceeded:", $"{ActivityEvaluation.Instance.OverSpeedCoupling}");
+                            int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>()
+                                .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                            AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"{taskCount}", 20);
+
+                            Func<(string text, Color textColor)> taskDoneFunc = () =>
+                            {
+                                int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                                    Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                                return ($"{count}", Color.White);
+                            };
+                            (string text, Color textColor) taskDone = taskDoneFunc();
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Accomplished:", taskDone.text, 20);
+                            activityEvaluation.Add((functionLabel, taskDoneFunc));
+                            Func<(string text, Color textColor)> couplerSpeedFunc = () =>
+                            {
+                                return ($"{ActivityEvaluation.Instance.OverSpeedCoupling}", Color.White);
+                            };
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Coupling speed exceeded:", couplerSpeedFunc().text, 20);
+                            activityEvaluation.Add((functionLabel, couplerSpeedFunc));
                         };
-                        evaluationTab.TabLayouts[EvaluationTabSettings.Details] = (evaluationLayoutContainer) =>
+                        (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Details] = (evaluationLayoutContainer) =>
                         {
-                            AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Alerter applications above 10Mph/16kmh", $"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Auto pilot Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}");
-                            AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Alerter applications above 10Mph/16kmh", $"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Auto pilot Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.CouplerBreaks}", Color.White)));
                             if (Simulator.Instance.Settings.CurveSpeedDependent)
-                                AddEvaluationLine(evaluationLayoutContainer, "Curve speeds exceeded", $"= {ActivityEvaluation.Instance.TravellingTooFast}");
+                            {
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Curve speeds exceeded", $"= {ActivityEvaluation.Instance.TravellingTooFast}");
+                                activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TravellingTooFast}", Color.White)));
+                            }
                             if (Simulator.Instance.PlayerLocomotive.Train.Delay.HasValue)
-                                AddEvaluationLine(evaluationLayoutContainer, "Current delay in Activity", $"= {Simulator.Instance.PlayerLocomotive.Train.Delay}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Departure before boarding completed", $"= {ActivityEvaluation.Instance.DepartBeforeBoarding}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Distance travelled", $"= {FormatStrings.FormatDistanceDisplay(ActivityEvaluation.Instance.DistanceTravelled, Simulator.Instance.MetricUnits)}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while moving", $"= {ActivityEvaluation.Instance.EmergencyButtonMoving}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while stopped", $"= {ActivityEvaluation.Instance.EmergencyButtonStopped}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Full Train Brake applications under 5MPH/8KMH", $"= {ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh}");
+                            {
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Current delay in Activity", $"= {Simulator.Instance.PlayerLocomotive.Train.Delay}");
+                                activityEvaluation.Add((functionLabel, () => ($"= {Simulator.Instance.PlayerLocomotive.Train.Delay}", Color.White)));
+                            }
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Departure before boarding completed", $"= {ActivityEvaluation.Instance.DepartBeforeBoarding}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.DepartBeforeBoarding}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Distance travelled", $"= {FormatStrings.FormatDistanceDisplay(ActivityEvaluation.Instance.DistanceTravelled, Simulator.Instance.MetricUnits)}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatDistanceDisplay(ActivityEvaluation.Instance.DistanceTravelled, Simulator.Instance.MetricUnits)}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while moving", $"= {ActivityEvaluation.Instance.EmergencyButtonMoving}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.EmergencyButtonMoving}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while stopped", $"= {ActivityEvaluation.Instance.EmergencyButtonStopped}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.EmergencyButtonStopped}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Full Train Brake applications under 5MPH/8KMH", $"= {ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh}");
                             if (Simulator.Instance.Settings.CurveSpeedDependent)
-                                AddEvaluationLine(evaluationLayoutContainer, "Hose breaks", $"= {ActivityEvaluation.Instance.SnappedBrakeHose}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Over Speed", $"= {ActivityEvaluation.Instance.OverSpeed}");
-                            AddEvaluationLine(evaluationLayoutContainer, "Over Speed Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}");
+                            {
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Hose breaks", $"= {ActivityEvaluation.Instance.SnappedBrakeHose}");
+                                activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.SnappedBrakeHose}", Color.White)));
+                            }
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Over Speed", $"= {ActivityEvaluation.Instance.OverSpeed}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.OverSpeed}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Over Speed Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.OverSpeedTime)}", Color.White)));
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
+                            activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TrainOverTurned}", Color.White)));
 
                             //if (DbfEvalStationName.Count > 0)
                             //{
@@ -394,32 +452,40 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 if (Simulator.Instance.ActivityRun != null)
                 {
-                    if (tabControl.CurrentTab == TabSettings.ActivityTimetable)
+                    if (tabControl.CurrentTab == TabSettings.ActivityTimetable && activityTimetableScrollbox != null &&
+                        lastActivityTask != Simulator.Instance.ActivityRun.ActivityTask || stoppedAt != (lastActivityTask is ActivityTaskPassengerStopAt preTest && preTest.ActualArrival != null))
                     {
-                        if (lastActivityTask != Simulator.Instance.ActivityRun.ActivityTask || stoppedAt != (lastActivityTask is ActivityTaskPassengerStopAt preTest && preTest.ActualArrival != null))
+                        lastActivityTask = Simulator.Instance.ActivityRun.ActivityTask;
+                        stoppedAt = (lastActivityTask is ActivityTaskPassengerStopAt stopAtTask && stopAtTask.ActualArrival != null);
+                        foreach (ControlLayout line in activityTimetableScrollbox.Controls)
                         {
-                            lastActivityTask = Simulator.Instance.ActivityRun.ActivityTask;
-                            stoppedAt = (lastActivityTask is ActivityTaskPassengerStopAt stopAtTask && stopAtTask.ActualArrival != null);
-                            tabControl.UpdateTabLayout(tabControl.CurrentTab);
+                            (ActivityTaskPassengerStopAt activityTask, Label actualArrival, Label actualDeparture) = ((ActivityTaskPassengerStopAt, Label, Label))line.Tag;
+                            actualArrival.Text = $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
+                            actualArrival.TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival);
+                            actualDeparture.Text = $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
+                            actualDeparture.TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture);
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders)
+                    else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders && activityWorkOrderScrollbox != null && Simulator.Instance.ActivityRun.EventList != null)
                     {
-                        if (Simulator.Instance.ActivityRun.EventList != null)
+                        if (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent != null && (lastLastEventID == -1 ||
+                            (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != lastLastEventID)))
                         {
-                            if (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent != null && (lastLastEventID == -1 ||
-                                (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != lastLastEventID)))
+                            lastLastEventID = Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
+                            foreach ((EventWrapper activityEvent, Label label) item in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
                             {
-                                lastLastEventID = Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
-                                tabControl.UpdateTabLayout(tabControl.CurrentTab);
+                                item.label.Text = item.activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
                             }
                         }
                     }
-                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation &&
-                        (Simulator.Instance.ActivityRun.Completed || ActivityEvaluation.Instance.Version != lastEvalautionVersion))
+                    else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation)
                     {
-                        lastEvalautionVersion = ActivityEvaluation.Instance.Version;
-                        tabControl.UpdateTabLayout(tabControl.CurrentTab);
+                        foreach ((Label label, Func<(string, Color)> func) item in evaluationTab.Tag as List<(Label, Func<(string, Color)>)>)
+                        {
+                            (string text, Color textColor) value = item.func();
+                            item.label.Text = value.text;
+                            item.label.TextColor = value.textColor;
+                        }
                     }
                 }
             }
@@ -446,20 +512,47 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             }
         }
 
-        private void AddEvaluationLine(ControlLayout container, string text, string value)
+        private Label AddEvaluationLine(ControlLayout container, string text, string value, int padLeft = 0)
         {
+            Label result = null;
             ControlLayout line = container.AddLayoutHorizontalLineOfText();
-            line.Add(new Label(this, container.RemainingWidth / 3 * 2, line.RemainingHeight, text));
+            if (padLeft > 0)
+                line.AddSpace(padLeft, line.RemainingHeight);
+            line.Add(new Label(this, container.RemainingWidth / 3 * 2 - padLeft, line.RemainingHeight, text));
             if (!string.IsNullOrEmpty(value))
-                line.Add(new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value));
+            {
+                line.Add(result = new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value));
+            }
+            return result;
         }
 
-        private void AddEvaluationLine(ControlLayout container, string text, string value, Color textColor)
+        private Label AddEvaluationLine(ControlLayout container, string text, string value, Color textColor, int padLeft = 0)
         {
+            Label result = null;
             ControlLayout line = container.AddLayoutHorizontalLineOfText();
-            line.Add(new Label(this, container.RemainingWidth / 3 * 2, line.RemainingHeight, text));
+            if (padLeft > 0)
+                line.AddSpace(padLeft, line.RemainingHeight);
+            line.Add(new Label(this, container.RemainingWidth / 3 * 2 - padLeft, line.RemainingHeight, text));
             if (!string.IsNullOrEmpty(value))
-                line.Add(new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value) { TextColor = textColor });
+            {
+                line.Add(result = new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value) { TextColor = textColor });
+            }
+            return result;
         }
+
+        public static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
+        {
+            if (actual.HasValue && actual.Value <= expected)
+                return Color.LightGreen;
+            return Color.LightSalmon;
+        }
+
+        public static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
+        {
+            if (actual.HasValue && actual.Value >= expected)
+                return Color.LightGreen;
+            return Color.LightSalmon;
+        }
+
     }
 }
