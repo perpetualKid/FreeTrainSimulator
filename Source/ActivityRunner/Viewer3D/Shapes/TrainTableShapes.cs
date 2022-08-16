@@ -9,8 +9,11 @@ using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.World;
+
+using SharpDX.Direct3D9;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -68,44 +71,46 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             double nextKey;
-            if (Turntable.GoToTarget || Turntable.GoToAutoTarget)
+            if (Turntable.AlignToRemote)
             {
-                nextKey = Turntable.TargetY / MathHelper.TwoPi * SharedShape.Animations[0].FrameCount;
+                animationKey = (Turntable.YAngle / (float)Math.PI * 1800.0f + 3600) % 3600.0f;
+                if (animationKey < 0)
+                    animationKey += SharedShape.Animations[0].FrameCount;
+                Turntable.AlignToRemote = false;
             }
             else
             {
-                double moveFrames;
-                switch(Turntable.RotationDirection)
+                if (Turntable.GoToTarget || Turntable.GoToAutoTarget)
                 {
-                    case Rotation.CounterClockwise:
-                        moveFrames = SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
-                        break;
-                    case Rotation.Clockwise:
-                        moveFrames = -SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
-                        break;
-                    default:
-                        moveFrames = 0;
-                        break;
+                    nextKey = Turntable.TargetY / MathHelper.TwoPi * SharedShape.Animations[0].FrameCount;
                 }
-                nextKey = animationKey + moveFrames;
-            }
-            animationKey = nextKey % SharedShape.Animations[0].FrameCount;
-            if (animationKey < 0)
-                animationKey += SharedShape.Animations[0].FrameCount;
-            Turntable.YAngle = MathHelper.WrapAngle((float)(nextKey / SharedShape.Animations[0].FrameCount * MathHelper.TwoPi));
+                else
+                {
+                    var moveFrames = Turntable.RotationDirection switch
+                    {
+                        Rotation.CounterClockwise => SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds,
+                        Rotation.Clockwise => -SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds,
+                        _ => 0,
+                    };
+                    nextKey = animationKey + moveFrames;
+                }
+                animationKey = nextKey % SharedShape.Animations[0].FrameCount;
+                if (animationKey < 0)
+                    animationKey += SharedShape.Animations[0].FrameCount;
+                Turntable.YAngle = MathHelper.WrapAngle((float)(nextKey / SharedShape.Animations[0].FrameCount * MathHelper.TwoPi));
 
-            if ((Turntable.RotationDirection != Rotation.None || Turntable.AutoRotationDirection != Rotation.None) && !Rotating)
-            {
-                Rotating = true;
-                if (Sound != null) Sound.HandleEvent(Turntable.TrainsOnMovingTable.Count == 1 &&
-                    Turntable.TrainsOnMovingTable[0].FrontOnBoard && Turntable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
+                if ((Turntable.RotationDirection != Rotation.None || Turntable.AutoRotationDirection != Rotation.None) && !Rotating)
+                {
+                    Rotating = true;
+                    Sound?.HandleEvent(Turntable.TrainsOnMovingTable.Count == 1 &&
+                        Turntable.TrainsOnMovingTable[0].FrontOnBoard && Turntable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
+                }
+                else if (Turntable.RotationDirection == Rotation.None && Turntable.AutoRotationDirection == Rotation.None && Rotating)
+                {
+                    Rotating = false;
+                    Sound?.HandleEvent(TrainEvent.MovingTableStopped);
+                }
             }
-            else if (Turntable.RotationDirection == Rotation.None && Turntable.AutoRotationDirection == Rotation.None && Rotating)
-            {
-                Rotating = false;
-                if (Sound != null) Sound.HandleEvent(TrainEvent.MovingTableStopped);
-            }
-
             // Update the pose for each matrix
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);
@@ -167,36 +172,48 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (Transfertable.GoToTarget)
+            var animation = SharedShape.Animations[0];
+            if (Transfertable.AlignToRemote)
             {
-                animationKey = (Transfertable.TargetOffset - Transfertable.CenterOffset.X) / Transfertable.Span * SharedShape.Animations[0].FrameCount;
+                animationKey = (Transfertable.OffsetPos - Transfertable.CenterOffsetComponent) / Transfertable.Span * SharedShape.Animations[0].FrameCount;
+                if (animationKey < 0)
+                    animationKey = 0;
+                Transfertable.AlignToRemote = false;
             }
+            else
+            {
+                if (Transfertable.GoToTarget)
+                {
+                    animationKey = (Transfertable.TargetOffset - Transfertable.CenterOffset.X) / Transfertable.Span * SharedShape.Animations[0].FrameCount;
+                }
 
-            else if (Transfertable.MotionDirection == MidpointDirection.Forward)
-            {
-                animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
-            }
-            else if (Transfertable.MotionDirection == MidpointDirection.Reverse)
-            {
-                animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
-            }
-            if (animationKey > SharedShape.Animations[0].FrameCount) animationKey = SharedShape.Animations[0].FrameCount;
-            if (animationKey < 0) animationKey = 0;
+                else if (Transfertable.MotionDirection == MidpointDirection.Forward)
+                {
+                    animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                }
+                else if (Transfertable.MotionDirection == MidpointDirection.Reverse)
+                {
+                    animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                }
+                if (animationKey > SharedShape.Animations[0].FrameCount)
+                    animationKey = SharedShape.Animations[0].FrameCount;
+                if (animationKey < 0)
+                    animationKey = 0;
 
-            Transfertable.OffsetPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Span + Transfertable.CenterOffset.X;
+                Transfertable.OffsetPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Span + Transfertable.CenterOffset.X;
 
-            if (Transfertable.MotionDirection != MidpointDirection.N && !Translating)
-            {
-                Translating = true;
-                if (Sound != null) Sound.HandleEvent(Transfertable.TrainsOnMovingTable.Count == 1 &&
-                    Transfertable.TrainsOnMovingTable[0].FrontOnBoard && Transfertable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
+                if (Transfertable.MotionDirection != MidpointDirection.N && !Translating)
+                {
+                    Translating = true;
+                    Sound?.HandleEvent(Transfertable.TrainsOnMovingTable.Count == 1 &&
+                        Transfertable.TrainsOnMovingTable[0].FrontOnBoard && Transfertable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
+                }
+                else if (Transfertable.MotionDirection == MidpointDirection.N && Translating)
+                {
+                    Translating = false;
+                    Sound?.HandleEvent(TrainEvent.MovingTableStopped);
+                }
             }
-            else if (Transfertable.MotionDirection == MidpointDirection.N && Translating)
-            {
-                Translating = false;
-                if (Sound != null) Sound.HandleEvent(TrainEvent.MovingTableStopped);
-            }
-
             // Update the pose for each matrix
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);

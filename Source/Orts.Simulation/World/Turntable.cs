@@ -28,6 +28,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -46,7 +47,7 @@ namespace Orts.Simulation.World
         public bool RearConnected { get; private set; } // Platform has its rear part connected to a track
         public int ForwardConnectedTarget { get; set; } = -1; // index of trackend connected
         public int RearConnectedTarget { get; set; } = -1; // index of trackend connected
-        public float TargetY { get; private set; } //final target for Viewer;
+        public float TargetY { get; set; } //final target for Viewer;
 
         private bool saveForwardConnected = true; // Platform has its forward part connected to a track
         private bool saveRearConnected; // Platform has its rear part connected to a track
@@ -157,9 +158,23 @@ namespace Orts.Simulation.World
         {
             if (!ContinuousMotion)
                 return;
+            if (MultiPlayerManager.IsMultiPlayer())
+            {
+                SubMessageCode = MessageCode.GoToTarget;
+                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, YAngle).ToString());
+            }
+            RemotelyControlled = false;
+            GeneralComputeTarget(clockwise);
+        }
+
+        public override void GeneralComputeTarget(bool clockwise)
+        {
+            if (!ContinuousMotion)
+                return;
             ContinuousMotion = false;
             GoToTarget = false;
             RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise;
+            float targetThreshold = RemotelyControlled ? 0.2f : 0.1f;
 
             float forwardAngleDiff = (int)RotationDirection * 3.5f;
             float rearAngleDiff = (int)RotationDirection * 3.5f;
@@ -191,7 +206,7 @@ namespace Orts.Simulation.World
                                 rearAngleDiff = angleDiff;
                             }
                         }
-                    if (forwardAngleDiff < 0.1 || rearAngleDiff < 0.1)
+                    if (forwardAngleDiff < targetThreshold || rearAngleDiff < targetThreshold)
                     {
                         if (forwardAngleDiff < rearAngleDiff && Math.Abs(forwardAngleDiff - rearAngleDiff) > 0.01)
                             RearConnectedTarget = -1;
@@ -223,7 +238,7 @@ namespace Orts.Simulation.World
                                 rearAngleDiff = thisAngleDiff;
                             }
                         }
-                    if (forwardAngleDiff > -0.1 || rearAngleDiff > -0.1)
+                    if (forwardAngleDiff > -targetThreshold || rearAngleDiff > -targetThreshold)
                     {
                         if (forwardAngleDiff > rearAngleDiff && Math.Abs(forwardAngleDiff - rearAngleDiff) > 0.01)
                             RearConnectedTarget = -1;
@@ -238,14 +253,36 @@ namespace Orts.Simulation.World
                     }
                 }
             }
+            RemotelyControlled = false;
         }
 
         /// <summary>
-        /// Starts continuous movement
-        /// 
+        /// Starts continuous movement by player action
         /// </summary>
-        /// 
         public override void StartContinuous(bool clockwise)
+        {
+            if (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard && TrainsOnMovingTable[0].BackOnBoard)
+            {
+                // Preparing for rotation
+                Train train = TrainsOnMovingTable[0].Train;
+                if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || train.TrainType != TrainType.Remote && !(train.LeadLocomotive.Direction == MidpointDirection.N
+                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
+                 train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
+                {
+                    if (SendNotifications)
+                        Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Rotation can't start: check throttle, speed, direction and control mode"));
+                    return;
+                }
+            }
+            if (MultiPlayerManager.IsMultiPlayer())
+            {
+                SubMessageCode = MessageCode.StartingContinuous;
+                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, YAngle).ToString());
+            }
+            GeneralStartContinuous(clockwise);
+        }
+
+        public override void GeneralStartContinuous(bool clockwise)
         {
             if (TrainsOnMovingTable.Count > 1 || TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard ^ TrainsOnMovingTable[0].BackOnBoard)
             {
@@ -259,14 +296,6 @@ namespace Orts.Simulation.World
             {
                 // Preparing for rotation
                 Train train = TrainsOnMovingTable[0].Train;
-                if (Math.Abs(train.SpeedMpS) > 0.1 || train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || !(train.LeadLocomotive.Direction == MidpointDirection.N
-                    || Math.Abs(train.MUReverserPercent) <= 1)) || train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
-                    train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined)
-                {
-                    if (SendNotifications)
-                        Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Rotation can't start: check throttle, speed, direction and control mode"));
-                    return;
-                }
                 if (train.ControlMode == TrainControlMode.Manual || train.ControlMode == TrainControlMode.Explorer || train.ControlMode == TrainControlMode.Undefined)
                 {
                     ComputeTrainPosition(train);

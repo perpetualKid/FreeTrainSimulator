@@ -70,6 +70,12 @@ namespace Orts.Simulation.World
 
     public abstract class MovingTable
     {
+        public enum MessageCode
+        {
+            GoToTarget,
+            StartingContinuous,
+        }
+        
         // Fixed data
         public string WFile { get; protected set; }
         public int UID { get; protected set; }
@@ -108,6 +114,10 @@ namespace Orts.Simulation.World
         private protected Vector3 relativeRearTravellerXNALocation;
         private protected Vector3 finalFrontTravellerXNALocation;
         private protected Vector3 finalRearTravellerXNALocation;
+
+        public MessageCode SubMessageCode { get; set; }
+        public bool AlignToRemote { get; set; }
+        public bool RemotelyControlled { get; set; }
 
         internal virtual void Save(BinaryWriter outf)
         {
@@ -300,6 +310,9 @@ namespace Orts.Simulation.World
         {
 
         }
+
+        public abstract void GeneralComputeTarget(bool clockwise);
+        public abstract void GeneralStartContinuous(bool clockwise);
 
         public void ReInitTrainPositions(Matrix animationXNAMatrix)
         {
