@@ -65,6 +65,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private ControlLayout activityTimetableScrollbox;
         private ControlLayout activityWorkOrderScrollbox;
         private ControlLayout evaluationTab;
+        private TextBox reportText;
+        private bool evaluationCompleted;
+
         public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings) :
             base(owner, "Help", relativeLocation, new Point(560, 380))
         {
@@ -449,6 +452,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TrainOverTurned}", Color.White)));
 
                         };
+                        (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Report] = (evaluationLayoutContainer) =>
+                        {
+                            reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight, 
+                                "Report will be available here when activity is completed.", HorizontalAlignment.Left, false,
+                                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.White);
+                            evaluationLayoutContainer.Add(reportText);
+                        };
                         layoutContainer.Add(evaluationTab);
                     };
                 }
@@ -473,7 +483,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            if (shouldUpdate)
+            if (shouldUpdate && ! evaluationCompleted)
             {
                 if (Simulator.Instance.ActivityRun != null)
                 {
@@ -510,6 +520,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             (string text, Color textColor) value = item.func();
                             item.label.Text = value.text;
                             item.label.TextColor = value.textColor;
+                        }
+                        if (ActivityEvaluation.Instance.ActivityCompleted && ActivityEvaluation.Instance.ReportText != null)
+                        {
+                            reportText.SetText(ActivityEvaluation.Instance.ReportText);
+                            evaluationCompleted = true;
                         }
                     }
                 }

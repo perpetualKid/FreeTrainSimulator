@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;
-
-using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.Activities
 {
@@ -45,7 +40,7 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            if (activityCompleted)
+            if (ActivityCompleted)
                 return;
 
             bool overSpeedNow = Math.Abs(Simulator.Instance.PlayerLocomotive.Train.SpeedMpS) >
@@ -64,10 +59,12 @@ namespace Orts.Simulation.Activities
             }
             if (Simulator.Instance.ActivityRun.Completed)
             {
-                activityCompleted = true;
                 Report();
+                ActivityCompleted = true;
             }
         }
+
+        public bool ActivityCompleted { get; private set; }
 
         public int CouplerBreaks { get; set; }
 
@@ -176,9 +173,13 @@ namespace Orts.Simulation.Activities
             };
         }
 
+        public string ReportFileName { get; private set; }
+
+        public string ReportText { get; private set; }
+
         public void Report()
         {
-            string fileName = Path.Combine(RuntimeInfo.UserDataFolder, Simulator.Instance.SaveFileName + ".eval.txt");
+            ReportFileName = Path.Combine(RuntimeInfo.UserDataFolder, Simulator.Instance.SaveFileName + ".eval.txt");
             StringBuilder builder = new StringBuilder();
             Simulator simulator = Simulator.Instance;
 
@@ -186,7 +187,7 @@ namespace Orts.Simulation.Activities
             builder.AppendLine(LoggingUtil.SeparatorLine);
             builder.AppendLine($"{"Version",-14}= {VersionInfo.Version}");
             builder.AppendLine($"{"Code Version",-14}= {VersionInfo.CodeVersion}");
-            builder.AppendLine($"{"Debrief File",-14}= {fileName.Replace(System.Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
+            builder.AppendLine($"{"Debrief File",-14}= {ReportFileName.Replace(System.Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
             builder.AppendLine(LoggingUtil.SeparatorLine);
             builder.AppendLine();
             builder.AppendLine($"{string.Empty,10}Evalulation Debrief");
@@ -410,9 +411,9 @@ namespace Orts.Simulation.Activities
             builder.AppendLine(LoggingUtil.SeparatorLine);
             builder.AppendLine();
 
-            using (StreamWriter writer = new StreamWriter(fileName, new FileStreamOptions() { Access = FileAccess.Write, Mode = FileMode.OpenOrCreate }))
+            using (StreamWriter writer = new StreamWriter(ReportFileName, new FileStreamOptions() { Access = FileAccess.Write, Mode = FileMode.OpenOrCreate }))
             {
-                writer.Write(builder.ToString());
+                writer.Write(ReportText = builder.ToString());
             }
         }
 
@@ -428,7 +429,7 @@ namespace Orts.Simulation.Activities
                 3 => "★ ★ ★ ☆ ☆",
                 4 => "★ ★ ★ ★ ☆",
                 5 => "★ ★ ★ ★ ★",
-                _ => " - - - - -",
+                _ => "-  -  -  -  -",
             };
         }
 
