@@ -9,6 +9,7 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -525,6 +526,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             reportText.SetText(ActivityEvaluation.Instance.ReportText);
                             evaluationCompleted = true;
+                            SystemInfo.OpenFile(ActivityEvaluation.Instance.ReportFileName);
                         }
                     }
                 }

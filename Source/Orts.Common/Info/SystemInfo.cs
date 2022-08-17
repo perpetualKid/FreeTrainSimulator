@@ -19,6 +19,7 @@ using System;
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -184,6 +185,23 @@ namespace Orts.Common.Info
                 }
             }
             return output.ToString();
+        }
+
+        public static void OpenFile(string fileName)
+        {
+            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { FileName = fileName, UseShellExecute = true });
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", fileName);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", fileName);
+            }
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
