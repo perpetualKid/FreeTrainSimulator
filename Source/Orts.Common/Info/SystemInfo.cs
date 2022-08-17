@@ -30,13 +30,11 @@ namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
-        private static string gpuInformation;
-
-        public static string GraphicAdapterMemoryInformation => gpuInformation;
+        public static string GraphicAdapterMemoryInformation { get; private set; }
 
         public static string SetGraphicAdapterInformation(string adapterName)
         {
-            if (gpuInformation == null)
+            if (GraphicAdapterMemoryInformation == null)
             {
                 try
                 {
@@ -44,17 +42,17 @@ namespace Orts.Common.Info
                     {
                         foreach (ManagementBaseObject display in objectSearcher.Get())
                         {
-                            gpuInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
+                            GraphicAdapterMemoryInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
                             break;
                         }
                     }
                 }
                 catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
                 {
-                    gpuInformation = "n/a";
+                    GraphicAdapterMemoryInformation = "n/a";
                 }
             }
-            return gpuInformation;
+            return GraphicAdapterMemoryInformation;
         }
 
         public static void WriteSystemDetails()
