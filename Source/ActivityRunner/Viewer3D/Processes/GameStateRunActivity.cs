@@ -373,10 +373,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //Debrief Eval
             if (Viewer.Settings.ActivityEvalulation)
             {
-                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.eval"))
+                foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
+                using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
                 {
                     ActivityEvaluation.Save(outf);
                 }
@@ -537,7 +537,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 SaveCommand saveCommand = log.CommandList[i] as SaveCommand;
                 if (saveCommand != null)
                 {
-                    string file = Path.Combine(UserSettings.UserDataFolder, saveCommand.FileStem);
+                    string file = Path.Combine(RuntimeInfo.UserDataFolder, saveCommand.FileStem);
                     if (!file.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
                         file += ".save";
                     if (File.Exists(file))
@@ -684,7 +684,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));
                 string loadingHash = string.Join("", hash.Hash.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
-                string dataPath = Path.Combine(UserSettings.UserDataFolder, "Load Cache");
+                string dataPath = Path.Combine(RuntimeInfo.UserDataFolder, "Load Cache");
                 loadingDataFilePath = Path.Combine(dataPath, loadingHash + ".dat");
                 if (!Directory.Exists(dataPath))
                     Directory.CreateDirectory(dataPath);

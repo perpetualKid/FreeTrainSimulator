@@ -147,8 +147,9 @@ namespace Orts.Simulation.Track
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
+            int index = inf.ReadInt32();
 
-            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[inf.ReadInt32()];
+            TrackCircuitSection = index> -1 ? TrackCircuitSection.TrackCircuitList[index] : TrackCircuitSection.Invalid;
             Direction = (TrackDirection)inf.ReadInt32();
             OutPin = new EnumArray<TrackDirection, Location>(new TrackDirection[] { (TrackDirection)inf.ReadInt32(), (TrackDirection)inf.ReadInt32() });
 

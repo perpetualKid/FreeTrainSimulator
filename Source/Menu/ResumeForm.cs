@@ -185,7 +185,7 @@ namespace Orts.Menu
                 prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
-            savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
+            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder,
                 prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
                 OrderByDescending(s => s.Valid).ThenByDescending(s => s.RealTime).ToList();
 
@@ -349,7 +349,7 @@ namespace Orts.Menu
                 {
                     try
                     {
-                        File.Move(filePath, Path.Combine(UserSettings.UserDataFolder, Path.GetFileName(filePath)));
+                        File.Move(filePath, Path.Combine(RuntimeInfo.UserDataFolder, Path.GetFileName(filePath)));
                     }
                     catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
                     { }

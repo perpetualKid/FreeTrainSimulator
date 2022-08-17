@@ -1799,7 +1799,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SaveActivityThumbnail)
             {
                 SaveActivityThumbnail = false;
-                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
+                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(RuntimeInfo.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
                 MessagesWindow.AddMessage(Catalog.GetString("Game saved"), 5);
             }
         }

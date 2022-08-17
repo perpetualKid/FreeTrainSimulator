@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Settings;
 using Orts.Simulation;
@@ -33,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private static void ExportTestSummary(bool passed, double loadTime)
         {
             // Append to CSV file in format suitable for Excel
-            string summaryFileName = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
+            string summaryFileName = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
             ORTraceListener traceListener = Trace.Listeners.OfType<ORTraceListener>().FirstOrDefault();
             // Could fail if already opened by Excel
             try

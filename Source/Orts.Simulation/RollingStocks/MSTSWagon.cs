@@ -1685,9 +1685,9 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(MaxHandbrakeForceN);
             int count = 0;
             if (couplers[TrainCarLocation.Rear] != null)
-                count = 1;
+                count ++;
             if (couplers[TrainCarLocation.Front] != null)
-                count = 2;
+                count ++;
             outf.Write(count);
             foreach (Coupler coupler in couplers)
             {

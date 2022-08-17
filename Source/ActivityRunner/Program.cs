@@ -44,6 +44,7 @@ namespace Orts.ActivityRunner
         private static void Main(string[] args)
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
             IEnumerable<string> options = args.Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             UserSettings settings = new UserSettings(options);

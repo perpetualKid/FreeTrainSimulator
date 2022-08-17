@@ -62,7 +62,7 @@ namespace Orts.Menu
             ofdImportSave.InitialDirectory = UserSettings.SavePackFolder;
             if (ofdImportSave.ShowDialog() == DialogResult.OK)
             {
-                ExtractFilesFromZip(ofdImportSave.FileName, UserSettings.UserDataFolder);
+                ExtractFilesFromZip(ofdImportSave.FileName, RuntimeInfo.UserDataFolder);
                 UpdateFileList(catalog.GetString("Save Pack '{0}' imported successfully.", Path.GetFileNameWithoutExtension(ofdImportSave.FileName)));
             }
         }

@@ -35,7 +35,6 @@ namespace Orts.Settings
     {
         private static readonly string[] subSettings = new string[] { "FolderSettings", "Input", "RailDriver", "Dispatcher" };
 
-        public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
@@ -64,11 +63,9 @@ namespace Orts.Settings
                 Location = EnumExtension.GetDescription(StoreType.Registry);
             }
 
-            UserDataFolder = RuntimeInfo.UserDataFolder;
-
-            Directory.CreateDirectory(UserDataFolder);
-            DeletedSaveFolder = Path.Combine(UserDataFolder, "Deleted Saves");
-            SavePackFolder = Path.Combine(UserDataFolder, "Save Packs");
+            Directory.CreateDirectory(RuntimeInfo.UserDataFolder);
+            DeletedSaveFolder = Path.Combine(RuntimeInfo.UserDataFolder, "Deleted Saves");
+            SavePackFolder = Path.Combine(RuntimeInfo.UserDataFolder, "Save Packs");
         }
 
         #region User Settings
@@ -347,8 +344,6 @@ namespace Orts.Settings
         [Default(new[] { 100, 100 })]
         public int[] WindowPosition_DriverAid { get; set; }
         [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_Help { get; set; }
-        [Default(new[] { 50, 50 })]
         public int[] WindowPosition_MultiPlayer { get; set; }
         [Default(new[] { 75, 0 })]
         public int[] WindowPosition_HUDScroll { get; set; }
@@ -393,6 +388,18 @@ namespace Orts.Settings
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DebugScreen)}=\"\"",
+            $"{nameof(ViewerWindowType.HelpWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.CompassWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=\"\"",
+        })]
+
+        public EnumArray<bool, ViewerWindowType> PopupSettings { get; set; }
         // Menu-game communication settings:
         [Default(false)]
         [DoNotSave]
@@ -447,8 +454,7 @@ namespace Orts.Settings
 
         protected override PropertyInfo[] GetProperties()
         {
-            if (properties == null)
-                properties = base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
+            properties ??= base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
             return properties;
         }
 
