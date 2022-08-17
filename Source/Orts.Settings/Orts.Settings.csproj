@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Settings Library</Description>
     <AssemblyTitle>Open Rails Settings Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
