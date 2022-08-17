@@ -280,6 +280,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public void Load(MSTSWagon wagon, string loadFilePath, LoadPosition loadPosition)
         {
+            ArgumentNullException.ThrowIfNull(wagon);
             ContainerManager containerManager = Simulator.Instance.ContainerManager;
 
             if (GeneralIntakePoint.Type == PickupType.Container)
@@ -306,7 +307,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     UpdateEmptyFreightAnims(container.LengthM);
                 }
                 else
-                    Trace.TraceWarning($"Container {container.ShapeFileName} could not be allocated on wagon {wagon.WagFilePath}");
+                    Trace.TraceWarning($"Container {container.ShapeFileName} could not be allocated on wagon {wagon.WagFilePath} with ID {wagon.CarID}");
             }
             else
                 Trace.TraceWarning("No match between wagon and load");
@@ -314,20 +315,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public void Load(MSTSWagon wagon, IList<LoadData> loadDataList, bool listInWagFile = false)
         {
+            ArgumentNullException.ThrowIfNull(wagon);
             if (GeneralIntakePoint == null)
                 return;
             string TrainsetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
-            if (loadDataList?.Count > 0)
+            if (!(listInWagFile && wagon.Train.TrainType == TrainType.Remote))
             {
-                foreach (LoadData loadData in loadDataList)
+                if (loadDataList?.Count > 0)
+
                 {
-                    string loadFilePath = Path.Combine(TrainsetFolder, loadData.Folder, Path.ChangeExtension(loadData.Name, ".load-or"));
-                    if (!File.Exists(loadFilePath))
+                    foreach (LoadData loadData in loadDataList)
                     {
-                        Trace.TraceWarning($"Ignored missing load {loadFilePath}");
-                        continue;
+                        string loadFilePath = Path.Combine(TrainsetFolder, loadData.Folder, Path.ChangeExtension(loadData.Name, ".load-or"));
+                        if (!File.Exists(loadFilePath))
+                        {
+                            Trace.TraceWarning($"Ignored missing load {loadFilePath}");
+                            continue;
+                        }
+                        Load(wagon, loadFilePath, loadData.LoadPosition);
                     }
-                    Load(wagon, loadFilePath, loadData.LoadPosition);
                 }
             }
             if (listInWagFile)
@@ -886,7 +892,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         /// <summary>
         /// Removes loads (e.g. containers) when AI train is deleted
         /// </summary>
-
         public void RemoveLoads()
         {
             foreach (FreightAnimation animation in Animations)
@@ -896,7 +901,54 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     Simulator.Instance.ContainerManager.Containers.Remove(discreteAnimation.Container);
                 }
             }
+        }
 
+        /// <summary>
+        /// Hides discrete freight animations and containers when remote train quits
+        /// </summary>
+        public void HideDiscreteFreightAnimations(MSTSWagon wagon)
+        {
+            foreach (var animation in Animations)
+            {
+                if (animation is FreightAnimationDiscrete discreteAnimation && discreteAnimation.Container != null)
+                {
+                    discreteAnimation.Container.Visible = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Shows discrete freight animations and containers when remote train quits
+        /// </summary>
+        public void ShowDiscreteFreightAnimations(MSTSWagon wagon)
+        {
+            foreach (var animation in Animations)
+            {
+                if (animation is FreightAnimationDiscrete discreteAnimation && discreteAnimation.Container != null)
+                {
+                    discreteAnimation.Container.Visible = true;
+                }
+            }
+        }
+
+        public string FreightAnimationADiscretesString()
+        {
+            int discretesCount = 0;
+            var discretesDataString = "";
+
+            foreach (FreightAnimation animation in Wagon.FreightAnimations.Animations)
+            {
+                if (animation is FreightAnimationDiscrete discreteAnimation)
+                {
+                    
+                    discretesCount++;
+                    string fileName = Path.GetFileNameWithoutExtension(discreteAnimation.Container.LoadFilePath);
+                    string directoryName = Path.GetDirectoryName(discreteAnimation.Container.LoadFilePath);
+                    string relativeDirectoryName = Path.GetRelativePath(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, Path.GetDirectoryName(discreteAnimation.Container.LoadFilePath));
+                    discretesDataString += $"&{fileName}%{relativeDirectoryName}%{discreteAnimation.LoadPosition}%";
+                }
+            }
+            return $"{discretesCount}{discretesDataString}";
         }
     }
 
@@ -905,7 +957,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
     /// </summary>
     public abstract class FreightAnimation
     {
-        public string ShapeFileName;
+        public string ShapeFileName { get; set; }
     }
 
     public class FreightAnimationContinuous : FreightAnimation
