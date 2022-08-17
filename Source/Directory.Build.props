@@ -15,6 +15,10 @@
 			<AdditionalThisAssemblyFields Include="NuGetPackageVersion" String="$(NuGetPackageVersion)" />
 		</ItemGroup>
 	</Target>
+	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+		<Message Text="Restoring dotnet tools" Importance="High" />
+		<Exec Command="dotnet tool restore" />
+	</Target>
 	<PropertyGroup>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>

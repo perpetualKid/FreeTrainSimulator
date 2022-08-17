@@ -61,6 +61,6 @@
 		</None>
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="if Defined Agent.TempDirectory (cd %25Agent.TempDirectory%25) else (cd %25temp%25)&#xD;&#xA;echo %25cd%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc) else (&#xD;&#xA;	dotnet tool update dotnet-mgfxc)&#xD;&#xA;if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Resources\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Resources\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Resources\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
+		<Exec Command="if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Resources\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Resources\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Resources\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
 	</Target>
 </Project>
