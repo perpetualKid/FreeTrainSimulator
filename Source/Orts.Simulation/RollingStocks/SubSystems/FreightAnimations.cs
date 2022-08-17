@@ -884,10 +884,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
         /// <summary>
-        /// Removes discrete freight animations and containers when AI train is deleted
+        /// Removes loads (e.g. containers) when AI train is deleted
         /// </summary>
 
-        public void RemoveDiscreteFreightAnimations()
+        public void RemoveLoads()
         {
             foreach (FreightAnimation animation in Animations)
             {
