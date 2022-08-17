@@ -13,6 +13,8 @@ using Orts.Common.Input;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
 
+using static Orts.Common.Native.NativeMethods;
+
 namespace Orts.Graphics.Window
 {
     public class ModalWindowEventArgs : EventArgs
@@ -76,7 +78,7 @@ namespace Orts.Graphics.Window
         {
             try
             {
-                DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
+                DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
                 clientBounds = Game.Window.ClientBounds;
             }
             catch (InvalidOperationException) //potential cross thread operation if we are in a different thread
@@ -84,7 +86,7 @@ namespace Orts.Graphics.Window
                 if (Application.OpenForms.Count > 0 && Application.OpenForms[0].InvokeRequired) // no way to know which window we are, so just trying the first one
                     Application.OpenForms[0].Invoke(() =>
                 {
-                    DpiScaling = SystemInfo.DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
+                    DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
                     clientBounds = Game.Window.ClientBounds;
                 });
             }
@@ -409,6 +411,42 @@ namespace Orts.Graphics.Window
             }
             base.Update(gameTime);
         }
+
+        public static float DisplayScalingFactor(Screen screen)
+        {
+            if (screen == null)
+                return 1;
+            try
+            {
+                using (Form testForm = new Form
+                {
+                    WindowState = FormWindowState.Normal,
+                    StartPosition = FormStartPosition.Manual,
+                    Left = screen.Bounds.Left,
+                    Top = screen.Bounds.Top
+                })
+                {
+                    return (float)Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
+                }
+            }
+            catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
+            {
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
+                {
+                    try
+                    {
+                        IntPtr desktop = g.GetHdc();
+                        int dpi = GetDeviceCaps(desktop, (int)DeviceCap.LOGPIXELSX);
+                        return (float)Math.Round(dpi / 96.0, 2);
+                    }
+                    finally
+                    {
+                        g.ReleaseHdc();
+                    }
+                }
+            }
+        }
+
     }
 
     public sealed class WindowManager<TWindowType> : WindowManager where TWindowType : Enum

@@ -110,7 +110,7 @@ namespace Orts.Toolbox
             currentScreen = Settings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
                 ? System.Windows.Forms.Screen.AllScreens[Settings.WindowScreen]
                 : System.Windows.Forms.Screen.PrimaryScreen;
-            FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
+            FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             LoadSettings();
 

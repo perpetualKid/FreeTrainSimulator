@@ -102,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 currentScreen = System.Windows.Forms.Screen.AllScreens[settings.Dispatcher.WindowScreen];
             else
                 currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
-            FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
+            FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
             LoadSettings();
 
             TargetElapsedTime = TimeSpan.FromMilliseconds(1000 / targetFps);
