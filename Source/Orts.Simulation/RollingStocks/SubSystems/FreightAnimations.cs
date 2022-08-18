@@ -278,15 +278,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             DiscreteFreightAnimationsPresent = source.DiscreteFreightAnimationsPresent;
         }
 
-        public void Load(MSTSWagon wagon, string loadFilePath, LoadPosition loadPosition)
+        public void Load(string loadFilePath, LoadPosition loadPosition)
         {
-            ArgumentNullException.ThrowIfNull(wagon);
             ContainerManager containerManager = Simulator.Instance.ContainerManager;
 
             if (GeneralIntakePoint.Type == PickupType.Container)
             {
                 Container container;
-                container = new Container(wagon, loadFilePath);
+                container = new Container(Wagon, loadFilePath);
                 if (containerManager.LoadedContainers.ContainsKey(loadFilePath))
                 {
                     container.Copy(containerManager.LoadedContainers[loadFilePath]);
@@ -297,7 +296,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     containerManager.LoadedContainers.Add(loadFilePath, container);
                 }
                 Vector3 offset = new Vector3(0, 0, 0);
-                var validity = Validity(wagon, container, loadPosition, Offset, LoadingAreaLength, out offset);
+                var validity = Validity(Wagon, container, loadPosition, Offset, LoadingAreaLength, out offset);
                 if (validity)
                 {
                     var freightAnimDiscrete = new FreightAnimationDiscrete(this, container, loadPosition, offset);
@@ -307,19 +306,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     UpdateEmptyFreightAnims(container.LengthM);
                 }
                 else
-                    Trace.TraceWarning($"Container {container.ShapeFileName} could not be allocated on wagon {wagon.WagFilePath} with ID {wagon.CarID}");
+                    Trace.TraceWarning($"Container {container.ShapeFileName} could not be allocated on wagon {Wagon.WagFilePath} with ID {Wagon.CarID}");
             }
             else
                 Trace.TraceWarning("No match between wagon and load");
         }
 
-        public void Load(MSTSWagon wagon, IList<LoadData> loadDataList, bool listInWagFile = false)
+        public void Load(IList<LoadData> loadDataList, bool listInWagFile = false)
         {
-            ArgumentNullException.ThrowIfNull(wagon);
             if (GeneralIntakePoint == null)
                 return;
             string TrainsetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
-            if (!(listInWagFile && wagon.Train.TrainType == TrainType.Remote))
+            if (!(listInWagFile && Wagon.Train.TrainType == TrainType.Remote))
             {
                 if (loadDataList?.Count > 0)
 
@@ -332,7 +330,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                             Trace.TraceWarning($"Ignored missing load {loadFilePath}");
                             continue;
                         }
-                        Load(wagon, loadFilePath, loadData.LoadPosition);
+                        Load(loadFilePath, loadData.LoadPosition);
                     }
                 }
             }
@@ -343,7 +341,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 EmptyAnimations.Add(new FreightAnimationDiscrete(this, LoadPosition.Center));
             EmptyAbove();
             if (!listInWagFile)
-                wagon.UpdateLoadPhysics();
+                Wagon.UpdateLoadPhysics();
         }
 
         public void EmptyAbove()
@@ -906,7 +904,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         /// <summary>
         /// Hides discrete freight animations and containers when remote train quits
         /// </summary>
-        public void HideDiscreteFreightAnimations(MSTSWagon wagon)
+        public void HideDiscreteFreightAnimations()
         {
             foreach (var animation in Animations)
             {
@@ -920,7 +918,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         /// <summary>
         /// Shows discrete freight animations and containers when remote train quits
         /// </summary>
-        public void ShowDiscreteFreightAnimations(MSTSWagon wagon)
+        public void ShowDiscreteFreightAnimations()
         {
             foreach (var animation in Animations)
             {
@@ -931,7 +929,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        public string FreightAnimationADiscretesString()
+        public string FreightAnimationDiscretesString()
         {
             int discretesCount = 0;
             var discretesDataString = "";

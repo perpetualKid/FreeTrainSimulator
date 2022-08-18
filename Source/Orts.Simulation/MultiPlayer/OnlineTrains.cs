@@ -212,7 +212,7 @@ namespace Orts.Simulation.MultiPlayer
                             LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
                             loadDataList.Add(loadData);
                         }
-                        car.FreightAnimations?.Load(car as MSTSWagon, loadDataList);
+                        car.FreightAnimations?.Load(loadDataList);
                     }
                 }
                 catch (Exception error)

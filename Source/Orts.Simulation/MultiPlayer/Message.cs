@@ -484,7 +484,7 @@ namespace Orts.Simulation.MultiPlayer
                 lengths[i] = (int)(t.Cars[i].CarLengthM * 100);
                 faDiscretes[i] = "0";
                 if (t.Cars[i].FreightAnimations != null)
-                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationADiscretesString();
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             if (t.LeadLocomotive != null)
                 leadingID = t.LeadLocomotive.CarID;
@@ -703,7 +703,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 car.Train = train;
                 car.IsPartOfActiveTrain = true;
-                car.FreightAnimations?.ShowDiscreteFreightAnimations(car as MSTSWagon);
+                car.FreightAnimations?.ShowDiscreteFreightAnimations();
             }
         }
     }
@@ -1295,7 +1295,7 @@ namespace Orts.Simulation.MultiPlayer
                     flipped[i] = 0;
                 faDiscretes[i] = "0";
                 if (t.Cars[i].FreightAnimations != null)
-                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationADiscretesString();
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
@@ -1346,7 +1346,7 @@ namespace Orts.Simulation.MultiPlayer
                             LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
                             loadDataList.Add(loadData);
                         }
-                        car.FreightAnimations?.Load(car as MSTSWagon, loadDataList);
+                        car.FreightAnimations?.Load(loadDataList);
                     }
                 }
                 catch (Exception error)
@@ -1504,7 +1504,7 @@ namespace Orts.Simulation.MultiPlayer
                     flipped[i] = 0;
                 faDiscretes[i] = "0";
                 if (t.Cars[i].FreightAnimations != null)
-                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationADiscretesString();
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
@@ -1560,7 +1560,7 @@ namespace Orts.Simulation.MultiPlayer
                                 LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
                                 loadDataList.Add(loadData);
                             }
-                            car.FreightAnimations?.Load(car as MSTSWagon, loadDataList);
+                            car.FreightAnimations?.Load(loadDataList);
                         }
                     }
                     catch (Exception error)
