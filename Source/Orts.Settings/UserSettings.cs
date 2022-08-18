@@ -399,7 +399,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=\"\"",
         })]
 
-        public EnumArray<bool, ViewerWindowType> PopupSettings { get; set; }
+        public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }
         // Menu-game communication settings:
         [Default(false)]
         [DoNotSave]

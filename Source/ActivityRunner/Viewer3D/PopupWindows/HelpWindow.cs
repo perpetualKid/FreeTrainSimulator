@@ -482,6 +482,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return layout;
         }
 
+        private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
+        {
+            settings.PopupSettings[ViewerWindowType.HelpWindow] = e.Tab.ToString();
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.HelpWindow], out TabSettings tab))
+                tabControl.TabAction(tab);
+            tabControl.TabChanged += TabControl_TabChanged;
+        }
+
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
             if (shouldUpdate && ! evaluationCompleted)

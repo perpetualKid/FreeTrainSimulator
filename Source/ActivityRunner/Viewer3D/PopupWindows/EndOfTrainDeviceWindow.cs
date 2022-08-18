@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -23,11 +24,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base(owner, "Available EOT", relativeLocation, new Point(200, 100))
         {
             this.viewer = viewer;
-            foreach (string directory in Directory.EnumerateDirectories(Simulator.Instance.RouteFolder.ContentFolder.EndOfTrainDevicesFolder))
+            if (Directory.Exists(Simulator.Instance.RouteFolder.ContentFolder.EndOfTrainDevicesFolder))
             {
-                foreach (string file in Directory.EnumerateFiles(directory, "*.eot"))
+                foreach (string directory in Directory.EnumerateDirectories(Simulator.Instance.RouteFolder.ContentFolder.EndOfTrainDevicesFolder))
                 {
-                    availableEotContent.Add(file);
+                    foreach (string file in Directory.EnumerateFiles(directory, "*.eot"))
+                    {
+                        availableEotContent.Add(file);
+                    }
                 }
             }
         }
@@ -36,21 +40,29 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             eotLabels.Clear();
             layout = base.Layout(layout, headerScaling);
-            ControlLayout textLine = layout.AddLayoutHorizontalLineOfText();
-            textLine.Add(new Label(this, textLine.RemainingWidth, textLine.RemainingHeight, Catalog.GetString("Device Name")));
-            layout.AddHorizontalSeparator();
-
-            ControlLayout scrollBox = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
-            foreach(string eotDevice in availableEotContent)
+            if (availableEotContent.Count > 0)
             {
-                textLine = scrollBox.AddLayoutHorizontalLineOfText();
-                Label deviceLabel = new Label(this, textLine.RemainingWidth, textLine.RemainingHeight, Path.GetFileNameWithoutExtension(eotDevice))
+                ControlLayout textLine = layout.AddLayoutHorizontalLineOfText();
+                textLine.Add(new Label(this, textLine.RemainingWidth, textLine.RemainingHeight, Catalog.GetString("Device Name")));
+                layout.AddHorizontalSeparator();
+
+                ControlLayout scrollBox = layout.AddLayoutScrollboxVertical(layout.RemainingWidth);
+                foreach (string eotDevice in availableEotContent)
                 {
-                    Tag = eotDevice
-                };
-                deviceLabel.OnClick += DeviceLabel_OnClick;
-                textLine.Add(deviceLabel);
-                eotLabels.Add(deviceLabel);
+                    textLine = scrollBox.AddLayoutHorizontalLineOfText();
+                    Label deviceLabel = new Label(this, textLine.RemainingWidth, textLine.RemainingHeight, Path.GetFileNameWithoutExtension(eotDevice))
+                    {
+                        Tag = eotDevice
+                    };
+                    deviceLabel.OnClick += DeviceLabel_OnClick;
+                    textLine.Add(deviceLabel);
+                    eotLabels.Add(deviceLabel);
+                }
+            }
+            else
+            {
+                ControlLayout textLine = layout.AddLayoutHorizontalLineOfText();
+                textLine.Add(new Label(this, textLine.RemainingWidth, textLine.RemainingHeight, Catalog.GetString("No EOT devices available")));
             }
             return layout;
         }

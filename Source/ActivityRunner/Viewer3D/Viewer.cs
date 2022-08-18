@@ -340,6 +340,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Settings.Save(nameof(Settings.PopupLocations));
             Settings.Save(nameof(Settings.PopupStatus));
+            Settings.Save(nameof(Settings.PopupSettings));
         }
 
         public void Save(BinaryWriter outf, string fileStem)

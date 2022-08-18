@@ -7,6 +7,15 @@ using Orts.Common;
 
 namespace Orts.Graphics.Window.Controls.Layout
 {
+    public class TabChangedEventArgs<T> : EventArgs where T: Enum
+    {
+        public T Tab { get; }
+
+        public TabChangedEventArgs(T tab)
+        {
+            Tab = tab;
+        }
+    }
 
     public class TabControl<T> : ControlLayout where T : Enum
     {
@@ -28,6 +37,8 @@ namespace Orts.Graphics.Window.Controls.Layout
         public T CurrentTab { get; private set; }
 
         public ControlLayout Client { get; private protected set; }
+
+        public event EventHandler<TabChangedEventArgs<T>> TabChanged;
 
         public TabControl(WindowBase window, int width, int height, bool hideEmptyTabs = false) : base(window, 0, 0, width, height)
         {
@@ -53,7 +64,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             if (sender is Label label)
             {
-                TabAction((T)label.Tag);
+                ActivateTab((T)label.Tag);
             }
         }
 
@@ -86,10 +97,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             }
 
             base.Initialize();
-            TabAction(CurrentTab);
+            ActivateTab(CurrentTab);
         }
 
-        private void TabAction(T tab)
+        private void ActivateTab(T tab)
         {
             CurrentTab = tab;
             foreach (TabData tabDataItem in tabData)
@@ -112,6 +123,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                     Client.Initialize();
                 }
             }
+            TabChanged?.Invoke(this, new TabChangedEventArgs<T>(CurrentTab));
         }
 
         public void TabAction()
@@ -122,7 +134,16 @@ namespace Orts.Graphics.Window.Controls.Layout
             }
             while (tabData[CurrentTab] == null);
 
-            TabAction(CurrentTab);
+            ActivateTab(CurrentTab);
+        }
+
+        public void TabAction(T tab)
+        {
+            while (tabData[tab] == null)
+            {
+                tab = tab.Next();
+            }
+            ActivateTab(tab);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Microsoft.Xna.Framework.Point offset)

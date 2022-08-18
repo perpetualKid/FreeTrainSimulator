@@ -5,6 +5,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Input;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -15,7 +16,7 @@ namespace Orts.Toolbox.PopupWindows
 {
     internal class SettingsWindow : WindowBase
     {
-        private readonly ToolboxSettings settings;
+        private readonly ToolboxSettings toolboxSettings;
 
         private enum TabSettings
         {
@@ -33,7 +34,7 @@ namespace Orts.Toolbox.PopupWindows
         public SettingsWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) : 
             base(owner, "Settings", relativeLocation, new Point(360, 200), catalog)
         {
-            this.settings = settings;
+            toolboxSettings = settings;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
@@ -41,7 +42,6 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
             tabControl = new TabControl<TabSettings>(this, layout.RemainingWidth, layout.RemainingHeight);
-
             tabControl.TabLayouts[TabSettings.Common] = (layoutContainer) =>
             {
                 layoutContainer = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
@@ -49,21 +49,33 @@ namespace Orts.Toolbox.PopupWindows
                 int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
                 Checkbox chkLoggingEnabled = new Checkbox(this);
-                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => settings.UserSettings.Logging = (sender as Checkbox).State.Value;
-                chkLoggingEnabled.State = settings.UserSettings.Logging;
+                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.UserSettings.Logging = (sender as Checkbox).State.Value;
+                chkLoggingEnabled.State = toolboxSettings.UserSettings.Logging;
                 line.Add(chkLoggingEnabled);
 
                 line = layoutContainer.AddLayoutHorizontalLineOfText();
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Restore Last View on Start")));
                 Checkbox chkRestoreView = new Checkbox(this);
-                chkRestoreView.OnClick += (object sender, MouseClickEventArgs e) => settings.RestoreLastView = (sender as Checkbox).State.Value;
-                chkRestoreView.State = settings.RestoreLastView;
+                chkRestoreView.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.RestoreLastView = (sender as Checkbox).State.Value;
+                chkRestoreView.State = toolboxSettings.RestoreLastView;
                 line.Add(chkRestoreView);
             };
-
             layout.Add(tabControl);
 
             return layout;
+        }
+
+        private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
+        {
+            toolboxSettings.PopupSettings[WindowType.SettingsWindow] = e.Tab.ToString();
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            if (toolboxSettings.RestoreLastView && EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.SettingsWindow], out TabSettings tab))
+                tabControl.TabAction(tab);
+            tabControl.TabChanged += TabControl_TabChanged;
         }
 
         public override bool Open()
