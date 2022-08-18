@@ -246,19 +246,19 @@ namespace Orts.Graphics.Window.Controls
         internal override bool HandleMouseDrag(WindowMouseEvent e)
         {
             if (e.MousePosition.X > Bounds.Right - scrollbarSize && e.MousePosition.X < Bounds.Right &&
-                e.MousePosition.Y > Bounds.Top + scrollbarSize && e.MousePosition.Y < Bounds.Bottom - scrollbarSize
+                e.MousePosition.Y > Bounds.Top && e.MousePosition.Y < Bounds.Bottom - scrollbarSize
                     && e.Movement != Point.Zero)
             {
                 Window.CapturedControl = this;
-                SetVerticalScrollPosition(verticalScrollPosition + e.Movement.Y * verticalScrollSize / (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize));
+                SetVerticalScrollPosition((int)(verticalScrollSize * (e.MousePosition.Y - Bounds.Top - scrollbarSize) / (Bounds.Height - scrollbarSize * 3.0)));
                 return true;
             }
-            else if (e.MousePosition.X > Bounds.Left + scrollbarSize && e.MousePosition.X < Bounds.Right - scrollbarSize &&
+            else if (e.MousePosition.X > Bounds.Left && e.MousePosition.X < Bounds.Right - scrollbarSize &&
                 e.MousePosition.Y > Bounds.Bottom - scrollbarSize && e.MousePosition.Y < Bounds.Bottom
                     && e.Movement != Point.Zero)
             {
                 Window.CapturedControl = this;
-                SetHorizontalScrollPosition(horizontalScrollPosition + e.Movement.X * horizontalScrollSize / (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize));
+                SetHorizontalScrollPosition((int)(horizontalScrollSize * (e.MousePosition.X - Bounds.Left - scrollbarSize) / (Bounds.Width - scrollbarSize * 3.0)));
                 return true;
             }
             return Window.CapturedControl == this || base.HandleMouseDrag(e);
@@ -284,41 +284,43 @@ namespace Orts.Graphics.Window.Controls
 
         private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (Environment.TickCount64 < ticks)
+            if (Environment.TickCount64 < ticks || Window.CapturedControl != null)
                 return true;
             ticks = Environment.TickCount64 + mouseClickScrollDelay;
             if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && e.MousePosition.X < Bounds.Right - (rightGutterFactor - 1) * scrollbarSize)//horizontal scrollbar
             {
+                double mousePositionInScrollbar = (e.MousePosition.X - Bounds.Left - scrollbarSize) / (Bounds.Width - scrollbarSize * 3.0);
                 // Mouse down occured within the scrollbar.
                 if (e.MousePosition.X < Bounds.Left + scrollbarSize)
                     // Mouse down occured on left button.
                     SetHorizontalScrollPosition(horizontalScrollPosition - Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.X < Bounds.Left + scrollbarSize + (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
                     // Mouse down occured on left gutter.
-                    SetHorizontalScrollPosition(horizontalScrollPosition - Bounds.Width);
+                    SetHorizontalScrollPosition(Math.Max(horizontalScrollPosition - Bounds.Width, (int)(horizontalScrollSize * mousePositionInScrollbar)));
                 else if (e.MousePosition.X > Bounds.Width - rightGutterFactor * scrollbarSize)
                     // Mouse down occured on right button.
                     SetHorizontalScrollPosition(horizontalScrollPosition + Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.X > Bounds.Left + rightGutterFactor * scrollbarSize + (Bounds.Width - (2 + rightGutterFactor) * scrollbarSize) * horizontalScrollPosition / horizontalScrollSize)
                     // Mouse down occured on right gutter.
-                    SetHorizontalScrollPosition(horizontalScrollPosition + Bounds.Width);
+                    SetHorizontalScrollPosition(Math.Min(horizontalScrollPosition + Bounds.Width, (int)(horizontalScrollSize * mousePositionInScrollbar)));
                 return true;
             }
             else if (e.MousePosition.X > Bounds.Right - scrollbarSize && e.MousePosition.Y < Bounds.Bottom - (bottomGutterFactor - 1) * scrollbarSize)//vertical scrollbar
             {
+                double mousePositionInScrollbar = (e.MousePosition.Y - Bounds.Top - scrollbarSize) / (Bounds.Height - scrollbarSize * 3.0);
                 // Mouse down occured within the scrollbar.
                 if (e.MousePosition.Y < Bounds.Top + scrollbarSize)
                     // Mouse down occured on top button.
                     SetVerticalScrollPosition(verticalScrollPosition - Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.Y < Bounds.Top + scrollbarSize + (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
                     // Mouse down occured on top gutter.
-                    SetVerticalScrollPosition(verticalScrollPosition - Bounds.Height);
+                    SetVerticalScrollPosition(Math.Max(verticalScrollPosition - Bounds.Height, (int)(verticalScrollSize * mousePositionInScrollbar)));
                 else if (e.MousePosition.Y > Bounds.Bottom - bottomGutterFactor * scrollbarSize)
                     // Mouse down occured on bottom button.
                     SetVerticalScrollPosition(verticalScrollPosition + Window.Owner.TextFontDefault.Height);
                 else if (e.MousePosition.Y > Bounds.Top + bottomGutterFactor * scrollbarSize + (Bounds.Height - (2 + bottomGutterFactor) * scrollbarSize) * verticalScrollPosition / verticalScrollSize)
                     // Mouse down occured on bottom gutter.
-                    SetVerticalScrollPosition(verticalScrollPosition + Bounds.Height);
+                    SetVerticalScrollPosition(Math.Min(verticalScrollPosition + Bounds.Height, (int)(verticalScrollSize * mousePositionInScrollbar)));
                 return true;
             }
 
