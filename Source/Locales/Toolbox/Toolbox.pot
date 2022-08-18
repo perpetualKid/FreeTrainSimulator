@@ -1,0 +1,385 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Toolbox\n"
+"POT-Creation-Date: 2022-08-18 08:52:05+0200\n"
+"PO-Revision-Date: 2022-08-18 08:52:05+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: GetText.NET Extractor\n"
+
+#: ..\..\..\Toolbox\GameWindow.cs:73
+#, csharp-format
+msgid " Route: {0}"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:105
+#, csharp-format
+msgid "{0} {1}"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:702
+msgid "About"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:473
+msgid "Background Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:47
+#, csharp-format
+msgid "Cancel ({0})"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:7
+msgid "Cancel or Close"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:283
+msgid "Car Spawners"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:9
+msgid "Change Screen Mode"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:22
+msgid "Common"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:235
+msgid "Crossver Nodes"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:19
+msgid "Debug Information (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:322
+msgid "Do you want to visit the website now?"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:695
+msgid "Documentation"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:319
+#, csharp-format
+msgid "Documentation for {0} is available online at:"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:679
+msgid "Enable Editing"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:50
+msgid "Enable Logging"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:221
+msgid "End Nodes"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:137
+msgid "File"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:26
+msgid "Graphics"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:374
+msgid "Hazards"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:689
+msgid "Help"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:21
+msgid "Help Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:168
+msgid "Image files (*.png)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:303
+msgid "Interactives"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:228
+msgid "Junction Nodes"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:242
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:276
+msgid "Level Crossings"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:666
+msgid "Load Path"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:111
+#, csharp-format
+msgid "Location (x, z) {0,4:00.##} {1,4:00.##}"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:20
+msgid "Location Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:24
+msgid "Log Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:311
+msgid "Main Signals"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:124
+msgid "MenuStrip1"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:367
+msgid "Mileposts"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:14
+msgid "Move Down (South)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:11
+msgid "Move Left (East)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:12
+msgid "Move Right (West)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:13
+msgid "Move Up (North)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:318
+msgid "Other Signals"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:593
+msgid "Path Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:660
+msgid "Path Editor"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:408
+msgid "Paths"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:381
+msgid "Pickup Points (Fuel, Cargo)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:608
+msgid "Platform Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:332
+msgid "Platform Names"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:325
+msgid "Platforms"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:438
+msgid "Preferences"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:10
+msgid "Quit"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:45
+#, csharp-format
+msgid "Quit ({0})"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:165
+msgid "Quit (Q)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:17
+msgid "Reset Zoom and Center Location"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:445
+msgid "Restore last view on Start"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:57
+msgid "Restore Last View on Start"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:563
+msgid "Road Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:578
+msgid "Road End Node Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:269
+msgid "Road End Nodes"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:254
+msgid "Road Items"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:262
+msgid "Road Segments"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:18
+msgid "Screenshot"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:454
+msgid "Select Language"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:154
+msgid "Select Route"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:148
+msgid "Select Route Folder"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:23
+msgid "Settings Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:415
+msgid "Show Path"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:623
+msgid "Siding Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:353
+msgid "Siding Names"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:346
+msgid "Sidings"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:388
+msgid "Sound Regions"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:8
+msgid "Span another instance"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:360
+msgid "Speed Limits"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:638
+msgid "SpeedPost Text Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:339
+msgid "Station Names"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\StatusbarControl.Designer.cs:51
+msgid "statusStrip1"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:54
+#, csharp-format
+msgid "Take Screenshot ({0})"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:187
+msgid "Take Screenshot (PrtScr)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:323
+msgid "This will open the page in standard web browser."
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:110
+#, csharp-format
+msgid "Tile (X:Z) {0}:{1}"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:76
+msgid "Tile Coordinates"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:395
+msgid "Tile Grid"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:24
+msgid "Toolbox"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:488
+msgid "Track Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:533
+msgid "Track Crossing Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:503
+msgid "Track End Node Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:206
+msgid "Track Items"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:518
+msgid "Track Junction Node Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:548
+msgid "Track Level Crossing Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:22
+msgid "Track Node Info Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:214
+msgid "Track Segments"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:181
+msgid "View"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:76
+msgid "World Coordinates"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:15
+msgid "Zoom In"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:16
+msgid "Zoom Out"
+msgstr ""
+

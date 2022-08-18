@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Updater\n"
-"POT-Creation-Date: 2021-04-14 22:55:28+0200\n"
-"PO-Revision-Date: 2021-04-14 22:55:28+0200\n"
+"POT-Creation-Date: 2022-08-18 08:52:06+0200\n"
+"PO-Revision-Date: 2022-08-18 08:52:06+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,13 +10,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\Updater\UpdaterProgress.cs:153
-#: ..\..\Updater\UpdaterProgress.cs:179
+#: ..\..\..\Updater\UpdaterProgress.cs:146
+#: ..\..\..\Updater\UpdaterProgress.cs:173
 #, csharp-format
 msgid "Error: {0} {1}"
 msgstr ""
 
-#: ..\..\Updater\UpdaterProgress.Designer.cs:58
+#: ..\..\..\Updater\UpdaterProgress.Designer.cs:58
 msgid "Open Rails Updater"
 msgstr ""
 
