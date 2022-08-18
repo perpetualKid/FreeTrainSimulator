@@ -5,11 +5,11 @@ This is a fork of [OpenRails](http://www.openrails.org), running on .NET Core an
 ## Feature overview
 In addition to all the features from OpenRails, this version includes:  
 - Most recent version of Monogame (3.8) 
-- build on .NET Core (3.1), which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine) for Linux support)
+- build on .NET 6, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine) for Linux support)
 - full 64bit support, removing out-of-memory situations and allows to use all available system memory also beyond 3GB/4GB barrier as with 32bit software
 - rewritten SignalScript parsing engine for faster loading time
 - [Standalone Multiplayer server](https://github.com/perpetualKid/ORTS-MG/wiki#2021-12-05-multiplayer-standalone-server) simplifying multi-player games
-- New [TrackViewer](https://github.com/perpetualKid/ORTS-MG/wiki#2021-03-09-new-trackviewer-preview), also handling large routes smoothly
+- New [TrackViewer Toolbox](https://github.com/perpetualKid/ORTS-MG/wiki#2021-03-09-new-trackviewer-preview), also handling large routes smoothly
 - Rewritten RailDriver support, with built-in unit calibration support, no need to to handle extra files&tools
 - New Translation engine, allowing for simpler Localization (support for PoEdit .mo files removes the need for compiled resource dlls)
 - Many performance optimizations
