@@ -1018,5 +1018,6 @@ namespace Orts.Common
         CompassWindow,
         SwitchWindow,
         EndOfTrainDeviceWindow,
+        NextStationWindow,
     }
 }

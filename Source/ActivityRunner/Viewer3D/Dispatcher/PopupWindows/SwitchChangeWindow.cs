@@ -20,8 +20,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private RadioButton rbtnMain;
         private RadioButton rbtnSiding;
 
-        public SwitchChangeWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Change Switch", relativeLocation, new Point(120, 65))
+        public SwitchChangeWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), (catalog ??= CatalogManager.Catalog).GetString("Change Switch"), relativeLocation, new Point(120, 65), catalog)
         {
             Modal = true;
             offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));

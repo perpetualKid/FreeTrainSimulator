@@ -20,7 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private Checkbox chkShowTrainNames;
 
         public SettingsWindow(WindowManager owner, DispatcherSettings settings, 
-            Point relativeLocation, Catalog catalog = null) : base(owner, "Settings", relativeLocation, new Point(200, 100), catalog)
+            Point relativeLocation, Catalog catalog = null) : base(owner, (catalog??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(200, 100), catalog)
         {
             this.settings = settings;
         }

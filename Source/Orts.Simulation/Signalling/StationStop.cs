@@ -99,7 +99,7 @@ namespace Orts.Simulation.Signalling
             }
             ActualArrival = -1;
             ActualDepart = -1;
-            DistanceToTrainM = 9999999f;
+            DistanceToTrainM = float.NaN;
             Passed = false;
 
             Terminal = terminal;
@@ -169,7 +169,7 @@ namespace Orts.Simulation.Signalling
             DepartTime = inf.ReadInt32();
             ActualArrival = inf.ReadInt32();
             ActualDepart = inf.ReadInt32();
-            DistanceToTrainM = 9999999f;
+            DistanceToTrainM = float.NaN;
             Passed = inf.ReadBoolean();
 
             int totalConnectionsWaiting = inf.ReadInt32();

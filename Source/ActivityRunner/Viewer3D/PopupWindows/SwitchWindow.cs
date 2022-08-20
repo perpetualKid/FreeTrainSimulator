@@ -1,10 +1,13 @@
 ﻿
 using System;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;
@@ -19,7 +22,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal class SwitchWindow : WindowBase
     {
         private const int SwitchImageSize = 32;
-        private readonly Viewer viewer;
         private ImageControl forwardEye;
         private ImageControl backwardEye;
         private ImageControl trainDirection;
@@ -30,10 +32,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Rectangle switchSection = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize);
         private Texture2D switchStatesTexture;
 
-        public SwitchWindow(WindowManager owner, Point relativeLocation, Viewer viewer) :
-            base(owner, "Switch", relativeLocation, new Point(74, 94))
+        public SwitchWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Switch"), relativeLocation, new Point(74, 94), catalog)
         {
-            this.viewer = viewer;
             CloseButton = false;
         }
 
@@ -54,17 +55,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void SwitchBackward_OnClick(object sender, MouseClickEventArgs e)
         {
-            _ = new ToggleSwitchBehindCommand(viewer.Log);
+            _ = new ToggleSwitchBehindCommand(Simulator.Instance.Log);
         }
 
         private void SwitchForward_OnClick(object sender, MouseClickEventArgs e)
         {
-            _ = new ToggleSwitchAheadCommand(viewer.Log);
+            _ = new ToggleSwitchAheadCommand(Simulator.Instance.Log);
         }
 
         protected override void Initialize()
         {
-            switchStatesTexture = SharedTextureManager.Get(viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(viewer.ContentPath, "SwitchStates.png"));
+            switchStatesTexture = SharedTextureManager.Get(Owner.Game.GraphicsDevice, System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SwitchStates.png"));
             base.Initialize();
         }
 
@@ -90,7 +91,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void UpdateDirection()
         {
-            directionSection.X = viewer.PlayerTrain.MUDirection switch
+            directionSection.X = Simulator.Instance.PlayerLocomotive.Train.MUDirection switch
             {
                 MidpointDirection.Forward => 2 * SwitchImageSize,
                 MidpointDirection.Reverse => 1 * SwitchImageSize,
@@ -104,7 +105,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             void UpdateSwitch(bool front)
             {
                 switchSection.Location = Point.Zero;
-                Traveller traveller = front ? new Traveller(viewer.PlayerTrain.FrontTDBTraveller) : new Traveller(viewer.PlayerTrain.RearTDBTraveller, true);
+                Traveller traveller = front ? new Traveller(Simulator.Instance.PlayerLocomotive.Train.FrontTDBTraveller) : new Traveller(Simulator.Instance.PlayerLocomotive.Train.RearTDBTraveller, true);
                 TrackNode previousNode = traveller.TrackNode;
                 TrackJunctionNode switchNode = null;
                 while (traveller.NextSection())

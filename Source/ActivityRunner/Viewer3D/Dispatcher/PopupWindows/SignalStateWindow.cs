@@ -27,8 +27,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private readonly SignalStateInformation signalStateInformation = new SignalStateInformation();
         private Signal signal;
 
-        public SignalStateWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, "Signal State", relativeLocation, new Point(220, 140))
+        public SignalStateWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Signal State"), relativeLocation, new Point(220, 140), catalog)
         {
         }
 

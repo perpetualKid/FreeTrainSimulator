@@ -514,18 +514,18 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.SwitchWindow switchWindow = new PopupWindows.SwitchWindow(
-                    windowManager,
-                    Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint(),
-                    this);
+                PopupWindows.SwitchWindow switchWindow = new PopupWindows.SwitchWindow(windowManager, Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint());
                 return switchWindow;
             }));
             windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.EndOfTrainDeviceWindow switchWindow = new PopupWindows.EndOfTrainDeviceWindow(
-                    windowManager,
-                    Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint(),
-                    this);
+                PopupWindows.EndOfTrainDeviceWindow switchWindow = new PopupWindows.EndOfTrainDeviceWindow(windowManager, Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint());
+                return switchWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.NextStationWindow switchWindow = new PopupWindows.NextStationWindow(
+                    windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint(), this);
                 return switchWindow;
             }));
 
@@ -665,6 +665,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     NextStationWindow.TabAction();
                 else
                     NextStationWindow.Visible = !NextStationWindow.Visible;
+                windowManager[ViewerWindowType.NextStationWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayCompassWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

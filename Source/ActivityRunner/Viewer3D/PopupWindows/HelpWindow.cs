@@ -69,8 +69,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private TextBox reportText;
         private bool evaluationCompleted;
 
-        public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings) :
-            base(owner, "Help", relativeLocation, new Point(560, 380))
+        public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(560, 380), catalog)
         {
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
@@ -595,19 +595,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return result;
         }
 
-        public static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
+        private static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
         {
-            if (actual.HasValue && actual.Value <= expected)
-                return Color.LightGreen;
-            return Color.LightSalmon;
+            return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
         }
 
-        public static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
+        private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
         {
-            if (actual.HasValue && actual.Value >= expected)
-                return Color.LightGreen;
-            return Color.LightSalmon;
+            return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
         }
-
     }
 }

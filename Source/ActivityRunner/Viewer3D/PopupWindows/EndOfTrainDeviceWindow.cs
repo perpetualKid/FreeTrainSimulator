@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Graphics.Window;
@@ -16,14 +18,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class EndOfTrainDeviceWindow : WindowBase
     {
-        private readonly Viewer viewer;
         private readonly List<string> availableEotContent = new List<string>();
         private readonly List<Label> eotLabels = new List<Label>();
 
-        public EndOfTrainDeviceWindow(WindowManager owner, Point relativeLocation, Viewer viewer) :
-            base(owner, "Available EOT", relativeLocation, new Point(200, 100))
+        public EndOfTrainDeviceWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Available EOT"), relativeLocation, new Point(200, 100), catalog)
         {
-            this.viewer = viewer;
             if (Directory.Exists(Simulator.Instance.RouteFolder.ContentFolder.EndOfTrainDevicesFolder))
             {
                 foreach (string directory in Directory.EnumerateDirectories(Simulator.Instance.RouteFolder.ContentFolder.EndOfTrainDevicesFolder))
@@ -87,12 +87,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         return;
                     }
                     //Ask to mount EOT
-                    _ = new EOTMountCommand(viewer.Log, true, currentLabel.Tag as string);
+                    _ = new EOTMountCommand(Simulator.Instance.Log, true, currentLabel.Tag as string);
                     currentLabel.TextColor = Color.OrangeRed;
                 }
                 else if ((currentLabel.Tag as string).Equals(playerLocomotive.Train.Cars[^1].WagFilePath, StringComparison.OrdinalIgnoreCase))
                 {
-                    _ = new EOTMountCommand(viewer.Log, false, currentLabel.Tag as string);
+                    _ = new EOTMountCommand(Simulator.Instance.Log, false, currentLabel.Tag as string);
                     currentLabel.TextColor = Color.White;
                 }
                 else

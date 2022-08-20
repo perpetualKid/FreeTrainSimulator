@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private TrainCar locomotive;
         
         public TrainInformationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
-            base(owner, "Train Information", relativeLocation, new Point(200, 180), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Information"), relativeLocation, new Point(200, 180), catalog)
         {
         }
 

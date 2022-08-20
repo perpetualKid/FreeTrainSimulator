@@ -20,8 +20,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     {
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, "Pause Menu", relativeLocation, new Point(280, 112))
+        public QuitWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(280, 112), catalog)
         {
             Modal = true;
             if (MultiPlayerManager.IsMultiPlayer())
@@ -71,7 +71,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void QuitLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            Program.Viewer.Game.PopState();
+            (Owner.Game as GameHost).PopState();
         }
 
         public override bool Open()

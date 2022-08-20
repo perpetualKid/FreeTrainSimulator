@@ -122,20 +122,16 @@ namespace Orts.Common
             if (isMetric)
             {
                 // <0.1 kilometres, show metres.
-                if (Math.Abs(distance) < 100)
-                {
-                    return string.Format(CultureInfo.CurrentCulture,
-                        "{0:N0}m", distance);
-                }
-                return string.Format(CultureInfo.CurrentCulture,
+                return Math.Abs(distance) < 100
+                    ? string.Format(CultureInfo.CurrentCulture,
+                        "{0:N0}m", distance)
+                    : string.Format(CultureInfo.CurrentCulture,
                     "{0:F1}km", Size.Length.ToKM(distance));
             }
             // <0.1 miles, show yards.
-            if (Math.Abs(distance) < Size.Length.FromMi(0.1))
-            {
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance));
-            }
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1}mi", Size.Length.ToMi(distance));
+            return Math.Abs(distance) < Size.Length.FromMi(0.1)
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance))
+                : string.Format(CultureInfo.CurrentCulture, "{0:F1}mi", Size.Length.ToMi(distance));
         }
 
         /// <summary>
@@ -146,32 +142,28 @@ namespace Orts.Common
             if (isMetric)
             {
                 // <0.1 kilometres, show metres.
-                if (Math.Abs(distance) < 100)
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m);
-                }
-                return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
+                return Math.Abs(distance) < 100
+                    ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m)
+                    : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
             }
             // <0.1 miles, show yards.
-            if (Math.Abs(distance) < Size.Length.FromMi(0.1))
-            {
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd);
-            }
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
+            return Math.Abs(distance) < Size.Length.FromMi(0.1)
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd)
+                : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
         }
 
         public static string FormatShortDistanceDisplay(double distanceM, bool isMetric)
         {
-            if (isMetric)
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distanceM, m);
-            return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToFt(distanceM), ft);
+            return isMetric
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distanceM, m)
+                : string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToFt(distanceM), ft);
         }
 
         public static string FormatVeryShortDistanceDisplay(double distanceM, bool isMetric)
         {
-            if (isMetric)
-                return string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", distanceM, m);
-            return string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", Size.Length.ToFt(distanceM), ft);
+            return isMetric
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", distanceM, m)
+                : string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", Size.Length.ToFt(distanceM), ft);
         }
 
         /// <summary>
@@ -185,14 +177,9 @@ namespace Orts.Common
             {
                 // < 1 tons, show kilograms.
                 double tonnes = Mass.Kilogram.ToTonnes(mass);
-                if (Math.Abs(tonnes) > 1)
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", tonnes, t);
-                }
-                else
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", mass, kg);
-                }
+                return Math.Abs(tonnes) > 1
+                    ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", tonnes, t)
+                    : string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", mass, kg);
             }
             else
             {
@@ -209,10 +196,7 @@ namespace Orts.Common
                 return FormatMass(mass, isMetric);
 
             double massT = isUK ? Mass.Kilogram.ToTonsUK(mass) : Mass.Kilogram.ToTonsUS(mass);
-            if (massT > 1)
-                return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS);
-            else
-                return FormatMass(mass, isMetric);
+            return massT > 1 ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS) : FormatMass(mass, isMetric);
         }
 
         /// <summary>
@@ -366,6 +350,14 @@ namespace Orts.Common
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
 
             return $"{duration.Hours:D2}:{duration.Minutes:D2}";
+        }
+
+        /// <summary>
+        /// Converts a timespan in MM:SS format also if more than one hour
+        /// </summary>
+        public static string FormatDelayTime(TimeSpan delay)
+        {
+            return $"{(int)delay.TotalMinutes}:{delay.Seconds:00}";
         }
 
         public static string Max(this string value, int length)

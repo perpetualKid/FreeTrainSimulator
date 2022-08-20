@@ -1,6 +1,8 @@
 ﻿
 using System;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
@@ -21,8 +23,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly string lat;
         private readonly string lon;
              
-        public CompassWindow(WindowManager owner, Point relativeLocation, Viewer viewer) :
-            base(owner, "Compass", relativeLocation, new Point(240, 80))
+        public CompassWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Compass"), relativeLocation, new Point(240, 80), catalog)
         {
             this.viewer = viewer;
             lat = Catalog.GetString($"Lat:");
