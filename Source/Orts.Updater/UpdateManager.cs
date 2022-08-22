@@ -208,7 +208,7 @@ namespace Orts.Updater
         public Task RunUpdateProcess(string targetVersion)
         {
             Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{VersionCommandLine}\"{targetVersion}\" " +
-                $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
+                $"{WaitProcessIdCommandLine}{Environment.ProcessId} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
             Environment.Exit(0);
             return updateTask;
         }
