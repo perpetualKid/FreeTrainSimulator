@@ -202,32 +202,11 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            if (inf.ReadBoolean())
-            {
-                ActualMinStopTime = inf.ReadInt32();
-            }
-            else
-            {
-                ActualMinStopTime = null;
-            }
+            ActualMinStopTime = inf.ReadBoolean() ? inf.ReadInt32() : null;
 
-            if (inf.ReadBoolean())
-            {
-                KeepClearFront = inf.ReadSingle();
-            }
-            else
-            {
-                KeepClearFront = null;
-            }
+            KeepClearFront = inf.ReadBoolean() ? inf.ReadSingle() : null;
 
-            if (inf.ReadBoolean())
-            {
-                KeepClearRear = inf.ReadSingle();
-            }
-            else
-            {
-                KeepClearRear = null;
-            }
+            KeepClearRear = inf.ReadBoolean() ? inf.ReadSingle() : null;
 
             Terminal = inf.ReadBoolean();
             ForcePosition = inf.ReadBoolean();
@@ -251,9 +230,7 @@ namespace Orts.Simulation.Signalling
             if (result != 0)
                 return result / Math.Abs(result);
             result = StopOffset.CompareTo(other.StopOffset);
-            if (result != 0)
-                return result / Math.Abs(result);
-            return 0;
+            return result != 0 ? result / Math.Abs(result) : 0;
         }
 
         public override bool Equals(object obj)
@@ -486,7 +463,7 @@ namespace Orts.Simulation.Signalling
             {
                 int actualNumPassengersWaiting = PlatformItem.NumPassengersWaiting;
                 if (train.TrainType != TrainType.AiPlayerHosting)
-                    actualNumPassengersWaiting = RandomizePassengersWaiting(PlatformItem.NumPassengersWaiting, train);
+                    actualNumPassengersWaiting = RandomizePassengersWaiting(PlatformItem.NumPassengersWaiting);
                 stopTime = Math.Max(NumSecPerPass * actualNumPassengersWaiting / passengerCarsWithinPlatform, DefaultFreightStopTime);
             }
             else 
@@ -503,9 +480,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal bool CheckScheduleValidity(Train train)
         {
-            if (train.TrainType != TrainType.Ai) 
-                return true;
-            return (!(ArrivalTime == DepartTime && Math.Abs(ArrivalTime - ActualArrival) > 14400));
+            return train.TrainType != TrainType.Ai ? true : !(ArrivalTime == DepartTime && Math.Abs(ArrivalTime - ActualArrival) > 14400);
         }
 
         //================================================================================================//
@@ -514,7 +489,7 @@ namespace Orts.Simulation.Signalling
         /// Randomizes number of passengers waiting for train, and therefore boarding time
         /// Randomization can be upwards or downwards
         /// </summary>
-        private int RandomizePassengersWaiting(int actualNumPassengersWaiting, Train train)
+        private int RandomizePassengersWaiting(int actualNumPassengersWaiting)
         {
             if (Simulator.Instance.Settings.ActRandomizationLevel > 0)
             {
