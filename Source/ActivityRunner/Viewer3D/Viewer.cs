@@ -112,7 +112,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
-        public TrainListWindow TrainListWindow { get; private set; } // for switching driven train
 
         // Route Information
         public TileManager Tiles { get; private set; }
@@ -479,7 +478,6 @@ namespace Orts.ActivityRunner.Viewer3D
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
-            TrainListWindow = new TrainListWindow(WindowManager);
             WindowManager.Initialize();
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
@@ -525,8 +523,13 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.TimetableDetachWindow detachhWindow = new PopupWindows.TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
-                return detachhWindow;
+                PopupWindows.TimetableDetachWindow detachWindow = new PopupWindows.TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
+                return detachWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrainListWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.TrainListWindow trainListWindow = new PopupWindows.TrainListWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
+                return trainListWindow;
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -682,7 +685,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     SignallingDebugWindow.Visible = !SignallingDebugWindow.Visible;
             });
             UserCommandController.AddEvent(UserCommand.DisplayBasicHUDToggle, KeyEventType.KeyPressed, HUDWindow.ToggleBasicHUD);
-            UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () => TrainListWindow.Visible = !TrainListWindow.Visible);
+            UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () =>
+            {
+                windowManager[ViewerWindowType.TrainListWindow].ToggleVisibility();
+            });
             UserCommandController.AddEvent(UserCommand.DisplayEOTListWindow, KeyEventType.KeyPressed, () =>
             {
                 windowManager[ViewerWindowType.EndOfTrainDeviceWindow].ToggleVisibility();
@@ -1451,7 +1457,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (SelectedTrain != Program.DebugViewer.PickedTrain)
                 {
                     SelectedTrain = Program.DebugViewer.PickedTrain;
-                    Simulator.AI.aiListChanged = true;
+                    Simulator.AI.TrainListChanged = true;
 
                     if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
                         SelectedTrain = PlayerTrain;
@@ -1467,7 +1473,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (SelectedTrain != Simulator.TrainSwitcher.PickedTrainFromList && SelectedTrain.Cars != null || SelectedTrain.Cars.Count != 0)
                 {
                     SelectedTrain = Simulator.TrainSwitcher.PickedTrainFromList;
-                    Simulator.AI.aiListChanged = true;
+                    Simulator.AI.TrainListChanged = true;
 
                     CameraActivate();
                 }
@@ -1648,7 +1654,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 SelectedTrain = PlayerTrain;
             }
-            Simulator.AI.aiListChanged = true;
+            Simulator.AI.TrainListChanged = true;
             CameraActivate();
         }
 

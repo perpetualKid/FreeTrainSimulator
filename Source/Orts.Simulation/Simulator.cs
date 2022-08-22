@@ -800,7 +800,7 @@ namespace Orts.Simulation
             }
 
             drivenTrain.UpdateTrackActionsCoupling(coupleToFront);
-            AI.aiListChanged = true;
+            AI.TrainListChanged = true;
         }
 
         private static void UpdateUncoupled(Train drivenTrain, Train train, float d1, float d2, bool rear)
@@ -1631,7 +1631,7 @@ namespace Orts.Simulation
             if (Confirmer != null && IsReplaying)
                 Confirmer.Confirm(CabControl.Uncouple, train.LastCar.CarID);
             if (AI != null)
-                AI.aiListChanged = true;
+                AI.TrainListChanged = true;
             if (train2.TrainType == TrainType.Static && (train.TrainType == TrainType.Player || train.TrainType == TrainType.AiPlayerDriven))
             {
                 // check if detached on turntable or transfertable
@@ -1736,7 +1736,7 @@ namespace Orts.Simulation
                     }
                     if (selectedAsPlayer.TrainType == TrainType.Ai)
                     {
-                        ((AITrain)selectedAsPlayer).AI.aiListChanged = true;
+                        ((AITrain)selectedAsPlayer).AI.TrainListChanged = true;
                         // Move reversal point under train if there is one in the section where the train is
                         if (selectedAsPlayer.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                             selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath][^1].TrackCircuitSection.Index &&
@@ -1821,7 +1821,7 @@ namespace Orts.Simulation
             else
             {
                 TrainSwitcher.ClickedSelectedAsPlayer = false;
-                AI.aiListChanged = true;
+                AI.TrainListChanged = true;
             }
         }
 
@@ -1845,7 +1845,7 @@ namespace Orts.Simulation
             OnPlayerLocomotiveChanged();
             playerSwitchOngoing = false;
             TrainSwitcher.ClickedSelectedAsPlayer = false;
-            AI.aiListChanged = true;
+            AI.TrainListChanged = true;
         }
 
         /// <summary>

@@ -2520,7 +2520,7 @@ namespace Orts.Simulation.AIs
                                 {
                                     MovementState = AiMovementState.Stopped;
                                     CoupleAI(OtherTrain, thisTrainFront, otherTrainFront);
-                                    AI.aiListChanged = true;
+                                    AI.TrainListChanged = true;
                                     attachTo = -1;
                                 }
                                 else if ((SpeedMpS - reqMinSpeedMpS) > 0.1f)

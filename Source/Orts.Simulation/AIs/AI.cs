@@ -29,7 +29,6 @@
 // #define DEBUG_DEADLOCK
 //
 
-using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,9 +42,9 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
-using static Orts.Formats.Msts.FolderStructure.ContentFolder;
 
 namespace Orts.Simulation.AIs
 {
@@ -61,7 +60,7 @@ namespace Orts.Simulation.AIs
         public List<AITrain> TrainsToRemove = new List<AITrain>();
         public List<AITrain> TrainsToAdd = new List<AITrain>();
         public List<AITrain> TrainsToRemoveFromAI = new List<AITrain>();
-        public bool aiListChanged = true; // To indicate to TrainListWindow that the list has changed;
+        public bool TrainListChanged { get; set; } = true; // To indicate to TrainListWindow that the list has changed;
 
         /// <summary>
         /// Loads AI train information from activity file.
@@ -109,7 +108,7 @@ namespace Orts.Simulation.AIs
                 {
                     train.AI = this;
                     AITrains.Add(train);
-                    aiListChanged = true;
+                    TrainListChanged = true;
                 }
                 else if (train.TrainType == TrainType.PlayerIntended)
                 {
@@ -1021,7 +1020,7 @@ namespace Orts.Simulation.AIs
                 thisTrain.ActualWaitTimeS = 0; // reset wait counter //
                 thisTrain.TrainType = TrainType.Ai;
                 AITrains.Add(thisTrain);
-                aiListChanged = true;
+                TrainListChanged = true;
                 Simulator.Trains.Add(thisTrain);
                 if (Simulator.TrainDictionary.ContainsKey(thisTrain.Number)) Simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
                 Simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
@@ -1322,7 +1321,7 @@ namespace Orts.Simulation.AIs
                     AITrains.Remove(train);
                     Simulator.Trains.Remove(train);
                     removeList.Add(train);
-                    aiListChanged = true;
+                    TrainListChanged = true;
                     if (train.Cars.Count > 0 && train.Cars[0].Train == train)
                     {
                         foreach (TrainCar car in train.Cars)
@@ -1352,7 +1351,7 @@ namespace Orts.Simulation.AIs
             foreach (AITrain train in TrainsToRemoveFromAI)
             {
                 AITrains.Remove(train);
-                aiListChanged = true;
+                TrainListChanged = true;
             }
 
             TrainsToRemoveFromAI.Clear();
@@ -1368,7 +1367,7 @@ namespace Orts.Simulation.AIs
                     Simulator.NameDictionary.Remove(train.Name);
                 Simulator.NameDictionary.Add(train.Name, train);
                 AITrains.Add(train);
-                aiListChanged = true;
+                TrainListChanged = true;
                 if (train.TrainType != TrainType.PlayerIntended && train.TrainType != TrainType.Player) Simulator.Trains.Add(train);
             }
             TrainsToAdd.Clear();

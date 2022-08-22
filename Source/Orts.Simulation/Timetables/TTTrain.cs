@@ -9959,7 +9959,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.OrgAINumber = nextTrainNumber;
                     formedTrain.Number = 0;
                     AI.TrainsToAdd.Add(formedTrain);
-                    AI.aiListChanged = true;
+                    AI.TrainListChanged = true;
                     simulator.Trains.Add(formedTrain);
 
                     formedTrain.SetFormedOccupied();
@@ -10665,7 +10665,7 @@ namespace Orts.Simulation.Timetables
                 attachTrain.AI.TrainsToRemoveFromAI.Add(attachTrain);
                 simulator.Trains.Remove(attachTrain);
                 attachTrain.AI.TrainsToAdd.Add(attachTrain);
-                attachTrain.AI.aiListChanged = true;
+                attachTrain.AI.TrainListChanged = true;
                 simulator.Trains.Add(attachTrain);
 
                 attachTrain.SetFormedOccupied();
@@ -12490,7 +12490,7 @@ namespace Orts.Simulation.Timetables
                             newTrain.Number = 0;
                             newTrain.LeadLocomotiveIndex = newLocoIndex;
                             newTrain.AI.TrainsToAdd.Add(newTrain);
-                            newTrain.AI.aiListChanged = true;
+                            newTrain.AI.TrainListChanged = true;
                             Simulator.Instance.Trains.Add(newTrain);
 
                             newTrain.SetFormedOccupied();
@@ -12665,7 +12665,7 @@ namespace Orts.Simulation.Timetables
                 newTrain.ControlMode = TrainControlMode.Inactive;
                 newTrain.MovementState = AiMovementState.Static;
                 newTrain.AI.TrainsToAdd.Add(newTrain);
-                newTrain.AI.aiListChanged = true;
+                newTrain.AI.TrainListChanged = true;
                 Simulator.Instance.Trains.Add(newTrain);
 
                 newTrain.SetFormedOccupied();

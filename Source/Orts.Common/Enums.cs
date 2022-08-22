@@ -1020,5 +1020,6 @@ namespace Orts.Common
         EndOfTrainDeviceWindow,
         NextStationWindow,
         DetachTimetableTrainWindow,
+        TrainListWindow,
     }
 }

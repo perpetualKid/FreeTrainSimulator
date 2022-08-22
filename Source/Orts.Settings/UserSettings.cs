@@ -358,8 +358,6 @@ namespace Orts.Settings
         public int[] WindowPosition_CarOperations { get; set; }
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_ComposeMessage { get; set; }
-        [Default(new[] { 100, 0 })]
-        public int[] WindowPosition_TrainList { get; set; }
 
         [Default(new string[]
         {
@@ -372,6 +370,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=20,50",
             $"{nameof(ViewerWindowType.NextStationWindow)}=0,100",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=0,60",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=80,40",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -386,6 +385,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=False",
             $"{nameof(ViewerWindowType.NextStationWindow)}=False",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=false",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=false",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -400,6 +400,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=\"\"",
             $"{nameof(ViewerWindowType.NextStationWindow)}=\"\"",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

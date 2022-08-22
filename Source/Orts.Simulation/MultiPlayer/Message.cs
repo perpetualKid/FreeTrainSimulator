@@ -2793,7 +2793,7 @@ namespace Orts.Simulation.MultiPlayer
                     train2.LastReportedSpeed = 1;
                     if (train2.Name.Length < 4)
                         train2.Name = String.Concat("STATIC-", train2.Name);
-                    Simulator.Instance.AI.aiListChanged = true;
+                    Simulator.Instance.AI.TrainListChanged = true;
                     MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, train, true);
                     MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, train2, true);
                     MultiPlayerManager.BroadCast(this.ToString());//if server receives this, will tell others, including whoever sent the information
