@@ -109,7 +109,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
         public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
-        public NextStationWindow NextStationWindow { get; private set; } // F10 window
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
@@ -478,7 +477,6 @@ namespace Orts.ActivityRunner.Viewer3D
             MultiPlayerWindow = new MultiPlayerWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
             TrainDpuWindow = new TrainDpuWindow(WindowManager);
-            NextStationWindow = new NextStationWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
@@ -524,8 +522,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.NextStationWindow switchWindow = new PopupWindows.NextStationWindow(
-                    windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint(), this);
+                PopupWindows.NextStationWindow switchWindow = new PopupWindows.NextStationWindow(windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
                 return switchWindow;
             }));
 
@@ -661,10 +658,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayNextStationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    NextStationWindow.TabAction();
-                else
-                    NextStationWindow.Visible = !NextStationWindow.Visible;
                 windowManager[ViewerWindowType.NextStationWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayCompassWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>

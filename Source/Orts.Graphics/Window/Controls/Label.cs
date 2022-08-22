@@ -60,7 +60,6 @@ namespace Orts.Graphics.Window.Controls
         {
             base.Initialize();
             InitializeText(Text);
-            RenderText(Text);
             clippingRectangle = null;
             switch (Alignment)
             {

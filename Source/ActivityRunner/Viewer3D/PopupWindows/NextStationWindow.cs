@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -13,6 +13,8 @@ using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Physics;
+using Orts.Simulation.Timetables;
+using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -38,10 +40,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label nextStationDepartScheduled;
         private Label message;
 
-        public NextStationWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
+        public NextStationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Next Station"), relativeLocation, new Point(520, 130), catalog)
         {
-//            CloseButton = false;
+            //            CloseButton = false;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -101,14 +103,341 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     ? Catalog.GetString($"Current Delay: {FormatStrings.FormatDelayTime(playerTrain.Delay.Value)} " + Catalog.GetPluralString("minute", "minutes", (long)playerTrain.Delay.Value.TotalMinutes))
                     : string.Empty;
 
-                if (Simulator.Instance.ActivityRun != null && playerTrain == Simulator.Instance.OriginalPlayerTrain)
+                // timetable information
+                if (playerTrain.CheckStations)
+                {
+                    TTTrain timetableTrain = playerTrain as TTTrain;
+
+                    if (timetableTrain.ControlMode == TrainControlMode.Inactive || timetableTrain.MovementState == AiMovementState.Static)
+                    {
+                        // no info available
+                        UpdatePreviousStop(null);
+                        UpdateCurrentStop(null);
+                        UpdateNextStop(null);
+
+                        bool validMessage = false;
+
+                        if (timetableTrain.NeedAttach != null && timetableTrain.NeedAttach.ContainsKey(-1))
+                        {
+                            List<int> attachTrains = timetableTrain.NeedAttach[-1];
+                            TTTrain otherTrain = timetableTrain.GetOtherTTTrainByNumber(attachTrains[0]);
+                            if (otherTrain == null && Simulator.Instance.AutoGenDictionary.ContainsKey(attachTrains[0]))
+                            {
+                                otherTrain = Simulator.Instance.AutoGenDictionary[attachTrains[0]] as TTTrain;
+                            }
+
+                            if (otherTrain == null)
+                            {
+                                message.Text = Catalog.GetString("Waiting for train to attach");
+                                message.TextColor = Color.Orange;
+                                validMessage = true;
+                            }
+                            else
+                            {
+                                message.Text = $"{Catalog.GetString("Waiting for train to attach : ")}{otherTrain.Name}";
+                                message.TextColor = Color.Orange;
+                                validMessage = true;
+                            }
+                        }
+
+                        if (!validMessage && timetableTrain.NeedTrainTransfer.Count > 0)
+                        {
+                            foreach (TrackCircuitSection occSection in timetableTrain.OccupiedTrack)
+                            {
+                                if (timetableTrain.NeedTrainTransfer.ContainsKey(occSection.Index))
+                                {
+
+                                    message.Text = Catalog.GetString("Waiting for transfer");
+                                    message.TextColor = Color.Orange;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!validMessage)
+                        {
+                            message.TextColor = Color.White;
+
+                            if (timetableTrain.ActivateTime.HasValue)
+                            {
+                                message.Text = timetableTrain.ControlMode == TrainControlMode.Inactive
+                                    ? Catalog.GetString("Train inactive.")
+                                    : timetableTrain.MovementState == AiMovementState.Static
+                                        ? Catalog.GetString("Train static.")
+                                        : Catalog.GetString("Train not active.");
+
+                                // set activation message or time
+                                if (timetableTrain.TriggeredActivationRequired)
+                                {
+                                    message.Text += Catalog.GetString(" Activated by other train.");
+                                }
+                                else
+                                {
+                                    message.Text += $"{message.Text}{Catalog.GetString(" Activation time : ")}{TimeSpan.FromSeconds(timetableTrain.ActivateTime.Value)}";
+                                }
+                            }
+                            else
+                            {
+                                message.Text = Catalog.GetString("Train has terminated.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // previous stop
+                        if (timetableTrain.PreviousStop == null)
+                        {
+                            UpdatePreviousStop(null);
+                        }
+                        else
+                        {
+                            previousStationName.Text = timetableTrain.PreviousStop.PlatformItem.Name;
+                            TimeSpan arrival = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ArrivalTime);
+                            previousStationArriveScheduled.Text = arrival.ToString("c");
+                            if (timetableTrain.PreviousStop.ActualArrival >= 0)
+                            {
+                                TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualArrival);
+                                previousStationArriveActual.Text = actualArrival.ToString("c");
+                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                TimeSpan actualDeparture = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualDepart);
+                                previousStationDepartActual.Text = actualDeparture.ToString("c");
+                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                            }
+                            else
+                            {
+                                previousStationArriveActual.Text = Catalog.GetString("(missed)");
+                                previousStationArriveActual.TextColor = Color.LightSalmon;
+                                previousStationDepartActual.Text = null;
+                            }
+                            previousStationDepartScheduled.Text = TimeSpan.FromSeconds(timetableTrain.PreviousStop.DepartTime).ToString("c");
+                            previousStationDistance.Text = null;
+                        }
+
+                        if (timetableTrain.StationStops == null || timetableTrain.StationStops.Count == 0)
+                        {
+                            UpdateCurrentStop(null);
+                            UpdateNextStop(null);
+
+                            message.Text = Catalog.GetString("No more stations.");
+                            message.TextColor = Color.White;
+                        }
+                        else
+                        {
+                            TimeSpan arrival = TimeSpan.FromSeconds(timetableTrain.StationStops[0].ArrivalTime);
+                            currentStationName.Text = timetableTrain.StationStops[0].PlatformItem.Name;
+                            currentStationArriveScheduled.Text = arrival.ToString("c");
+                            if (timetableTrain.StationStops[0].ActualArrival >= 0)
+                            {
+                                TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.StationStops[0].ActualArrival);
+                                currentStationArriveActual.Text = actualArrival.ToString("c");
+                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+
+                            }
+                            else
+                            {
+                                currentStationArriveActual.Text = null;
+                            }
+                            currentStationDepartScheduled.Text = TimeSpan.FromSeconds(timetableTrain.StationStops[0].DepartTime).ToString("c");
+                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(timetableTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                            message.Text = timetableTrain.DisplayMessage;
+                            message.TextColor = timetableTrain.DisplayColor;
+
+                            if (timetableTrain.StationStops.Count >= 2)
+                            {
+                                nextStationName.Text = timetableTrain.StationStops[1].PlatformItem.Name;
+                                nextStationArriveScheduled.Text = TimeSpan.FromSeconds(timetableTrain.StationStops[1].ArrivalTime).ToString("c");
+                                nextStationDepartScheduled.Text = TimeSpan.FromSeconds(timetableTrain.StationStops[1].DepartTime).ToString("c");
+                                nextStationDistance.Text = null;
+                            }
+                            else
+                            {
+                                UpdateNextStop(null);
+                            }
+                        }
+
+                        // check transfer details
+                        bool transferValid = false;
+                        string transferMessage = string.Empty;
+
+                        if (timetableTrain.TransferStationDetails?.Count > 0 && timetableTrain.StationStops?.Count > 0)
+                        {
+                            if (timetableTrain.TransferStationDetails.ContainsKey(timetableTrain.StationStops[0].PlatformReference))
+                            {
+                                TransferInfo transfer = timetableTrain.TransferStationDetails[timetableTrain.StationStops[0].PlatformReference];
+                                transferMessage = Catalog.GetString($"Transfer units at next station with train {transfer.TransferTrainName}");
+                                transferValid = true;
+                            }
+                        }
+                        else if (timetableTrain.TransferTrainDetails?.Count > 0)
+                        {
+                            foreach (KeyValuePair<int, List<TransferInfo>> transferDetails in timetableTrain.TransferTrainDetails)
+                            {
+                                TransferInfo transfer = transferDetails.Value[0];
+                                transferMessage = Catalog.GetString($"Transfer units with train {transfer.TransferTrainName}");
+                                transferValid = true;
+                                break;  // only show first
+                            }
+                        }
+
+                        // attach details
+                        if (timetableTrain.AttachDetails != null)
+                        {
+                            bool attachDetailsValid = false;
+
+                            // attach is not at station - details valid
+                            if (timetableTrain.AttachDetails.StationPlatformReference < 0)
+                            {
+                                attachDetailsValid = true;
+                            }
+                            // no further stations - details valid
+                            if (timetableTrain.StationStops == null || timetableTrain.StationStops.Count == 0)
+                            {
+                                attachDetailsValid = true;
+                            }
+                            // attach is at next station - details valid
+                            else if (timetableTrain.AttachDetails.StationPlatformReference == timetableTrain.StationStops[0].PlatformReference)
+                            {
+                                attachDetailsValid = true;
+                            }
+
+                            if (attachDetailsValid)
+                            {
+                                if (timetableTrain.AttachDetails.Valid)
+                                {
+                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.AttachTrainName}");
+                                    message.TextColor = Color.Orange;
+                                }
+                                else
+                                {
+                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.AttachTrainName}; other train not yet ready");
+                                    message.TextColor = Color.Orange;
+                                }
+                            }
+                        }
+                        // general details
+                        else if (timetableTrain.PickUpStaticOnForms)
+                        {
+                            message.Text = Catalog.GetString("Train is to pickup train at end of path");
+                            message.TextColor = Color.Orange;
+                        }
+                        else if (timetableTrain.NeedPickUp)
+                        {
+                            message.Text = Catalog.GetString("Pick up train ahead");
+                            message.TextColor = Color.Orange;
+                        }
+                        else if (transferValid)
+                        {
+                            message.Text = transferMessage;
+                            message.TextColor = Color.Orange;
+                        }
+                        else if (timetableTrain.NeedTransfer)
+                        {
+                            message.Text = Catalog.GetString("Transfer units with train ahead");
+                            message.TextColor = Color.Orange;
+                        }
+                    }
+                }
+                // activity mode - switched train
+                else if (!Simulator.Instance.TimetableMode && playerTrain != Simulator.Instance.OriginalPlayerTrain)
+                {
+                    // train name
+                    stationPlatform.Text = playerTrain.Name;
+                    if (playerTrain.ControlMode == TrainControlMode.Inactive)
+                    {
+                        // no info available
+                        UpdatePreviousStop(null);
+                        UpdateCurrentStop(null);
+                        UpdateNextStop(null);
+
+                        message.Text = Catalog.GetString("Train not active.");
+                        message.TextColor = Color.White;
+
+                        if (playerTrain is TTTrain timetableTrain && timetableTrain.ActivateTime.HasValue)
+                        {
+                            message.Text += $"{Catalog.GetString(" Activation time : ")}{TimeSpan.FromSeconds(timetableTrain.ActivateTime.Value):c}";
+                        }
+                    }
+                    else
+                    {
+                        // previous stop
+                        if (playerTrain.PreviousStop == null)
+                        {
+                            UpdatePreviousStop(null);
+                        }
+                        else
+                        {
+                            previousStationName.Text = playerTrain.PreviousStop.PlatformItem.Name;
+                            TimeSpan arrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ArrivalTime);
+                            previousStationArriveScheduled.Text = arrival.ToString("c");
+                            if (playerTrain.PreviousStop.ActualArrival >= 0)
+                            {
+                                TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualArrival);
+                                previousStationArriveActual.Text = actualArrival.ToString("c");
+                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                TimeSpan actualDeparture = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualDepart);
+                                previousStationDepartActual.Text = actualDeparture.ToString("c");
+                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                            }
+                            else
+                            {
+                                previousStationArriveActual.Text = Catalog.GetString("(missed)");
+                                previousStationArriveActual.TextColor = Color.LightSalmon;
+                                previousStationDepartActual.Text = null;
+                            }
+                            previousStationDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.PreviousStop.DepartTime).ToString("c");
+                            previousStationDepartScheduled.Text = null;
+                        }
+
+                        if (playerTrain.StationStops == null || playerTrain.StationStops.Count == 0)
+                        {
+                            UpdateCurrentStop(null);
+                            UpdateNextStop(null);
+                            message.Text = Catalog.GetString("No more stations.");
+                        }
+                        else
+                        {
+                            currentStationName.Text = playerTrain.StationStops[0].PlatformItem.Name;
+                            TimeSpan arrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ArrivalTime);
+                            currentStationArriveScheduled.Text = arrival.ToString("c");
+                            if (playerTrain.StationStops[0].ActualArrival >= 0)
+                            {
+                                TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ActualArrival);
+                                currentStationArriveActual.Text = actualArrival.ToString("c");
+                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+
+                            }
+                            else
+                            {
+                                currentStationArriveActual.Text = null;
+                            }
+                            currentStationDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[0].DepartTime).ToString("c");
+                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                            message.Text = playerTrain.DisplayMessage;
+                            message.TextColor = playerTrain.DisplayColor;
+
+                            if (playerTrain.StationStops.Count >= 2)
+                            {
+                                nextStationName.Text = playerTrain.StationStops[1].PlatformItem.Name;
+                                nextStationArriveScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].ArrivalTime).ToString("c");
+                                nextStationDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].DepartTime).ToString("c");
+                                nextStationDistance.Text = null;
+                            }
+                            else
+                            {
+                                UpdateNextStop(null);
+                            }
+                        }
+                    }
+                }
+                // activity information
+                else if (Simulator.Instance.ActivityRun != null && playerTrain == Simulator.Instance.OriginalPlayerTrain)
                 {
                     ActivityTaskPassengerStopAt currentStop = Simulator.Instance.ActivityRun.ActivityTask == null ? Simulator.Instance.ActivityRun.Last as ActivityTaskPassengerStopAt : Simulator.Instance.ActivityRun.ActivityTask as ActivityTaskPassengerStopAt;
 
                     UpdatePreviousStop(currentStop?.PrevTask as ActivityTaskPassengerStopAt);
                     previousStationDistance.Text = null;
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, previousStationName.Text, StringComparison.OrdinalIgnoreCase) &&
-                        playerTrain.StationStops[0].DistanceToTrainM > 0 && !float.IsNaN(playerTrain.StationStops[0].DistanceToTrainM))
+                        playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         previousStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
                     }
@@ -116,7 +445,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     UpdateCurrentStop(currentStop);
                     currentStationDistance.Text = null;
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.Station, StringComparison.OrdinalIgnoreCase) &&
-                        playerTrain.StationStops[0].DistanceToTrainM > 0 && !float.IsNaN(playerTrain.StationStops[0].DistanceToTrainM))
+                        playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
                     }
@@ -124,7 +453,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     UpdateNextStop(currentStop?.NextTask as ActivityTaskPassengerStopAt);
                     nextStationDistance.Text = null;
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, nextStationName.Text, StringComparison.OrdinalIgnoreCase) &&
-                        playerTrain.StationStops[0].DistanceToTrainM > 0 && !float.IsNaN(playerTrain.StationStops[0].DistanceToTrainM))
+                        playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         nextStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
                     }
@@ -210,9 +539,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
         }
 
+        private static Color GetArrivalColor(TimeSpan expected, TimeSpan actual)
+        {
+            return actual <= expected ? Color.LightGreen : Color.LightSalmon;
+        }
+
         private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
         {
             return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
+        }
+
+        private static Color GetDepartColor(TimeSpan expected, TimeSpan actual)
+        {
+            return actual >= expected ? Color.LightGreen : Color.LightSalmon;
         }
 
     }

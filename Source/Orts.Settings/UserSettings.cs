@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -347,8 +346,6 @@ namespace Orts.Settings
         public int[] WindowPosition_MultiPlayer { get; set; }
         [Default(new[] { 75, 0 })]
         public int[] WindowPosition_HUDScroll { get; set; }
-        [Default(new[] { 0, 100 })]
-        public int[] WindowPosition_NextStation { get; set; }
         [Default(new[] { 100, 0 })]
         public int[] WindowPosition_TrackMonitor { get; set; }
         [Default(new[] { 50, 50 })]

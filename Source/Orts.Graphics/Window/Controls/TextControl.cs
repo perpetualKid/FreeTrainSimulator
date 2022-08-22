@@ -22,12 +22,7 @@ namespace Orts.Graphics.Window.Controls
         protected virtual void InitializeText(string text)
         {
             TextTextureRenderer.Resize(text, font, ref texture, Window.Owner.GraphicsDevice);
-        }
-
-        protected virtual void RenderText(string text)
-        {
             TextTextureRenderer.RenderText(text, font, texture);
         }
-
     }
 }

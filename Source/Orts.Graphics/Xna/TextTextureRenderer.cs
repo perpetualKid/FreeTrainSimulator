@@ -31,16 +31,19 @@ namespace Orts.Graphics.Xna
 
         public static void Resize(string text, Font font, ref Texture2D texture, GraphicsDevice graphicsDevice)
         {
-            using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
-            {
-                Size size = measureGraphics.MeasureString(text, font).ToSize();
-                if (size.ToPoint() != texture?.Bounds.Size)
+            if (string.IsNullOrEmpty(text))
+                texture = (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color));
+            else
+                using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap ??= new Bitmap(1, 1)))
                 {
-                    Texture2D current = texture;
-                    texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
-                    current?.Dispose();
+                    Size size = measureGraphics.MeasureString(text, font).ToSize();
+                    if (size.ToPoint() != texture?.Bounds.Size)
+                    {
+                        Texture2D current = texture;
+                        texture = (size.Width == 0 || size.Height == 0) ? (emptyTexture ??= new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color)) : new Texture2D(graphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
+                        current?.Dispose();
+                    }
                 }
-            }
         }
 
         public static Texture2D Resize(string text, Font font, GraphicsDevice graphicsDevice)
