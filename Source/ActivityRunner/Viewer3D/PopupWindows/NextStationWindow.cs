@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public NextStationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Next Station"), relativeLocation, new Point(520, 130), catalog)
         {
-            //            CloseButton = false;
+            CloseButton = false;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)

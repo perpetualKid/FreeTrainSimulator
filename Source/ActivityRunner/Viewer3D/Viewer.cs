@@ -113,7 +113,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
         public TrainListWindow TrainListWindow { get; private set; } // for switching driven train
-        public TTDetachWindow TTDetachWindow { get; private set; } // for detaching player train in timetable mode
 
         // Route Information
         public TileManager Tiles { get; private set; }
@@ -310,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Simulator.PlayerLocomotiveChanged += PlayerLocomotiveChanged;
             Simulator.PlayerTrainChanged += PlayerTrainChanged;
-            Simulator.RequestTTDetachWindow += RequestTTDetachWindow;
+            Simulator.RequestTTDetachWindow += RequestTimetableDetachWindow;
 
             // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
             // so it is opened only in activity mode
@@ -481,7 +480,6 @@ namespace Orts.ActivityRunner.Viewer3D
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
             TrainListWindow = new TrainListWindow(WindowManager);
-            TTDetachWindow = new TTDetachWindow(WindowManager);
             WindowManager.Initialize();
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
@@ -524,6 +522,11 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 PopupWindows.NextStationWindow switchWindow = new PopupWindows.NextStationWindow(windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
                 return switchWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.TimetableDetachWindow detachhWindow = new PopupWindows.TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
+                return detachhWindow;
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -1578,9 +1581,9 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // display window for Timetable Player train detach actions
-        private void RequestTTDetachWindow(object sender, EventArgs e)
+        private void RequestTimetableDetachWindow(object sender, EventArgs e)
         {
-            TTDetachWindow.Visible = true;
+            windowManager[ViewerWindowType.DetachTimetableTrainWindow].Open();
         }
 
         // Finds the Turntable or Transfertable nearest to the viewing point
