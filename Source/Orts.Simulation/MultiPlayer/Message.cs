@@ -1863,7 +1863,7 @@ namespace Orts.Simulation.MultiPlayer
                 else if (level == "TimeCheck" && !MultiPlayerManager.IsServer())
                 {
                     var t = double.Parse(msgx, CultureInfo.InvariantCulture);
-                    MultiPlayerManager.Instance().serverTimeDifference = t - Simulator.Instance.ClockTime;
+                    MultiPlayerManager.Instance().ServerTimeDifference = t - Simulator.Instance.ClockTime;
                     return;
                 }
                 if (Simulator.Instance.Confirmer != null)

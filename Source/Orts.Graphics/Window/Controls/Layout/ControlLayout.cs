@@ -243,7 +243,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             ((ICollection<WindowControl>)Controls).Clear();
         }

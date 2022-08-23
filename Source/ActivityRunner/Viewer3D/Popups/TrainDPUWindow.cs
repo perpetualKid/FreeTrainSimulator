@@ -723,14 +723,6 @@ TrainDpuUpdating = false;
 LastPlayerTrainCars = Owner.Viewer.PlayerTrain.Cars.Count;
                     UpdateWindowSize();
                 }
-
-//Resize this window after the font has been changed externally
-                if (MultiPlayerWindow.FontChanged)
-                {
-                    MultiPlayerWindow.FontChanged = false;
-                    FontToBold = !FontToBold;
-                    UpdateWindowSize();
-                }
                 //Update Layout
                 Layout();
             }

@@ -245,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Time"),
-                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? MultiPlayerManager.Instance().serverTimeDifference : 0)),
+                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? MultiPlayerManager.Instance().ServerTimeDifference : 0)),
             });
             if (viewer.Simulator.IsReplaying)
             {

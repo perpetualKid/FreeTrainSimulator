@@ -342,8 +342,6 @@ namespace Orts.Settings
         public int[] WindowPosition_Activity { get; set; }
         [Default(new[] { 100, 100 })]
         public int[] WindowPosition_DriverAid { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_MultiPlayer { get; set; }
         [Default(new[] { 75, 0 })]
         public int[] WindowPosition_HUDScroll { get; set; }
         [Default(new[] { 100, 0 })]
@@ -371,6 +369,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NextStationWindow)}=0,100",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=0,60",
             $"{nameof(ViewerWindowType.TrainListWindow)}=80,40",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=20,60",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -386,6 +385,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NextStationWindow)}=False",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=false",
             $"{nameof(ViewerWindowType.TrainListWindow)}=false",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=false",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -401,6 +401,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NextStationWindow)}=\"\"",
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=\"\"",
             $"{nameof(ViewerWindowType.TrainListWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

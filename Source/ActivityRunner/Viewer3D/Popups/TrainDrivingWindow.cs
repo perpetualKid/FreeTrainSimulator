@@ -803,7 +803,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // First Block
             // Client and server may have a time difference.
             if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().serverTimeDifference), "", false);
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference), "", false);
             else
             {
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", false);
@@ -1324,13 +1324,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     ResizeWindow = false;
                     UpdateWindowSize();
                     LinesCount = listToLabel.Count;
-                }
-                //Resize this window after the font has been changed externally
-                if (MultiPlayerWindow.FontChanged)
-                {
-                    MultiPlayerWindow.FontChanged = false;
-                    FontToBold = !FontToBold;
-                    UpdateWindowSize();
                 }
                 //Update Layout
                 Layout();

@@ -45,6 +45,21 @@ namespace Orts.Graphics.Window.Controls.Layout
             }
             base.Dispose(disposing);
         }
+
+        public override void Clear()
+        {
+            // resetting the client control's position so they can be re-added in place
+            foreach(WindowControl client in Client.Controls)
+            {
+                client.MoveBy(-client.Bounds.Left, -client.Bounds.Top);
+            }
+            Client.Clear();
+        }
+
+        public void UpdateContent()
+        {
+            Initialize();
+        }
     }
 
     public class VerticalScrollboxControlLayout : ScrollboxControlLayout

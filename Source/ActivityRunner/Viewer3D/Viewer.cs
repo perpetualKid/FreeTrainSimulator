@@ -102,7 +102,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
-        public MultiPlayerWindow MultiPlayerWindow { get; private set; } // Shift+9 MultiPlayer data windowed
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
@@ -472,7 +471,6 @@ namespace Orts.ActivityRunner.Viewer3D
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
-            MultiPlayerWindow = new MultiPlayerWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
             TrainDpuWindow = new TrainDpuWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
@@ -530,6 +528,11 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 PopupWindows.TrainListWindow trainListWindow = new PopupWindows.TrainListWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
                 return trainListWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.MultiPlayerWindow multiPlayerWindow = new PopupWindows.MultiPlayerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
+                return multiPlayerWindow;
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -608,7 +611,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (MultiPlayerManager.IsMultiPlayer() || (Settings.MultiplayerClient && Simulator.Confirmer != null))
             {
-                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () => MultiPlayerWindow.Visible = !MultiPlayerWindow.Visible);
+                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () =>
+                { 
+                    windowManager[ViewerWindowType.MultiPlayerWindow].ToggleVisibility();
+                });
             }
             UserCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

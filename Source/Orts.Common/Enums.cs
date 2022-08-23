@@ -1021,5 +1021,6 @@ namespace Orts.Common
         NextStationWindow,
         DetachTimetableTrainWindow,
         TrainListWindow,
+        MultiPlayerWindow,
     }
 }

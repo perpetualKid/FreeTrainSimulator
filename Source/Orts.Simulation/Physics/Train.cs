@@ -5233,7 +5233,12 @@ namespace Orts.Simulation.Physics
         protected virtual bool CheckEndOfRoutePosition()
         {
             bool endOfRoute = false;
-
+            //TODO 2022-08-23 added null check, not sure if this is correct to return false
+            if (TCRoute == null)
+            {
+                Trace.TraceWarning("Train.CheckEndOfRoutePosition has no valid TCRoute");
+                return false;
+            }
             // obtain reversal section index
 
             int reversalSectionIndex = -1;

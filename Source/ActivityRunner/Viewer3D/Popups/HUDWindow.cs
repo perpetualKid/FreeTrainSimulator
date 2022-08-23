@@ -463,7 +463,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // Client and server may have a time difference.
             if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().serverTimeDifference));
+                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference));
             else
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime));
 
@@ -544,9 +544,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 var text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
 
-                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}",
-                    MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher ? Viewer.Catalog.GetString("Dispatcher") :
-                    MultiPlayerManager.Instance().AmAider ? Viewer.Catalog.GetString("Helper") : Viewer.Catalog.GetString("Client"));
+                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}", MultiPlayerManager.Instance().GetMultiPlayerStatus());
                 TableAddLine(table);
                 foreach (var t in text.Split('\t'))
                     TableAddLine(table, "{0}", t);
