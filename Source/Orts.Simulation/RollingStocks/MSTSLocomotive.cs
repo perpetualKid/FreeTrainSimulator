@@ -417,6 +417,7 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController DistributedPowerDynamicBrakeController;
 
         private int PreviousGearBoxNotch;
+        private int previousChangedGearBoxNotch;
 
         public float EngineBrakeIntervention = -1;
         public float TrainBrakeIntervention = -1;
@@ -1971,6 +1972,30 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
+            if (this is MSTSDieselLocomotive dieselLocomotive)
+            {
+                // pass gearbox command to other locomotives in train
+                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
+                {
+                    if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                    {
+                        if (GearBoxController.NotchIndex != previousChangedGearBoxNotch)
+                        {
+                            locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
+                            locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                            locomotive.GearboxGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                            locomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
+
+                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, locomotive.GearBoxController.NotchIndex);
+                            locomotive.AlerterReset(TCSEvent.GearBoxChanged);
+                            locomotive.SignalGearBoxChangeEvents();
+
+                            previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
+
+                        }
+                    }
+                }
+            }
 
             TrainControlSystem.Update(elapsedClockSeconds);
 
@@ -2025,7 +2050,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
                 DynamicBrakeForceN = 0; // Set dynamic brake force to zero if in Notch 0 position
-                
+
 
             UpdateFrictionCoefficient(elapsedClockSeconds); // Find the current coefficient of friction depending upon the weather
 
@@ -2707,9 +2732,9 @@ namespace Orts.Simulation.RollingStocks
                         // Simple slip control
                         // Motive force is reduced to the maximum adhesive force
                         // In wheelslip situations, motive force is set to zero
-                    MotiveForceN = LocomotiveAxle.IsWheelSlip
-                        ? 0
-                        : Math.Sign(MotiveForceN) * Math.Min(LocomotiveAxle.AdhesionLimit * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN));
+                        MotiveForceN = LocomotiveAxle.IsWheelSlip
+                            ? 0
+                            : Math.Sign(MotiveForceN) * Math.Min(LocomotiveAxle.AdhesionLimit * LocomotiveAxle.AxleWeightN, Math.Abs(MotiveForceN));
                     }
                     LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 }
@@ -3700,7 +3725,8 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartIncrease();
-                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.NotchIndex);
+                                Trace.TraceInformation("Controller Increase - Current Notch {0} Indication {1} GearIndex {2}", GearBoxController.CurrentNotch, dieselloco.DieselEngines[0].GearBox.GearIndication, dieselloco.DieselEngines[0].GearBox.CurrentGearIndex);
+                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, dieselloco.DieselEngines[0].GearBox.GearIndication);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
                                 dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3718,6 +3744,10 @@ namespace Orts.Simulation.RollingStocks
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
                     }
+
+                    //                    ChangeGearUp();
+
+
                 }
             }
             ChangeGearUp();
@@ -3758,7 +3788,8 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartDecrease();
-                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
+                                Trace.TraceInformation("Controller Decrease - Current Notch {0} Indication {1} GearIndex {2}", GearBoxController.CurrentNotch, dieselloco.DieselEngines[0].GearBox.GearIndication, dieselloco.DieselEngines[0].GearBox.CurrentGearIndex);
+                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, dieselloco.DieselEngines[0].GearBox.GearIndication);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
                                 dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3775,6 +3806,19 @@ namespace Orts.Simulation.RollingStocks
                         simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
+
+                    }
+
+                    // pass gearbox command to other locomotives
+                    foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
+                    {
+                        if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                        {
+                            locomotive.GearBoxController.StartDecrease();
+                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
+                            locomotive.AlerterReset(TCSEvent.GearBoxChanged);
+                            locomotive.SignalGearBoxChangeEvents();
+                        }
 
                     }
                 }
@@ -3841,7 +3885,7 @@ namespace Orts.Simulation.RollingStocks
             var dieselloco = this as MSTSDieselLocomotive;
             if (change != 0)
             {
-                //new GarBoxCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
+                //new GearBoxCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
                 SignalEvent(change > 0 ? TrainEvent.GearUp : TrainEvent.GearDown);
                 AlerterReset(TCSEvent.GearBoxChanged);
             }
@@ -5360,7 +5404,7 @@ namespace Orts.Simulation.RollingStocks
                         data = 0;
                         if (this is MSTSDieselLocomotive dieselLocomotive && dieselLocomotive.DieselEngines.GearBox is GearBox gearBox)
                         {
-                            data = gearBox.CurrentGearIndex + 1;
+                            data = gearBox.GearIndication;
                         }
                         break;
                     }

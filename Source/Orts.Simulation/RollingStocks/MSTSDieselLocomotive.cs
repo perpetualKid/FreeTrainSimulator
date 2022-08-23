@@ -1,4 +1,4 @@
-// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -201,6 +201,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "engine(ortsdieselengines":
                 case "engine(gearboxnumberofgears":
+                case "engine(ortsreversegearboxindication":
                 case "engine(gearboxdirectdrivegear":
                 case "engine(ortsmainclutchtype":
                 case "engine(ortsgearboxtype":
@@ -892,7 +893,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 case CabViewControlType.Gears:
                     if (DieselEngines.GearBox is GearBox gearBox)
-                        data = gearBox.CurrentGearIndex + 1;
+                        data = gearBox.GearIndication;
                     break;
                 case CabViewControlType.Fuel_Gauge:
                     if (cvc.ControlUnit == CabViewControlUnit.Gallons)
@@ -1439,7 +1440,7 @@ namespace Orts.Simulation.RollingStocks
             if (DieselEngines.GearBox is GearBox gearBox)
             {
                 carInfo["GearBox Rpm"] = $"{gearBox.HuDShaftRPM:N0}";
-                carInfo["Gear"] = gearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{gearBox.CurrentGearIndex + 1}";
+                carInfo["Gear"] = gearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{gearBox.GearIndication}";
                 carInfo["Gear Type"] = $"Type \"{gearBox.GearBoxType}\" ({gearBox.GearBoxOperation}, {gearBox.ClutchType} clutch)";
             }
             carInfo["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
