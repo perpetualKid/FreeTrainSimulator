@@ -1974,27 +1974,32 @@ namespace Orts.Simulation.RollingStocks
 
             if (this is MSTSDieselLocomotive dieselLocomotive)
             {
+                // pass gearbox command key to other gearboxes in the same locomotive
+                // Note - at the moment there is only one GearBox Controller created, but a gearbox for each diesel engine is created. 
+                // This code keeps all gearboxes in the locomotive aligned with the first engine and gearbox.
+                if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch)
+                {
+                    for (int i = 1; i < dieselLocomotive.DieselEngines.Count; i++)
+                    {
+                        dieselLocomotive.DieselEngines[i].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
+                    }
+                }
                 // pass gearbox command to other locomotives in train
                 foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
                 {
                     if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                     {
-                        if (GearBoxController.NotchIndex != previousChangedGearBoxNotch)
-                        {
-                            locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
-                            locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                            locomotive.GearboxGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                            locomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
+                        locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
+                        locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                        locomotive.GearboxGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                        locomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
 
-                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, locomotive.GearBoxController.NotchIndex);
-                            locomotive.AlerterReset(TCSEvent.GearBoxChanged);
-                            locomotive.SignalGearBoxChangeEvents();
-
-                            previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
-
-                        }
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, locomotive.GearBoxController.NotchIndex);
+                        locomotive.AlerterReset(TCSEvent.GearBoxChanged);
+                        locomotive.SignalGearBoxChangeEvents();
                     }
                 }
+                previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
             }
 
             TrainControlSystem.Update(elapsedClockSeconds);
@@ -3725,7 +3730,6 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartIncrease();
-                                Trace.TraceInformation("Controller Increase - Current Notch {0} Indication {1} GearIndex {2}", GearBoxController.CurrentNotch, dieselloco.DieselEngines[0].GearBox.GearIndication, dieselloco.DieselEngines[0].GearBox.CurrentGearIndex);
                                 simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, dieselloco.DieselEngines[0].GearBox.GearIndication);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
