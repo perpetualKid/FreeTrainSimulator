@@ -46,7 +46,7 @@ namespace Orts.Simulation.Signalling
         private static SignalEnvironment signalEnvironment; //back reference to the signal environment
 
         internal SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
-        internal SpeedPostWorldObject SpeedPostWorldObject { get; set; } // Speed Post World Object information
+        internal SpeedpostWorldInfo SpeedPostWorldObject { get; set; } // Speed Post World Object information
 
         private int? nextSwitchIndex;                       // index of first switch in path
 
@@ -99,15 +99,7 @@ namespace Orts.Simulation.Signalling
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
         public bool CallOnManuallyAllowed { get; set; }
 
-        public SignalCategory SignalType
-        {
-            get
-            {
-                return SignalHeads.Exists(x => x.SignalFunction != SignalFunction.Speed)
-                    ? SignalCategory.Signal
-                    : SpeedPostWorldObject != null ? SignalCategory.SpeedPost : SignalCategory.SpeedSignal;
-            }
-        }
+        public SignalCategory SignalType { get; private set; }
 
         public List<SignalHead> SignalHeads { get; } = new List<SignalHead>();
         public int TrackCircuitIndex { get; private set; } = -1;        // Reference to TrackCircuit (index)
@@ -128,7 +120,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         ///  Constructor for empty item
         /// </summary>
-        public Signal(int reference, Traveller traveller)
+        public Signal(int reference, SignalCategory category, Traveller traveller)
         {
             Index = reference;
             lockedTrains = new List<KeyValuePair<int, int>>();
@@ -140,7 +132,7 @@ namespace Orts.Simulation.Signalling
                 Signalfound.Add(-1);
                 defaultNextSignal[i] = -1;
             }
-
+            SignalType = category;
             TdbTraveller = traveller;
         }
 
@@ -152,7 +144,17 @@ namespace Orts.Simulation.Signalling
             if (null == source)
                 throw new ArgumentNullException(nameof(source));
             Index = reference;
-            WorldObject = new SignalWorldInfo(source.WorldObject);
+            SignalType = source.SignalType;
+            switch (source.SignalType)
+            {
+                case SignalCategory.Signal:
+                case SignalCategory.SpeedSignal:
+                    WorldObject = new SignalWorldInfo(source.WorldObject);
+                    break;
+                case SignalCategory.SpeedPost:
+                    SpeedPostWorldObject = new SpeedpostWorldInfo(source.SpeedPostWorldObject);
+                    break;
+            }
 
             TrackNode = source.TrackNode;
             lockedTrains = new List<KeyValuePair<int, int>>(source.lockedTrains);
@@ -1734,6 +1736,10 @@ namespace Orts.Simulation.Signalling
             foreach (SignalHead signalHead in SignalHeads)
             {
                 signalHead.SetSignalType(trackItems, signalConfig);
+            }
+            if (SignalType == SignalCategory.Signal  && !SignalHeads.Exists(x => x.SignalFunction != SignalFunction.Speed))
+            {
+                SignalType = SignalCategory.SpeedSignal;
             }
         }
 
