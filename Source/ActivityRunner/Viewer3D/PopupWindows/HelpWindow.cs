@@ -22,6 +22,7 @@ using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -136,9 +137,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     layoutContainer.AddHorizontalSeparator();
                     activityTimetableScrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
 
-                    if (viewer.Simulator.ActivityRun != null)
+                    if (Simulator.Instance.ActivityRun != null)
                     {
-                        foreach (ActivityTaskPassengerStopAt activityTask in viewer.Simulator.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>())
+                        foreach (ActivityTaskPassengerStopAt activityTask in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>())
                         {
                             Label actualArrival, actualDeparture;
                             line = activityTimetableScrollbox.AddLayoutHorizontalLineOfText();
@@ -241,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                         }
                                         if (!wagonFound)
                                         {
-                                            foreach (var car in viewer.PlayerTrain.Cars)
+                                            foreach (var car in Simulator.Instance.PlayerLocomotive.Train.Cars)
                                             {
                                                 if (car.UiD == wagonItem.UiD)
                                                 {
@@ -456,8 +457,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Report] = (evaluationLayoutContainer) =>
                         {
                             reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight, 
-                                "Report will be available here when activity is completed.", HorizontalAlignment.Left, false,
-                                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.White);
+                                "Report will be available here when activity is completed.", HorizontalAlignment.Left, false, Owner.TextFontMonoDefault, Color.White);
                             evaluationLayoutContainer.Add(reportText);
                         };
                         layoutContainer.Add(evaluationTab);
@@ -469,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 tabControl.TabLayouts[TabSettings.TimetableBriefing] = (layoutContainer) =>
                 {
-                    TextBox timetableBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, (viewer.SelectedTrain as Orts.Simulation.Timetables.TTTrain)?.Briefing, false);
+                    TextBox timetableBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, (viewer.SelectedTrain as TTTrain)?.Briefing, false);
                     layoutContainer.Add(timetableBriefing);
                 };
             }
@@ -561,7 +561,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
-            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & settings.Input.WindowTabCommandModifier) == settings.Input.WindowTabCommandModifier)
             {
                 tabControl?.TabAction();
             }
