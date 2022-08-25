@@ -1979,15 +1979,16 @@ namespace Orts.Simulation.RollingStocks
                 // This code keeps all gearboxes in the locomotive aligned with the first engine and gearbox.
                 if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch)
                 {
+                    // don't change the first engine as this is the reference for all the others
                     for (int i = 1; i < dieselLocomotive.DieselEngines.Count; i++)
                     {
                         dieselLocomotive.DieselEngines[i].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
                     }
                 }
-                // pass gearbox command to other locomotives in train
+                // pass gearbox command key to other locomotives in train, don't treat the player locomotive in this fashion.
                 foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
                 {
-                    if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                    if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && !locomotive.IsLeadLocomotive())
                     {
                         locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
                         locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
