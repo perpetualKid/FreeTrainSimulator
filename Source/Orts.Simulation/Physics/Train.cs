@@ -45,11 +45,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 using GetText;
@@ -285,10 +283,9 @@ namespace Orts.Simulation.Physics
             get => controlMode;
             internal set
             {
-                if (value == TrainControlMode.OutOfControl && controlMode != TrainControlMode.OutOfControl)
-                    previousControlMode = controlMode;
-                else
-                    previousControlMode = TrainControlMode.Undefined;
+                previousControlMode = value == TrainControlMode.OutOfControl && controlMode != TrainControlMode.OutOfControl
+                    ? controlMode
+                    : TrainControlMode.Undefined;
                 controlMode = value;
             }
 
@@ -7762,15 +7759,11 @@ namespace Orts.Simulation.Physics
             }
             else if (ControlMode == TrainControlMode.Explorer)
             {
-                if (LeadLocomotive is MSTSLocomotive locomotive &&
-                      (locomotive.TrainBrakeController.TCSEmergencyBraking || locomotive.TrainBrakeController.TCSFullServiceBraking))
-                {
-                    locomotive.TrainControlSystem.HandleEvent(TCSEvent.EmergencyBrakingReleasedBySimulator);
-                    ResetExplorerMode();
-                    return;
-                }
-                else
-                    simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot change to Manual Mode while in Explorer Mode"));
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot change to Manual Mode while in Explorer Mode"));
+            }
+            else if (ControlMode == TrainControlMode.OutOfControl && previousControlMode == TrainControlMode.Explorer)
+            {
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot change to Manual Mode. Use the Reset Out Of Control Mode command to release brakes"));
             }
             else
             {

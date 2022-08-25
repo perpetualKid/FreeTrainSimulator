@@ -462,6 +462,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Action RequestToggleManualMode { get; set; }
         /// <summary>
+        /// Requests reset of Out of Control Mode.
+        /// </summary>
+        public Action ResetOutOfControlMode { get; set; }
+        /// <summary>
         /// Get bool parameter in the INI file.
         /// </summary>
         public Func<string, string, bool, bool> GetBoolParameter { get; set; }
