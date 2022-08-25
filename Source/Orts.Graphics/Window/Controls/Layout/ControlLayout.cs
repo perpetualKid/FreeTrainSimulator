@@ -221,7 +221,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             base.Dispose(disposing);
         }
 
-        private int VerticalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int VerticalChildAlignmentOffset(in Rectangle childBounds)
         {
             return VerticalChildAlignment switch
             {
@@ -232,7 +232,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
-        private int HorizontalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int HorizontalChildAlignmentOffset(in Rectangle childBounds)
         {
             return HorizontalChildAlignment switch
             {
