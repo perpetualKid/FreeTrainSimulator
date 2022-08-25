@@ -38,9 +38,6 @@ namespace Orts.Toolbox.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
-            if (null == layout)
-                throw new ArgumentNullException(nameof(layout));
-
             layout = base.Layout(layout, 1.5f);
             quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;

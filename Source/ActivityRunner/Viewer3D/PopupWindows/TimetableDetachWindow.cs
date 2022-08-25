@@ -29,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling).AddLayoutVertical();
+            layout = base.Layout(layout, headerScaling);
             ControlLayout line = layout.AddLayoutHorizontalLineOfText();
             line.Add(new Label(this, line.RemainingWidth, line.RemainingHeight, Catalog.GetString("This train is about to split.")));
 

@@ -236,7 +236,7 @@ namespace Orts.Graphics.Window
                 buttonLine.Add(closeLabel);
             }
             // Pad window by 4px, add caption and separator between to content area.
-            layout = layout.AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout = layout.AddLayoutVertical();
             Label headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, HorizontalAlignment.Center, headerFont, Color.White);
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);

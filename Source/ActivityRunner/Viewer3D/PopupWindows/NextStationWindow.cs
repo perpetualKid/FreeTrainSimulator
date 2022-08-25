@@ -48,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling).AddLayoutVertical();
+            layout = base.Layout(layout, headerScaling);
 
             int columnWidth = layout.RemainingWidth / 8;
             ControlLayout line = layout.AddLayoutHorizontalLineOfText();

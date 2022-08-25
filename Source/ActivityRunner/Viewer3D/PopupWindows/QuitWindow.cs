@@ -37,7 +37,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
-            layout = base.Layout(layout, 1.5f).AddLayoutVertical();
+            layout = base.Layout(layout, 1.5f);
 
             ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.5));
             Label quitLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Quit {RuntimeInfo.ApplicationName} ({Program.Viewer.Settings.Input.UserCommands[UserCommand.GameQuit]})"), HorizontalAlignment.Center);

@@ -34,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling).AddLayoutVertical();
+            layout = base.Layout(layout, headerScaling);
             layout.Add(compassControl = new CompassControl(this, layout.RemainingWidth, layout.RemainingHeight - Owner.TextFontDefault.Height));
             ControlLayout textLine = layout.AddLayoutHorizontalLineOfText();
             int width = textLine.RemainingWidth / 2;

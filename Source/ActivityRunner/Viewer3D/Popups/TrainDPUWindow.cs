@@ -344,8 +344,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// </summary>
         public void CycleMode()
         {
-NormalTextMode = !NormalTextMode;
-UpdateWindowSize();
+            NormalTextMode = !NormalTextMode;
+            UpdateWindowSize();
         }
 
         private void UpdateWindowSize()
@@ -354,10 +354,10 @@ UpdateWindowSize();
             ModifyWindowSize();
         }
 
-/// <summary>
-/// Modify window size
-/// </summary>
-private void ModifyWindowSize()
+        /// <summary>
+        /// Modify window size
+        /// </summary>
+        private void ModifyWindowSize()
         {
             if (Labels.Count > 0)
             {
@@ -378,7 +378,7 @@ private void ModifyWindowSize()
                 var desiredHeight = FontToBold ? (Owner.TextFontDefaultBold.Height + 2) * (rowCount + 1)
                     : (Owner.TextFontDefault.Height + 2) * (rowCount + 1);
                 var desiredWidth = FirstColLenght + (LastColLenght * (dieselLocomotivesCount + 1));// interval between firstcol and lastcol
-var normalMode = NormalTextMode && NormalVerticalMode;
+                var normalMode = NormalTextMode && NormalVerticalMode;
                 var newHeight = desiredHeight < windowHeightMin ? desiredHeight + Owner.TextFontDefault.Height * 2
                     : (int)MathHelper.Clamp(desiredHeight, (normalMode ? windowHeightMin : 100), windowHeightMax);
 
@@ -468,13 +468,13 @@ var normalMode = NormalTextMode && NormalVerticalMode;
                 {
                     if (ColorCodeCtrl.Keys.Any(firstCol.EndsWith))
                     {
-var tempFirstCol = firstCol.Substring(0, firstCol.Length - 3);
+                        var tempFirstCol = firstCol.Substring(0, firstCol.Length - 3);
                         firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(tempFirstCol.TrimEnd())
                             : !NormalTextMode ? Owner.TextFontMonoSpacedBold.MeasureString(tempFirstCol.TrimEnd())
                             : Owner.TextFontDefault.MeasureString(tempFirstCol.TrimEnd());
                     }
-else
-{
+                    else
+                    {
                         firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstCol.TrimEnd())
                             : !NormalTextMode ? Owner.TextFontMonoSpacedBold.MeasureString(firstCol.TrimEnd())
                             : Owner.TextFontDefault.MeasureString(firstCol.TrimEnd());
@@ -494,7 +494,7 @@ else
                                         : Owner.TextFontDefault.MeasureString(tempLastCol.TrimEnd()));
                                 }
                                 else
-{
+                                {
                                     lastColWidth.Add(FontToBold ? Owner.TextFontDefaultBold.MeasureString(data.TrimEnd())
 : Owner.TextFontDefault.MeasureString(data.TrimEnd()));
                                 }
@@ -544,7 +544,7 @@ else
                     // Detect Autopilot is on to avoid flickering when slim window is displayed
                     bool AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting;
 
-//ResizeWindow, when the string spans over the right boundary of the window
+                    //ResizeWindow, when the string spans over the right boundary of the window
                     maxFirstColWidth = Labels.Max(x => x.FirstColWidth);
                     maxLastColWidth = Labels.Max(x => x.LastColWidth[0]);
 
@@ -715,12 +715,12 @@ else
             {
                 TrainDpuUpdating = true;
                 Labels = TrainDPUWindowList(Owner.Viewer, NormalTextMode).ToList();
-TrainDpuUpdating = false;
+                TrainDpuUpdating = false;
 
-//Resize this window when the cars count has been changed
+                //Resize this window when the cars count has been changed
                 if (Owner.Viewer.PlayerTrain.Cars.Count != LastPlayerTrainCars)
                 {
-LastPlayerTrainCars = Owner.Viewer.PlayerTrain.Cars.Count;
+                    LastPlayerTrainCars = Owner.Viewer.PlayerTrain.Cars.Count;
                     UpdateWindowSize();
                 }
                 //Update Layout
