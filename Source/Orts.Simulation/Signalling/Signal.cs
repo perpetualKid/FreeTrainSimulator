@@ -2335,6 +2335,10 @@ namespace Orts.Simulation.Signalling
             // no. of next signals to clear : as passed on -1 if signal has normal clear ahead
             // if passed on < 0, use this signals num to clear
 
+            // Do not propagate the request in explorer mode, as it is handled elsewhere
+            if (EnabledTrain != null && EnabledTrain.Train.ControlMode == TrainControlMode.Explorer)
+                return;
+
             // sections not available
             bool validPropagationRequest = true;
             if (internalBlockState > InternalBlockstate.Reservable)
