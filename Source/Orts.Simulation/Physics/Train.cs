@@ -7723,6 +7723,13 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void RequestToggleManualMode()
         {
+            if (ControlMode == TrainControlMode.OutOfControl && previousControlMode == TrainControlMode.Explorer)
+            {
+                Trace.TraceWarning("RequestToggleManualMode() is deprecated for explorer mode. Please use ResetOutOfControlMode() instead");
+                ManualResetOutOfControlMode();
+                return;
+            }
+
             if (TrainType == TrainType.AiPlayerHosting)
             {
                 simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot enter manual mode when autopiloted"));
