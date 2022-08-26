@@ -370,6 +370,8 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=0,60",
             $"{nameof(ViewerWindowType.TrainListWindow)}=80,40",
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=20,60",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=100,40",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=10,20",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -386,6 +388,8 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=false",
             $"{nameof(ViewerWindowType.TrainListWindow)}=false",
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=false",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=false",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=false",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -402,6 +406,8 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=\"\"",
             $"{nameof(ViewerWindowType.TrainListWindow)}=\"\"",
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

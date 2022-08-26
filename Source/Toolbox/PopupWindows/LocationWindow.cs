@@ -73,7 +73,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private void Resize()
         {
-            Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+            Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : Catalog.GetString("Tile Coordinates");
             Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 60));
         }
 

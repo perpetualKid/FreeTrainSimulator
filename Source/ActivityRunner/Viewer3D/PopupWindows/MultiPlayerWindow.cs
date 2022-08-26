@@ -28,6 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private VerticalScrollboxControlLayout scrollboxPlayers;
         private readonly List<(string, double, Train)> onlineTrains = new List<(string, double, Train)>();
         private int columnWidth;
+        private bool connectionLost;
 
         public MultiPlayerWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("MultiPlayer Info"), relativeLocation, new Point(260, 200), catalog)
@@ -78,7 +79,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 labelStatus.Text = MultiPlayerManager.Instance().GetMultiPlayerStatus();
                 labelPLayersOnline.Text = $"{MultiPlayerManager.OnlineTrains.Players.Count + 1} {Catalog.GetPluralString("player", "players", MultiPlayerManager.OnlineTrains.Players.Count + 1)}";
                 labelTrains.Text = $"{Simulator.Instance.Trains.Count} {Catalog.GetPluralString("train", "trains", Simulator.Instance.Trains.Count)}";
-                UpdateTrains();
+                if (MultiPlayerManager.MultiplayerState != MultiplayerState.None)
+                    UpdateTrains();
+                else if (!connectionLost)
+                {
+                    connectionLost = true;
+                    Resize();
+                }
             }
         }
 

@@ -47,7 +47,7 @@ namespace Orts.Common.Input
         [Description("Display Station Labels")] DisplayStationLabels,
         [Description("Display Switch Window")] DisplaySwitchWindow,
         [Description("Display Train Operations Window")] DisplayTrainOperationsWindow,
-        [Description("Display Train Dpu Window")] DisplayTrainDpuWindow,
+        [Description("Display Train Dpu Window")] DisplayDistributedPowerWindow,
         [Description("Display Next Station Window")] DisplayNextStationWindow,
         [Description("Display Compass Window")] DisplayCompassWindow,
         [Description("Display Basic HUD Toggle")] DisplayBasicHUDToggle,

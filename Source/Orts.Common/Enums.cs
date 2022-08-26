@@ -1022,5 +1022,7 @@ namespace Orts.Common
         DetachTimetableTrainWindow,
         TrainListWindow,
         MultiPlayerWindow,
+        DrivingTrainWindow,
+        DistributedPowerWindow,
     }
 }

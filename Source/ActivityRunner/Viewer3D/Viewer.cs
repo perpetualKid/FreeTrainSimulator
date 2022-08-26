@@ -534,6 +534,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 PopupWindows.MultiPlayerWindow multiPlayerWindow = new PopupWindows.MultiPlayerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
                 return multiPlayerWindow;
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.DistributedPowerWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.DistributedPowerWindow powerWindow = new PopupWindows.DistributedPowerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), Settings);
+                return powerWindow;
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -661,12 +666,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 else
                     TrainOperationsWindow.Visible = !TrainOperationsWindow.Visible;
             });
-            UserCommandController.AddEvent(UserCommand.DisplayTrainDpuWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            UserCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
                     TrainDpuWindow.TabAction();
                 else
                     TrainDpuWindow.Visible = !TrainDpuWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.DistributedPowerWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayNextStationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
