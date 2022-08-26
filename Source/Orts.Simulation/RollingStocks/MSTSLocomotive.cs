@@ -416,7 +416,7 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController DistributedPowerThrottleController;
         public MSTSNotchController DistributedPowerDynamicBrakeController;
 
-        private int PreviousGearBoxNotch;
+        private int previousGearBoxNotch;
         private int previousChangedGearBoxNotch;
 
         public float EngineBrakeIntervention = -1;
@@ -1409,6 +1409,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(GenericItem2);
             outf.Write((int)RemoteControlGroup);
             outf.Write(DistributedPowerUnitId);
+            outf.Write(previousGearBoxNotch);
 
             base.Save(outf);
 
@@ -1466,6 +1467,7 @@ namespace Orts.Simulation.RollingStocks
             RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
             DistributedPowerUnitId = inf.ReadInt32();
 
+            previousGearBoxNotch = inf.ReadInt32();
 
             base.Restore(inf);
 
@@ -1974,7 +1976,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (this is MSTSDieselLocomotive dieselLocomotive)
             {
-                // pass gearbox command key to other gearboxes in the same locomotive
+                // Pass Gearbox commands
                 // Note - at the moment there is only one GearBox Controller created, but a gearbox for each diesel engine is created. 
                 // This code keeps all gearboxes in the locomotive aligned with the first engine and gearbox.
                 if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch)
@@ -2186,7 +2188,6 @@ namespace Orts.Simulation.RollingStocks
             UpdateHornAndBell(elapsedClockSeconds);
 
             UpdateSoundVariables(elapsedClockSeconds);
-
             PrevMotiveForceN = MotiveForceN;
             base.Update(elapsedClockSeconds);
 
@@ -3846,7 +3847,7 @@ namespace Orts.Simulation.RollingStocks
         private void SignalGearBoxChangeEvents()
         {
             // Only activate sound event if notch has actually changed
-            if (GearBoxController.NotchIndex != PreviousGearBoxNotch)
+            if (GearBoxController.NotchIndex != previousGearBoxNotch)
             {
                 switch (GearBoxController.NotchIndex)
                 {
@@ -3878,7 +3879,7 @@ namespace Orts.Simulation.RollingStocks
                         SignalEvent(TrainEvent.GearPosition8);
                         break;
                 }
-                PreviousGearBoxNotch = GearBoxController.NotchIndex; // Update previous value for next time around
+                previousGearBoxNotch = GearBoxController.NotchIndex; // Update previous value for next time around
             }
         }
 
