@@ -42,7 +42,7 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="EmbedIO" Version="3.4.3" />
+		<PackageReference Include="EmbedIO" Version="3.5.0" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="GetText.NET" Version="1.6.6" />
 		<PackageReference Include="GetText.NET.WindowsForms" Version="1.6.6" />
