@@ -22,7 +22,7 @@ namespace Orts.Simulation.Signalling
         private SignalScripts.SCRScripts signalScript;   // used sigscript
         private CsSignalScript csSignalScript;
 
-        public SignalFunction SignalFunction { get; private set; }
+        public SignalFunction SignalFunction { get; private set; } = SignalFunction.Unknown;
 
         public int OrtsSignalFunctionIndex => SignalType?.OrtsFunctionTypeIndex ?? -1;
 
