@@ -730,15 +730,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             get
             {
-                if (Locomotive.DieselTransmissionType == MSTSDieselLocomotive.DieselTransmissionTypes.Mechanic)
+                if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                 {
-                    float tempEff = 0;
-                    if (GearBox.CurrentGear != null)
-                    {
-                        tempEff = (((GearBox.CurrentGear.TractiveForceatMaxSpeedN * GearBox.CurrentGear.MaxSpeedMpS / Locomotive.DieselEngines.NumOfActiveEngines) / (DieselTorqueTab[MaxRPM] * MaxRPM / 9.54f)) * 100.0f);
-                    }
-
-                    return tempEff;
+                    return GearBox.CurrentGear != null
+                        ? (float)(GearBox.CurrentGear.TractiveForceatMaxSpeedN * GearBox.CurrentGear.MaxSpeedMpS / Locomotive.DieselEngines.NumOfActiveEngines / (DieselTorqueTab[MaxRPM] * MaxRPM / 9.54f) * 100.0f)
+                        : 0;
                 }
                 else
                 {
@@ -1519,6 +1515,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             RealRPM = inf.ReadSingle();
             OutputPowerW = inf.ReadSingle();
             DieselTemperatureDeg = inf.ReadSingle();
+            GovernorEnabled = inf.ReadBoolean();
 
             Locomotive.gearSaved = inf.ReadBoolean();  // read boolean which indicates gear data was saved
 
@@ -1535,6 +1532,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             outf.Write(RealRPM);
             outf.Write(OutputPowerW);
             outf.Write(DieselTemperatureDeg);
+            outf.Write(GovernorEnabled);
+
             if (GearBox != null)
             {
                 outf.Write(true);

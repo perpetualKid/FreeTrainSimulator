@@ -1410,6 +1410,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write((int)RemoteControlGroup);
             outf.Write(DistributedPowerUnitId);
             outf.Write(previousGearBoxNotch);
+            outf.Write(previousChangedGearBoxNotch);
 
             base.Save(outf);
 
@@ -1466,8 +1467,8 @@ namespace Orts.Simulation.RollingStocks
             GenericItem2 = inf.ReadBoolean();
             RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
             DistributedPowerUnitId = inf.ReadInt32();
-
             previousGearBoxNotch = inf.ReadInt32();
+            previousChangedGearBoxNotch = inf.ReadInt32();
 
             base.Restore(inf);
 
@@ -3750,10 +3751,6 @@ namespace Orts.Simulation.RollingStocks
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
                     }
-
-                    //                    ChangeGearUp();
-
-
                 }
             }
             ChangeGearUp();
@@ -3812,19 +3809,6 @@ namespace Orts.Simulation.RollingStocks
                         simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
-
-                    }
-
-                    // pass gearbox command to other locomotives
-                    foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
-                    {
-                        if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-                        {
-                            locomotive.GearBoxController.StartDecrease();
-                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
-                            locomotive.AlerterReset(TCSEvent.GearBoxChanged);
-                            locomotive.SignalGearBoxChangeEvents();
-                        }
 
                     }
                 }
