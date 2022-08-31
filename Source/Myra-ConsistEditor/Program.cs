@@ -1,3 +1,3 @@
 ﻿
-using var game = new Myra_ConsistEditor.Game1();
+using var game = new Toolbox.ContentManager.GameWindow();
 game.Run();
