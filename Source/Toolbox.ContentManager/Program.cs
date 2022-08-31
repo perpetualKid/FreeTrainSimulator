@@ -1,3 +1,3 @@
 ﻿
-using var game = new Toolbox.ContentManager.GameWindow();
+using var game = new Toolbox.ContentManager.Game1();
 game.Run();
