@@ -631,7 +631,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                             // During normal operation fuel admission is fixed, and therefore TE follows curve as RpM varies
                             tractiveForceN = torqueCurveMultiplier * DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] / DieselEngine.DieselTorqueTab.MaxY() * CurrentGear.MaxTractiveForceN;
 
-                        //    Trace.TraceInformation("Tractive Force - TF {0} tcm {1} RpM {2} Torque@RpM {3} TorqueMax {4} MaxTE {5}", tractiveForceN, torqueCurveMultiplier, DieselEngine.RealRPM, DieselEngine.DieselTorqueTab[DieselEngine.RealRPM], DieselEngine.DieselTorqueTab.MaxY(), CurrentGear.MaxTractiveForceN);
+                        //    Trace.TraceInformation("Tractive Force - CarID {0} Gear {1}, TF {2:N1} lbf, tcm {3:N1}, RpM {4}, Torque@RpM {5}, TorqueMax {6}, MaxTE {7:N1} DieselOutputHp {8:N1} hp", Locomotive.CarID, GearIndication, 0.224809f * tractiveForceN, torqueCurveMultiplier, DieselEngine.RealRPM, DieselEngine.DieselTorqueTab[DieselEngine.RealRPM], DieselEngine.DieselTorqueTab.MaxY(), 0.224809f * CurrentGear.MaxTractiveForceN, 0.00134102f * DieselEngine.CurrentDieselOutputPowerW);
                             
                             Locomotive.HuDGearMaximumTractiveForce = CurrentGear.MaxTractiveForceN;
 
@@ -783,7 +783,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     else
                     {
                         // if they entered the TE at maximum gear speed, then increase the value accordingly 
-                        Gears[i].MaxTractiveForceN = (float)(GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.RealRPM]);
+                        Gears[i].MaxTractiveForceN = (float)(GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM]);
+                    //    Trace.TraceInformation("MaxTractiveForce - CarID {0} MaxTE {1} ")
                     }
                     // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
                     if (GearBoxParams.GearBoxTractiveForceAtSpeedN[i] != 0)
@@ -794,7 +795,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     else
                     {
                         // Assume that user entered max TE at maximum torque point
-                        Gears[i].TractiveForceatMaxSpeedN = (float)(GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / (DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.RealRPM]));
+                        Gears[i].TractiveForceatMaxSpeedN = (float)(GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / (DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM]));
                     }                                  
 
                     Gears[i].OverspeedPercentage = GearBoxParams.GearBoxOverspeedPercentageForFailure;
