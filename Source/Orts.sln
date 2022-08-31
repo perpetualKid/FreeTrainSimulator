@@ -58,8 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models", "Orts.Models\Orts.Models.csproj", "{A17D2401-1B35-46E8-91FF-E1E917091D64}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.ContentManager", "Myra-ConsistEditor\Toolbox.ContentManager.csproj", "{F305BF1B-4EFC-48BD-A31D-C4615A8FE1CB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -154,10 +152,6 @@ Global
 		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F305BF1B-4EFC-48BD-A31D-C4615A8FE1CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F305BF1B-4EFC-48BD-A31D-C4615A8FE1CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F305BF1B-4EFC-48BD-A31D-C4615A8FE1CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F305BF1B-4EFC-48BD-A31D-C4615A8FE1CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
