@@ -2,14 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace Toolbox.ContentManager
+namespace Toolbox.YardOffice
 {
-    public class Game1 : Game
+    public class GameWindow : Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        public Game1()
+        public GameWindow()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";

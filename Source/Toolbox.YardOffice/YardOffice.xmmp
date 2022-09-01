@@ -1,0 +1,24 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YardOffice" Class="YardOffice" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YardOffice" />
+  <VerticalStackPanel>
+    <VerticalStackPanel.Proportions>
+      <Proportion Type="Auto" />
+      <Proportion Type="Auto" />
+    </VerticalStackPanel.Proportions>
+    <HorizontalMenu VerticalAlignment="Stretch" Id="MmainMenu">
+      <MenuItem Text="&amp;Route" Id="menuItemRoute">
+        <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
+      </MenuItem>
+      <MenuItem Text="&amp;Consist" Id="menuItemConsist" />
+      <MenuItem Text="&amp;Eng" Id="menuItemEng" />
+      <MenuItem Text="&amp;Replace" Id="menuItemReplace" />
+      <MenuItem Text="&amp;View" Id="menuItemView" />
+      <MenuItem Text="&amp;3D View" Id="menuItem3DView" />
+      <MenuItem Text="&amp;Settings" Id="menuItemSettings" />
+      <MenuItem Text="&amp;Help" Id="menuItemHelp">
+        <MenuItem Text="About" Id="menuItemAbout" />
+      </MenuItem>
+    </HorizontalMenu>
+    <HorizontalSeparator />
+  </VerticalStackPanel>
+</Project>
