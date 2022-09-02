@@ -10,8 +10,8 @@
     </VerticalStackPanel.Proportions>
     <HorizontalMenu VerticalAlignment="Stretch" Id="MmainMenu">
       <MenuItem Text="&amp;Route" Id="menuItemRoute">
-        <MenuItem Text="Se&amp;Lect" Id="menuItemSelect" />
-        <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
+         <MenuItem Text="Se&amp;Lect" Id="menuItemSelect" />
+         <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
       </MenuItem>
       <MenuItem Text="&amp;Consist" Id="menuItemConsist" />
       <MenuItem Text="&amp;Eng" Id="menuItemEng" />
