@@ -732,9 +732,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                 {
-                    return GearBox.CurrentGear != null
-                        ? (float)(GearBox.CurrentGear.TractiveForceatMaxSpeedN * GearBox.CurrentGear.MaxSpeedMpS / Locomotive.DieselEngines.NumOfActiveEngines / (DieselTorqueTab[MaxRPM] * MaxRPM / 9.54f) * 100.0f)
-                        : 0;
+                    float tempEff = 0;
+                    if (GearBox.CurrentGear != null)
+                    {
+                        tempEff = (float)((GearBox.CurrentGear.TractiveForceatMaxSpeedN * GearBox.CurrentGear.MaxSpeedMpS / (DieselTorqueTab[MaxRPM] * MaxRPM / 9.54f)) * 100.0f);
+                    }
+
+                    return tempEff;
                 }
                 else
                 {
@@ -1318,23 +1322,36 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 CurrentDieselOutputPowerW = (RawRpM - IdleRPM) / (MaxRPM - IdleRPM) * MaximumDieselPowerW * (1 - Locomotive.PowerReduction);
             }
 
-            // For geared locomotives the engine RpM can be higher then the throttle demanded rpm, and this gives an inflated value of power
-            // so set output power based upon throttle demanded power
-            if (HasGearBox && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                //   Power(Watts) = Torque(Nm) * rpm / 9.54.
-                CurrentDieselOutputPowerW = (float)(GearBox.TorqueCurveMultiplier * DieselTorqueTab[RealRPM] * RealRPM / 9.54f);
-                CurrentDieselOutputPowerW = MathHelper.Clamp(CurrentDieselOutputPowerW, 0, MaximumDieselPowerW);  // Clamp throttle setting within bounds
-            }
-
             if (Locomotive.DieselEngines.NumOfActiveEngines > 0)
             {
 
-                CurrentDieselOutputPowerW = (CurrentDieselOutputPowerW - Locomotive.DieselPowerSupply.ElectricTrainSupplyPowerW) / Locomotive.DieselEngines.NumOfActiveEngines;
+                CurrentDieselOutputPowerW -= Locomotive.DieselPowerSupply.ElectricTrainSupplyPowerW / Locomotive.DieselEngines.NumOfActiveEngines;
                 CurrentDieselOutputPowerW = CurrentDieselOutputPowerW < 0f ? 0f : CurrentDieselOutputPowerW;
             }
 
             CurrentDieselOutputPowerW = MathHelper.Clamp(CurrentDieselOutputPowerW, 0.0f, CurrentDieselOutputPowerW);  // prevent power going -ve
+
+            // For geared locomotives the engine RpM can be higher then the throttle demanded rpm, and this gives an inflated value of power
+            // so set output power based upon rail power
+            if (HasGearBox && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+            {
+                if (LoadPercent != 0)
+                {
+                    CurrentDieselOutputPowerW = GearBox.TractiveForceN * Locomotive.AbsSpeedMpS * 100.0f / LoadPercent;
+
+                    if (Locomotive.DieselEngines.NumOfActiveEngines > 0)
+                    {
+
+                        CurrentDieselOutputPowerW += Locomotive.DieselPowerSupply.ElectricTrainSupplyPowerW / Locomotive.DieselEngines.NumOfActiveEngines;
+                    }
+
+                }
+                else
+                {
+                    CurrentDieselOutputPowerW = 0;
+                }
+                CurrentDieselOutputPowerW = MathHelper.Clamp(CurrentDieselOutputPowerW, 0, MaximumDieselPowerW);  // Clamp throttle setting within bounds
+            }
 
             if (State == DieselEngineState.Starting)
             {
