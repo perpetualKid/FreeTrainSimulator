@@ -286,6 +286,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.CurrentTrainMUDirection = () => Locomotive.Train.MUDirection; // Direction of train
                 script.IsFlipped = () => Locomotive.Flipped;
                 script.IsRearCab = () => Locomotive.UsingRearCab;
+                script.AreLeftDoorsOpen = () => Locomotive.DoorLeftOpen;
+                script.AreRightDoorsOpen = () => Locomotive.DoorRightOpen;
                 script.IsBrakeEmergency = () => Locomotive.TrainBrakeController.EmergencyBraking;
                 script.IsBrakeFullService = () => Locomotive.TrainBrakeController.TCSFullServiceBraking;
                 script.PowerAuthorization = () => PowerAuthorization;
