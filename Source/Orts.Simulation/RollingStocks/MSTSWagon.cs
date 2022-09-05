@@ -84,8 +84,9 @@ namespace Orts.Simulation.RollingStocks
 
         public Pantographs Pantographs;
         public ScriptedPassengerCarPowerSupply PassengerCarPowerSupply => PowerSupply as ScriptedPassengerCarPowerSupply;
-        public Door RightDoor { get; }
-        public Door LeftDoor { get; }
+        public Doors Doors { get; }        
+        public Door RightDoor => Doors.RightDoor;
+        public Door LeftDoor => Doors.LeftDoor;
         public bool MirrorOpen;
         public bool UnloadingPartsOpen;
         public bool WaitForAnimationReady; // delay counter to start loading/unliading is on;
@@ -349,8 +350,7 @@ namespace Orts.Simulation.RollingStocks
             : base(wagFilePath)
         {
             Pantographs = new Pantographs(this);
-            RightDoor = new Door(this, true);
-            LeftDoor = new Door(this, false);
+            Doors = new Doors(this);
         }
 
         public void Load()
@@ -969,8 +969,7 @@ namespace Orts.Simulation.RollingStocks
         public override void Initialize()
         {
             Pantographs.Initialize();
-            RightDoor.Initialize();
-            LeftDoor.Initialize();
+            Doors.Initialize();
             PassengerCarPowerSupply?.Initialize();
 
             base.Initialize();
@@ -1432,7 +1431,10 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
                     break;
-
+                case "wagon(ortsdoors(closingdelay":
+                case "wagon(ortsdoors(openingdelay":
+                    Doors.Parse(lowercasetoken, stf);
+                    break;
                 case "wagon(ortspowersupply":
                 case "wagon(ortspowerondelay":
                 case "wagon(ortsbattery(mode":
@@ -1609,8 +1611,8 @@ namespace Orts.Simulation.RollingStocks
             avancedCoupler = source.avancedCoupler;
             couplers = new EnumArray<Coupler, TrainCarLocation>(source.couplers);
             Pantographs.Copy(source.Pantographs);
-            LeftDoor.Copy(source.LeftDoor);
-            RightDoor.Copy(source.RightDoor);
+            Doors.Copy(source.Doors);
+
             if (source.FreightAnimations != null)
             {
                 FreightAnimations = new FreightAnimations(source.FreightAnimations, this);
@@ -1738,8 +1740,7 @@ namespace Orts.Simulation.RollingStocks
                 coupler?.Save(outf);
             }
             Pantographs.Save(outf);
-            LeftDoor.Save(outf);
-            RightDoor.Save(outf);
+            Doors.Save(outf);
             PassengerCarPowerSupply?.Save(outf);
             if (FreightAnimations != null)
             {
@@ -1793,8 +1794,7 @@ namespace Orts.Simulation.RollingStocks
             MaxHandbrakeForceN = inf.ReadSingle();
             couplers = ReadCouplersFromSave(inf);
             Pantographs.Restore(inf);
-            LeftDoor.Restore(inf);
-            RightDoor.Restore(inf);
+            Doors.Restore(inf);
             PassengerCarPowerSupply?.Restore(inf);
             if (FreightAnimations != null)
             {
@@ -1965,8 +1965,7 @@ namespace Orts.Simulation.RollingStocks
 
             Pantographs.Update(elapsedClockSeconds);
 
-            LeftDoor.Update(elapsedClockSeconds);
-            RightDoor.Update(elapsedClockSeconds);
+            Doors.Update(elapsedClockSeconds);
 
             MSTSBrakeSystem.Update(elapsedClockSeconds);
 
