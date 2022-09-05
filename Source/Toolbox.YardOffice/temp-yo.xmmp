@@ -10,8 +10,8 @@
     </VerticalStackPanel.Proportions>
     <HorizontalMenu VerticalAlignment="Stretch" Id="MmainMenu">
       <MenuItem Text="&amp;Route" Id="menuItemRoute">
-         <MenuItem Text="Se&amp;Lect" Id="menuItemSelect" />
-         <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
+        <MenuItem Text="Se&amp;Lect" Id="menuItemSelect" />
+        <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
       </MenuItem>
       <MenuItem Text="&amp;Consist" Id="menuItemConsist" />
       <MenuItem Text="&amp;Eng" Id="menuItemEng" />
@@ -30,7 +30,7 @@
         <Proportion Type="Auto" />
         <Proportion Type="Fill" />
       </HorizontalStackPanel.Proportions>
-      <VerticalStackPanel>
+      <VerticalStackPanel Id="YO_Panel1" >
         <VerticalStackPanel.Proportions>
           <Proportion Type="Auto" />
           <Proportion Type="Auto" />
@@ -63,7 +63,7 @@
         </HorizontalStackPanel>
         <ListBox Id="YOConsistList" />
       </VerticalStackPanel>
-      <VerticalStackPanel>
+      <VerticalStackPanel Id="YOPanel2" >
         <VerticalStackPanel.Proportions>
           <Proportion Type="Auto" />
           <Proportion Type="Auto" />
@@ -127,8 +127,8 @@
         </HorizontalStackPanel>
         <ListBox Id="YO1ConsistList" />
       </VerticalStackPanel>
-      <Panel BorderThickness="2" />
-      <Panel BorderThickness="2" />
+      <Panel BorderThickness="2" Border="#5BC6FAFF" />
+      <Panel BorderThickness="2" Background="#CF56BFFF" />
     </HorizontalStackPanel>
     <Panel BorderThickness="2" />
     <Panel BorderThickness="2" />
