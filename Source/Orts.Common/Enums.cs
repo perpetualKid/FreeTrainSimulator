@@ -874,6 +874,31 @@ namespace Orts.Common
         /// Traction cut-off relay has been opened.
         /// </summary>
         TractionCutOffRelayOpen,
+        /// <summary>
+        /// Left doors have been opened.
+        /// </summary>
+        LeftDoorsOpen,
+        /// <summary>
+        /// Left doors have been closed.
+        /// </summary>
+        LeftDoorsClosed,
+        /// <summary>
+        /// Right doors have been opened.
+        /// </summary>
+        RightDoorsOpen,
+        /// <summary>
+        /// Right doors have been closed.
+        /// </summary>
+        RightDoorsClosed
+    }
+
+    // Door state: do not change the order of this enum
+    public enum DoorState
+    {
+        Closed,
+        Closing,
+        Opening,
+        Open,
     }
 
     /// <summary>

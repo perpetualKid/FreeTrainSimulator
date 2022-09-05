@@ -5685,7 +5685,9 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Doors_Display:
                     {
-                        data = DoorLeftOpen | DoorRightOpen ? 1 : 0;
+                        var leftDoorState = Train.GetDoorState(false);
+                        var rightDoorState = Train.GetDoorState(true);
+                        data = (leftDoorState != DoorState.Closed || rightDoorState != DoorState.Closed)? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Sanders:
@@ -5900,10 +5902,12 @@ namespace Orts.Simulation.RollingStocks
                     data = CabLightOn ? 1 : 0;
                     break;
                 case CabViewControlType.Orts_LeftDoor:
-                    data = GetCabFlipped() ? (DoorRightOpen ? 1 : 0) : DoorLeftOpen ? 1 : 0;
-                    break;
                 case CabViewControlType.Orts_RightDoor:
-                    data = GetCabFlipped() ? (DoorLeftOpen ? 1 : 0) : DoorRightOpen ? 1 : 0;
+                    {
+                        bool right = (cvc.ControlType == CabViewControlType.Orts_RightDoor) ^ Flipped ^ GetCabFlipped();
+                        var state = Train.GetDoorState(right);
+                        data = (state == DoorState.Opening || state == DoorState.Open) ? 1 : 0;
+                    }
                     break;
                 case CabViewControlType.Orts_Mirros:
                     data = MirrorOpen ? 1 : 0;

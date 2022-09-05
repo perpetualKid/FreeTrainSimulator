@@ -48,8 +48,6 @@ namespace Orts.ActivityRunner.Viewer3D
             viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
             viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
             viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
             viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
 
             viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, KeyEventType.KeyPressed, () =>

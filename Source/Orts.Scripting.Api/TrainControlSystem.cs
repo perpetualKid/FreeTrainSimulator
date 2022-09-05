@@ -170,14 +170,6 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<bool> IsRearCab { get; set; }
         /// <summary>
-        /// True if left doors are open
-        /// </summary>
-        public Func<bool> AreLeftDoorsOpen;
-        /// <summary>
-        /// True if right doors are open
-        /// </summary>
-        public Func<bool> AreRightDoorsOpen;
-        /// <summary>
         /// True if train brake controller is in emergency position, otherwise false.
         /// </summary>
         public Func<bool> IsBrakeEmergency { get; set; }
@@ -209,6 +201,14 @@ namespace Orts.Scripting.Api
         /// True if all pantographs are down.
         /// </summary>
         public Func<bool> ArePantographsDown { get; set; }
+        /// <summary>
+        /// Get left doors state
+        /// </summary>
+        public Func<DoorState> GetLeftDoorState { get; set; }
+        /// <summary>
+        /// Get right doors state
+        /// </summary>
+        public Func<DoorState> GetRightDoorState { get; set; }
         /// <summary>
         /// Returns throttle percent
         /// </summary>
@@ -375,6 +375,24 @@ namespace Orts.Scripting.Api
         /// Set horn on (true) or off (false).
         /// </summary>
         public Action<bool> SetHorn { get; set; }
+        /// <summary>
+        /// Open or close left doors
+        /// bool: true for closing order, false for opening order
+        /// </summary>
+        public Action<bool> ToggleLeftDoors { get; set; }
+        /// <summary>
+        /// Open or close right doors
+        /// bool: true for closing order, false for opening order
+        /// </summary>
+        public Action<bool> ToggleRightDoors { get; set; }
+        /// <summary>
+        /// Lock left doors so they cannot be opened
+        /// </summary>
+        public Action<bool> LockLeftDoors { get; set; }
+        /// <summary>
+        /// Lock right doors so they cannot be opened
+        /// </summary>
+        public Action<bool> LockRightDoors { get; set; }
         /// <summary>
         /// Trigger Alert1 sound event
         /// </summary>

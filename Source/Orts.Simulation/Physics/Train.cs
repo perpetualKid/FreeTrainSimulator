@@ -11563,7 +11563,6 @@ namespace Orts.Simulation.Physics
         /// Tests if Waiting point delay >=30000 and <4000; under certain conditions this means that
         /// delay represents an absolute time of day, with format 3HHMM
         /// </summary>
-        /// 
         internal virtual int TestAbsDelay(int delay, int correctedTime)
         {
             //TODO 20201128
@@ -11587,21 +11586,61 @@ namespace Orts.Simulation.Physics
         /// Toggles status of doors of a train
         /// Parameters: right = true if right doors; open = true if opening
         /// </summary>
-        protected void ToggleDoors(bool right, bool open)
+        public void ToggleDoors(bool right, bool open)
+        {
+            foreach (TrainCar car in Cars)
+            {
+                var mstsWagon = car as MSTSWagon;
+                if ((!car.Flipped && right) || (car.Flipped && !right))
+                {
+                    mstsWagon.RightDoor.SetDoor(open);
+                }
+                else
+                {
+                    mstsWagon.LeftDoor.SetDoor(open);
+                }
+            }
+            if (simulator.PlayerLocomotive?.Train == this && MultiPlayerManager.IsMultiPlayer())
+                MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), right ? "DORR" : "DOORL", open ? 1 : 0)).ToString());
+        }
+
+        /// <summary>
+        /// LockDoors
+        /// Locks doors of a train so they cannot be opened
+        /// Parameters: right = true if right doors; lck = true if locking
+        /// </summary>
+        public void LockDoors(bool right, bool lck)
         {
             foreach (TrainCar car in Cars)
             {
                 MSTSWagon mstsWagon = car as MSTSWagon;
-                if (!car.Flipped && right || car.Flipped && !right)
+                if ((!car.Flipped && right) || (car.Flipped && !right))
                 {
-                    mstsWagon.DoorRightOpen = open;
+                    mstsWagon.RightDoor.SetDoorLock(lck);
                 }
                 else
                 {
-                    mstsWagon.DoorLeftOpen = open;
+                    mstsWagon.LeftDoor.SetDoorLock(lck);
                 }
-                mstsWagon.SignalEvent(open ? TrainEvent.DoorOpen : TrainEvent.DoorClose); // hook for sound trigger
             }
+        }
+
+        /// <summary>
+        /// GetDoorState
+        /// Returns status of doors of a train
+        /// Parameter: right = true if right doors
+        /// </summary>
+        public DoorState GetDoorState(bool right)
+        {
+            DoorState state = DoorState.Closed;
+            foreach (TrainCar car in Cars)
+            {
+                MSTSWagon mstsWagon = car as MSTSWagon;
+                DoorState wagonDoorState = (!car.Flipped && right) || (car.Flipped && !right) ? mstsWagon.RightDoor.State : mstsWagon.LeftDoor.State;
+                if (state < wagonDoorState)
+                    state = wagonDoorState;
+            }
+            return state;
         }
 
         /// <summary>

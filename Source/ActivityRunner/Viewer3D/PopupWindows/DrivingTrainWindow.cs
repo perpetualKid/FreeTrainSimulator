@@ -847,17 +847,23 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
             }
 
-            result |= dataAvailable[DetailInfo.DoorOpen] != (dataAvailable[DetailInfo.DoorOpen] = playerLocomotive.DoorLeftOpen || playerLocomotive.DoorRightOpen || System.Environment.TickCount64 < doorOpenTimeout);
+            DoorState doorLeftState = playerLocomotive.Train.GetDoorState(false);
+            DoorState doorRightState = playerLocomotive.Train.GetDoorState(true);
+            bool doorLeftOpen = doorLeftState != DoorState.Closed;
+            bool doorRightOpen = doorRightState != DoorState.Closed;
+
+            result |= dataAvailable[DetailInfo.DoorOpen] != (dataAvailable[DetailInfo.DoorOpen] = doorLeftOpen || doorRightOpen || System.Environment.TickCount64 < doorOpenTimeout);
             linesAdded += dataAvailable[DetailInfo.DoorOpen] ? 1 : 0;
             if (dataAvailable[DetailInfo.DoorOpen] && groupDetails[DetailInfo.DoorOpen]?.Controls[3] is Label doorLabel)
             {
-                if (playerLocomotive.DoorLeftOpen || playerLocomotive.DoorRightOpen)
+                if (doorLeftOpen || doorRightOpen)
                 {
                     doorOpenTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
 
+                    bool flipped = playerLocomotive.GetCabFlipped() ^ playerLocomotive.Flipped;
                     doorLabel.Text = FormatStrings.JoinIfNotEmpty(FormatStrings.Markers.Fence[0], 
-                        playerLocomotive.DoorLeftOpen ? playerLocomotive.UsingRearCab ? Catalog.GetString("Right") : Catalog.GetString("Left") : null,
-                        playerLocomotive.DoorRightOpen ? playerLocomotive.UsingRearCab ? Catalog.GetString("Left") : Catalog.GetString("Right") : null);
+                        doorLeftOpen ? flipped ? Catalog.GetString("Right") : Catalog.GetString("Left") : null,
+                        doorRightOpen ? flipped ? Catalog.GetString("Left") : Catalog.GetString("Right") : null);
                     doorLabel.TextColor = playerLocomotive.AbsSpeedMpS > 0 ? Color.OrangeRed : Color.Yellow;
                 }
                 else

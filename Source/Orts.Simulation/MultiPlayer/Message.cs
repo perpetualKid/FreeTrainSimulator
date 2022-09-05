@@ -2185,14 +2185,12 @@ namespace Orts.Simulation.MultiPlayer
             }
             else if (EventName == "DOORL")
             {
-                if (t.LeadLocomotive != null)
-                    ((MSTSWagon)(t.LeadLocomotive)).ToggleDoorsLeft();
+                t.ToggleDoors(false, EventState == 1);
                 MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
             }
             else if (EventName == "DOORR")
             {
-                if (t.LeadLocomotive != null)
-                    ((MSTSWagon)(t.LeadLocomotive)).ToggleDoorsRight();
+                t.ToggleDoors(true, EventState == 1);
                 MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
             }
             else if (EventName == "MIRRORS")
