@@ -59,10 +59,8 @@ namespace Toolbox.YardOffice
             };
 
             base.Initialize();
-
-            await Task.WhenAll(initTasks).ConfigureAwait(false);
         }
-
+       
         protected override void LoadContent()
         {
             base.LoadContent();
