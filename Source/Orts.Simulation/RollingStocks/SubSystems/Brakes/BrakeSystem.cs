@@ -66,9 +66,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
         public abstract void AISetPercent(float percent);
 
-        public abstract string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
-        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units);
-        public abstract string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
+        public abstract string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units);
+        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units);
+        public abstract string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units);
         public abstract float GetCylPressurePSI();
         public abstract float GetCylVolumeM3();
         public abstract float GetVacResPressurePSI();

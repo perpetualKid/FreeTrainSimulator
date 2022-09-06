@@ -147,7 +147,7 @@ namespace Orts.Simulation.Physics
         public float MUDynamicBrakePercent { get; internal set; } = -1;         // dynamic brake control for MU'd locomotives, <0 for off
         public float DPDynamicBrakePercent { get; internal set; } = -1;         // Distributed Power async/back group dynamic brake control
         public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
-        internal float EqualReservoirPressurePSIorInHg { get; set; } = 90;      // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
+        public float EqualReservoirPressurePSIorInHg { get; internal set; } = 90;      // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
 
         // Class AirSinglePipe etc. use this property for pressure in PSI, 
         // but Class VacuumSinglePipe uses it for vacuum in InHg.
@@ -1334,18 +1334,23 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void SetDistributedPowerUnitIds(bool keepRemoteGroups = false)
         {
-            var id = 0;
-            foreach (var car in Cars)
+            int id = 0;
+            bool currentGroup = false;
+            foreach (TrainCar car in Cars)
             {
-                //Console.WriteLine("___{0} {1}", car.CarID, id);
-                if (car is MSTSLocomotive)
+                if (car is MSTSLocomotive locomotive)
                 {
-                    (car as MSTSLocomotive).DistributedPowerUnitId = id;
+                    if (!currentGroup)
+                    {
+                        id++;
+                        currentGroup = true;
+                    }
+                    locomotive.DistributedPowerUnitId = id;
                     if (car.RemoteControlGroup == RemoteControlGroup.RearGroupAsync && !keepRemoteGroups)
                         car.RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
                 }
                 else
-                    id++;
+                    currentGroup = false;
             }
         }
 

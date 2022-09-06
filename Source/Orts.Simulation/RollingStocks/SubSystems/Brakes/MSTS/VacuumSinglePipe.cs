@@ -108,12 +108,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return p < CylPressurePSIA ? p : CylPressurePSIA;
         }
 
-        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units) // Status for last car in Main HUD
+        public override string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units) // Status for last car in Main HUD
         {
             return Simulator.Catalog.GetString($" BP {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}");
         }
 
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)  // Status for Main HUD view (calls above as well)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)  // Status for Main HUD view (calls above as well)
         {
             string s;
             // display depending upon whether an EQ reservoir fitted
@@ -144,7 +144,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return s;
         }
 
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)  // status for each car in the train
+        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             if (LocomotiveSteamBrakeFitted)
             {

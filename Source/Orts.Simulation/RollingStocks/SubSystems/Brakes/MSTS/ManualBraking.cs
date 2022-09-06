@@ -217,14 +217,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // Get the brake BC & BP for EOT conditions
-        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             string s = Simulator.Catalog.GetString("Manual Brake");
             return s;
         }
 
         // Get Brake information for train
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             string s = Simulator.Catalog.GetString("Manual Brake");
             return s;
@@ -232,7 +232,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
 
         // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             // display differently depending upon whether manual brake is present or not
 

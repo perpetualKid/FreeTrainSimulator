@@ -129,7 +129,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // Get the brake BC & BP for EOT conditions
-        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             string s = Simulator.Catalog.GetString($" BC {FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}");
                 s += Simulator.Catalog.GetString($" BP {FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true)}");
@@ -137,7 +137,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // Get Brake information for train
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             string s = Simulator.Catalog.GetString($" EQ {FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, units[BrakeSystemComponent.EqualizingReservoir], true)}");
             s += Simulator.Catalog.GetString($" BC {FormatStrings.FormatPressure(Car.Train.HUDWagonBrakeCylinderPSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}");
@@ -150,7 +150,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return s;
         }
 
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
 

@@ -59,7 +59,7 @@ namespace Orts.Graphics.Window
 
         public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
         public int DefaultFontSize { get; } = 13;
-        public string DefaultMonoFontName { get; } = "Courier New";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
+        public string DefaultMonoFontName { get; } = "Courier New";
 
         //publish some events to allow interaction between Graphcis WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;

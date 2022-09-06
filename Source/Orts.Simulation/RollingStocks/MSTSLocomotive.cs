@@ -140,7 +140,6 @@ namespace Orts.Simulation.RollingStocks
         public float PowerOnDelayS;
         public bool CabLightOn;
         public bool ShowCab = true;
-        public bool MilepostUnitsMetric;
         public int DistributedPowerUnitId;
         public float DrvWheelWeightKg; // current weight on locomotive drive wheels, includes drag factor (changes as mass changes)
         public float InitialDrvWheelWeightKg; // initialising weight on locomotive drive wheels, includes drag factor
@@ -311,17 +310,9 @@ namespace Orts.Simulation.RollingStocks
         public float LocomotiveCoefficientFrictionHUD;
         public float HuDGearMaximumTractiveForce;
 
-        public Pressure.Unit MainPressureUnit = Pressure.Unit.None;
-        public Dictionary<BrakeSystemComponent, Pressure.Unit> BrakeSystemPressureUnits = new Dictionary<BrakeSystemComponent, Pressure.Unit>
-        {
-            { BrakeSystemComponent.MainReservoir, Pressure.Unit.None },
-            { BrakeSystemComponent.EqualizingReservoir, Pressure.Unit.None },
-            { BrakeSystemComponent.AuxiliaryReservoir, Pressure.Unit.None },
-            { BrakeSystemComponent.EmergencyReservoir, Pressure.Unit.None },
-            { BrakeSystemComponent.MainPipe, Pressure.Unit.None },
-            { BrakeSystemComponent.BrakePipe, Pressure.Unit.None },
-            { BrakeSystemComponent.BrakeCylinder, Pressure.Unit.None }
-        };
+        public Pressure.Unit MainPressureUnit { get; protected set; } = Pressure.Unit.None;
+
+        public EnumArray<Pressure.Unit, BrakeSystemComponent> BrakeSystemPressureUnits { get; } = new EnumArray<Pressure.Unit, BrakeSystemComponent>(Pressure.Unit.None);
 
         protected float OdometerResetPositionM;
         protected bool OdometerCountingUp = true;
@@ -466,7 +457,6 @@ namespace Orts.Simulation.RollingStocks
         {
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
 
-            MilepostUnitsMetric = simulator.Route.MilepostUnitsMetric;
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();
@@ -704,38 +694,36 @@ namespace Orts.Simulation.RollingStocks
                     BrakeSystemPressureUnits[BrakeSystemComponent.AuxiliaryReservoir] = BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe]; // Auxiliary Reservoir is supplied by Brake Pipe (in single pipe brakes)
                     BrakeSystemPressureUnits[BrakeSystemComponent.EmergencyReservoir] = BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe]; // Emergency Reservoir is supplied by Brake Pipe
 
-                    foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
+                    foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         if (BrakeSystemPressureUnits[component] == Pressure.Unit.None)
-                        {
-                            BrakeSystemPressureUnits[component] = (MilepostUnitsMetric ? Pressure.Unit.Bar : Pressure.Unit.PSI);
-                        }
+                            BrakeSystemPressureUnits[component] = (simulator.Route.MilepostUnitsMetric ? Pressure.Unit.Bar : Pressure.Unit.PSI);
                     }
                     break;
 
                 case PressureUnit.Bar:
-                    foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
+                    foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
-                        BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
+                            BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
                     }
                     break;
 
                 case PressureUnit.Psi:
-                    foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
+                    foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.PSI;
                     }
                     break;
 
                 case PressureUnit.InHg:
-                    foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
+                    foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.InHg;
                     }
                     break;
 
                 case PressureUnit.Kgfcm2:
-                    foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
+                    foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.KgfpCm2;
                     }
@@ -743,10 +731,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // The main pressure unit is the one that is the most present in the brake system
-            MainPressureUnit = BrakeSystemPressureUnits.Values.ToList()
-                .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .First().Key;
+            MainPressureUnit = BrakeSystemPressureUnits.GroupBy(x => x).OrderByDescending(x => x.Count()).First().Key;
         }
 
         protected CabView BuildCabView(string wagFilePath, string cvfFileName)
@@ -1313,7 +1298,8 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeBlendingForceMatch = locoCopy.DynamicBrakeBlendingForceMatch;
 
             MainPressureUnit = locoCopy.MainPressureUnit;
-            BrakeSystemPressureUnits = locoCopy.BrakeSystemPressureUnits;
+            foreach(BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
+                BrakeSystemPressureUnits[component] = locoCopy.BrakeSystemPressureUnits[component];
             IsDriveable = copy.IsDriveable;
 
             ThrottleController = (MSTSNotchController)locoCopy.ThrottleController.Clone();
@@ -2953,7 +2939,7 @@ namespace Orts.Simulation.RollingStocks
                     if (!WaterScoopSlowSpeedFlag)
                     {
                         simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
-                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
+                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, simulator.Route.MilepostUnitsMetric)));
                         WaterScoopSlowSpeedFlag = true;
                         RefillProcess.OkToRefill = false;
                         RefillProcess.ActivePickupObjectUID = 0;

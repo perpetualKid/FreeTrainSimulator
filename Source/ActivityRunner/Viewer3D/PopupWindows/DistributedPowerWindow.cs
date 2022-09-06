@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using GetText;
@@ -6,6 +7,7 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -13,7 +15,11 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Settings;
 using Orts.Simulation;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes;
+
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -24,6 +30,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private const string ArrowRight = "►"; //\u25BA
         private const string ArrowLeft = "◄"; //\u25C4
 
+        private const int monoColumnWidth = 60;
+        private const int normalColumnWidth = 80;
+
         private enum WindowMode
         {
             Normal,
@@ -32,13 +41,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ShortMono,
         }
 
+        private enum GroupDetail
+        {
+            GroupId,
+            LocomotivesNumber,
+            Throttle,
+            Load,
+            BrakePressure,
+            Remote,
+            EqualizerReservoir,
+            BrakeCylinder,
+            MainReservoir,
+        }
+
         private readonly UserSettings settings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
         private Label labelExpandMono;
         private Label labelExpandDetails;
-        private Label labelGroupStatus;
-        private string groupStatus;
+        private readonly EnumArray<ControlLayout, GroupDetail> groupDetails = new EnumArray<ControlLayout, GroupDetail>();
 
         public DistributedPowerWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Distributed Power"), relativeLocation, new Point(160, 200), catalog)
@@ -52,27 +73,72 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling);
-            layout = layout.AddLayoutOffset(0);
+            layout = base.Layout(layout, headerScaling).AddLayoutOffset(0);
             ControlLayout buttonLine = layout.AddLayoutHorizontal();
             buttonLine.HorizontalChildAlignment = HorizontalAlignment.Right;
             buttonLine.VerticalChildAlignment = VerticalAlignment.Top;
-            buttonLine.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? ArrowRight : ArrowLeft));
+            buttonLine.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? ArrowRight : ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
-            buttonLine.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? ArrowUp : ArrowDown));
+            buttonLine.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? ArrowUp : ArrowDown, HorizontalAlignment.Center, Color.Yellow));
             labelExpandDetails.OnClick += LabelExpandDetails_OnClick;
             labelExpandDetails.Visible = labelExpandMono.Visible = groupCount > 0;
             layout = layout.AddLayoutVertical();
             if (groupCount == 0)
             {
-                layout.Add(labelGroupStatus = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, groupStatus, HorizontalAlignment.Center));
+                layout.VerticalChildAlignment = VerticalAlignment.Center;
+                layout.Add(new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString("Distributed power management not available with this player train."), HorizontalAlignment.Center));
                 Caption = Catalog.GetString("Distributed Power Info");
             }
             else
             {
                 Caption = Catalog.GetString("DPU Info");
-                layout.Add(labelGroupStatus = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, groupStatus, HorizontalAlignment.Left));
-                layout.AddHorizontalSeparator(true);
+
+                void AddDetailLine(GroupDetail groupDetail, int width, string labelText, System.Drawing.Font font, HorizontalAlignment alignment = HorizontalAlignment.Right)
+                {
+                    buttonLine = layout.AddLayoutHorizontalLineOfText();
+                    buttonLine.Add(new Label(this, width, font.Height, labelText, font));
+                    for (int i = 0; i < groupCount; i++)
+                    {
+                        buttonLine.Add(new Label(this, 0, 0, 60, font.Height, null, alignment, font, Color.White));
+                        buttonLine.Add(new Label(this, 0, 0, 10, font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
+                    }
+                    groupDetails[groupDetail] = buttonLine;
+                }
+
+                if (windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono)
+                {
+                    AddDetailLine(GroupDetail.GroupId, monoColumnWidth, FourCharAcronym.LocoGroup.GetLocalizedDescription(), Owner.TextFontMonoDefaultBold, HorizontalAlignment.Center);
+                    layout.AddHorizontalSeparator(true);
+                    AddDetailLine(GroupDetail.LocomotivesNumber, monoColumnWidth, FourCharAcronym.Locomotives.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Throttle, monoColumnWidth, FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Load, monoColumnWidth, FourCharAcronym.Load.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.BrakePressure, monoColumnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Remote, monoColumnWidth, FourCharAcronym.Remote.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+
+                    if (windowMode == WindowMode.NormalMono)
+                    {
+                        AddDetailLine(GroupDetail.EqualizerReservoir, monoColumnWidth, Catalog.GetString("ER"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, monoColumnWidth, Catalog.GetString("BC"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, monoColumnWidth, Catalog.GetString("MR"), Owner.TextFontMonoDefault);
+                    }
+                }
+                else
+                {
+                    AddDetailLine(GroupDetail.GroupId, normalColumnWidth, Catalog.GetString("Group"), Owner.TextFontDefault, HorizontalAlignment.Center);
+                    layout.AddHorizontalSeparator(true);
+                    AddDetailLine(GroupDetail.LocomotivesNumber, normalColumnWidth, Catalog.GetString("Locos"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Throttle, normalColumnWidth, Catalog.GetString("Throttle"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Load, normalColumnWidth, Catalog.GetString("Load"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.BrakePressure, normalColumnWidth, Catalog.GetString("Brk Pres"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Remote, normalColumnWidth, Catalog.GetString("Remote"), Owner.TextFontDefault);
+
+                    if (windowMode == WindowMode.Normal)
+                    {
+                        AddDetailLine(GroupDetail.EqualizerReservoir, normalColumnWidth, Catalog.GetString("ER"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, normalColumnWidth, Catalog.GetString("BC"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, normalColumnWidth, Catalog.GetString("MR"), Owner.TextFontDefault);
+                    }
+                }
             }
             return layout;
         }
@@ -127,13 +193,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             }
             else
             {
-                int width = (groupCount + 1) * 50;
                 Point size = windowMode switch
                 {
-                    WindowMode.Normal => new Point(width, 300),
-                    WindowMode.NormalMono => new Point(width * 4 / 5, 300),
-                    WindowMode.Short => new Point(width, 120),
-                    WindowMode.ShortMono => new Point(width * 4 / 5, 120),
+                    WindowMode.Normal => new Point(groupCount * 60 + normalColumnWidth, 170),
+                    WindowMode.NormalMono => new Point(groupCount * 60 + monoColumnWidth, 170),
+                    WindowMode.Short => new Point(groupCount * 60 + normalColumnWidth, 130),
+                    WindowMode.ShortMono => new Point(groupCount * 60 + monoColumnWidth, 130),
                     _ => throw new System.InvalidOperationException(),
                 };
 
@@ -147,25 +212,78 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void UpdatePowerInformation()
         {
-            int groups;
             IEnumerable<IGrouping<int, MSTSDieselLocomotive>> distributedLocomotives = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSDieselLocomotive>().GroupBy((dieselLocomotive) => dieselLocomotive.DistributedPowerUnitId);
-            groups = distributedLocomotives.Count();
-
-            {
-                foreach (IGrouping<int, MSTSDieselLocomotive> item in distributedLocomotives)
-                {
-                    int count = item.Count();
-                }
-            }
+            int groups = distributedLocomotives.Count();
 
             if (groups != groupCount)
             {
                 groupCount = groups;
                 Resize();
             }
-            if (groupCount == 0)
+
+            int i = 1;
+            RemoteControlGroup remoteControlGroup = RemoteControlGroup.FrontGroupSync;
+
+            foreach (IGrouping<int, MSTSDieselLocomotive> item in distributedLocomotives)
             {
-                groupStatus = Catalog.GetString("Distributed power management not available with this player train.");
+                MSTSDieselLocomotive groupLead = item.FirstOrDefault();
+                bool fence = remoteControlGroup != (remoteControlGroup = groupLead.RemoteControlGroup);
+
+                if (groupDetails[GroupDetail.GroupId]?.Controls[i] is Label groupLabel)
+                    groupLabel.Text = $"{groupLead?.DistributedPowerUnitId}";
+                if (i > 1) //fence is before the current group
+                {
+                    foreach (GroupDetail groupDetail in EnumExtension.GetValues<GroupDetail>())
+                    {
+                        if (groupDetails[groupDetail]?.Controls[i - 1] is Label label)
+                        {
+                            label.Text = fence ? "\u2590" : null;
+                            if (groupDetail == GroupDetail.GroupId)
+                            {
+                                if (!fence)
+                                    label.Text = "—";
+                                label.TextColor = fence ? Color.Green : Color.White;
+                            }
+                        }
+                    }
+                }
+                if (groupDetails[GroupDetail.LocomotivesNumber]?.Controls[i] is Label locoLabel)
+                    locoLabel.Text = $"{item.Count()}";
+                if (groupDetails[GroupDetail.Throttle]?.Controls[i] is Label throttleLabel)
+                {
+                    throttleLabel.Text = $"{groupLead.DistributedPowerThrottleInfo()}";
+                    throttleLabel.TextColor = groupLead.DynamicBrakePercent >= 0 ? Color.Yellow : Color.White;
+                }
+                if (groupDetails[GroupDetail.BrakePressure]?.Controls[i] is Label brakeLabel)
+                {
+                    brakeLabel.Text = $"{FormatStrings.FormatPressure(groupLead.BrakeSystem.BrakeLine1PressurePSI, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], windowMode == WindowMode.Normal || windowMode == WindowMode.Short)}";
+                }
+                if (groupDetails[GroupDetail.Load]?.Controls[i] is Label loadLabel)
+                {
+                    loadLabel.Text = $"{groupLead.DistributedPowerLoadInfo():F0}{(windowMode == WindowMode.Normal || windowMode == WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
+                }
+                if (groupDetails[GroupDetail.Remote]?.Controls[i] is Label remoteLabel)
+                {
+                    remoteLabel.Text = $"{(groupLead.IsLeadLocomotive() || groupLead.RemoteControlGroup < 0 ? "———" : groupLead.RemoteControlGroup == 0 ? Catalog.GetString("Sync") : Catalog.GetString("Async"))}";
+                }
+                if (windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono)
+                {
+                    TrainCar lastCar = groupLead.Train.Cars[^1];
+                    if (lastCar == groupLead)
+                        lastCar = groupLead.Train.Cars[0];
+
+                    if (groupDetails[GroupDetail.EqualizerReservoir]?.Controls[i] is Label eqLabel)
+                        eqLabel.Text = $"{FormatStrings.FormatPressure(lastCar.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.EqualizingReservoir], windowMode == WindowMode.Normal)}";
+
+                    // BC
+                    if (groupDetails[GroupDetail.BrakeCylinder]?.Controls[i] is Label bcLabel)
+                        bcLabel.Text = $"{FormatStrings.FormatPressure(groupLead.BrakeSystem.GetCylPressurePSI(), Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], windowMode == WindowMode.Normal)}";
+
+                    // MR
+                    if (groupDetails[GroupDetail.MainReservoir]?.Controls[i] is Label mrLabel)
+                        mrLabel.Text = $"{FormatStrings.FormatPressure(groupLead.MainResPressurePSI, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], windowMode == WindowMode.Normal)}";
+                }
+                i += 2;
             }
 
         }

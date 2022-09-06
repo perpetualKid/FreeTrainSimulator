@@ -107,7 +107,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
-        public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
@@ -472,7 +471,6 @@ namespace Orts.ActivityRunner.Viewer3D
             OSDCars = new OSDCars(WindowManager);
             TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
-            TrainDpuWindow = new TrainDpuWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
@@ -668,10 +666,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainDpuWindow.TabAction();
-                else
-                    TrainDpuWindow.Visible = !TrainDpuWindow.Visible;
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.DistributedPowerWindow].ToggleVisibility();
             });

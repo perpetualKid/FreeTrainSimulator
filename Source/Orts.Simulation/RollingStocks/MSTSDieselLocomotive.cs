@@ -48,6 +48,9 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 using System.Linq;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -162,7 +165,9 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(dieselenginemaxrpm":
                     MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, null);
                     break;
-                case "engine(ortsdieselenginegovernorrpm": GovernorRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); break;
+                case "engine(ortsdieselenginegovernorrpm":
+                    GovernorRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                    break;
                 case "engine(dieselenginemaxrpmchangerate":
                     MaxRPMChangeRate = stf.ReadFloatBlock(STFReader.Units.None, null);
                     break;
@@ -408,17 +413,17 @@ namespace Orts.Simulation.RollingStocks
                     // Check Adhesion values
                     var calculatedmaximumpowerw = CalculatedMaxContinuousForceN * SpeedOfMaxContinuousForceMpS;
                     var maxforcekN = MaxForceN / 1000.0f;
-                var designadhesionzerospeed = maxforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
+                    var designadhesionzerospeed = maxforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
                     var calculatedmaxcontinuousforcekN = CalculatedMaxContinuousForceN / 1000.0f;
-                var designadhesionmaxcontspeed = calculatedmaxcontinuousforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
+                    var designadhesionmaxcontspeed = calculatedmaxcontinuousforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
                     var zerospeed = 0;
                     var configuredadhesionzerospeed = (Curtius_KnifflerA / (zerospeed + Curtius_KnifflerB) + Curtius_KnifflerC);
                     var configuredadhesionmaxcontinuousspeed = (Curtius_KnifflerA / (SpeedOfMaxContinuousForceMpS + Curtius_KnifflerB) + Curtius_KnifflerC);
                     var dropoffspeed = calculatedmaximumpowerw / (MaxForceN);
                     var configuredadhesiondropoffspeed = (Curtius_KnifflerA / (dropoffspeed + Curtius_KnifflerB) + Curtius_KnifflerC);
 
-                Trace.TraceInformation("Apparent (Design) Adhesion: Zero - {0:N2} @ {1}, Max Continuous Speed - {2:N2} @ {3}, Drive Wheel Weight - {4}", designadhesionzerospeed, FormatStrings.FormatSpeedDisplay(zerospeed, simulator.MetricUnits), designadhesionmaxcontspeed, FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits), FormatStrings.FormatMass(DrvWheelWeightKg, simulator.MetricUnits));
-                Trace.TraceInformation("OR Calculated Adhesion Setting: Zero Speed - {0:N2} @ {1}, Dropoff Speed - {2:N2} @ {3}, Max Continuous Speed - {4:N2} @ {5}", configuredadhesionzerospeed, FormatStrings.FormatSpeedDisplay(zerospeed, simulator.MetricUnits), configuredadhesiondropoffspeed, FormatStrings.FormatSpeedDisplay(dropoffspeed, simulator.MetricUnits), configuredadhesionmaxcontinuousspeed, FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
+                    Trace.TraceInformation("Apparent (Design) Adhesion: Zero - {0:N2} @ {1}, Max Continuous Speed - {2:N2} @ {3}, Drive Wheel Weight - {4}", designadhesionzerospeed, FormatStrings.FormatSpeedDisplay(zerospeed, simulator.MetricUnits), designadhesionmaxcontspeed, FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits), FormatStrings.FormatMass(DrvWheelWeightKg, simulator.MetricUnits));
+                    Trace.TraceInformation("OR Calculated Adhesion Setting: Zero Speed - {0:N2} @ {1}, Dropoff Speed - {2:N2} @ {3}, Max Continuous Speed - {4:N2} @ {5}", configuredadhesionzerospeed, FormatStrings.FormatSpeedDisplay(zerospeed, simulator.MetricUnits), configuredadhesiondropoffspeed, FormatStrings.FormatSpeedDisplay(dropoffspeed, simulator.MetricUnits), configuredadhesionmaxcontinuousspeed, FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
                 }
 
                 Trace.TraceInformation("===================================================================================================================\n\n");
@@ -759,7 +764,7 @@ namespace Orts.Simulation.RollingStocks
                         // Tractive force is read from Table using the apparent throttle setting, and then reduced by the number of engines running (power ratio)
                         TractiveForceN = (float)TractiveForceCurves.Get(LocomotiveApparentThrottleSetting, AbsTractionSpeedMpS) * DieselEngineFractionPower * (1 - PowerReduction);
                     }
-                        TractiveForceN = 0;
+                    TractiveForceN = 0;
                 }
 
             }
@@ -1041,6 +1046,64 @@ namespace Orts.Simulation.RollingStocks
             return status.ToString();
         }
 
+        public string DistributedPowerThrottleInfo()
+        {
+            string throttle;
+            if (ThrottlePercent > 0)
+            {
+                throttle = ThrottleController.NotchCount() > 3
+                    ? Simulator.Catalog.GetParticularString("Notch", "N") + MathHelper.Clamp(ThrottleController.GetNearestNotch(ThrottlePercent / 100f), 1, 8)
+                    : $"{ThrottlePercent:F0}%";
+            }
+            else if (DynamicBrakePercent > 0 && DynamicBrake)
+            {
+                if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                {
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
+                }
+                else
+                {
+                    // The clause here below leads to possible differences of one notch near the notch value, and therefore is commented
+                    //               if (DynamicBrakeController.NotchCount() > 3)
+                    //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
+                    //               else
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
+                }
+            }
+            else if (DynamicBrakePercent == 0 && !DynamicBrake)
+                throttle = Simulator.Catalog.GetString("Setup");
+            else
+                throttle = Simulator.Catalog.GetParticularString("Notch", "Idle");
+
+            return throttle;
+        }
+
+        public double DistributedPowerLoadInfo()
+        {
+            double data = FilteredMotiveForceN != 0 ? (double)Math.Abs(FilteredMotiveForceN) : (double)Math.Abs(LocomotiveAxle.DriveForceN);
+            if (DynamicBrakePercent > 0)
+            {
+                data = -Math.Abs(DynamicBrakeForceN);
+            }
+            if (simulator.Route.MilepostUnitsMetric)  // return an Ampere value
+            {
+                if (ThrottlePercent >= 0 && DynamicBrakePercent == -1)
+                {
+                    data = (data / MaxForceN) * MaxCurrentA;
+                }
+                if (ThrottlePercent == 0 && DynamicBrakePercent >= 0)
+                {
+                    data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                }
+                return data;
+            }
+            else // return a Kilo Lbs value 
+            {
+                data = Dynamics.Force.ToLbf(data) * 0.001f;
+                return data;
+            }
+        }
+
         public string GetDpuStatus(bool dataDpu, CabViewControlUnit loadUnits = CabViewControlUnit.None)// used by the TrainDpuInfo window
         {
             string throttle;
@@ -1090,7 +1153,7 @@ namespace Orts.Simulation.RollingStocks
                 data = -Math.Abs(DynamicBrakeForceN);
             }
             if (loadUnits == CabViewControlUnit.None)
-                loadUnits = MilepostUnitsMetric ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
+                loadUnits = simulator.Route.MilepostUnitsMetric ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
             switch (loadUnits)
             {
                 case CabViewControlUnit.Amps:
@@ -1160,6 +1223,8 @@ namespace Orts.Simulation.RollingStocks
             return status.ToString();
         }
 
+
+        //TODO 20220901 this should be refactored
         private static string BrakeValue(string tokenIni, string tokenEnd) // used by GetDpuStatus(bool dataHud)
         {
             string trainBrakeStatus = Simulator.Instance.PlayerLocomotive.GetTrainBrakeStatus();
@@ -1181,7 +1246,7 @@ namespace Orts.Simulation.RollingStocks
             int numberOfLocomotives = 0;
             int group = 0;
             string configuration = "";
-            int dpUnitId = 0;
+            int dpUnitId = 1;
             RemoteControlGroup remoteControlGroup = RemoteControlGroup.FrontGroupSync;
             for (var i = 0; i < Train.Cars.Count; i++)
             {

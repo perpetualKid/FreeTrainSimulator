@@ -70,7 +70,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             BrakePipeVolumeM3 = (source as SingleTransferPipe)?.BrakePipeVolumeM3 ?? throw new ArgumentNullException(nameof(source));
         }
 
-        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             if (null == units)
                 throw new ArgumentNullException(nameof(units));
@@ -85,7 +85,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             if (null == units)
                 throw new ArgumentNullException(nameof(units));
@@ -111,7 +111,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
             if (null == units)
                 throw new ArgumentNullException(nameof(units));

@@ -17,6 +17,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace Orts.Common
 {
@@ -1024,5 +1025,25 @@ namespace Orts.Common
         MultiPlayerWindow,
         DrivingTrainWindow,
         DistributedPowerWindow,
+    }
+    public enum FourCharAcronym
+    {
+        [Description("FLOW")] Flow,
+        [Description("FUEL")] Fuel,
+        [Description("LOAD")] Load,
+        [Description("GRUP")] LocoGroup,
+        [Description("OILP")] OilPressure,
+        [Description("POWR")] Power,
+        [Description("RMT")] Remote,
+        [Description("RPM")] Rpm,
+        [Description("REVR")] Reverser,
+        [Description("STAT")] Status,
+        [Description("TEMP")] Temperature,
+        [Description("THRO")] Throttle,
+        [Description("TIME")] Time,
+        [Description("TRAC")] TractiveEffort,
+        [Description("BRKP")] BrakePressure,
+        [Description("LOCS")] Locomotives,
+
     }
 }

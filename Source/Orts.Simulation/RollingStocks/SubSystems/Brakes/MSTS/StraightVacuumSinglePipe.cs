@@ -354,7 +354,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
 
             if (!(Car as MSTSWagon).NonAutoBrakePresent)

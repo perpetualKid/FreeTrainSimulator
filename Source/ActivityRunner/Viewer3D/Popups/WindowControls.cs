@@ -166,7 +166,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.Initialize(windowManager);
             Font = windowManager.TextFontDefault;
-            if (TrainDrivingWindow.FontToBold || TrainDpuWindow.FontToBold)
+            if (TrainDrivingWindow.FontToBold)
             {
                 Font = windowManager.TextFontDefaultBold;
             }
