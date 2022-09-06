@@ -1570,7 +1570,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public void InitFromMSTS()
         {
             bool verboseConfigurationMessages = Simulator.Instance.Settings.VerboseConfigurationMessages;
-
             if (MaximumRailOutputPowerW == 0 && Locomotive.MaxPowerW != 0)
             {
                 MaximumRailOutputPowerW = Locomotive.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowerW parameter
@@ -1971,7 +1970,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             // Set up the reverse ThrottleRPM table. This is used to provide an apparent throttle setting to the Tractive Force calculation, and allows the diesel engine to control the up/down time of 
             // tractive force. This table should be creeated with all locomotives, as they will either use (create) a default ThrottleRPM table, or the user will enter one. 
-
             if (ThrottleRPMTab != null)
             {
                 ReverseThrottleRPMTab = Interpolator.InverseInterpolator(ThrottleRPMTab); // create reverse table

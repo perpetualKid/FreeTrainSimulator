@@ -76,7 +76,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     {
                         ReverseGearBoxIndication = true;
                     }
-                    //                    Trace.TraceInformation("Read Indication {0}", ReverseGearBoxIndication);
                     break;
                 case "engine(gearboxdirectdrivegear":
                     GearBoxDirectDriveGear = stf.ReadIntBlock(1);
@@ -635,11 +634,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                             if (CurrentSpeedMpS > 0)
                             {
-                                if (tractiveForceN > (DieselEngine.RailPowerTab[DieselEngine.RealRPM] / CurrentSpeedMpS))
-                                {
-                                    tractiveForceN = DieselEngine.RailPowerTab[DieselEngine.RealRPM] / CurrentSpeedMpS;
-                                }
+                                var tractiveEffortLimitN = (DieselEngine.DieselPowerTab[DieselEngine.RealRPM] * (DieselEngine.LoadPercent / 100f)) / CurrentSpeedMpS;
 
+                                if (tractiveForceN > tractiveEffortLimitN )
+                                {
+                                    tractiveForceN = tractiveEffortLimitN;
+                                }
                             }
 
                             // Set TE to zero if gear change happening && type B gear box
