@@ -847,10 +847,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
             }
 
-            DoorState doorLeftState = playerLocomotive.Train.GetDoorState(false);
-            DoorState doorRightState = playerLocomotive.Train.GetDoorState(true);
-            bool doorLeftOpen = doorLeftState != DoorState.Closed;
-            bool doorRightOpen = doorRightState != DoorState.Closed;
+            bool doorLeftOpen = playerLocomotive.Train.GetDoorState(false) != DoorState.Closed;
+            bool doorRightOpen = playerLocomotive.Train.GetDoorState(true) != DoorState.Closed;
 
             result |= dataAvailable[DetailInfo.DoorOpen] != (dataAvailable[DetailInfo.DoorOpen] = doorLeftOpen || doorRightOpen || System.Environment.TickCount64 < doorOpenTimeout);
             linesAdded += dataAvailable[DetailInfo.DoorOpen] ? 1 : 0;

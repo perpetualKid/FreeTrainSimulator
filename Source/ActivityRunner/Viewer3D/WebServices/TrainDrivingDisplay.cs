@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -725,10 +726,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Doors
             var wagon = (MSTSWagon)locomotive;
-            var doorLeftState = train.GetDoorState(false);
-            var doorRightState = train.GetDoorState(true);
-            var doorLeftOpen = doorLeftState != DoorState.Closed;
-            var doorRightOpen = doorRightState != DoorState.Closed;
+            var doorLeftOpen = train.GetDoorState(false) != DoorState.Closed;
+            var doorRightOpen = train.GetDoorState(true) != DoorState.Closed;
             if (doorLeftOpen || doorRightOpen)
             {
                 var status = new List<string>();
