@@ -20,6 +20,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -30,8 +31,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private const string ArrowRight = "►"; //\u25BA
         private const string ArrowLeft = "◄"; //\u25C4
 
-        private const int monoColumnWidth = 60;
-        private const int normalColumnWidth = 80;
+        private const int monoColumnWidth = 48;
+        private const int normalColumnWidth = 64;
 
         private enum WindowMode
         {
@@ -99,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     buttonLine.Add(new Label(this, width, font.Height, labelText, font));
                     for (int i = 0; i < groupCount; i++)
                     {
-                        buttonLine.Add(new Label(this, 0, 0, 60, font.Height, null, alignment, font, Color.White));
+                        buttonLine.Add(new Label(this, 0, 0, width, font.Height, null, alignment, font, Color.White));
                         buttonLine.Add(new Label(this, 0, 0, 10, font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
                     }
                     groupDetails[groupDetail] = buttonLine;
@@ -107,36 +108,38 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                 if (windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono)
                 {
-                    AddDetailLine(GroupDetail.GroupId, monoColumnWidth, FourCharAcronym.LocoGroup.GetLocalizedDescription(), Owner.TextFontMonoDefaultBold, HorizontalAlignment.Center);
+                    int columnWidth = (int)(Owner.DpiScaling * monoColumnWidth);
+                    AddDetailLine(GroupDetail.GroupId, columnWidth, FourCharAcronym.LocoGroup.GetLocalizedDescription(), Owner.TextFontMonoDefaultBold, HorizontalAlignment.Center);
                     layout.AddHorizontalSeparator(true);
-                    AddDetailLine(GroupDetail.LocomotivesNumber, monoColumnWidth, FourCharAcronym.Locomotives.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.Throttle, monoColumnWidth, FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.Load, monoColumnWidth, FourCharAcronym.Load.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.BrakePressure, monoColumnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.Remote, monoColumnWidth, FourCharAcronym.Remote.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, FourCharAcronym.Locomotives.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Throttle, columnWidth, FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Load, columnWidth, FourCharAcronym.Load.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.BrakePressure, columnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Remote, columnWidth, FourCharAcronym.Remote.GetLocalizedDescription(), Owner.TextFontMonoDefault);
 
                     if (windowMode == WindowMode.NormalMono)
                     {
-                        AddDetailLine(GroupDetail.EqualizerReservoir, monoColumnWidth, Catalog.GetString("ER"), Owner.TextFontMonoDefault);
-                        AddDetailLine(GroupDetail.BrakeCylinder, monoColumnWidth, Catalog.GetString("BC"), Owner.TextFontMonoDefault);
-                        AddDetailLine(GroupDetail.MainReservoir, monoColumnWidth, Catalog.GetString("MR"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, Catalog.GetString("ER"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, Catalog.GetString("BC"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, Catalog.GetString("MR"), Owner.TextFontMonoDefault);
                     }
                 }
                 else
                 {
-                    AddDetailLine(GroupDetail.GroupId, normalColumnWidth, Catalog.GetString("Group"), Owner.TextFontDefault, HorizontalAlignment.Center);
+                    int columnWidth = (int)(Owner.DpiScaling * normalColumnWidth);
+                    AddDetailLine(GroupDetail.GroupId, columnWidth, Catalog.GetString("Group"), Owner.TextFontDefault, HorizontalAlignment.Center);
                     layout.AddHorizontalSeparator(true);
-                    AddDetailLine(GroupDetail.LocomotivesNumber, normalColumnWidth, Catalog.GetString("Locos"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.Throttle, normalColumnWidth, Catalog.GetString("Throttle"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.Load, normalColumnWidth, Catalog.GetString("Load"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.BrakePressure, normalColumnWidth, Catalog.GetString("Brk Pres"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.Remote, normalColumnWidth, Catalog.GetString("Remote"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, Catalog.GetString("Locos"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Throttle, columnWidth, Catalog.GetString("Throttle"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Load, columnWidth, Catalog.GetString("Load"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.BrakePressure, columnWidth, Catalog.GetString("Brk Pres"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Remote, columnWidth, Catalog.GetString("Remote"), Owner.TextFontDefault);
 
                     if (windowMode == WindowMode.Normal)
                     {
-                        AddDetailLine(GroupDetail.EqualizerReservoir, normalColumnWidth, Catalog.GetString("ER"), Owner.TextFontDefault);
-                        AddDetailLine(GroupDetail.BrakeCylinder, normalColumnWidth, Catalog.GetString("BC"), Owner.TextFontDefault);
-                        AddDetailLine(GroupDetail.MainReservoir, normalColumnWidth, Catalog.GetString("MR"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, Catalog.GetString("ER"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, Catalog.GetString("BC"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, Catalog.GetString("MR"), Owner.TextFontDefault);
                     }
                 }
             }
@@ -195,10 +198,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 Point size = windowMode switch
                 {
-                    WindowMode.Normal => new Point(groupCount * 60 + normalColumnWidth, 170),
-                    WindowMode.NormalMono => new Point(groupCount * 60 + monoColumnWidth, 170),
-                    WindowMode.Short => new Point(groupCount * 60 + normalColumnWidth, 130),
-                    WindowMode.ShortMono => new Point(groupCount * 60 + monoColumnWidth, 130),
+                    WindowMode.Normal => new Point((groupCount + 1) * (normalColumnWidth + 10), 170),
+                    WindowMode.NormalMono => new Point((groupCount + 1) * (monoColumnWidth + 10), 170),
+                    WindowMode.Short => new Point((groupCount + 1) * (normalColumnWidth + 10), 130),
+                    WindowMode.ShortMono => new Point((groupCount + 1) * (monoColumnWidth + 10), 130),
                     _ => throw new System.InvalidOperationException(),
                 };
 
