@@ -341,10 +341,7 @@ namespace Orts.Toolbox
 
         protected override async void Initialize()
         {
-            List<Task> initTasks = new List<Task>()
-            {
-                LoadFolders(),
-            };
+            Task loadFolders = LoadFolders();
             InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -464,7 +461,7 @@ namespace Orts.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            await Task.WhenAll(initTasks).ConfigureAwait(false);
+            await loadFolders.ConfigureAwait(false);
             await PreSelectRoute(Settings.RouteSelection, Settings.PathSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
             if (Settings.RestoreLastView)
