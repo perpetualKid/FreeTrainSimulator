@@ -66,8 +66,7 @@ namespace Toolbox.YardOffice
 
             MyraEnvironment.Game = this;
 
-            UpdateTitle();
-
+            
             // Load UI
             ui = new YardOffice();
 

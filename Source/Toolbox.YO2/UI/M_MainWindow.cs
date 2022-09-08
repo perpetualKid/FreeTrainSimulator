@@ -4,9 +4,8 @@ using System;
 
 using Microsoft.Xna.Framework;
 
-using Myra.Graphics2D.UI;
-using Myra;
-using SharpDX;
+
+
 
 using Point = Microsoft.Xna.Framework.Point;
 
@@ -25,7 +24,7 @@ namespace Toolbox.YO2
             menuItemQuit.Selected += QuitItemOnDown;
             menuItemAbout.Selected += AboutItemOnDown;
             menuItemView.Selected += ViewItemOnDown;
-            m_ViewWindow._SaveWindowView.PressedChanged += _SaveWindowView_PressedChanged;
+          
         }
 
      
@@ -37,16 +36,12 @@ namespace Toolbox.YO2
 
         private void AboutItemOnDown(object sender, EventArgs eventArgs)
         {
-            var messageBox = Dialog.CreateMessageBox("YardOffice", "Myra " + MyraEnvironment.Version);
+            var messageBox = Myra.Graphics2D.UI.Dialog.CreateMessageBox("YardOffice", "Myra " + Myra.MyraEnvironment.Version);
 
             messageBox.ShowModal(Desktop);
         }
 
-        private void _SaveWindowView_PressedChanged(object sender, System.EventArgs e)
-        {
-            m_ViewWindow.Close();
-            ;
-        }
+       
 
         private void ViewItemOnDown(object sender, EventArgs eventArgs)
         {

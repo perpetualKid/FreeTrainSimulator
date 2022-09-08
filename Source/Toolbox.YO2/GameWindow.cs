@@ -1,11 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using Orts.Common;
+using Orts.Models.Simplified;
+using Orts.Formats.Msts.Files;
+using Orts.Toolbox.Settings;
+
 using Myra;
 using Myra.Graphics2D.UI;
+using System.Threading.Tasks;
+
+
+//using static Swan.Terminal;
 
 namespace Toolbox.YO2
 {
@@ -16,6 +27,13 @@ namespace Toolbox.YO2
         private M_MainWindow _mainWindow;
         private Desktop _desktop;
 
+        private Folder selectedFolder;
+        private Route selectedRoute;
+        private Path selectedPath; // going forward, there may be multiple paths selected at once   
+        private IEnumerable<Route> routes;
+        private IEnumerable<Path> paths;
+
+        public IOrderedEnumerable<Folder> folders;
         public static GameWindow Instance { get; private set; }
 
         public GameWindow()
@@ -29,6 +47,19 @@ namespace Toolbox.YO2
             };
             Window.AllowUserResizing = true;
             IsMouseVisible = true;
+
+            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
+            Settings = new ToolboxSettings(options);
+
+
+        }
+
+        internal ToolboxSettings Settings { get; }
+
+        protected override async void Initialize()
+        {
+            await LoadFolders().ConfigureAwait(true);
+            base.Initialize();
         }
 
         protected override void LoadContent()
@@ -39,6 +70,8 @@ namespace Toolbox.YO2
             // TODO: use this.Content to load your game content here
 
             MyraEnvironment.Game = this;
+
+            
 
             _desktop = new Desktop
             {
@@ -53,8 +86,11 @@ namespace Toolbox.YO2
                 _desktop.OnChar(a.Character);
             };
 
-            // Load UI
+
+
             _mainWindow = new M_MainWindow();
+
+            
 
             _desktop.Root = _mainWindow;
 
@@ -71,6 +107,20 @@ namespace Toolbox.YO2
 
             _desktop?.Render();
        
+        }
+
+        internal async Task LoadFolders()
+        {
+
+            try
+            {
+                this.folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+            }
+
+            catch (TaskCanceledException)
+            {
+            }
+
         }
     }
 }
