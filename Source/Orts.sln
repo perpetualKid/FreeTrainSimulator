@@ -56,7 +56,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models", "Orts.Models\Orts.Models.csproj", "{A17D2401-1B35-46E8-91FF-E1E917091D64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.YardOffice", "Toolbox.YardOffice\Toolbox.YardOffice.csproj", "{5A88F9FC-6184-4EEA-932E-4F064959D6B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.YardOffice", "Toolbox.YardOffice\Toolbox.YardOffice.csproj", "{5A88F9FC-6184-4EEA-932E-4F064959D6B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.YO2", "Toolbox.YO2\Toolbox.YO2.csproj", "{F6695401-5B08-4085-A962-CB3267E5CC79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +154,10 @@ Global
 		{5A88F9FC-6184-4EEA-932E-4F064959D6B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A88F9FC-6184-4EEA-932E-4F064959D6B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A88F9FC-6184-4EEA-932E-4F064959D6B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6695401-5B08-4085-A962-CB3267E5CC79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6695401-5B08-4085-A962-CB3267E5CC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6695401-5B08-4085-A962-CB3267E5CC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6695401-5B08-4085-A962-CB3267E5CC79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

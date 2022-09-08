@@ -1,0 +1,18 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_ViewWindow" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
+  <Window Title="Views" DragDirection="None" Left="300" Top="10" Id="M_ViewWindow" >
+    <VerticalStackPanel Spacing="8">
+      <Grid ColumnSpacing="1" RowSpacing="1">
+        <Grid.DefaultColumnProportion Type="Auto" />
+        <Grid.DefaultRowProportion Type="Auto" />
+        <CheckBox Text="Consist List" GridColumn="1" GridRow="1" />
+        <CheckBox Text="Block List" GridColumn="1" GridRow="2" />
+        <CheckBox Text="Set List" GridColumn="1" GridRow="3" />
+        <CheckBox Text="Equip List" GridColumn="1" GridRow="4" />
+        <CheckBox Text="Consist Units" GridColumn="1" GridRow="5" />
+        <CheckBox Text="Equip 3D View" GridColumn="1" GridRow="6" />
+        <CheckBox Text="Consist 3D View" GridColumn="1" GridRow="7" />
+      </Grid>
+    </VerticalStackPanel>
+  </Window>
+</Project>

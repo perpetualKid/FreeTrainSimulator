@@ -1,0 +1,27 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_ViewWindow" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
+  <Window Title="Views" DragDirection="None" Left="608" Top="147" Id="M_ViewWindow">
+    <VerticalStackPanel>
+      <VerticalStackPanel.Proportions>
+        <Proportion/>
+        <Proportion/>
+      </VerticalStackPanel.Proportions>
+    <VerticalStackPanel Spacing="8">
+      <Grid ColumnSpacing="1" RowSpacing="1">
+        <Grid.DefaultColumnProportion Type="Auto" />
+        <Grid.DefaultRowProportion Type="Auto" />
+        <CheckBox Text="Consist List" GridColumn="1" GridRow="1" Id="_Content_List" />
+        <CheckBox Text="Block List" GridColumn="1" GridRow="2" Id="_Block_List" />
+        <CheckBox Text="Set List" GridColumn="1" GridRow="3" Id="_Set_List" />
+        <CheckBox Text="Equip List" GridColumn="1" GridRow="4" Id="_Equip_List" />
+        <CheckBox Text="Consist Units" GridColumn="1" GridRow="5" Id="_Consist_Units" />
+        <CheckBox Text="Equip 3D View" GridColumn="1" GridRow="6" Id="_Equip_3D_View" />
+        <CheckBox Text="Consist 3D View" GridColumn="1" GridRow="7" Id="_Consist_3D_View" />
+      </Grid>
+    </VerticalStackPanel>
+     <VerticalStackPanel>
+       <TextButton Text="          Save           " TextColor="#000000FF" BorderThickness="1" Background="#B2B2B2FF" Border="#FFFFFFFF" Id="_SaveWindowView" />
+     </VerticalStackPanel>
+       </VerticalStackPanel>
+  </Window>
+</Project>
