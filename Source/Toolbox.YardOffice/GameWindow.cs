@@ -26,7 +26,7 @@ namespace Toolbox.YardOffice
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Desktop Mdesktop;
-        
+
 
         private Folder selectedFolder;
         private Route selectedRoute;
@@ -36,7 +36,7 @@ namespace Toolbox.YardOffice
         private IEnumerable<Path> paths;
         private YardOffice ui;
 
-        
+
         public GameWindow()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -53,14 +53,10 @@ namespace Toolbox.YardOffice
 
         protected override async void Initialize()
         {
-            List<Task> initTasks = new List<Task>()
-            {
-                LoadFolders(),
-            };
-
+            await LoadFolders().ConfigureAwait(true);
             base.Initialize();
         }
-       
+
         protected override void LoadContent()
         {
             base.LoadContent();
@@ -72,7 +68,7 @@ namespace Toolbox.YardOffice
 
             UpdateTitle();
 
-           // Load UI
+            // Load UI
             ui = new YardOffice();
 
             // Populate Routes           
@@ -93,7 +89,7 @@ namespace Toolbox.YardOffice
             var aboutItem = ui.menuItemAbout;
             aboutItem.Selected += AboutItemOnDown;
 
-            
+
 
             Mdesktop = new Desktop
             {
@@ -135,22 +131,22 @@ namespace Toolbox.YardOffice
 
             GraphicsDevice.Clear(Color.Black);
 
-            Mdesktop.Render();
-           
+            Mdesktop?.Render();
+
         }
 
         internal async Task LoadFolders()
         {
-          
+
             try
             {
-               this.folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+                this.folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
             }
 
             catch (TaskCanceledException)
             {
             }
-            
+
         }
     }
 }
