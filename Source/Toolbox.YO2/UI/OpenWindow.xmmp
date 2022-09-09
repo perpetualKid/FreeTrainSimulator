@@ -1,6 +1,6 @@
 <Project>
   <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_OpenWindow" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
-  <Window Title="" Left="408" Top="10" Id="M_OpenWindow">
+  <Window Title="" Left="272" Id="M_OpenWindow">
     <VerticalStackPanel>
       <VerticalStackPanel.Proportions>
         <Proportion Type="Auto" />
@@ -11,23 +11,15 @@
       <Image Renderable="../Content/TitleBarWindow.png" />
       <TextButton Text="                          Search For Folder Containing 'Trains'                       " TextColor="#000000FF" BorderThickness="2" Background="#D9D9D9FF" Border="#FFFFFFFF" />
       <TextBox Text="                                      Or Select from Below                     " Background="#404040FF" />
-      <ListBox Width="540" Height="180" Id="_OpenWin_List" >
-        <ListItem Text="Route1" Color="#FFFFFFFF" />
-        <ListItem Text="Route2" Color="#FFFFFFFF" />
-        <ListItem Text="Route3" Color="#FFFFFFFF" />
-        <ListItem Text="Route4" Color="#FFFFFFFF" />
-        <ListItem Text="Route5" Color="#FFFFFFFF" />
-        <ListItem Text="Route6" Color="#FFFFFFFF" />
-        <ListItem Text="Route7" Color="#FFFFFFFF" />
-        <ListItem Text="Route8" Color="#FFFFFFFF" />
-        <ListItem Text="Route9" Color="#FFFFFFFF" />
-        </ListBox>
+      <ListBox Width="540" Height="180" Id="_OpenWin_List">
+       
+      </ListBox>
       <HorizontalStackPanel>
         <HorizontalStackPanel.Proportions>
           <Proportion Type="Auto" />
           <Proportion Type="Auto" />
         </HorizontalStackPanel.Proportions>
-        <TextButton Text="                                        Load                                         " BorderThickness="2" Background="#4BD961FF" Border="#FFFFFFFF" />
+        <TextButton Text="                                        Load                                         " BorderThickness="2" Background="#4BD961FF" Border="#FFFFFFFF" Id="_OpenWin_Load_button" />
         <TextButton Text="    Cancel    " BorderThickness="2" Background="#FE3930FF" Border="#FFFFFFFF" Id="_OpenWin_Cancel_button" />
       </HorizontalStackPanel>
     </VerticalStackPanel>

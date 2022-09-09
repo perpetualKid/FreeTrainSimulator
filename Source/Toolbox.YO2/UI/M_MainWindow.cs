@@ -3,9 +3,7 @@
 using System;
 
 using Microsoft.Xna.Framework;
-
-
-
+using Microsoft.Xna.Framework.Input;
 
 using Point = Microsoft.Xna.Framework.Point;
 
@@ -15,6 +13,8 @@ namespace Toolbox.YO2
     {
         private readonly M_ViewWindow m_ViewWindow = new M_ViewWindow();
         private readonly M_OpenWindow m_OpenWindow = new M_OpenWindow();
+        private readonly DebugWindow m_DebugWindow = new DebugWindow();
+    
 
         public M_MainWindow()
         {
@@ -24,10 +24,17 @@ namespace Toolbox.YO2
             menuItemQuit.Selected += QuitItemOnDown;
             menuItemAbout.Selected += AboutItemOnDown;
             menuItemView.Selected += ViewItemOnDown;
+            menuItemDebug.Selected += MenuItemDebug_Selected;
+          
           
         }
 
-     
+        private void MenuItemDebug_Selected(object sender, EventArgs e)
+        {
+
+            m_DebugWindow.ShowModal(Desktop);
+        }
+
         private void QuitItemOnDown(object sender, EventArgs genericEventArgs)
         {
             GameWindow.Instance.Exit();

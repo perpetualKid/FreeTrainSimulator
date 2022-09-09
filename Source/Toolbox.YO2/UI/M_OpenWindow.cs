@@ -7,22 +7,31 @@ using Microsoft.Xna.Framework;
 
 using Myra.Graphics2D.UI;
 using Orts.Models.Simplified;
+using Orts.Formats.Msts;
+using System.Drawing.Text;
+
+using ListItem = Myra.Graphics2D.UI.ListItem;
 
 namespace Toolbox.YO2
 {
 	public partial class M_OpenWindow
 	{
+
+         
+
 		public M_OpenWindow()
 		{
+            
 
             BuildUI();
 
             // Populate Routes
             // 
 
-            var listItem = new Myra.Graphics2D.UI.ListItem();
+            
             foreach (Folder folder in GameWindow.Instance.folders)
-            { 
+            {
+                var listItem = new ListItem();
                 listItem.Text = folder.Name;
                 listItem.Color = Color.White;
                 _OpenWin_List.Items.Add(listItem);
@@ -30,6 +39,20 @@ namespace Toolbox.YO2
 
 
             _OpenWin_Cancel_button.Click += _OpenWin_Cancel_button_Click;
+            _OpenWin_Load_button.Click += _OpenWin_Load_button_Click;
+
+
+ 
+            
+        }
+
+        private void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
+        {
+                var routeselected = _OpenWin_List.SelectedItem.Text;
+                var messageBox = Myra.Graphics2D.UI.Dialog.CreateMessageBox("YardOffice", routeselected);
+
+                messageBox.ShowModal(Desktop);
+
             
         }
 

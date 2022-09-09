@@ -46,6 +46,9 @@ namespace Toolbox.YO2
                 PreferredBackBufferHeight = 800
             };
             Window.AllowUserResizing = true;
+            Window.Title = "Toolbox - Yard Office";
+        
+       
             IsMouseVisible = true;
 
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
