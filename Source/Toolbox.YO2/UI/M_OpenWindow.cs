@@ -11,6 +11,8 @@ using Orts.Formats.Msts;
 using System.Drawing.Text;
 
 using ListItem = Myra.Graphics2D.UI.ListItem;
+using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace Toolbox.YO2
 {
@@ -44,6 +46,19 @@ namespace Toolbox.YO2
 
  
             
+        }
+
+        internal void PopulateContentFolders(IEnumerable<Folder> folders)
+        {
+           
+            foreach (Folder folder in folders)
+            {
+                ListItem listItem = new ListItem(folder.Name)
+                {
+                    Tag = folder,
+                };
+                _OpenWin_List.Items.Add(listItem);
+            }
         }
 
         private void _OpenWin_Load_button_Click(object sender, System.EventArgs e)

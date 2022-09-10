@@ -13,8 +13,6 @@ using GetText.WindowsForms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Myra;
-using Myra.Graphics2D.UI;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -55,7 +53,7 @@ namespace Orts.Toolbox
         private ContentArea contentArea;
         private int suppressCount;
 
-        private Desktop Mdesktop;
+        
 
         internal ContentArea ContentArea
         {
@@ -506,9 +504,7 @@ namespace Orts.Toolbox
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             //Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
-            // Myra addon
-            MyraEnvironment.Game = this;
-            //
+            
         }
 
         protected override void Update(GameTime gameTime)

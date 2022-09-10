@@ -124,6 +124,7 @@ namespace Toolbox.YO2
             try
             {
                 this.folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+  //              M_OpenWindow.PopulateContentFolders(folders);
             }
 
             catch (TaskCanceledException)
