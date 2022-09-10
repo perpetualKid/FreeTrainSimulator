@@ -59,6 +59,7 @@ namespace Orts.DataCollector
             Console.WriteLine("  /system        Collects and reports on various system information");
             Console.WriteLine("  /tile-terrtex  Scans the provided PATHs for MSTS tile files (.t) and");
             Console.WriteLine("                 produces a statistical summary of the terrtex used");
+            Console.WriteLine("  /help          Show help and usage information");
         }
 
         private struct TileTerrtexDirectory
