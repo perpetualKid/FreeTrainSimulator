@@ -14,6 +14,7 @@ using Orts.Toolbox.Settings;
 using Myra;
 using Myra.Graphics2D.UI;
 using System.Threading.Tasks;
+using System.Threading;
 
 
 //using static Swan.Terminal;
@@ -27,13 +28,18 @@ namespace Toolbox.YO2
         private M_MainWindow _mainWindow;
         private Desktop _desktop;
 
-        private Folder selectedFolder;
+        
         private Route selectedRoute;
         private Path selectedPath; // going forward, there may be multiple paths selected at once   
         private IEnumerable<Route> routes;
         private IEnumerable<Path> paths;
+        private IEnumerable<Consist> consists = Array.Empty<Consist>();
 
+        private CancellationTokenSource ctsConsistLoading;
+
+        public Folder selectedFolder;
         public IOrderedEnumerable<Folder> folders;
+
         public static GameWindow Instance { get; private set; }
 
         public GameWindow()
@@ -124,6 +130,36 @@ namespace Toolbox.YO2
             {
             }
 
+        }
+
+        internal async Task LoadConsists()
+        {
+            lock (consists)
+            {
+                if (ctsConsistLoading != null && !ctsConsistLoading.IsCancellationRequested)
+                    ctsConsistLoading.Cancel();
+                ctsConsistLoading = ResetCancellationTokenSource(ctsConsistLoading);
+            }
+
+
+            try
+            {
+                consists = (await Consist.GetConsists(selectedFolder, ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
+            }
+            catch (TaskCanceledException)
+            {
+                consists = Array.Empty<Consist>();
+            }
+        }
+
+        private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
+        {
+            if (cts != null)
+            {
+                cts.Dispose();
+            }
+            // Create a new cancellation token source so that can cancel all the tokens again 
+            return new CancellationTokenSource();
         }
     }
 }

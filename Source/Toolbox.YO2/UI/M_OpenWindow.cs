@@ -48,10 +48,25 @@ namespace Toolbox.YO2
 
         private void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
         {
-                var routeselected = _OpenWin_List.SelectedItem.Text;
-                var messageBox = Myra.Graphics2D.UI.Dialog.CreateMessageBox("YardOffice", routeselected);
+            var routeselected = " ";
 
-                messageBox.ShowModal(Desktop);
+            if (_OpenWin_List.SelectedItem == null)
+                routeselected = "Route not Selected";
+            else
+            {
+                foreach (Folder folder in GameWindow.Instance.folders)
+                {
+                    if (folder.Name == _OpenWin_List.SelectedItem.Text)
+                    {
+                        routeselected = folder.Name;
+                        break;
+                    }
+                }
+            }
+
+            var messageBox = Myra.Graphics2D.UI.Dialog.CreateMessageBox("YardOffice", routeselected);
+
+            messageBox.ShowModal(Desktop);
 
             
         }
