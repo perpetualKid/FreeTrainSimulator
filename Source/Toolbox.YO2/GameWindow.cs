@@ -28,22 +28,24 @@ namespace Toolbox.YO2
         private M_MainWindow _mainWindow;
         private Desktop _desktop;
 
-        
+        private Folder selectedFolder;
         private Route selectedRoute;
         private Path selectedPath; // going forward, there may be multiple paths selected at once   
         private IEnumerable<Route> routes;
         private IEnumerable<Path> paths;
-        private IEnumerable<Consist> consists = Array.Empty<Consist>();
+ 
 
         private CancellationTokenSource ctsConsistLoading;
 
-        public Folder selectedFolder;
         public IOrderedEnumerable<Folder> folders;
+        public IEnumerable<Consist> consists = Array.Empty<Consist>();
 
+        //  Why Instance
         public static GameWindow Instance { get; private set; }
 
         public GameWindow()
         {
+//  Why Instance
             Instance = this;
 
             _graphics = new GraphicsDeviceManager(this)
@@ -53,13 +55,13 @@ namespace Toolbox.YO2
             };
             Window.AllowUserResizing = true;
             Window.Title = "Toolbox - Yard Office";
-        
-       
+            
             IsMouseVisible = true;
 
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
             Settings = new ToolboxSettings(options);
 
+            MyraEnvironment.Game = this;
 
         }
 
@@ -78,7 +80,7 @@ namespace Toolbox.YO2
 
             // TODO: use this.Content to load your game content here
 
-            MyraEnvironment.Game = this;
+            
 
             
 
@@ -95,11 +97,11 @@ namespace Toolbox.YO2
                 _desktop.OnChar(a.Character);
             };
 
-
-
             _mainWindow = new M_MainWindow();
 
-            
+            var quitItem = _mainWindow.menuItemQuit;
+            quitItem.Selected += QuitItemOnDown;
+
 
             _desktop.Root = _mainWindow;
 
@@ -118,13 +120,18 @@ namespace Toolbox.YO2
        
         }
 
+        private void QuitItemOnDown(object sender, EventArgs genericEventArgs)
+        {
+            Exit();
+        }
+
         internal async Task LoadFolders()
         {
 
             try
             {
                 this.folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
-  //              M_OpenWindow.PopulateContentFolders(folders);
+               
             }
 
             catch (TaskCanceledException)
@@ -132,8 +139,9 @@ namespace Toolbox.YO2
             }
 
         }
+   
 
-        internal async Task LoadConsists()
+        internal async Task LoadConsists(Folder selectedFolder)
         {
             lock (consists)
             {

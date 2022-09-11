@@ -1,0 +1,70 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_MainWindow" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
+  <VerticalStackPanel>
+    <VerticalStackPanel.Proportions>
+      <Proportion Type="Auto" />
+      <Proportion Type="Auto" />
+      <Proportion Type="Fill" />
+    </VerticalStackPanel.Proportions>
+    <HorizontalMenu VerticalAlignment="Stretch" Id="MmainMenu">
+      <MenuItem Text="&amp;Route" Id="menuItemRoute">
+        <MenuItem Text="Se&amp;Lect" Id="menuItemSelect" />
+        <MenuItem Text="&amp;Quit" Id="menuItemQuit" />
+      </MenuItem>
+      <MenuItem Text="&amp;Consist" Id="menuItemConsist" />
+      <MenuItem Text="&amp;Eng" Id="menuItemEng" />
+      <MenuItem Text="&amp;Replace" Id="menuItemReplace" />
+      <MenuItem Text="&amp;View" Id="menuItemView" />
+      <MenuItem Text="&amp;3D View" Id="menuItem3DView" />
+      <MenuItem Text="&amp;Settings" Id="menuItemSettings" />
+      <MenuItem Text="&amp;Help" Id="menuItemHelp">
+        <MenuItem Text="Debug" Id="menuItemDebug" />
+        <MenuItem Text="About" Id="menuItemAbout" />
+      </MenuItem>
+    </HorizontalMenu>
+    <HorizontalSeparator />
+    <HorizontalStackPanel>
+      <HorizontalStackPanel.Proportions>
+        <Proportion Type="Auto" />
+        <Proportion Type="Auto" />
+      </HorizontalStackPanel.Proportions>
+      <Grid>
+        <Grid.RowsProportions>
+          <Proportion Type="Part" Value="3" />
+          <Proportion Type="Part" />
+        </Grid.RowsProportions>
+        <Panel Width="250" Background="#FF9503FF" Id="M_TrainPanel">
+          <VerticalStackPanel>
+            <VerticalStackPanel.Proportions>
+              <Proportion Type="Auto" />
+              <Proportion Type="Fill" />
+            </VerticalStackPanel.Proportions>
+            <Grid ShowGridLines="True">
+              <Grid.ColumnsProportions>
+                <Proportion Type="Part" />
+                <Proportion Type="Part" Value="2" />
+              </Grid.ColumnsProportions>
+              <TextBox Text="Count:" />
+              <TextBox GridColumn="1" Id="_TrainCount" />
+              <TextBox Text="Show:" GridRow="1" />
+              <ComboBox GridColumn="1" GridRow="1" Id="_TrainShow">
+                <ListItem Text="Train Consists    " />
+                <ListItem Text="Activity Consists " />
+              </ComboBox>
+              <TextBox Text="Filter:" GridRow="2" />
+              <ComboBox GridColumn="1" GridRow="2" Id="_TrainFilter">
+                <ListItem Text="All                       " />
+                <ListItem Text="Broken               " />
+                <ListItem Text="Unsaved            " />
+                <ListItem Text="Last Query" />
+              </ComboBox>
+            </Grid>
+            <ListBox Width="249" Height="300" Id="_ConsistList" >
+              
+            </ListBox>
+          </VerticalStackPanel>
+        </Panel>
+      </Grid>
+    </HorizontalStackPanel>
+  </VerticalStackPanel>
+</Project>

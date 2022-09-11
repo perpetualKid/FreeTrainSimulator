@@ -5,6 +5,9 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
+using Myra.Graphics2D.UI;
+using Orts.Models.Simplified;
+
 using Point = Microsoft.Xna.Framework.Point;
 
 namespace Toolbox.YO2
@@ -20,8 +23,9 @@ namespace Toolbox.YO2
         {
             BuildUI();
 
+        
+
             menuItemSelect.Selected += SelectItemOnDown;
-            menuItemQuit.Selected += QuitItemOnDown;
             menuItemAbout.Selected += AboutItemOnDown;
             menuItemView.Selected += ViewItemOnDown;
             menuItemDebug.Selected += MenuItemDebug_Selected;
@@ -35,10 +39,7 @@ namespace Toolbox.YO2
             m_DebugWindow.ShowModal(Desktop);
         }
 
-        private void QuitItemOnDown(object sender, EventArgs genericEventArgs)
-        {
-            GameWindow.Instance.Exit();
-        }
+        
 
 
         private void AboutItemOnDown(object sender, EventArgs eventArgs)
@@ -52,12 +53,12 @@ namespace Toolbox.YO2
 
         private void ViewItemOnDown(object sender, EventArgs eventArgs)
         {
-            m_ViewWindow.Show(Desktop, new Point(300, 21));
+            m_ViewWindow.ShowModal(Desktop, new Point(300, 21));
         }
 
         private void SelectItemOnDown(object sender, EventArgs eventArgs)
         {
-            m_OpenWindow.ShowModal(Desktop);
+            m_OpenWindow.Show(Desktop);
         }
 
     }

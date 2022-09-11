@@ -1,0 +1,32 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_Trains" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
+  <Window Title="Trains" DragDirection="None" Left="362" Width="250" Height="608" Id="M_Trains">
+    <VerticalStackPanel>
+      <VerticalStackPanel.Proportions>
+        <Proportion Type="Auto" />
+        <Proportion Type="Fill" />
+      </VerticalStackPanel.Proportions>
+      <Grid ShowGridLines="True" BorderThickness="1" Border="#FFFFFFFF">
+        <Grid.ColumnsProportions>
+          <Proportion Type="Part" />
+          <Proportion Type="Part" Value="2" />
+        </Grid.ColumnsProportions>
+        <TextBox Text="Count:" />
+        <TextBox GridColumn="1" Id="_TrainCount" />
+        <TextBox Text="Show:" GridRow="1" />
+        <ComboBox GridColumn="1" GridRow="1" Id="_TrainShow">
+          <ListItem Text="Train Consists    " />
+          <ListItem Text="Activity Consists " />
+        </ComboBox>
+        <TextBox Text="Filter:" GridRow="2" />
+        <ComboBox GridColumn="1" GridRow="2" Id="_TrainFilter">
+          <ListItem Text="All                       " />
+          <ListItem Text="Broken               " />
+          <ListItem Text="Unsaved            " />
+          <ListItem Text="Last Query" />
+        </ComboBox>
+      </Grid>
+      <ListBox Width="249" Height="600" Id="_ConsistList" />
+    </VerticalStackPanel>
+  </Window>
+</Project>

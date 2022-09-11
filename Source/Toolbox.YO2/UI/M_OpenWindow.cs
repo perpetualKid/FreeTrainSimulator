@@ -19,9 +19,9 @@ namespace Toolbox.YO2
 	public partial class M_OpenWindow
 	{
 
-         
+        
 
-		public M_OpenWindow()
+        public M_OpenWindow()
 		{
             
 
@@ -30,7 +30,7 @@ namespace Toolbox.YO2
             // Populate Routes
             // 
 
-            
+
             foreach (Folder folder in GameWindow.Instance.folders)
             {
                 var listItem = new ListItem();
@@ -48,23 +48,13 @@ namespace Toolbox.YO2
             
         }
 
-        internal void PopulateContentFolders(IEnumerable<Folder> folders)
-        {
-           
-            foreach (Folder folder in folders)
-            {
-                ListItem listItem = new ListItem(folder.Name)
-                {
-                    Tag = folder,
-                };
-                _OpenWin_List.Items.Add(listItem);
-            }
-        }
+        
 
-        private void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
+        private async void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
         {
+            
             var routeselected = " ";
-
+            int count_i = 0;
             if (_OpenWin_List.SelectedItem == null)
                 routeselected = "Route not Selected";
             else
@@ -73,17 +63,32 @@ namespace Toolbox.YO2
                 {
                     if (folder.Name == _OpenWin_List.SelectedItem.Text)
                     {
+                        await GameWindow.Instance.LoadConsists(folder).ConfigureAwait(true);
                         routeselected = folder.Name;
+                        var mw = new M_Trains();
+                        ;
+                        foreach (Consist consist in GameWindow.Instance.consists)
+                        {
+                            var listItem = new ListItem();
+                            listItem.Text = consist.Name;
+                            listItem.Color = Color.White;
+                            mw._ConsistList.Items.Add(listItem);
+                            count_i++;
+                        }                        
+                        mw._TrainCount.Text = count_i.ToString();
+                        mw.Show(Desktop, new Point(1, 21));
                         break;
                     }
                 }
             }
 
-            var messageBox = Myra.Graphics2D.UI.Dialog.CreateMessageBox("YardOffice", routeselected);
+            var messageBox = Dialog.CreateMessageBox("YardOffice", routeselected + " Number of Consists = " + count_i.ToString());
+
 
             messageBox.ShowModal(Desktop);
 
-            
+            Close();
+
         }
 
         private void _OpenWin_Cancel_button_Click(object sender, System.EventArgs e)
@@ -92,6 +97,5 @@ namespace Toolbox.YO2
             Close();
         }
 
-        
     }
 }
