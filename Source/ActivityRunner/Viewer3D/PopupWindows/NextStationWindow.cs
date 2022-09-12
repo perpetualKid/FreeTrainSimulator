@@ -198,10 +198,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualArrival);
                                 previousStationArriveActual.Text = actualArrival.ToString("c");
-                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualDepart);
                                 previousStationDepartActual.Text = actualDeparture.ToString("c");
-                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(arrival, actualDeparture);
                             }
                             else
                             {
@@ -230,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.StationStops[0].ActualArrival);
                                 currentStationArriveActual.Text = actualArrival.ToString("c");
-                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
 
                             }
                             else
@@ -373,10 +373,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualArrival);
                                 previousStationArriveActual.Text = actualArrival.ToString("c");
-                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualDepart);
                                 previousStationDepartActual.Text = actualDeparture.ToString("c");
-                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(arrival, actualDeparture);
                             }
                             else
                             {
@@ -403,7 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ActualArrival);
                                 currentStationArriveActual.Text = actualArrival.ToString("c");
-                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
 
                             }
                             else
@@ -475,10 +475,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 previousStationName.Text = previousStop.PlatformEnd1.Station;
                 previousStationArriveScheduled.Text = previousStop.ScheduledArrival.ToString("c");
                 previousStationArriveActual.Text = previousStop.ActualArrival?.ToString("c") ?? Catalog.GetString("(missed)");
-                previousStationArriveActual.TextColor = GetArrivalColor(previousStop.ScheduledArrival, previousStop.ActualArrival);
+                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(previousStop.ScheduledArrival, previousStop.ActualArrival);
                 previousStationDepartScheduled.Text = previousStop.ScheduledDeparture.ToString("c");
                 previousStationDepartActual.Text = previousStop.ActualDeparture?.ToString("c") ?? Catalog.GetString("(missed)");
-                previousStationDepartActual.TextColor = GetDepartColor(previousStop.ScheduledDeparture, previousStop.ActualDeparture);
+                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(previousStop.ScheduledDeparture, previousStop.ActualDeparture);
             }
             else
             {
@@ -500,7 +500,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 currentStationName.Text = currentStop.PlatformEnd1.Station;
                 currentStationArriveScheduled.Text = currentStop.ScheduledArrival.ToString("c");
                 currentStationArriveActual.Text = currentStop.ActualArrival?.ToString("c");
-                currentStationArriveActual.TextColor = GetArrivalColor(currentStop.ScheduledArrival, currentStop.ActualArrival);
+                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(currentStop.ScheduledArrival, currentStop.ActualArrival);
                 currentStationDepartScheduled.Text = currentStop.ScheduledDeparture.ToString("c");
                 message.TextColor = currentStop.DisplayColor;
                 message.Text = currentStop.DisplayMessage;
@@ -532,27 +532,5 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 nextStationDistance.Text = null;
             }
         }
-
-
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan actual)
-        {
-            return actual <= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan actual)
-        {
-            return actual >= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
     }
 }

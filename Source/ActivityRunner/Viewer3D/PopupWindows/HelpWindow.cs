@@ -147,11 +147,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledArrival}", HorizontalAlignment.Center));
                             line.Add(actualArrival = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
+                            { TextColor = ColorCoding.ArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledDeparture}", HorizontalAlignment.Center));
                             line.Add(actualDeparture = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
+                            { TextColor = ColorCoding.DepartureColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
                             line.Tag = (activityTask, actualArrival, actualDeparture);
                         }
                     }
@@ -510,9 +510,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             (ActivityTaskPassengerStopAt activityTask, Label actualArrival, Label actualDeparture) = ((ActivityTaskPassengerStopAt, Label, Label))line.Tag;
                             actualArrival.Text = $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
-                            actualArrival.TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival);
+                            actualArrival.TextColor = ColorCoding.ArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival);
                             actualDeparture.Text = $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
-                            actualDeparture.TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture);
+                            actualDeparture.TextColor = ColorCoding.DepartureColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture);
                         }
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders && activityWorkOrderScrollbox != null && Simulator.Instance.ActivityRun.EventList != null)
@@ -521,19 +521,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != lastLastEventID)))
                         {
                             lastLastEventID = Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
-                            foreach ((EventWrapper activityEvent, Label label) item in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
+                            foreach ((EventWrapper activityEvent, Label label) in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
                             {
-                                item.label.Text = item.activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
+                                label.Text = activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
                             }
                         }
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation)
                     {
-                        foreach ((Label label, Func<(string, Color)> func) item in evaluationTab.Tag as List<(Label, Func<(string, Color)>)>)
+                        foreach ((Label label, Func<(string, Color)> func) in evaluationTab.Tag as List<(Label, Func<(string, Color)>)>)
                         {
-                            (string text, Color textColor) value = item.func();
-                            item.label.Text = value.text;
-                            item.label.TextColor = value.textColor;
+                            (string text, Color textColor) = func();
+                            label.Text = text;
+                            label.TextColor = textColor;
                         }
                         if (ActivityEvaluation.Instance.ActivityCompleted && ActivityEvaluation.Instance.ReportText != null)
                         {
@@ -593,16 +593,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 line.Add(result = new Label(this, container.RemainingWidth / 3, line.RemainingHeight, value) { TextColor = textColor });
             }
             return result;
-        }
-
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
         }
     }
 }

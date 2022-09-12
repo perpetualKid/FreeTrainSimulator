@@ -15,22 +15,13 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Settings;
 using Orts.Simulation;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class DistributedPowerWindow : WindowBase
     {
-        private const string ArrowUp = "▲"; //\u25B2
-        private const string ArrowDown = "▼"; //\u25BC
-        private const string ArrowRight = "►"; //\u25BA
-        private const string ArrowLeft = "◄"; //\u25C4
-
         private const int monoColumnWidth = 48;
         private const int normalColumnWidth = 64;
 
@@ -61,6 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label labelExpandMono;
         private Label labelExpandDetails;
         private readonly EnumArray<ControlLayout, GroupDetail> groupDetails = new EnumArray<ControlLayout, GroupDetail>();
+        private int groupCount;
 
         public DistributedPowerWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Distributed Power"), relativeLocation, new Point(160, 200), catalog)
@@ -78,9 +70,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ControlLayout buttonLine = layout.AddLayoutHorizontal();
             buttonLine.HorizontalChildAlignment = HorizontalAlignment.Right;
             buttonLine.VerticalChildAlignment = VerticalAlignment.Top;
-            buttonLine.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? ArrowRight : ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
+            buttonLine.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? Markers.ArrowRight : Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
-            buttonLine.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? ArrowUp : ArrowDown, HorizontalAlignment.Center, Color.Yellow));
+            buttonLine.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? Markers.ArrowUp : Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
             labelExpandDetails.OnClick += LabelExpandDetails_OnClick;
             labelExpandDetails.Visible = labelExpandMono.Visible = groupCount > 0;
             layout = layout.AddLayoutVertical();
@@ -202,7 +194,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     WindowMode.NormalMono => new Point((groupCount + 1) * (monoColumnWidth + 10), 170),
                     WindowMode.Short => new Point((groupCount + 1) * (normalColumnWidth + 10), 130),
                     WindowMode.ShortMono => new Point((groupCount + 1) * (monoColumnWidth + 10), 130),
-                    _ => throw new System.InvalidOperationException(),
+                    _ => throw new InvalidOperationException(),
                 };
 
                 Resize(size);
@@ -210,8 +202,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
             settings.PopupSettings[ViewerWindowType.DistributedPowerWindow] = windowMode.ToString();
         }
-
-        private int groupCount;
 
         private void UpdatePowerInformation()
         {
@@ -240,11 +230,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     {
                         if (groupDetails[groupDetail]?.Controls[i - 1] is Label label)
                         {
-                            label.Text = fence ? "\u2590" : null;
+                            label.Text = fence ? Markers.Fence : null;
                             if (groupDetail == GroupDetail.GroupId)
                             {
                                 if (!fence)
-                                    label.Text = "—";
+                                    label.Text = Markers.Dash;
                                 label.TextColor = fence ? Color.Green : Color.White;
                             }
                         }
@@ -275,6 +265,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     if (lastCar == groupLead)
                         lastCar = groupLead.Train.Cars[0];
 
+                    // EQ
                     if (groupDetails[GroupDetail.EqualizerReservoir]?.Controls[i] is Label eqLabel)
                         eqLabel.Text = $"{FormatStrings.FormatPressure(lastCar.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.EqualizingReservoir], windowMode == WindowMode.Normal)}";
 
