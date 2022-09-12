@@ -33,9 +33,6 @@
  *  This is consolidated by the train class into overall movement for the train.
  */
 
-// Compiler flags for debug print-out facilities
-// #define DEBUG_SIGNALPASS
-
 // Debug Calculation of Aux Tender operation
 // #define DEBUG_AUXTENDER
 

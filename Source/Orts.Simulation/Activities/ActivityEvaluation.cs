@@ -23,7 +23,6 @@ namespace Orts.Simulation.Activities
         private double overSpeedInitialTime;
         private double overSpeedTime;
         private static ActivityEvaluation instance;
-        private bool activityCompleted;
 
         private ActivityEvaluation()
         { }

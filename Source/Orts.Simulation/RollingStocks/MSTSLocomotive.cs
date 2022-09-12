@@ -106,6 +106,9 @@ namespace Orts.Simulation.RollingStocks
             ContinuousSound
         }
 
+        //Debrief Eval
+        private bool evalFullTrainBrakeBelow8kmh;
+
         // simulation parameters
         public bool ManualHorn;
         public bool TCSHorn;
@@ -3990,22 +3993,19 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        //Debrief Eval
-        private bool ldbfevalfulltrainbrakeunder8kmh;
-
         public override string GetTrainBrakeStatus()
         {
             var train = simulator.PlayerLocomotive.Train;//Debrief Eval
             string s = TrainBrakeController.GetStatus();
 
 
-            if (s == "Emergency" && train.LeadLocomotive != null && !ldbfevalfulltrainbrakeunder8kmh && train.LeadLocomotive.IsPlayerTrain && Math.Abs(train.SpeedMpS) < 2.22222)
+            if (s == "Emergency" && train.LeadLocomotive != null && !evalFullTrainBrakeBelow8kmh && train.LeadLocomotive.IsPlayerTrain && Math.Abs(train.SpeedMpS) < 2.22222)
             {
                 Activities.ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh++;
-                ldbfevalfulltrainbrakeunder8kmh = true;
+                evalFullTrainBrakeBelow8kmh = true;
             }
-            if (s != "Emergency" && ldbfevalfulltrainbrakeunder8kmh)
-                ldbfevalfulltrainbrakeunder8kmh = false;
+            if (s != "Emergency" && evalFullTrainBrakeBelow8kmh)
+                evalFullTrainBrakeBelow8kmh = false;
 
             TrainCar lastCar = Train.Cars[Train.Cars.Count - 1];
             if (lastCar == this)
