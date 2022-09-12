@@ -27,7 +27,7 @@ namespace Toolbox.YO2
 		private void BuildUI()
 		{
 			var image1 = new Image();
-			image1.Renderable = MyraEnvironment.DefaultAssetManager.Load<TextureRegion>("../Content/TitleBarWindow.png");
+			image1.Renderable = MyraEnvironment.DefaultAssetManager.Load<TextureRegion>("Content/TitleBarWindow.png");
 
 			var textButton1 = new TextButton();
 			textButton1.Text = "                          Search For Folder Containing \'Trains\'                  " +
