@@ -322,11 +322,11 @@ namespace Orts.Simulation.AIs
                 MUDynamicBrakePercent = -1;
                 AITrainBrakePercent = 0;
 
-                FirstCar.CurrentElevationPercent = 100f * FirstCar.WorldPosition.XNAMatrix.M32;
+                FirstCar.CurrentElevationPercent = -100f * FirstCar.WorldPosition.XNAMatrix.M32;
                 // give it a bit more gas if it is uphill
-                if (FirstCar.CurrentElevationPercent < -2.0) initialThrottlepercent = 40f;
+                if (FirstCar.CurrentElevationPercent > 2.0) initialThrottlepercent = 40f;
                 // better block gas if it is downhill
-                else if (FirstCar.CurrentElevationPercent > 1.0) initialThrottlepercent = 0f;
+                else if (FirstCar.CurrentElevationPercent < -1.0) initialThrottlepercent = 0f;
                 AdjustControlsBrakeOff();
                 AITrainThrottlePercent = initialThrottlepercent;
 

@@ -377,17 +377,17 @@ namespace Orts.Settings
         {
             $"{nameof(ViewerWindowType.QuitWindow)}=False",
             $"{nameof(ViewerWindowType.DebugScreen)}=False",
-            $"{nameof(ViewerWindowType.HelpWindow)}=False",
+            $"{nameof(ViewerWindowType.HelpWindow)}=True",
             $"{nameof(ViewerWindowType.ActivityWindow)}=False",
             $"{nameof(ViewerWindowType.CompassWindow)}=False",
             $"{nameof(ViewerWindowType.SwitchWindow)}=False",
             $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=False",
             $"{nameof(ViewerWindowType.NextStationWindow)}=False",
-            $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=false",
-            $"{nameof(ViewerWindowType.TrainListWindow)}=false",
-            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=false",
-            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=false",
-            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=false",
+            $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=False",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=False",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=False",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=False",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 

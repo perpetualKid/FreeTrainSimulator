@@ -471,7 +471,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Replay"), FormatStrings.FormatTime(Viewer.Log.ReplayEndsAt - Viewer.Simulator.ClockTime));
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Speed"), FormatStrings.FormatSpeedDisplay(Viewer.PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", -Viewer.PlayerLocomotive.CurrentElevationPercent);
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", Viewer.PlayerLocomotive.CurrentElevationPercent);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), Math.Abs(playerTrain.MUReverserPercent));
             TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%",
                 Viewer.PlayerLocomotive.ThrottlePercent,
@@ -1629,7 +1629,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableSetCell(table, 10, "{0} : {1}", car.GetCouplerRigidIndication() ? "R" : "F", car.CouplerExceedBreakLimit ? "xxx" + "!!!" : car.CouplerOverloaded ? "O/L" + "???" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
                     TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, Simulator.Instance.MetricUnits));
                     TableSetCell(table, 3, "{0}", FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK));
-                    TableSetCell(table, 4, "{0:F2}%", -car.CurrentElevationPercent);
+                    TableSetCell(table, 4, "{0:F2}%", car.CurrentElevationPercent);
                     TableSetCell(table, 5, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, Simulator.Instance.MetricUnits));
                     TableSetCell(table, 6, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
                     TableSetCell(table, 7, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"));
@@ -1661,7 +1661,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableSetCell(table, 10, "{0} : {1}", car.GetCouplerRigidIndication() ? "R" : "F", car.CouplerExceedBreakLimit ? "xxx" + "!!!" : car.CouplerOverloaded ? "O/L" + "???" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
                     TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, Simulator.Instance.MetricUnits));
                     TableSetCell(table, 12, "{0}", FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK));
-                    TableSetCell(table, 13, "{0:F2}%", -car.CurrentElevationPercent);
+                    TableSetCell(table, 13, "{0:F2}%", car.CurrentElevationPercent);
                     TableSetCell(table, 14, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, Simulator.Instance.MetricUnits));
                     TableSetCell(table, 15, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
                     TableSetCell(table, 16, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");

@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         internal static Color SpeedingColor(double speed, double allowedSpeed)
         {
             speed = Math.Abs(speed);
-            return speed < (allowedSpeed - speedThreshold) ? Color.Green :
+            return speed < (allowedSpeed - speedThreshold) ? Color.LimeGreen :
                 speed <= allowedSpeed ? Color.PaleGreen :
                 speed < allowedSpeed + speedThreshold ? Color.Orange : Color.Red;
         }

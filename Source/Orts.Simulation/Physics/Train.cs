@@ -209,6 +209,12 @@ namespace Orts.Simulation.Physics
         // max speed of player locomotive, max speed of consist (MaxVelocityA)
         internal float TrainMaxSpeedMpS { get; set; }
         public float AllowedMaxSpeedMpS { get; internal set; }                 // Max speed as allowed
+
+        /// <summary>
+        /// The max speed allowed as the lower of Allowed Speed (as per Signals/Route) and max Train/TrainCar speed
+        /// </summary>
+        public float MaxTrainSpeedAllowed => Math.Min(TrainMaxSpeedMpS, AllowedMaxSpeedMpS);
+
         internal float AllowedMaxSpeedSignalMpS { get; set; }           // Max speed as set by signal
         internal float AllowedMaxSpeedLimitMpS { get; set; }            // Max speed as set by limit
         private protected float allowedMaxTempSpeedLimitMpS;        // Max speed as set by temp speed limit
@@ -1588,20 +1594,20 @@ namespace Orts.Simulation.Physics
                 MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead is MSTSSteamLocomotive)
                     MUReverserPercent = 25;
-                lead.CurrentElevationPercent = 100f * lead.WorldPosition.XNAMatrix.M32;
+                lead.CurrentElevationPercent = -100f * lead.WorldPosition.XNAMatrix.M32;
 
                 //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
                 //         
-                if (lead.IsDriveable && (lead as MSTSLocomotive).UsingRearCab)
+                if (lead.IsDriveable && lead.UsingRearCab)
                 {
                     lead.CurrentElevationPercent = -lead.CurrentElevationPercent;
                 }
                 // give it a bit more gas if it is uphill
-                if (lead.CurrentElevationPercent < -2.0)
+                if (lead.CurrentElevationPercent > 2.0)
                     initialThrottlepercent = 40f;
                 // better block gas if it is downhill
-                else if (lead.CurrentElevationPercent > 1.0)
+                else if (lead.CurrentElevationPercent < -1.0)
                     initialThrottlepercent = 0f;
 
                 if (lead.TrainBrakeController != null)
@@ -2359,7 +2365,7 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    builder.Append($"{(0 - simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
+                    builder.Append($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)

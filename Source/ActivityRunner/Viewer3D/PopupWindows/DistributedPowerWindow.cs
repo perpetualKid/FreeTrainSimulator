@@ -67,12 +67,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling).AddLayoutOffset(0);
-            ControlLayout buttonLine = layout.AddLayoutHorizontal();
-            buttonLine.HorizontalChildAlignment = HorizontalAlignment.Right;
-            buttonLine.VerticalChildAlignment = VerticalAlignment.Top;
-            buttonLine.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? Markers.ArrowRight : Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
+            ControlLayout line = layout.AddLayoutHorizontal();
+            line.HorizontalChildAlignment = HorizontalAlignment.Right;
+            line.VerticalChildAlignment = VerticalAlignment.Top;
+            line.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? Markers.ArrowRight : Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
-            buttonLine.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? Markers.ArrowUp : Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
+            line.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? Markers.ArrowUp : Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
             labelExpandDetails.OnClick += LabelExpandDetails_OnClick;
             labelExpandDetails.Visible = labelExpandMono.Visible = groupCount > 0;
             layout = layout.AddLayoutVertical();
@@ -88,14 +88,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                 void AddDetailLine(GroupDetail groupDetail, int width, string labelText, System.Drawing.Font font, HorizontalAlignment alignment = HorizontalAlignment.Right)
                 {
-                    buttonLine = layout.AddLayoutHorizontalLineOfText();
-                    buttonLine.Add(new Label(this, width, font.Height, labelText, font));
+                    line = layout.AddLayoutHorizontalLineOfText();
+                    line.Add(new Label(this, width, font.Height, labelText, font));
                     for (int i = 0; i < groupCount; i++)
                     {
-                        buttonLine.Add(new Label(this, 0, 0, width, font.Height, null, alignment, font, Color.White));
-                        buttonLine.Add(new Label(this, 0, 0, 10, font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
+                        line.Add(new Label(this, 0, 0, width, font.Height, null, alignment, font, Color.White));
+                        line.Add(new Label(this, 0, 0, 10, font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
                     }
-                    groupDetails[groupDetail] = buttonLine;
+                    groupDetails[groupDetail] = line;
                 }
 
                 if (windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono)

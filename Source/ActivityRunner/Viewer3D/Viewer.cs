@@ -537,6 +537,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 PopupWindows.DistributedPowerWindow powerWindow = new PopupWindows.DistributedPowerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), Settings);
                 return powerWindow;
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.DrivingTrainWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.DrivingTrainWindow drivingTrainWindow = new PopupWindows.DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings);
+                return drivingTrainWindow;
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -652,6 +657,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     TrainDrivingWindow.TabAction();
                 else
                     TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.DrivingTrainWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplaySwitchWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

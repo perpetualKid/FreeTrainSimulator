@@ -5696,7 +5696,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // Determine if AI fireman should shovel coal despite the fact that boiler heat has exceeded max boiler heat - provides a crude "look ahead" capability. 
                 // Example - boiler heat excessive, and train faces heavy climb up grade, fire burn rate still needs to increase, despite the fact that AI code normally will try and reduce burn rate.
-                if (throttle > 0.98 && CurrentElevationPercent < -0.3 && BoilerHeatCheck > 1.25 && BoilerHeatExcess < 1.07)
+                if (throttle > 0.98 && CurrentElevationPercent > 0.3 && BoilerHeatCheck > 1.25 && BoilerHeatExcess < 1.07)
                 {
                     ShovelAnyway = true; // Fireman should be increasing fire burn rate despite high boiler heat
                 }

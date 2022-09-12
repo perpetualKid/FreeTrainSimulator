@@ -542,7 +542,7 @@ namespace Orts.Simulation.RollingStocks
 
             // gravity force, M32 is up component of forward vector
             GravityForceN = MassKG * gravitationalAcceleration * WorldPosition.XNAMatrix.M32;
-            CurrentElevationPercent = 100f * WorldPosition.XNAMatrix.M32;
+            CurrentElevationPercent = -100f * WorldPosition.XNAMatrix.M32;
             AbsSpeedMpS = Math.Abs(SpeedMpS);
 
             //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.

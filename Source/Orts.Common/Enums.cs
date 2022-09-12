@@ -1025,11 +1025,13 @@ namespace Orts.Common
         MultiPlayerWindow,
         DrivingTrainWindow,
         DistributedPowerWindow,
+        HudScrollWindow,
+        TrainDrivingWindow,
     }
     public enum FourCharAcronym
     {
+        // DPU
         [Description("FLOW")] Flow,
-        [Description("FUEL")] Fuel,
         [Description("LOAD")] Load,
         [Description("GRUP")] LocoGroup,
         [Description("OILP")] OilPressure,
@@ -1045,5 +1047,34 @@ namespace Orts.Common
         [Description("BRKP")] BrakePressure,
         [Description("LOCS")] Locomotives,
 
+        //Train Driving
+        [Description("AIFR")] AiFireman,
+        [Description("AUTO")] AutoPilot,
+        [Description("PRES")] BoilerPressure,
+        [Description("WATR")] BoilerWaterGlass,
+        [Description("LEVL")] BoilerWaterLevel,
+        [Description("CIRC")] CircuitBreaker,
+        [Description("CCOK")] CylinderCocks,
+        [Description("DIR")] Direction,
+        [Description("DRLC")] DerailCoefficent,
+        [Description("DOOR")] DoorsOpen,
+        [Description("BDYN")] DynamicBrake,
+        [Description("BLOC")] EngineBrake,
+        [Description("ENG")] Engine,
+        [Description("FIRE")] FireMass,
+        [Description("GEAR")] FixedGear,
+        [Description("FUEL")] FuelLevel,
+        [Description("GEAR")] Gear,
+        [Description("GRAD")] Gradient,
+        [Description("GRAT")] GrateLimit,
+        [Description("PANT")] Pantographs,
+        [Description("REGL")] Regulator,
+        [Description("RPLY")] Replay,
+        [Description("RETN")] Retainer,
+        [Description("SAND")] Sander,
+        [Description("SPED")] Speed,
+        [Description("STEM")] SteamUsage,
+        [Description("BTRN")] TrainBrake,
+        [Description("WHEL")] Wheel,
     }
 }
