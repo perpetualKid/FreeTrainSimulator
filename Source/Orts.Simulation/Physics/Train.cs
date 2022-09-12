@@ -11582,26 +11582,31 @@ namespace Orts.Simulation.Physics
         }
 
         /// <summary>
-        /// ToggleDoors
-        /// Toggles status of doors of a train
-        /// Parameters: right = true if right doors; open = true if opening
+        /// SetDoors
+        /// Sets status of doors of a train
         /// </summary>
-        public void ToggleDoors(bool right, bool open)
+        public void SetDoors(DoorSide side, bool open)
         {
             foreach (TrainCar car in Cars)
             {
                 var mstsWagon = car as MSTSWagon;
-                if ((!car.Flipped && right) || (car.Flipped && !right))
+                var carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
+                if (carSide != DoorSide.Left)
                 {
                     mstsWagon.RightDoor.SetDoor(open);
                 }
-                else
+                if (carSide != DoorSide.Right)
                 {
                     mstsWagon.LeftDoor.SetDoor(open);
                 }
             }
             if (simulator.PlayerLocomotive?.Train == this && MultiPlayerManager.IsMultiPlayer())
-                MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), right ? "DORR" : "DOORL", open ? 1 : 0)).ToString());
+            {
+                if (side != DoorSide.Left)
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "DOORR", open ? 1 : 0)).ToString());
+                if (side != DoorSide.Right)
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "DOORL", open ? 1 : 0)).ToString());
+            }
         }
 
         /// <summary>
@@ -11609,16 +11614,17 @@ namespace Orts.Simulation.Physics
         /// Locks doors of a train so they cannot be opened
         /// Parameters: right = true if right doors; lck = true if locking
         /// </summary>
-        public void LockDoors(bool right, bool lck)
+        public void LockDoors(DoorSide side, bool lck)
         {
             foreach (TrainCar car in Cars)
             {
-                MSTSWagon mstsWagon = car as MSTSWagon;
-                if ((!car.Flipped && right) || (car.Flipped && !right))
+                var mstsWagon = car as MSTSWagon;
+                var carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
+                if (carSide != DoorSide.Left)
                 {
                     mstsWagon.RightDoor.SetDoorLock(lck);
                 }
-                else
+                if (carSide != DoorSide.Right)
                 {
                     mstsWagon.LeftDoor.SetDoorLock(lck);
                 }
@@ -11626,21 +11632,26 @@ namespace Orts.Simulation.Physics
         }
 
         /// <summary>
-        /// GetDoorState
+        /// DoorState
         /// Returns status of doors of a train
-        /// Parameter: right = true if right doors
         /// </summary>
-        public DoorState GetDoorState(bool right)
+        public DoorState DoorState(DoorSide side)
         {
-            DoorState state = DoorState.Closed;
-            foreach (TrainCar car in Cars)
-            {
-                MSTSWagon mstsWagon = car as MSTSWagon;
-                DoorState wagonDoorState = (!car.Flipped && right) || (car.Flipped && !right) ? mstsWagon.RightDoor.State : mstsWagon.LeftDoor.State;
-                if (state < wagonDoorState)
-                    state = wagonDoorState;
-            }
-            return state;
+            return Cars.Select(car => {
+                var wagon = (car as MSTSWagon);
+                var carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
+                switch (carSide)
+                {
+                    case DoorSide.Left:
+                        return wagon.Doors.LeftDoor.State;
+                    case DoorSide.Right:
+                        return wagon.Doors.RightDoor.State;
+                    default:
+                        var left = wagon.Doors.LeftDoor.State;
+                        var right = wagon.Doors.RightDoor.State;
+                        return left < right ? right : left;
+                }
+            }).Max();
         }
 
         /// <summary>

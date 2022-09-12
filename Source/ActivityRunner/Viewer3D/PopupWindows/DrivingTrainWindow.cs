@@ -14,9 +14,11 @@ using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -847,8 +849,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
             }
 
-            bool doorLeftOpen = playerLocomotive.Train.GetDoorState(false) != DoorState.Closed;
-            bool doorRightOpen = playerLocomotive.Train.GetDoorState(true) != DoorState.Closed;
+
+            bool flipped = playerLocomotive.Flipped ^ playerLocomotive.GetCabFlipped();
+            bool doorLeftOpen = playerLocomotive.Train.DoorState(flipped ? DoorSide.Right : DoorSide.Left) != DoorState.Closed;
+            bool doorRightOpen = playerLocomotive.Train.DoorState(flipped ? DoorSide.Left : DoorSide.Right) != DoorState.Closed;
 
             result |= dataAvailable[DetailInfo.DoorOpen] != (dataAvailable[DetailInfo.DoorOpen] = doorLeftOpen || doorRightOpen || System.Environment.TickCount64 < doorOpenTimeout);
             linesAdded += dataAvailable[DetailInfo.DoorOpen] ? 1 : 0;
@@ -858,10 +862,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     doorOpenTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
 
-                    bool flipped = playerLocomotive.GetCabFlipped() ^ playerLocomotive.Flipped;
                     doorLabel.Text = FormatStrings.JoinIfNotEmpty(FormatStrings.Markers.Fence[0], 
-                        doorLeftOpen ? flipped ? Catalog.GetString("Right") : Catalog.GetString("Left") : null,
-                        doorRightOpen ? flipped ? Catalog.GetString("Left") : Catalog.GetString("Right") : null);
+                        doorLeftOpen ? Catalog.GetString("Left") : null,
+                        doorRightOpen ? Catalog.GetString("Right") : null);
                     doorLabel.TextColor = playerLocomotive.AbsSpeedMpS > 0 ? Color.OrangeRed : Color.Yellow;
                 }
                 else

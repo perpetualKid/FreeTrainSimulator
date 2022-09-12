@@ -201,14 +201,9 @@ namespace Orts.Scripting.Api
         /// True if all pantographs are down.
         /// </summary>
         public Func<bool> ArePantographsDown { get; set; }
-        /// <summary>
-        /// Get left doors state
+        /// Get doors state
         /// </summary>
-        public Func<DoorState> GetLeftDoorState { get; set; }
-        /// <summary>
-        /// Get right doors state
-        /// </summary>
-        public Func<DoorState> GetRightDoorState { get; set; }
+        public Func<DoorSide, DoorState> DoorState { get; set; }
         /// <summary>
         /// Returns throttle percent
         /// </summary>
@@ -376,23 +371,15 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Action<bool> SetHorn { get; set; }
         /// <summary>
-        /// Open or close left doors
+        /// Open or close doors
+        /// DoorSide: side for which doors will be opened or closed
         /// bool: true for closing order, false for opening order
         /// </summary>
-        public Action<bool> ToggleLeftDoors { get; set; }
+        public Action<DoorSide, bool> SetDoors { get; set; }
         /// <summary>
-        /// Open or close right doors
-        /// bool: true for closing order, false for opening order
+        /// Lock doors so they cannot be opened
         /// </summary>
-        public Action<bool> ToggleRightDoors { get; set; }
-        /// <summary>
-        /// Lock left doors so they cannot be opened
-        /// </summary>
-        public Action<bool> LockLeftDoors { get; set; }
-        /// <summary>
-        /// Lock right doors so they cannot be opened
-        /// </summary>
-        public Action<bool> LockRightDoors { get; set; }
+        public Action<DoorSide, bool> LockDoors { get; set; }
         /// <summary>
         /// Trigger Alert1 sound event
         /// </summary>

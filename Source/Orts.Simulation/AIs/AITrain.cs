@@ -199,12 +199,12 @@ namespace Orts.Simulation.AIs
                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                 {
                     //open left doors
-                    ToggleDoors(frontIsFront, true);
+                    SetDoors(frontIsFront ? DoorSide.Right : DoorSide.Left, true);
                 }
                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                 {
                     //open right doors
-                    ToggleDoors(!frontIsFront, true);
+                    SetDoors(frontIsFront ? DoorSide.Left : DoorSide.Right, true);
                 }
             }
             var doesLevelCrossingPatternExist = inf.ReadInt32();
@@ -1503,12 +1503,12 @@ namespace Orts.Simulation.AIs
                                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                                 {
                                     //open left doors
-                                    ToggleDoors(frontIsFront, true);
+                                    SetDoors(frontIsFront ? DoorSide.Right : DoorSide.Left, true);
                                 }
                                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                                 {
                                     //open right doors
-                                    ToggleDoors(!frontIsFront, true);
+                                    SetDoors(frontIsFront ? DoorSide.Left : DoorSide.Right, true);
                                 }
                             }
                         }
@@ -1519,13 +1519,13 @@ namespace Orts.Simulation.AIs
                             {
                                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                                 {
-                                    //close left doors
-                                    ToggleDoors(frontIsFront, false);
+                                    //open left doors
+                                    SetDoors(frontIsFront ? DoorSide.Right : DoorSide.Left, false);
                                 }
                                 if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                                 {
-                                    //close right doors
-                                    ToggleDoors(!frontIsFront, false);
+                                    //open right doors
+                                    SetDoors(frontIsFront ? DoorSide.Left : DoorSide.Right, false);
                                 }
                             }
                         }

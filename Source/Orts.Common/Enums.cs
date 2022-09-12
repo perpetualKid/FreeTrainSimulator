@@ -897,8 +897,15 @@ namespace Orts.Common
     {
         Closed,
         Closing,
-        Opening,
         Open,
+        Opening,
+    }
+
+    public enum DoorSide
+    {
+        Left,
+        Right,
+        Both
     }
 
     /// <summary>

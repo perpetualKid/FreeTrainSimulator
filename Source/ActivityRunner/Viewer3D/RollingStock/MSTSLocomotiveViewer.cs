@@ -2897,7 +2897,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_RightDoor:
                     {
                         bool right = (Control.ControlType == CabViewControlType.Orts_RightDoor) ^ Locomotive.Flipped ^ Locomotive.GetCabFlipped();
-                        var state = Locomotive.Train.GetDoorState(right);
+                        var state = Locomotive.Train.DoorState(right ? DoorSide.Right : DoorSide.Left);
                         int open = (state == DoorState.Opening || state == DoorState.Open) ? 1 : 0;
                         if (open != UpdateCommandValue(open, buttonEventType, delta))
                         {

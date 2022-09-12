@@ -1,4 +1,4 @@
-// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+﻿// COPYRIGHT 2022 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Orts.Common;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 
@@ -30,28 +31,28 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public Doors(MSTSWagon wagon)
         {
-            LeftDoor = new Door(wagon, false);
-            RightDoor = new Door(wagon, true);
+            LeftDoor = new Door(wagon, DoorSide.Left);
+            RightDoor = new Door(wagon, DoorSide.Right);
         }
 
         public virtual void Parse(string lowercasetoken, STFReader stf)
         {
             switch (lowercasetoken)
             {
-                case "wagon(ortsdoors(closingdelay": 
-                {
-                    float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
-                    LeftDoor.ClosingDelayS = delayS;
-                    RightDoor.ClosingDelayS = delayS;
-                    break;
-                }
-                case "wagon(ortsdoors(openingdelay": 
-                {
-                    float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
-                    LeftDoor.OpeningDelayS = delayS;
-                    RightDoor.OpeningDelayS = delayS;
-                    break;
-                }
+                case "wagon(ortsdoors(closingdelay":
+                    {
+                        float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
+                        LeftDoor.ClosingDelayS = delayS;
+                        RightDoor.ClosingDelayS = delayS;
+                        break;
+                    }
+                case "wagon(ortsdoors(openingdelay":
+                    {
+                        float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
+                        LeftDoor.OpeningDelayS = delayS;
+                        RightDoor.OpeningDelayS = delayS;
+                        break;
+                    }
             }
         }
 
@@ -93,27 +94,39 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             LeftDoor.Update(elapsedClockSeconds);
             RightDoor.Update(elapsedClockSeconds);
         }
+
+        public static DoorSide FlippedDoorSide(DoorSide trainSide)
+        {
+            return trainSide switch
+            {
+                DoorSide.Left => DoorSide.Right,
+                DoorSide.Right => DoorSide.Left,
+                _ => DoorSide.Both,
+            };
+        }
     }
+
     public class Door : ISubSystem<Door>
     {
-        
+
         // Parameters
         public float OpeningDelayS { get; set; }
         public float ClosingDelayS { get; set; }
 
         // Variables
         private readonly MSTSWagon wagon;
-        public bool RightSide { get; }
         private readonly Timer openingTimer;
         private readonly Timer closingTimer;
-        
-        public DoorState State { get; protected set; } = DoorState.Closed;
-        public bool Locked {get; protected set; }
 
-        public Door(MSTSWagon wagon, bool right)
+        public DoorSide DoorSide { get; }
+
+        public DoorState State { get; protected set; } = DoorState.Closed;
+        public bool Locked { get; protected set; }
+
+        public Door(MSTSWagon wagon, DoorSide doorSide)
         {
             this.wagon = wagon;
-            RightSide = right;
+            DoorSide = doorSide;
 
             openingTimer = new Timer(Simulator.Instance);
             closingTimer = new Timer(Simulator.Instance);
@@ -158,17 +171,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public virtual void Update(double elapsedClockSeconds)
         {
-            switch(State)
+            switch (State)
             {
                 case DoorState.Opening:
                     closingTimer.Stop();
-                    if (!openingTimer.Started) openingTimer.Start();
-                    if (openingTimer.Triggered) State = DoorState.Open;
+                    if (!openingTimer.Started)
+                        openingTimer.Start();
+                    if (openingTimer.Triggered)
+                        State = DoorState.Open;
                     break;
                 case DoorState.Closing:
                     openingTimer.Stop();
-                    if (!closingTimer.Started) closingTimer.Start();
-                    if (closingTimer.Triggered) State = DoorState.Closed;
+                    if (!closingTimer.Started)
+                        closingTimer.Start();
+                    if (closingTimer.Triggered)
+                        State = DoorState.Closed;
                     break;
                 case DoorState.Closed:
                     closingTimer.Stop();
@@ -183,25 +200,36 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public void SetDoorLock(bool lck)
         {
             Locked = lck;
-            if (lck) SetDoor(false);
+            if (lck)
+                SetDoor(false);
         }
         public void SetDoor(bool open)
         {
-            if (!Locked && open && (State == DoorState.Closed || State == DoorState.Closing))
+            switch (State)
             {
-                State = DoorState.Opening;
-                wagon.SignalEvent(TrainEvent.DoorOpen);
-                bool driverRightSide = RightSide ^ wagon.GetCabFlipped();
-                Confirm(driverRightSide ? CabControl.DoorsRight : CabControl.DoorsLeft, CabSetting.On);
-            }
-            else if (!open && (State == DoorState.Open || State == DoorState.Opening))
-            {
-                State = DoorState.Closing;
-                wagon.SignalEvent(TrainEvent.DoorClose);
-                bool driverRightSide = RightSide ^ wagon.GetCabFlipped();
-                Confirm(driverRightSide ? CabControl.DoorsRight : CabControl.DoorsLeft, CabSetting.Off);
+                case DoorState.Closed:
+                case DoorState.Closing:
+                    if (!Locked && open)
+                    {
+                        State = DoorState.Opening;
+                        wagon.SignalEvent(TrainEvent.DoorOpen);
+                        bool driverRightSide = (DoorSide == DoorSide.Right) ^ wagon.GetCabFlipped();
+                        Confirm(driverRightSide ? CabControl.DoorsRight : CabControl.DoorsLeft, CabSetting.On);
+                    }
+                    break;
+                case DoorState.Open:
+                case DoorState.Opening:
+                    if (!open)
+                    {
+                        State = DoorState.Closing;
+                        wagon.SignalEvent(TrainEvent.DoorClose);
+                        bool driverRightSide = (DoorSide == DoorSide.Right) ^ wagon.GetCabFlipped();
+                        Confirm(driverRightSide ? CabControl.DoorsRight : CabControl.DoorsLeft, CabSetting.Off);
+                    }
+                    break;
             }
         }
+
         protected void Confirm(CabControl control, CabSetting setting)
         {
             if (wagon == Simulator.Instance.PlayerLocomotive)
