@@ -26,7 +26,7 @@
           <ListItem Text="Last Query" />
         </ComboBox>
       </Grid>
-      <ListBox Width="249" Height="600" Id="_ConsistList" />
+      <ListBox Width="249" Height="579" Id="_ConsistList" />
     </VerticalStackPanel>
   </Window>
 </Project>

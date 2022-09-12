@@ -1,0 +1,6 @@
+<Project>
+  <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_3DEquipViewer" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
+  <Window Title="3D Equipment View" DragDirection="None" Left="281" Width="760" Height="608" Id="M_Equip3DViewer">
+    <Image Renderable="../Content/3dview.JPG" />
+  </Window>
+</Project>

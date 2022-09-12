@@ -66,6 +66,8 @@ namespace Toolbox.YO2
                         await GameWindow.Instance.LoadConsists(folder).ConfigureAwait(true);
                         routeselected = folder.Name;
                         var mw = new M_Trains();
+                        var me = new M_Equip();
+                        var m3d = new M_3DEquipViewer();
                         ;
                         foreach (Consist consist in GameWindow.Instance.consists)
                         {
@@ -77,6 +79,8 @@ namespace Toolbox.YO2
                         }                        
                         mw._TrainCount.Text = count_i.ToString();
                         mw.Show(Desktop, new Point(1, 21));
+                        me.Show(Desktop, new Point(252, 21));
+                        m3d.Show(Desktop, new Point(502, 21));
                         break;
                     }
                 }

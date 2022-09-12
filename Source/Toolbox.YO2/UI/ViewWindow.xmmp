@@ -10,7 +10,7 @@
       <Grid ColumnSpacing="1" RowSpacing="1">
         <Grid.DefaultColumnProportion Type="Auto" />
         <Grid.DefaultRowProportion Type="Auto" />
-        <CheckBox Text="Consist List" GridColumn="1" GridRow="1" Id="_Content_List" />
+        <CheckBox Text="Trains" GridColumn="1" GridRow="1" Id="_Content_List" />
         <CheckBox Text="Block List" GridColumn="1" GridRow="2" Id="_Block_List" />
         <CheckBox Text="Set List" GridColumn="1" GridRow="3" Id="_Set_List" />
         <CheckBox Text="Equip List" GridColumn="1" GridRow="4" Id="_Equip_List" />
