@@ -13,6 +13,7 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Settings;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -36,6 +37,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Gradient,
             Direction,
             Throttle,
+            CylinderCocks,
+            Sander,
         }
 
         private readonly UserSettings settings;
@@ -106,6 +109,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layout.AddHorizontalSeparator(true);
                 AddDetailLine(DetailInfo.Direction, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? Catalog.GetString("Reverser") : Catalog.GetString("Direction"), Owner.TextFontDefault);
                 AddDetailLine(DetailInfo.Throttle, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? Catalog.GetString("Regulator") : Catalog.GetString("Throttle"), Owner.TextFontDefault);
+                if (Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam)
+                {
+                    AddDetailLine(DetailInfo.CylinderCocks, columnWidth, Catalog.GetString("Cyl. Cocks"), Owner.TextFontDefault);
+                }
+                AddDetailLine(DetailInfo.Sander, columnWidth, Catalog.GetString("Sander"), Owner.TextFontDefault);
+                layout.AddHorizontalSeparator(true);
             }
             else
             {
@@ -120,6 +129,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layout.AddHorizontalSeparator(true);
                 AddDetailLine(DetailInfo.Direction, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? FourCharAcronym.Reverser.GetLocalizedDescription() : FourCharAcronym.Direction.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                 AddDetailLine(DetailInfo.Throttle, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? FourCharAcronym.Regulator.GetLocalizedDescription() : FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                if (Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam)
+                {
+                    AddDetailLine(DetailInfo.CylinderCocks, columnWidth, FourCharAcronym.CylinderCocks.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                }
+                AddDetailLine(DetailInfo.Sander, columnWidth, FourCharAcronym.Sander.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                layout.AddHorizontalSeparator(true);
             }
 
             return layout;
@@ -329,16 +344,22 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void UpdateDrivingInformation()
         {
+            // Client and server may have a time difference.
             TrainCar playerLocomotive = Simulator.Instance.PlayerLocomotive;
             if (groupDetails[DetailInfo.Time]?.Controls[3] is Label timeLabel)
-                timeLabel.Text = $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}";
+            {
+                timeLabel.Text = MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference)}" : $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}";
+            }
+            // Replay info
             if (groupDetails[DetailInfo.Replay]?.Controls[3] is Label replayLabel)
                 replayLabel.Text = $"{FormatStrings.FormatTime(Simulator.Instance.Log.ReplayEndsAt - Simulator.Instance.ClockTime)}";
+            // Speed info
             if (groupDetails[DetailInfo.Speed]?.Controls[3] is Label speedLabel)
             {
                 speedLabel.Text = $"{FormatStrings.FormatSpeedDisplay(playerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits)}";
                 speedLabel.TextColor = ColorCoding.SpeedingColor(playerLocomotive.AbsSpeedMpS, playerLocomotive.Train.MaxTrainSpeedAllowed);
             }
+            // Gradient info
             if (groupDetails[DetailInfo.Gradient]?.Controls[3] is Label gradientLabel)
             {
                 double gradient = Math.Round(playerLocomotive.CurrentElevationPercent, 1);
@@ -347,6 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 gradientLabel.Text = $"{gradient:F1}% {(gradient > 0 ? Markers.Ascent : gradient < 0 ? Markers.Descent : string.Empty)}";
                 gradientLabel.TextColor = (gradient > 0 ? Color.Yellow : gradient < 0 ? Color.LightSkyBlue : Color.White);
             }
+            // Direction
             if (groupDetails[DetailInfo.Direction]?.Controls[3] is Label directionLabel)
             {
                 float reverserPercent = playerLocomotive.Train.MUReverserPercent;
@@ -355,6 +377,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (groupDetails[DetailInfo.Direction].Controls[2] as Label).Text = directionKeyInput;
                 directionKeyInput = string.Empty;
             }
+            // Throttle
             if (groupDetails[DetailInfo.Throttle]?.Controls[3] is Label throttleLabel)
             {
                 throttleLabel.Text = $"{Math.Round(playerLocomotive.ThrottlePercent):F0}% {(playerLocomotive is MSTSDieselLocomotive && playerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Math.Round(playerLocomotive.Train.DPThrottlePercent):F0}%)" : string.Empty)}";
@@ -362,7 +385,22 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (groupDetails[DetailInfo.Throttle].Controls[2] as Label).Text = throttleKeyInput;
                 throttleKeyInput = string.Empty;
             }
-
+            // Cylinder Cocks
+            if (groupDetails[DetailInfo.CylinderCocks]?.Controls[3] is Label cocksLabel && playerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive)
+            {
+                cocksLabel.Text = $"{(mstsSteamLocomotive.CylinderCocksAreOpen ? Catalog.GetString("Open") : Catalog.GetString("Closed"))}";
+                cocksLabel.TextColor = mstsSteamLocomotive.CylinderCocksAreOpen ? Color.Orange : Color.White;
+            }
+            // Sander
+            if (groupDetails[DetailInfo.Sander]?.Controls[3] is Label sanderLabel && playerLocomotive is MSTSLocomotive locomotive)
+            {
+                bool sanderBlocked = playerLocomotive.AbsSpeedMpS > locomotive.SanderSpeedOfMpS;
+                sanderLabel.Text = $"{(locomotive.Sander ? sanderBlocked ? Catalog.GetString("Blocked") : Catalog.GetString("On") : Catalog.GetString("Off"))}";
+                sanderLabel.TextColor = locomotive.Sander ? sanderBlocked ? Color.OrangeRed : Color.Orange : Color.White;
+                (groupDetails[DetailInfo.Sander].Controls[0] as Label).Text = sanderInput;
+                (groupDetails[DetailInfo.Sander].Controls[2] as Label).Text = sanderInput;
+                sanderInput = string.Empty;
+            }
         }
     }
 }

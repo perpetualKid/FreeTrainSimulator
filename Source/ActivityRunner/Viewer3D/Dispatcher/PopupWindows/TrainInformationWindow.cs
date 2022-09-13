@@ -63,7 +63,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             if (shouldUpdate && train != null)
             {
                 trainInformation.DebugInfo[Catalog.GetString("Speed")] = FormatStrings.FormatSpeedDisplay(train.SpeedMpS, Simulator.Instance.MetricUnits);
-                trainInformation.DebugInfo["Gradient"] = $"{locomotive?.CurrentElevationPercent:F1}%";
+                double gradient = Math.Round(locomotive.CurrentElevationPercent, 1);
+                if (gradient == 0) // to avoid negative zero string output if gradient after rounding is -0.0
+                    gradient = 0;
+                trainInformation.DebugInfo["Gradient"] = $"{gradient:F1}%";
                 trainInformation.DebugInfo["Direction"] = Math.Abs(train.MUReverserPercent) != 100 ? $"{Math.Abs(train.MUReverserPercent):F0} {train.MUDirection.GetLocalizedDescription()}" : $"{train.MUDirection.GetLocalizedDescription()}";
             }
         }
