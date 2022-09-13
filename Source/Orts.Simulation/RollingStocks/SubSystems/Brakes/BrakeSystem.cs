@@ -36,12 +36,32 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
     public abstract class BrakeSystem
     {
-        public float BrakeLine1PressurePSI = 90;    // main trainline pressure at this car
-        public float BrakeLine2PressurePSI;         // main reservoir equalization pipe pressure
-        public float BrakeLine3PressurePSI;         // engine brake cylinder equalization pipe pressure
-        public float BrakePipeVolumeM3 = 1.4e-2f;      // volume of a single brake line
-        public bool ControllerRunningLock;  // Stops Running controller from becoming active until BP = EQ Res, used in EQ vacuum brakes
-        public float BrakeCylFraction;
+        /// <summary>
+        /// Main trainline pressure at this car in PSI
+        /// </summary>
+        public float BrakeLine1PressurePSI { get; set; } = 90;
+
+        /// <summary>
+        /// Main reservoir equalization pipe pressure in PSI
+        /// </summary>
+        public float BrakeLine2PressurePSI { get; set; }
+
+        /// <summary>
+        /// Engine brake cylinder equalization pipe pressure
+        /// </summary>
+        public float BrakeLine3PressurePSI { get; set; }
+
+        /// <summary>
+        /// Volume of a single brake line
+        /// </summary>
+        public float BrakePipeVolumeM3 { get; set; } = 1.4e-2f;
+
+        /// <summary>
+        /// Stops Running controller from becoming active until BP = EQ Res, used in EQ vacuum brakes
+        /// </summary>
+        public bool ControllerRunningLock { get; set; }
+
+        public float BrakeCylFraction { get; set; }
 
         /// <summary>
         /// Front brake hoses connection status
