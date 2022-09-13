@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Common.Calc;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+
+using Orts.Common;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 {
@@ -66,19 +66,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         /// <summary>
         /// Front brake hoses connection status
         /// </summary>
-        public bool FrontBrakeHoseConnected;
+        public bool FrontBrakeHoseConnected { get; set; }
         /// <summary>
         /// Front angle cock opened/closed status
         /// </summary>
-        public bool AngleCockAOpen = true;
+        public bool AngleCockAOpen { get; set; } = true;
         /// <summary>
         /// Rear angle cock opened/closed status
         /// </summary>
-        public bool AngleCockBOpen = true;
+        public bool AngleCockBOpen { get; set; } = true;
         /// <summary>
         /// Auxiliary brake reservoir vent valve open/closed status
         /// </summary>
-        public bool BleedOffValveOpen;
+        public bool BleedOffValveOpen { get; set; }
         /// <summary>
         /// Indicates whether the main reservoir pipe is available
         /// </summary>
@@ -94,7 +94,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float GetVacResPressurePSI();
         public abstract float GetVacResVolume();
         public abstract float GetVacBrakeCylNumber();
-        public bool CarBPIntact;
+        public bool CarBPIntact { get; set; }
 
         public abstract void Save(BinaryWriter outf);
 
