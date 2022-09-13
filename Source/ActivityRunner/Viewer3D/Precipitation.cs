@@ -40,21 +40,23 @@ namespace Orts.ActivityRunner.Viewer3D
         public const float MinIntensityPPSPM2 = 0;
         // Default 32 bit version.
         public const float MaxIntensityPPSPM2 = 0.035f;
-        private readonly Viewer Viewer;
-        private readonly WeatherControl WeatherControl;
-        private readonly Weather Weather;
-        private readonly Material Material;
-        private readonly PrecipitationPrimitive Pricipitation;
+        private readonly Viewer viewer;
+        private readonly WeatherControl weatherControl;
+        private readonly Weather weather;
+        private readonly Material material;
+        private readonly PrecipitationPrimitive precipitation;
         private Vector3 Wind;
 
         public PrecipitationViewer(Viewer viewer, WeatherControl weatherControl)
         {
-            Viewer = viewer;
-            WeatherControl = weatherControl;
-            Weather = viewer.Simulator.Weather;
+            ArgumentNullException.ThrowIfNull(viewer);
 
-            Material = viewer.MaterialManager.Load("Precipitation");
-            Pricipitation = new PrecipitationPrimitive(Viewer.Game.GraphicsDevice);
+            this.viewer = viewer;
+            this.weatherControl = weatherControl;
+            weather = viewer.Simulator.Weather;
+
+            material = viewer.MaterialManager.Load("Precipitation");
+            precipitation = new PrecipitationPrimitive(this.viewer.Game.GraphicsDevice);
 
             Wind = new Vector3(0, 0, 0);
             Reset();
@@ -62,17 +64,17 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            var gameTime = (float)Viewer.Simulator.GameTime;
-            Pricipitation.DynamicUpdate(WeatherControl, Weather, Viewer, ref Wind);
-            Pricipitation.Update(gameTime, elapsedTime, Weather.PrecipitationIntensity, Viewer);
+            var gameTime = (float)viewer.Simulator.GameTime;
+            precipitation.DynamicUpdate(weatherControl, weather, viewer, ref Wind);
+            precipitation.Update(gameTime, elapsedTime, weather.PrecipitationIntensity, viewer);
 
             // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
             var XNAWorldLocation = Matrix.Identity;
             XNAWorldLocation.M11 = gameTime;
-            XNAWorldLocation.M21 = Viewer.Camera.TileX;
-            XNAWorldLocation.M22 = Viewer.Camera.TileZ;
+            XNAWorldLocation.M21 = viewer.Camera.TileX;
+            XNAWorldLocation.M22 = viewer.Camera.TileZ;
 
-            frame.AddPrimitive(Material, Pricipitation, RenderPrimitiveGroup.Precipitation, ref XNAWorldLocation);
+            frame.AddPrimitive(material, precipitation, RenderPrimitiveGroup.Precipitation, ref XNAWorldLocation);
         }
 
         public void Reset()
@@ -80,18 +82,18 @@ namespace Orts.ActivityRunner.Viewer3D
             // This procedure is only called once at the start of an activity.
             // Added random Wind.X value for rain and snow.
             // Max value used by randWind.Next is max value - 1.
-            Wind.X = Viewer.Simulator.WeatherType == WeatherType.Snow ? StaticRandom.Next(2, 6) : StaticRandom.Next(15, 21);
+            Wind.X = viewer.Simulator.WeatherType == WeatherType.Snow ? StaticRandom.Next(2, 6) : StaticRandom.Next(15, 21);
 
-            var gameTime = (float)Viewer.Simulator.GameTime;
-            Pricipitation.Initialize(Viewer.Simulator.WeatherType, Wind);
+            var gameTime = (float)viewer.Simulator.GameTime;
+            precipitation.Initialize(viewer.Simulator.WeatherType, Wind);
             // Camera is null during first initialisation.
-            if (Viewer.Camera != null)
-                Pricipitation.Update(gameTime, ElapsedTime.Zero, Weather.PrecipitationIntensity, Viewer);
+            if (viewer.Camera != null)
+                precipitation.Update(gameTime, ElapsedTime.Zero, weather.PrecipitationIntensity, viewer);
         }
 
         internal void Mark()
         {
-            Material.Mark();
+            material.Mark();
         }
     }
 
@@ -137,22 +139,22 @@ namespace Orts.ActivityRunner.Viewer3D
             public static int SizeInBytes = sizeof(float) * (4 + 4) + sizeof(float) * 4;
         }
 
-        private float ParticleDuration;
-        private Vector3 ParticleDirection;
-        private HeightCache Heights;
+        private float particleDuration;
+        private Vector3 particleDirection;
+        private HeightCache heights;
 
         // Particle buffer goes like this:
         //   +--active>-----new>--+
         //   |                    |
         //   +--<retired---<free--+
 
-        private int FirstActiveParticle;
-        private int FirstNewParticle;
-        private int FirstFreeParticle;
-        private int FirstRetiredParticle;
-        private float ParticlesToEmit;
-        private float TimeParticlesLastEmitted;
-        private int DrawCounter;
+        private int firstActiveParticle;
+        private int firstNewParticle;
+        private int firstFreeParticle;
+        private int firstRetiredParticle;
+        private float particlesToEmit;
+        private float timeParticlesLastEmitted;
+        private int drawCounter;
 
         public PrecipitationPrimitive(GraphicsDevice graphicsDevice)
         {
@@ -169,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D
             VertexBuffer = new DynamicVertexBuffer(graphicsDevice, VertexDeclaration, MaxParticles * VerticiesPerParticle, BufferUsage.WriteOnly);
             // Processing either 32bit or 16bit InitIndexBuffer depending on GraphicsDeviceCapabilities.
             IndexBuffer = InitIndexBuffer(graphicsDevice, MaxParticles * IndiciesPerParticle);
-            Heights = new HeightCache(8);
+            heights = new HeightCache(8);
             // This Trace command is used to show how much memory is used.
             Trace.TraceInformation(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Allocation for {0:N0} particles:\n\n  {1,13:N0} B RAM vertex data\n  {2,13:N0} B RAM index data (temporary)\n  {1,13:N0} B VRAM DynamicVertexBuffer\n  {2,13:N0} B VRAM IndexBuffer", MaxParticles, Marshal.SizeOf(typeof(ParticleVertex)) * MaxParticles * VerticiesPerParticle, sizeof(uint) * MaxParticles * IndiciesPerParticle));
         }
@@ -201,33 +203,11 @@ namespace Orts.ActivityRunner.Viewer3D
             return indexBuffer;
         }
 
-        // IndexBuffer for computers that still use 16bit graphics.
-        private static IndexBuffer InitIndexBuffer16(GraphicsDevice graphicsDevice, int numIndicies)
-        {
-            var indices = new ushort[numIndicies];
-            var index = 0;
-            for (var i = 0; i < numIndicies; i += IndiciesPerParticle)
-            {
-                indices[i] = (ushort)index;
-                indices[i + 1] = (ushort)(index + 1);
-                indices[i + 2] = (ushort)(index + 2);
-
-                indices[i + 3] = (ushort)(index + 2);
-                indices[i + 4] = (ushort)(index + 3);
-                indices[i + 5] = (ushort)(index);
-
-                index += VerticiesPerParticle;
-            }
-            var indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), numIndicies, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indices);
-            return indexBuffer;
-        }
-
         private void RetireActiveParticles(float currentTime)
         {
-            while (FirstActiveParticle != FirstNewParticle)
+            while (firstActiveParticle != firstNewParticle)
             {
-                var vertex = FirstActiveParticle * VerticiesPerParticle;
+                var vertex = firstActiveParticle * VerticiesPerParticle;
                 var expiry = Vertices[vertex].EndPosition_EndTime.W;
 
                 // Stop as soon as we find the first particle which hasn't expired.
@@ -235,52 +215,52 @@ namespace Orts.ActivityRunner.Viewer3D
                     break;
 
                 // Expire particle.
-                Vertices[vertex].StartPosition_StartTime.W = (float)DrawCounter;
-                FirstActiveParticle = (FirstActiveParticle + 1) % MaxParticles;
+                Vertices[vertex].StartPosition_StartTime.W = (float)drawCounter;
+                firstActiveParticle = (firstActiveParticle + 1) % MaxParticles;
             }
         }
 
         private void FreeRetiredParticles()
         {
-            while (FirstRetiredParticle != FirstActiveParticle)
+            while (firstRetiredParticle != firstActiveParticle)
             {
-                var vertex = FirstRetiredParticle * VerticiesPerParticle;
-                var age = DrawCounter - (int)Vertices[vertex].StartPosition_StartTime.W;
+                var vertex = firstRetiredParticle * VerticiesPerParticle;
+                var age = drawCounter - (int)Vertices[vertex].StartPosition_StartTime.W;
 
                 // Stop as soon as we find the first expired particle which hasn't been expired for at least 2 'ticks'.
                 if (age < 2)
                     break;
 
-                FirstRetiredParticle = (FirstRetiredParticle + 1) % MaxParticles;
+                firstRetiredParticle = (firstRetiredParticle + 1) % MaxParticles;
             }
         }
 
         private int GetCountFreeParticles()
         {
-            var nextFree = (FirstFreeParticle + 1) % MaxParticles;
+            var nextFree = (firstFreeParticle + 1) % MaxParticles;
 
-            if (nextFree <= FirstRetiredParticle)
-                return FirstRetiredParticle - nextFree;
+            if (nextFree <= firstRetiredParticle)
+                return firstRetiredParticle - nextFree;
 
-            return (MaxParticles - nextFree) + FirstRetiredParticle;
+            return (MaxParticles - nextFree) + firstRetiredParticle;
         }
 
         public void Initialize(WeatherType weather, Vector3 wind)
         {
-            ParticleDuration = ParticleBoxHeightM / (weather == WeatherType.Snow ? SnowVelocityMpS : RainVelocityMpS) / ParticleVelocityFactor;
-            ParticleDirection = wind;
-            FirstActiveParticle = FirstNewParticle = FirstFreeParticle = FirstRetiredParticle = 0;
-            ParticlesToEmit = TimeParticlesLastEmitted = 0;
-            DrawCounter = 0;
+            particleDuration = ParticleBoxHeightM / (weather == WeatherType.Snow ? SnowVelocityMpS : RainVelocityMpS) / ParticleVelocityFactor;
+            particleDirection = wind;
+            firstActiveParticle = firstNewParticle = firstFreeParticle = firstRetiredParticle = 0;
+            particlesToEmit = timeParticlesLastEmitted = 0;
+            drawCounter = 0;
         }
 
         public void DynamicUpdate(WeatherControl weatherControl, Weather weather, Viewer viewer, ref Vector3 wind)
         {
             if (!weatherControl.weatherChangeOn || weatherControl.dynamicWeather.precipitationLiquidityTimer <= 0)
                 return;
-            ParticleDuration = ParticleBoxHeightM / ((RainVelocityMpS - SnowVelocityMpS) * weather.PrecipitationLiquidity + SnowVelocityMpS) / ParticleVelocityFactor;
+            particleDuration = ParticleBoxHeightM / ((RainVelocityMpS - SnowVelocityMpS) * weather.PrecipitationLiquidity + SnowVelocityMpS) / ParticleVelocityFactor;
             wind.X = 18 * weather.PrecipitationLiquidity + 2;
-            ParticleDirection = wind;
+            particleDirection = wind;
         }
 
         public void Update(float currentTime, in ElapsedTime elapsedTime, float particlesPerSecondPerM2, Viewer viewer)
@@ -290,21 +270,21 @@ namespace Orts.ActivityRunner.Viewer3D
             var worldLocation = viewer.Camera.CameraWorldLocation;
             //var worldLocation = Program.Viewer.PlayerLocomotive.WorldPosition.WorldLocation;  // This is used to test overall precipitation position.
 
-            if (TimeParticlesLastEmitted == 0)
+            if (timeParticlesLastEmitted == 0)
             {
-                TimeParticlesLastEmitted = currentTime - ParticleDuration;
-                ParticlesToEmit += ParticleDuration * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
+                timeParticlesLastEmitted = currentTime - particleDuration;
+                particlesToEmit += particleDuration * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
             }
             else
             {
                 RetireActiveParticles(currentTime);
                 FreeRetiredParticles();
 
-                ParticlesToEmit += (float)elapsedTime.ClockSeconds * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
+                particlesToEmit += (float)elapsedTime.ClockSeconds * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
             }
 
             var numParticlesAdded = 0;
-            var numToBeEmitted = (int)ParticlesToEmit;
+            var numToBeEmitted = (int)particlesToEmit;
             var numCanBeEmitted = GetCountFreeParticles();
             var numToEmit = Math.Min(numToBeEmitted, numCanBeEmitted);
 
@@ -314,53 +294,53 @@ namespace Orts.ActivityRunner.Viewer3D
                     worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM),
                     0,
                     worldLocation.Location.Z + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxLengthM));
-                temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, Heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
+                temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
                 var position = new WorldPosition(temp);
 
-                var time = MathHelper.Lerp(TimeParticlesLastEmitted, currentTime, (float)i / numToEmit);
-                var particle = (FirstFreeParticle + 1) % MaxParticles;
+                var time = MathHelper.Lerp(timeParticlesLastEmitted, currentTime, (float)i / numToEmit);
+                var particle = (firstFreeParticle + 1) % MaxParticles;
                 var vertex = particle * VerticiesPerParticle;
 
                 for (var j = 0; j < VerticiesPerParticle; j++)
                 {
-                    Vertices[vertex + j].StartPosition_StartTime = new Vector4(position.XNAMatrix.Translation - ParticleDirection * ParticleDuration, time);
+                    Vertices[vertex + j].StartPosition_StartTime = new Vector4(position.XNAMatrix.Translation - particleDirection * particleDuration, time);
                     Vertices[vertex + j].StartPosition_StartTime.Y += ParticleBoxHeightM;
-                    Vertices[vertex + j].EndPosition_EndTime = new Vector4(position.XNAMatrix.Translation, time + ParticleDuration);
+                    Vertices[vertex + j].EndPosition_EndTime = new Vector4(position.XNAMatrix.Translation, time + particleDuration);
                     Vertices[vertex + j].TileXZ_Vertex = new Vector4(position.TileX, position.TileZ, j, 0);
                 }
 
-                FirstFreeParticle = particle;
-                ParticlesToEmit--;
+                firstFreeParticle = particle;
+                particlesToEmit--;
                 numParticlesAdded++;
             }
 
             if (numParticlesAdded > 0)
-                TimeParticlesLastEmitted = currentTime;
+                timeParticlesLastEmitted = currentTime;
 
-            ParticlesToEmit = ParticlesToEmit - (int)ParticlesToEmit;
+            particlesToEmit = particlesToEmit - (int)particlesToEmit;
         }
 
         private void AddNewParticlesToVertexBuffer()
         {
-            if (FirstNewParticle < FirstFreeParticle)
+            if (firstNewParticle < firstFreeParticle)
             {
-                var numParticlesToAdd = FirstFreeParticle - FirstNewParticle;
-                VertexBuffer.SetData(FirstNewParticle * VertexStride * VerticiesPerParticle, Vertices, FirstNewParticle * VerticiesPerParticle, numParticlesToAdd * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
+                var numParticlesToAdd = firstFreeParticle - firstNewParticle;
+                VertexBuffer.SetData(firstNewParticle * VertexStride * VerticiesPerParticle, Vertices, firstNewParticle * VerticiesPerParticle, numParticlesToAdd * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
             }
             else
             {
-                var numParticlesToAddAtEnd = MaxParticles - FirstNewParticle;
-                VertexBuffer.SetData(FirstNewParticle * VertexStride * VerticiesPerParticle, Vertices, FirstNewParticle * VerticiesPerParticle, numParticlesToAddAtEnd * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
-                if (FirstFreeParticle > 0)
-                    VertexBuffer.SetData(0, Vertices, 0, FirstFreeParticle * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
+                var numParticlesToAddAtEnd = MaxParticles - firstNewParticle;
+                VertexBuffer.SetData(firstNewParticle * VertexStride * VerticiesPerParticle, Vertices, firstNewParticle * VerticiesPerParticle, numParticlesToAddAtEnd * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
+                if (firstFreeParticle > 0)
+                    VertexBuffer.SetData(0, Vertices, 0, firstFreeParticle * VerticiesPerParticle, VertexStride, SetDataOptions.NoOverwrite);
             }
 
-            FirstNewParticle = FirstFreeParticle;
+            firstNewParticle = firstFreeParticle;
         }
 
         public bool HasParticlesToRender()
         {
-            return FirstActiveParticle != FirstFreeParticle;
+            return firstActiveParticle != firstFreeParticle;
         }
 
         public override void Draw()
@@ -368,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
 
-            if (FirstNewParticle != FirstFreeParticle)
+            if (firstNewParticle != firstFreeParticle)
                 AddNewParticlesToVertexBuffer();
 
             if (HasParticlesToRender())
@@ -376,22 +356,22 @@ namespace Orts.ActivityRunner.Viewer3D
                 graphicsDevice.Indices = IndexBuffer;
                 graphicsDevice.SetVertexBuffer(VertexBuffer);
 
-                if (FirstActiveParticle < FirstFreeParticle)
+                if (firstActiveParticle < firstFreeParticle)
                 {
-                    var numParticles = FirstFreeParticle - FirstActiveParticle;
-                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, FirstActiveParticle * IndiciesPerParticle, numParticles * PrimitivesPerParticle);
+                    var numParticles = firstFreeParticle - firstActiveParticle;
+                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, firstActiveParticle * IndiciesPerParticle, numParticles * PrimitivesPerParticle);
                 }
                 else
                 {
-                    var numParticlesAtEnd = MaxParticles - FirstActiveParticle;
+                    var numParticlesAtEnd = MaxParticles - firstActiveParticle;
                     if (numParticlesAtEnd > 0)
-                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, FirstActiveParticle * IndiciesPerParticle, numParticlesAtEnd * PrimitivesPerParticle);
-                    if (FirstFreeParticle > 0)
-                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, FirstFreeParticle * PrimitivesPerParticle);
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, firstActiveParticle * IndiciesPerParticle, numParticlesAtEnd * PrimitivesPerParticle);
+                    if (firstFreeParticle > 0)
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, firstFreeParticle * PrimitivesPerParticle);
                 }
             }
 
-            DrawCounter++;
+            drawCounter++;
         }
 
         private class HeightCache
@@ -425,14 +405,16 @@ namespace Orts.ActivityRunner.Viewer3D
                 var z = (int)((temp.Location.Z + 1024) / BlockSize);
 
                 // Trace the case where x or z are out of bounds
-                if (x < 0 || x > 255 || z < 0 || z > 255)
+                var xSize = tile.Height.GetLength(0);
+                var zSize = tile.Height.GetLength(1);
+                if (x < 0 || x >= xSize || z < 0 || z >= zSize)
                 {
                     Trace.TraceWarning("Precipitation indexes are out of bounds:  x = {0}, z = {1}, Location.X = {2}, Location.Z = {3}, BlockSize = {4}, HeightDimensionX = {5}, HeightDimensionZ = {6}",
                         x, z, location.Location.X, location.Location.Z, BlockSize, tile.Height.GetLength(0), tile.Height.GetLength(1));
-                    if (x > 255)
-                        x = 255;
-                    else if (z > 255)
-                        z = 255;
+                    if (x >= xSize)
+                        x = xSize - 1;
+                    else if (z >= zSize)
+                        z = zSize - 1;
                     else if (x < 0)
                         x = 0;
                     else
