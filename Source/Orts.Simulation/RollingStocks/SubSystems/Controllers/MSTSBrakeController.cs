@@ -373,13 +373,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        public override float? StateFraction
+        public override float StateFraction
         {
             get
             {
                 if (EmergencyBrakingPushButton() || TCSEmergencyBraking() || TCSFullServiceBraking() || QuickReleaseButtonPressed() || OverchargeButtonPressed())
                 {
-                    return null;
+                    return float.NaN;
                 }
                 else if (NotchController != null)
                 {
@@ -389,22 +389,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     {
                         INotchController notch = NotchController.GetCurrentNotch();
 
-                        if (!notch.Smooth)
-                        {
-                            if (notch.NotchStateType == ControllerState.Dummy)
-                                return NotchController.CurrentValue;
-                            else
-                                return null;
-                        }
-                        else
-                        {
-                            return NotchController.GetNotchFraction();
-                        }
+                        return !notch.Smooth
+                            ? notch.NotchStateType == ControllerState.Dummy ? NotchController.CurrentValue : float.NaN
+                            : NotchController.GetNotchFraction();
                     }
                 }
                 else
                 {
-                    return null;
+                    return float.NaN;
                 }
             }
         }

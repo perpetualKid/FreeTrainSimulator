@@ -357,7 +357,7 @@ namespace Orts.Scripting.Script
             }
         }
 
-        public override float? StateFraction => null;
+        public override float StateFraction => float.NaN;
 
         private void SetValue(float v)
         {

@@ -521,42 +521,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return script == null || script.IsValid();
         }
 
+        public BrakeStatus BrakeStatus => script != null ? new BrakeStatus(script.State, script.StateFraction) : BrakeStatus.Empty;
+
         public ControllerState State => script?.State ?? ControllerState.Dummy;
 
-        public string GetStatus()
-        {
-            if (script != null)
-            {
-                //ToDo translation via catalog
-                string state = script.State.GetLocalizedDescription();
-                string fraction = GetStateFractionScripted();
+        public float ControllerValue => script?.StateFraction ?? float.NaN;
 
-                if (string.IsNullOrEmpty(state) && string.IsNullOrEmpty(fraction))
-                    return string.Empty;
-                else if (!string.IsNullOrEmpty(state) && string.IsNullOrEmpty(fraction))
-                    return state;
-                else if (string.IsNullOrEmpty(state) && !string.IsNullOrEmpty(fraction))
-                    return fraction;
-                else
-                    return $"{state} {fraction}";
-            }
-            else
-                return string.Empty;
-        }
-
-        public string GetStateFractionScripted()
-        {
-            if (script != null)
-            {
-                float? fraction = script.StateFraction;
-
-                return script.StateFraction != null ? $"{100 * (fraction):F0}%" : string.Empty;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
+        public string GetStatus() => BrakeStatus.ToShortString();
 
         public void Save(BinaryWriter outf)
         {
