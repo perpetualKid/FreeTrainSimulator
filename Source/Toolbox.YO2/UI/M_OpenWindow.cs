@@ -13,6 +13,9 @@ using System.Drawing.Text;
 using ListItem = Myra.Graphics2D.UI.ListItem;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.IO;
+using System;
+using Orts.Formats.Msts.Files;
 
 namespace Toolbox.YO2
 {
@@ -55,6 +58,8 @@ namespace Toolbox.YO2
             
             var routeselected = " ";
             int count_i = 0;
+            int dirlist_i = 0;
+            int equiplist_i = 0;
             if (_OpenWin_List.SelectedItem == null)
                 routeselected = "Route not Selected";
             else
@@ -67,6 +72,7 @@ namespace Toolbox.YO2
                         routeselected = folder.Name;
                         var mw = new M_Trains();
                         var me = new M_Equip();
+                        
                         var m3d = new M_3DEquipViewer();
                         ;
                         foreach (Consist consist in GameWindow.Instance.consists)
@@ -76,7 +82,41 @@ namespace Toolbox.YO2
                             listItem.Color = Color.White;
                             mw._ConsistList.Items.Add(listItem);
                             count_i++;
-                        }                        
+                        }
+
+                        var folderpath = folder.Path;
+                        var trainsetpath = folderpath + "\\TRAINS\\TRAINSET";
+                        var dirInfo = new DirectoryInfo(trainsetpath);
+
+                        var dirs = dirInfo.EnumerateDirectories("*", new EnumerationOptions
+                        { RecurseSubdirectories = true });
+
+                        foreach (var name in dirs)
+                        {
+                            var path = name.ToString();
+
+                            var result = Directory.EnumerateFiles(path, "*.eng",
+                                SearchOption.AllDirectories).Union(Directory.EnumerateFiles(path, "*.wag",
+                                SearchOption.AllDirectories));
+
+                            foreach (var file in result)
+                            {
+                                var engFile = new EngineFile(file);
+                                var wagFile = new WagonFile(file);
+                                var listItem = new ListItem();
+                                if (System.IO.Path.GetExtension(file) == ".eng")
+                                    listItem.Text = engFile.Name;
+                                else 
+                                    listItem.Text = wagFile.Name;
+                                listItem.Color = Color.White;
+                                me._EqpList.Items.Add(listItem);
+                                equiplist_i++;
+                            }
+                            
+                            dirlist_i++;
+                        }
+
+                        me._EqpTotal.Text = equiplist_i.ToString() + "/" +dirlist_i.ToString();
                         mw._TrainCount.Text = count_i.ToString();
                         mw.Show(Desktop, new Point(1, 21));
                         me.Show(Desktop, new Point(252, 21));
@@ -86,10 +126,10 @@ namespace Toolbox.YO2
                 }
             }
 
-            var messageBox = Dialog.CreateMessageBox("YardOffice", routeselected + " Number of Consists = " + count_i.ToString());
+            //          var messageBox = Dialog.CreateMessageBox("YardOffice", routeselected + " Number of Consists = " + count_i.ToString());
 
 
-            messageBox.ShowModal(Desktop);
+            //          messageBox.ShowModal(Desktop);
 
             Close();
 

@@ -37,6 +37,7 @@ namespace Toolbox.YO2
 
         private CancellationTokenSource ctsConsistLoading;
 
+ //       public Folder selectedFolder;
         public IOrderedEnumerable<Folder> folders;
         public IEnumerable<Consist> consists = Array.Empty<Consist>();
 

@@ -1,6 +1,6 @@
 <Project>
   <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_Equip" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
-  <Window Title="Equipment" DragDirection="None" Left="556" Width="250" Height="608" Id="M_Equip">
+  <Window Title="Equipment" Left="556" Width="250" Height="608" Id="M_Equip" >
     <VerticalStackPanel>
       <VerticalStackPanel.Proportions>
         <Proportion Type="Auto" />
@@ -50,7 +50,7 @@
         <TextButton Text=" End " TextColor="#000000FF" BorderThickness="1" Background="#D9D9D9FF" Border="#5BC6FAFF" Id="_EqpAE_button" />
         <TextButton Text="Random " TextColor="#000000FF" BorderThickness="1" Background="#D9D9D9FF" Border="#5BC6FAFF" Id="_EqpRB_button" />
       </HorizontalStackPanel>
-      <ListBox Width="249" Height="579" Id="_EqpList" />
+      <ListBox Height="425" Id="_EqpList" />
     </VerticalStackPanel>
   </Window>
 </Project>
