@@ -628,7 +628,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")) + "\t" +
                     FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, Simulator.Instance.MetricUnits) + "\t" +
                     FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK) + "\t" +
-                    (car.IsDriveable ? Viewer.Catalog.GetParticularString("Cab", "D") : "") + (car.HasFrontCab || car.HasFront3DCab ? Viewer.Catalog.GetParticularString("Cab", "F") : "") + (car.HasRearCab || car.HasRear3DCab ? Viewer.Catalog.GetParticularString("Cab", "R") : "") + "\t" +
+                    (car is MSTSLocomotive ? Viewer.Catalog.GetParticularString("Cab", "D") : "") + (car.HasFrontCab || car.HasFront3DCab ? Viewer.Catalog.GetParticularString("Cab", "F") : "") + (car.HasRearCab || car.HasRear3DCab ? Viewer.Catalog.GetParticularString("Cab", "R") : "") + "\t" +
                     GetCarWhyteLikeNotation(car) + "\t" +
                     (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, Simulator.Instance.MetricUnits) : string.Empty));
 

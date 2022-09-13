@@ -729,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             float AnimationWheelRadiusM = 0.0f; // Radius of non driven wheels
             float AnimationDriveWheelRadiusM = 0.0f; // Radius of driven wheels
 
-            if (MSTSWagon.IsDriveable && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
+            if (MSTSWagon is MSTSLocomotive && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
             {
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
@@ -755,8 +755,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else // set values for simple adhesion
             {
 
-                distanceTravelledM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
-                distanceTravelledDrivenM = ((MSTSWagon.IsDriveable && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
+                distanceTravelledM = ((MSTSWagon is MSTSLocomotive locomotive1 && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && locomotive1.UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
+                distanceTravelledDrivenM = ((MSTSWagon is MSTSLocomotive locomotive && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && locomotive.UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 // Set values of wheel radius - assume that drive wheel and non driven wheel are same sizes
                 if (Car.EngineType == EngineType.Steam) // set values for steam stock
                 {

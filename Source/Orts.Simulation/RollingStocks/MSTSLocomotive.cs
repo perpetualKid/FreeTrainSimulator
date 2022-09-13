@@ -451,7 +451,7 @@ namespace Orts.Simulation.RollingStocks
         {
             //TODO: following code lines have been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the code lines probably should be changed
-            get => (IsDriveable && Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
+            get => (Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
             set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
         }
 
@@ -539,7 +539,6 @@ namespace Orts.Simulation.RollingStocks
             CorrectBrakingParams();
             CheckCoherence();
             GetPressureUnit();
-            IsDriveable = true;
 
             MoveParamsToAxle();
         }
@@ -1303,7 +1302,6 @@ namespace Orts.Simulation.RollingStocks
             MainPressureUnit = locoCopy.MainPressureUnit;
             foreach(BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                 BrakeSystemPressureUnits[component] = locoCopy.BrakeSystemPressureUnits[component];
-            IsDriveable = copy.IsDriveable;
 
             ThrottleController = (MSTSNotchController)locoCopy.ThrottleController.Clone();
             SteamHeatController = (MSTSNotchController)locoCopy.SteamHeatController.Clone();

@@ -1335,27 +1335,7 @@ namespace Orts.Simulation.Timetables
 
                     // set player locomotive
                     // first test first and last cars - if either is drivable, use it as player locomotive
-                    int lastIndex = train.Cars.Count - 1;
-
-                    if (train.Cars[0].IsDriveable)
-                    {
-                        train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[0];
-                    }
-                    else if (train.Cars[lastIndex].IsDriveable)
-                    {
-                        train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[lastIndex];
-                    }
-                    else
-                    {
-                        foreach (TrainCar car in train.Cars)
-                        {
-                            if (car.IsDriveable)  // first loco is the one the player drives
-                            {
-                                train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = car;
-                                break;
-                            }
-                        }
-                    }
+                    train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[0] as MSTSLocomotive ?? train.Cars[^1] as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                     train.InitializeBrakes();
 

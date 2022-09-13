@@ -8249,27 +8249,7 @@ namespace Orts.Simulation.Timetables
 
                         // set player locomotive
                         // first test first and last cars - if either is drivable, use it as player locomotive
-                        int lastIndex = formedTrain.Cars.Count - 1;
-
-                        if (formedTrain.Cars[0].IsDriveable)
-                        {
-                            AI.Simulator.PlayerLocomotive = formedTrain.LeadLocomotive = formedTrain.Cars[0];
-                        }
-                        else if (formedTrain.Cars[lastIndex].IsDriveable)
-                        {
-                            AI.Simulator.PlayerLocomotive = formedTrain.LeadLocomotive = formedTrain.Cars[lastIndex];
-                        }
-                        else
-                        {
-                            foreach (TrainCar car in formedTrain.Cars)
-                            {
-                                if (car.IsDriveable)  // first loco is the one the player drives
-                                {
-                                    AI.Simulator.PlayerLocomotive = formedTrain.LeadLocomotive = car;
-                                    break;
-                                }
-                            }
-                        }
+                        AI.Simulator.PlayerLocomotive = formedTrain.LeadLocomotive = formedTrain.Cars[0] as MSTSLocomotive ?? formedTrain.Cars[^1] as MSTSLocomotive ?? formedTrain.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                         // only initialize brakes if previous train was not player train
                         if (TrainType == TrainType.Player)
@@ -9987,13 +9967,13 @@ namespace Orts.Simulation.Timetables
                     Simulator.Instance.SignalEnvironment.ReallocateDeadlockPathReferences(nextTrainNumber, 0);
 
                     bool foundPlayerLocomotive = false;
-                    TrainCar newPlayerLocomotive = null;
+                    MSTSLocomotive newPlayerLocomotive = null;
 
                     // search for player locomotive
                     for (int icar = 0; icar < formedTrain.Cars.Count; icar++)
                     {
                         var car = formedTrain.Cars[icar];
-                        if (car.IsDriveable)
+                        if (car is MSTSLocomotive locomotive)
                         {
                             if (simulator.PlayerLocomotive == car)
                             {
@@ -10003,7 +9983,7 @@ namespace Orts.Simulation.Timetables
                             }
                             else if (newPlayerLocomotive == null)
                             {
-                                newPlayerLocomotive = car;
+                                newPlayerLocomotive = locomotive;
                                 formedTrain.LeadLocomotiveIndex = icar;
                             }
                         }
@@ -10614,29 +10594,12 @@ namespace Orts.Simulation.Timetables
 
                 if (attachTrain.LeadLocomotive == null)
                 {
-                    if (attachTrain.Cars[0].IsDriveable)
-                    {
-                        attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[0];
-                    }
-                    else if (attachTrain.Cars[(attachTrain.Cars.Count - 1)].IsDriveable)
-                    {
-                        attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[(attachTrain.Cars.Count - 1)];
-                    }
-                    else
-                    {
-                        foreach (var thisCar in attachTrain.Cars)
-                        {
-                            if (thisCar.IsDriveable)
-                            {
-                                attachTrain.LeadLocomotive = simulator.PlayerLocomotive = thisCar;
-                            }
-                        }
-                    }
+                    attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[0] as MSTSLocomotive ?? attachTrain.Cars[^1] as MSTSLocomotive ?? attachTrain.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
                 }
                 else
                 {
                     // reassign leadlocomotive to reset index
-                    attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[playerLocomotiveIndex];
+                    attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[playerLocomotiveIndex] as MSTSLocomotive;
                     attachTrain.LeadLocomotiveIndex = playerLocomotiveIndex;
                 }
 
@@ -10659,7 +10622,7 @@ namespace Orts.Simulation.Timetables
 
                 // reassign leadlocomotive to reset index
                 attachTrain.LeadLocomotiveIndex = playerLocomotiveIndex;
-                attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[playerLocomotiveIndex];
+                attachTrain.LeadLocomotive = simulator.PlayerLocomotive = attachTrain.Cars[playerLocomotiveIndex] as MSTSLocomotive;
 
                 // correctly insert new player train
                 attachTrain.AI.TrainsToRemoveFromAI.Add(attachTrain);
@@ -12534,7 +12497,7 @@ namespace Orts.Simulation.Timetables
                 {
                     if (train.LeadLocomotiveIndex >= 0)
                     {
-                        train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = train.Cars[train.LeadLocomotiveIndex];
+                        train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = train.Cars[train.LeadLocomotiveIndex] as MSTSLocomotive;
                     }
                     else
                     {
@@ -12544,9 +12507,9 @@ namespace Orts.Simulation.Timetables
                         for (int iCar = 0; iCar <= train.Cars.Count - 1 && train.LeadLocomotiveIndex < 0; iCar++)
                         {
                             var eachCar = train.Cars[iCar];
-                            if (eachCar.IsDriveable)
+                            if (eachCar is MSTSLocomotive locomotive)
                             {
-                                train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = eachCar;
+                                train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = locomotive;
                                 train.LeadLocomotiveIndex = iCar;
                             }
                         }
@@ -12564,7 +12527,7 @@ namespace Orts.Simulation.Timetables
 
                     if (newTrain.LeadLocomotiveIndex >= 0)
                     {
-                        newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = newTrain.Cars[newTrain.LeadLocomotiveIndex];
+                        newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = newTrain.Cars[newTrain.LeadLocomotiveIndex] as MSTSLocomotive;
                     }
                     else
                     {
@@ -12574,9 +12537,9 @@ namespace Orts.Simulation.Timetables
                         for (int iCar = 0; iCar <= newTrain.Cars.Count - 1 && newTrain.LeadLocomotiveIndex < 0; iCar++)
                         {
                             var eachCar = newTrain.Cars[iCar];
-                            if (eachCar.IsDriveable)
+                            if (eachCar is MSTSLocomotive locomotive)
                             {
-                                newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = eachCar;
+                                newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = locomotive;
                                 newTrain.LeadLocomotiveIndex = iCar;
                             }
                         }
@@ -12761,7 +12724,8 @@ namespace Orts.Simulation.Timetables
                 for (int iCar = 0; iCar < train.DetachUnits && !portionHasDriveablePower; iCar++)
                 {
                     var thisCar = train.Cars[iCar];
-                    if (thisCar.IsDriveable) portionHasDriveablePower = true;
+                    if (thisCar is MSTSLocomotive) 
+                        portionHasDriveablePower = true;
                 }
             }
             // detach at rear
@@ -12771,7 +12735,8 @@ namespace Orts.Simulation.Timetables
                 {
                     int actCar = train.Cars.Count - 1 - iCar;
                     var thisCar = train.Cars[actCar];
-                    if (thisCar.IsDriveable) portionHasDriveablePower = true;
+                    if (thisCar is MSTSLocomotive) 
+                        portionHasDriveablePower = true;
                 }
             }
             return (portionHasDriveablePower);
@@ -12794,7 +12759,8 @@ namespace Orts.Simulation.Timetables
                 {
                     int actCar = train.Cars.Count - 1 - iCar;
                     var thisCar = train.Cars[actCar];
-                    if (thisCar.IsDriveable) portionHasDriveablePower = true;
+                    if (thisCar is MSTSLocomotive) 
+                        portionHasDriveablePower = true;
                 }
             }
             // detach at rear - so check front portion
@@ -12803,7 +12769,8 @@ namespace Orts.Simulation.Timetables
                 for (int iCar = 0; iCar < (train.Cars.Count - train.DetachUnits) && !portionHasDriveablePower; iCar++)
                 {
                     var thisCar = train.Cars[iCar];
-                    if (thisCar.IsDriveable) portionHasDriveablePower = true;
+                    if (thisCar is MSTSLocomotive) 
+                        portionHasDriveablePower = true;
                 }
             }
             return (portionHasDriveablePower);

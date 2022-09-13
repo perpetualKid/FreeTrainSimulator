@@ -401,22 +401,19 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        public TrainCar LeadLocomotive
+        public MSTSLocomotive LeadLocomotive
         {
             get
             {
-                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] : null;
+                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] as MSTSLocomotive : null;
             }
             internal set
             {
                 LeadLocomotiveIndex = -1;
                 for (int i = 0; i < Cars.Count; i++)
-                    if (value == Cars[i] && value.IsDriveable)
+                    if (value == Cars[i])
                     {
                         LeadLocomotiveIndex = i;
-                        //MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
-                        //if (lead.EngineBrakeController != null)
-                        //    lead.EngineBrakeController.UpdateEngineBrakePressure(ref BrakeLine3PressurePSI, 1000);
                     }
             }
         }
@@ -807,7 +804,7 @@ namespace Orts.Simulation.Physics
                 // restore leadlocomotive
                 if (LeadLocomotiveIndex >= 0)
                 {
-                    LeadLocomotive = Cars[LeadLocomotiveIndex];
+                    LeadLocomotive = Cars[LeadLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(LeadLocomotiveIndex));
                     if (TrainType != TrainType.Static)
                         simulator.PlayerLocomotive = LeadLocomotive;
 
@@ -1127,13 +1124,13 @@ namespace Orts.Simulation.Physics
         /// then pressing Ctrl+E cycles the cabs in the sequence
         ///     A -> b -> C -> d -> e -> F
         /// </summary>
-        public TrainCar GetNextCab()
+        public MSTSLocomotive GetNextCab()
         {
             // negative numbers used if rear cab selected
             // because '0' has no negative, all indices are shifted by 1!!!!
 
             int presentIndex = LeadLocomotiveIndex + 1;
-            if (((MSTSLocomotive)LeadLocomotive).UsingRearCab)
+            if ((LeadLocomotive).UsingRearCab)
                 presentIndex = -presentIndex;
 
             List<int> cabList = new List<int>();
@@ -1167,11 +1164,11 @@ namespace Orts.Simulation.Physics
 
             int nextCabIndex = cabList[lastIndex + 1];
 
-            TrainCar oldLead = LeadLocomotive;
+            MSTSLocomotive oldLead = LeadLocomotive;
             LeadLocomotiveIndex = Math.Abs(nextCabIndex) - 1;
             Trace.Assert(LeadLocomotive != null, "Tried to switch to non-existent loco");
-            TrainCar newLead = LeadLocomotive;  // Changing LeadLocomotiveIndex also changed LeadLocomotive
-            ((MSTSLocomotive)newLead).UsingRearCab = nextCabIndex < 0;
+            MSTSLocomotive newLead = LeadLocomotive;  // Changing LeadLocomotiveIndex also changed LeadLocomotive
+            (newLead).UsingRearCab = nextCabIndex < 0;
 
             if (oldLead != null && newLead != null && oldLead != newLead)
             {
@@ -1203,7 +1200,7 @@ namespace Orts.Simulation.Physics
 
             for (int i = 0; i < Cars.Count; i++)
             {
-                if (Cars[i].IsDriveable)
+                if (Cars[i] is MSTSLocomotive)
                 {
                     // Count the driveables
                     coud++;
@@ -1220,7 +1217,7 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-            TrainCar prevLead = LeadLocomotive;
+            MSTSLocomotive prevLead = LeadLocomotive;
 
             // If found one after the current
             if (nextLead != -1)
@@ -1228,7 +1225,7 @@ namespace Orts.Simulation.Physics
             // If not, and have more than one, set the first
             else if (coud > 1)
                 LeadLocomotiveIndex = firstLead;
-            TrainCar newLead = LeadLocomotive;
+            MSTSLocomotive newLead = LeadLocomotive;
             if (prevLead != null && newLead != null && prevLead != newLead)
                 newLead.CopyControllerSettings(prevLead);
         }
@@ -1589,9 +1586,9 @@ namespace Orts.Simulation.Physics
             //            aiBrakePercent = 0;
             //            AITrainBrakePercent = 0;
 
-            if (LeadLocomotiveIndex >= 0)
+            MSTSLocomotive lead = LeadLocomotive;
+            if (lead != null)
             {
-                MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead is MSTSSteamLocomotive)
                     MUReverserPercent = 25;
                 lead.CurrentElevationPercent = -100f * lead.WorldPosition.XNAMatrix.M32;
@@ -1599,7 +1596,7 @@ namespace Orts.Simulation.Physics
                 //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
                 //         
-                if (lead.IsDriveable && lead.UsingRearCab)
+                if (lead.UsingRearCab)
                 {
                     lead.CurrentElevationPercent = -lead.CurrentElevationPercent;
                 }
@@ -1793,7 +1790,7 @@ namespace Orts.Simulation.Physics
                 massKg += car.MassKG;
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
-                if (car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab))
+                if (car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab))
                 {
                     car.TotalForceN = -car.TotalForceN;
                     car.SpeedMpS = -car.SpeedMpS;
@@ -1892,7 +1889,7 @@ namespace Orts.Simulation.Physics
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                 if (car1.Flipped)
-                if (car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab))
+                if (car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab))
                     car.SpeedMpS = -car.SpeedMpS;
             }
 #if DEBUG_SPEED_FORCES
@@ -3392,15 +3389,15 @@ namespace Orts.Simulation.Physics
             // lead locomotive (the player driven one) resides. Within this group both the main reservoir pressure and the 
             // engine brake pipe pressure will be propagated. It only identifies multiple units when coupled directly together,
             // for example a double headed steam locomotive will most often have a tender separating the two locomotives, 
-            // so the second locomotive will not be identified, nor will a locomotive added at the rear of the train. 
+            // so the second locomotive will not be identified, nor will a locomotive which is added at the rear of the train. 
 
             int first = -1;
             int last = -1;
             if (LeadLocomotiveIndex >= 0)
             {
-                for (int i = LeadLocomotiveIndex; i < Cars.Count && Cars[i].IsDriveable; i++)
+                for (int i = LeadLocomotiveIndex; i < Cars.Count && Cars[i] is MSTSLocomotive; i++)
                     last = i;
-                for (int i = LeadLocomotiveIndex; i >= 0 && Cars[i].IsDriveable; i--)
+                for (int i = LeadLocomotiveIndex; i >= 0 && Cars[i] is MSTSLocomotive; i--)
                     first = i;
             }
 
@@ -3432,21 +3429,21 @@ namespace Orts.Simulation.Physics
             return (first, last);
         }
 
-        internal TrainCar FindLeadLocomotive()
+        internal MSTSLocomotive FindLeadLocomotive()
         {
             (int first, int last) = FindLeadLocomotives();
             if (first > -1 && first < LeadLocomotiveIndex)
             {
-                return Cars[first];
+                return Cars[first] as MSTSLocomotive;
             }
             else if (last > -1 && last > LeadLocomotiveIndex)
             {
-                return Cars[last];
+                return Cars[last] as MSTSLocomotive;
             }
             for (int i = 0; i < Cars.Count; i++)
             {
-                if (Cars[i].IsDriveable)
-                    return Cars[i];
+                if (Cars[i] is MSTSLocomotive)
+                    return Cars[i] as MSTSLocomotive;
             }
             Trace.TraceWarning($"Train {Name} ({Number}) has no locomotive!");
             return null;
@@ -3463,9 +3460,9 @@ namespace Orts.Simulation.Physics
             {
                 if (car.WagonType == WagonType.Freight)
                     IsFreight = true;
-                if ((car.WagonType == WagonType.Passenger) || (car.IsDriveable && car.PassengerCapacity > 0))
+                if ((car.WagonType == WagonType.Passenger) || (car is MSTSLocomotive && car.PassengerCapacity > 0))
                     PassengerCarsNumber++;
-                if (car.IsDriveable && (car as MSTSLocomotive).CabViewList.Count > 0)
+                if ((car as MSTSLocomotive)?.CabViewList.Count > 0)
                     IsPlayable = true;
             }
             if (TrainType == TrainType.AiIncorporated && IncorporatingTrainNo > -1)

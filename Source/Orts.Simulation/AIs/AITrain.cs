@@ -378,10 +378,8 @@ namespace Orts.Simulation.AIs
                     }
                     else
                     {
-                        var carF = Cars[0];
-                        var carL = Cars[Cars.Count - 1];
-                        if (carF.IsDriveable && carF.PassengerCapacity > 0 && (carF is MSTSElectricLocomotive)
-                            && carL.IsDriveable && carL.PassengerCapacity > 0 && (carL is MSTSElectricLocomotive))  // EMU or DMU train, higher decel
+                        if (Cars[0] is MSTSElectricLocomotive && Cars[0].PassengerCapacity > 0
+                            && Cars[^1] is MSTSElectricLocomotive && Cars[^1].PassengerCapacity > 0)  // EMU or DMU train, higher decel
                         {
                             MaxAccelMpSS = 1.5f * MaxAccelMpSS;
                             MaxDecelMpSS = 2f * MaxDecelMpSSP;
@@ -2535,7 +2533,7 @@ namespace Orts.Simulation.AIs
                                             //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                                             // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                                             //  car.SpeedMpS = car.Flipped ? -reqMinSpeedMpS : reqMinSpeedMpS;
-                                            car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -reqMinSpeedMpS : reqMinSpeedMpS;
+                                            car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -reqMinSpeedMpS : reqMinSpeedMpS;
                                         }
                                         SpeedMpS = reqMinSpeedMpS;
                                     }
@@ -2890,7 +2888,7 @@ namespace Orts.Simulation.AIs
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                     // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                     //  car.SpeedMpS = car.Flipped ? -SpeedMpS : SpeedMpS;
-                    car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                    car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
                 }
             }
 
@@ -2920,7 +2918,7 @@ namespace Orts.Simulation.AIs
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                     // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                     //  car.SpeedMpS = car.Flipped ? -SpeedMpS : SpeedMpS;
-                    car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                    car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
                 }
             }
 
@@ -3013,7 +3011,7 @@ namespace Orts.Simulation.AIs
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                     // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                     //  car.SpeedMpS = car.Flipped ? -SpeedMpS : SpeedMpS;
-                    car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                    car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
                 }
 
             }
@@ -3044,7 +3042,7 @@ namespace Orts.Simulation.AIs
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                     // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                     //  car.SpeedMpS = car.Flipped ? -SpeedMpS : SpeedMpS;
-                    car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                    car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
                 }
             }
             SetPercentsFromTrainToTrainset();
@@ -3057,7 +3055,7 @@ namespace Orts.Simulation.AIs
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //  car.SpeedMpS = car.Flipped ? -reqSpeedMpS : reqSpeedMpS;
-                car.SpeedMpS = car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab) ? -reqSpeedMpS : reqSpeedMpS;
+                car.SpeedMpS = car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab) ? -reqSpeedMpS : reqSpeedMpS;
             }
         }
 
@@ -3664,7 +3662,7 @@ namespace Orts.Simulation.AIs
                     AI.TrainsToRemoveFromAI.Add((AITrain)attachTrain);
                     simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
                         Number, Name));
-                    simulator.PlayerLocomotive = simulator.SetPlayerLocomotive(attachTrain);
+                    simulator.PlayerLocomotive = Simulator.SetPlayerLocomotive(attachTrain);
                     (attachTrain as AITrain).SwitchToPlayerControl();
                     simulator.OnPlayerLocomotiveChanged();
                     AI.AITrains.Add(this);

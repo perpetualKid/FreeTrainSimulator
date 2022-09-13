@@ -239,9 +239,9 @@ namespace Orts.Simulation.MultiPlayer
                 var car = train.Cars[iCar];
                 if (car.CarID == p.LeadingLocomotiveID)
                 {
-                    train.LeadLocomotive = car;
-                    (train.LeadLocomotive as MSTSLocomotive).Headlight = player.headlight;
-                    (train.LeadLocomotive as MSTSLocomotive).UsingRearCab = player.frontorrearcab == "R" ? true : false;
+                    train.LeadLocomotive = car as MSTSLocomotive;
+                    train.LeadLocomotive.Headlight = player.headlight;
+                    train.LeadLocomotive.UsingRearCab = player.frontorrearcab == "R" ? true : false;
                 }
                 if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
                     MultiPlayerManager.Instance().AddOrRemoveLocomotive(player.user, train.Number, iCar, true);

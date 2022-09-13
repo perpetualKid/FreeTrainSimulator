@@ -165,7 +165,6 @@ namespace Orts.Simulation.RollingStocks
         public float CarHeightM { get; protected set; } = 4;        // derived classes must overwrite these defaults
         public float MassKG { get; internal protected set; } = 10000;        // Mass in KG at runtime; coincides with InitialMassKG if there is no load and no ORTS freight anim
         public float InitialMassKG { get; protected set; } = 10000;
-        public bool IsDriveable { get; protected set; }
         public int PassengerCapacity { get; protected set; }
         public bool HasInsideView { get; protected set; }
         public float CarHeightAboveSeaLevel { get; set; }
@@ -548,7 +547,7 @@ namespace Orts.Simulation.RollingStocks
             //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
             //      
-            if (IsDriveable && Train != null & Train.IsPlayerDriven && (this as MSTSLocomotive).UsingRearCab)
+            if ((Train?.IsPlayerDriven ?? false) && ((this as MSTSLocomotive)?.UsingRearCab ?? false))
             {
                 GravityForceN = -GravityForceN;
                 CurrentElevationPercent = -CurrentElevationPercent;
@@ -1833,14 +1832,9 @@ namespace Orts.Simulation.RollingStocks
             //TODO: next if/else block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the if/else block should be deleted and replaced by following instruction:
             //            SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
-            if (IsDriveable && Train.TrainType == TrainType.Player)
-            {
-                var loco = this as MSTSLocomotive;
-                SpeedMpS = Flipped ^ loco.UsingRearCab ? -Train.InitialSpeed : Train.InitialSpeed;
-            }
-
-            else
-                SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
+            SpeedMpS = this is MSTSLocomotive locomotive && Train.TrainType == TrainType.Player
+                ? Flipped ^ locomotive.UsingRearCab ? -Train.InitialSpeed : Train.InitialSpeed
+                : Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
             prevSpeedMpS = SpeedMpS;
         }
 

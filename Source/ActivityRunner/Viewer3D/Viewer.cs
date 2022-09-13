@@ -150,7 +150,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }  // we are controlling this loco, or null if we aren't controlling any
 
         // This is the train we are controlling
-        public TrainCar PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
+        public MSTSLocomotive PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
         public Train PlayerTrain { get { if (PlayerLocomotive == null) return null; else return PlayerLocomotive.Train; } }
 
         public Process CurrentProcess { get; } = Process.GetCurrentProcess();
@@ -378,7 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Restore(BinaryReader inf)
         {
             Train playerTrain = Simulator.Trains[inf.ReadInt32()];
-            PlayerLocomotive = playerTrain.Cars[inf.ReadInt32()];
+            PlayerLocomotive = playerTrain.Cars[inf.ReadInt32()] as MSTSLocomotive;
             var selected = inf.ReadInt32();
             if (selected >= 0 && selected < Simulator.Trains.Count)
             {
