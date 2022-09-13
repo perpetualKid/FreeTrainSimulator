@@ -352,54 +352,60 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return NotchController.IsValid();
         }
 
-        public override ControllerState GetState()
+        public override ControllerState State
         {
-            if (EmergencyBrakingPushButton())
-                return ControllerState.EBPB;
-            else if (TCSEmergencyBraking())
-                return ControllerState.TCSEmergency;
-            else if (TCSFullServiceBraking())
-                return ControllerState.TCSFullServ;
-            else if (OverchargeButtonPressed())
-                return ControllerState.Overcharge;
-            else if (QuickReleaseButtonPressed())
-                return ControllerState.FullQuickRelease;
-            else if (NotchController != null && NotchController.NotchCount() > 0)
-                return NotchController.GetCurrentNotch().NotchStateType;
-            else
-                return ControllerState.Dummy;
+            get
+            {
+                if (EmergencyBrakingPushButton())
+                    return ControllerState.EBPB;
+                else if (TCSEmergencyBraking())
+                    return ControllerState.TCSEmergency;
+                else if (TCSFullServiceBraking())
+                    return ControllerState.TCSFullServ;
+                else if (OverchargeButtonPressed())
+                    return ControllerState.Overcharge;
+                else if (QuickReleaseButtonPressed())
+                    return ControllerState.FullQuickRelease;
+                else if (NotchController != null && NotchController.NotchCount() > 0)
+                    return NotchController.GetCurrentNotch().NotchStateType;
+                else
+                    return ControllerState.Dummy;
+            }
         }
 
-        public override float? GetStateFraction()
+        public override float? StateFraction
         {
-            if (EmergencyBrakingPushButton() || TCSEmergencyBraking() || TCSFullServiceBraking() || QuickReleaseButtonPressed() || OverchargeButtonPressed())
+            get
             {
-                return null;
-            }
-            else if (NotchController != null)
-            {
-                if (NotchController.NotchCount() == 0)
-                    return NotchController.CurrentValue;
-                else
+                if (EmergencyBrakingPushButton() || TCSEmergencyBraking() || TCSFullServiceBraking() || QuickReleaseButtonPressed() || OverchargeButtonPressed())
                 {
-                    INotchController notch = NotchController.GetCurrentNotch();
-
-                    if (!notch.Smooth)
-                    {
-                        if (notch.NotchStateType == ControllerState.Dummy)
-                            return NotchController.CurrentValue;
-                        else
-                            return null;
-                    }
+                    return null;
+                }
+                else if (NotchController != null)
+                {
+                    if (NotchController.NotchCount() == 0)
+                        return NotchController.CurrentValue;
                     else
                     {
-                        return NotchController.GetNotchFraction();
+                        INotchController notch = NotchController.GetCurrentNotch();
+
+                        if (!notch.Smooth)
+                        {
+                            if (notch.NotchStateType == ControllerState.Dummy)
+                                return NotchController.CurrentValue;
+                            else
+                                return null;
+                        }
+                        else
+                        {
+                            return NotchController.GetNotchFraction();
+                        }
                     }
                 }
-            }
-            else
-            {
-                return null;
+                else
+                {
+                    return null;
+                }
             }
         }
 

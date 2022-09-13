@@ -158,12 +158,12 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Called in order to get a state for the debug overlay
         /// </summary>
-        public abstract ControllerState GetState();
+        public abstract ControllerState State { get; }
         /// <summary>
         /// Called in order to get a state fraction for the debug overlay
         /// </summary>
         /// <returns>The nullable state fraction</returns>
-        public abstract float? GetStateFraction();
+        public abstract float? StateFraction { get; }
 
         public static bool IsEmergencyState(ControllerState state)
         {
