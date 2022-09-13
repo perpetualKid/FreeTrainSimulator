@@ -1239,10 +1239,10 @@ namespace Orts.Simulation.RollingStocks
             return brakeInfoValue;
         }
 
-        public override string GetMultipleUnitsConfiguration()
+        public string GetMultipleUnitsConfiguration()
         {
             if (Train == null)
-                return base.GetMultipleUnitsConfiguration();
+                return null;
             int numberOfLocomotives = 0;
             int group = 0;
             string configuration = "";

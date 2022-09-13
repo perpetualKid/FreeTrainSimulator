@@ -776,7 +776,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var LocomotiveSteam = Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive;
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
-            var multipleUnitsConfiguration = Locomotive.GetMultipleUnitsConfiguration();
+            var multipleUnitsConfiguration = (Locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
             var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPulled == PlayerTrain.Cars.Count - 1;
             var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPushed == PlayerTrain.Cars.Count - 1;
@@ -861,7 +861,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             // Sander
-            if (Owner.Viewer.PlayerLocomotive.GetSanderOn())
+            if (Owner.Viewer.PlayerLocomotive.Sander)
             {
                 bool sanderBlocked = Owner.Viewer.PlayerLocomotive is MSTSLocomotive locomotive && Math.Abs(PlayerTrain.SpeedMpS) > locomotive.SanderSpeedOfMpS;
                 if (sanderBlocked)

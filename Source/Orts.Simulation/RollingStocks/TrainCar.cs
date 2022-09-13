@@ -1750,14 +1750,6 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public virtual string GetTrainBrakeStatus() { return null; }
-        public virtual string GetEngineBrakeStatus() { return null; }
-        public virtual string GetBrakemanBrakeStatus() { return null; }
-        public virtual string GetDynamicBrakeStatus() { return null; }
-        public virtual string GetDistributedPowerDynamicBrakeStatus() { return null; }
-        public virtual string GetMultipleUnitsConfiguration() { return null; }
-
-        public virtual bool GetSanderOn() { return false; }
         private bool wheelHasBeenSet; //indicating that the car shape has been loaded, thus no need to reset the wheels
 
         protected TrainCar()

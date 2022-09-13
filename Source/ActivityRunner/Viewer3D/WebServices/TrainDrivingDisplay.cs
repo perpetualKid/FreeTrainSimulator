@@ -226,12 +226,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 FirstCol = "Sprtr",
             });
 
-            TrainCar trainCar = viewer.PlayerLocomotive;
-            Train train = trainCar.Train;
-            string trainBrakeStatus = trainCar.GetTrainBrakeStatus();
-            string dynamicBrakeStatus = trainCar.GetDynamicBrakeStatus();
-            string engineBrakeStatus = trainCar.GetEngineBrakeStatus();
-            MSTSLocomotive locomotive = (MSTSLocomotive)trainCar;
+            MSTSLocomotive locomotive = viewer.PlayerLocomotive;
+            Train train = locomotive.Train;
+            string trainBrakeStatus = locomotive.GetTrainBrakeStatus();
+            string dynamicBrakeStatus = locomotive.GetDynamicBrakeStatus();
+            string engineBrakeStatus = locomotive.GetEngineBrakeStatus();
             string locomotiveStatus = locomotive.GetStatus();
             bool combinedControlType = locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             bool showMUReverser = Math.Abs(train.MUReverserPercent) != 100f;
@@ -296,8 +295,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Direction
             {
                 string reverserKey = string.Empty;
-                bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
-                bool nonSteamEnd = trainCar.EngineType != EngineType.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
+                bool moving = locomotive.AbsSpeedMpS > 1;
+                bool nonSteamEnd = locomotive.EngineType != EngineType.Steam && locomotive.Direction == MidpointDirection.N && (locomotive.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
                 if (reverserForwardDown)
                 {
@@ -335,7 +334,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     throttleKey = Symbols.EndLower + ColorCode[Color.Yellow];
                 else if (throttleIncrease)
                 {
-                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottleController.MaximumValue == trainCar.ThrottlePercent / 100)
+                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottleController.MaximumValue == locomotive.ThrottlePercent / 100)
                         throttleKey = Symbols.End + ColorCode[Color.Yellow];
                     else
                         throttleKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
@@ -343,7 +342,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 }
                 else if (throttleDecrease)
                 {
-                    if (locomotive.DynamicBrakePercent < 1 && trainCar.ThrottlePercent == 0)
+                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottlePercent == 0)
                         throttleKey = Symbols.End + ColorCode[Color.Yellow];
                     else
                         throttleKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
@@ -386,7 +385,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
 
             // Sander
-            if (locomotive.GetSanderOn())
+            if (locomotive.Sander)
             {
                 bool sanderBlocked = locomotive.AbsSpeedMpS > locomotive.SanderSpeedOfMpS;
                 string sanderKey = Symbols.ArrowToRight + ColorCode[Color.Yellow];

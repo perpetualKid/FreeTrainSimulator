@@ -450,7 +450,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var brakemanBrakeStatus = Viewer.PlayerLocomotive.GetBrakemanBrakeStatus();
             var dynamicBrakeStatus = Viewer.PlayerLocomotive.GetDistributedPowerDynamicBrakeStatus();
             var locomotiveStatus = Viewer.PlayerLocomotive.GetStatus();
-            var multipleUnitsConfiguration = Viewer.PlayerLocomotive.GetMultipleUnitsConfiguration();
+            var multipleUnitsConfiguration = (Viewer.PlayerLocomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             var stretched = playerTrain.Cars.Count > 1 && playerTrain.CouplersPulled == playerTrain.Cars.Count - 1;
             var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.CouplersPushed == playerTrain.Cars.Count - 1;
 
@@ -515,7 +515,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (Viewer.PlayerTrain.IsBrakeSkid)
                 TableAddLine(table, Viewer.Catalog.GetString("Wheel skid") + "!!!");
 
-            if (Viewer.PlayerLocomotive.GetSanderOn())
+            if (Viewer.PlayerLocomotive.Sander)
             {
                 var sanderBlocked = Viewer.PlayerLocomotive is MSTSLocomotive && Math.Abs(playerTrain.SpeedMpS) > ((MSTSLocomotive)Viewer.PlayerLocomotive).SanderSpeedOfMpS;
                 if (sanderBlocked)

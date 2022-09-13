@@ -3298,11 +3298,6 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        public override bool GetSanderOn()
-        {
-            return Sander;
-        }
-
         #region Reverser
         public void SetDirection(MidpointDirection direction)
         {
@@ -3991,7 +3986,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public override string GetTrainBrakeStatus()
+        public string GetTrainBrakeStatus()
         {
             var train = simulator.PlayerLocomotive.Train;//Debrief Eval
             string s = TrainBrakeController.GetStatus();
@@ -4137,7 +4132,7 @@ namespace Orts.Simulation.RollingStocks
             EngineBrakeController.SetPercent(percent);
         }
 
-        public override string GetEngineBrakeStatus()
+        public string GetEngineBrakeStatus()
         {
             if (EngineBrakeController == null)
                 return null;
@@ -4277,7 +4272,7 @@ namespace Orts.Simulation.RollingStocks
             BrakemanBrakeController.SetPercent(percent);
         }
 
-        public override string GetBrakemanBrakeStatus()
+        public string GetBrakemanBrakeStatus()
         {
             if (BrakemanBrakeController == null)
                 return null;
@@ -4445,7 +4440,7 @@ namespace Orts.Simulation.RollingStocks
                 && ThrottlePercent == 0);
         }
 
-        public override string GetDynamicBrakeStatus()
+        public string GetDynamicBrakeStatus()
         {
             if (DynamicBrakeController == null)
                 return null;
@@ -4456,7 +4451,7 @@ namespace Orts.Simulation.RollingStocks
             return $"{DynamicBrakeController.GetStatus()}";
         }
 
-        public override string GetDistributedPowerDynamicBrakeStatus()
+        public string GetDistributedPowerDynamicBrakeStatus()
         {
             if (DynamicBrakeController == null)
                 return null;

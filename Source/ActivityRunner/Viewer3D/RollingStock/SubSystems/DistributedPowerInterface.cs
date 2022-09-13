@@ -464,7 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             string[,] tempStatus;
             var locomotive = DPI.Locomotive;
             var train = locomotive.Train;
-            var multipleUnitsConfiguration = locomotive.GetMultipleUnitsConfiguration();
+            var multipleUnitsConfiguration = (locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             int dieselLocomotivesCount = 0;
 
             if (locomotive != null)
