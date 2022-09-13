@@ -3988,19 +3988,9 @@ namespace Orts.Simulation.RollingStocks
 
         public string GetTrainBrakeStatus()
         {
-            var train = simulator.PlayerLocomotive.Train;//Debrief Eval
             string s = TrainBrakeController.GetStatus();
 
-
-            if (s == "Emergency" && train.LeadLocomotive != null && !evalFullTrainBrakeBelow8kmh && train.LeadLocomotive.IsPlayerTrain && Math.Abs(train.SpeedMpS) < 2.22222)
-            {
-                Activities.ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh++;
-                evalFullTrainBrakeBelow8kmh = true;
-            }
-            if (s != "Emergency" && evalFullTrainBrakeBelow8kmh)
-                evalFullTrainBrakeBelow8kmh = false;
-
-            TrainCar lastCar = Train.Cars[Train.Cars.Count - 1];
+            TrainCar lastCar = Train.Cars[^1];
             if (lastCar == this)
                 lastCar = Train.Cars[0];
             s += BrakeSystem.GetFullStatus(lastCar.BrakeSystem, BrakeSystemPressureUnits);

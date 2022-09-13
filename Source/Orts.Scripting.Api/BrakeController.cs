@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Orts.Common;
 
 namespace Orts.Scripting.Api
@@ -166,6 +164,11 @@ namespace Orts.Scripting.Api
         /// </summary>
         /// <returns>The nullable state fraction</returns>
         public abstract float? GetStateFraction();
+
+        public static bool IsEmergencyState(ControllerState state)
+        {
+            return state is ControllerState.Emergency or ControllerState.StraightEmergency or ControllerState.TCSEmergency or ControllerState.EBPB;
+        }
     }
 
 }

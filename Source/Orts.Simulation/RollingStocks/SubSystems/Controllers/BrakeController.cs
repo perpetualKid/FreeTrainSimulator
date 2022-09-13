@@ -525,6 +525,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 return true;
         }
 
+        public ControllerState State => Script?.GetState() ?? ControllerState.Dummy;
+
         public string GetStatus()
         {
             if (Script != null)

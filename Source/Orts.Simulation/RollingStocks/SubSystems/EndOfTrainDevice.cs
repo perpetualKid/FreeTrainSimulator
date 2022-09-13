@@ -97,12 +97,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public override void Update(double elapsedClockSeconds)
         {
             UpdateState();
-            if (simulator.PlayerLocomotive.Train == Train && State == EoTState.ArmedTwoWay &&
-                (EOTEmergencyBrakingOn ||
-                (simulator.PlayerLocomotive as MSTSLocomotive).TrainBrakeController.GetStatus().StartsWith("emergency", StringComparison.OrdinalIgnoreCase)))
-                Train.Cars.Last().BrakeSystem.AngleCockBOpen = true;
-            else
-                Train.Cars.Last().BrakeSystem.AngleCockBOpen = false;
+            Train.Cars.Last().BrakeSystem.AngleCockBOpen = simulator.PlayerLocomotive.Train == Train && State == EoTState.ArmedTwoWay &&
+                (EOTEmergencyBrakingOn || BrakeController.IsEmergencyState(simulator.PlayerLocomotive.TrainBrakeController.State));
             base.Update(elapsedClockSeconds);
         }
 
@@ -228,8 +224,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (State == EoTState.Disarmed &&
                 (level == EndOfTrainLevel.OneWay || level == EndOfTrainLevel.TwoWay))
             {
-                if (delayTimer == null)
-                    delayTimer = new Timer(this);
+                delayTimer ??= new Timer(this);
                 delayTimer.Setup(CommTestDelayS);
                 State = EoTState.CommTestOn;
                 delayTimer.Start();
