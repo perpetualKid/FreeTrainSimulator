@@ -4,8 +4,6 @@ using System.Collections.Specialized;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
-
 namespace Orts.Common.DebugInfo
 {
     public interface INameValueInformationProvider
@@ -22,8 +20,8 @@ namespace Orts.Common.DebugInfo
 
         public static FormatOption RegularRed { get; } = new FormatOption(Color.Red);
         public static FormatOption RegularGreen { get; } = new FormatOption(Color.Green);
-        public static FormatOption RegularBlue { get;} = new FormatOption(Color.Blue);
-        public static FormatOption RegularYellow { get;} = new FormatOption(Color.Yellow);
+        public static FormatOption RegularBlue { get; } = new FormatOption(Color.Blue);
+        public static FormatOption RegularYellow { get; } = new FormatOption(Color.Yellow);
         public static FormatOption RegularOrange { get; } = new FormatOption(Color.Orange);
         public static FormatOption RegularOrangeRed { get; } = new FormatOption(Color.OrangeRed);
         public static FormatOption RegularCyan { get; } = new FormatOption(Color.Cyan);
@@ -41,6 +39,7 @@ namespace Orts.Common.DebugInfo
         {
             TextColor = color;
         }
+
         public FormatOption(System.Drawing.FontStyle fontStyle)
         {
             FontStyle = fontStyle;
@@ -89,6 +88,7 @@ namespace Orts.Common.DebugInfo
         public virtual void Update(GameTime gameTime)
         {
         }
+
         public virtual NameValueCollection DebugInfo => this;
 
 #pragma warning disable CA2227 // Collection properties should be read only
