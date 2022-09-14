@@ -41,13 +41,11 @@ namespace Toolbox.YO2
         public IOrderedEnumerable<Folder> folders;
         public IEnumerable<Consist> consists = Array.Empty<Consist>();
 
-        //  Why Instance
-        public static GameWindow Instance { get; private set; }
+
 
         public GameWindow()
         {
-//  Why Instance
-            Instance = this;
+
 
             _graphics = new GraphicsDeviceManager(this)
             {
@@ -98,7 +96,7 @@ namespace Toolbox.YO2
                 _desktop.OnChar(a.Character);
             };
 
-            _mainWindow = new M_MainWindow();
+            _mainWindow = new M_MainWindow(this);
 
             var quitItem = _mainWindow.menuItemQuit;
             quitItem.Selected += QuitItemOnDown;

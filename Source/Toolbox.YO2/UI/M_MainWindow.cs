@@ -14,21 +14,27 @@ namespace Toolbox.YO2
 {
     public partial class M_MainWindow
     {
-        private readonly M_ViewWindow m_ViewWindow = new M_ViewWindow();
-        private readonly M_OpenWindow m_OpenWindow = new M_OpenWindow();
-        private readonly DebugWindow m_DebugWindow = new DebugWindow();
-    
 
-        public M_MainWindow()
-        {
-            BuildUI();
+        private GameWindow gameWindow;
+        private readonly M_ViewWindow m_ViewWindow = new M_ViewWindow();
+//        private readonly M_OpenWindow m_OpenWindow = new M_OpenWindow();
+        private readonly DebugWindow m_DebugWindow = new DebugWindow();
+        private M_OpenWindow m_OpenWindow;
+
 
         
 
+        public M_MainWindow(GameWindow gameWindow)
+        {
+            this.gameWindow = gameWindow;
+            BuildUI();
+           
             menuItemSelect.Selected += SelectItemOnDown;
             menuItemAbout.Selected += AboutItemOnDown;
             menuItemView.Selected += ViewItemOnDown;
             menuItemDebug.Selected += MenuItemDebug_Selected;
+
+            m_OpenWindow = new M_OpenWindow(gameWindow);
           
           
         }

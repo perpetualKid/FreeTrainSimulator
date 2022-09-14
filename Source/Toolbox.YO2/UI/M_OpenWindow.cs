@@ -16,25 +16,25 @@ using System.Windows.Forms;
 using System.IO;
 using System;
 using Orts.Formats.Msts.Files;
+using Toolbox.YO2;
 
 namespace Toolbox.YO2
 {
 	public partial class M_OpenWindow
 	{
+        private GameWindow gameWindow;
 
-        
 
-        public M_OpenWindow()
-		{
-            
-
+        public M_OpenWindow(GameWindow gameWindow)
+        {
+            this.gameWindow = gameWindow;
             BuildUI();
 
             // Populate Routes
             // 
 
 
-            foreach (Folder folder in GameWindow.Instance.folders)
+            foreach (Folder folder in gameWindow.folders)
             {
                 var listItem = new ListItem();
                 listItem.Text = folder.Name;
@@ -47,11 +47,9 @@ namespace Toolbox.YO2
             _OpenWin_Load_button.Click += _OpenWin_Load_button_Click;
 
 
- 
-            
-        }
 
-        
+
+        }
 
         private async void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
         {
@@ -64,18 +62,18 @@ namespace Toolbox.YO2
                 routeselected = "Route not Selected";
             else
             {
-                foreach (Folder folder in GameWindow.Instance.folders)
+                foreach (Folder folder in gameWindow.folders)
                 {
                     if (folder.Name == _OpenWin_List.SelectedItem.Text)
                     {
-                        await GameWindow.Instance.LoadConsists(folder).ConfigureAwait(true);
+                        await gameWindow.LoadConsists(folder).ConfigureAwait(true);
                         routeselected = folder.Name;
                         var mw = new M_Trains();
                         var me = new M_Equip();
                         
                         var m3d = new M_3DEquipViewer();
                         ;
-                        foreach (Consist consist in GameWindow.Instance.consists)
+                        foreach (Consist consist in gameWindow.consists)
                         {
                             var listItem = new ListItem();
                             listItem.Text = consist.Name;
