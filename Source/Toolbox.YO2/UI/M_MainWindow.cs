@@ -18,7 +18,7 @@ namespace Toolbox.YO2
         private GameWindow gameWindow;
         private readonly M_ViewWindow m_ViewWindow = new M_ViewWindow();
 //        private readonly M_OpenWindow m_OpenWindow = new M_OpenWindow();
-        private readonly DebugWindow m_DebugWindow = new DebugWindow();
+ 
         private M_OpenWindow m_OpenWindow;
 
 
@@ -32,18 +32,14 @@ namespace Toolbox.YO2
             menuItemSelect.Selected += SelectItemOnDown;
             menuItemAbout.Selected += AboutItemOnDown;
             menuItemView.Selected += ViewItemOnDown;
-            menuItemDebug.Selected += MenuItemDebug_Selected;
+
 
             m_OpenWindow = new M_OpenWindow(gameWindow);
           
           
         }
 
-        private void MenuItemDebug_Selected(object sender, EventArgs e)
-        {
-
-            m_DebugWindow.ShowModal(Desktop);
-        }
+  
 
         
 

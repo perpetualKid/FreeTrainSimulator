@@ -18,7 +18,6 @@
       <MenuItem Text="&amp;3D View" Id="menuItem3DView" />
       <MenuItem Text="&amp;Settings" Id="menuItemSettings" />
       <MenuItem Text="&amp;Help" Id="menuItemHelp">
-        <MenuItem Text="Debug" Id="menuItemDebug" />
         <MenuItem Text="About" Id="menuItemAbout" />
       </MenuItem>
     </HorizontalMenu>
