@@ -345,7 +345,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private void UpdateDrivingInformation()
         {
             // Client and server may have a time difference.
-            TrainCar playerLocomotive = Simulator.Instance.PlayerLocomotive;
+            MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
             if (groupDetails[DetailInfo.Time]?.Controls[3] is Label timeLabel)
             {
                 timeLabel.Text = MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference)}" : $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}";
@@ -392,11 +392,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 cocksLabel.TextColor = mstsSteamLocomotive.CylinderCocksAreOpen ? Color.Orange : Color.White;
             }
             // Sander
-            if (groupDetails[DetailInfo.Sander]?.Controls[3] is Label sanderLabel && playerLocomotive is MSTSLocomotive locomotive)
+            if (groupDetails[DetailInfo.Sander]?.Controls[3] is Label sanderLabel)
             {
-                bool sanderBlocked = playerLocomotive.AbsSpeedMpS > locomotive.SanderSpeedOfMpS;
-                sanderLabel.Text = $"{(locomotive.Sander ? sanderBlocked ? Catalog.GetString("Blocked") : Catalog.GetString("On") : Catalog.GetString("Off"))}";
-                sanderLabel.TextColor = locomotive.Sander ? sanderBlocked ? Color.OrangeRed : Color.Orange : Color.White;
+                bool sanderBlocked = playerLocomotive.AbsSpeedMpS > playerLocomotive.SanderSpeedOfMpS;
+                sanderLabel.Text = $"{(playerLocomotive.Sander ? sanderBlocked ? Catalog.GetString("Blocked") : Catalog.GetString("On") : Catalog.GetString("Off"))}";
+                sanderLabel.TextColor = playerLocomotive.Sander ? sanderBlocked ? Color.OrangeRed : Color.Orange : Color.White;
                 (groupDetails[DetailInfo.Sander].Controls[0] as Label).Text = sanderInput;
                 (groupDetails[DetailInfo.Sander].Controls[2] as Label).Text = sanderInput;
                 sanderInput = string.Empty;
