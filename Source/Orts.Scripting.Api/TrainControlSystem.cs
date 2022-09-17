@@ -203,7 +203,7 @@ namespace Orts.Scripting.Api
         public Func<bool> ArePantographsDown { get; set; }
         /// Get doors state
         /// </summary>
-        public Func<DoorSide, DoorState> DoorState { get; set; }
+        public Func<DoorSide, DoorState> CurrentDoorState { get; set; }
         /// <summary>
         /// Returns throttle percent
         /// </summary>

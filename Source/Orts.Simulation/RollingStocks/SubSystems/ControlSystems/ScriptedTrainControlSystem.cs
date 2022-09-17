@@ -305,7 +305,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                     }
                 };
                 script.ArePantographsDown = () => Locomotive.Pantographs.State == PantographState.Down;
-                script.DoorState = (side) => Locomotive.Train.DoorState(Locomotive.Flipped ^ Locomotive.GetCabFlipped() ? Doors.FlippedDoorSide(side) : side);
+                script.CurrentDoorState = (side) => Locomotive.Train.DoorState(Locomotive.Flipped ^ Locomotive.GetCabFlipped() ? Doors.FlippedDoorSide(side) : side);
                 script.ThrottlePercent = () => Locomotive.ThrottleController.CurrentValue * 100;
                 script.MaxThrottlePercent = () => MaxThrottlePercent;
                 script.DynamicBrakePercent = () => Locomotive.DynamicBrakeController == null ? 0 : Locomotive.DynamicBrakeController.CurrentValue * 100;
