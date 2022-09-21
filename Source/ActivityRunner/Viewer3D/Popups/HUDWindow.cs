@@ -445,7 +445,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             var playerTrain = Viewer.PlayerLocomotive.Train;
             var showMUReverser = Math.Abs(playerTrain.MUReverserPercent) != 100;
-            var showRetainers = playerTrain.RetainerSetting != RetainerSetting.Exhaust;
+            var showRetainers = playerTrain.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust;
             var engineBrakeStatus = Viewer.PlayerLocomotive.GetEngineBrakeStatus();
             var brakemanBrakeStatus = Viewer.PlayerLocomotive.GetBrakemanBrakeStatus();
             var dynamicBrakeStatus = Viewer.PlayerLocomotive.GetDistributedPowerDynamicBrakeStatus();
@@ -479,7 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted)
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Train brake"), "{0}", Viewer.PlayerLocomotive.GetTrainBrakeStatus());
             if (showRetainers)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Retainers"), "{0}% {1}", playerTrain.RetainerPercent, playerTrain.RetainerSetting.GetLocalizedDescription());
+                TableAddLabelValue(table, Viewer.Catalog.GetString("Retainers"), "{0}% {1}", playerTrain.BrakeSystem.RetainerPercent, playerTrain.BrakeSystem.RetainerSetting.GetLocalizedDescription());
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Engine brake"), "{0}", engineBrakeStatus);
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeFitted)
@@ -1134,11 +1134,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
                     Viewer.Catalog.GetString("Brake Sys Vol"),
                     Viewer.Catalog.GetString("Train Pipe"),
-                    FormatStrings.FormatVolume(train.TotalTrainBrakePipeVolumeM3, Simulator.Instance.MetricUnits),
+                    FormatStrings.FormatVolume(train.BrakeSystem.TotalTrainBrakePipeVolume, Simulator.Instance.MetricUnits),
                     Viewer.Catalog.GetString("Brake Cyl"),
-                    FormatStrings.FormatVolume(train.TotalTrainBrakeCylinderVolumeM3, Simulator.Instance.MetricUnits),
+                    FormatStrings.FormatVolume(train.BrakeSystem.TotalTrainBrakeCylinderVolume, Simulator.Instance.MetricUnits),
                     Viewer.Catalog.GetString("Air Vol"),
-                    FormatStrings.FormatVolume(train.TotalCurrentTrainBrakeSystemVolumeM3, Simulator.Instance.MetricUnits)
+                    FormatStrings.FormatVolume(train.BrakeSystem.TotalCurrentTrainBrakeSystemVolume, Simulator.Instance.MetricUnits)
                     ));
                 }
                 else  // Default to air or electronically braked, use this display

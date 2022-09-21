@@ -777,7 +777,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
             var multipleUnitsConfiguration = (Locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
-            var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
+            var ShowRetainers = PlayerTrain.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust;
             var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPulled == PlayerTrain.Cars.Count - 1;
             var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPushed == PlayerTrain.Cars.Count - 1;
             var ThisInfo = Owner.Viewer.PlayerTrain.GetTrainInfo();
@@ -969,7 +969,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             if (ShowRetainers)
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.RetainerPercent + " " + PlayerTrain.RetainerSetting.GetLocalizedDescription()), "", false);
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.BrakeSystem.RetainerPercent + " " + PlayerTrain.BrakeSystem.RetainerSetting.GetLocalizedDescription()), "", false);
 
             if ((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
             {

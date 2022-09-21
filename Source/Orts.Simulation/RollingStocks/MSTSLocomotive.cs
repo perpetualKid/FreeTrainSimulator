@@ -106,9 +106,6 @@ namespace Orts.Simulation.RollingStocks
             ContinuousSound
         }
 
-        //Debrief Eval
-        private bool evalFullTrainBrakeBelow8kmh;
-
         // simulation parameters
         public bool ManualHorn;
         public bool TCSHorn;
@@ -1890,13 +1887,13 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public void DynamicBrakeBlending(double elapsedClockSeconds)
         {
-            if (Math.Abs(SpeedMpS) > DynamicBrakeSpeed1MpS && airPipeSystem != null && ((airPipeSystem is EPBrakeSystem && Train.BrakeLine4 > 0f) || airPipeSystem.BrakeLine1PressurePSI < TrainBrakeController.MaxPressurePSI - 1f)
+            if (Math.Abs(SpeedMpS) > DynamicBrakeSpeed1MpS && airPipeSystem != null && ((airPipeSystem is EPBrakeSystem && Train.BrakeSystem.BrakeLine4Pressure > 0f) || airPipeSystem.BrakeLine1PressurePSI < TrainBrakeController.MaxPressurePSI - 1f)
                 && ThrottleController.CurrentValue == 0f && !(DynamicBrakeController != null && DynamicBrakeBlendingOverride && DynamicBrakeController.CurrentValue > 0f)
                 /* && (!DynamicBrakeBlendingLeverOverride && DynamicBrakeController != null && DynamicBrakeIntervention < DynamicBrakeController.CurrentValue)*/)
             {
                 float threshold = DynamicBrakeBlendingForceMatch ? 100f : 0.01f;
                 float maxCylPressurePSI = airPipeSystem.GetMaxCylPressurePSI();
-                float targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeLine4 : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.GetAuxCylVolumeRatio()) / maxCylPressurePSI, 1f);
+                float targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeSystem.BrakeLine4Pressure : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.GetAuxCylVolumeRatio()) / maxCylPressurePSI, 1f);
                 //DynamicBrakeIntervention = Math.Min(((TrainBrakeController.CurrentValue - DynamicBrakeBlendingStart) / (DynamicBrakeBlendingStop - DynamicBrakeBlendingStart)), 1f);
 
                 if (!DynamicBrakeBlended)
@@ -4502,7 +4499,7 @@ namespace Orts.Simulation.RollingStocks
         public void SetTrainRetainers(bool apply)
         {
             Train.SetRetainers(apply);
-            simulator.Confirmer.ConfirmWithPerCent(CabControl.Retainers, CabSetting.Increase, Train.RetainerPercent, (int)CabSetting.Range1 + (int)Train.RetainerSetting);
+            simulator.Confirmer.ConfirmWithPerCent(CabControl.Retainers, CabSetting.Increase, Train.BrakeSystem.RetainerPercent, (int)CabSetting.Range1 + (int)Train.BrakeSystem.RetainerSetting);
         }
 
         public void BrakeHoseConnect(bool apply)
@@ -5061,7 +5058,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Eq_Res:
                     {
-                        data = ConvertFromPSI(cvc, this.Train.EqualReservoirPressurePSIorInHg);
+                        data = ConvertFromPSI(cvc, this.Train.BrakeSystem.EqualReservoirPressurePSIorInHg);
                         break;
                     }
                 case CabViewControlType.Brake_Cyl:

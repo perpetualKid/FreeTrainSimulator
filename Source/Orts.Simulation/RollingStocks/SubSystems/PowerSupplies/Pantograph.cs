@@ -371,21 +371,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     }
                     break;
             }
-
-            if (soundEvent != TrainEvent.None)
-            {
-                try
-                {
-                    foreach (var eventHandler in Wagon.EventHandlers)
-                    {
-                        eventHandler.HandleEvent(soundEvent);
-                    }
-                }
-                catch (Exception error)
-                {
-                    Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
-                }
-            }
         }
 
         public void Save(BinaryWriter outf)

@@ -234,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             string locomotiveStatus = locomotive.GetStatus();
             bool combinedControlType = locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             bool showMUReverser = Math.Abs(train.MUReverserPercent) != 100f;
-            bool showRetainers = train.RetainerSetting != RetainerSetting.Exhaust;
+            bool showRetainers = train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust;
             bool stretched = train.Cars.Count > 1 && train.CouplersPulled == train.Cars.Count - 1;
             bool bunched = !stretched && train.Cars.Count > 1 && train.CouplersPushed == train.Cars.Count - 1;
             Orts.Simulation.Physics.TrainInfo trainInfo = train.GetTrainInfo();
@@ -533,7 +533,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Retainers"),
-                    LastCol = $"{train.RetainerPercent} {train.RetainerSetting.GetLocalizedDescription()}",
+                    LastCol = $"{train.BrakeSystem.RetainerPercent} {train.BrakeSystem.RetainerSetting.GetLocalizedDescription()}",
                 });
             }
 

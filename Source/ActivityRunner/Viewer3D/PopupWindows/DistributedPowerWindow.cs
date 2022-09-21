@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -22,7 +23,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class DistributedPowerWindow : WindowBase
     {
-        private const int monoColumnWidth = 48;
+        private const int monoColumnWidth = 40;
         private const int normalColumnWidth = 64;
 
         private enum WindowMode
@@ -39,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             LocomotivesNumber,
             Throttle,
             Load,
-            BrakePressure,
+            BrakePipe,
             Remote,
             EqualizerReservoir,
             BrakeCylinder,
@@ -93,7 +94,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     for (int i = 0; i < groupCount; i++)
                     {
                         line.Add(new Label(this, 0, 0, width, font.Height, null, alignment, font, Color.White));
-                        line.Add(new Label(this, 0, 0, 10, font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
+                        line.Add(new Label(this, 0, 0, (int)(Owner.DpiScaling * 12), font.Height, null, HorizontalAlignment.Center, Owner.TextFontDefault, Color.Green));
                     }
                     groupDetails[groupDetail] = line;
                 }
@@ -106,14 +107,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, FourCharAcronym.Locomotives.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.Throttle, columnWidth, FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.Load, columnWidth, FourCharAcronym.Load.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.BrakePressure, columnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.BrakePipe, columnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.Remote, columnWidth, FourCharAcronym.Remote.GetLocalizedDescription(), Owner.TextFontMonoDefault);
 
                     if (windowMode == WindowMode.NormalMono)
                     {
-                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, Catalog.GetString("ER"), Owner.TextFontMonoDefault);
-                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, Catalog.GetString("BC"), Owner.TextFontMonoDefault);
-                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, Catalog.GetString("MR"), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, FourCharAcronym.EQReservoir.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, FourCharAcronym.BrakeCylinder.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, FourCharAcronym.MainReservoir.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     }
                 }
                 else
@@ -124,14 +125,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, Catalog.GetString("Locos"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.Throttle, columnWidth, Catalog.GetString("Throttle"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.Load, columnWidth, Catalog.GetString("Load"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.BrakePressure, columnWidth, Catalog.GetString("Brk Pres"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.BrakePipe, columnWidth, Catalog.GetString("Brk Pipe"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.Remote, columnWidth, Catalog.GetString("Remote"), Owner.TextFontDefault);
 
                     if (windowMode == WindowMode.Normal)
                     {
-                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, Catalog.GetString("ER"), Owner.TextFontDefault);
-                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, Catalog.GetString("BC"), Owner.TextFontDefault);
-                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, Catalog.GetString("MR"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.EqualizerReservoir, columnWidth, Catalog.GetString("EQ Res"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.BrakeCylinder, columnWidth, Catalog.GetString("Brk Cyl"), Owner.TextFontDefault);
+                        AddDetailLine(GroupDetail.MainReservoir, columnWidth, Catalog.GetString("Main Res"), Owner.TextFontDefault);
                     }
                 }
             }
@@ -247,9 +248,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     throttleLabel.Text = $"{groupLead.DistributedPowerThrottleInfo()}";
                     throttleLabel.TextColor = groupLead.DynamicBrakePercent >= 0 ? Color.Yellow : Color.White;
                 }
-                if (groupDetails[GroupDetail.BrakePressure]?.Controls[i] is Label brakeLabel)
+                if (groupDetails[GroupDetail.BrakePipe]?.Controls[i] is Label brakeLabel)
                 {
-                    brakeLabel.Text = $"{FormatStrings.FormatPressure(groupLead.BrakeSystem.BrakeLine1PressurePSI, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], windowMode == WindowMode.Normal || windowMode == WindowMode.Short)}";
+                    string brakePipe = (groupLead.BrakeSystem as INameValueInformationProvider).DebugInfo["BP"];
+                    if (windowMode != WindowMode.Normal)
+                        brakePipe = brakePipe?.Split(' ')[0];
+                    brakeLabel.Text = brakePipe;
                 }
                 if (groupDetails[GroupDetail.Load]?.Controls[i] is Label loadLabel)
                 {
@@ -267,11 +271,21 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                     // EQ
                     if (groupDetails[GroupDetail.EqualizerReservoir]?.Controls[i] is Label eqLabel)
-                        eqLabel.Text = $"{FormatStrings.FormatPressure(lastCar.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.EqualizingReservoir], windowMode == WindowMode.Normal)}";
+                    {
+                        string eqReservoir = (groupLead.BrakeSystem as INameValueInformationProvider).DebugInfo["EQ"];
+                        if (windowMode != WindowMode.Normal)
+                            eqReservoir = eqReservoir?.Split(' ')[0];
+                        eqLabel.Text = eqReservoir ?? "———";
+                    }
 
                     // BC
                     if (groupDetails[GroupDetail.BrakeCylinder]?.Controls[i] is Label bcLabel)
-                        bcLabel.Text = $"{FormatStrings.FormatPressure(groupLead.BrakeSystem.GetCylPressurePSI(), Pressure.Unit.PSI, groupLead.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], windowMode == WindowMode.Normal)}";
+                    {
+                        string bcPressure = (groupLead.BrakeSystem as INameValueInformationProvider).DebugInfo["BC"];
+                        if (windowMode != WindowMode.Normal)
+                            bcPressure = bcPressure?.Split(' ')[0];
+                        bcLabel.Text = bcPressure;
+                    }
 
                     // MR
                     if (groupDetails[GroupDetail.MainReservoir]?.Controls[i] is Label mrLabel)

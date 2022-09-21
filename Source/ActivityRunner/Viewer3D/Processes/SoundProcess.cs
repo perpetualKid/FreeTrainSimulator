@@ -312,8 +312,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <returns><see cref="true"/> for a match between <paramref name="owner"/> and <paramref name="source"/>, <see cref="false"/> otherwise.</returns>
         public bool IsSoundSourceOwnedBy(object owner, SoundSourceBase source)
         {
-            var soundSources = SoundSources;
-            return soundSources.ContainsKey(owner) && soundSources[owner].Contains(source);
+            return SoundSources.TryGetValue(owner, out List<SoundSourceBase> sources) && sources.Contains(source);
         }
 
         /// <summary>

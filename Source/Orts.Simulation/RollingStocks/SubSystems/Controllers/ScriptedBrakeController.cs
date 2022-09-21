@@ -342,7 +342,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
                 if (script == null)
                 {
-                    script = new MSTSBrakeController() as BrakeController;
+                    script = new MSTSBrakeController();
                     (script as MSTSBrakeController).ForceControllerReleaseGraduated = Simulator.Settings.GraduatedRelease;
                 }
 
@@ -374,10 +374,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
                 script.MainReservoirPressureBar = () =>
                 {
-                    if (Locomotive.Train != null)
-                        return (float)Pressure.Atmospheric.FromPSI(Locomotive.Train.BrakeLine2PressurePSI);
-                    else
-                        return float.MaxValue;
+                    return Locomotive.Train != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.Train.BrakeSystem.BrakeLine2Pressure) : float.MaxValue;
                 };
                 script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
                 script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);

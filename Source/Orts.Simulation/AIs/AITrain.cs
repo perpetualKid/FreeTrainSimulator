@@ -3327,13 +3327,13 @@ namespace Orts.Simulation.AIs
             float fullServReductionPSI = -5;
             float max = maxPressurePSI;
             float fullServ = fullServPressurePSI;
-            BrakeLine3PressurePSI = BrakeLine4 = 0;
+            BrakeSystem.BrakeLine3Pressure = BrakeSystem.BrakeLine4Pressure = 0;
             if (FirstCar != null && FirstCar.BrakeSystem is VacuumSinglePipe)
             {
                 max = maxPressurePSIVacuum;
                 fullServ = maxPressurePSIVacuum + fullServReductionPSI;
             }
-            EqualReservoirPressurePSIorInHg = BrakeLine2PressurePSI = max;
+            BrakeSystem.EqualReservoirPressurePSIorInHg = BrakeSystem.BrakeLine2Pressure = max;
             ConnectBrakeHoses();
             foreach (TrainCar car in Cars)
             {
@@ -5110,7 +5110,7 @@ namespace Orts.Simulation.AIs
                 j++;
             }
             MSTSLocomotive lead = (MSTSLocomotive)simulator.PlayerLocomotive;
-            EqualReservoirPressurePSIorInHg = Math.Min(EqualReservoirPressurePSIorInHg, lead.TrainBrakeController.MaxPressurePSI);
+            BrakeSystem.EqualReservoirPressurePSIorInHg = Math.Min(BrakeSystem.EqualReservoirPressurePSIorInHg, lead.TrainBrakeController.MaxPressurePSI);
             foreach (TrainCar car in Cars)
             {
                 if (car.BrakeSystem is AirSinglePipe)

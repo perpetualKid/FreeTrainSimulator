@@ -15,11 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 {
@@ -34,8 +37,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         BrakeCylinder
     }
 
-    public abstract class BrakeSystem
+    public abstract class BrakeSystem : INameValueInformationProvider
     {
+        private protected readonly TrainCar car;
+
+        private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
+
+        private protected abstract NameValueCollection UpdateBrakeStatus();
+
         /// <summary>
         /// Main trainline pressure at this car in PSI
         /// </summary>
@@ -96,6 +105,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float GetVacBrakeCylNumber();
         public bool CarBPIntact { get; set; }
 
+        public NameValueCollection DebugInfo => UpdateBrakeStatus();
+
+        public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
+
         public abstract void Save(BinaryWriter outf);
 
         public abstract void Restore(BinaryReader inf);
@@ -117,6 +130,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract void LocoInitializeMoving(); // starting conditions when starting speed > 0
         public abstract bool IsBraking(); // return true if the wagon is braking above a certain threshold
         public abstract void CorrectMaxCylPressurePSI(MSTSLocomotive loco); // corrects max cyl pressure when too high
+
+        protected BrakeSystem(TrainCar car)
+        {
+            this.car = car;
+        }
     }
 
     public enum RetainerSetting

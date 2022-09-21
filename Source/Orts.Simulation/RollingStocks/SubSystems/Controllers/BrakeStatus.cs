@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-using Orts.Common;
+﻿using Orts.Common;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
@@ -13,25 +6,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
     public readonly struct BrakeStatus
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        public ControllerState State { get; }
+        public ControllerState ControllerState { get; }
 
-        public int StatePercentage { get; }
+        public int PercentageValue { get; }
 
         public BrakeStatus(ControllerState state, float fraction)
         { 
-            State = state;
-            StatePercentage = float.IsNaN(fraction) ? -1 : (int)(fraction * 100);
+            ControllerState = state;
+            PercentageValue = float.IsNaN(fraction) ? -1 : (int)(fraction * 100);
         }
 
         public static BrakeStatus Empty { get; } = new BrakeStatus(ControllerState.Dummy, float.NaN);
 
-        public string ToShortString()
+        public string ToShortString(int textLength = int.MaxValue)
         {
-            return State == ControllerState.Dummy && StatePercentage < 0
+            return ControllerState == ControllerState.Dummy && PercentageValue < 0
                 ? string.Empty
-                : StatePercentage < 0
-                ? State.GetLocalizedDescription()
-                : State == ControllerState.Dummy ? $"{StatePercentage:N0}%" : $"{State.GetLocalizedDescription()} {StatePercentage:N0}%";
+                : PercentageValue < 0
+                ? ControllerState.GetLocalizedDescription()
+                : ControllerState == ControllerState.Dummy ? $"{PercentageValue:N0}%" : $"{ControllerState.GetLocalizedDescription().Max(textLength)} {PercentageValue:N0}%";
         }
 }
 }

@@ -24,8 +24,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             : base(car)
         {
             TwoPipes = true;
-            MRPAuxResCharging = true;
-            DebugType = "2P";
+            mrpAuxResCharging = true;
+            debugBrakeType = "2P";
         }
     }
 }

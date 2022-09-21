@@ -1058,8 +1058,6 @@ namespace Orts.Common
         [Description("DIR")] Direction,
         [Description("DRLC")] DerailCoefficent,
         [Description("DOOR")] DoorsOpen,
-        [Description("BDYN")] DynamicBrake,
-        [Description("BLOC")] EngineBrake,
         [Description("ENG")] Engine,
         [Description("FIRE")] FireMass,
         [Description("GEAR")] FixedGear,
@@ -1070,11 +1068,20 @@ namespace Orts.Common
         [Description("PANT")] Pantographs,
         [Description("REGL")] Regulator,
         [Description("RPLY")] Replay,
-        [Description("RETN")] Retainer,
         [Description("SAND")] Sander,
         [Description("SPED")] Speed,
         [Description("STEM")] SteamUsage,
-        [Description("BTRN")] TrainBrake,
         [Description("WHEL")] Wheel,
+
+        //Braking
+        [Description("BTRN")] TrainBrake,
+        [Description("BDYN")] DynamicBrake,
+        [Description("BLOC")] EngineBrake,
+        [Description("RETN")] Retainer,
+        [Description("ER")] EQReservoir,
+        [Description("MR")] MainReservoir,
+        [Description("BC")] BrakeCylinder,
+        [Description("EOT")] EndOfTrainCar,
+        [Description("1STW")] FirstTrainCar,
     }
 }

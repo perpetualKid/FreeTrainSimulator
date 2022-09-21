@@ -65,6 +65,18 @@ namespace Orts.Simulation.RollingStocks
     /// Represents the physical motion and behaviour of the car.
     /// </summary>
 
+    public class SoundSourceEventArgs : EventArgs
+    {
+        public object Owner { get; }
+        public TrainEvent SoundEvent { get; }
+
+        public SoundSourceEventArgs(TrainEvent trainEvent, object owner)
+        {
+            Owner = owner;
+            SoundEvent = trainEvent;
+        }
+    }
+
     public class MSTSWagon : TrainCar
     {
         public Pantographs Pantographs;
@@ -1195,14 +1207,14 @@ namespace Orts.Simulation.RollingStocks
                     {
                         switch (equipment)
                         {
-                            case "triple_valve": 
-                                BrakeValve = BrakeValveType.TripleValve; 
+                            case "triple_valve":
+                                BrakeValve = BrakeValveType.TripleValve;
                                 break;
                             case "distributor":
-                            case "graduated_release_triple_valve": 
-                                BrakeValve = BrakeValveType.Distributor; 
+                            case "graduated_release_triple_valve":
+                                BrakeValve = BrakeValveType.Distributor;
                                 break;
-                           case "emergency_brake_reservoir":
+                            case "emergency_brake_reservoir":
                                 EmergencyReservoirPresent = true;
                                 break;
                             case "handbrake":
@@ -1685,9 +1697,9 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(MaxHandbrakeForceN);
             int count = 0;
             if (couplers[TrainCarLocation.Rear] != null)
-                count ++;
+                count++;
             if (couplers[TrainCarLocation.Front] != null)
-                count ++;
+                count++;
             outf.Write(count);
             foreach (Coupler coupler in couplers)
             {
@@ -3321,17 +3333,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
             }
 
-            // TODO: This should be moved to TrainCar probably.
-            try
-            {
-                foreach (var eventHandler in EventHandlers) // e.g. for HandleCarEvent() in Sounds.cs
-                    eventHandler.HandleEvent(evt);
-            }
-            catch (Exception error)
-            {
-                Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
-            }
-
+            TriggerWagonSoundEvent(evt, null);
             base.SignalEvent(evt);
         }
 
@@ -3623,13 +3625,12 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public bool GetTrainHandbrakeStatus()
-        {
-            return MSTSBrakeSystem.GetHandbrakeStatus();
-        }
+        public event EventHandler<SoundSourceEventArgs> OnCarSound;
 
-        // sound sources and viewers can register themselves to get direct notification of an event
-        public List<Orts.Common.IEventHandler> EventHandlers = new List<Orts.Common.IEventHandler>();
+        internal void TriggerWagonSoundEvent(TrainEvent carEvent, object owner)
+        {
+            OnCarSound?.Invoke(this, new SoundSourceEventArgs(carEvent, owner));
+        }
 
         #region Coupling and Advanced Couplers
         // This determines which coupler to use from WAG file, typically it will be the first one as by convention the rear coupler is always read first.

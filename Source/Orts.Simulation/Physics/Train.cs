@@ -144,20 +144,9 @@ namespace Orts.Simulation.Physics
         public float MUDynamicBrakePercent { get; internal set; } = -1;         // dynamic brake control for MU'd locomotives, <0 for off
         public float DPDynamicBrakePercent { get; internal set; } = -1;         // Distributed Power async/back group dynamic brake control
         public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
-        public float EqualReservoirPressurePSIorInHg { get; internal set; } = 90;      // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
 
-        // Class AirSinglePipe etc. use this property for pressure in PSI, 
-        // but Class VacuumSinglePipe uses it for vacuum in InHg.
-        internal float BrakeLine2PressurePSI { get; set; }              // extra line for dual line systems, main reservoir
-        internal float BrakeLine3PressurePSI { get; set; }              // extra line just in case, engine brake pressure
-        internal float BrakeLine4 { get; set; } = -1;                    // extra line just in case, ep brake control line. -1: release/inactive, 0: hold, 0 < value <=1: apply
-        public RetainerSetting RetainerSetting { get; internal set; } = RetainerSetting.Exhaust;
-        public int RetainerPercent { get; internal set; } = 100;
-        public float TotalTrainBrakePipeVolumeM3 { get; internal set; } // Total volume of train brake pipe
-        public float TotalTrainBrakeCylinderVolumeM3 { get; internal set; } // Total volume of train brake cylinders
-        internal float TotalTrainBrakeSystemVolumeM3 { get; set; } // Total volume of train brake system
-        public float TotalCurrentTrainBrakeSystemVolumeM3 { get; internal set; } // Total current volume of train brake system
-        internal bool EQEquippedVacLoco { get; set; }          // Flag for locomotives fitted with vacuum brakes that have an Equalising reservoir fitted
+        public TrainBrakeSystem BrakeSystem { get; }
+
         internal float PreviousCarCount { get; set; }                  // Keeps track of the last number of cars in the train consist (for vacuum brakes)
         internal bool TrainBPIntact { get; set; } = true;           // Flag to indicate that the train BP is not intact, ie due to disconnection or an open valve cock.
 
@@ -166,7 +155,6 @@ namespace Orts.Simulation.Physics
         internal float HUDLocomotiveBrakeCylinderPSI { get; set; }    // Display value for locomotive HUD
         internal bool HUDBrakeSlide { get; set; }                     // Display indication for brake wheel slip
         internal bool WagonsAttached { get; set; }    // Wagons are attached to train
-        internal float LeadPipePressurePSI { get; set; }       // Keeps record of Lead locomootive brake pipe pressure
 
         public bool IsWheelSlipWarninq { get; private set; }
         public bool IsWheelSlip { get; private set; }
@@ -194,7 +182,6 @@ namespace Orts.Simulation.Physics
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
-        public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
         public TrainType TrainType { get; internal set; } = TrainType.Player;
 
@@ -418,6 +405,18 @@ namespace Orts.Simulation.Physics
             }
         }
 
+        /// <summary>
+        /// returns the traincar at the opposite end of the train of the player locomotive<br/>
+        /// May be <see langword="null"/> if this is an individual car (locomotive) only
+        /// </summary>
+        public TrainCar EndOfTrainCar => Cars.Count > 0 ? Cars[^1] != simulator.PlayerLocomotive ? Cars[^1] : Cars[0] : null;
+
+        /// <summary>
+        /// returns the first wagon in this train (wagon is not an engine car or tender)
+        /// May be <see langword="null"/> if this is an individual car (locomotive) only
+        /// </summary>
+        public TrainCar FirstWagonCar => Cars.Where((car => car.WagonType is not WagonType.Engine or WagonType.Tender)).FirstOrDefault();
+
         // Get the UiD value of the first wagon - searches along train, and gets the integer UiD of the first wagon that is not an engine or tender
         public virtual int GetFirstWagonUiD()
         {
@@ -468,6 +467,7 @@ namespace Orts.Simulation.Physics
         public Train()
         {
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
 
             if (simulator.IsAutopilotMode && TotalNumber == 1 && simulator.TrainDictionary.Count == 0)
                 TotalNumber = 0; //The autopiloted train has number 0
@@ -487,6 +487,7 @@ namespace Orts.Simulation.Physics
         public Train(int number)
         {
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
             Number = number;
             RoutedForward = new TrainRouted(this, 0);
             RoutedBackward = new TrainRouted(this, 1);
@@ -501,6 +502,7 @@ namespace Orts.Simulation.Physics
                 throw new ArgumentNullException(nameof(source));
 
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
             Number = TotalNumber;
             Name = $"{source.Name}{TotalNumber}";
             TotalNumber++;
@@ -563,6 +565,8 @@ namespace Orts.Simulation.Physics
                 throw new ArgumentNullException(nameof(inf));
             Init();
 
+            BrakeSystem = new TrainBrakeSystem(this);
+
             RoutedForward = new TrainRouted(this, 0);
             RoutedBackward = new TrainRouted(this, 1);
             ColdStart = false;
@@ -582,14 +586,14 @@ namespace Orts.Simulation.Physics
             MUDynamicBrakePercent = inf.ReadSingle();
             DPDynamicBrakePercent = inf.ReadSingle();
             DistributedPowerMode = (DistributedPowerMode)inf.ReadInt32();
-            EqualReservoirPressurePSIorInHg = inf.ReadSingle();
-            BrakeLine2PressurePSI = inf.ReadSingle();
-            BrakeLine3PressurePSI = inf.ReadSingle();
-            BrakeLine4 = inf.ReadSingle();
+            BrakeSystem.EqualReservoirPressurePSIorInHg = inf.ReadSingle();
+            BrakeSystem.BrakeLine2Pressure = inf.ReadSingle();
+            BrakeSystem.BrakeLine3Pressure = inf.ReadSingle();
+            BrakeSystem.BrakeLine4Pressure = inf.ReadSingle();
             aiBrakePercent = inf.ReadSingle();
             LeadLocomotiveIndex = inf.ReadInt32();
-            RetainerSetting = (RetainerSetting)inf.ReadInt32();
-            RetainerPercent = inf.ReadInt32();
+            BrakeSystem.RetainerSetting = (RetainerSetting)inf.ReadInt32();
+            BrakeSystem.RetainerPercent = inf.ReadInt32();
             RearTDBTraveller = new Traveller(inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
@@ -901,14 +905,14 @@ namespace Orts.Simulation.Physics
             outf.Write(MUDynamicBrakePercent);
             outf.Write(DPDynamicBrakePercent);
             outf.Write((int)DistributedPowerMode);
-            outf.Write(EqualReservoirPressurePSIorInHg);
-            outf.Write(BrakeLine2PressurePSI);
-            outf.Write(BrakeLine3PressurePSI);
-            outf.Write(BrakeLine4);
+            outf.Write(BrakeSystem.EqualReservoirPressurePSIorInHg);
+            outf.Write(BrakeSystem.BrakeLine2Pressure);
+            outf.Write(BrakeSystem.BrakeLine3Pressure);
+            outf.Write(BrakeSystem.BrakeLine4Pressure);
             outf.Write(aiBrakePercent);
             outf.Write(LeadLocomotiveIndex);
-            outf.Write((int)RetainerSetting);
-            outf.Write(RetainerPercent);
+            outf.Write((int)BrakeSystem.RetainerSetting);
+            outf.Write(BrakeSystem.RetainerPercent);
             RearTDBTraveller.Save(outf);
             outf.Write(SlipperySpotDistanceM);
             outf.Write(SlipperySpotLengthM);
@@ -1609,7 +1613,7 @@ namespace Orts.Simulation.Physics
 
                 if (lead.TrainBrakeController != null)
                 {
-                    EqualReservoirPressurePSIorInHg = lead.TrainBrakeController.MaxPressurePSI;
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = lead.TrainBrakeController.MaxPressurePSI;
                 }
             }
             MUThrottlePercent = initialThrottlepercent;
@@ -3348,36 +3352,36 @@ namespace Orts.Simulation.Physics
                 return;
             if (!increase)
             {
-                RetainerSetting = RetainerSetting.Exhaust;
-                RetainerPercent = 100;
+                BrakeSystem.RetainerSetting = RetainerSetting.Exhaust;
+                BrakeSystem.RetainerPercent = 100;
             }
-            else if (RetainerPercent < 100)
-                RetainerPercent *= 2;
-            else if (RetainerSetting != RetainerSetting.SlowDirect)
+            else if (BrakeSystem.RetainerPercent < 100)
+                BrakeSystem.RetainerPercent *= 2;
+            else if (BrakeSystem.RetainerSetting != RetainerSetting.SlowDirect)
             {
-                RetainerPercent = 25;
-                switch (RetainerSetting)
+                BrakeSystem.RetainerPercent = 25;
+                switch (BrakeSystem.RetainerSetting)
                 {
                     case RetainerSetting.Exhaust:
-                        RetainerSetting = RetainerSetting.LowPressure;
+                        BrakeSystem.RetainerSetting = RetainerSetting.LowPressure;
                         break;
                     case RetainerSetting.LowPressure:
-                        RetainerSetting = RetainerSetting.HighPressure;
+                        BrakeSystem.RetainerSetting = RetainerSetting.HighPressure;
                         break;
                     case RetainerSetting.HighPressure:
-                        RetainerSetting = RetainerSetting.SlowDirect;
+                        BrakeSystem.RetainerSetting = RetainerSetting.SlowDirect;
                         break;
                 }
             }
 
             (_, int last) = FindLeadLocomotives();
-            int step = 100 / RetainerPercent;
+            int step = 100 / BrakeSystem.RetainerPercent;
             for (int i = 0; i < Cars.Count; i++)
             {
                 int j = Cars.Count - 1 - i;
                 if (j <= last)
                     break;
-                Cars[j].BrakeSystem.SetRetainer(i % step == 0 ? RetainerSetting : RetainerSetting.Exhaust);
+                Cars[j].BrakeSystem.SetRetainer(i % step == 0 ? BrakeSystem.RetainerSetting : RetainerSetting.Exhaust);
             }
         }
 

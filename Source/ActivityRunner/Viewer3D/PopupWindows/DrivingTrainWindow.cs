@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Graphics;
@@ -15,12 +17,13 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class DrivingTrainWindow : WindowBase
     {
-        private const int monoColumnWidth = 48;
+        private const int monoColumnWidth = 40;
         private const int normalColumnWidth = 64;
 
         private enum WindowMode
@@ -39,6 +42,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Throttle,
             CylinderCocks,
             Sander,
+            TrainBrake,
+            TrainBrakeEQStatus,
+            TrainBrakeStatus,
+            TrainBrakeFirstCar,
+            TrainBrakeLastCar,
+            Retainer,
         }
 
         private readonly UserSettings settings;
@@ -46,6 +55,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private WindowMode windowMode;
         private Label labelExpandMono;
         private readonly EnumArray<ControlLayout, DetailInfo> groupDetails = new EnumArray<ControlLayout, DetailInfo>();
+        private bool replaying;
+        private bool eqAvailable;
+        private bool retainerAvailble;
 
         private string directionKeyInput;
         private string throttleKeyInput;
@@ -70,13 +82,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
-            _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DistributedPowerWindow], out windowMode);
+            _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DrivingTrainWindow], out windowMode);
 
             Resize();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
+            MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
             layout = base.Layout(layout, headerScaling).AddLayoutOffset(0);
             ControlLayout line = layout.AddLayoutHorizontal();
             line.HorizontalChildAlignment = HorizontalAlignment.Right;
@@ -85,59 +98,69 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
             layout = layout.AddLayoutVertical();
 
-            void AddDetailLine(DetailInfo detail, int width, string caption, System.Drawing.Font font)
+            void AddDetailLine(DetailInfo detail, int width, string caption, System.Drawing.Font font, HorizontalAlignment alignment = HorizontalAlignment.Left)
             {
                 line = layout.AddLayoutHorizontalLineOfText();
-                line.Add(new Label(this, 14, font.Height, null, font) { TextColor = Color.Yellow });
-                line.Add(new Label(this, width, font.Height, caption, font));
-                line.Add(new Label(this, 14, font.Height, null, font) { TextColor = Color.Yellow });
-                line.Add(new Label(this, 80, font.Height, null, font));
+                line.Add(new Label(this, (int)(Owner.DpiScaling * 12), font.Height, null, font) { TextColor = Color.Yellow });
+                line.Add(new Label(this, 0, 0, width, font.Height, caption, alignment, font, Color.White));
+                line.Add(new Label(this, (int)(Owner.DpiScaling * 12), font.Height, null, font) { TextColor = Color.Yellow });
+                line.Add(new Label(this, width * 2, font.Height, null, font));
 
                 groupDetails[detail] = line;
             }
 
+            int columnWidth;
+            System.Drawing.Font font;
+            bool shortMode = false;
             if (windowMode == WindowMode.Normal)
             {
-                int columnWidth = (int)(Owner.DpiScaling * normalColumnWidth);
-                AddDetailLine(DetailInfo.Time, columnWidth, Catalog.GetString("Time"), Owner.TextFontDefault);
-                if (Simulator.Instance.IsReplaying)
-                {
-                    AddDetailLine(DetailInfo.Replay, columnWidth, Catalog.GetString("Replay"), Owner.TextFontDefault);
-                }
-                AddDetailLine(DetailInfo.Speed, columnWidth, Catalog.GetString("Speed"), Owner.TextFontDefault);
-                AddDetailLine(DetailInfo.Gradient, columnWidth, Catalog.GetString("Gradient"), Owner.TextFontDefault);
-                layout.AddHorizontalSeparator(true);
-                AddDetailLine(DetailInfo.Direction, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? Catalog.GetString("Reverser") : Catalog.GetString("Direction"), Owner.TextFontDefault);
-                AddDetailLine(DetailInfo.Throttle, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? Catalog.GetString("Regulator") : Catalog.GetString("Throttle"), Owner.TextFontDefault);
-                if (Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam)
-                {
-                    AddDetailLine(DetailInfo.CylinderCocks, columnWidth, Catalog.GetString("Cyl. Cocks"), Owner.TextFontDefault);
-                }
-                AddDetailLine(DetailInfo.Sander, columnWidth, Catalog.GetString("Sander"), Owner.TextFontDefault);
-                layout.AddHorizontalSeparator(true);
+                columnWidth = (int)(Owner.DpiScaling * normalColumnWidth);
+                font = Owner.TextFontDefault;
             }
             else
             {
-                int columnWidth = (int)(Owner.DpiScaling * monoColumnWidth);
-                AddDetailLine(DetailInfo.Time, columnWidth, FourCharAcronym.Time.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                if (Simulator.Instance.IsReplaying)
-                {
-                    AddDetailLine(DetailInfo.Replay, columnWidth, FourCharAcronym.Replay.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                }
-                AddDetailLine(DetailInfo.Speed, columnWidth, FourCharAcronym.Speed.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                AddDetailLine(DetailInfo.Gradient, columnWidth, FourCharAcronym.Gradient.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                layout.AddHorizontalSeparator(true);
-                AddDetailLine(DetailInfo.Direction, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? FourCharAcronym.Reverser.GetLocalizedDescription() : FourCharAcronym.Direction.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                AddDetailLine(DetailInfo.Throttle, columnWidth, Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam ? FourCharAcronym.Regulator.GetLocalizedDescription() : FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                if (Simulator.Instance.PlayerLocomotive.EngineType == EngineType.Steam)
-                {
-                    AddDetailLine(DetailInfo.CylinderCocks, columnWidth, FourCharAcronym.CylinderCocks.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                }
-                AddDetailLine(DetailInfo.Sander, columnWidth, FourCharAcronym.Sander.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                layout.AddHorizontalSeparator(true);
+                columnWidth = (int)(Owner.DpiScaling * monoColumnWidth);
+                font = Owner.TextFontMonoDefault;
+                shortMode = true;
             }
 
-            return layout;
+            AddDetailLine(DetailInfo.Time, columnWidth, shortMode ? FourCharAcronym.Time.GetLocalizedDescription() : Catalog.GetString("Time"), font);
+            if (Simulator.Instance.IsReplaying)
+            {
+                AddDetailLine(DetailInfo.Replay, columnWidth, shortMode ? FourCharAcronym.Replay.GetLocalizedDescription() : Catalog.GetString("Replay"), font);
+            }
+            AddDetailLine(DetailInfo.Speed, columnWidth, shortMode ? FourCharAcronym.Speed.GetLocalizedDescription() : Catalog.GetString("Speed"), font);
+            AddDetailLine(DetailInfo.Gradient, columnWidth, shortMode ? FourCharAcronym.Gradient.GetLocalizedDescription() : Catalog.GetString("Gradient"), font);
+            layout.AddHorizontalSeparator(true);
+            AddDetailLine(DetailInfo.Direction, columnWidth, playerLocomotive.EngineType == EngineType.Steam ?
+                shortMode ? FourCharAcronym.Reverser.GetLocalizedDescription() : Catalog.GetString("Reverser") :
+                shortMode ? FourCharAcronym.Direction.GetLocalizedDescription() : Catalog.GetString("Direction"), font);
+            AddDetailLine(DetailInfo.Throttle, columnWidth, playerLocomotive.EngineType == EngineType.Steam ?
+                shortMode ? FourCharAcronym.Regulator.GetLocalizedDescription() : Catalog.GetString("Regulator") :
+                shortMode ? FourCharAcronym.Throttle.GetLocalizedDescription() : Catalog.GetString("Throttle"), font);
+            if (playerLocomotive.EngineType == EngineType.Steam)
+            {
+                AddDetailLine(DetailInfo.CylinderCocks, columnWidth, shortMode ? FourCharAcronym.CylinderCocks.GetLocalizedDescription() : Catalog.GetString("Cyl Cocks"), font);
+            }
+            AddDetailLine(DetailInfo.Sander, columnWidth, shortMode ? FourCharAcronym.Sander.GetLocalizedDescription() : Catalog.GetString("Sander"), font);
+            layout.AddHorizontalSeparator(true);
+            AddDetailLine(DetailInfo.TrainBrake, columnWidth, shortMode ? FourCharAcronym.TrainBrake.GetLocalizedDescription() : Catalog.GetString("Train Brk"), font);
+            if (eqAvailable)
+            {
+                AddDetailLine(DetailInfo.TrainBrakeEQStatus, columnWidth, shortMode ? FourCharAcronym.EQReservoir.GetLocalizedDescription() : "  " + Catalog.GetString("EQ Res"), font);
+                AddDetailLine(DetailInfo.TrainBrakeFirstCar, columnWidth, shortMode ? FourCharAcronym.FirstTrainCar.GetLocalizedDescription() : "  " + Catalog.GetString("1st car"), font);
+                AddDetailLine(DetailInfo.TrainBrakeLastCar, columnWidth, shortMode ? FourCharAcronym.EndOfTrainCar.GetLocalizedDescription() : "  " + Catalog.GetString("EOT car"), font);
+            }
+            else
+            {
+                groupDetails[DetailInfo.TrainBrakeEQStatus] = null;
+                AddDetailLine(DetailInfo.TrainBrakeStatus, columnWidth, string.Empty, font);
+            }
+            if (retainerAvailble)
+            {
+                AddDetailLine(DetailInfo.Retainer, columnWidth, shortMode ? FourCharAcronym.Retainer.GetLocalizedDescription() : Catalog.GetString("Retainers"), font);
+            }
+                return layout;
         }
 
         private void LabelExpandMono_OnClick(object sender, MouseClickEventArgs e)
@@ -223,8 +246,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             Point size = windowMode switch
             {
-                WindowMode.Normal => new Point(normalColumnWidth + 36 + 120, 300),
-                WindowMode.NormalMono => new Point(monoColumnWidth + 36 + 80, 300),
+                WindowMode.Normal => new Point(3 * normalColumnWidth + 36, 300),
+                WindowMode.NormalMono => new Point(3 * monoColumnWidth + 36, 300),
                 _ => throw new InvalidOperationException(),
             };
 
@@ -286,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TrainBrakeCommand(bool increase)
         {
-            trainBrakeInput = increase ? Markers.ArrowDown : Markers.ArrowUp;
+            trainBrakeInput = increase ? Markers.ArrowUp : Markers.ArrowDown;
         }
 
         private void EngineBrakeCommand(bool increase)
@@ -339,11 +362,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             base.Update(gameTime, shouldUpdate);
             if (shouldUpdate)
-                UpdateDrivingInformation();
+                if (UpdateDrivingInformation())
+                    Resize();
         }
 
-        private void UpdateDrivingInformation()
+        private bool UpdateDrivingInformation()
         {
+            bool result = false;
             // Client and server may have a time difference.
             MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
             if (groupDetails[DetailInfo.Time]?.Controls[3] is Label timeLabel)
@@ -351,7 +376,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 timeLabel.Text = MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference)}" : $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}";
             }
             // Replay info
-            if (groupDetails[DetailInfo.Replay]?.Controls[3] is Label replayLabel)
+            result |= replaying != (replaying = Simulator.Instance.IsReplaying);
+            if (replaying && groupDetails[DetailInfo.Replay]?.Controls[3] is Label replayLabel)
                 replayLabel.Text = $"{FormatStrings.FormatTime(Simulator.Instance.Log.ReplayEndsAt - Simulator.Instance.ClockTime)}";
             // Speed info
             if (groupDetails[DetailInfo.Speed]?.Controls[3] is Label speedLabel)
@@ -401,6 +427,42 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (groupDetails[DetailInfo.Sander].Controls[2] as Label).Text = sanderInput;
                 sanderInput = string.Empty;
             }
+            // Train Brake
+            if (groupDetails[DetailInfo.TrainBrake]?.Controls[3] is Label trainBrakeStatusLabel)
+            {
+                trainBrakeStatusLabel.Text = playerLocomotive.TrainBrakeController.BrakeStatus.ToShortString(windowMode != WindowMode.Normal ? 5 : 10);
+                trainBrakeStatusLabel.TextColor = Color.Cyan;
+                (groupDetails[DetailInfo.TrainBrake].Controls[0] as Label).Text = trainBrakeInput;
+                (groupDetails[DetailInfo.TrainBrake].Controls[2] as Label).Text = trainBrakeInput;
+                trainBrakeInput = string.Empty;
+            }
+            // Train Brake Equalizer Reservoir
+            result |= eqAvailable != (eqAvailable = !string.IsNullOrEmpty((playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["EQ"]));
+            if (eqAvailable && groupDetails[DetailInfo.TrainBrakeEQStatus]?.Controls[3] is Label trainBrakeEQLabel)
+            {
+                string eqReservoir = (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["EQ"];
+                if (windowMode != WindowMode.Normal)
+                    eqReservoir = eqReservoir?.Split(' ')[0];
+                trainBrakeEQLabel.Text = eqReservoir;
+                (groupDetails[DetailInfo.TrainBrakeFirstCar]?.Controls[3] as Label).Text = (windowMode != WindowMode.Normal) ?
+                    (playerLocomotive.Train.FirstWagonCar?.BrakeSystem as INameValueInformationProvider)?.DebugInfo["StatusShort"] :
+                    (playerLocomotive.Train.FirstWagonCar?.BrakeSystem as INameValueInformationProvider)?.DebugInfo["Status"];
+                (groupDetails[DetailInfo.TrainBrakeLastCar]?.Controls[3] as Label).Text = (windowMode != WindowMode.Normal) ?
+                    (playerLocomotive.Train.EndOfTrainCar?.BrakeSystem as INameValueInformationProvider)?.DebugInfo["StatusShort"] :
+                    (playerLocomotive.Train.EndOfTrainCar?.BrakeSystem as INameValueInformationProvider)?.DebugInfo["Status"];
+            }
+            else if (groupDetails[DetailInfo.TrainBrakeStatus]?.Controls[3] is Label trainBrakeLabel)
+            {
+                trainBrakeLabel.Text = (windowMode != WindowMode.Normal) ?
+                    (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["StatusShort"] :
+                    (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["Status"];
+            }
+            result |= retainerAvailble != (retainerAvailble = playerLocomotive.Train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust);
+            if (retainerAvailble && groupDetails[DetailInfo.Retainer]?.Controls[3] is Label retainerLabel)
+            {
+                retainerLabel.Text = $"{playerLocomotive.Train.BrakeSystem.RetainerPercent}% {playerLocomotive.Train.BrakeSystem.RetainerSetting.GetLocalizedDescription()}";
+            }
+            return result;
         }
     }
 }

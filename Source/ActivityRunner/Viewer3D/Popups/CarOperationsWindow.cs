@@ -103,8 +103,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void buttonHandbrake_Click(Control arg1, Point arg2)
         {
-            new WagonHandbrakeCommand(Viewer.Log, (Viewer.PlayerTrain.Cars[CarPosition] as MSTSWagon), !(Viewer.PlayerTrain.Cars[CarPosition] as MSTSWagon).GetTrainHandbrakeStatus());
-            if ((Viewer.PlayerTrain.Cars[CarPosition] as MSTSWagon).GetTrainHandbrakeStatus())
+            new WagonHandbrakeCommand(Viewer.Log, (Viewer.PlayerTrain.Cars[CarPosition] as MSTSWagon), !Viewer.PlayerTrain.Cars[CarPosition].BrakeSystem.GetHandbrakeStatus());
+            if (Viewer.PlayerTrain.Cars[CarPosition] .BrakeSystem.GetHandbrakeStatus())
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Handbrake set"));
             else
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Handbrake off"));
