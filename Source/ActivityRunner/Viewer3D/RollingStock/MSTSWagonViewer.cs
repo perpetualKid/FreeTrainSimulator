@@ -56,11 +56,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected AnimatedShape RearAirHoseShape;
         protected AnimatedShape RearAirHoseDisconnectedShape;
 
-        public static readonly Action Noop = () => { };
-
         // Wheels are rotated by hand instead of in the shape file.
         private float WheelRotationR;
-        private List<int> WheelPartIndexes = new List<int>();
+        private readonly List<int> wheelPartIndexes = new List<int>();
 
         // Everything else is animated through the shape file.
         private AnimatedPart RunningGear;
@@ -431,7 +429,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (matrixName.Length == 8 || matrixName.Length == 9)
                         _ = int.TryParse(matrixName.AsSpan(6, 1), out id);
                     if (matrixName.Length == 8 || matrixName.Length == 9 || !matrixAnimated)
-                        WheelPartIndexes.Add(matrix);
+                        wheelPartIndexes.Add(matrix);
                     else
                         RunningGear.AddMatrix(matrix);
                     int pmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
@@ -758,13 +756,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
             // Wheel rotation (animation) - for non-drive wheels in steam locomotives and all wheels in other stock
-            if (WheelPartIndexes.Count > 0)
+            if (wheelPartIndexes.Count > 0)
             {
                 var wheelCircumferenceM = MathHelper.TwoPi * AnimationWheelRadiusM;
                 var rotationalDistanceR = MathHelper.TwoPi * distanceTravelledM / wheelCircumferenceM;  // in radians
                 WheelRotationR = MathHelper.WrapAngle(WheelRotationR - rotationalDistanceR);
                 var wheelRotationMatrix = Matrix.CreateRotationX(WheelRotationR);
-                foreach (var iMatrix in WheelPartIndexes)
+                foreach (var iMatrix in wheelPartIndexes)
                 {
                     TrainCarShape.XNAMatrices[iMatrix] = wheelRotationMatrix * TrainCarShape.SharedShape.Matrices[iMatrix];
                 }

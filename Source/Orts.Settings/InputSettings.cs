@@ -277,6 +277,21 @@ namespace Orts.Settings
             commands[UserCommand.ControlWaterScoop] = new UserCommandKeyInput(0x15);
             commands[UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
+            // Cruise Control
+            commands[UserCommand.ControlSpeedRegulatorModeIncrease] = new UserCommandKeyInput(0x11, KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorModeDecrease] = new UserCommandKeyInput(0x1F, KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorMaxAccelerationIncrease] = new UserCommandKeyInput(0x20, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorMaxAccelerationDecrease] = new UserCommandKeyInput(0x1E, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorSelectedSpeedIncrease] = new UserCommandKeyInput(0x20, KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorSelectedSpeedDecrease] = new UserCommandKeyInput(0x1E, KeyModifiers.Shift);
+            commands[UserCommand.ControlNumberOfAxlesIncrease] = new UserCommandKeyInput(0x47, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlNumberOfAxlesDecrease] = new UserCommandKeyInput(0x4F, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlRestrictedSpeedZoneActive] = new UserCommandKeyInput(0x13, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlCruiseControlModeDecrease] = new UserCommandKeyInput(0x1F, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlCruiseControlModeIncrease] = new UserCommandKeyInput(0x11, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlTrainTypePaxCargo] = new UserCommandKeyInput(0x31, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.ControlSpeedRegulatorSelectedSpeedToZero] = new UserCommandKeyInput(0x1E, KeyModifiers.Shift | KeyModifiers.Alt);
+
             // Distributed power
             commands[UserCommand.ControlDistributedPowerMoveToFront] = new UserCommandKeyInput(0x18, KeyModifiers.Control); //O
             commands[UserCommand.ControlDistributedPowerMoveToBack] = new UserCommandKeyInput(0x18, KeyModifiers.Control | KeyModifiers.Shift); //O

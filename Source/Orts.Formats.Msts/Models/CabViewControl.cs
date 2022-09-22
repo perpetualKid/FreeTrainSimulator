@@ -65,10 +65,10 @@ namespace Orts.Formats.Msts.Models
         public string AceFile { get; protected set; } = string.Empty;
 
         public string Label { get; protected set; } = string.Empty;
+        public int ControlId { get; protected set; }
         public int Display { get; protected set; }
         public List<string> Screens { get; protected set; }
         public int CabViewpoint { get; protected set; }
-
 
         public CabViewControlType ControlType { get; protected set; }
         public CabViewControlStyle ControlStyle { get; protected set; }
@@ -693,7 +693,9 @@ namespace Orts.Formats.Msts.Models
                     stf.MustMatch("(");
                     Label = stf.ReadString();
                     stf.SkipRestOfBlock();
-                }),                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                }),
+                new STFReader.TokenProcessor("controlid", ()=> { ControlId = stf.ReadIntBlock(0); }),
+                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
                 new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
                 new STFReader.TokenProcessor("ortsnewscreenpage", () => { ParseNewScreen(stf); }),
                 new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ParseCabViewpoint(stf); }),

@@ -222,5 +222,22 @@ namespace Orts.Simulation
         RaiseToIdle,
     }
 
+    public enum AvvSignal
+    {
+        Stop,
+        Restricted,
+        Restricting40,
+        Clear,
+        Restricting60,
+        Restricting80,
+        Restricting100
+    };
+
+    public enum CruiseControlLogic
+    {
+        None,
+        Full,
+        SpeedOnly
+    }
 
 }
