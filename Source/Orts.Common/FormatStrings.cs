@@ -18,6 +18,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 using GetText;
@@ -363,6 +364,11 @@ namespace Orts.Common
         public static string Max(this string value, int length)
         {
             return value?[..Math.Min(value.Length, length)];
+        }
+
+        public static string JoinIfNotEmpty(char separator, params string[] values)
+        {
+            return string.Join(separator, values.Where(s => !string.IsNullOrEmpty(s)));
         }
     }
 }
