@@ -11,6 +11,8 @@
         internal const string BlockLowerHalf = "▄"; // \u2584
         internal const string Fence = "▐"; // \u2590
         internal const string Dash = "―"; // \u2015
+        internal const string BlockHorizontal = "▬"; // \u25ac
+        internal const string BlockVertical = "▮"; // \u25ae
 
         internal const string Descent = "↘"; // \u2198
         internal const string Ascent = "↗"; // \u2197

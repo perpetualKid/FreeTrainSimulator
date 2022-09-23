@@ -54,6 +54,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -411,9 +412,9 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController SteamHeatController = new MSTSNotchController(0, 1, 0.1f);
 
         public MSTSNotchController ThrottleController;
-        public ScriptedBrakeController TrainBrakeController;
-        public ScriptedBrakeController EngineBrakeController;
-        public ScriptedBrakeController BrakemanBrakeController;
+        public ScriptedBrakeController TrainBrakeController { get; private set; }
+        public ScriptedBrakeController EngineBrakeController { get; private set; }
+        public ScriptedBrakeController BrakemanBrakeController { get; private set; }
         public AirSinglePipe.ValveState EngineBrakeState = AirSinglePipe.ValveState.Lap;
         public MSTSNotchController DynamicBrakeController;
         public MSTSNotchController GearBoxController;
@@ -468,8 +469,8 @@ namespace Orts.Simulation.RollingStocks
             CurrentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
-            TrainBrakeController = new ScriptedBrakeController(this);
-            EngineBrakeController = new ScriptedBrakeController(this);
+            TrainBrakeController = new ScriptedTrainBrakeController(this);
+            EngineBrakeController = new ScriptedEngineBrakeController(this);
             BrakemanBrakeController = new ScriptedBrakeController(this);
             ThrottleController = new MSTSNotchController();
             DynamicBrakeController = new MSTSNotchController();
@@ -543,7 +544,7 @@ namespace Orts.Simulation.RollingStocks
         protected void CheckCoherence()
         {
             if (!TrainBrakeController.IsValid())
-                TrainBrakeController = new ScriptedBrakeController(this); //create a blank one
+                TrainBrakeController = new ScriptedTrainBrakeController(this); //create a blank one
 
             if (!EngineBrakeController.IsValid())
                 EngineBrakeController = null;
@@ -1302,9 +1303,9 @@ namespace Orts.Simulation.RollingStocks
 
             ThrottleController = (MSTSNotchController)locoCopy.ThrottleController.Clone();
             SteamHeatController = (MSTSNotchController)locoCopy.SteamHeatController.Clone();
-            TrainBrakeController = locoCopy.TrainBrakeController.Clone(this);
-            EngineBrakeController = locoCopy.EngineBrakeController != null ? locoCopy.EngineBrakeController.Clone(this) : null;
-            BrakemanBrakeController = locoCopy.BrakemanBrakeController != null ? locoCopy.BrakemanBrakeController.Clone(this) : null;
+            TrainBrakeController = ScriptedBrakeController.From(TrainBrakeController, this);
+            EngineBrakeController = ScriptedBrakeController.From(EngineBrakeController, this);
+            BrakemanBrakeController = ScriptedBrakeController.From(BrakemanBrakeController, this);
             DynamicBrakeController = locoCopy.DynamicBrakeController != null ? (MSTSNotchController)locoCopy.DynamicBrakeController.Clone() : null;
             DistributedPowerThrottleController = (MSTSNotchController)ThrottleController.Clone();
             if (DynamicBrakeController != null)
@@ -3985,7 +3986,7 @@ namespace Orts.Simulation.RollingStocks
 
         public string GetTrainBrakeStatus()
         {
-            string s = TrainBrakeController.BrakeStatus.ToShortString();
+            string s = (TrainBrakeController as INameValueInformationProvider).DebugInfo["Status"];
 
             TrainCar lastCar = Train.Cars[^1];
             if (lastCar == this)

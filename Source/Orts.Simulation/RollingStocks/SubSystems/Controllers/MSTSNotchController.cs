@@ -173,16 +173,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             StepSize = stepSize;
         }
 
-        public MSTSNotchController(MSTSNotchController other)
+        public MSTSNotchController(MSTSNotchController source)
         {
-            CurrentValue = other.CurrentValue;
-            IntermediateValue = other.IntermediateValue;
-            MinimumValue = other.MinimumValue;
-            MaximumValue = other.MaximumValue;
-            StepSize = other.StepSize;
-            CurrentNotch = other.CurrentNotch;
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
 
-            foreach (MSTSNotch notch in other.Notches)
+            CurrentValue = source.CurrentValue;
+            IntermediateValue = source.IntermediateValue;
+            MinimumValue = source.MinimumValue;
+            MaximumValue = source.MaximumValue;
+            StepSize = source.StepSize;
+            CurrentNotch = source.CurrentNotch;
+
+            foreach (MSTSNotch notch in source.Notches)
             {
                 Notches.Add(notch.Clone());
             }

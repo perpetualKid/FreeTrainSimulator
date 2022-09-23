@@ -48,6 +48,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             TrainBrakeFirstCar,
             TrainBrakeLastCar,
             Retainer,
+            EngineBrake,
+            EngineBC,
         }
 
         private readonly UserSettings settings;
@@ -57,7 +59,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly EnumArray<ControlLayout, DetailInfo> groupDetails = new EnumArray<ControlLayout, DetailInfo>();
         private bool replaying;
         private bool eqAvailable;
-        private bool retainerAvailble;
+        private bool retainerAvailable;
+        private bool engineBcAvailable;
 
         private string directionKeyInput;
         private string throttleKeyInput;
@@ -145,6 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             AddDetailLine(DetailInfo.Sander, columnWidth, shortMode ? FourCharAcronym.Sander.GetLocalizedDescription() : Catalog.GetString("Sander"), font);
             layout.AddHorizontalSeparator(true);
             AddDetailLine(DetailInfo.TrainBrake, columnWidth, shortMode ? FourCharAcronym.TrainBrake.GetLocalizedDescription() : Catalog.GetString("Train Brk"), font);
+            (groupDetails[DetailInfo.TrainBrake].Controls[3] as Label).TextColor = Color.Cyan;
             if (eqAvailable)
             {
                 AddDetailLine(DetailInfo.TrainBrakeEQStatus, columnWidth, shortMode ? FourCharAcronym.EQReservoir.GetLocalizedDescription() : "  " + Catalog.GetString("EQ Res"), font);
@@ -156,11 +160,18 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 groupDetails[DetailInfo.TrainBrakeEQStatus] = null;
                 AddDetailLine(DetailInfo.TrainBrakeStatus, columnWidth, string.Empty, font);
             }
-            if (retainerAvailble)
+            if (retainerAvailable)
             {
                 AddDetailLine(DetailInfo.Retainer, columnWidth, shortMode ? FourCharAcronym.Retainer.GetLocalizedDescription() : Catalog.GetString("Retainers"), font);
             }
-                return layout;
+            AddDetailLine(DetailInfo.EngineBrake, columnWidth, shortMode ? FourCharAcronym.EngineBrake.GetLocalizedDescription() : Catalog.GetString("Eng Brk"), font);
+            (groupDetails[DetailInfo.EngineBrake].Controls[3] as Label).TextColor = Color.Cyan;
+            if (engineBcAvailable)
+            {
+                AddDetailLine(DetailInfo.EngineBC, columnWidth, "  " + (shortMode ? FourCharAcronym.BrakeCylinder.GetLocalizedDescription() : Catalog.GetString("Brk Cyl")), font);
+            }
+            layout.AddHorizontalSeparator(true);
+            return layout;
         }
 
         private void LabelExpandMono_OnClick(object sender, MouseClickEventArgs e)
@@ -275,8 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private void DirectionCommand(Direction direction)
         {
             TrainCar locomotive = Simulator.Instance.PlayerLocomotive;
-            directionKeyInput = (locomotive.EngineType != EngineType.Steam &&
-                (locomotive.Direction == MidpointDirection.N) && (locomotive.ThrottlePercent >= 1 || Math.Abs(locomotive.SpeedMpS) > 1))
+            directionKeyInput = (locomotive.EngineType != EngineType.Steam && (locomotive.ThrottlePercent >= 1 || locomotive.AbsSpeedMpS > 1))
                 || (locomotive.EngineType == EngineType.Steam && locomotive is MSTSSteamLocomotive mstsSteamLocomotive && mstsSteamLocomotive.CutoffController.MaximumValue == Math.Abs(locomotive.Train.MUReverserPercent / 100))
                 ? Markers.Block
                 : direction == Direction.Forward ? Markers.ArrowUp : Markers.ArrowDown;
@@ -287,8 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             throttleIncreaseDown = increase;
             throttleDecreaseDown = !increase;
             TrainCar locomotive = Simulator.Instance.PlayerLocomotive;
-            throttleKeyInput = locomotive.DynamicBrakePercent < 1 &&
-                (increase && (locomotive as MSTSLocomotive).ThrottleController.MaximumValue == locomotive.ThrottlePercent / 100)
+            throttleKeyInput = locomotive.DynamicBrakePercent < 1 && (increase && (locomotive as MSTSLocomotive).ThrottleController.MaximumValue == locomotive.ThrottlePercent / 100)
                 || (!increase && locomotive.ThrottlePercent == 0)
                 ? Markers.Block
                 : locomotive.DynamicBrakePercent > -1
@@ -430,8 +439,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             // Train Brake
             if (groupDetails[DetailInfo.TrainBrake]?.Controls[3] is Label trainBrakeStatusLabel)
             {
-                trainBrakeStatusLabel.Text = playerLocomotive.TrainBrakeController.BrakeStatus.ToShortString(windowMode != WindowMode.Normal ? 5 : 10);
-                trainBrakeStatusLabel.TextColor = Color.Cyan;
+                trainBrakeStatusLabel.Text = (playerLocomotive.TrainBrakeController as INameValueInformationProvider).DebugInfo[windowMode != WindowMode.Normal ? "StatusShort" : "Status"];
                 (groupDetails[DetailInfo.TrainBrake].Controls[0] as Label).Text = trainBrakeInput;
                 (groupDetails[DetailInfo.TrainBrake].Controls[2] as Label).Text = trainBrakeInput;
                 trainBrakeInput = string.Empty;
@@ -457,10 +465,21 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["StatusShort"] :
                     (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["Status"];
             }
-            result |= retainerAvailble != (retainerAvailble = playerLocomotive.Train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust);
-            if (retainerAvailble && groupDetails[DetailInfo.Retainer]?.Controls[3] is Label retainerLabel)
+            result |= retainerAvailable != (retainerAvailable = playerLocomotive.Train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust);
+            if (retainerAvailable && groupDetails[DetailInfo.Retainer]?.Controls[3] is Label retainerLabel)
             {
                 retainerLabel.Text = $"{playerLocomotive.Train.BrakeSystem.RetainerPercent}% {playerLocomotive.Train.BrakeSystem.RetainerSetting.GetLocalizedDescription()}";
+            }
+            if (groupDetails[DetailInfo.EngineBrake]?.Controls[3] is Label engineBrakeLabel)
+            {
+                engineBrakeLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["Status"];
+                (groupDetails[DetailInfo.EngineBrake].Controls[0] as Label).Text = ((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null;
+                (groupDetails[DetailInfo.EngineBrake].Controls[2] as Label).Text = ((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null;
+                result |= engineBcAvailable != (engineBcAvailable = !string.IsNullOrEmpty((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"]));
+                if (engineBcAvailable && groupDetails[DetailInfo.EngineBC]?.Controls[3] is Label engineBCLabel)
+                {
+                    engineBCLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"];
+                }
             }
             return result;
         }
