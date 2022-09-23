@@ -3375,7 +3375,6 @@ namespace Orts.Simulation.MultiPlayer
             {
                 (loco as MSTSElectricLocomotive).ElectricPowerSupply.FilterVoltageV = VL;
             }
-            loco.notificationReceived = true;
         }
         public override string ToString()
         {

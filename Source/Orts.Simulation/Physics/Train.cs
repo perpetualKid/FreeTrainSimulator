@@ -1397,7 +1397,7 @@ namespace Orts.Simulation.Physics
             float dpDynamicBrakePercent = LeadLocomotive.DynamicBrakePercent;
             float dpThrottlePercent = LeadLocomotive.ThrottlePercent;
             int dpDynamicBrakeCurrentNotch = MathHelper.Clamp((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(dpDynamicBrakePercent / 100), 0, 8);
-            int dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).ThrottleController.CurrentNotch;
+            int dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).ThrottleController.NotchIndex;
             int idToMove = -1;
             int idLead = LeadLocomotive != null ? (Cars[LeadLocomotiveIndex] as MSTSLocomotive).DistributedPowerUnitId : -1;
             for (int i = Cars.Count - 1; i >= 0; i--)
@@ -1408,8 +1408,8 @@ namespace Orts.Simulation.Physics
                 {
                     dpDynamicBrakePercent = DPDynamicBrakePercent;
                     dpThrottlePercent = DPThrottlePercent;
-                    dpDynamicBrakeCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
-                    dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
+                    dpDynamicBrakeCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex;
+                    dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex;
                     continue;
                 }
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
@@ -1423,8 +1423,8 @@ namespace Orts.Simulation.Physics
                     Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
                     DPDynamicBrakePercent = dpDynamicBrakePercent;
                     DPThrottlePercent = dpThrottlePercent;
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch = dpDynamicBrakeCurrentNotch;
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.CurrentNotch = dpThrottleCurrentNotch;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex = dpDynamicBrakeCurrentNotch;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.NotchIndex = dpThrottleCurrentNotch;
                 }
                 else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                     Cars[i].RemoteControlGroup = RemoteControlGroup.FrontGroupSync;

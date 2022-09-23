@@ -38,7 +38,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private protected readonly MSTSLocomotive locomotive;
         private readonly Simulator simulator;
 
-        private readonly bool activated;
         private string scriptName = "MSTS";
         private protected BrakeController script;
         private readonly List<IControllerNotch> notches = new List<IControllerNotch>();
@@ -153,14 +152,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// <summary>
         /// Knowing actual notch and its change is needed for proper repeatability of mouse and RailDriver operation
         /// </summary>
-        public int CurrentNotch { get { return script is MSTSBrakeController ? (script as MSTSBrakeController).NotchController.CurrentNotch : 0; } set { } }
+        public int NotchIndex { get { return script is MSTSBrakeController ? (script as MSTSBrakeController).NotchController.NotchIndex : 0; } set { } }
 
         public ControllerState TrainBrakeControllerState
         {
             get
             {
                 return script is MSTSBrakeController
-                    ? notches.Count > 0 ? notches[CurrentNotch].NotchStateType : ControllerState.Dummy
+                    ? notches.Count > 0 ? notches[NotchIndex].NotchStateType : ControllerState.Dummy
                     : script.State;
             }
         }
@@ -326,80 +325,77 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Initialize()
         {
-            if (!activated)
+            if (scriptName != null && scriptName != "MSTS")
             {
-                if (scriptName != null && scriptName != "MSTS")
-                {
-                    script = simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
-                }
-                if (script == null)
-                {
-                    script = new MSTSBrakeController();
-                    (script as MSTSBrakeController).ForceControllerReleaseGraduated = simulator.Settings.GraduatedRelease;
-                }
-
-                // AbstractScriptClass
-                script.ClockTime = () => (float)simulator.ClockTime;
-                script.GameTime = () => (float)simulator.GameTime;
-                script.PreUpdate = () => simulator.PreUpdate;
-                script.DistanceM = () => locomotive.DistanceTravelled;
-                script.SpeedMpS = () => Math.Abs(locomotive.SpeedMpS);
-                script.Confirm = simulator.Confirmer.Confirm;
-                script.Message = simulator.Confirmer.Message;
-                script.SignalEvent = locomotive.SignalEvent;
-                script.SignalEventToTrain = (evt) =>
-                {
-                    if (locomotive.Train != null)
-                    {
-                        locomotive.Train.SignalEvent(evt);
-                    }
-                };
-
-                // BrakeController
-                script.EmergencyBrakingPushButton = () => EmergencyBrakingPushButton;
-                script.TCSEmergencyBraking = () => TCSEmergencyBraking;
-                script.TCSFullServiceBraking = () => TCSFullServiceBraking;
-                script.QuickReleaseButtonPressed = () => QuickReleaseButtonPressed;
-                script.OverchargeButtonPressed = () => OverchargeButtonPressed;
-                script.IsLowVoltagePowerSupplyOn = () => locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn;
-                script.IsCabPowerSupplyOn = () => locomotive.LocomotivePowerSupply.CabPowerSupplyOn;
-
-                script.MainReservoirPressureBar = () =>
-                {
-                    return locomotive.Train != null ? (float)Pressure.Atmospheric.FromPSI(locomotive.Train.BrakeSystem.BrakeLine2Pressure) : float.MaxValue;
-                };
-                script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
-                script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);
-                script.ReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
-                script.QuickReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
-                script.OverchargeEliminationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(OverchargeEliminationRatePSIpS);
-                script.SlowApplicationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(SlowApplicationRatePSIpS);
-                script.ApplyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
-                script.EmergencyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
-                script.FullServReductionBar = () => (float)Pressure.Atmospheric.FromPSI(FullServReductionPSI);
-                script.MinReductionBar = () => (float)Pressure.Atmospheric.FromPSI(MinReductionPSI);
-                script.CurrentValue = () => CurrentValue;
-                script.MinimumValue = () => MinimumValue;
-                script.MaximumValue = () => MaximumValue;
-                script.StepSize = () => StepSize;
-                script.UpdateValue = () => UpdateValue;
-                script.Notches = () => notches;
-
-                script.SetCurrentValue = (value) => CurrentValue = value;
-                script.SetUpdateValue = (value) => UpdateValue = value;
-
-                script.SetDynamicBrakeIntervention = (value) =>
-                {
-                    // TODO: Set dynamic brake intervention instead of controller position
-                    // There are some issues that need to be identified and fixed before setting the intervention directly
-                    if (locomotive.DynamicBrakeController == null)
-                        return;
-                    locomotive.DynamicBrakeChangeActiveState(value > 0);
-                    locomotive.DynamicBrakeController.SetValue(value);
-                };
-
-                script.Initialize();
+                script = simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
             }
+            if (script == null)
+            {
+                script = new MSTSBrakeController();
+                (script as MSTSBrakeController).ForceControllerReleaseGraduated = simulator.Settings.GraduatedRelease;
+            }
+
+            // AbstractScriptClass
+            script.ClockTime = () => (float)simulator.ClockTime;
+            script.GameTime = () => (float)simulator.GameTime;
+            script.PreUpdate = () => simulator.PreUpdate;
+            script.DistanceM = () => locomotive.DistanceTravelled;
+            script.SpeedMpS = () => Math.Abs(locomotive.SpeedMpS);
+            script.Confirm = simulator.Confirmer.Confirm;
+            script.Message = simulator.Confirmer.Message;
+            script.SignalEvent = locomotive.SignalEvent;
+            script.SignalEventToTrain = (evt) =>
+            {
+                if (locomotive.Train != null)
+                {
+                    locomotive.Train.SignalEvent(evt);
+                }
+            };
+
+            // BrakeController
+            script.EmergencyBrakingPushButton = () => EmergencyBrakingPushButton;
+            script.TCSEmergencyBraking = () => TCSEmergencyBraking;
+            script.TCSFullServiceBraking = () => TCSFullServiceBraking;
+            script.QuickReleaseButtonPressed = () => QuickReleaseButtonPressed;
+            script.OverchargeButtonPressed = () => OverchargeButtonPressed;
+            script.IsLowVoltagePowerSupplyOn = () => locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn;
+            script.IsCabPowerSupplyOn = () => locomotive.LocomotivePowerSupply.CabPowerSupplyOn;
+
+            script.MainReservoirPressureBar = () =>
+            {
+                return locomotive.Train != null ? (float)Pressure.Atmospheric.FromPSI(locomotive.Train.BrakeSystem.BrakeLine2Pressure) : float.MaxValue;
+            };
+            script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
+            script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);
+            script.ReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
+            script.QuickReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
+            script.OverchargeEliminationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(OverchargeEliminationRatePSIpS);
+            script.SlowApplicationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(SlowApplicationRatePSIpS);
+            script.ApplyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
+            script.EmergencyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
+            script.FullServReductionBar = () => (float)Pressure.Atmospheric.FromPSI(FullServReductionPSI);
+            script.MinReductionBar = () => (float)Pressure.Atmospheric.FromPSI(MinReductionPSI);
+            script.CurrentValue = () => CurrentValue;
+            script.MinimumValue = () => MinimumValue;
+            script.MaximumValue = () => MaximumValue;
+            script.StepSize = () => StepSize;
+            script.UpdateValue = () => UpdateValue;
+            script.Notches = () => notches;
+
+            script.SetCurrentValue = (value) => CurrentValue = value;
+            script.SetUpdateValue = (value) => UpdateValue = value;
+
+            script.SetDynamicBrakeIntervention = (value) =>
+            {
+                // TODO: Set dynamic brake intervention instead of controller position
+                // There are some issues that need to be identified and fixed before setting the intervention directly
+                if (locomotive.DynamicBrakeController == null)
+                    return;
+                locomotive.DynamicBrakeChangeActiveState(value > 0);
+                locomotive.DynamicBrakeController.SetValue(value);
+            };
+
+            script.Initialize();
         }
 
         public void InitializeMoving()
@@ -503,11 +499,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public int SetValue(float value)
         {
-            int oldNotch = CurrentNotch;
+            int oldNotch = NotchIndex;
             SignalEvent(BrakeControllerEvent.SetCurrentValue, value);
 
-            int change = CurrentNotch > oldNotch || CurrentValue > oldValue + 0.1f || CurrentValue == 1 && oldValue < 1
-                ? 1 : CurrentNotch < oldNotch || CurrentValue < oldValue - 0.1f || CurrentValue == 0 && oldValue > 0 ? -1 : 0;
+            int change = NotchIndex > oldNotch || CurrentValue > oldValue + 0.1f || CurrentValue == 1 && oldValue < 1
+                ? 1 : NotchIndex < oldNotch || CurrentValue < oldValue - 0.1f || CurrentValue == 0 && oldValue > 0 ? -1 : 0;
             if (change != 0)
                 oldValue = CurrentValue;
             return change;

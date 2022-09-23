@@ -1523,9 +1523,6 @@ namespace Orts.Simulation.RollingStocks
                 BrakemanBrakeController.SetValue(0);
         }
 
-        public bool controlUpdated;
-        public bool notificationReceived;
-
         /// <summary>
         /// Called just after the InitializeFromWagFile
         /// </summary>
@@ -2324,9 +2321,9 @@ namespace Orts.Simulation.RollingStocks
             //So only the lead locomotive updates it, the others only updates the controller (actually useless)
             if (this.IsLeadLocomotive())
             {
-                var throttleCurrentNotch = ThrottleController.CurrentNotch;
+                var throttleCurrentNotch = ThrottleController.NotchIndex;
                 ThrottleController.Update(elapsedClockSeconds);
-                if (ThrottleController.CurrentNotch < throttleCurrentNotch && ThrottleController.ToZero)
+                if (ThrottleController.NotchIndex < throttleCurrentNotch && ThrottleController.ToZero)
                     SignalEvent(TrainEvent.ThrottleChange);
                 ThrottlePercent = (ThrottleIntervention < 0 ? ThrottleController.CurrentValue : ThrottleIntervention) * 100.0f;
                 ConfirmWheelslip(elapsedClockSeconds);
@@ -3735,7 +3732,7 @@ namespace Orts.Simulation.RollingStocks
                         if (dieselloco.DieselEngines[0].GearBox.GearBoxType != GearBoxType.C)
                         {
                             GearBoxController.StartIncrease();
-                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
+                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.NotchIndex);
                             AlerterReset(TCSEvent.GearBoxChanged);
                             SignalGearBoxChangeEvents();
                             dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3748,7 +3745,7 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartIncrease();
-                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
+                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.NotchIndex);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
                                 dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3762,7 +3759,7 @@ namespace Orts.Simulation.RollingStocks
                     else  // Legacy operation
                     {
                         GearBoxController.StartIncrease();
-                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.NotchIndex);
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
                     }
@@ -3795,7 +3792,7 @@ namespace Orts.Simulation.RollingStocks
                         if (dieselloco.DieselEngines[0].GearBox.GearBoxType != GearBoxType.C)
                         {
                             GearBoxController.StartDecrease();
-                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                            simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                             AlerterReset(TCSEvent.GearBoxChanged);
                             SignalGearBoxChangeEvents();
                             dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3806,7 +3803,7 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartDecrease();
-                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
                                 dieselloco.DieselEngines[0].GearBox.ClutchOn = false;
@@ -3820,7 +3817,7 @@ namespace Orts.Simulation.RollingStocks
                     else // Legacy operation
                     {
                         GearBoxController.StartDecrease();
-                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                         AlerterReset(TCSEvent.GearBoxChanged);
                         SignalGearBoxChangeEvents();
 
@@ -3845,9 +3842,9 @@ namespace Orts.Simulation.RollingStocks
         private void SignalGearBoxChangeEvents()
         {
             // Only activate sound event if notch has actually changed
-            if (GearBoxController.CurrentNotch != PreviousGearBoxNotch)
+            if (GearBoxController.NotchIndex != PreviousGearBoxNotch)
             {
-                switch (GearBoxController.CurrentNotch)
+                switch (GearBoxController.NotchIndex)
                 {
                     case 0:
                         SignalEvent(TrainEvent.GearPosition0);
@@ -3877,7 +3874,7 @@ namespace Orts.Simulation.RollingStocks
                         SignalEvent(TrainEvent.GearPosition8);
                         break;
                 }
-                PreviousGearBoxNotch = GearBoxController.CurrentNotch; // Update previous value for next time around
+                PreviousGearBoxNotch = GearBoxController.NotchIndex; // Update previous value for next time around
             }
         }
 
@@ -3896,14 +3893,14 @@ namespace Orts.Simulation.RollingStocks
 
             if (controller.CurrentValue > oldValue)
             {
-                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.NotchIndex);
                 if (dieselloco != null)
                     dieselloco.DieselEngines[0].GearBox.ManualGearUp = true;
 
             }
             else if (controller.CurrentValue < oldValue)
             {
-                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
+                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.NotchIndex);
                 if (dieselloco != null)
                     dieselloco.DieselEngines[0].GearBox.ManualGearDown = true;
             }

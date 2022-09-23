@@ -17,20 +17,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public class MSTSNotch: IControllerNotch
+    public class MSTSNotch : IControllerNotch
     {
-        public float Value { get ; set; }
+        public float Value { get; set; }
         public bool Smooth { get; set; }
-        public ControllerState NotchStateType { get; set ; }
+        public ControllerState NotchStateType { get; set; }
 
         public MSTSNotch(float v, int s, string type, STFReader stf)
         {
@@ -48,42 +51,112 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 lower = type;
             switch (lower.ToLowerInvariant())
             {
-                case "dummy": break;
-                case ")": break;
-                case "releasestart": NotchStateType = ControllerState.Release; break;
-                case "fullquickreleasestart": NotchStateType = ControllerState.FullQuickRelease; break;
-                case "runningstart": NotchStateType = ControllerState.Running; break;
-                case "selflapstart": NotchStateType = ControllerState.SelfLap; break;
-                case "holdstart": NotchStateType = ControllerState.Hold; break;
-                case "straightbrakingreleaseonstart": NotchStateType = ControllerState.StraightReleaseOn; break;
-                case "straightbrakingreleaseoffstart": NotchStateType = ControllerState.StraightReleaseOff; break;
-                case "straightbrakingreleasestart": NotchStateType = ControllerState.StraightRelease; break;
-                case "straightbrakinglapstart": NotchStateType = ControllerState.StraightLap; break;
-                case "straightbrakingapplystart": NotchStateType = ControllerState.StraightApply; break;
-                case "straightbrakingapplyallstart": NotchStateType = ControllerState.StraightApplyAll; break;
-                case "straightbrakingemergencystart": NotchStateType = ControllerState.StraightEmergency; break;
-                case "holdlappedstart": NotchStateType = ControllerState.Lap; break;
-                case "neutralhandleoffstart": NotchStateType = ControllerState.Neutral; break;
-                case "graduatedselflaplimitedstart": NotchStateType = ControllerState.GSelfLap; break;
-                case "graduatedselflaplimitedholdingstart": NotchStateType = ControllerState.GSelfLapH; break;
-                case "applystart": NotchStateType = ControllerState.Apply; break;
-                case "continuousservicestart": NotchStateType = ControllerState.ContServ; break;
-                case "suppressionstart": NotchStateType = ControllerState.Suppression; break;
-                case "fullservicestart": NotchStateType = ControllerState.FullServ; break;
-                case "emergencystart": NotchStateType = ControllerState.Emergency; break;
-                case "minimalreductionstart": NotchStateType = ControllerState.MinimalReduction; break;
-                case "epapplystart": NotchStateType = ControllerState.EPApply; break;
-                case "epholdstart": NotchStateType = ControllerState.SelfLap; break;
-                case "smeholdstart": NotchStateType = ControllerState.SMESelfLap; break;
-                case "smeonlystart": NotchStateType = ControllerState.SMEOnly; break;
-                case "smefullservicestart": NotchStateType = ControllerState.SMEFullServ; break;
-                case "smereleasestart": NotchStateType = ControllerState.SMEReleaseStart; break;
-                case "vacuumcontinuousservicestart": NotchStateType = ControllerState.VacContServ; break;
-                case "vacuumapplycontinuousservicestart": NotchStateType = ControllerState.VacApplyContServ; break;
-                case "manualbrakingstart": NotchStateType = ControllerState.ManualBraking; break;
-                case "brakenotchstart": NotchStateType = ControllerState.BrakeNotch; break;
-                case "overchargestart": NotchStateType = ControllerState.Overcharge; break;
-                case "slowservicestart": NotchStateType = ControllerState.SlowService; break;
+                case "dummy":
+                    break;
+                case ")":
+                    break;
+                case "releasestart":
+                    NotchStateType = ControllerState.Release;
+                    break;
+                case "fullquickreleasestart":
+                    NotchStateType = ControllerState.FullQuickRelease;
+                    break;
+                case "runningstart":
+                    NotchStateType = ControllerState.Running;
+                    break;
+                case "selflapstart":
+                    NotchStateType = ControllerState.SelfLap;
+                    break;
+                case "holdstart":
+                    NotchStateType = ControllerState.Hold;
+                    break;
+                case "straightbrakingreleaseonstart":
+                    NotchStateType = ControllerState.StraightReleaseOn;
+                    break;
+                case "straightbrakingreleaseoffstart":
+                    NotchStateType = ControllerState.StraightReleaseOff;
+                    break;
+                case "straightbrakingreleasestart":
+                    NotchStateType = ControllerState.StraightRelease;
+                    break;
+                case "straightbrakinglapstart":
+                    NotchStateType = ControllerState.StraightLap;
+                    break;
+                case "straightbrakingapplystart":
+                    NotchStateType = ControllerState.StraightApply;
+                    break;
+                case "straightbrakingapplyallstart":
+                    NotchStateType = ControllerState.StraightApplyAll;
+                    break;
+                case "straightbrakingemergencystart":
+                    NotchStateType = ControllerState.StraightEmergency;
+                    break;
+                case "holdlappedstart":
+                    NotchStateType = ControllerState.Lap;
+                    break;
+                case "neutralhandleoffstart":
+                    NotchStateType = ControllerState.Neutral;
+                    break;
+                case "graduatedselflaplimitedstart":
+                    NotchStateType = ControllerState.GSelfLap;
+                    break;
+                case "graduatedselflaplimitedholdingstart":
+                    NotchStateType = ControllerState.GSelfLapH;
+                    break;
+                case "applystart":
+                    NotchStateType = ControllerState.Apply;
+                    break;
+                case "continuousservicestart":
+                    NotchStateType = ControllerState.ContServ;
+                    break;
+                case "suppressionstart":
+                    NotchStateType = ControllerState.Suppression;
+                    break;
+                case "fullservicestart":
+                    NotchStateType = ControllerState.FullServ;
+                    break;
+                case "emergencystart":
+                    NotchStateType = ControllerState.Emergency;
+                    break;
+                case "minimalreductionstart":
+                    NotchStateType = ControllerState.MinimalReduction;
+                    break;
+                case "epapplystart":
+                    NotchStateType = ControllerState.EPApply;
+                    break;
+                case "epholdstart":
+                    NotchStateType = ControllerState.SelfLap;
+                    break;
+                case "smeholdstart":
+                    NotchStateType = ControllerState.SMESelfLap;
+                    break;
+                case "smeonlystart":
+                    NotchStateType = ControllerState.SMEOnly;
+                    break;
+                case "smefullservicestart":
+                    NotchStateType = ControllerState.SMEFullServ;
+                    break;
+                case "smereleasestart":
+                    NotchStateType = ControllerState.SMEReleaseStart;
+                    break;
+                case "vacuumcontinuousservicestart":
+                    NotchStateType = ControllerState.VacContServ;
+                    break;
+                case "vacuumapplycontinuousservicestart":
+                    NotchStateType = ControllerState.VacApplyContServ;
+                    break;
+                case "manualbrakingstart":
+                    NotchStateType = ControllerState.ManualBraking;
+                    break;
+                case "brakenotchstart":
+                    NotchStateType = ControllerState.BrakeNotch;
+                    break;
+                case "overchargestart":
+                    NotchStateType = ControllerState.Overcharge;
+                    break;
+                case "slowservicestart":
+                    NotchStateType = ControllerState.SlowService;
+                    break;
                 default:
                     STFException.TraceInformation(stf, "Skipped unknown notch type " + type);
                     break;
@@ -98,7 +171,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public MSTSNotch(IControllerNotch other)
         {
-            Value = other.Value;
+            Value = other?.Value ?? throw new ArgumentNullException(nameof(other));
             Smooth = other.Smooth;
             NotchStateType = other.NotchStateType;
         }
@@ -130,28 +203,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      * The user need to press the key multiple times to update this controller.
      * 
      */
-    public class MSTSNotchController: IController
+    public class MSTSNotchController : IController, INameValueInformationProvider
     {
-        public float CurrentValue { get; set; }
-        public float IntermediateValue;
-        public float MinimumValue;
-        public float MaximumValue = 1;
         public const float StandardBoost = 5.0f; // standard step size multiplier
         public const float FastBoost = 20.0f;
-        public float StepSize;
-        private List<IControllerNotch> Notches = new List<IControllerNotch>();
-        public int CurrentNotch { get; set; }
-        public bool ToZero; // true if controller zero command;
 
-        private float OldValue;
+        private protected readonly DebugInfoBase controllerInfo = new DebugInfoBase();
+        private bool updateControllerStatus;
+
+        private float previousValue;
+        private float? controllerTarget;
+
+        public float CurrentValue { get; set; }
+        public float IntermediateValue { get; private set; }
+        public float MinimumValue { get; private set; }
+        public float MaximumValue { get; private set; } = 1;
+
+        public float StepSize { get; set; }
+        internal List<IControllerNotch> Notches { get; } = new List<IControllerNotch>();
+        public int NotchIndex { get; set; }
+        public bool ToZero { get; private set; } // true if controller zero command;
 
         //Does not need to persist
         //this indicates if the controller is increasing or decreasing, 0 no changes
         public float UpdateValue { get; set; }
-        private float? controllerTarget;
         public double CommandStartTime { get; set; }
 
-        #region CONSTRUCTORS
+        #region .ctor
 
         public MSTSNotchController()
         {
@@ -183,7 +261,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             MinimumValue = source.MinimumValue;
             MaximumValue = source.MaximumValue;
             StepSize = source.StepSize;
-            CurrentNotch = source.CurrentNotch;
+            NotchIndex = source.NotchIndex;
 
             foreach (MSTSNotch notch in source.Notches)
             {
@@ -199,6 +277,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public MSTSNotchController(List<IControllerNotch> notches)
         {
             Notches = notches;
+        }
+
+        internal void Initialize(float currentValue, float minValue, float maxValue, float stepSize)
+        {
+            MinimumValue = minValue;
+            MaximumValue = maxValue;
+            StepSize = stepSize;
+            SetValue(currentValue);
         }
         #endregion
 
@@ -244,7 +330,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         private float GetNotchBoost(float boost)
         {
-            return (ToZero && ((CurrentNotch >= 0 && Notches[CurrentNotch].Smooth) || Notches.Count == 0 || 
+            return (ToZero && ((NotchIndex >= 0 && Notches[NotchIndex].Smooth) || Notches.Count == 0 ||
                 IntermediateValue - CurrentValue > StepSize) ? FastBoost : boost);
         }
 
@@ -263,21 +349,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public int SetValue(float value)
         {
             CurrentValue = IntermediateValue = MathHelper.Clamp(value, MinimumValue, MaximumValue);
-            var oldNotch = CurrentNotch;
+            var oldNotch = NotchIndex;
 
-            for (CurrentNotch = Notches.Count - 1; CurrentNotch > 0; CurrentNotch--)
+            for (NotchIndex = Notches.Count - 1; NotchIndex > 0; NotchIndex--)
             {
-                if (Notches[CurrentNotch].Value <= CurrentValue)
+                if (Notches[NotchIndex].Value <= CurrentValue)
                     break;
             }
 
-            if (CurrentNotch >= 0 && !Notches[CurrentNotch].Smooth)
-                CurrentValue = Notches[CurrentNotch].Value;
+            if (NotchIndex >= 0 && !Notches[NotchIndex].Smooth)
+                CurrentValue = Notches[NotchIndex].Value;
 
-            var change = CurrentNotch > oldNotch || CurrentValue > OldValue + 0.1f || CurrentValue == 1 && OldValue < 1 
-                ? 1 : CurrentNotch < oldNotch || CurrentValue < OldValue - 0.1f || CurrentValue == 0 && OldValue > 0 ? -1 : 0;
+            var change = NotchIndex > oldNotch || CurrentValue > previousValue + 0.1f || CurrentValue == 1 && previousValue < 1
+                ? 1 : NotchIndex < oldNotch || CurrentValue < previousValue - 0.1f || CurrentValue == 0 && previousValue > 0 ? -1 : 0;
             if (change != 0)
-                OldValue = CurrentValue;
+                previousValue = CurrentValue;
 
             return change;
         }
@@ -287,46 +373,47 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             float v = (MinimumValue < 0 && percent < 0 ? -MinimumValue : MaximumValue) * percent / 100;
             CurrentValue = MathHelper.Clamp(v, MinimumValue, MaximumValue);
 
-            if (CurrentNotch >= 0)
+            if (NotchIndex >= 0)
             {
                 if (Notches[Notches.Count - 1].NotchStateType == ControllerState.Emergency)
                     v = Notches[Notches.Count - 1].Value * percent / 100;
                 for (; ; )
                 {
-                    IControllerNotch notch = Notches[CurrentNotch];
-                    if (CurrentNotch > 0 && v < notch.Value)
+                    IControllerNotch notch = Notches[NotchIndex];
+                    if (NotchIndex > 0 && v < notch.Value)
                     {
-                        IControllerNotch prev = Notches[CurrentNotch-1];
+                        IControllerNotch prev = Notches[NotchIndex - 1];
                         if (!notch.Smooth && !prev.Smooth && v - prev.Value > .45 * (notch.Value - prev.Value))
                             break;
-                        CurrentNotch--;
+                        NotchIndex--;
                         continue;
                     }
-                    if (CurrentNotch < Notches.Count - 1)
+                    if (NotchIndex < Notches.Count - 1)
                     {
-                        IControllerNotch next = Notches[CurrentNotch + 1];
+                        IControllerNotch next = Notches[NotchIndex + 1];
                         if (next.NotchStateType != ControllerState.Emergency)
                         {
                             if ((notch.Smooth || next.Smooth) && v < next.Value)
                                 break;
                             if (!notch.Smooth && !next.Smooth && v - notch.Value < .55 * (next.Value - notch.Value))
                                 break;
-                            CurrentNotch++;
+                            NotchIndex++;
                             continue;
                         }
                     }
                     break;
                 }
-                if (Notches[CurrentNotch].Smooth)
+                if (Notches[NotchIndex].Smooth)
                     CurrentValue = v;
                 else
-                    CurrentValue = Notches[CurrentNotch].Value;
+                    CurrentValue = Notches[NotchIndex].Value;
             }
             IntermediateValue = CurrentValue;
             return 100 * CurrentValue;
         }
 
-        public void StartIncrease( float? target ) {
+        public void StartIncrease(float? target)
+        {
             controllerTarget = target;
             ToZero = false;
             StartIncrease();
@@ -337,37 +424,37 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             UpdateValue = 1;
 
             // When we have notches and the current Notch does not require smooth, we go directly to the next notch
-            if ((Notches.Count > 0) && (CurrentNotch < Notches.Count - 1) && (!Notches[CurrentNotch].Smooth))
+            if ((Notches.Count > 0) && (NotchIndex < Notches.Count - 1) && (!Notches[NotchIndex].Smooth))
             {
-                ++CurrentNotch;
-                IntermediateValue = CurrentValue = Notches[CurrentNotch].Value;
+                ++NotchIndex;
+                IntermediateValue = CurrentValue = Notches[NotchIndex].Value;
             }
-		}
+        }
 
         public void StopIncrease()
         {
             UpdateValue = 0;
         }
 
-        public void StartDecrease( float? target, bool toZero = false)
+        public void StartDecrease(float? target, bool toZero = false)
         {
             controllerTarget = target;
             ToZero = toZero;
             StartDecrease();
         }
-        
+
         public void StartDecrease()
         {
             UpdateValue = -1;
 
             //If we have notches and the previous Notch does not require smooth, we go directly to the previous notch
-            if ((Notches.Count > 0) && (CurrentNotch > 0) && SmoothMin() == null)
+            if ((Notches.Count > 0) && (NotchIndex > 0) && SmoothMin() == null)
             {
                 //Keep intermediate value with the "previous" notch, so it will take a while to change notches
                 //again if the user keep holding the key
-                IntermediateValue = Notches[CurrentNotch].Value;
-                CurrentNotch--;
-                CurrentValue = Notches[CurrentNotch].Value;
+                IntermediateValue = Notches[NotchIndex].Value;
+                NotchIndex--;
+                CurrentValue = Notches[NotchIndex].Value;
             }
         }
 
@@ -382,6 +469,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 CheckControllerTargetAchieved();
                 UpdateValues(elapsedSeconds, UpdateValue, StandardBoost);
+            }
+            if (updateControllerStatus)
+            {
+                UpdateControllerStatus();
+                updateControllerStatus = false;
             }
             return CurrentValue;
         }
@@ -399,12 +491,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// <summary>
         /// If a target has been set, then stop once it's reached and also cancel the target.
         /// </summary>
-        public void CheckControllerTargetAchieved() {
-            if( controllerTarget != null )
+        public void CheckControllerTargetAchieved()
+        {
+            if (controllerTarget != null)
             {
-                if( UpdateValue > 0.0 )
+                if (UpdateValue > 0.0)
                 {
-                    if( CurrentValue >= controllerTarget )
+                    if (CurrentValue >= controllerTarget)
                     {
                         StopIncrease();
                         controllerTarget = null;
@@ -412,7 +505,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
                 else
                 {
-                    if( CurrentValue <= controllerTarget )
+                    if (CurrentValue <= controllerTarget)
                     {
                         StopDecrease();
                         controllerTarget = null;
@@ -431,7 +524,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (Notches.Count > 0)
             {
                 //Increasing, check if the notch has changed
-                if ((direction > 0) && (CurrentNotch < Notches.Count - 1) && (IntermediateValue >= Notches[CurrentNotch + 1].Value))
+                if ((direction > 0) && (NotchIndex < Notches.Count - 1) && (IntermediateValue >= Notches[NotchIndex + 1].Value))
                 {
                     // steamer_ctn - The following code was added in relation to reported bug  #1200226. However it seems to prevent the brake controller from ever being moved to EMERGENCY position.
                     // Bug conditions indicated in the bug report have not been able to be duplicated, ie there doesn't appear to be a "safety stop" when brake key(s) held down continuously
@@ -440,19 +533,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     //      if (Notches[CurrentNotch + 1].Type == ControllerState.Emergency)
                     //         IntermediateValue = Notches[CurrentNotch + 1].Value - StepSize;
                     //      else
-                    CurrentNotch++;
+                    NotchIndex++;
                 }
                 //decreasing, again check if the current notch has changed
-                else if((direction < 0) && (CurrentNotch > 0) && (IntermediateValue < Notches[CurrentNotch].Value))
+                else if ((direction < 0) && (NotchIndex > 0) && (IntermediateValue < Notches[NotchIndex].Value))
                 {
-                    CurrentNotch--;
+                    NotchIndex--;
                 }
 
                 //If the notch is smooth, we use intermediate value that is being update smooth thought the frames
-                if (Notches[CurrentNotch].Smooth)
+                if (Notches[NotchIndex].Smooth)
                     CurrentValue = IntermediateValue;
                 else
-                    CurrentValue = Notches[CurrentNotch].Value;
+                    CurrentValue = Notches[NotchIndex].Value;
             }
             else
             {
@@ -466,13 +559,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Notches.Count == 0)
                 return 0;
-            IControllerNotch notch = Notches[CurrentNotch];
+            IControllerNotch notch = Notches[NotchIndex];
             if (!notch.Smooth)
                 // Respect British 3-wire EP brake configurations
-                return (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.EPOnly )? CurrentValue : 1;
+                return (notch.NotchStateType is ControllerState.EPApply or ControllerState.EPOnly) ? CurrentValue : 1;
             float x = 1;
-            if (CurrentNotch + 1 < Notches.Count)
-                x = Notches[CurrentNotch + 1].Value;
+            if (NotchIndex + 1 < Notches.Count)
+                x = Notches[NotchIndex + 1].Value;
             x = (CurrentValue - notch.Value) / (x - notch.Value);
             if (notch.NotchStateType == ControllerState.Release)
                 x = 1 - x;
@@ -484,10 +577,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             float? target = null;
             if (Notches.Count > 0)
             {
-                if (CurrentNotch > 0 && Notches[CurrentNotch - 1].Smooth)
-                    target = Notches[CurrentNotch - 1].Value;
-                else if (Notches[CurrentNotch].Smooth && CurrentValue > Notches[CurrentNotch].Value)
-                    target = Notches[CurrentNotch].Value;
+                if (NotchIndex > 0 && Notches[NotchIndex - 1].Smooth)
+                    target = Notches[NotchIndex - 1].Value;
+                else if (Notches[NotchIndex].Smooth && CurrentValue > Notches[NotchIndex].Value)
+                    target = Notches[NotchIndex].Value;
             }
             else
                 target = MinimumValue;
@@ -497,10 +590,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public float? SmoothMax()
         {
             float? target = null;
-            if (Notches.Count > 0 && CurrentNotch < Notches.Count - 1 && Notches[CurrentNotch].Smooth)
-                target = Notches[CurrentNotch + 1].Value;
+            if (Notches.Count > 0 && NotchIndex < Notches.Count - 1 && Notches[NotchIndex].Smooth)
+                target = Notches[NotchIndex + 1].Value;
             else if (Notches.Count == 0
-                || (Notches.Count == 1 && Notches[CurrentNotch].Smooth))
+                || (Notches.Count == 1 && Notches[NotchIndex].Smooth))
                 target = MaximumValue;
             return target;
         }
@@ -508,9 +601,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public float? DistributedPowerSmoothMax()
         {
             float? target = null;
-            if (Notches.Count > 0 && CurrentNotch < Notches.Count - 1 && Notches[CurrentNotch].Smooth)
-                target = Notches[CurrentNotch + 1].Value;
-            else if (Notches.Count == 0 || CurrentNotch == Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+            if (Notches.Count > 0 && NotchIndex < Notches.Count - 1 && Notches[NotchIndex].Smooth)
+                target = Notches[NotchIndex + 1].Value;
+            else if (Notches.Count == 0 || NotchIndex == Notches.Count - 1 && Notches[NotchIndex].Smooth)
                 target = MaximumValue;
             return target;
         }
@@ -518,9 +611,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public float? DPSmoothMax()
         {
             float? target = null;
-            if (Notches.Count > 0 && CurrentNotch < Notches.Count - 1 && Notches[CurrentNotch].Smooth)
-                target = Notches[CurrentNotch + 1].Value;
-            else if (Notches.Count == 0 || CurrentNotch == Notches.Count - 1 && Notches[CurrentNotch].Smooth)
+            if (Notches.Count > 0 && NotchIndex < Notches.Count - 1 && Notches[NotchIndex].Smooth)
+                target = Notches[NotchIndex + 1].Value;
+            else if (Notches.Count == 0 || NotchIndex == Notches.Count - 1 && Notches[NotchIndex].Smooth)
                 target = MaximumValue;
             return target;
         }
@@ -529,7 +622,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Notches.Count == 0)
                 return $"{100 * CurrentValue:F0}%";
-            IControllerNotch notch = Notches[CurrentNotch];
+            IControllerNotch notch = Notches[NotchIndex];
             string name = notch.NotchStateType.GetLocalizedDescription();
             if (!notch.Smooth && notch.NotchStateType == ControllerState.Dummy)
                 return $"{100 * CurrentValue:F0}%";
@@ -548,29 +641,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         }
 
         protected virtual void SaveData(BinaryWriter outf)
-        {            
-            outf.Write(CurrentValue);            
+        {
+            outf.Write(CurrentValue);
             outf.Write(MinimumValue);
             outf.Write(MaximumValue);
             outf.Write(StepSize);
-            outf.Write(CurrentNotch);            
+            outf.Write(NotchIndex);
             outf.Write(Notches.Count);
-            
-            foreach(MSTSNotch notch in Notches)
+
+            foreach (MSTSNotch notch in Notches)
             {
-                notch.Save(outf);                
-            }            
+                notch.Save(outf);
+            }
         }
 
         public virtual void Restore(BinaryReader inf)
         {
             Notches.Clear();
 
-            IntermediateValue = CurrentValue = inf.ReadSingle();            
+            IntermediateValue = CurrentValue = inf.ReadSingle();
             MinimumValue = inf.ReadSingle();
             MaximumValue = inf.ReadSingle();
             StepSize = inf.ReadSingle();
-            CurrentNotch = inf.ReadInt32();
+            NotchIndex = inf.ReadInt32();
 
             UpdateValue = 0;
 
@@ -579,13 +672,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             for (int i = 0; i < count; ++i)
             {
                 Notches.Add(new MSTSNotch(inf));
-            }           
+            }
         }
 
-        public IControllerNotch GetCurrentNotch()
-        {
-            return Notches.Count == 0 ? null : Notches[CurrentNotch];
-        }
+        public IControllerNotch CurrentNotch => Notches.Count == 0 ? null : Notches[NotchIndex];
+
+        public NameValueCollection DebugInfo => GetControllerStatus();
+
+        public Dictionary<string, FormatOption> FormattingOptions => controllerInfo.FormattingOptions;
 
         protected void SetCurrentNotch(ControllerState type)
         {
@@ -593,7 +687,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 if (Notches[i].NotchStateType == type)
                 {
-                    CurrentNotch = i;
+                    NotchIndex = i;
                     CurrentValue = Notches[i].Value;
 
                     break;
@@ -601,15 +695,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        public void SetStepSize ( float stepSize)
+        public void SetStepSize(float stepSize)
         {
             StepSize = stepSize;
         }
 
-        public void Normalize (float ratio)
+        public void Normalize(float ratio)
         {
             for (int i = 0; i < Notches.Count; i++)
                 Notches[i].Value /= ratio;
+            MaximumValue /= ratio;
         }
 
         /// <summary>
@@ -637,16 +732,31 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// </summary>
         public int GetNotch(float value)
         {
-            var notch = 0;
+            int notch;
             for (notch = Notches.Count - 1; notch > 0; notch--)
             {
                 if (Notches[notch].Value <= value)
                 {
-                     break;
+                    break;
                 }
             }
             return notch;
         }
 
+        private NameValueCollection GetControllerStatus()
+        {
+            updateControllerStatus = true;
+            return controllerInfo;
+        }
+
+        private protected virtual void UpdateControllerStatus()
+        {
+            IControllerNotch notch = Notches[NotchIndex];
+            float fraction = (Notches.Count == 0 || !notch.Smooth) ? CurrentValue : GetNotchFraction();
+            controllerInfo["State"] = notch.NotchStateType.GetLocalizedDescription();
+            controllerInfo["Value"] = $"{(int)(fraction * 100):N0}%";
+            controllerInfo["Status"] = FormatStrings.JoinIfNotEmpty(' ', controllerInfo["State"], controllerInfo["Value"]);
+            controllerInfo["StatusShort"] = FormatStrings.JoinIfNotEmpty(' ', controllerInfo["State"].Max(string.IsNullOrEmpty(controllerInfo["Value"]) ? 20 : 5), controllerInfo["Value"]);
+        }
     }
 }

@@ -366,7 +366,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && ((MSTSLocomotive)Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
+                    if (Train.LeadLocomotive != null && (Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
                     {
                         return 100;
                     }

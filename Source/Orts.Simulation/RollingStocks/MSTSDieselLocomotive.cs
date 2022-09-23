@@ -605,9 +605,9 @@ namespace Orts.Simulation.RollingStocks
                     Train.MUGearboxGearIndex = DieselEngines[0].GearBox.CurrentGearIndex + 1;
                     Train.AITrainGearboxGearIndex = DieselEngines[0].GearBox.CurrentGearIndex + 1;
                 }
-                GearBoxController.CurrentNotch = Train.MUGearboxGearIndex;
+                GearBoxController.NotchIndex = Train.MUGearboxGearIndex;
                 GearboxGearIndex = DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                GearBoxController.SetValue((float)GearBoxController.CurrentNotch);
+                GearBoxController.SetValue((float)GearBoxController.NotchIndex);
             }
 
             ThrottleController.SetValue(Train.MUThrottlePercent / 100);
@@ -1016,7 +1016,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                 {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex, 1, 8);
                 }
                 else
                 {
@@ -1059,7 +1059,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                 {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex, 1, 8);
                 }
                 else
                 {
@@ -1118,7 +1118,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                 {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex, 1, 8);
                 }
                 else
                 {
@@ -1408,9 +1408,9 @@ namespace Orts.Simulation.RollingStocks
             }
             if (DieselEngines[0].GearBox != null && GearBoxController != null)
             {
-                GearBoxController.CurrentNotch = DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                GearBoxController.NotchIndex = DieselEngines[0].GearBox.CurrentGearIndex + 1;
                 GearboxGearIndex = DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                GearBoxController.SetValue((float)GearBoxController.CurrentNotch);
+                GearBoxController.SetValue((float)GearBoxController.NotchIndex);
             }
 
         }
@@ -1495,6 +1495,7 @@ namespace Orts.Simulation.RollingStocks
                     for (int i = 0; i < DieselEngines.MSTSGearBoxParams.GearBoxMaxTractiveForceForGearsN.Count; i++)
                         DieselEngines.MSTSGearBoxParams.GearBoxMaxTractiveForceForGearsN[i] *= ThrottleController.MaximumValue;
                 }
+                float maximum = ThrottleController.MaximumValue;
                 ThrottleController.Normalize(ThrottleController.MaximumValue);
                 // correct also .cvf files
                 if (CabViewList.Count > 0)
@@ -1504,18 +1505,17 @@ namespace Orts.Simulation.RollingStocks
                         {
                             foreach (var control in cabView.CVFFile.CabViewControls)
                             {
-                                if (control is CabViewDiscreteControl && control.ControlType == CabViewControlType.Throttle && (control as CabViewDiscreteControl).Values.Count > 0 && (control as CabViewDiscreteControl).Values[(control as CabViewDiscreteControl).Values.Count - 1] > 1)
+                                if (control is CabViewDiscreteControl discreteCabControl && control.ControlType == CabViewControlType.Throttle && discreteCabControl.Values.Count > 0 && discreteCabControl.Values[^1] > 1)
                                 {
-                                    var discreteControl = (CabViewDiscreteControl)control;
+                                    var discreteControl = discreteCabControl;
                                     for (var i = 0; i < discreteControl.Values.Count; i++)
-                                        discreteControl.Values[i] /= ThrottleController.MaximumValue;
+                                        discreteControl.Values[i] /= maximum;
                                     if (discreteControl.ScaleRangeMax > 0)
                                         discreteControl.ResetScaleRange(discreteControl.ScaleRangeMin, (float)discreteControl.Values[discreteControl.Values.Count - 1]);
                                 }
                             }
                         }
                     }
-                ThrottleController.MaximumValue = 1;
             }
             // Check also for very low DieselEngineIdleRPM
             if (IdleRPM < 10)

@@ -1531,8 +1531,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     if (GearBox.GearBoxOperation == GearBoxOperation.Manual)
                     {
-                        if (Locomotive.GearBoxController.CurrentNotch > 0)
-                            GearBox.NextGear = GearBox.Gears[Locomotive.GearBoxController.CurrentNotch - 1];
+                        if (Locomotive.GearBoxController.NotchIndex > 0)
+                            GearBox.NextGear = GearBox.Gears[Locomotive.GearBoxController.NotchIndex - 1];
                         else
                             GearBox.NextGear = null;
                     }

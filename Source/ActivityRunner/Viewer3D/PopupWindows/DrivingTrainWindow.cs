@@ -50,6 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Retainer,
             EngineBrake,
             EngineBC,
+            DynamicBrake,
         }
 
         private readonly UserSettings settings;
@@ -68,10 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private string sanderInput;
         private string trainBrakeInput;
         private string engineBrakeInput;
-        private bool throttleIncreaseDown;
-        private bool throttleDecreaseDown;
-        private bool dynamicBrakeIncreaseDown;
-        private bool dynamicBrakeDecreaseDown;
+        private string dynamicBrakeInput;
         private string gearKeyInput;
         private bool pantographKeyDown;
         private bool autoPilotKeyDown;
@@ -169,6 +167,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (engineBcAvailable)
             {
                 AddDetailLine(DetailInfo.EngineBC, columnWidth, "  " + (shortMode ? FourCharAcronym.BrakeCylinder.GetLocalizedDescription() : Catalog.GetString("Brk Cyl")), font);
+            }
+            if (playerLocomotive.DynamicBrakeController != null)
+            {
+                AddDetailLine(DetailInfo.DynamicBrake, columnWidth, shortMode ? FourCharAcronym.DynamicBrake.GetLocalizedDescription() : Catalog.GetString("Dyn Brk"), font);
+                (groupDetails[DetailInfo.DynamicBrake].Controls[3] as Label).TextColor = Color.Cyan;
             }
             layout.AddHorizontalSeparator(true);
             return layout;
@@ -294,8 +297,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void ThrottleCommand(bool increase)
         {
-            throttleIncreaseDown = increase;
-            throttleDecreaseDown = !increase;
             TrainCar locomotive = Simulator.Instance.PlayerLocomotive;
             throttleKeyInput = locomotive.DynamicBrakePercent < 1 && (increase && (locomotive as MSTSLocomotive).ThrottleController.MaximumValue == locomotive.ThrottlePercent / 100)
                 || (!increase && locomotive.ThrottlePercent == 0)
@@ -323,13 +324,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void EngineBrakeCommand(bool increase)
         {
-            engineBrakeInput = increase ? Markers.ArrowDown : Markers.ArrowUp;
+            engineBrakeInput = increase ? Markers.ArrowUp : Markers.ArrowDown;
         }
 
         private void DynamicBrakeCommand(bool increase)
         {
-            dynamicBrakeIncreaseDown = increase;
-            dynamicBrakeDecreaseDown = !increase;
+            dynamicBrakeInput = increase ? Markers.ArrowUp : Markers.ArrowDown;
         }
 
         private void GearCommand(bool down)
@@ -481,6 +481,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     engineBCLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"];
                 }
                 engineBrakeInput = null;
+            }
+            if (playerLocomotive.IsLeadLocomotive() && groupDetails[DetailInfo.DynamicBrake]?.Controls[3] is Label dynamicBrakeLabel)
+            {
+                dynamicBrakeLabel.Text = (playerLocomotive.DynamicBrakePercent >= 0) ?
+                        playerLocomotive.DynamicBrake ?
+                        (windowMode != WindowMode.Normal) ?
+                    (playerLocomotive.DynamicBrakeController as INameValueInformationProvider).DebugInfo["StatusShort"] :
+                    (playerLocomotive.DynamicBrakeController as INameValueInformationProvider).DebugInfo["Status"] :
+                    Catalog.GetParticularString("DynamicBrake", "Setup") :
+                    Catalog.GetParticularString("DynamicBrake", "Off");
+                (groupDetails[DetailInfo.DynamicBrake].Controls[0] as Label).Text = dynamicBrakeInput;
+                (groupDetails[DetailInfo.DynamicBrake].Controls[2] as Label).Text = dynamicBrakeInput;
+                dynamicBrakeInput = null;
             }
             return result;
         }
