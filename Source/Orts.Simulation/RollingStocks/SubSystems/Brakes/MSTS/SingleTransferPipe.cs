@@ -63,7 +63,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        public override void InitializeFromCopy(BrakeSystem source)
+        public override void InitializeFrom(BrakeSystem source)
         {
             BrakePipeVolumeM3 = (source as SingleTransferPipe)?.BrakePipeVolumeM3 ?? throw new ArgumentNullException(nameof(source));
         }
@@ -164,9 +164,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             BleedOffValveOpen = false;
             car.SetBrakeForce(car.MaxHandbrakeForceN * handbrakePercent / 100);
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
         }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
             // display differently depending upon whether vacuum or air braked system
             brakeInfo["BP"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
@@ -182,7 +187,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}" :
                 // air braked by default
                 $"BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], false)}";
-            return brakeInfo;
         }
     }
 }

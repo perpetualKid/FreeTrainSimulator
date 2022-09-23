@@ -33,6 +33,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
     public class ScriptedBrakeController : IController, INameValueInformationProvider
     {
         private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
+        private bool updateBrakeStatus;
 
         private protected readonly MSTSLocomotive locomotive;
         private readonly Simulator simulator;
@@ -408,7 +409,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public float Update(double elapsedSeconds)
         {
-            return script?.Update(elapsedSeconds) ?? 0;
+            float result = script?.Update(elapsedSeconds) ?? 0;
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
+            return result;
         }
 
         public (double pressurePSI, double epPressureBar) UpdatePressure(double pressurePSI, double epPressureBar, double elapsedClockSeconds)
@@ -519,7 +526,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public string GetStatus() => BrakeStatus.ToShortString();
 
-        public NameValueCollection DebugInfo => UpdateBrakeStatus();
+        public NameValueCollection DebugInfo => GetBrakeStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
@@ -543,13 +550,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             TCSFullServiceBraking = inf.ReadBoolean();
         }
 
-        private protected virtual NameValueCollection UpdateBrakeStatus()
+        private protected virtual void UpdateBrakeStatus()
         {
             brakeInfo["State"] = script?.State.GetLocalizedDescription();
             float fraction = script?.StateFraction ?? float.NaN;
             brakeInfo["Value"] = float.IsNaN(fraction) ? null : $"{(int)(fraction * 100):N0}%";
             brakeInfo["Status"] = FormatStrings.JoinIfNotEmpty(' ', brakeInfo["State"], brakeInfo["Value"]);
             brakeInfo["StatusShort"] = FormatStrings.JoinIfNotEmpty(' ', brakeInfo["State"].Max(string.IsNullOrEmpty(brakeInfo["Value"]) ? 20 : 5), brakeInfo["Value"]);
+        }
+
+        private NameValueCollection GetBrakeStatus()
+        {
+            updateBrakeStatus = true;
             return brakeInfo;
         }
     }
@@ -575,9 +587,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             base(source, locomotive)
         { }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
-            _ = base.UpdateBrakeStatus();
+            base.UpdateBrakeStatus();
             // If brake type is only a state, and no numerical fraction application is displayed in the HUD, then display Brake Cylinder (BC) pressure
             if (float.IsNaN(ControllerValue)) // Test to see if a brake state only is present without a fraction of application, if no value, display BC pressure
             {
@@ -605,8 +617,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 brakeInfo["BailOff"] = locomotive.BailOff ? Simulator.Catalog.GetString("BailOff") : null;
             }
-            return brakeInfo;
         }
-
     }
 }

@@ -1615,7 +1615,7 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            MSTSBrakeSystem.InitializeFromCopy(source.BrakeSystem);
+            MSTSBrakeSystem.InitializeFrom(source.BrakeSystem);
             if (source.WeightLoadController != null)
                 WeightLoadController = new MSTSNotchController(source.WeightLoadController);
 

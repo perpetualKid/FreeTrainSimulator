@@ -73,6 +73,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 BrakeLine2PressurePSI -= dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
                 autoCylPressurePSI += dp;
             }
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
         }
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
@@ -89,13 +94,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             autoCylPressurePSI = Math.Max(autoCylPressurePSI, Math.Min(Math.Max(car.Train.BrakeSystem.BrakeLine4Pressure, 0), 1) * maxCylPressurePSI);
         }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
             brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], true);
             brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
             brakeInfo["Status"] = $"BC {brakeInfo["BC"]}";
             brakeInfo["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], false)}";
-            return brakeInfo;
         }
 
     }

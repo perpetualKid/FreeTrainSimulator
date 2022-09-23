@@ -473,13 +473,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (groupDetails[DetailInfo.EngineBrake]?.Controls[3] is Label engineBrakeLabel)
             {
                 engineBrakeLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["Status"];
-                (groupDetails[DetailInfo.EngineBrake].Controls[0] as Label).Text = ((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null;
-                (groupDetails[DetailInfo.EngineBrake].Controls[2] as Label).Text = ((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null;
+                (groupDetails[DetailInfo.EngineBrake].Controls[0] as Label).Text = engineBrakeInput ?? (((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null);
+                (groupDetails[DetailInfo.EngineBrake].Controls[2] as Label).Text = engineBrakeInput ?? (((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? Markers.Block : null);
                 result |= engineBcAvailable != (engineBcAvailable = !string.IsNullOrEmpty((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"]));
                 if (engineBcAvailable && groupDetails[DetailInfo.EngineBC]?.Controls[3] is Label engineBCLabel)
                 {
                     engineBCLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"];
                 }
+                engineBrakeInput = null;
             }
             return result;
         }

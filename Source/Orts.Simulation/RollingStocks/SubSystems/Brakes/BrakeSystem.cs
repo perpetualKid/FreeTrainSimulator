@@ -40,10 +40,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
     public abstract class BrakeSystem : INameValueInformationProvider
     {
         private protected readonly TrainCar car;
-
         private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
+        private protected bool updateBrakeStatus;
 
-        private protected abstract NameValueCollection UpdateBrakeStatus();
+        private protected abstract void UpdateBrakeStatus();
 
         /// <summary>
         /// Main trainline pressure at this car in PSI
@@ -105,7 +105,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float GetVacBrakeCylNumber();
         public bool CarBPIntact { get; set; }
 
-        public NameValueCollection DebugInfo => UpdateBrakeStatus();
+        public NameValueCollection DebugInfo => GetBrakeStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
@@ -134,6 +134,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         protected BrakeSystem(TrainCar car)
         {
             this.car = car;
+        }
+
+        private NameValueCollection GetBrakeStatus()
+        {
+            updateBrakeStatus = true;
+            return brakeInfo;
         }
     }
 

@@ -104,7 +104,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return handbrakePercent > 0;
         }
 
-        public override void InitializeFromCopy(BrakeSystem source)
+        public override void InitializeFrom(BrakeSystem source)
         {
             AirSinglePipe singlePipe = source as AirSinglePipe ?? throw new InvalidCastException(nameof(source));
             maxCylPressurePSI = singlePipe.maxCylPressurePSI;
@@ -708,7 +708,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             }
             soundTriggerCounter = soundTriggerCounter + (float)elapsedClockSeconds;
-            UpdateBrakeStatus();
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)
@@ -1061,7 +1065,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
             brakeInfo["EQ"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.EqualizingReservoir], true);
             brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], true);
@@ -1069,7 +1073,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
             brakeInfo["Status"] = $"BC {brakeInfo["BC"]} BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], false)} BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], false)}";
-            return brakeInfo;
         }
     }
 }

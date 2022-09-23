@@ -77,7 +77,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return HandbrakePercent > 0;
         }
 
-        public override void InitializeFromCopy(BrakeSystem copy)
+        public override void InitializeFrom(BrakeSystem copy)
         {
             VacuumSinglePipe thiscopy = (VacuumSinglePipe)copy;
             MaxForcePressurePSI = thiscopy.MaxForcePressurePSI;
@@ -614,6 +614,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 prevBrakePipePressurePSI = BrakeLine1PressurePSI;
             }
             SoundTriggerCounter++;
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)
@@ -1455,7 +1460,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
             string s;
             // display depending upon whether an EQ reservoir fitted
@@ -1477,7 +1482,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
-            return brakeInfo;
         }
     }
 }

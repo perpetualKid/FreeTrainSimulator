@@ -351,6 +351,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     base.Update(elapsedClockSeconds);
                 }
             }
+            if (updateBrakeStatus)
+            {
+                UpdateBrakeStatus();
+                updateBrakeStatus = false;
+            }
         }
 
         // This overides the information for each individual wagon in the extended HUD  
@@ -397,12 +402,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        private protected override NameValueCollection UpdateBrakeStatus()
+        private protected override void UpdateBrakeStatus()
         {
             brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
-            return brakeInfo;
         }
     }
 }
