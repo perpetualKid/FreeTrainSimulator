@@ -40,7 +40,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private readonly bool activated;
         private string scriptName = "MSTS";
         private protected BrakeController script;
-        private readonly List<INotchController> notches = new List<INotchController>();
+        private readonly List<IControllerNotch> notches = new List<IControllerNotch>();
 
         private bool emergencyBrakingPushButton;
         private bool tcsEmergencyBraking;

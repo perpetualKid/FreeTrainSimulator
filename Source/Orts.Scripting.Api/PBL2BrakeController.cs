@@ -64,7 +64,7 @@ namespace Orts.Scripting.Script
 
         public override void Initialize()
         {
-            foreach (INotchController notch in Notches())
+            foreach (IControllerNotch notch in Notches())
             {
                 switch (notch.NotchStateType)
                 {

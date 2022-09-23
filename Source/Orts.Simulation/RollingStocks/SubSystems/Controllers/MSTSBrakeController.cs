@@ -38,7 +38,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// </summary>
         public bool ForceControllerReleaseGraduated { get; set; }
         private bool brakeControllerInitialised; // flag to allow PreviousNotchPosition to be initially set.
-        private INotchController previousNotchPosition;
+        private IControllerNotch previousNotchPosition;
 
         private bool EnforceMinimalReduction;
 
@@ -90,7 +90,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
             else
             {
-                INotchController notch = NotchController.GetCurrentNotch();
+                IControllerNotch notch = NotchController.GetCurrentNotch();
 
                 if (!brakeControllerInitialised) // The first time around loop, PreviousNotchPosition will be set up front with current value, this will stop crashes due to vsalue not being initialised. 
                 {
@@ -238,7 +238,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         // Engine Brake Controllers
         public override double UpdateEngineBrakePressure(double pressureBar, double elapsedClockSeconds)
         {
-            INotchController notch = NotchController.GetCurrentNotch();
+            IControllerNotch notch = NotchController.GetCurrentNotch();
             if (notch == null)
             {
                 pressureBar = (MaxPressureBar() - FullServReductionBar()) * CurrentValue();
@@ -387,7 +387,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         return NotchController.CurrentValue;
                     else
                     {
-                        INotchController notch = NotchController.GetCurrentNotch();
+                        IControllerNotch notch = NotchController.GetCurrentNotch();
 
                         return !notch.Smooth
                             ? notch.NotchStateType == ControllerState.Dummy ? NotchController.CurrentValue : float.NaN

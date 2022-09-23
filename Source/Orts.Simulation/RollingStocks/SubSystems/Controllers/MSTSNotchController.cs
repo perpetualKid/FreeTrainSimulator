@@ -26,7 +26,7 @@ using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public class MSTSNotch: INotchController
+    public class MSTSNotch: IControllerNotch
     {
         public float Value { get ; set; }
         public bool Smooth { get; set; }
@@ -96,7 +96,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             NotchStateType = (ControllerState)t;
         }
 
-        public MSTSNotch(INotchController other)
+        public MSTSNotch(IControllerNotch other)
         {
             Value = other.Value;
             Smooth = other.Smooth;
@@ -139,7 +139,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public const float StandardBoost = 5.0f; // standard step size multiplier
         public const float FastBoost = 20.0f;
         public float StepSize;
-        private List<INotchController> Notches = new List<INotchController>();
+        private List<IControllerNotch> Notches = new List<IControllerNotch>();
         public int CurrentNotch { get; set; }
         public bool ToZero; // true if controller zero command;
 
@@ -196,7 +196,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Parse(stf);
         }
 
-        public MSTSNotchController(List<INotchController> notches)
+        public MSTSNotchController(List<IControllerNotch> notches)
         {
             Notches = notches;
         }
@@ -293,10 +293,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     v = Notches[Notches.Count - 1].Value * percent / 100;
                 for (; ; )
                 {
-                    INotchController notch = Notches[CurrentNotch];
+                    IControllerNotch notch = Notches[CurrentNotch];
                     if (CurrentNotch > 0 && v < notch.Value)
                     {
-                        INotchController prev = Notches[CurrentNotch-1];
+                        IControllerNotch prev = Notches[CurrentNotch-1];
                         if (!notch.Smooth && !prev.Smooth && v - prev.Value > .45 * (notch.Value - prev.Value))
                             break;
                         CurrentNotch--;
@@ -304,7 +304,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                     if (CurrentNotch < Notches.Count - 1)
                     {
-                        INotchController next = Notches[CurrentNotch + 1];
+                        IControllerNotch next = Notches[CurrentNotch + 1];
                         if (next.NotchStateType != ControllerState.Emergency)
                         {
                             if ((notch.Smooth || next.Smooth) && v < next.Value)
@@ -466,7 +466,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Notches.Count == 0)
                 return 0;
-            INotchController notch = Notches[CurrentNotch];
+            IControllerNotch notch = Notches[CurrentNotch];
             if (!notch.Smooth)
                 // Respect British 3-wire EP brake configurations
                 return (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.EPOnly )? CurrentValue : 1;
@@ -529,7 +529,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Notches.Count == 0)
                 return $"{100 * CurrentValue:F0}%";
-            INotchController notch = Notches[CurrentNotch];
+            IControllerNotch notch = Notches[CurrentNotch];
             string name = notch.NotchStateType.GetLocalizedDescription();
             if (!notch.Smooth && notch.NotchStateType == ControllerState.Dummy)
                 return $"{100 * CurrentValue:F0}%";
@@ -582,7 +582,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }           
         }
 
-        public INotchController GetCurrentNotch()
+        public IControllerNotch GetCurrentNotch()
         {
             return Notches.Count == 0 ? null : Notches[CurrentNotch];
         }

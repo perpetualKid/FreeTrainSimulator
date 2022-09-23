@@ -103,7 +103,7 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Gives the list of notches
         /// </summary>
-        public Func<List<INotchController>> Notches { get; set; }
+        public Func<List<IControllerNotch>> Notches { get; set; }
 
         /// <summary>
         /// Sets the current value of the brake controller lever
