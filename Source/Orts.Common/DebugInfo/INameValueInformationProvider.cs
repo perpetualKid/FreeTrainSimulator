@@ -81,19 +81,19 @@ namespace Orts.Common.DebugInfo
     public class DebugInfoBase : NameValueCollection, INameValueInformationProvider
 #pragma warning restore CA1010 // Generic interface should also be implemented
     {
-        public DebugInfoBase()
+        public DebugInfoBase(bool includeFormattingOptions = false)
         {
+            if (includeFormattingOptions)
+                FormattingOptions = new Dictionary<string, FormatOption>();
         }
 
         public virtual void Update(GameTime gameTime)
         {
         }
 
-        public virtual NameValueCollection DebugInfo => this;
+        public NameValueCollection DebugInfo => this;
 
-#pragma warning disable CA2227 // Collection properties should be read only
-        public virtual Dictionary<string, FormatOption> FormattingOptions { get; protected set; }
-#pragma warning restore CA2227 // Collection properties should be read only
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
     }
 
 }

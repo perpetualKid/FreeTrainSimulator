@@ -531,12 +531,11 @@ namespace Orts.Toolbox
 
             private readonly int slowFps;
 
-            public CommonDebugInfo(GameWindow gameWindow)
+            public CommonDebugInfo(GameWindow gameWindow): base(true)
             {
                 int targetFps = (int)Math.Round(1000 / gameWindow.TargetElapsedTime.TotalMilliseconds);
                 slowFps = targetFps - targetFps / 6;
                 frameRate.Preset(targetFps);
-                FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
                 gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             }
@@ -577,12 +576,9 @@ namespace Orts.Toolbox
 
             public GraphicsMetrics CurrentMetrics;
 
-            public GraphicsDebugInfo()
+            public GraphicsDebugInfo(): base(true)
             {
-                FormattingOptions = new Dictionary<string, FormatOption>
-                {
-                    { "GPU Information", FormatOption.Bold }
-                };
+                FormattingOptions["GPU Information"] = FormatOption.Bold;
                 DebugInfo.Add("GPU Information", null);
                 DebugInfo.Add("Clear Calls", null);
                 DebugInfo.Add("Draw Calls", null);

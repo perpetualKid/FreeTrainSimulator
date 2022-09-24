@@ -546,11 +546,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             private readonly ContentArea contentArea;
 
             private const double fpsLow = targetFps - targetFps / 5.0;
-            public CommonDebugInfo(ContentArea contentArea)
+            public CommonDebugInfo(ContentArea contentArea): base(true)
             {
                 this.contentArea = contentArea;
                 frameRate.Preset(targetFps);
-                FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
             }
 

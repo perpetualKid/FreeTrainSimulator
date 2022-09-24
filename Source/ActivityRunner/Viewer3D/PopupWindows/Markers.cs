@@ -8,6 +8,7 @@
         internal const string ArrowLeft = "◄"; // \u25C4
 
         internal const string Block = "█"; // \u2588
+        internal const string BlockUpperHalf = "▀"; // \u2580
         internal const string BlockLowerHalf = "▄"; // \u2584
         internal const string Fence = "▐"; // \u2590
         internal const string Dash = "―"; // \u2015
