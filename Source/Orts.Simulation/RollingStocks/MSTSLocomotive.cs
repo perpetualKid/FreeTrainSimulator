@@ -2100,7 +2100,10 @@ namespace Orts.Simulation.RollingStocks
             // Cruise Control
             CruiseControl?.Update(elapsedClockSeconds);
             if (CruiseControl != null && CruiseControl.OverrideForceCalculation)
+            {
                 CruiseControl.UpdateMotiveForce(elapsedClockSeconds, AbsWheelSpeedMpS);
+                SetAbsTractionSpeedMpS();
+            }
             else
                 UpdateTractiveForce(elapsedClockSeconds, t, AbsSpeedMpS, AbsWheelSpeedMpS);
 
@@ -2410,6 +2413,22 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+
+        /// <summary>
+        /// This function derives AbsTractionSpeedMpS.
+        /// </summary>
+        private void SetAbsTractionSpeedMpS()
+        {
+            if (TractionMotorType == TractionMotorType.AC)
+            {
+                AbsTractionSpeedMpS = AbsSpeedMpS;
+            }
+            else
+            {
+                AbsTractionSpeedMpS = WheelSlip && AdvancedAdhesionModel ? AbsWheelSpeedMpS : AbsSpeedMpS;
+            }
+        }
+
         /// <summary>
         /// This function updates periodically the locomotive's motive force.
         /// </summary>
@@ -2429,14 +2448,7 @@ namespace Orts.Simulation.RollingStocks
                 // More modern locomotive have a more sophisticated system that eliminates slip in the majority (if not all circumstances).
                 // Simple adhesion control does not have any slip control feature built into it.
                 // TODO - a full review of slip/no slip control.
-                if (TractionMotorType == TractionMotorType.AC)
-                {
-                    AbsTractionSpeedMpS = AbsSpeedMpS;
-                }
-                else
-                {
-                    AbsTractionSpeedMpS = WheelSlip && AdvancedAdhesionModel ? AbsWheelSpeedMpS : AbsSpeedMpS;
-                }
+                SetAbsTractionSpeedMpS();
 
                 if (TractiveForceCurves == null)
                 {
