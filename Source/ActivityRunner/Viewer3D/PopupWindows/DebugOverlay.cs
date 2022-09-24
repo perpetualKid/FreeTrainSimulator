@@ -139,7 +139,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
                 });
-                int y = (int)(160 * Owner.DpiScaling);
+                int y = (int)(240 * Owner.DpiScaling);
                 layoutContainer.Add(consistTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
@@ -289,7 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         }
                         break;
                     case TabSettings.Force:
-                        if ((locomotive as MSTSDieselLocomotive)?.DieselEngines.GearBox is GearBox gearBox && (locomotive as MSTSDieselLocomotive)?.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                        if (locomotive is MSTSDieselLocomotive dieselLocomotive2 && dieselLocomotive2.DieselEngines.GearBox is GearBox gearBox && dieselLocomotive2.DieselTransmissionType == DieselTransmissionType.Mechanic)
                         {
                             // For geared locomotives the Max Force base value changes for each gear.
                             graphMotiveForce.AddSample(locomotive.MotiveForceN / gearBox.CurrentGear.MaxTractiveForceN);

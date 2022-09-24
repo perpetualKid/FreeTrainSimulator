@@ -31,6 +31,10 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             this[catalog.GetString("Control Mode")] = null;
             this[catalog.GetString("Out of Control")] = null;
             this[catalog.GetString("Cab Aspect")] = null;
+            this[catalog.GetString(".Cruise control")] = null;
+            this[catalog.GetString("Cruise control")] = null;
+            this[catalog.GetString("Target Speed")] = null;
+            this[catalog.GetString("Max Acceleration")] = null;
         }
 
         public override void Update(GameTime gameTime)
@@ -59,6 +63,21 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 this[catalog.GetString("Control Mode")] = train.ControlMode.GetLocalizedDescription();
                 this[catalog.GetString("Out of Control")] = train.OutOfControlReason.GetLocalizedDescription();
                 this[catalog.GetString("Cab Aspect")] = locomotive.TrainControlSystem.CabSignalAspect.GetDescription();
+                if (locomotive.CruiseControl != null)
+                {
+                    this[catalog.GetString("Cruise control")] = locomotive.CruiseControl.SpeedRegMode.GetLocalizedDescription();
+                    if (locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                    {
+                        this[catalog.GetString("Target Speed")] = FormatStrings.FormatSpeedDisplay(locomotive.CruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits);
+                        this[catalog.GetString("Max Acceleration")] = $"{(locomotive.CruiseControl.SpeedRegulatorMaxForcePercentUnits ? locomotive.CruiseControl.SelectedMaxAccelerationPercent : locomotive.CruiseControl.SelectedMaxAccelerationStep)}";
+                    }
+                }
+                else
+                {
+                    this[catalog.GetString("Cruise control")] = catalog.GetString("n/a");
+                    this[catalog.GetString("Target Speed")] = null;
+                    this[catalog.GetString("Max Acceleration")] = null;
+                }
                 base.Update(gameTime);
             }
         }
