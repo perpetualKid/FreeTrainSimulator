@@ -265,8 +265,8 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 300: return TrainEvent.CruiseControlSpeedRegulator;
                         case 301: return TrainEvent.CruiseControlSpeedSelector;
                         case 302: return TrainEvent.CruiseControlMaxForce;
-                        case 303: return TrainEvent.Alert;
-                        case 304: return TrainEvent.Alert1;
+                        case 303: return TrainEvent.CruiseControlAlert;
+                        case 304: return TrainEvent.CruiseControlAlert1;
 
                         //
                         default: return TrainEvent.None;

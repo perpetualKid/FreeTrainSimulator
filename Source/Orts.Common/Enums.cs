@@ -506,8 +506,8 @@ namespace Orts.Common
         CruiseControlSpeedRegulator,
         CruiseControlSpeedSelector,
         CruiseControlMaxForce,
-        Alert,
-        Alert1,
+        CruiseControlAlert,
+        CruiseControlAlert1,
 
         MPCChangePosition,
     }
