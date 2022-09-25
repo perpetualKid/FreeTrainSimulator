@@ -990,6 +990,7 @@ namespace Orts.Common
 
     public enum CruiseControllerPosition
     {
+        Undefined,
         Neutral,
         Drive,
         ThrottleIncrease,

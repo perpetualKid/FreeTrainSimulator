@@ -65,8 +65,8 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 this[catalog.GetString("Cab Aspect")] = locomotive.TrainControlSystem.CabSignalAspect.GetDescription();
                 if (locomotive.CruiseControl != null)
                 {
-                    this[catalog.GetString("Cruise control")] = locomotive.CruiseControl.SpeedRegMode.GetLocalizedDescription();
-                    if (locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                    this[catalog.GetString("Cruise control")] = locomotive.CruiseControl.SpeedRegulatorMode.GetLocalizedDescription();
+                    if (locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                     {
                         this[catalog.GetString("Target Speed")] = FormatStrings.FormatSpeedDisplay(locomotive.CruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits);
                         this[catalog.GetString("Max Acceleration")] = $"{(locomotive.CruiseControl.SpeedRegulatorMaxForcePercentUnits ? locomotive.CruiseControl.SelectedMaxAccelerationPercent : locomotive.CruiseControl.SelectedMaxAccelerationStep)}";

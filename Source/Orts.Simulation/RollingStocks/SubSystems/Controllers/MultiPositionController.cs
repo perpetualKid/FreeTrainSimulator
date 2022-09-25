@@ -43,7 +43,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private float elapsedSecondsFromLastChange;
         private bool checkNeutral;
         private bool noKeyPressed = true;
-        private string currentPosition = "";
+        private CruiseControllerPosition currentPosition = CruiseControllerPosition.Undefined;
         private bool emergencyBrake;
         private bool previousDriveModeWasAddPower;
         private bool isBraking;
@@ -53,7 +53,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private bool movedAft;
         private bool haveCruiseControl;
 
-        public List<Position> PositionsList { get; } = new List<Position>();
+        private readonly List<Position> positionsList = new List<Position>();
         public bool Equipped { get; set; }
         public bool StateChanged { get; set; }
         public CruiseControllerPosition ControllerPosition { get; private set; }
@@ -77,7 +77,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             simulator = Simulator.Instance;
             this.locomotive = locomotive;
 
-            PositionsList = source.PositionsList;
+            positionsList = source.positionsList;
             ControllerBinding = source.ControllerBinding;
             ControllerId = source.ControllerId;
             CanControlTrainBrake = source.CanControlTrainBrake;
@@ -88,7 +88,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             outf.Write(this.checkNeutral);
             outf.Write((int)this.ControllerPosition);
-            outf.Write(this.currentPosition);
+            outf.Write((int)this.currentPosition);
             outf.Write(this.elapsedSecondsFromLastChange);
             outf.Write(this.emergencyBrake);
             outf.Write(this.Equipped);
@@ -103,9 +103,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             initialized = true;
             checkNeutral = inf.ReadBoolean();
-            int fControllerPosition = inf.ReadInt32();
-            ControllerPosition = (CruiseControllerPosition)fControllerPosition;
-            currentPosition = inf.ReadString();
+            ControllerPosition = (CruiseControllerPosition)inf.ReadInt32();
+            currentPosition = (CruiseControllerPosition)inf.ReadInt32();
             elapsedSecondsFromLastChange = inf.ReadSingle();
             emergencyBrake = inf.ReadBoolean();
             Equipped = inf.ReadBoolean();
@@ -131,7 +130,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("position", ()=>{
                             stf.MustMatch("(");
-                            PositionsList.Add(new Position(stf.ReadString(), stf.ReadString(), stf.ReadString()));
+                            positionsList.Add(new Position(stf.ReadString(), stf.ReadString(), stf.ReadString()));
                         }),
                     });
                         }
@@ -156,9 +155,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 if (locomotive.CruiseControl != null)
                     haveCruiseControl = true;
-                foreach (Position pair in PositionsList)
+                foreach (Position pair in positionsList)
                 {
-                    if (pair.Flag.ToLower() == "default")
+                    if (string.Equals(pair.Flag, "default", StringComparison.OrdinalIgnoreCase))
                     {
                         currentPosition = pair.Type;
                         break;
@@ -202,7 +201,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             bool ccAutoMode = false;
             if (haveCruiseControl)
             {
-                if (locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                if (locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                 {
                     ccAutoMode = true;
                 }
@@ -462,7 +461,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 && locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed &&
                            locomotive.ThrottleController.CurrentValue == 0 && locomotive.DynamicBrakeController.CurrentValue == 0)
                     {
-                        locomotive.CruiseControl.SpeedRegMode = SpeedRegulatorMode.Auto;
+                        locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Auto;
                         locomotive.CruiseControl.SpeedRegulatorSelectedSpeedIncrease();
                     }
                 }
@@ -518,12 +517,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 if (ControllerPosition == CruiseControllerPosition.ThrottleIncrease)
                 {
                     isBraking = false;
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Start;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Start;
                     previousDriveModeWasAddPower = true;
                 }
                 if (ControllerPosition == CruiseControllerPosition.Neutral)
                 {
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Neutral;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Neutral;
                 }
                 if (ControllerPosition == CruiseControllerPosition.Drive)
                 {
@@ -550,13 +549,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         applyPower = false;
                     }
                     if (applyPower)
-                        locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.On;
+                        locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.On;
                 }
                 if (ControllerPosition == CruiseControllerPosition.DynamicBrakeIncrease)
                 {
                     isBraking = true;
                     previousDriveModeWasAddPower = false;
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Neutral;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Neutral;
                     if (CanControlTrainBrake)
                     {
                         if (locomotive.TrainBrakeController.TrainBrakeControllerState == ControllerState.Apply)
@@ -579,7 +578,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 {
                     isBraking = true;
                     previousDriveModeWasAddPower = false;
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Neutral;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Neutral;
                     if (CanControlTrainBrake)
                     {
                         if (locomotive.TrainBrakeController.TrainBrakeControllerState == ControllerState.Apply)
@@ -600,7 +599,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 {
                     isBraking = true;
                     previousDriveModeWasAddPower = false;
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Neutral;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Neutral;
                     if (CanControlTrainBrake)
                     {
                         if (locomotive.TrainBrakeController.TrainBrakeControllerState != ControllerState.Apply)
@@ -617,7 +616,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 {
                     isBraking = true;
                     previousDriveModeWasAddPower = false;
-                    locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.Neutral;
+                    locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.Neutral;
                     EmergencyBrakes();
                     emergencyBrake = true;
                 }
@@ -645,9 +644,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (movement == Movement.Neutral)
                 movedForward = movedAft = false;
             messageDisplayed = false;
-            if (string.IsNullOrEmpty(currentPosition))
+            if (currentPosition == CruiseControllerPosition.Undefined)
             {
-                foreach (Position pair in PositionsList)
+                foreach (Position pair in positionsList)
                 {
                     if (pair.Flag.ToLower() == "default")
                     {
@@ -661,8 +660,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 noKeyPressed = false;
                 checkNeutral = false;
                 bool isFirst = true;
-                string previous = "";
-                foreach (Position pair in PositionsList)
+                CruiseControllerPosition previous = CruiseControllerPosition.Undefined;
+                foreach (Position pair in positionsList)
                 {
                     if (pair.Type == currentPosition)
                     {
@@ -681,7 +680,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 noKeyPressed = false;
                 checkNeutral = false;
                 bool selectNext = false;
-                foreach (Position pair in PositionsList)
+                foreach (Position pair in positionsList)
                 {
                     if (selectNext)
                     {
@@ -696,7 +695,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (movement == Movement.Neutral)
             {
                 noKeyPressed = true;
-                foreach (Position pair in PositionsList)
+                foreach (Position pair in positionsList)
                 {
                     if (pair.Type == currentPosition)
                     {
@@ -723,15 +722,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (noKeyPressed)
             {
-                foreach (Position pair in PositionsList)
+                foreach (Position pair in positionsList)
                 {
                     if (pair.Type == currentPosition)
                     {
-                        if (pair.Flag.ToLower() == "cruisecontrol.needincreaseafteranybrake")
+                        if (string.Equals(pair.Flag, "cruisecontrol.needincreaseafteranybrake", StringComparison.OrdinalIgnoreCase))
                         {
                             needPowerUpAfterBrake = true;
                         }
-                        if (pair.Flag.ToLower() == "springloadedforwards" || pair.Flag.ToLower() == "springloadedbackwards")
+                        if (string.Equals(pair.Flag, "springloadedforwards", StringComparison.OrdinalIgnoreCase) || string.Equals(pair.Flag, "springloadedbackwards", StringComparison.OrdinalIgnoreCase))
                         {
                             if (elapsedSecondsFromLastChange > 0.2f)
                             {
@@ -742,119 +741,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                 }
             }
-            switch (currentPosition)
-            {
-                case "ThrottleIncrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleIncrease;
-                        break;
-                    }
-                case "ThrottleIncreaseFast":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleIncreaseFast;
-                        break;
-                    }
-                case "ThrottleIncreaseOrDynamicBrakeDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleIncreaseOrDynamicBrakeDecrease;
-                        break;
-                    }
-                case "ThrottleIncreaseOrDynamicBrakeDecreaseFast":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleIncreaseOrDynamicBrakeDecreaseFast;
-                        break;
-                    }
-                case "DynamicBrakeIncreaseOrThrottleDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeIncreaseOrThrottleDecrease;
-                        break;
-                    }
-                case "DynamicBrakeIncreaseOrThrottleDecreaseFast":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeIncreaseOrThrottleDecreaseFast;
-                        break;
-                    }
-                case "ThrottleDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleDecrease;
-                        break;
-                    }
-                case "ThrottleDecreaseFast":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleDecreaseFast;
-                        break;
-                    }
-                case "Drive":
-                    {
-                        ControllerPosition = CruiseControllerPosition.Drive;
-                        break;
-                    }
-                case "ThrottleHold":
-                    {
-                        ControllerPosition = CruiseControllerPosition.ThrottleHold;
-                        break;
-                    }
-                case "Neutral":
-                    {
-                        ControllerPosition = CruiseControllerPosition.Neutral;
-                        break;
-                    }
-                case "KeepCurrent":
-                    {
-                        ControllerPosition = CruiseControllerPosition.KeepCurrent;
-                        break;
-                    }
-                case "DynamicBrakeHold":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeHold;
-                        break;
-                    }
-                case "DynamicBrakeIncrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeIncrease;
-                        break;
-                    }
-                case "DynamicBrakeIncreaseFast":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeIncreaseFast;
-                        break;
-                    }
-                case "DynamicBrakeDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.DynamicBrakeDecrease;
-                        break;
-                    }
-                case "TrainBrakeIncrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.TrainBrakeIncrease;
-                        break;
-                    }
-                case "TrainBrakeDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.TrainBrakeDecrease;
-                        break;
-                    }
-                case "EmergencyBrake":
-                    {
-                        ControllerPosition = CruiseControllerPosition.EmergencyBrake;
-                        break;
-                    }
-                case "SelectedSpeedIncrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.SelectedSpeedIncrease;
-                        break;
-                    }
-                case "SelectedSpeedDecrease":
-                    {
-                        ControllerPosition = CruiseControllerPosition.SelectedSpeedDecrease;
-                        break;
-                    }
-                case "SelectSpeedZero":
-                    {
-                        ControllerPosition = CruiseControllerPosition.SelectSpeedZero;
-                        break;
-                    }
-            }
+            ControllerPosition = currentPosition;
             if (!messageDisplayed)
             {
                 string msg = GetPositionName(currentPosition);
@@ -867,8 +754,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         protected void CheckNeutralPosition()
         {
             bool setNext = false;
-            string previous = "";
-            foreach (Position pair in PositionsList)
+            CruiseControllerPosition previous = CruiseControllerPosition.Undefined;
+            foreach (Position pair in positionsList)
             {
                 if (setNext)
                 {
@@ -878,11 +765,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
                 if (pair.Type == currentPosition)
                 {
-                    if (pair.Flag.ToLower() == "springloadedbackwards" || pair.Flag.ToLower() == "springloadedbackwardsimmediately")
+                    if (string.Equals(pair.Flag, "springloadedbackwards", StringComparison.OrdinalIgnoreCase) || string.Equals(pair.Flag, "springloadedbackwardsimmediately", StringComparison.OrdinalIgnoreCase))
                     {
                         setNext = true;
                     }
-                    if (pair.Flag.ToLower() == "springloadedforwards" || pair.Flag.ToLower() == "springloadedforwardsimmediately")
+                    if (string.Equals(pair.Flag, "springloadedforwards", StringComparison.OrdinalIgnoreCase) || pair.Flag.ToLower() == "springloadedforwardsimmediately")
                     {
                         currentPosition = previous;
                         locomotive.SignalEvent(TrainEvent.MPCChangePosition);
@@ -893,11 +780,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        private string GetPositionName(string type)
+        private string GetPositionName(CruiseControllerPosition positionType)
         {
-            foreach (Position position in PositionsList)
+            foreach (Position position in positionsList)
             {
-                if (string.Equals(position.Type, type, StringComparison.OrdinalIgnoreCase))
+                if (position.Type == positionType)
                     return position.Name;
             }
             return string.Empty;
@@ -912,72 +799,61 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public float GetDataOf(CabViewControl cvc)
         {
-            if (cvc.ControlId != ControllerId)
-                return 0;
             float data = 0;
-            switch (cvc.ControlType)
+            switch (ControllerPosition)
             {
-                case CabViewControlType.Orts_Multi_Position_Controller:
-                    {
-                        switch (ControllerPosition)
-                        {
-                            case CruiseControllerPosition.ThrottleIncrease:
-                                data = 0;
-                                break;
-                            case CruiseControllerPosition.Drive:
-                            case CruiseControllerPosition.ThrottleHold:
-                                data = 1;
-                                break;
-                            case CruiseControllerPosition.Neutral:
-                                data = 2;
-                                break;
-                            case CruiseControllerPosition.DynamicBrakeIncrease:
-                                data = 3;
-                                break;
-                            case CruiseControllerPosition.TrainBrakeIncrease:
-                                data = 4;
-                                break;
-                            case CruiseControllerPosition.EmergencyBrake:
-                            case CruiseControllerPosition.DynamicBrakeIncreaseFast:
-                                data = 5;
-                                break;
-                            case CruiseControllerPosition.ThrottleIncreaseFast:
-                                data = 6;
-                                break;
-                            case CruiseControllerPosition.ThrottleDecrease:
-                                data = 7;
-                                break;
-                            case CruiseControllerPosition.ThrottleDecreaseFast:
-                                data = 8;
-                                break;
-                            case CruiseControllerPosition.SelectedSpeedIncrease:
-                                data = 9;
-                                break;
-                            case CruiseControllerPosition.SelectedSpeedDecrease:
-                                data = 10;
-                                break;
-                            case CruiseControllerPosition.SelectSpeedZero:
-                                data = 11;
-                                break;
-                        }
-                        break;
-                    }
-                default:
+                case CruiseControllerPosition.ThrottleIncrease:
                     data = 0;
+                    break;
+                case CruiseControllerPosition.Drive:
+                case CruiseControllerPosition.ThrottleHold:
+                    data = 1;
+                    break;
+                case CruiseControllerPosition.Neutral:
+                    data = 2;
+                    break;
+                case CruiseControllerPosition.DynamicBrakeIncrease:
+                    data = 3;
+                    break;
+                case CruiseControllerPosition.TrainBrakeIncrease:
+                    data = 4;
+                    break;
+                case CruiseControllerPosition.EmergencyBrake:
+                case CruiseControllerPosition.DynamicBrakeIncreaseFast:
+                    data = 5;
+                    break;
+                case CruiseControllerPosition.ThrottleIncreaseFast:
+                    data = 6;
+                    break;
+                case CruiseControllerPosition.ThrottleDecrease:
+                    data = 7;
+                    break;
+                case CruiseControllerPosition.ThrottleDecreaseFast:
+                    data = 8;
+                    break;
+                case CruiseControllerPosition.SelectedSpeedIncrease:
+                    data = 9;
+                    break;
+                case CruiseControllerPosition.SelectedSpeedDecrease:
+                    data = 10;
+                    break;
+                case CruiseControllerPosition.SelectSpeedZero:
+                    data = 11;
                     break;
             }
             return data;
         }
 
-        public class Position
+        private class Position
         {
-            public string Type { get; }
+            public CruiseControllerPosition Type { get; }
             public string Flag { get; }
             public string Name { get; }
 
             public Position(string positionType, string positionFlag, string name)
             {
-                Type = positionType;
+                if (EnumExtension.GetValue(positionType, out CruiseControllerPosition type))
+                    Type = type;
                 Flag = positionFlag;
                 Name = name;
             }

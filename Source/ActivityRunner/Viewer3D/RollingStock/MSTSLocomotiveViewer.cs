@@ -2362,7 +2362,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         else
                         {
                             index = (Locomotive.CruiseControl != null &&
-                                (Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto && !Locomotive.CruiseControl.DynamicBrakePriority) ||
+                                (Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto && !Locomotive.CruiseControl.DynamicBrakePriority) ||
                                 Locomotive.DynamicBrakeIntervention > 0) ? 0 : PercentToIndex(dynBrakePercent);
                         }
                     }
@@ -2659,7 +2659,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Regulator:
                 case CabViewControlType.Throttle:
                     if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 &&
-                        Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                        Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                         && (Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce || Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed &&
                         Locomotive.CruiseControl.SelectedSpeedMpS == 0))
                     {
@@ -2667,12 +2667,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             Locomotive.CruiseControl.SetSpeed(0);
                         if (Locomotive.ThrottleController.CurrentValue == 0)
                         {
-                            Locomotive.CruiseControl.SpeedRegMode = SpeedRegulatorMode.Manual;
+                            Locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Manual;
                             Locomotive.CruiseControl.DynamicBrakePriority = false;
                         }
                         Locomotive.CruiseControl.SkipThrottleDisplay = false;
                     }
-                    if (Locomotive.CruiseControl?.SpeedRegMode == SpeedRegulatorMode.Auto
+                    if (Locomotive.CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto
                         && Locomotive.CruiseControl.SelectedMaxAccelerationStep != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
                         break;
                     Locomotive.SetThrottleValue(UpdateCommandValue(Locomotive.ThrottleController.IntermediateValue, buttonEventType, delta));
@@ -2810,19 +2810,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 case CabViewControlType.Cp_Handle:
                     if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 &&
-                        Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                        Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                          && (Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce || Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed && Locomotive.CruiseControl.SelectedSpeedMpS == 0))
                     {
                         if (Locomotive.CruiseControl.ZeroSelectedSpeedWhenPassingToThrottleMode)
                             Locomotive.CruiseControl.SetSpeed(0);
                         if (Locomotive.ThrottleController.CurrentValue == 0)
                         {
-                            Locomotive.CruiseControl.SpeedRegMode = SpeedRegulatorMode.Manual;
+                            Locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Manual;
                             Locomotive.CruiseControl.DynamicBrakePriority = false;
                         }
                         Locomotive.CruiseControl.SkipThrottleDisplay = false;
                     }
-                    if (Locomotive.CruiseControl?.SpeedRegMode == SpeedRegulatorMode.Auto
+                    if (Locomotive.CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto
                         && Locomotive.CruiseControl.SelectedMaxAccelerationStep != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
                         break;
                     Locomotive.SetCombinedHandleValue(UpdateCommandValue(Locomotive.GetCombinedHandleValue(true), buttonEventType, delta));
@@ -3051,10 +3051,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (p == 1)
                     {
                         Locomotive.CruiseControl.SetSpeed((float)Control.ScaleRangeMax);
-                        Locomotive.SelectingSpeedPressed = true;
+                        Locomotive.CruiseControl.SelectingSpeedPressed = true;
                     }
                     else if (p == 0)
-                        Locomotive.SelectingSpeedPressed = false;
+                        Locomotive.CruiseControl.SelectingSpeedPressed = false;
                     break;
                 case CabViewControlType.Orts_Selected_Speed_Regulator_Mode:
                     p = UpdateCommandValue(0, buttonEventType, delta);
@@ -3062,11 +3062,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         if (p == 1)
                         {
-                            if (Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Manual)
+                            if (Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Manual)
                             {
                                 Locomotive.CruiseControl.SpeedRegulatorModeIncrease();
                             }
-                            else if (Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto)
+                            else if (Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                             {
                                 Locomotive.CruiseControl.SpeedRegulatorModeDecrease();
                             }
@@ -3090,7 +3090,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         Locomotive.CruiseControl.SpeedSelectorModeStartIncrease();
                     }
-                    else if (Locomotive.CruiseControl.SpeedSelMode == SpeedSelectorMode.Start)
+                    else if (Locomotive.CruiseControl.SpeedSelectorMode == SpeedSelectorMode.Start)
                     {
                         if (buttonEventType == GenericButtonEventType.Released)
                         {
@@ -3139,14 +3139,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                     mpc.StateChanged = true;
                                 if (p != 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 && Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce &&
                                     Locomotive.CruiseControl.ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero && Locomotive.ThrottleController.CurrentValue == 0 &&
-                                    Locomotive.DynamicBrakeController.CurrentValue == 0 && Locomotive.CruiseControl.SpeedRegMode == SpeedRegulatorMode.Manual)
-                                    Locomotive.CruiseControl.SpeedRegMode = SpeedRegulatorMode.Auto;
+                                    Locomotive.DynamicBrakeController.CurrentValue == 0 && Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Manual)
+                                    Locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Auto;
                                 if (p == 1)
                                 {
                                     if (mpc.ControllerBinding == CruiseControllerBinding.SelectedSpeed && Locomotive.CruiseControl.ForceRegulatorAutoWhenNonZeroSpeedSelected)
                                     {
-                                        Locomotive.CruiseControl.SpeedRegMode = SpeedRegulatorMode.Auto;
-                                        Locomotive.CruiseControl.SpeedSelMode = SpeedSelectorMode.On;
+                                        Locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Auto;
+                                        Locomotive.CruiseControl.SpeedSelectorMode = SpeedSelectorMode.On;
                                     }
                                     mpc.DoMovement(Movement.Forward);
                                 }
@@ -3167,10 +3167,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(0);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed0] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed0] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed0] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed0] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_10:
@@ -3179,10 +3179,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(10);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed10] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed10] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed10] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed10] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_20:
@@ -3191,10 +3191,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(20);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed20] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed20] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed20] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed20] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_30:
@@ -3203,10 +3203,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(30);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed30] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed30] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed30] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed30] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_40:
@@ -3215,10 +3215,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(40);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed40] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed40] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed40] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed40] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_50:
@@ -3227,10 +3227,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(50);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed50] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed50] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed50] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed50] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_60:
@@ -3239,10 +3239,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(60);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed60] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed60] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed60] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed60] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_70:
@@ -3251,10 +3251,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(70);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed70] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed70] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed70] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed70] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_80:
@@ -3263,10 +3263,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(80);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed80] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed80] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed80] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed80] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_90:
@@ -3275,10 +3275,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(90);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed90] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed90] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed90] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed90] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_100:
@@ -3287,10 +3287,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(100);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed100] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed100] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed100] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed100] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_110:
@@ -3299,10 +3299,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(110);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed110] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed110] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed110] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed110] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_120:
@@ -3311,10 +3311,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(120);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed120] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed120] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed120] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed120] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_130:
@@ -3323,10 +3323,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(130);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed130] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed130] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed130] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed130] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_140:
@@ -3335,10 +3335,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(140);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed140] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed140] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed140] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed140] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_150:
@@ -3347,10 +3347,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(150);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed150] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed150] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed150] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed150] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_160:
@@ -3359,10 +3359,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(160);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed160] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed160] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed160] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed160] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_170:
@@ -3371,10 +3371,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(170);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed170] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed170] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed170] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed170] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_180:
@@ -3383,10 +3383,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(180);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed180] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed180] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed180] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed180] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_190:
@@ -3395,10 +3395,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(190);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed190] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed190] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed190] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed190] = false;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_200:
@@ -3407,10 +3407,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (p == 1)
                         {
                             Locomotive.CruiseControl.SetSpeed(200);
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed200] = true;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed200] = true;
                         }
                         else if (p == 0)
-                            Locomotive.SpeedPressed[CruiseControlSpeed.Speed200] = false;
+                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed200] = false;
                         break;
                     }
                 case CabViewControlType.Orts_DistributedPower_MoveToFront:

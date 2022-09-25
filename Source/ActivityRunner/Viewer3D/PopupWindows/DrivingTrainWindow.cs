@@ -729,9 +729,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             linesAdded += dataAvailable[DetailInfo.CruiseControl] ? 1 : 0;
             if (dataAvailable[DetailInfo.CruiseControl] && groupDetails[DetailInfo.CruiseControl]?.Controls[3] is Label ccLabel && playerLocomotive.CruiseControl is CruiseControl cruiseControl)
             {
-                ccLabel.Text = playerLocomotive.CruiseControl.SpeedRegMode.GetLocalizedDescription();
+                ccLabel.Text = playerLocomotive.CruiseControl.SpeedRegulatorMode.GetLocalizedDescription();
 
-                if ((dataAvailable[DetailInfo.CruiseControlTarget] = cruiseControl.SpeedRegMode == SpeedRegulatorMode.Auto) && 
+                if ((dataAvailable[DetailInfo.CruiseControlTarget] = cruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto) && 
                     groupDetails[DetailInfo.CruiseControlTarget]?.Controls[3] is Label ccTargetLabel)
                 {
                     ccTargetLabel.Text = $"{FormatStrings.FormatSpeedDisplay(cruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits)}";                    
