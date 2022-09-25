@@ -55,10 +55,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly EnumArray<ControlLayout, GroupDetail> groupDetails = new EnumArray<ControlLayout, GroupDetail>();
         private int groupCount;
 
-        public DistributedPowerWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Catalog catalog = null) :
+        public DistributedPowerWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Distributed Power"), relativeLocation, new Point(160, 200), catalog)
         {
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = viewer.UserCommandController;
             this.settings = settings;
             _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DistributedPowerWindow], out windowMode);
             UpdatePowerInformation();

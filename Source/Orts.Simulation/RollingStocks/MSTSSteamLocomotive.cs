@@ -72,6 +72,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -7780,5 +7781,57 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        private protected override void UpdateLocomotiveStatus()
+        {
+            // Set variable to change text colour as appropriate to flag different degrees of warning
+            var boilerPressurePercent = BoilerPressurePSI / MaxBoilerPressurePSI;
+
+            float coalPercent = TenderCoalMassKG / MaxTenderCoalMassKG;
+            float waterPercent = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
+
+            if (IsFixGeared)
+                locomotiveStatus["Fixed gear"] = $"= 1 ({SteamGearRatio:F2})";
+            else if (IsSelectGeared)
+                locomotiveStatus["Gear"] = $"= {(SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition)} ({SteamGearRatio:F2})";
+            locomotiveStatus["SteamUsage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI)}/{FormatStrings.h}";
+            locomotiveStatus["BoilerPressure"] = $"{FormatStrings.FormatPressure(BoilerPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}";
+            locomotiveStatus["BoilerWaterGlass"] = $"{100 * waterGlassPercent:F0}%{(FiringIsManual ? " " + Simulator.Catalog.GetString("(safe range)") : "")}";
+
+            if (FiringIsManual)
+            {
+                locomotiveStatus["BoilerWaterLevel"] = $"{WaterFraction * 100:F0}% {Simulator.Catalog.GetString("(absolute)")}";
+                locomotiveStatus.FormattingOptions["BoilerWaterLevel"] = locomotiveStatus.FormattingOptions["BoilerWaterGlass"];
+                if (IdealFireMassKG > 0)
+                {
+                    locomotiveStatus["FireMass"] = $"{FireMassKG / IdealFireMassKG * 100:F0}%";
+                    locomotiveStatus["FireHeatLoss"] = null;
+                }
+                else
+                {
+                    locomotiveStatus["FireMass"] = null;
+                    locomotiveStatus["FireHeatLoss"] = $"{FireHeatLossPercent * 100:F0}%";
+                    ;
+                }
+            }
+            else
+            {
+                locomotiveStatus["BoilerWaterLevel"] = null;
+                locomotiveStatus.FormattingOptions["BoilerWaterLevel"] = null;
+                locomotiveStatus["FireMass"] = null;
+                locomotiveStatus["FireHeatLoss"] = null;
+            }
+            locomotiveStatus["FuelLevelCoal"] = $"{100 * coalPercent:F0}%";
+            locomotiveStatus["FuelLevelWater"] = $"{100 * TenderWaterPercent:F0}%";
+
+            locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
+            locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
+            locomotiveStatus.FormattingOptions["FuelLevelCoal"] = CoalIsExhausted ? FormatOption.RegularOrangeRed : coalPercent <= 0.105 ? FormatOption.RegularYellow : null;
+            locomotiveStatus.FormattingOptions["FuelLevelWater"] = WaterIsExhausted ? FormatOption.RegularOrangeRed : waterPercent <= 0.105 ? FormatOption.RegularYellow : null;
+            locomotiveStatus.FormattingOptions["BoilerWaterGlass"] = WaterFraction < WaterMinLevel || WaterFraction > WaterMaxLevel ? FormatOption.RegularOrangeRed : WaterFraction < WaterMinLevelSafe || WaterFraction > WaterMaxLevelSafe ? FormatOption.RegularYellow : null;
+            locomotiveStatus.FormattingOptions["BoilerPressure"] = FiringIsManual || AIFireOverride
+                ? boilerPressurePercent <= 0.25 || boilerPressurePercent > 1.0 ? FormatOption.RegularOrangeRed : boilerPressurePercent <= 0.5 || boilerPressurePercent > 0.985 ? FormatOption.RegularYellow : null
+                : boilerPressurePercent <= 0.25 ? FormatOption.RegularOrangeRed : boilerPressurePercent <= 0.5 ? FormatOption.RegularYellow : null;
+
+        }
     } // class SteamLocomotive
 }

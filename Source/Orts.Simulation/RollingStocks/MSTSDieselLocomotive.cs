@@ -1537,5 +1537,16 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        private protected override void UpdateLocomotiveStatus()
+        {
+            locomotiveStatus["Engine"] = DieselEngines[0].State.GetLocalizedDescription();
+            if (DieselEngines.HasGearBox)
+                locomotiveStatus["Gear"] = DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{DieselEngines[0].GearBox.CurrentGearIndex + 1}";
+            locomotiveStatus["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["MasterKey"] = LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["TractionCutOffRelay"] = Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription());
+            locomotiveStatus["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+        }
     } // class DieselLocomotive
 }

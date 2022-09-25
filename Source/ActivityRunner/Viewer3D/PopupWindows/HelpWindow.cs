@@ -70,10 +70,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private TextBox reportText;
         private bool evaluationCompleted;
 
-        public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings, Catalog catalog = null) :
+        public HelpWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(560, 380), catalog)
         {
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = viewer.UserCommandController;
             this.settings = settings;
             this.viewer = viewer;
         }

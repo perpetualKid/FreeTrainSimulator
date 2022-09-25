@@ -19,8 +19,6 @@
 //#define DEBUG_TRAIN_PIPE_LEAK
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 
 using Microsoft.Xna.Framework;
@@ -30,8 +28,6 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
-
-using static Orts.Formats.Msts.Parsers.STFReader;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -1479,6 +1475,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 brakeInfo["V"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             }
 
+            brakeInfo["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";

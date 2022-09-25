@@ -514,13 +514,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return script == null || script.IsValid();
         }
 
-        public BrakeStatus BrakeStatus => script != null ? new BrakeStatus(script.State, script.StateFraction) : BrakeStatus.Empty;
-
         public ControllerState State => script?.State ?? ControllerState.Dummy;
 
         public float ControllerValue => script?.StateFraction ?? float.NaN;
 
-        public string GetStatus() => BrakeStatus.ToShortString();
+        public string GetStatus()
+        {
+            string status = script?.State.GetLocalizedDescription();
+            string percentage = script?.StateFraction > -1 ? $"{script.StateFraction * 100:N0}%" : null;
+            return FormatStrings.JoinIfNotEmpty(' ', status, percentage);
+        }
 
         public NameValueCollection DebugInfo => GetBrakeStatus();
 
@@ -550,7 +553,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             brakeInfo["State"] = script?.State.GetLocalizedDescription();
             float fraction = script?.StateFraction ?? float.NaN;
-            brakeInfo["Value"] = float.IsNaN(fraction) ? null : $"{(int)(fraction * 100):N0}%";
+            brakeInfo["Value"] = float.IsNaN(fraction) ? null : $"{fraction * 100:N0}%";
             brakeInfo["Status"] = FormatStrings.JoinIfNotEmpty(' ', brakeInfo["State"], brakeInfo["Value"]);
             brakeInfo["StatusShort"] = FormatStrings.JoinIfNotEmpty(' ', brakeInfo["State"].Max(string.IsNullOrEmpty(brakeInfo["Value"]) ? 20 : 5), brakeInfo["Value"]);
         }
@@ -587,7 +590,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             base.UpdateBrakeStatus();
             // If brake type is only a state, and no numerical fraction application is displayed in the HUD, then display Brake Cylinder (BC) pressure
-            if (float.IsNaN(ControllerValue)) // Test to see if a brake state only is present without a fraction of application, if no value, display BC pressure
+            if (script == null || float.IsNaN(script.StateFraction)) // Test to see if a brake state only is present without a fraction of application, if no value, display BC pressure
             {
                 if (locomotive.BrakeSystem is VacuumSinglePipe)
                 {
@@ -599,12 +602,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                     else
                     {
-                        brakeInfo["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(locomotive.Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+                        brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DebugInfo["BC"];
                     }
                 }
                 else
                 {
-                    brakeInfo["BC"] = (locomotive.Train.FirstWagonCar?.BrakeSystem as INameValueInformationProvider)?.DebugInfo["BC"];
+                    brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DebugInfo["BC"];
                     brakeInfo["BailOff"] = locomotive.BailOff ? Simulator.Catalog.GetString("BailOff") : null;
                 }
                 // Fraction not found so display BC                

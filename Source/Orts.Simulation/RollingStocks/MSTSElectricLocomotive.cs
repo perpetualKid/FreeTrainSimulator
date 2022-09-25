@@ -39,6 +39,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Common.Calc;
+using System.Linq;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -448,6 +449,16 @@ namespace Orts.Simulation.RollingStocks
                 Variable1 = 0;
                 Variable2 = 0;
             }
+        }
+
+        private protected override void UpdateLocomotiveStatus()
+        {
+            locomotiveStatus["Pantographs"] = string.Join(' ', Pantographs.List.Select(p => p.State.GetLocalizedDescription()));
+            locomotiveStatus["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["MasterKey"]= LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["Circuit breaker"] = ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+            locomotiveStatus["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            locomotiveStatus["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
         }
     } // class ElectricLocomotive
 }

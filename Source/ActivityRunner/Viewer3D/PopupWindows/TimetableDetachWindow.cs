@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using GetText;
 
@@ -20,7 +19,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label otherTrain;
         private Label buttonDetach;
         private DetachInfo detachRequest;
-        TTTrain playerTrain;
+        private TTTrain playerTrain;
 
         public TimetableDetachWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) : 
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Timetable Detach Menu"), relativeLocation, new Point(600, 126), catalog)

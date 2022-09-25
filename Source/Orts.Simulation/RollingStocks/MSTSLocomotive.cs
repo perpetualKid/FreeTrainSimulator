@@ -46,6 +46,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -88,8 +89,10 @@ namespace Orts.Simulation.RollingStocks
     /// to the basic TrainCar.
     /// Use as a base for Electric, Diesel or Steam locomotives.
     /// </summary>
-    public partial class MSTSLocomotive : MSTSWagon
+    public partial class MSTSLocomotive : MSTSWagon, INameValueInformationProvider
     {
+        private protected readonly DebugInfoBase locomotiveStatus = new DebugInfoBase(true);
+        private protected bool updateLocomotiveStatus;
 
         public enum CombinedControl
         {
@@ -452,6 +455,10 @@ namespace Orts.Simulation.RollingStocks
             get => (Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
             set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
         }
+
+        public NameValueCollection DebugInfo => GetLocomotiveStatus();
+
+        public Dictionary<string, FormatOption> FormattingOptions => locomotiveStatus.FormattingOptions;
 
         public MSTSLocomotive(string wagPath)
             : base(wagPath)
@@ -2200,7 +2207,11 @@ namespace Orts.Simulation.RollingStocks
 
             }
 #endif
-
+            if (updateLocomotiveStatus)
+            {
+                UpdateLocomotiveStatus();
+                updateLocomotiveStatus = false;
+            }
         } // End Method Update
 
         /// <summary>
@@ -2694,15 +2705,6 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected virtual void UpdateSoundVariables(double elapsedClockSeconds)
         {
-        }
-
-        /// <summary>
-        /// Calls the Update method in the parent class MSTSWagon.
-        /// </summary>
-        /// <param name="elapsedClockSeconds"></param>
-        protected void UpdateParent(float elapsedClockSeconds)
-        {
-            base.Update(elapsedClockSeconds);
         }
 
         /// <summary>
@@ -5723,6 +5725,15 @@ namespace Orts.Simulation.RollingStocks
             base.SwitchToAutopilotControl();
             return;
         }
+
+        private NameValueCollection GetLocomotiveStatus()
+        {
+            updateLocomotiveStatus = true;
+            return locomotiveStatus;
+        }
+
+        private protected virtual void UpdateLocomotiveStatus()
+        { }
 
     } // End Class MSTSLocomotive
 

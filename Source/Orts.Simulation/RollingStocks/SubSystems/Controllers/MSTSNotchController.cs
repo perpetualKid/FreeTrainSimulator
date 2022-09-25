@@ -754,7 +754,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             IControllerNotch notch = Notches[NotchIndex];
             float fraction = (Notches.Count == 0 || !notch.Smooth) ? CurrentValue : GetNotchFraction();
             controllerInfo["State"] = notch.NotchStateType.GetLocalizedDescription();
-            controllerInfo["Value"] = $"{(int)(fraction * 100):N0}%";
+            controllerInfo["Value"] = $"{fraction * 100:N0}%";
             controllerInfo["Status"] = FormatStrings.JoinIfNotEmpty(' ', controllerInfo["State"], controllerInfo["Value"]);
             controllerInfo["StatusShort"] = FormatStrings.JoinIfNotEmpty(' ', controllerInfo["State"].Max(string.IsNullOrEmpty(controllerInfo["Value"]) ? 20 : 5), controllerInfo["Value"]);
         }
