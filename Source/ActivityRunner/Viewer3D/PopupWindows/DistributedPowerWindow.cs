@@ -71,9 +71,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ControlLayout line = layout.AddLayoutHorizontal();
             line.HorizontalChildAlignment = HorizontalAlignment.Right;
             line.VerticalChildAlignment = VerticalAlignment.Top;
-            line.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? Markers.ArrowRight : Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
+            line.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? FormatStrings.Markers.ArrowRight : FormatStrings.Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
-            line.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? Markers.ArrowUp : Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
+            line.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? FormatStrings.Markers.ArrowUp : FormatStrings.Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
             labelExpandDetails.OnClick += LabelExpandDetails_OnClick;
             labelExpandDetails.Visible = labelExpandMono.Visible = groupCount > 0;
             layout = layout.AddLayoutVertical();
@@ -231,11 +231,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     {
                         if (groupDetails[groupDetail]?.Controls[i - 1] is Label label)
                         {
-                            label.Text = fence ? Markers.Fence : null;
+                            label.Text = fence ? FormatStrings.Markers.Fence : null;
                             if (groupDetail == GroupDetail.GroupId)
                             {
                                 if (!fence)
-                                    label.Text = Markers.Dash;
+                                    label.Text = FormatStrings.Markers.Dash;
                                 label.TextColor = fence ? Color.Green : Color.White;
                             }
                         }

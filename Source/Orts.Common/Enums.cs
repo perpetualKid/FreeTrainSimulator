@@ -1058,7 +1058,7 @@ namespace Orts.Common
         [Description("DIR")] Direction,
         [Description("DRLC")] DerailCoefficent,
         [Description("DOOR")] DoorsOpen,
-        [Description("ENG")] Engine,
+        [Description("ENGN")] Engine,
         [Description("FIRE")] FireMass,
         [Description("GEAR")] FixedGear,
         [Description("FUEL")] FuelLevel,
@@ -1083,5 +1083,11 @@ namespace Orts.Common
         [Description("BC")] BrakeCylinder,
         [Description("EOT")] EndOfTrainCar,
         [Description("1STW")] FirstTrainCar,
+
+        //Diesel and Electric
+        [Description("TSUP")] ElectricTrainSupply,
+        [Description("TRAC")] TractionCutOffRelay,
+        [Description("MAST")] MasterKey,
+        [Description("BATT")] BatterySwitch,
     }
 }

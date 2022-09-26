@@ -456,7 +456,7 @@ namespace Orts.Simulation.RollingStocks
             locomotiveStatus["Pantographs"] = string.Join(' ', Pantographs.List.Select(p => p.State.GetLocalizedDescription()));
             locomotiveStatus["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             locomotiveStatus["MasterKey"]= LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
-            locomotiveStatus["Circuit breaker"] = ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+            locomotiveStatus["CircuitBreaker"] = ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
             locomotiveStatus["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             locomotiveStatus["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
         }

@@ -84,6 +84,8 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Simulation.RollingStocks
 {
     ///////////////////////////////////////////////////
@@ -139,8 +141,8 @@ namespace Orts.Simulation.RollingStocks
         private bool safety2IsOn; // Safety valve #2 is on and opertaing
         private bool safety3IsOn; // Safety valve #3 is on and opertaing
         private bool safety4IsOn; // Safety valve #4 is on and opertaing
-        private bool IsFixGeared;
-        private bool IsSelectGeared;
+        private bool fixGeared;
+        private bool selectGeared;
         private bool IsLocoSlip;        // locomotive is slipping
         private bool IsCritTELimit; // Flag to advise if critical TE is exceeded
         private bool ISBoilerLimited;  // Flag to indicate that Boiler is limiting factor with the locomotive power
@@ -168,7 +170,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasTenderCoupled = true;
         private float BlowdownSteamUsageLBpS;
         private float BlowdownValveSizeDiaIn2;
-        private string SteamLocoType;     // Type of steam locomotive type
+        private string steamLocoType;     // Type of steam locomotive type
 
         private float PulseTracker;
         private int NextPulse = 1;
@@ -866,8 +868,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortssteamgeartype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
-                    IsFixGeared = string.Equals(typeString2, "Fixed", StringComparison.OrdinalIgnoreCase);
-                    IsSelectGeared = string.Equals(typeString2, "Select", StringComparison.OrdinalIgnoreCase);
+                    fixGeared = string.Equals(typeString2, "Fixed", StringComparison.OrdinalIgnoreCase);
+                    selectGeared = string.Equals(typeString2, "Select", StringComparison.OrdinalIgnoreCase);
                     break;
 
                 case "engine(ortsbattery(mode":
@@ -947,8 +949,8 @@ namespace Orts.Simulation.RollingStocks
             IsSaturated = locoCopy.IsSaturated;
             IsTenderRequired = locoCopy.IsTenderRequired;
             HasSuperheater = locoCopy.HasSuperheater;
-            IsFixGeared = locoCopy.IsFixGeared;
-            IsSelectGeared = locoCopy.IsSelectGeared;
+            fixGeared = locoCopy.fixGeared;
+            selectGeared = locoCopy.selectGeared;
             LargeEjectorControllerFitted = locoCopy.LargeEjectorControllerFitted;
             CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
             CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
@@ -1220,7 +1222,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Test to see if gear type set
             bool IsGearAssumed = false;
-            if (IsFixGeared || IsSelectGeared) // If a gear type has been selected, but gear type not set in steamenginetype, then set assumption
+            if (fixGeared || selectGeared) // If a gear type has been selected, but gear type not set in steamenginetype, then set assumption
             {
                 if (SteamEngineType != SteamEngineType.Geared)
                 {
@@ -1271,7 +1273,7 @@ namespace Orts.Simulation.RollingStocks
             if (SteamEngineType == SteamEngineType.Compound)
             {
                 //  Initialise Compound locomotive
-                SteamLocoType = "Compound locomotive";
+                steamLocoType = "Compound locomotive";
 
                 // Model current based upon a four cylinder, balanced compound, type Vauclain, as built by Baldwin, with no receiver between the HP and LP cylinder
                 // Set to compound operation intially
@@ -1285,16 +1287,16 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (SteamEngineType == SteamEngineType.Geared)
             {
-                if (IsFixGeared)
+                if (fixGeared)
                 {
                     // Advise if gearing is assumed
                     if (IsGearAssumed)
                     {
-                        SteamLocoType = "Not formally defined (assumed Fixed Geared) locomotive";
+                        steamLocoType = "Not formally defined (assumed Fixed Geared) locomotive";
                     }
                     else
                     {
-                        SteamLocoType = "Fixed Geared locomotive";
+                        steamLocoType = "Fixed Geared locomotive";
                     }
 
                     // Check for ENG file values
@@ -1319,16 +1321,16 @@ namespace Orts.Simulation.RollingStocks
                     DisplayMaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                     DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
-                else if (IsSelectGeared)
+                else if (selectGeared)
                 {
                     // Advise if gearing is assumed
                     if (IsGearAssumed)
                     {
-                        SteamLocoType = "Not formally defined (assumed Selectable Geared) locomotive";
+                        steamLocoType = "Not formally defined (assumed Selectable Geared) locomotive";
                     }
                     else
                     {
-                        SteamLocoType = "Selectable Geared locomotive";
+                        steamLocoType = "Selectable Geared locomotive";
                     }
 
                     // Check for ENG file values
@@ -1371,7 +1373,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    SteamLocoType = "Unknown Geared locomotive (default to non-gear)";
+                    steamLocoType = "Unknown Geared locomotive (default to non-gear)";
                     // Default to non-geared locomotive
                     MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                     SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
@@ -1381,7 +1383,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (SteamEngineType == SteamEngineType.Simple)    // Simple locomotive
             {
-                SteamLocoType = "Simple locomotive";
+                steamLocoType = "Simple locomotive";
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                 SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
                 MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
@@ -1390,7 +1392,7 @@ namespace Orts.Simulation.RollingStocks
             else // Default to Simple Locomotive (Assumed Simple) shows up as "Unknown"
             {
                 Trace.TraceWarning("Steam engine type parameter not formally defined. Simple locomotive has been assumed");
-                SteamLocoType = "Not formally defined (assumed simple) locomotive.";
+                steamLocoType = "Not formally defined (assumed simple) locomotive.";
                 //  SteamEngineType += "Simple";
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                 SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
@@ -1495,7 +1497,7 @@ namespace Orts.Simulation.RollingStocks
             // Determine if Superheater in use
             if (HasSuperheater)
             {
-                SteamLocoType += " + Superheater";
+                steamLocoType += " + Superheater";
 
                 if (MaxSuperheatRefTempF == 0) // If Max superheat temp is not set in ENG file, then set a default.
                 {
@@ -1510,11 +1512,11 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (IsSaturated)
             {
-                SteamLocoType += " + Saturated";
+                steamLocoType += " + Saturated";
             }
             else if (SuperheatAreaM2 == 0 && SuperheaterFactor > 1.0) // check if MSTS value, then set superheating
             {
-                SteamLocoType += " + Not formally defined (assumed superheated)";
+                steamLocoType += " + Not formally defined (assumed superheated)";
                 Trace.TraceWarning("Steam boiler type parameter not formally defined. Superheated locomotive has been assumed.");
 
                 HasSuperheater = true;
@@ -1528,7 +1530,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else // Default to saturated type of locomotive
             {
-                SteamLocoType += " + Not formally defined (assumed saturated)";
+                steamLocoType += " + Not formally defined (assumed saturated)";
                 MaxSuperheatRefTempF = 0.0f;
                 CylinderClearancePC = 0.08f;
             }
@@ -1919,7 +1921,7 @@ namespace Orts.Simulation.RollingStocks
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
                 Trace.TraceInformation("Version - {0}", VersionInfo.Version);
                 Trace.TraceInformation("Locomotive Name - {0}", LocomotiveName);
-                Trace.TraceInformation("Steam Locomotive Type - {0}", SteamLocoType);
+                Trace.TraceInformation("Steam Locomotive Type - {0}", steamLocoType);
 
                 Trace.TraceInformation("**************** General ****************");
                 Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM), locoNumDrvAxles, Mass.Kilogram.ToTonsUK(DrvWheelWeightKg));
@@ -5941,9 +5943,9 @@ namespace Orts.Simulation.RollingStocks
 
             var status = new StringBuilder();
 
-            if (IsFixGeared)
+            if (fixGeared)
                 status.AppendFormat("{0} = 1 ({1:F2})\n", Simulator.Catalog.GetString("Fixed gear"), SteamGearRatio);
-            else if (IsSelectGeared)
+            else if (selectGeared)
                 status.AppendFormat("{0} = {2} ({1:F2})\n", Simulator.Catalog.GetString("Gear"),
                     SteamGearRatio, SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition.ToString());
             status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI), steamusagesafety, FormatStrings.h);
@@ -5972,7 +5974,7 @@ namespace Orts.Simulation.RollingStocks
             status.AppendFormat("\n\n\t\t === {0} === \t\t\n", Simulator.Catalog.GetString("Key Inputs"));
 
             status.AppendFormat("{0}\t\t{1}\n", Simulator.Catalog.GetString("Locomotive Type:"),
-                SteamLocoType);
+                steamLocoType);
 
             status.AppendFormat("{0}\t{1}\t{6}\t{2}\t{7}\t{3}\t{8}\t{4}\t{9}\t{5}\t{10}\n",
                 Simulator.Catalog.GetString("Input:"),
@@ -6706,7 +6708,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void SteamStartGearBoxIncrease()
         {
-            if (IsSelectGeared)
+            if (selectGeared)
             {
                 if (throttle == 0)   // only change gears if throttle is at zero
                 {
@@ -6820,7 +6822,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void SteamStartGearBoxDecrease()
         {
-            if (IsSelectGeared)
+            if (selectGeared)
             {
                 if (throttle == 0)  // only change gears if throttle is at zero
                 {
@@ -7789,9 +7791,9 @@ namespace Orts.Simulation.RollingStocks
             float coalPercent = TenderCoalMassKG / MaxTenderCoalMassKG;
             float waterPercent = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
 
-            if (IsFixGeared)
-                locomotiveStatus["Fixed gear"] = $"= 1 ({SteamGearRatio:F2})";
-            else if (IsSelectGeared)
+            if (fixGeared)
+                locomotiveStatus["FixedGear"] = $"= 1 ({SteamGearRatio:F2})";
+            else if (selectGeared)
                 locomotiveStatus["Gear"] = $"= {(SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition)} ({SteamGearRatio:F2})";
             locomotiveStatus["SteamUsage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI)}/{FormatStrings.h}";
             locomotiveStatus["BoilerPressure"] = $"{FormatStrings.FormatPressure(BoilerPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}";
@@ -7822,6 +7824,25 @@ namespace Orts.Simulation.RollingStocks
             }
             locomotiveStatus["FuelLevelCoal"] = $"{100 * coalPercent:F0}%";
             locomotiveStatus["FuelLevelWater"] = $"{100 * TenderWaterPercent:F0}%";
+
+            float bandUpper = PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
+            float bandLower = PreviousBoilerHeatOutBTUpS * 0.975f; // find lower bandwidth point - gives a total 5% bandwidth
+
+            if (BoilerHeatInBTUpS > bandLower && BoilerHeatInBTUpS < bandUpper)
+            {
+                locomotiveStatus["HeatingStatus"] = FormatStrings.Markers.Diamond;
+                locomotiveStatus.FormattingOptions["HeatingStatus"] = null;
+            }
+            else if (BoilerHeatInBTUpS < bandLower)
+            {
+                locomotiveStatus["HeatingStatus"] = FormatStrings.Markers.ArrowDownSmall;
+                locomotiveStatus.FormattingOptions["HeatingStatus"] = FormatOption.RegularCyan;
+            }
+            else if (BoilerHeatInBTUpS > bandUpper)
+            {
+                locomotiveStatus["HeatingStatus"] = FormatStrings.Markers.ArrowUpSmall;
+                locomotiveStatus.FormattingOptions["HeatingStatus"] = FormatOption.RegularOrange;
+            }
 
             locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
             locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;

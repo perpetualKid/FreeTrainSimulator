@@ -33,6 +33,34 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
+#pragma warning disable CA1034 // Nested types should not be visible
+        public static class Markers
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            public const string ArrowUp = "▲"; // \u25B2
+            public const string ArrowDown = "▼"; // \u25BC
+            public const string ArrowRight = "►"; // \u25BA
+            public const string ArrowLeft = "◄"; // \u25C4
+
+            public const string ArrowUpSmall = "˄"; // \u02C4 //"△"; // \u25B3
+            public const string ArrowDownSmall = "˅"; // \u02C4 //"▽"; // \u25BD
+            public const string ArrowLeftSmall = "˂"; // \u02C2
+            public const string ArrowRigthSmall = "˃"; // \u02C3
+
+            public const string Block = "█"; // \u2588
+            public const string BlockUpperHalf = "▀"; // \u2580
+            public const string BlockLowerHalf = "▄"; // \u2584
+            public const string Fence = "▐"; // \u2590
+            public const string Dash = "―"; // \u2015
+            public const string BlockHorizontal = "▬"; // \u25ac
+            public const string BlockVertical = "▮"; // \u25ae
+
+            public const string Descent = "↘"; // \u2198
+            public const string Ascent = "↗"; // \u2197
+
+            public const string Diamond = "◆"; // \u25C6
+        }
+
         private static readonly ICatalog catalog = CatalogManager.Catalog;
 
 #pragma warning disable IDE1006 // Naming Styles

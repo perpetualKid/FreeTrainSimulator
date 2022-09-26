@@ -7,21 +7,28 @@ namespace Orts.Graphics.Window.Controls
     public class Label : TextControl
     {
         private string text;
+        private HorizontalAlignment alignment;
+        private Point alignmentOffset;
+        private Rectangle? clippingRectangle;
+
         public string Text
         {
             get => text;
             set { text = value; Initialize(); }
         }
 
-        public HorizontalAlignment Alignment { get; }
-        private Point alignmentOffset;
-        private Rectangle? clippingRectangle;
+        public HorizontalAlignment Alignment 
+        { 
+            get => alignment; 
+            set { alignment = value; Initialize(); }
+        }
+
 
         public Label(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
         {
             this.text = text;
-            Alignment = alignment;
+            this.alignment = alignment;
             TextColor = color;
             this.font = font ?? window?.Owner.TextFontDefault;
         }
