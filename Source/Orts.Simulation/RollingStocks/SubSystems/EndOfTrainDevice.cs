@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -38,14 +39,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         TwoWay
     }
 
+    [Description("EoT")]
     public enum EoTState
     {
-        Disarmed,
-        CommTestOn,
-        Armed,
-        LocalTestOn,
-        ArmNow,
-        ArmedTwoWay
+        [Description("Disarmed")] Disarmed,
+        [Description("Comm Test")] CommTestOn,
+        [Description("Armed")] Armed,
+        [Description("Local Test")] LocalTestOn,
+        [Description(" Arm Now")] ArmNow,
+        [Description("2-way Armed")] ArmedTwoWay
     }
 
     public class EndOfTrainDevice : MSTSWagon

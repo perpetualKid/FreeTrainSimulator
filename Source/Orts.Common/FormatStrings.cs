@@ -50,7 +50,7 @@ namespace Orts.Common
             public const string Block = "█"; // \u2588
             public const string BlockUpperHalf = "▀"; // \u2580
             public const string BlockLowerHalf = "▄"; // \u2584
-            public const string Fence = "▐"; // \u2590
+            public const string Fence = "│"; // \u2016 //"▐"; // \u2590
             public const string Dash = "―"; // \u2015
             public const string BlockHorizontal = "▬"; // \u25ac
             public const string BlockVertical = "▮"; // \u25ae

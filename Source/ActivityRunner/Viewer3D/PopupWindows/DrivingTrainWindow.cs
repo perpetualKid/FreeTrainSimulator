@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using GetText;
@@ -19,6 +20,10 @@ using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
+
+using SharpDX.Direct3D11;
+
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -71,6 +76,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             DieselGear,
             Pantographs,
             CircuitBreaker,
+            EotDevice,
+            DieselDpu,
         }
 
         private readonly UserSettings settings;
@@ -86,9 +93,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private bool dynamicBrakeAvailable;
         private bool manualFiringAvailable;
         private bool gearAvailable;
+        private bool eotAvailable;
+        private bool dpuAvailable;
 
-        private int layoutLines;
+        private int additionalLines;
         private const int constantLines = 9; //need to be updated if additional lines required
+        private const int separatorLines = 4;
+        private int additonalSeparators;
 
         private string directionKeyInput;
         private string throttleKeyInput;
@@ -241,7 +252,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     AddDetailLine(DetailInfo.PowerSupply, shortMode ? FourCharAcronym.Power.GetLocalizedDescription() : Catalog.GetString("Power"), font);
                     break;
                 case EngineType.Electric:
-                    AddDetailLine(DetailInfo.Pantographs, shortMode ? FourCharAcronym.Pantographs.GetLocalizedDescription() : Catalog.GetString("Pantograph"), font);
+                    AddDetailLine(DetailInfo.Pantographs, shortMode ? FourCharAcronym.Pantographs.GetLocalizedDescription() : Catalog.GetString("Panto"), font);
                     AddDetailLine(DetailInfo.BatterySwitch, shortMode ? FourCharAcronym.BatterySwitch.GetLocalizedDescription() : Catalog.GetString("Batt Sw"), font);
                     AddDetailLine(DetailInfo.MasterKey, shortMode ? FourCharAcronym.MasterKey.GetLocalizedDescription() : Catalog.GetString("Mstr Key"), font);
                     AddDetailLine(DetailInfo.CircuitBreaker, shortMode ? FourCharAcronym.CircuitBreaker.GetLocalizedDescription() : Catalog.GetString("Cir Break"), font);
@@ -250,6 +261,16 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     break;
             }
             layout.AddHorizontalSeparator(true);
+            if (eotAvailable)
+            {
+                AddDetailLine(DetailInfo.EotDevice, shortMode ? FourCharAcronym.EotDevice.GetLocalizedDescription() : Catalog.GetString("EOT Dev"), font);
+                layout.AddHorizontalSeparator(true);
+            }
+            if (dpuAvailable)
+            {
+                AddDetailLine(DetailInfo.DieselDpu, shortMode ? FourCharAcronym.Locomotives.GetLocalizedDescription() : Catalog.GetString("Locos"), font);
+                layout.AddHorizontalSeparator(true);
+            }
             return layout;
         }
 
@@ -333,7 +354,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void Resize()
         {
-            int height = 24 + (layoutLines + constantLines) * Owner.TextFontDefault.Height + (4 * 5) /* #separators * separator height */;
+            int height = 24 + (additionalLines + constantLines) * Owner.TextFontDefault.Height + ((separatorLines + additonalSeparators) * 5) /* #separators * separator height */;
             Point size = windowMode switch
             {
                 WindowMode.Normal => new Point(normalLeadColumnWidth + 2 * normalColumnWidth + 36, height),
@@ -459,7 +480,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private bool UpdateDrivingInformation()
         {
             bool result = false;
-            int additionalLines = 0;
+            int linesAdded = 0;
+            int separatorsAdded = 0;
             // Client and server may have a time difference.
             MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
             if (groupDetails[DetailInfo.Time]?.Controls[3] is Label timeLabel)
@@ -470,7 +492,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             result |= replaying != (replaying = Simulator.Instance.IsReplaying);
             if (replaying && groupDetails[DetailInfo.Replay]?.Controls[3] is Label replayLabel)
                 replayLabel.Text = $"{FormatStrings.FormatTime(Simulator.Instance.Log.ReplayEndsAt - Simulator.Instance.ClockTime)}";
-            additionalLines += replaying ? 1 : 0;
+            linesAdded += replaying ? 1 : 0;
             // Speed info
             if (groupDetails[DetailInfo.Speed]?.Controls[3] is Label speedLabel)
             {
@@ -512,7 +534,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (groupDetails[DetailInfo.CylinderCocks].Controls[2] as Label).Text = cylinderCocksInput;
                 cylinderCocksInput = null;
             }
-            additionalLines += playerLocomotive is MSTSSteamLocomotive ? 1 : 0;
+            linesAdded += playerLocomotive is MSTSSteamLocomotive ? 1 : 0;
             // Sander
             if (groupDetails[DetailInfo.Sander]?.Controls[3] is Label sanderLabel)
             {
@@ -533,7 +555,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             }
             // Train Brake Equalizer Reservoir
             result |= eqAvailable != (eqAvailable = !string.IsNullOrEmpty((playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["EQ"]));
-            additionalLines += eqAvailable ? 1 : 0;
+            linesAdded += eqAvailable ? 1 : 0;
             if (eqAvailable && groupDetails[DetailInfo.TrainBrakeEQStatus]?.Controls[3] is Label trainBrakeEQLabel)
             {
                 string eqReservoir = (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["EQ"];
@@ -541,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     eqReservoir = eqReservoir?.Split(' ')[0];
                 trainBrakeEQLabel.Text = eqReservoir;
                 result |= firstWagonAvailable != (firstWagonAvailable = playerLocomotive.Train.FirstWagonCar != null);
-                additionalLines += firstWagonAvailable ? 1 : 0;
+                linesAdded += firstWagonAvailable ? 1 : 0;
                 if (firstWagonAvailable && groupDetails[DetailInfo.TrainBrakeFirstCar]?.Controls[3] is Label firstWagonBrakeLabel)
                 {
                     firstWagonBrakeLabel.Text = (windowMode != WindowMode.Normal) ?
@@ -559,7 +581,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     (playerLocomotive.BrakeSystem as INameValueInformationProvider).DebugInfo["Status"];
             }
             result |= retainerAvailable != (retainerAvailable = playerLocomotive.Train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust);
-            additionalLines += retainerAvailable ? 1 : 0;
+            linesAdded += retainerAvailable ? 1 : 0;
             if (retainerAvailable && groupDetails[DetailInfo.Retainer]?.Controls[3] is Label retainerLabel)
             {
                 retainerLabel.Text = $"{playerLocomotive.Train.BrakeSystem.RetainerPercent}% {playerLocomotive.Train.BrakeSystem.RetainerSetting.GetLocalizedDescription()}";
@@ -570,7 +592,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 (groupDetails[DetailInfo.EngineBrake].Controls[0] as Label).Text = engineBrakeInput ?? (((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? FormatStrings.Markers.Block : null);
                 (groupDetails[DetailInfo.EngineBrake].Controls[2] as Label).Text = engineBrakeInput ?? (((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BailOff"] != null) ? FormatStrings.Markers.Block : null);
                 result |= engineBcAvailable != (engineBcAvailable = !string.IsNullOrEmpty((playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"]));
-                additionalLines += engineBcAvailable ? 1 : 0;
+                linesAdded += engineBcAvailable ? 1 : 0;
                 if (engineBcAvailable && groupDetails[DetailInfo.EngineBC]?.Controls[3] is Label engineBCLabel)
                 {
                     engineBCLabel.Text = (playerLocomotive.EngineBrakeController as INameValueInformationProvider).DebugInfo["BC"];
@@ -578,7 +600,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 engineBrakeInput = null;
             }
             result |= dynamicBrakeAvailable != (dynamicBrakeAvailable = playerLocomotive.IsLeadLocomotive() && playerLocomotive.DynamicBrakeController != null);
-            additionalLines += dynamicBrakeAvailable ? 1 : 0;
+            linesAdded += dynamicBrakeAvailable ? 1 : 0;
             if (dynamicBrakeAvailable && groupDetails[DetailInfo.DynamicBrake]?.Controls[3] is Label dynamicBrakeLabel)
             {
                 dynamicBrakeLabel.Text = (playerLocomotive.DynamicBrakePercent >= 0) ?
@@ -595,7 +617,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             switch (playerLocomotive.EngineType)
             {
                 case EngineType.Steam:
-                    additionalLines += 5;
+                    linesAdded += 5;
                     if (groupDetails[DetailInfo.SteamUsage]?.Controls[3] is Label steamUsageLabel)
                     {
                         steamUsageLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["SteamUsage"];
@@ -625,7 +647,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         }
                     }
                     result |= manualFiringAvailable != (manualFiringAvailable = !string.IsNullOrEmpty((playerLocomotive as INameValueInformationProvider).DebugInfo["BoilerWaterLevel"]));
-                    additionalLines += manualFiringAvailable ? 2 : 0;
+                    linesAdded += manualFiringAvailable ? 2 : 0;
                     if (manualFiringAvailable && groupDetails[DetailInfo.SteamBoilerWaterLevel]?.Controls[3] is Label boilerLevelLabel)
                     {
                         boilerLevelLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["BoilerWaterLevel"];
@@ -657,13 +679,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     break;
                 case EngineType.Diesel:
                 case EngineType.Electric:
-                    additionalLines += 6;
+                    linesAdded += 6;
                     if (groupDetails[DetailInfo.DieselEngineRunning]?.Controls[3] is Label engineLabel)
                     {
                         engineLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["Engine"];
                     }
                     result |= gearAvailable != (gearAvailable = !string.IsNullOrEmpty((playerLocomotive as INameValueInformationProvider).DebugInfo["Gear"]));
-                    additionalLines += gearAvailable ? 1 : 0;
+                    linesAdded += gearAvailable ? 1 : 0;
                     if (gearAvailable && groupDetails[DetailInfo.DieselGear]?.Controls[3] is Label gearLabel)
                     {
                         gearLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["Gear"];
@@ -704,8 +726,33 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
                     break;
             }
-            result |= layoutLines != additionalLines;
-            layoutLines = additionalLines;
+            result |= eotAvailable != (eotAvailable = playerLocomotive.Train.EndOfTrainDevice != null);
+            linesAdded += eotAvailable ? 1 : 0;
+            separatorsAdded += eotAvailable ? 1 : 0;
+            if (eotAvailable && groupDetails[DetailInfo.EotDevice]?.Controls[3] is Label eotLabel)
+            {
+                eotLabel.Text = playerLocomotive.Train.EndOfTrainDevice.State.GetLocalizedDescription();
+            }
+            IEnumerable<IGrouping<int, MSTSDieselLocomotive>> distributedLocomotives = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSDieselLocomotive>().GroupBy((dieselLocomotive) => dieselLocomotive.DistributedPowerUnitId);
+            result |= dpuAvailable != (dpuAvailable = distributedLocomotives.Count() > 1);
+            linesAdded += dpuAvailable ? 1 : 0;
+            separatorsAdded += dpuAvailable ? 1 : 0;
+            if (dpuAvailable && groupDetails[DetailInfo.DieselDpu]?.Controls[3] is Label dpuLabel)
+            {
+                string dpuConfig = string.Empty;
+                RemoteControlGroup remoteControlGroup = RemoteControlGroup.FrontGroupSync;
+                foreach (IGrouping<int, MSTSDieselLocomotive> item in distributedLocomotives)
+                {
+                    if (!string.IsNullOrEmpty(dpuConfig))
+                        dpuConfig += remoteControlGroup != (remoteControlGroup = item.First().RemoteControlGroup) ? FormatStrings.Markers.Fence : FormatStrings.Markers.Dash;
+                    dpuConfig += item.Count();
+                }
+                dpuLabel.Text = dpuConfig;
+            }
+
+            result |= additionalLines != linesAdded;
+            additionalLines = linesAdded;
+            additonalSeparators = separatorsAdded;
             return result;
         }
     }

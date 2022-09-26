@@ -1081,7 +1081,7 @@ namespace Orts.Common
         [Description("ER")] EQReservoir,
         [Description("MR")] MainReservoir,
         [Description("BC")] BrakeCylinder,
-        [Description("EOT")] EndOfTrainCar,
+        [Description("EOTW")] EndOfTrainCar,
         [Description("1STW")] FirstTrainCar,
 
         //Diesel and Electric
@@ -1089,5 +1089,7 @@ namespace Orts.Common
         [Description("TRAC")] TractionCutOffRelay,
         [Description("MAST")] MasterKey,
         [Description("BATT")] BatterySwitch,
+
+        [Description("EOTD")] EotDevice,
     }
 }

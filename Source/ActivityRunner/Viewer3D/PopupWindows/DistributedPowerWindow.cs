@@ -71,9 +71,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ControlLayout line = layout.AddLayoutHorizontal();
             line.HorizontalChildAlignment = HorizontalAlignment.Right;
             line.VerticalChildAlignment = VerticalAlignment.Top;
-            line.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono ? FormatStrings.Markers.ArrowRight : FormatStrings.Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
+            line.Add(labelExpandMono = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode is WindowMode.ShortMono or WindowMode.NormalMono ? FormatStrings.Markers.ArrowRight : FormatStrings.Markers.ArrowLeft, HorizontalAlignment.Center, Color.Yellow));
             labelExpandMono.OnClick += LabelExpandMono_OnClick;
-            line.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono ? FormatStrings.Markers.ArrowUp : FormatStrings.Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
+            line.Add(labelExpandDetails = new Label(this, Owner.TextFontDefault.Height, Owner.TextFontDefault.Height, windowMode is WindowMode.Normal or WindowMode.NormalMono ? FormatStrings.Markers.ArrowUp : FormatStrings.Markers.ArrowDown, HorizontalAlignment.Center, Color.Yellow));
             labelExpandDetails.OnClick += LabelExpandDetails_OnClick;
             labelExpandDetails.Visible = labelExpandMono.Visible = groupCount > 0;
             layout = layout.AddLayoutVertical();
@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     groupDetails[groupDetail] = line;
                 }
 
-                if (windowMode == WindowMode.ShortMono || windowMode == WindowMode.NormalMono)
+                if (windowMode is WindowMode.ShortMono or WindowMode.NormalMono)
                 {
                     int columnWidth = (int)(Owner.DpiScaling * monoColumnWidth);
                     AddDetailLine(GroupDetail.GroupId, columnWidth, FourCharAcronym.LocoGroup.GetLocalizedDescription(), Owner.TextFontMonoDefaultBold, HorizontalAlignment.Center);
@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void LabelExpandMono_OnClick(object sender, MouseClickEventArgs e)
         {
-            windowMode = windowMode == WindowMode.Normal || windowMode == WindowMode.Short ? windowMode.Next() : windowMode.Previous();
+            windowMode = windowMode is WindowMode.Normal or WindowMode.Short ? windowMode.Next() : windowMode.Previous();
             Resize();
         }
 
@@ -257,13 +257,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 if (groupDetails[GroupDetail.Load]?.Controls[i] is Label loadLabel)
                 {
-                    loadLabel.Text = $"{groupLead.DistributedPowerLoadInfo():F0}{(windowMode == WindowMode.Normal || windowMode == WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
+                    loadLabel.Text = $"{groupLead.DistributedPowerLoadInfo():F0}{(windowMode is WindowMode.Normal or WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
                 }
                 if (groupDetails[GroupDetail.Remote]?.Controls[i] is Label remoteLabel)
                 {
                     remoteLabel.Text = $"{(groupLead.IsLeadLocomotive() || groupLead.RemoteControlGroup < 0 ? "———" : groupLead.RemoteControlGroup == 0 ? Catalog.GetString("Sync") : Catalog.GetString("Async"))}";
                 }
-                if (windowMode == WindowMode.Normal || windowMode == WindowMode.NormalMono)
+                if (windowMode is WindowMode.Normal or WindowMode.NormalMono)
                 {
                     TrainCar lastCar = groupLead.Train.Cars[^1];
                     if (lastCar == groupLead)
