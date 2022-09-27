@@ -156,6 +156,7 @@ namespace Orts.Simulation.Physics
         internal bool HUDBrakeSlide { get; set; }                     // Display indication for brake wheel slip
         internal bool WagonsAttached { get; set; }    // Wagons are attached to train
 
+        //TODO 20220927 should be replaced by an enum value, or implementing INameValueInformationProvider interface
         public bool IsWheelSlipWarninq { get; private set; }
         public bool IsWheelSlip { get; private set; }
         public bool IsBrakeSkid { get; private set; }

@@ -2644,10 +2644,6 @@ namespace Orts.Simulation.RollingStocks
 
                 switch (aiFireState)
                 {
-                    case AiFireState.Reset:
-                        if (System.Environment.TickCount64 > aiFireResetTicks)
-                            aiFireState = AiFireState.None;
-                        break;
                     case AiFireState.Off:
                         if (BoilerPressurePSI < MaxBoilerPressurePSI - 20.0f || BoilerHeatSmoothedBTU < 0.90f || (absSpeedMpS < 0.01f && throttle < 0.01f))
                         {
@@ -2664,6 +2660,9 @@ namespace Orts.Simulation.RollingStocks
                         break;
                 }
             }
+
+            if (aiFireState == AiFireState.Reset && System.Environment.TickCount64 > aiFireResetTicks)
+                aiFireState = AiFireState.None;
 
             float MinimumBurnRateKGpS = 0.0012626f; // Set minimum burn rate @ 10lb/hr
             BurnRateRawKGpS = MathHelper.Clamp(BurnRateRawKGpS, MinimumBurnRateKGpS, BurnRateRawKGpS); // ensure burnrate never goes to zero, unless the fire drops to an unacceptable level, or a fusible plug blows
