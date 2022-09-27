@@ -10,6 +10,7 @@ using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -78,6 +79,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             CircuitBreaker,
             EotDevice,
             DieselDpu,
+            AutoPilot,
+            SteamAiFireMan,
+            SteamGrateLimit,
         }
 
         private readonly UserSettings settings;
@@ -95,9 +99,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private bool gearAvailable;
         private bool eotAvailable;
         private bool dpuAvailable;
+        private bool aiFireAvailable;
+        private bool grateLimitAvailable;
 
         private int additionalLines;
-        private const int constantLines = 9; //need to be updated if additional lines required
+        private const int constantLines = 10; //need to be updated if additional lines required
         private const int separatorLines = 4;
         private int additonalSeparators;
 
@@ -110,11 +116,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private string dynamicBrakeInput;
         private string gearKeyInput;
         private string pantographKeyInput;
-        private bool autoPilotKeyDown;
-        private bool firingKeyDown;
-        private bool aiFireOnKeyDown;
-        private bool aiFireOffKeyDown;
-        private bool aiFireResetKeyDown;
 
         public DrivingTrainWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Driving Info"), relativeLocation, new Point(200, 100), catalog)
@@ -271,6 +272,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 AddDetailLine(DetailInfo.DieselDpu, shortMode ? FourCharAcronym.Locomotives.GetLocalizedDescription() : Catalog.GetString("Locos"), font);
                 layout.AddHorizontalSeparator(true);
             }
+            AddDetailLine(DetailInfo.AutoPilot, shortMode ? FourCharAcronym.AutoPilot.GetLocalizedDescription() : Catalog.GetString("AutoPilot"), font);
+            if (aiFireAvailable)
+                AddDetailLine(DetailInfo.SteamAiFireMan, shortMode ? FourCharAcronym.AiFireman.GetLocalizedDescription() : Catalog.GetString("AI Fire"), font);
+            if (grateLimitAvailable)
+                AddDetailLine(DetailInfo.SteamGrateLimit, shortMode ? FourCharAcronym.GrateLimit.GetLocalizedDescription() : Catalog.GetString("Grate Lim"), font);
             return layout;
         }
 
@@ -301,11 +307,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, Pantograph2Command, true);
             userCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, Pantograph3Command, true);
             userCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, Pantograph4Command, true);
-            userCommandController.AddEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand, true);
-            userCommandController.AddEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand, true);
-            userCommandController.AddEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyDown, AIFiringOnCommand, true);
-            userCommandController.AddEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyDown, AIFiringOffCommand, true);
-            userCommandController.AddEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyDown, AIFiringResetCommand, true);
 
             userCommandController.AddEvent(UserCommand.DisplayTrainDrivingWindow, KeyEventType.KeyPressed, TabAction, true);
 
@@ -333,11 +334,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController.RemoveEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, Pantograph2Command);
             userCommandController.RemoveEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, Pantograph3Command);
             userCommandController.RemoveEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, Pantograph4Command);
-            userCommandController.RemoveEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand);
-            userCommandController.RemoveEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand);
-            userCommandController.RemoveEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyDown, AIFiringOnCommand);
-            userCommandController.RemoveEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyDown, AIFiringOffCommand);
-            userCommandController.RemoveEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyDown, AIFiringResetCommand);
 
             userCommandController.RemoveEvent(UserCommand.DisplayTrainDrivingWindow, KeyEventType.KeyPressed, TabAction);
             return base.Close();
@@ -354,7 +350,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void Resize()
         {
-            int height = 24 + (additionalLines + constantLines) * Owner.TextFontDefault.Height + ((separatorLines + additonalSeparators) * 5) /* #separators * separator height */;
+            int height = 32 + (additionalLines + constantLines) * Owner.TextFontDefault.Height + ((separatorLines + additonalSeparators) * 5) /* #separators * separator height */;
             Point size = windowMode switch
             {
                 WindowMode.Normal => new Point(normalLeadColumnWidth + 2 * normalColumnWidth + 36, height),
@@ -442,31 +438,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             MSTSLocomotive locomotive = Simulator.Instance.PlayerLocomotive;
             pantographKeyInput = locomotive.Pantographs[pantograph].State is PantographState.Up or PantographState.Raising ? FormatStrings.Markers.ArrowUp : FormatStrings.Markers.ArrowDown;
-        }
-
-        private void AutoPilotCommand()
-        {
-            autoPilotKeyDown = true;
-        }
-
-        private void FiringCommand()
-        {
-            firingKeyDown = true;
-        }
-
-        private void AIFiringOnCommand()
-        {
-            aiFireOnKeyDown = true;
-        }
-
-        private void AIFiringOffCommand()
-        {
-            aiFireOffKeyDown = true;
-        }
-
-        private void AIFiringResetCommand()
-        {
-            aiFireResetKeyDown = true;
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
@@ -667,14 +638,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     if (groupDetails[DetailInfo.SteamFuelLevelCoal]?.Controls[3] is Label coalLabel)
                     {
                         coalLabel.Text = $"{(playerLocomotive as INameValueInformationProvider).DebugInfo["FuelLevelCoal"]} {Catalog.GetString("coal")}";
-                        if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("FuelLevelCoal", out FormatOption options) && options != null)
-                            coalLabel.TextColor = options.TextColor ?? Color.White;
+                        if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("FuelLevelCoal", out FormatOption option) && option != null)
+                            coalLabel.TextColor = option.TextColor ?? Color.White;
                     }
                     if (groupDetails[DetailInfo.SteamFuelLevelWater]?.Controls[3] is Label waterLabel)
                     {
                         waterLabel.Text = $"{(playerLocomotive as INameValueInformationProvider).DebugInfo["FuelLevelWater"]} {Catalog.GetString("water")}";
-                        if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("FuelLevelWater", out FormatOption options) && options != null)
-                            waterLabel.TextColor = options.TextColor ?? Color.White;
+                        if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("FuelLevelWater", out FormatOption option) && option != null)
+                            waterLabel.TextColor = option.TextColor ?? Color.White;
                     }
                     break;
                 case EngineType.Diesel:
@@ -733,7 +704,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 eotLabel.Text = playerLocomotive.Train.EndOfTrainDevice.State.GetLocalizedDescription();
             }
-            IEnumerable<IGrouping<int, MSTSDieselLocomotive>> distributedLocomotives = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSDieselLocomotive>().GroupBy((dieselLocomotive) => dieselLocomotive.DistributedPowerUnitId);
+            IEnumerable<IGrouping<int, MSTSDieselLocomotive>> distributedLocomotives = playerLocomotive.Train.Cars.OfType<MSTSDieselLocomotive>().GroupBy((dieselLocomotive) => dieselLocomotive.DistributedPowerUnitId);
             result |= dpuAvailable != (dpuAvailable = distributedLocomotives.Count() > 1);
             linesAdded += dpuAvailable ? 1 : 0;
             separatorsAdded += dpuAvailable ? 1 : 0;
@@ -748,6 +719,28 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     dpuConfig += item.Count();
                 }
                 dpuLabel.Text = dpuConfig;
+            }
+            if (groupDetails[DetailInfo.AutoPilot]?.Controls[3] is Label autopilotLabel)
+            {
+                autopilotLabel.Text = playerLocomotive.Train.TrainType == TrainType.AiPlayerHosting ? "On" : "Off";
+                autopilotLabel.TextColor = playerLocomotive.Train.TrainType == TrainType.AiPlayerHosting ? Color.Yellow : Color.White;
+            }
+            result |= aiFireAvailable != (aiFireAvailable = !(string.IsNullOrEmpty((playerLocomotive as INameValueInformationProvider).DebugInfo["AIFireMan"])));
+            linesAdded += aiFireAvailable ? 1 : 0;
+            if (groupDetails[DetailInfo.SteamAiFireMan]?.Controls[3] is Label aiFireLabel && aiFireAvailable)
+            {
+                aiFireLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["AIFireMan"];
+                if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("AIFireMan", out FormatOption option) && option != null)
+                    aiFireLabel.TextColor = option.TextColor ?? Color.White;
+            }
+
+            result |= grateLimitAvailable != (grateLimitAvailable = !(string.IsNullOrEmpty((playerLocomotive as INameValueInformationProvider).DebugInfo["GrateLimit"])));
+            linesAdded += grateLimitAvailable ? 1 : 0;
+            if (groupDetails[DetailInfo.SteamGrateLimit]?.Controls[3] is Label grateLimitLabel && grateLimitAvailable)
+            {
+                grateLimitLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["GrateLimit"];
+                if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("GrateLimit", out FormatOption option) && option != null)
+                    grateLimitLabel.TextColor = option.TextColor ?? Color.White;
             }
 
             result |= additionalLines != linesAdded;

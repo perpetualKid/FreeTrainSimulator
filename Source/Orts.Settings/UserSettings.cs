@@ -107,6 +107,8 @@ namespace Orts.Settings
         public bool RetainersOnAllCars { get; set; }
         [Default(false)]
         public bool SuppressConfirmations { get; set; }
+        [Default(1500)]
+        public int NotificationsTimeout { get; set; }
         [Default(21)]
         public int BrakePipeChargingRate { get; set; }
         [Default("")]

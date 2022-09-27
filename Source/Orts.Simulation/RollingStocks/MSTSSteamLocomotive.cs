@@ -67,6 +67,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -84,8 +85,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
-using static Orts.Common.Calc.Dynamics;
-
 namespace Orts.Simulation.RollingStocks
 {
     ///////////////////////////////////////////////////
@@ -97,6 +96,14 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public class MSTSSteamLocomotive : MSTSLocomotive
     {
+        private enum AiFireState
+        {
+            None,
+            On,// Flag to set the AI fire to on for starting of locomotive
+            Off,// Flag to set the AI fire to off for locomotive when approaching a stop 
+            Reset,// Flag if AI fire has been reset, ie no overrides in place
+        }
+
         //Configure a default cutoff controller
         //If none is specified, this will be used, otherwise those values will be overwritten
         public MSTSNotchController CutoffController = new MSTSNotchController(-0.9f, 0.9f, 0.1f);
@@ -134,6 +141,7 @@ namespace Orts.Simulation.RollingStocks
         /// Grate limit of locomotive exceedeed?
         /// </summary>
         public bool IsGrateLimit { get; protected set; }
+        private long grateNotificationTimeout;
 
         private bool HasSuperheater;  // Flag to indicate whether locomotive is superheated steam type
         private bool IsSuperSet;    // Flag to indicate whether superheating is reducing cylinder condenstation
@@ -146,10 +154,9 @@ namespace Orts.Simulation.RollingStocks
         private bool IsLocoSlip;        // locomotive is slipping
         private bool IsCritTELimit; // Flag to advise if critical TE is exceeded
         private bool ISBoilerLimited;  // Flag to indicate that Boiler is limiting factor with the locomotive power
-        private bool SetFireOn; // Flag to set the AI fire to on for starting of locomotive
-        private bool SetFireOff; // Flag to set the AI fire to off for locomotive when approaching a stop 
-        private bool SetFireReset; // Flag if AI fire has been reset, ie no overrides in place
-        private bool AIFireOverride; // Flag to show ai fire has has been overriden
+        private AiFireState aiFireState;
+        private long aiFireResetTicks;
+        private bool aiFireOverride; // Flag to show ai fire has has been overriden
         private bool InjectorLockedOut; // Flag to lock injectors from changing within a fixed period of time
 
         // Aux Tender Parameters
@@ -791,66 +798,168 @@ namespace Orts.Simulation.RollingStocks
         {
             switch (lowercasetoken)
             {
-                case "engine(numcylinders": NumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(cylinderstroke": CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(cylinderdiameter": CylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(lpnumcylinders": LPNumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(lpcylinderstroke": LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(lpcylinderdiameter": LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(ortscylinderportopening": CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(boilervolume": BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null); break;
-                case "engine(maxboilerpressure": MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.Temperature, null); break;  // New input and conversion units to be added for temperature
+                case "engine(numcylinders":
+                    NumCylinders = stf.ReadIntBlock(null);
+                    break;
+                case "engine(cylinderstroke":
+                    CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(cylinderdiameter":
+                    CylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(lpnumcylinders":
+                    LPNumCylinders = stf.ReadIntBlock(null);
+                    break;
+                case "engine(lpcylinderstroke":
+                    LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(lpcylinderdiameter":
+                    LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(ortscylinderportopening":
+                    CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(boilervolume":
+                    BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null);
+                    break;
+                case "engine(maxboilerpressure":
+                    MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(ortsmaxsuperheattemperature":
+                    MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.Temperature, null);
+                    break;  // New input and conversion units to be added for temperature
                 case "engine(ortsmaxindicatedhorsepower":
                     MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.Units.Power, null);
                     MaxIndicatedHorsePowerHP = (float)Dynamics.Power.ToHp(MaxIndicatedHorsePowerHP);  // Convert input to HP for use internally in this module
                     break;
-                case "engine(vacuumbrakeslargeejectorusagerate": EjectorLargeSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
-                case "engine(vacuumbrakessmallejectorusagerate": EjectorSmallSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
-                case "engine(ortssuperheatcutoffpressurefactor": SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(shovelcoalmass": ShovelMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(maxtendercoalmass": MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(maxtenderwatermass": MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(steamfiremanmaxpossiblefiringrate": MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
-                case "engine(steamfiremanismechanicalstoker": Stoker = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
-                case "engine(enginecontrollers(cutoff": CutoffController.Parse(stf); break;
-                case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); SmallEjectorControllerFitted = true; break;
-                case "engine(enginecontrollers(ortslargeejector": LargeEjectorController.Parse(stf); LargeEjectorControllerFitted = true; break;
-                case "engine(enginecontrollers(injector1water": Injector1Controller.Parse(stf); break;
-                case "engine(enginecontrollers(injector2water": Injector2Controller.Parse(stf); break;
-                case "engine(enginecontrollers(blower": BlowerController.Parse(stf); break;
-                case "engine(enginecontrollers(dampersfront": DamperController.Parse(stf); break;
-                case "engine(enginecontrollers(shovel": FiringRateController.Parse(stf); break;
-                case "engine(enginecontrollers(firedoor": FireboxDoorController.Parse(stf); break;
-                case "engine(effects(steamspecialeffects": ParseEffects(lowercasetoken, stf); break;
-                case "engine(ortsgratearea": GrateAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(superheater": SuperheaterFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(istenderrequired": IsTenderRequired = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsevaporationarea": EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsboilersurfacearea": BoilerSurfaceAreaFt2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsfractionboilerinsulated": FractionBoilerAreaInsulated = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsheatcoefficientinsulation": KcInsulation = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortssuperheatarea": SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsfuelcalorific": FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.Units.EnergyDensity, null); break;
-                case "engine(ortsboilerevaporationrate": BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortscylinderefficiencyrate": CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortscylinderinitialpressuredrop": InitialPressureDropRatioRpMtoX = stf.CreateInterpolator(); break;
-                case "engine(ortscylinderbackpressure": BackPressureIHPtoPSI = stf.CreateInterpolator(); break;
-                case "engine(ortsburnrate": NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator(); break;
-                case "engine(ortsboilerefficiency": BoilerEfficiencyGrateAreaLBpFT2toX = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventexhaust": CylinderExhausttoCutoff = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventcompression": CylinderCompressiontoCutoff = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventadmission": CylinderAdmissiontoCutoff = stf.CreateInterpolator(); break;
+                case "engine(vacuumbrakeslargeejectorusagerate":
+                    EjectorLargeSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null));
+                    break;
+                case "engine(vacuumbrakessmallejectorusagerate":
+                    EjectorSmallSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null));
+                    break;
+                case "engine(ortssuperheatcutoffpressurefactor":
+                    SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(shovelcoalmass":
+                    ShovelMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(maxtendercoalmass":
+                    MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(maxtenderwatermass":
+                    MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(steamfiremanmaxpossiblefiringrate":
+                    MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600;
+                    break;
+                case "engine(steamfiremanismechanicalstoker":
+                    Stoker = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortssteamfiremanmaxpossiblefiringrate":
+                    ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600;
+                    break;
+                case "engine(enginecontrollers(cutoff":
+                    CutoffController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(ortssmallejector":
+                    SmallEjectorController.Parse(stf);
+                    SmallEjectorControllerFitted = true;
+                    break;
+                case "engine(enginecontrollers(ortslargeejector":
+                    LargeEjectorController.Parse(stf);
+                    LargeEjectorControllerFitted = true;
+                    break;
+                case "engine(enginecontrollers(injector1water":
+                    Injector1Controller.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(injector2water":
+                    Injector2Controller.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(blower":
+                    BlowerController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(dampersfront":
+                    DamperController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(shovel":
+                    FiringRateController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(firedoor":
+                    FireboxDoorController.Parse(stf);
+                    break;
+                case "engine(effects(steamspecialeffects":
+                    ParseEffects(lowercasetoken, stf);
+                    break;
+                case "engine(ortsgratearea":
+                    GrateAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(superheater":
+                    SuperheaterFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(istenderrequired":
+                    IsTenderRequired = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsevaporationarea":
+                    EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsboilersurfacearea":
+                    BoilerSurfaceAreaFt2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsfractionboilerinsulated":
+                    FractionBoilerAreaInsulated = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsheatcoefficientinsulation":
+                    KcInsulation = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortssuperheatarea":
+                    SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsfuelcalorific":
+                    FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.Units.EnergyDensity, null);
+                    break;
+                case "engine(ortsboilerevaporationrate":
+                    BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortscylinderefficiencyrate":
+                    CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortscylinderinitialpressuredrop":
+                    InitialPressureDropRatioRpMtoX = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylinderbackpressure":
+                    BackPressureIHPtoPSI = stf.CreateInterpolator();
+                    break;
+                case "engine(ortsburnrate":
+                    NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator();
+                    break;
+                case "engine(ortsboilerefficiency":
+                    BoilerEfficiencyGrateAreaLBpFT2toX = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventexhaust":
+                    CylinderExhausttoCutoff = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventcompression":
+                    CylinderCompressiontoCutoff = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventadmission":
+                    CylinderAdmissiontoCutoff = stf.CreateInterpolator();
+                    break;
                 case "engine(ortssteamgearratio":
                     stf.MustMatch("(");
                     SteamGearRatioLow = stf.ReadFloat(STFReader.Units.None, null);
                     SteamGearRatioHigh = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                     break;
-                case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsgearedtractiveeffortfactor": GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortstractiveeffortfactor": TractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortssteammaxgearpistonrate":
+                    MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsgearedtractiveeffortfactor":
+                    GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortstractiveeffortfactor":
+                    TractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
                     string steamengineType = stf.ReadString();
@@ -879,9 +988,13 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsmasterkey(headlightcontrol":
                     LocomotivePowerSupply.Parse(lowercasetoken, stf);
                     break;
-                case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
+                case "engine(enginecontrollers(waterscoop":
+                    HasWaterScoop = true;
+                    break;
 
-                default: base.Parse(lowercasetoken, stf); break;
+                default:
+                    base.Parse(lowercasetoken, stf);
+                    break;
             }
         }
 
@@ -1265,7 +1378,7 @@ namespace Orts.Simulation.RollingStocks
 
             // If the maximum cutoff for the locomotive is less then the default tractive effort constant value, then flag to the user to check. See this reference - 
             // https://babel.hathitrust.org/cgi/pt?id=wu.89089676290&view=1up&seq=510&skin=2021&q1=booster
-            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.Settings.VerboseConfigurationMessages && ( CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
+            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.Settings.VerboseConfigurationMessages && (CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
             {
                 Trace.TraceInformation("Maximum Cutoff setting {0} is less then the TractiveEffortFactor {1}, is this correct?", CutoffController.MaximumValue, TractiveEffortFactor);
             }
@@ -2190,9 +2303,15 @@ namespace Orts.Simulation.RollingStocks
                 // On a steam locomotive, the Reverser is the same as the Cut Off Control.
                 switch (Direction)
                 {
-                    case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                    case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                    case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                    case MidpointDirection.Reverse:
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                        break;
+                    case MidpointDirection.N:
+                        simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                        break;
+                    case MidpointDirection.Forward:
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                        break;
                 }
             if (IsPlayerTrain)
             {
@@ -2414,7 +2533,8 @@ namespace Orts.Simulation.RollingStocks
             WaterConsumptionLbpS = (float)(InjectorBoilerInputLB / elapsedClockSeconds); // water consumption
             WaterConsumptionLbpS = MathHelper.Clamp(WaterConsumptionLbpS, 0, WaterConsumptionLbpS);
             CumulativeWaterConsumptionLbs += InjectorBoilerInputLB;
-            if (CumulativeWaterConsumptionLbs > 0) DbfEvalCumulativeWaterConsumptionLbs = CumulativeWaterConsumptionLbs;//DebriefEval
+            if (CumulativeWaterConsumptionLbs > 0)
+                DbfEvalCumulativeWaterConsumptionLbs = CumulativeWaterConsumptionLbs;//DebriefEval
 
 #if DEBUG_AUXTENDER
 
@@ -2513,41 +2633,35 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // AIFireOverride flag set to challenge driver if boiler AI fireman is overriden - ie steam safety valves will be set and blow if pressure is excessive
-                if (SetFireOn || SetFireOff) // indicate that AI fireman override is in use
+                if (aiFireState is AiFireState.On or AiFireState.Off) // indicate that AI fireman override is in use
                 {
-                    AIFireOverride = true; // Set whenever SetFireOn or SetFireOff are selected
+                    aiFireOverride = true; // Set whenever SetFireOn or SetFireOff are selected
                 }
                 else if (BoilerPressurePSI < MaxBoilerPressurePSI && BoilerHeatSmoothedBTU < MaxBoilerHeatBTU && BoilerHeatBTU < MaxBoilerSafetyPressHeatBTU)
                 {
-                    AIFireOverride = false; // Reset if pressure and heat back to "normal"
+                    aiFireOverride = false; // Reset if pressure and heat back to "normal"
                 }
 
-                if (SetFireReset)  // Check FireReset Override command - resets fireoff and fireon override
+                switch (aiFireState)
                 {
-                    SetFireOff = false;
-                    SetFireOn = false;
-                    SetFireReset = false;
-                }
-
-                // Check FireOff Override command - allows player to force fire low in preparation for a station stop
-                if (SetFireOff)
-                {
-                    if (BoilerPressurePSI < MaxBoilerPressurePSI - 20.0f || BoilerHeatSmoothedBTU < 0.90f || (absSpeedMpS < 0.01f && throttle < 0.01f))
-                    {
-                        SetFireOff = false; // Disable FireOff if bolierpressure too low
-                    }
-
-                    BurnRateRawKGpS = 0.0035f;
-                }
-
-                // Check FireOn Override command - allows player to force the fire up in preparation for a station departure
-                if (SetFireOn)
-                {
-                    if ((BoilerHeatSmoothedBTU > 0.995f * MaxBoilerHeatBTU && absSpeedMpS > 10.0f) || BoilerPressurePSI > MaxBoilerPressurePSI || absSpeedMpS <= 10.0f && (BoilerHeatSmoothedBTU > MaxBoilerHeatBTU || BoilerHeatBTU > 1.1f * MaxBoilerSafetyPressHeatBTU))
-                    {
-                        SetFireOn = false; // Disable FireOn if bolierpressure and boilerheat back to "normal"
-                    }
-                    BurnRateRawKGpS = 0.9f * (float)Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
+                    case AiFireState.Reset:
+                        if (System.Environment.TickCount64 > aiFireResetTicks)
+                            aiFireState = AiFireState.None;
+                        break;
+                    case AiFireState.Off:
+                        if (BoilerPressurePSI < MaxBoilerPressurePSI - 20.0f || BoilerHeatSmoothedBTU < 0.90f || (absSpeedMpS < 0.01f && throttle < 0.01f))
+                        {
+                            aiFireState = AiFireState.None; // Disable FireOff if bolierpressure too low
+                        }
+                        BurnRateRawKGpS = 0.0035f;
+                        break;
+                    case AiFireState.On:
+                        if ((BoilerHeatSmoothedBTU > 0.995f * MaxBoilerHeatBTU && absSpeedMpS > 10.0f) || BoilerPressurePSI > MaxBoilerPressurePSI || absSpeedMpS <= 10.0f && (BoilerHeatSmoothedBTU > MaxBoilerHeatBTU || BoilerHeatBTU > 1.1f * MaxBoilerSafetyPressHeatBTU))
+                        {
+                            aiFireState = AiFireState.None; // Disable FireOn if bolierpressure and boilerheat back to "normal"
+                        }
+                        BurnRateRawKGpS = 0.9f * (float)Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
+                        break;
                 }
             }
 
@@ -2962,14 +3076,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 #region Safety Valve - AI Firing
                 // turn safety valves on if boiler heat is excessive, and fireman is not trying to raise steam for rising gradient by using the AI fire override
-                if (AIFireOverride && BoilerPressurePSI > MaxBoilerPressurePSI + SafetyValveStartPSI)
+                if (aiFireOverride && BoilerPressurePSI > MaxBoilerPressurePSI + SafetyValveStartPSI)
                 {
                     SignalEvent(TrainEvent.SteamSafetyValveOn);
                     SafetyIsOn = true;
                 }
 
                 // turn safety vales off if boiler heat has returned to "normal", fitreman is no longer in override mode
-                else if (!AIFireOverride && BoilerPressurePSI < MaxBoilerPressurePSI - SafetyValveDropPSI)
+                else if (!aiFireOverride && BoilerPressurePSI < MaxBoilerPressurePSI - SafetyValveDropPSI)
                 {
                     SignalEvent(TrainEvent.SteamSafetyValveOff);
                     SafetyIsOn = false;
@@ -3129,6 +3243,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!IsGrateLimit)  // Provide message to player that grate limit has been exceeded
                 {
+                    locomotiveStatus["GrateLimit"] = Simulator.Catalog.GetString("Exceeded");
                     simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit exceeded - boiler heat rate cannot increase."));
                 }
                 IsGrateLimit = true;
@@ -3138,7 +3253,12 @@ namespace Orts.Simulation.RollingStocks
                 if (IsGrateLimit)  // Provide message to player that grate limit has now returned within limits
                 {
                     simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit return to normal."));
+                    grateNotificationTimeout = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
+                    locomotiveStatus["GrateLimit"] = Simulator.Catalog.GetString("Normal");
                 }
+                if (System.Environment.TickCount64 > grateNotificationTimeout)
+                    locomotiveStatus["GrateLimit"] = null;
+
                 IsGrateLimit = false;
             }
 
@@ -3283,7 +3403,7 @@ namespace Orts.Simulation.RollingStocks
             // Ai Fireman
             if (!FiringIsManual && BoilerPressurePSI > MaxBoilerPressurePSI) // For AI fireman stop excessive pressure
             {
-                if (!AIFireOverride)
+                if (!aiFireOverride)
                 {
                     BoilerPressurePSI = MaxBoilerPressurePSI;  // Check for AI firing
                 }
@@ -4643,8 +4763,8 @@ namespace Orts.Simulation.RollingStocks
             // By default this model uses information based upon a "NYC 4-4-2 locomotive", for smaller locomotives this data is changed in the OR initialisation phase.
 
             if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting)
-                // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
-                // Don't use slip model when train is in auto pilot
+            // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
+            // Don't use slip model when train is in auto pilot
             {
                 float SlipCutoffPressureAtmPSI;
                 float SlipCylinderReleasePressureAtmPSI;
@@ -5001,7 +5121,7 @@ namespace Orts.Simulation.RollingStocks
                     // angular acceleration = (sum of forces * wheel radius) / moment of inertia
                     float AngAccRadpS2 = (float)(Dynamics.Force.FromLbf(SteamTangentialWheelForce - SteamStaticWheelForce) * DriverWheelRadiusM) / TotalMomentInertia;
 
- //                   Trace.TraceInformation("AngAcc {0}  Tang {1} Static {2} Radius {3} Inertia {4} WheelSpeed {5}", AngAccRadpS2, N.FromLbf(SteamTangentialWheelForce), N.FromLbf(SteamStaticWheelForce), DriverWheelRadiusM, TotalMomentInertia, FrictionWheelSpeedMpS);
+                    //                   Trace.TraceInformation("AngAcc {0}  Tang {1} Static {2} Radius {3} Inertia {4} WheelSpeed {5}", AngAccRadpS2, N.FromLbf(SteamTangentialWheelForce), N.FromLbf(SteamStaticWheelForce), DriverWheelRadiusM, TotalMomentInertia, FrictionWheelSpeedMpS);
                     // tangential acceleration = angular acceleration * wheel radius
                     // tangential speed = angular acceleration * time
                     PrevFrictionWheelSpeedMpS = FrictionWheelSpeedMpS; // Save current value of wheelspeed
@@ -5010,7 +5130,7 @@ namespace Orts.Simulation.RollingStocks
                     // Convert from radpS to MpS for the wheel size
                     var revsPs = wheelSpeedRadpS / (2.0f * (float)Math.PI); // Convert rads to revs
                     var diffWheelSpeedMpS = revsPs * 2.0f * (float)Math.PI * DriverWheelRadiusM;
-                    
+
                     // each wheel rev will travel the circumference of the wheel
                     FrictionWheelSpeedMpS += (float)diffWheelSpeedMpS;  // change wheel speed whilever wheel accelerating/decelerating
                     FrictionWheelSpeedMpS = MathHelper.Clamp(FrictionWheelSpeedMpS, 0.0f, 62.58f);  // Clamp wheel speed at maximum of 140mph (62.58 m/s)
@@ -5927,7 +6047,7 @@ namespace Orts.Simulation.RollingStocks
             // Set variable to change text colour as appropriate to flag different degrees of warning
             var boilerPressurePercent = BoilerPressurePSI / MaxBoilerPressurePSI;
             var boilerPressureSafety = "";
-            if (FiringIsManual || AIFireOverride)
+            if (FiringIsManual || aiFireOverride)
             {
                 boilerPressureSafety = boilerPressurePercent <= 0.25 || boilerPressurePercent > 1.0 ? "!!!" : boilerPressurePercent <= 0.5 || boilerPressurePercent > 0.985 ? "???" : "";
             }
@@ -6383,11 +6503,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Catalog.GetString("GrLimit"),
                 IsGrateLimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 Simulator.Catalog.GetString("FireOn"),
-                SetFireOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
+                aiFireState == AiFireState.On ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 Simulator.Catalog.GetString("FireOff"),
-                SetFireOff ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
+                aiFireState == AiFireState.Off ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 Simulator.Catalog.GetString("AIOR"),
-                AIFireOverride ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
+                aiFireOverride ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
                 );
 
             if (SteamEngineType == SteamEngineType.Geared)
@@ -6481,8 +6601,8 @@ namespace Orts.Simulation.RollingStocks
                     );
             }
 
-            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared) 
-                // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
+            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared)
+            // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
             {
                 status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Slip Monitor"));
                 status.AppendFormat("{0}\t{1}\t{2:N0}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12:N2}\t{13}\t{14}\t{15:N2}\t{16}\t{17}\t{18:N1}\n",
@@ -7058,9 +7178,15 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                    break;
+                case MidpointDirection.N:
+                    simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                    break;
+                case MidpointDirection.Forward:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                    break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7077,9 +7203,15 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                    break;
+                case MidpointDirection.N:
+                    simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                    break;
+                case MidpointDirection.Forward:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                    break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7637,24 +7769,21 @@ namespace Orts.Simulation.RollingStocks
 
         public void AIFireOn()
         {
-            SetFireOn = true;
+            aiFireState = AiFireState.On;
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has started adding fuel to fire"));
-            SetFireOff = false;
         }
 
         public void AIFireOff()
         {
-            SetFireOff = true;
+            aiFireState = AiFireState.Off;
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has stopped adding fuel to fire"));
-            SetFireOn = false;
         }
 
         public void AIFireReset()
         {
-            SetFireReset = true;
+            aiFireState = AiFireState.Reset;
+            aiFireResetTicks = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has been reset"));
-            SetFireOff = false;
-            SetFireOn = false;
         }
 
         /// <summary>
@@ -7664,8 +7793,10 @@ namespace Orts.Simulation.RollingStocks
         /// <returns>Matching controller or null</returns>
         public override MSTSNotchController GetRefillController(PickupType type)
         {
-            if (type == PickupType.FuelCoal) return FuelController;
-            if (type == PickupType.FuelWater) return WaterController;
+            if (type == PickupType.FuelCoal)
+                return FuelController;
+            if (type == PickupType.FuelWater)
+                return WaterController;
             return null;
         }
 
@@ -7746,15 +7877,19 @@ namespace Orts.Simulation.RollingStocks
             if (Train.MUReverserPercent == 100)
             {
                 Train.MUReverserPercent = 25;
-                if ((Flipped ^ UsingRearCab)) CutoffController.SetValue(-0.25f);
-                else CutoffController.SetValue(0.25f);
+                if ((Flipped ^ UsingRearCab))
+                    CutoffController.SetValue(-0.25f);
+                else
+                    CutoffController.SetValue(0.25f);
 
             }
             else if (Train.MUReverserPercent == -100)
             {
                 Train.MUReverserPercent = -25;
-                if ((Flipped ^ UsingRearCab)) CutoffController.SetValue(0.25f);
-                else CutoffController.SetValue(-0.25f);
+                if ((Flipped ^ UsingRearCab))
+                    CutoffController.SetValue(0.25f);
+                else
+                    CutoffController.SetValue(-0.25f);
 
             }
             base.SwitchToPlayerControl();
@@ -7762,7 +7897,8 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SwitchToAutopilotControl()
         {
-            if (Train.MUDirection != MidpointDirection.Forward) SignalEvent(TrainEvent.ReverserChange);
+            if (Train.MUDirection != MidpointDirection.Forward)
+                SignalEvent(TrainEvent.ReverserChange);
             Train.MUDirection = MidpointDirection.Forward;
             Train.MUReverserPercent = 100;
             base.SwitchToAutopilotControl();
@@ -7844,12 +7980,24 @@ namespace Orts.Simulation.RollingStocks
                 locomotiveStatus.FormattingOptions["HeatingStatus"] = FormatOption.RegularOrange;
             }
 
+            // Grate limit
+            locomotiveStatus.FormattingOptions["GrateLimit"] = IsGrateLimit ? FormatOption.RegularOrangeRed : null;
+
+            locomotiveStatus["AIFireMan"] = aiFireState switch
+            {
+                AiFireState.Off => Simulator.Catalog.GetString("Off"),
+                AiFireState.On => Simulator.Catalog.GetString("On"),
+                AiFireState.Reset => Simulator.Catalog.GetString("Reset"),
+                _ => null,
+            };
+            locomotiveStatus.FormattingOptions["AIFireMan"] = aiFireState is AiFireState.Reset ? FormatOption.RegularCyan : null;
+
             locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
             locomotiveStatus.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
             locomotiveStatus.FormattingOptions["FuelLevelCoal"] = CoalIsExhausted ? FormatOption.RegularOrangeRed : coalPercent <= 0.105 ? FormatOption.RegularYellow : null;
             locomotiveStatus.FormattingOptions["FuelLevelWater"] = WaterIsExhausted ? FormatOption.RegularOrangeRed : waterPercent <= 0.105 ? FormatOption.RegularYellow : null;
             locomotiveStatus.FormattingOptions["BoilerWaterGlass"] = WaterFraction < WaterMinLevel || WaterFraction > WaterMaxLevel ? FormatOption.RegularOrangeRed : WaterFraction < WaterMinLevelSafe || WaterFraction > WaterMaxLevelSafe ? FormatOption.RegularYellow : null;
-            locomotiveStatus.FormattingOptions["BoilerPressure"] = FiringIsManual || AIFireOverride
+            locomotiveStatus.FormattingOptions["BoilerPressure"] = FiringIsManual || aiFireOverride
                 ? boilerPressurePercent <= 0.25 || boilerPressurePercent > 1.0 ? FormatOption.RegularOrangeRed : boilerPressurePercent <= 0.5 || boilerPressurePercent > 0.985 ? FormatOption.RegularYellow : null
                 : boilerPressurePercent <= 0.25 ? FormatOption.RegularOrangeRed : boilerPressurePercent <= 0.5 ? FormatOption.RegularYellow : null;
 

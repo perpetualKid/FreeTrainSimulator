@@ -290,7 +290,7 @@ namespace Orts.Simulation
                 Clocks = cf.Clocks;
             }
 
-            Confirmer = new Confirmer(this, 1.5);
+            Confirmer = new Confirmer(this);
             HazardManager = new HazardManager();
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
