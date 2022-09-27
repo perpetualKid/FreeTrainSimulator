@@ -166,10 +166,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.Initialize(windowManager);
             Font = windowManager.TextFontDefault;
-            if (TrainDrivingWindow.FontToBold)
-            {
-                Font = windowManager.TextFontDefaultBold;
-            }
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

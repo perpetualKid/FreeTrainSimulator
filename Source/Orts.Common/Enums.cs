@@ -1057,6 +1057,7 @@ namespace Orts.Common
         [Description("CCOK")] CylinderCocks,
         [Description("DIR")] Direction,
         [Description("DRLC")] DerailCoefficent,
+        [Description("DERL")] Derailment,
         [Description("DOOR")] DoorsOpen,
         [Description("ENGN")] Engine,
         [Description("FIRE")] FireMass,

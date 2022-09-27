@@ -24,6 +24,8 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 using SharpDX.Direct3D11;
 
+using Swan;
+
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -84,6 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             SteamGrateLimit,
             WheelSlip,
             DoorOpen,
+            Derailment,
         }
 
         private readonly UserSettings settings;
@@ -95,6 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private long wheelSlipTimeout;
         private long doorOpenTimeout;
+        private long derailTimeout;
 
         private int additionalLines;
         private const int constantLines = 10; //need to be updated if additional lines required
@@ -269,6 +273,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 AddDetailLine(DetailInfo.SteamAiFireMan, shortMode ? FourCharAcronym.AiFireman.GetLocalizedDescription() : Catalog.GetString("AI Fire"), font);
             if (dataAvailable[DetailInfo.SteamGrateLimit])
                 AddDetailLine(DetailInfo.SteamGrateLimit, shortMode ? FourCharAcronym.GrateLimit.GetLocalizedDescription() : Catalog.GetString("Grate Lim"), font);
+            if (dataAvailable[DetailInfo.Derailment])
+                AddDetailLine(DetailInfo.Derailment, shortMode ? FourCharAcronym.Derailment.GetLocalizedDescription() : Catalog.GetString("Derail"), font);
             if (dataAvailable[DetailInfo.WheelSlip])
                 AddDetailLine(DetailInfo.WheelSlip, shortMode ? FourCharAcronym.Wheel.GetLocalizedDescription() : Catalog.GetString("Wheel Slip"), font);
             if (dataAvailable[DetailInfo.DoorOpen])
@@ -734,6 +740,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     aiFireLabel.TextColor = option.TextColor ?? Color.White;
             }
 
+            //Grate Limit
             result |= dataAvailable[DetailInfo.SteamGrateLimit] != (dataAvailable[DetailInfo.SteamGrateLimit] = !(string.IsNullOrEmpty((playerLocomotive as INameValueInformationProvider).DebugInfo["GrateLimit"])));
             linesAdded += dataAvailable[DetailInfo.SteamGrateLimit] ? 1 : 0;
             if (dataAvailable[DetailInfo.SteamGrateLimit] && groupDetails[DetailInfo.SteamGrateLimit]?.Controls[3] is Label grateLimitLabel)
@@ -741,6 +748,31 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 grateLimitLabel.Text = (playerLocomotive as INameValueInformationProvider).DebugInfo["GrateLimit"];
                 if ((playerLocomotive as INameValueInformationProvider).FormattingOptions.TryGetValue("GrateLimit", out FormatOption option) && option != null)
                     grateLimitLabel.TextColor = option.TextColor ?? Color.White;
+            }
+
+            //derail
+            result |= dataAvailable[DetailInfo.Derailment] != (dataAvailable[DetailInfo.Derailment] = playerLocomotive.Train.Cars.Where(c => c.DerailExpected || c.DerailPossible).Any() || System.Environment.TickCount64 < derailTimeout);
+            linesAdded += dataAvailable[DetailInfo.Derailment] ? 1 : 0;
+            if (dataAvailable[DetailInfo.Derailment] && groupDetails[DetailInfo.Derailment]?.Controls[3] is Label derailmentLabel)
+            {
+                string derailedCar = playerLocomotive.Train.Cars.Where(c => c.DerailExpected).FirstOrDefault()?.CarID;
+                if (!string.IsNullOrEmpty(derailedCar))
+                {
+                    derailTimeout = System.Environment.TickCount64 + (2 * settings.NotificationsTimeout);
+                    derailmentLabel.Text = Catalog.GetString($"Derailed {derailedCar})");
+                    derailmentLabel.TextColor = Color.OrangeRed;
+                }
+                else if (!string.IsNullOrEmpty(derailedCar = playerLocomotive.Train.Cars.Where(c => c.DerailPossible).FirstOrDefault()?.CarID))
+                {
+                    derailTimeout = System.Environment.TickCount64 + (2 * settings.NotificationsTimeout);
+                    derailmentLabel.Text = Catalog.GetString($"Warning {derailedCar})");
+                    derailmentLabel.TextColor = Color.Yellow;
+                }
+                else
+                {
+                    derailmentLabel.Text = Catalog.GetString("Normal");
+                    derailmentLabel.TextColor = Color.White;
+                }
             }
 
             // Wheel

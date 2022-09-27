@@ -101,7 +101,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public ActivityWindow ActivityWindow { get; private set; } // Activity notices window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
-        public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
@@ -466,7 +465,6 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
-            TrainDrivingWindow = new TrainDrivingWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
@@ -653,10 +651,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainDrivingWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainDrivingWindow.TabAction();
-                else
-                    TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.DrivingTrainWindow].ToggleVisibility();
             });
