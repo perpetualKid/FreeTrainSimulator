@@ -66,9 +66,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(IPowerSupply other)
+        public void Copy(IPowerSupply source)
         {
-            if (other is SteamPowerSupply steamOther)
+            if (source is SteamPowerSupply steamOther)
             {
                 BatterySwitch.Copy(steamOther.BatterySwitch);
                 MasterKey.Copy(steamOther.MasterKey);

@@ -128,9 +128,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public virtual void Copy(IPowerSupply other)
+        public virtual void Copy(IPowerSupply source)
         {
-            if (other is ScriptedLocomotivePowerSupply scriptedOther)
+            if (source is ScriptedLocomotivePowerSupply scriptedOther)
             {
                 BatterySwitch.Copy(scriptedOther.BatterySwitch);
                 MasterKey.Copy(scriptedOther.MasterKey);

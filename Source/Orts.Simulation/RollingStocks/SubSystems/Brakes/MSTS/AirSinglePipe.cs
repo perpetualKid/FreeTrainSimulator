@@ -202,44 +202,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return cylVolumeM3;
         }
 
-        public float GetFullServPressurePSI()
-        {
-            return fullServPressurePSI;
-        }
+        public float FullServPressurePSI => fullServPressurePSI;
 
-        public float GetMaxCylPressurePSI()
-        {
-            return maxCylPressurePSI;
-        }
+        public float MaxCylPressurePSI => maxCylPressurePSI;
 
-        public float GetAuxCylVolumeRatio()
-        {
-            return auxCylVolumeRatio;
-        }
+        public float AuxCylVolumeRatio => auxCylVolumeRatio;
 
-        public float GetMaxReleaseRatePSIpS()
-        {
-            return maxReleaseRatePSIpS;
-        }
+        public float MaxReleaseRatePSIpS => maxReleaseRatePSIpS;
 
-        public float GetMaxApplicationRatePSIpS()
-        {
-            return maxApplicationRatePSIpS;
-        }
+        public float MaxApplicationRatePSIpS => maxApplicationRatePSIpS;
 
-        public override float GetVacResPressurePSI()
-        {
-            return 0;
-        }
+        public override float VacResPressurePSI => 0;
 
-        public override float GetVacResVolume()
-        {
-            return 0;
-        }
-        public override float GetVacBrakeCylNumber()
-        {
-            return 0;
-        }
+        public override float VacResVolume => 0;
+
+        public override float VacBrakeCylNumber => 0;
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {

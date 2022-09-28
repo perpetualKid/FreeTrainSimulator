@@ -97,11 +97,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(MasterKey other)
+        public void Copy(MasterKey source)
         {
-            Mode = other.Mode;
-            DelayS = other.DelayS;
-            HeadlightControl = other.HeadlightControl;
+            Mode = source.Mode;
+            DelayS = source.DelayS;
+            HeadlightControl = source.HeadlightControl;
         }
 
         public virtual void Initialize()

@@ -31,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     {
         public int GearBoxNumberOfGears = 1;
         public int GearBoxDirectDriveGear = 1;
-        public bool FreeWheelFitted = false;
+        public bool FreeWheelFitted;
         public GearBoxType GearBoxType = GearBoxType.Unknown;
         // GearboxType ( A ) - power is continuous during gear changes (and throttle does not need to be adjusted)
         // GearboxType ( B ) - power is interrupted during gear changes - but the throttle does not need to be adjusted when changing gear
@@ -55,7 +55,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public float GearBoxDownGearProportion = 0.35f;
         private int initLevel;
 
-        public bool MaxTEFound = false;
+        public bool MaxTEFound;
 
         public bool IsInitialized { get { return initLevel >= 3; } }
         public bool AtLeastOneParamFound { get { return initLevel >= 1; } }

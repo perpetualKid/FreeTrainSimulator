@@ -155,10 +155,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return 0;
         }
 
-        public override float GetVacResPressurePSI()
-        {
-            return 0;
-        }
+        public override float VacResPressurePSI => 0;
 
         public override void Update(double elapsedClockSeconds)
         {

@@ -1715,7 +1715,7 @@ namespace Orts.Simulation.AIs
                 thisTrain.AuxActionsContainer.RemoveSpecReqAction(this);
                 return false;
             }
-            if (ActionRef != null && ((AIAuxActionsRef)ActionRef).LinkedAuxAction)
+            if (((AIAuxActionsRef)ActionRef).LinkedAuxAction)
                 return false;
             float[] distancesM = ((AIAuxActionsRef)ActionRef).CalculateDistancesToNextAction(thisTrain, SpeedMpS, reschedule);
             if (distancesM[0] < thisTrain.DistanceTravelledM && !((AIActSigDelegateRef)ActionRef).IsAbsolute) // trigger point

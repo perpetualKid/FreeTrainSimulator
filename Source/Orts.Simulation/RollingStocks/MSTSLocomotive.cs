@@ -231,7 +231,7 @@ namespace Orts.Simulation.RollingStocks
         float WheelStopSlipTimeS;
         float CurrentWheelSlipAdhesionMultiplier;
         float DebugTimer; // Used for debugging adhesion coefficient
-        bool DebugSpeedReached = false; // Used for debugging adhesion coefficient
+        bool DebugSpeedReached; // Used for debugging adhesion coefficient
         float DebugSpeedIncrement = 1; // Used for debugging adhesion coefficient
         float DebugSpeed = 1; // Used for debugging adhesion coefficient
 
@@ -1231,11 +1231,11 @@ namespace Orts.Simulation.RollingStocks
         /// loaded in memory.  We use this one to speed up loading by eliminating the
         /// need to parse the wag file multiple times.
         /// </summary>
-        public override void Copy(MSTSWagon copy)
+        public override void Copy(MSTSWagon source)
         {
-            base.Copy(copy);  // each derived level initializes its own variables
+            base.Copy(source);  // each derived level initializes its own variables
 
-            MSTSLocomotive locoCopy = (MSTSLocomotive)copy;
+            MSTSLocomotive locoCopy = (MSTSLocomotive)source;
             CabSoundFileName = locoCopy.CabSoundFileName;
             CVFFileName = locoCopy.CVFFileName;
             CabViewList = locoCopy.CabViewList;
@@ -1514,16 +1514,16 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Sets controler settings from other engine for cab switch
         /// </summary>
-        /// <param name="other"></param>
-        public override void CopyControllerSettings(TrainCar other)
+        /// <param name="source"></param>
+        public override void CopyControllerSettings(TrainCar source)
         {
-            base.CopyControllerSettings(other);
+            base.CopyControllerSettings(source);
             if (ThrottleController != null)
-                ThrottleController.SetValue(other.ThrottlePercent / 100);
+                ThrottleController.SetValue(source.ThrottlePercent / 100);
             if (DynamicBrakeController != null)
-                DynamicBrakeController.SetValue(other.DynamicBrakePercent / 100);
+                DynamicBrakeController.SetValue(source.DynamicBrakePercent / 100);
             if (TrainBrakeController != null)
-                TrainBrakeController.SetValue(((MSTSLocomotive)other).TrainBrakeController.CurrentValue);
+                TrainBrakeController.SetValue(((MSTSLocomotive)source).TrainBrakeController.CurrentValue);
             if (EngineBrakeController != null)
                 EngineBrakeController.SetValue(0);
             if (BrakemanBrakeController != null)
@@ -1897,8 +1897,8 @@ namespace Orts.Simulation.RollingStocks
                 /* && (!DynamicBrakeBlendingLeverOverride && DynamicBrakeController != null && DynamicBrakeIntervention < DynamicBrakeController.CurrentValue)*/)
             {
                 float threshold = DynamicBrakeBlendingForceMatch ? 100f : 0.01f;
-                float maxCylPressurePSI = airPipeSystem.GetMaxCylPressurePSI();
-                float targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeSystem.BrakeLine4Pressure : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.GetAuxCylVolumeRatio()) / maxCylPressurePSI, 1f);
+                float maxCylPressurePSI = airPipeSystem.MaxCylPressurePSI;
+                float targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeSystem.BrakeLine4Pressure : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.AuxCylVolumeRatio) / maxCylPressurePSI, 1f);
                 //DynamicBrakeIntervention = Math.Min(((TrainBrakeController.CurrentValue - DynamicBrakeBlendingStart) / (DynamicBrakeBlendingStop - DynamicBrakeBlendingStart)), 1f);
 
                 if (!DynamicBrakeBlended)
@@ -1914,9 +1914,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     float diff = DynamicBrakeBlendingForceMatch ? targetDynamicBrakePercent * MaxBrakeForceN - DynamicBrakeForceN : targetDynamicBrakePercent - DynamicBrakeIntervention;
                     if (diff > threshold && DynamicBrakeIntervention <= 1)
-                        DynamicBrakeIntervention = (float)Math.Min(DynamicBrakeIntervention + elapsedClockSeconds * (airPipeSystem.GetMaxApplicationRatePSIpS() / maxCylPressurePSI), 1.0f);
+                        DynamicBrakeIntervention = (float)Math.Min(DynamicBrakeIntervention + elapsedClockSeconds * (airPipeSystem.MaxApplicationRatePSIpS / maxCylPressurePSI), 1.0f);
                     else if (diff < -threshold)
-                        DynamicBrakeIntervention -= (float)elapsedClockSeconds * (airPipeSystem.GetMaxReleaseRatePSIpS() / maxCylPressurePSI);
+                        DynamicBrakeIntervention -= (float)elapsedClockSeconds * (airPipeSystem.MaxReleaseRatePSIpS / maxCylPressurePSI);
                 }
                 if (DynamicBrakeController != null)
                     DynamicBrakeIntervention = Math.Max(DynamicBrakeIntervention, DynamicBrakeController.CurrentValue);
@@ -5068,7 +5068,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Vacuum_Reservoir_Pressure:
                     {
-                        data = ConvertFromPSI(cvc, BrakeSystem.GetVacResPressurePSI());
+                        data = ConvertFromPSI(cvc, BrakeSystem.VacResPressurePSI);
                         break;
                     }
                 case CabViewControlType.Orts_Eot_Brake_Pipe:

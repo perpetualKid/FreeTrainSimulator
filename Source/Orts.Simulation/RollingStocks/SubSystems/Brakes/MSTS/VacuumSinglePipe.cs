@@ -73,9 +73,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return HandbrakePercent > 0;
         }
 
-        public override void InitializeFrom(BrakeSystem copy)
+        public override void InitializeFrom(BrakeSystem source)
         {
-            VacuumSinglePipe thiscopy = (VacuumSinglePipe)copy;
+            VacuumSinglePipe thiscopy = (VacuumSinglePipe)source;
             MaxForcePressurePSI = thiscopy.MaxForcePressurePSI;
             MaxReleaseRatePSIpS = thiscopy.MaxReleaseRatePSIpS;
             MaxApplicationRatePSIpS = thiscopy.MaxApplicationRatePSIpS;
@@ -194,21 +194,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return BrakeCylVolM3;
         }
 
-        public override float GetVacResVolume()
-        {
-            return VacResVolM3;
-        }
+        public override float VacResVolume => VacResVolM3;
 
-        public override float GetVacBrakeCylNumber()
-        {
-            return NumBrakeCylinders;
-        }
+        public override float VacBrakeCylNumber => NumBrakeCylinders;
 
 
-        public override float GetVacResPressurePSI()
-        {
-            return VacResPressureAdjPSIA();
-        }
+        public override float VacResPressurePSI => VacResPressureAdjPSIA();
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
@@ -701,12 +692,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 // If vehicle is not a vacuum piped vehicle then calculate both volume of train pipe and BC, otherwise for vacuum piped vehicles only calculate train pipe
                 if (car.BrakeSystemType != BrakeSystemType.VacuumPiped)
                 {
-                    TempTotalTrainBrakeCylinderVolumeM3 += car.BrakeSystem.GetVacBrakeCylNumber() * car.BrakeSystem.GetCylVolumeM3(); // Calculate total brake cylinder volume of train
+                    TempTotalTrainBrakeCylinderVolumeM3 += car.BrakeSystem.VacBrakeCylNumber * car.BrakeSystem.GetCylVolumeM3(); // Calculate total brake cylinder volume of train
 
                     car.BrakeSystem.BrakeCylFraction = 1.0f - (car.BrakeSystem.GetCylPressurePSI() / (MaxVacuumPipeLevelPSI));
                     car.BrakeSystem.BrakeCylFraction = MathHelper.Clamp(car.BrakeSystem.BrakeCylFraction, 0.01f, 1.0f); // Keep fraction within bounds
 
-                    TempCurrentBrakeCylinderVolumeM3 += (car.BrakeSystem.GetVacBrakeCylNumber() * car.BrakeSystem.GetCylVolumeM3() * car.BrakeSystem.BrakeCylFraction);
+                    TempCurrentBrakeCylinderVolumeM3 += (car.BrakeSystem.VacBrakeCylNumber * car.BrakeSystem.GetCylVolumeM3() * car.BrakeSystem.BrakeCylFraction);
                 }
 
             }
@@ -1059,7 +1050,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 p0 = Math.Clamp(p0, Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI, Const.OneAtmospherePSI);
                 float Car0brakePipeVolumeM3 = car0.BrakeSystem.BrakePipeVolumeM3;
                 float Car0brakeCylVolumeM3 = car0.BrakeSystem.GetCylVolumeM3();
-                float Car0numBrakeCyl = car0.BrakeSystem.GetVacBrakeCylNumber();
+                float Car0numBrakeCyl = car0.BrakeSystem.VacBrakeCylNumber;
 
 #if DEBUG_TRAIN_PIPE_LEAK
 
@@ -1075,7 +1066,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 {
                     float Car0BrakeSytemVolumeM30 = 0.0f;
                     float CarBrakeSytemVolumeM3 = 0.0f;
-                    float CarnumBrakeCyl = car.BrakeSystem.GetVacBrakeCylNumber();
+                    float CarnumBrakeCyl = car.BrakeSystem.VacBrakeCylNumber;
                     float CarbrakeCylVolumeM3 = car.BrakeSystem.GetCylVolumeM3();
                     float CarbrakePipeVolumeM3 = car.BrakeSystem.BrakePipeVolumeM3;
 

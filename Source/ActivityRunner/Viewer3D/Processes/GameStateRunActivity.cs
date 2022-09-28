@@ -680,7 +680,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
             // configuration (time, season, etc.) or flags like /test which we don't want to change on.
             loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
-            using (HashAlgorithm hash = new SHA256CryptoServiceProvider())
+            using (HashAlgorithm hash = SHA256.Create())
             {
                 hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));
                 string loadingHash = string.Join("", hash.Hash.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());

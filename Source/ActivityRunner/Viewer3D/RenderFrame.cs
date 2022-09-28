@@ -154,7 +154,9 @@ namespace Orts.ActivityRunner.Viewer3D
             ItemData = itemData;
         }
 
+#pragma warning disable CA1034 // Nested types should not be visible
         public class Comparer : IComparer<RenderItem>
+#pragma warning restore CA1034 // Nested types should not be visible
         {
             private Vector3 viewerPos;
 

@@ -66,11 +66,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(Pantographs pantographs)
+        public void Copy(Pantographs source)
         {
             List.Clear();
 
-            foreach (Pantograph pantograph in pantographs.List)
+            foreach (Pantograph pantograph in source.List)
             {
                 List.Add(new Pantograph(Wagon));
                 List.Last().Copy(pantograph);
@@ -249,11 +249,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             );
         }
 
-        public void Copy(Pantograph pantograph)
+        public void Copy(Pantograph source)
         {
-            State = pantograph.State;
-            DelayS = pantograph.DelayS;
-            TimeS = pantograph.TimeS;
+            State = source.State;
+            DelayS = source.DelayS;
+            TimeS = source.TimeS;
         }
 
         public void Restore(BinaryReader inf)

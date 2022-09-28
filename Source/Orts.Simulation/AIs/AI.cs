@@ -337,7 +337,7 @@ namespace Orts.Simulation.AIs
         // prerun for activity mode
         private void PrerunAI(CancellationToken cancellation)
         {
-            float firstAITime = StartList.GetNextTime();
+            float firstAITime = StartList.NextTime;
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
                 Trace.WriteLine($"\n Run AI : {StartList.Count} ");
@@ -369,7 +369,7 @@ namespace Orts.Simulation.AIs
         {
             bool endPreRun = false;
 
-            float firstAITime = StartList.GetNextTime();
+            float firstAITime = StartList.NextTime;
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
                 Trace.WriteLine($"\n Run AI : {StartList.Count} ");
@@ -660,7 +660,7 @@ namespace Orts.Simulation.AIs
 
             // check to see if any train to be added
 
-            float nextTrainTime = StartList.GetNextTime();
+            float nextTrainTime = StartList.NextTime;
             if (nextTrainTime > 0 && nextTrainTime < clockTime)
             {
                 List<AITrain> newTrains = StartList.GetTrains((float)clockTime);
@@ -707,7 +707,7 @@ namespace Orts.Simulation.AIs
 
             // check to see if any train to be added
 
-            float nextTrainTime = StartList.GetNextTime();
+            float nextTrainTime = StartList.NextTime;
             if (nextTrainTime > 0 && nextTrainTime < clockTime)
             {
                 List<TTTrain> newTrains = StartList.GetTTTrains((float)clockTime);
@@ -752,7 +752,7 @@ namespace Orts.Simulation.AIs
                     for (float trainUpdateTime = 0; trainUpdateTime < elapsedClockSeconds && !endPreRun; trainUpdateTime += intervalTime)
                     {
                         clockTime += intervalTime;
-                        nextTrainTime = StartList.GetNextTime();
+                        nextTrainTime = StartList.NextTime;
                         if (nextTrainTime > 0 && nextTrainTime < clockTime)
                         {
                             List<TTTrain> newTrains = StartList.GetTTTrains((float)clockTime);
@@ -1458,20 +1458,7 @@ namespace Orts.Simulation.AIs
         //
         // Get next time
         //
-
-        public float GetNextTime()
-        {
-            if (this.Count == 0)
-            {
-                return (-1.0f);
-            }
-            else
-            {
-                LinkedListNode<AITrain> nextNode = this.First;
-                AITrain nextTrain = nextNode.Value;
-                return (nextTrain.StartTime.Value);
-            }
-        }
+        public float NextTime => Count == 0 ? -1.0f : First.Value.StartTime.Value;
 
         //================================================================================================//
         //

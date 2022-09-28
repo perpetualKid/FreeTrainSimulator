@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public static readonly Color ColorWhite = new Color(255, 255, 255);
 
         // Some DPIs use black for the background and white for borders, instead of blue scale
-        public readonly bool BlackWhiteTheme = false;
+        public readonly bool BlackWhiteTheme;
 
         public Texture2D ColorTexture { get; private set; }
 
@@ -459,7 +459,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 }
         }
 
-        public override void PrepareFrame(DPIStatus dpiStatus)
+        public override void PrepareFrame(DPIStatus status)
         {
             string[,] tempStatus;
             var locomotive = DPI.Locomotive;
@@ -494,16 +494,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                         {
                             if (dpUId != (train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId)
                             {
-                                var status = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true, LoadUnits).Split('\t');
+                                var dpuStatus = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true, LoadUnits).Split('\t');
                                 var fence = ((dpUnitId != (dpUnitId = train.Cars[i].RemoteControlGroup)) ? "| " : "  ");
-                                tempStatus[k, 0] = fence + status[0].Split('(').First();
-                                for (var j = 1; j < status.Length; j++)
+                                tempStatus[k, 0] = fence + dpuStatus[0].Split('(').First();
+                                for (var j = 1; j < dpuStatus.Length; j++)
                                 {
-                                    tempStatus[k, j] = fence + status[j].Split(' ').First();
+                                    tempStatus[k, j] = fence + dpuStatus[j].Split(' ').First();
                                     // move color code from after the Units to after the value
-                                    if (ColorCodeCtrl.Keys.Any(status[j].EndsWith) && !ColorCodeCtrl.Keys.Any(tempStatus[k, j].EndsWith))
+                                    if (ColorCodeCtrl.Keys.Any(dpuStatus[j].EndsWith) && !ColorCodeCtrl.Keys.Any(tempStatus[k, j].EndsWith))
                                     {
-                                        tempStatus[k, j] += status[j].Substring(status[j].Length - 3);
+                                        tempStatus[k, j] += dpuStatus[j].Substring(dpuStatus[j].Length - 3);
                                     }
                                 }
                                 dpUId = (train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId;

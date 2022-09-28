@@ -955,11 +955,13 @@ namespace Orts.Simulation.MultiPlayer
             {
                 string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.Route.FileName);
                 FileStream file = new FileStream(fileName, FileMode.Open);
-                MD5 md5 = new MD5CryptoServiceProvider();
-                byte[] retVal = md5.ComputeHash(file);
-                file.Close();
+                using (MD5 md5 = MD5.Create())
+                {
+                    byte[] retVal = md5.ComputeHash(file);
+                    file.Close();
 
-                MD5Check = Encoding.Unicode.GetString(retVal, 0, retVal.Length);
+                    MD5Check = Encoding.Unicode.GetString(retVal, 0, retVal.Length);
+                }
             }
             catch (Exception e)
             {

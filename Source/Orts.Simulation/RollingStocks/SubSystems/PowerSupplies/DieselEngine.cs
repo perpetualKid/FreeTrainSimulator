@@ -146,11 +146,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(DieselEngines other)
+        public void Copy(DieselEngines source)
         {
             DEList = new List<DieselEngine>();
-            MSTSGearBoxParams.Copy(other.MSTSGearBoxParams);
-            foreach (DieselEngine de in other.DEList)
+            MSTSGearBoxParams.Copy(source.MSTSGearBoxParams);
+            foreach (DieselEngine de in source.DEList)
             {
                 DieselEngine dieselEngine = new DieselEngine(Locomotive);
                 dieselEngine.Copy(de);
@@ -696,7 +696,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Holds in engine braking mode
         /// </summary>
-        public bool engineBrakingLockout = false;
+        public bool engineBrakingLockout;
 
         /// <summary>
         /// The RPM controller tries to reach this value
@@ -860,17 +860,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Governor has activiated
         /// </summary>
-        public bool GovernorEnabled = false;
+        public bool GovernorEnabled;
 
         /// <summary>
         /// Geared Overspeed shutdown has activiated
         /// </summary>
-        public bool GearOverspeedShutdownEnabled = false;
+        public bool GearOverspeedShutdownEnabled;
 
         /// <summary>
         /// Geared Underspeed shutdown has activiated
         /// </summary>
-        public bool GearUnderspeedShutdownEnabled = false;
+        public bool GearUnderspeedShutdownEnabled;
 
         /// <summary>
         /// Minimal oil pressure at IdleRPM
@@ -988,40 +988,40 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(DieselEngine other)
+        public void Copy(DieselEngine source)
         {
-            IdleRPM = other.IdleRPM;
-            MaxRPM = other.MaxRPM;
-            GovernorRPM = other.GovernorRPM;
-            StartingRPM = other.StartingRPM;
-            StartingConfirmationRPM = other.StartingConfirmationRPM;
-            ChangeUpRPMpS = other.ChangeUpRPMpS;
-            ChangeDownRPMpS = other.ChangeDownRPMpS;
-            RateOfChangeUpRPMpSS = other.RateOfChangeUpRPMpSS;
-            RateOfChangeDownRPMpSS = other.RateOfChangeDownRPMpSS;
-            MaximumDieselPowerW = other.MaximumDieselPowerW;
-            MaximumRailOutputPowerW = other.MaximumRailOutputPowerW;
-            initLevel = other.initLevel;
-            RailPowerTab = new Interpolator(other.RailPowerTab);
-            DieselPowerTab = new Interpolator(other.DieselPowerTab);
-            DieselConsumptionTab = new Interpolator(other.DieselConsumptionTab);
-            ThrottleRPMTab = new Interpolator(other.ThrottleRPMTab);
-            ReverseThrottleRPMTab = new Interpolator(other.ReverseThrottleRPMTab);
-            if (other.DieselTorqueTab != null) DieselTorqueTab = new Interpolator(other.DieselTorqueTab);
-            DieselUsedPerHourAtMaxPowerL = other.DieselUsedPerHourAtMaxPowerL;
-            DieselUsedPerHourAtIdleL = other.DieselUsedPerHourAtIdleL;
-            InitialExhaust = other.InitialExhaust;
-            InitialMagnitude = other.InitialMagnitude;
-            MaxExhaust = other.MaxExhaust;
-            MaxMagnitude = other.MaxMagnitude;
-            ExhaustParticles = other.ExhaustParticles;
-            ExhaustColor = other.ExhaustColor;
-            ExhaustSteadyColor = other.ExhaustSteadyColor;
-            ExhaustTransientColor = other.ExhaustTransientColor;
-            ExhaustDecelColor = other.ExhaustDecelColor;
-            DieselMaxOilPressurePSI = other.DieselMaxOilPressurePSI;
-            DieselMinOilPressurePSI = other.DieselMinOilPressurePSI;
-            DieselMaxTemperatureDeg = other.DieselMaxTemperatureDeg;
+            IdleRPM = source.IdleRPM;
+            MaxRPM = source.MaxRPM;
+            GovernorRPM = source.GovernorRPM;
+            StartingRPM = source.StartingRPM;
+            StartingConfirmationRPM = source.StartingConfirmationRPM;
+            ChangeUpRPMpS = source.ChangeUpRPMpS;
+            ChangeDownRPMpS = source.ChangeDownRPMpS;
+            RateOfChangeUpRPMpSS = source.RateOfChangeUpRPMpSS;
+            RateOfChangeDownRPMpSS = source.RateOfChangeDownRPMpSS;
+            MaximumDieselPowerW = source.MaximumDieselPowerW;
+            MaximumRailOutputPowerW = source.MaximumRailOutputPowerW;
+            initLevel = source.initLevel;
+            RailPowerTab = new Interpolator(source.RailPowerTab);
+            DieselPowerTab = new Interpolator(source.DieselPowerTab);
+            DieselConsumptionTab = new Interpolator(source.DieselConsumptionTab);
+            ThrottleRPMTab = new Interpolator(source.ThrottleRPMTab);
+            ReverseThrottleRPMTab = new Interpolator(source.ReverseThrottleRPMTab);
+            if (source.DieselTorqueTab != null) DieselTorqueTab = new Interpolator(source.DieselTorqueTab);
+            DieselUsedPerHourAtMaxPowerL = source.DieselUsedPerHourAtMaxPowerL;
+            DieselUsedPerHourAtIdleL = source.DieselUsedPerHourAtIdleL;
+            InitialExhaust = source.InitialExhaust;
+            InitialMagnitude = source.InitialMagnitude;
+            MaxExhaust = source.MaxExhaust;
+            MaxMagnitude = source.MaxMagnitude;
+            ExhaustParticles = source.ExhaustParticles;
+            ExhaustColor = source.ExhaustColor;
+            ExhaustSteadyColor = source.ExhaustSteadyColor;
+            ExhaustTransientColor = source.ExhaustTransientColor;
+            ExhaustDecelColor = source.ExhaustDecelColor;
+            DieselMaxOilPressurePSI = source.DieselMaxOilPressurePSI;
+            DieselMinOilPressurePSI = source.DieselMinOilPressurePSI;
+            DieselMaxTemperatureDeg = source.DieselMaxTemperatureDeg;
         }
 
         public void Initialize()

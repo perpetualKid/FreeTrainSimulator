@@ -40,9 +40,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
 
 
-        public void Copy(ScriptedControlCarPowerSupply other)
+        public void Copy(ScriptedControlCarPowerSupply source)
         {
-            base.Copy(other);
+            base.Copy(source);
         }
 
         public override void Initialize()

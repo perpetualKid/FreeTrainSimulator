@@ -341,21 +341,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return 0;
         }
 
-        public override float GetVacResVolume()
-        {
-            return 0;
-        }
+        public override float VacResVolume => 0;
 
-        public override float GetVacBrakeCylNumber()
-        {
-            return 0;
-        }
+        public override float VacBrakeCylNumber => 0;
 
 
-        public override float GetVacResPressurePSI()
-        {
-            return 0;
-        }
+        public override float VacResPressurePSI => 0;
 
         public override bool IsBraking()
         {

@@ -206,16 +206,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        public void Copy(ScriptedTrainControlSystem other)
+        public void Copy(ScriptedTrainControlSystem source)
         {
-            ScriptName = other.ScriptName;
-            SoundFileName = other.SoundFileName;
-            parametersFileName = other.parametersFileName;
-            trainParametersFileName = other.trainParametersFileName;
-            if (other.VigilanceMonitor != null) VigilanceMonitor = new MonitoringDevice(other.VigilanceMonitor);
-            if (other.OverspeedMonitor != null) OverspeedMonitor = new MonitoringDevice(other.OverspeedMonitor);
-            if (other.EmergencyStopMonitor != null) EmergencyStopMonitor = new MonitoringDevice(other.EmergencyStopMonitor);
-            if (other.AWSMonitor != null) AWSMonitor = new MonitoringDevice(other.AWSMonitor);
+            ScriptName = source.ScriptName;
+            SoundFileName = source.SoundFileName;
+            parametersFileName = source.parametersFileName;
+            trainParametersFileName = source.trainParametersFileName;
+            if (source.VigilanceMonitor != null) VigilanceMonitor = new MonitoringDevice(source.VigilanceMonitor);
+            if (source.OverspeedMonitor != null) OverspeedMonitor = new MonitoringDevice(source.OverspeedMonitor);
+            if (source.EmergencyStopMonitor != null) EmergencyStopMonitor = new MonitoringDevice(source.EmergencyStopMonitor);
+            if (source.AWSMonitor != null) AWSMonitor = new MonitoringDevice(source.AWSMonitor);
         }
 
         //Debrief Eval

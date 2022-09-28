@@ -1004,11 +1004,11 @@ namespace Orts.Simulation.RollingStocks
         /// need to parse the wag file multiple times.
         /// NOTE:  you must initialize all the same variables as you parsed above
         /// </summary>
-        public override void Copy(MSTSWagon copy)
+        public override void Copy(MSTSWagon source)
         {
-            base.Copy(copy);  // each derived level initializes its own variables
+            base.Copy(source);  // each derived level initializes its own variables
 
-            MSTSSteamLocomotive locoCopy = (MSTSSteamLocomotive)copy;
+            MSTSSteamLocomotive locoCopy = (MSTSSteamLocomotive)source;
             NumCylinders = locoCopy.NumCylinders;
             CylinderStrokeM = locoCopy.CylinderStrokeM;
             CylinderDiameterM = locoCopy.CylinderDiameterM;
@@ -2061,10 +2061,10 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Sets controller settings from other engine for cab switch
         /// </summary>
-        /// <param name="other"></param>
-        public override void CopyControllerSettings(TrainCar other)
+        /// <param name="source"></param>
+        public override void CopyControllerSettings(TrainCar source)
         {
-            base.CopyControllerSettings(other);
+            base.CopyControllerSettings(source);
             if (CutoffController != null)
                 CutoffController.SetValue(Train.MUReverserPercent / 100);
         }

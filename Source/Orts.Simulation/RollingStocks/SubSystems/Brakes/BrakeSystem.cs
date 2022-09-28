@@ -100,9 +100,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units);
         public abstract float GetCylPressurePSI();
         public abstract float GetCylVolumeM3();
-        public abstract float GetVacResPressurePSI();
-        public abstract float GetVacResVolume();
-        public abstract float GetVacBrakeCylNumber();
+        public abstract float VacResPressurePSI { get; }
+
+        public abstract float VacResVolume { get; }
+
+        public abstract float VacBrakeCylNumber { get; }
         public bool CarBPIntact { get; set; }
 
         public NameValueCollection DebugInfo => GetBrakeStatus();

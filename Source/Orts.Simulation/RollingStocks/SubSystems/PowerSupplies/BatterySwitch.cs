@@ -84,10 +84,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(BatterySwitch other)
+        public void Copy(BatterySwitch source)
         {
-            Mode = other.Mode;
-            DelayS = other.DelayS;
+            Mode = source.Mode;
+            DelayS = source.DelayS;
         }
 
         public virtual void Initialize()

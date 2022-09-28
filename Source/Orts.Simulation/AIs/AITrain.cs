@@ -2077,7 +2077,7 @@ namespace Orts.Simulation.AIs
                         distanceToGoM < creepDistanceM ? (0.5f * creepSpeedMpS) : creepSpeedMpS;
                 }
                 // otherwise use clearingDistanceM as approach distance
-                else if (nextActionInfo == null && requiredSpeedMpS == 0)
+                else if (nextActionInfo == null)
                 {
                     creepDistanceM = clearingDistanceM;
                     lowestSpeedMpS =

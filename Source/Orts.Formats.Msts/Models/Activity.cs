@@ -23,7 +23,9 @@ namespace Orts.Formats.Msts.Models
         public bool AIBlowsHornAtLevelCrossings { get; private set; }
         public LevelCrossingHornPattern AILevelCrossingHornPattern { get; private set; } = LevelCrossingHornPattern.Single;
 
+#pragma warning disable CA1034 // Nested types should not be visible
         public class ActivityHeader     //this redirection has no functional advantage, only grouping to improve clarity in development
+#pragma warning restore CA1034 // Nested types should not be visible
         {
             public string RouteID { get; internal protected set; }
             public string Name { get; internal protected set; }                 // AE Display Name
