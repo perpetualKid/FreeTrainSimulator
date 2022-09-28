@@ -489,7 +489,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, "", Point.Zero, Point.Zero);
+                PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint());
                 return activityWindow;
             }));
             windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>

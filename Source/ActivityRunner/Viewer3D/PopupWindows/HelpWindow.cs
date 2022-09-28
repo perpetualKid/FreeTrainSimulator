@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private ActivityTask lastActivityTask;
         private bool stoppedAt;
-        private int lastLastEventID = -1;
+        private bool activityEventTriggered;
         private ControlLayout activityTimetableScrollbox;
         private ControlLayout activityWorkOrderScrollbox;
         private ControlLayout evaluationTab;
@@ -76,6 +76,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController = viewer.UserCommandController;
             this.settings = settings;
             this.viewer = viewer;
+            if (Simulator.Instance.ActivityRun != null)
+                Simulator.Instance.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -433,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops remaining:", remainingStops.text, remainingStops.textColor, 20);
                                 activityEvaluation.Add((functionLabel, remainingStopsFunc));
                             }
-                            
+
                             int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>()
                                 .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                             if (taskCount > 0)
@@ -456,7 +458,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         };
                         (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Report] = (evaluationLayoutContainer) =>
                         {
-                            reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight, 
+                            reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight,
                                 "Report will be available here when activity is completed.", HorizontalAlignment.Left, false, Owner.TextFontMonoDefault, Color.White);
                             evaluationLayoutContainer.Add(reportText);
                         };
@@ -482,6 +484,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return layout;
         }
 
+        private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
+        {
+            activityEventTriggered = true;
+        }
+
         private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
         {
             settings.PopupSettings[ViewerWindowType.HelpWindow] = e.Tab.ToString();
@@ -497,7 +504,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            if (shouldUpdate && ! evaluationCompleted)
+            if (shouldUpdate && !evaluationCompleted)
             {
                 if (Simulator.Instance.ActivityRun != null)
                 {
@@ -517,14 +524,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders && activityWorkOrderScrollbox != null && Simulator.Instance.ActivityRun.EventList != null)
                     {
-                        if (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent != null && (lastLastEventID == -1 ||
-                            (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != lastLastEventID)))
+                        if (activityEventTriggered)
                         {
-                            lastLastEventID = Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
                             foreach ((EventWrapper activityEvent, Label label) in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
                             {
                                 label.Text = activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
                             }
+                            activityEventTriggered = false;
                         }
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation)

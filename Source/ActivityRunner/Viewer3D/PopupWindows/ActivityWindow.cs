@@ -9,8 +9,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class ActivityWindow : WindowBase
     {
-        public ActivityWindow(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog = null) : 
-            base(owner, caption, relativeLocation, size, catalog)
+        public ActivityWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) : 
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Activity Events"), relativeLocation, new Point(300, 200), catalog)
         {
         }
     }

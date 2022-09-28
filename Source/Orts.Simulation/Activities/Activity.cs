@@ -37,15 +37,23 @@ using ActivityEvent = Orts.Formats.Msts.Models.ActivityEvent;
 
 namespace Orts.Simulation.Activities
 {
+    public class ActivityEventArgs : EventArgs
+    { 
+        public EventWrapper TriggeredEvent { get; }
+
+        internal ActivityEventArgs(EventWrapper triggeredEvent)
+        { 
+            TriggeredEvent = triggeredEvent;
+        }
+    }
 
     public class Activity
     {
         private readonly Simulator simulator;
 
         // Passenger tasks
-        private DateTime startTime;
         private double prevTrainSpeed = -1;
-        internal int? startTimeS;    // Clock time in seconds when activity was launched.
+        internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<ActivityTask> Tasks { get; } = new List<ActivityTask>();
@@ -82,6 +90,8 @@ namespace Orts.Simulation.Activities
 
         public bool WeatherChangesPresent { get; private set; } // tested in case of randomized activities to state wheter weather should be randomized
 
+        public event EventHandler<ActivityEventArgs> OnEventTriggered;
+
         private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
         {
             TempSpeedPostItems = tempSpeedPostItems;
@@ -95,6 +105,7 @@ namespace Orts.Simulation.Activities
                 throw new ArgumentNullException(nameof(activityFile));
 
             this.simulator = simulator;  // Save for future use.
+            StartTime = (int)activityFile.Activity.Header.StartTime.TotalSeconds;
             PlayerServices sd;
             sd = activityFile.Activity.PlayerServices;
             if (sd != null)
@@ -152,47 +163,38 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            // Update freight events
-            // Set the clock first time through. Can't set in the Activity constructor as Simulator.ClockTime is still 0 then.
-            if (!startTimeS.HasValue)
-            {
-                startTimeS = (int)simulator.ClockTime;
-                //// Initialise passenger actual arrival time
-                //if (ActivityTask != null)
-                //    if (ActivityTask is ActivityTaskPassengerStopAt)
-                //    {
-                //        ActivityTaskPassengerStopAt task = ActivityTask as ActivityTaskPassengerStopAt;
-                //    }
-            }
             if (!Completed)
             {
-                foreach (EventWrapper i in EventList)
+                foreach (EventWrapper item in EventList)
                 {
                     // Once an event has fired, we don't respond to any more events until that has been acknowledged.
                     // so this line needs to be inside the EventList loop.
                     if (TriggeredEvent != null)
                         break;
-                    if (i != null && i.ActivityEvent.ActivationLevel > 0)
+                    if (item?.ActivityEvent.ActivationLevel > 0)
                     {
-                        if (i.TimesTriggered < 1 || i.ActivityEvent.Reversible)
+                        if (item.TimesTriggered < 1 || item.ActivityEvent.Reversible)
                         {
-                            if (i.Triggered(this))
+                            if (item.Triggered(this))
                             {
-                                if (!i.Disabled)
+                                if (!item.Disabled)
                                 {
-                                    i.TimesTriggered += 1;
-                                    if (i.IsActivityEnded(this))
-                                        Completed = true;
-                                    TriggeredEvent = i;    // Note this for Viewer and ActivityWindow to use.
+                                    item.TimesTriggered += 1;
+                                    if (item.ActivityCompleted(this))
+                                        CompleteActivity();
+                                    TriggeredEvent = item;    // Note this for Viewer and ActivityWindow to use.
                                     // Do this after IsActivityEnded() so values are ready for ActivityWindow
                                     LastTriggeredActivityEvent = TriggeredEvent;
+
+                                    OnEventTriggered?.Invoke(this, new ActivityEventArgs(item));
+                                    break;
                                 }
                             }
                             else
                             {
-                                if (i.ActivityEvent.Reversible)
+                                if (item.ActivityEvent.Reversible)
                                     // Reversible event is no longer triggered, so can re-enable it.
-                                    i.Disabled = false;
+                                    item.Disabled = false;
                             }
                         }
                     }
@@ -289,7 +291,6 @@ namespace Orts.Simulation.Activities
             int noval = -1;
 
             // Save passenger activity
-            outf.Write(startTime.Ticks);
             outf.Write(Tasks.Count);
             foreach (ActivityTask task in Tasks)
                 task.Save(outf);
@@ -299,7 +300,7 @@ namespace Orts.Simulation.Activities
             // Save freight activity
             outf.Write(Completed);
             outf.Write(Succeeded);
-            outf.Write((int)startTimeS);
+            outf.Write((int)StartTime);
             foreach (EventWrapper e in EventList)
                 e.Save(outf);
             if (TriggeredEvent == null)
@@ -337,7 +338,6 @@ namespace Orts.Simulation.Activities
 
             // Restore passenger activity
             ActivityTask task;
-            startTime = new DateTime(inf.ReadInt64());
             rdval = inf.ReadInt32();
             for (int i = 0; i < rdval; i++)
             {
@@ -360,7 +360,7 @@ namespace Orts.Simulation.Activities
             // Restore freight activity
             Completed = inf.ReadBoolean();
             Succeeded = inf.ReadBoolean();
-            startTimeS = inf.ReadInt32();
+            StartTime = inf.ReadInt32();
 
             EventList.Clear();
             foreach (EventWrapper item in oldEventList)
