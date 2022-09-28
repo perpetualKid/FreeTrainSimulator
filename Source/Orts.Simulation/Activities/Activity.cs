@@ -50,9 +50,8 @@ namespace Orts.Simulation.Activities
     public class Activity
     {
         private readonly Simulator simulator;
-        private EventWrapper triggeredEvent;
 
-        public EventWrapper TriggeredEvent => triggeredEvent;
+        public EventWrapper TriggeredEvent { get; private set; }
         // Passenger tasks
         private double prevTrainSpeed = -1;
         internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
@@ -163,7 +162,7 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            if (!Completed && triggeredEvent == null)
+            if (!Completed && TriggeredEvent == null)
             {
                 foreach (EventWrapper item in EventList)
                 {
@@ -176,7 +175,7 @@ namespace Orts.Simulation.Activities
                                 item.TimesTriggered += 1;
                                 if (item.CompletesActivity(this))
                                     CompleteActivity();
-                                triggeredEvent =item;
+                                TriggeredEvent =item;
                                 OnEventTriggered?.Invoke(this, new ActivityEventArgs(item));
                                 break;
                             }
@@ -253,9 +252,9 @@ namespace Orts.Simulation.Activities
             if (activityEvent == null)
                 return;
 
-            if (triggeredEvent != activityEvent)
+            if (TriggeredEvent != activityEvent)
             {
-                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {triggeredEvent?.ActivityEvent.Name}{triggeredEvent?.ActivityEvent.ID}");
+                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {TriggeredEvent?.ActivityEvent.Name}{TriggeredEvent?.ActivityEvent.ID}");
                 return;
             }
 
@@ -263,7 +262,7 @@ namespace Orts.Simulation.Activities
             if (activityEvent.ActivityEvent.Reversible)
                 activityEvent.Disabled = false;
 
-            triggeredEvent = null;
+            TriggeredEvent = null;
         }
 
         public static void Save(BinaryWriter outf, Activity act)
@@ -315,12 +314,12 @@ namespace Orts.Simulation.Activities
             outf.Write((int)StartTime);
             foreach (EventWrapper e in EventList)
                 e.Save(outf);
-            if (triggeredEvent == null)
+            if (TriggeredEvent == null)
                 outf.Write(false);
             else
             {
                 outf.Write(true);
-                outf.Write(EventList.IndexOf(triggeredEvent));
+                outf.Write(EventList.IndexOf(TriggeredEvent));
             }
             outf.Write(IsActivityWindowOpen);
 
@@ -376,7 +375,7 @@ namespace Orts.Simulation.Activities
                 e.Restore(inf);
 
             if (inf.ReadBoolean())
-                triggeredEvent = EventList[inf.ReadInt32()];
+                TriggeredEvent = EventList[inf.ReadInt32()];
 
             IsActivityWindowOpen = inf.ReadBoolean();
 
