@@ -78,7 +78,7 @@ namespace Orts.Simulation.Activities
         /// </summary>
         /// <param name="activity"></param>
         /// <returns>true if entire activity ends here whether it succeeded or failed</returns>
-        internal bool ActivityCompleted(Activity activity)
+        internal bool CompletesActivity(Activity activity)
         {
             if (ActivityEvent.Reversible)
                 // Stop this event being actioned

@@ -759,7 +759,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.GameChangeCab, KeyEventType.KeyPressed, () =>
             {
-                if (PlayerLocomotive.ThrottlePercent >= 1 || Math.Abs(PlayerLocomotive.SpeedMpS) > 1 || !IsReverserInNeutral(PlayerLocomotive))
+                if (PlayerLocomotive.ThrottlePercent >= 1 || PlayerLocomotive.AbsSpeedMpS > 1 || !IsReverserInNeutral(PlayerLocomotive))
                 {
                     Simulator.Confirmer.Warning(CabControl.ChangeCab, CabSetting.Warn2);
                 }

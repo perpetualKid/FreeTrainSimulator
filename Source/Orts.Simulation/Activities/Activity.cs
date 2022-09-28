@@ -38,11 +38,11 @@ using ActivityEvent = Orts.Formats.Msts.Models.ActivityEvent;
 namespace Orts.Simulation.Activities
 {
     public class ActivityEventArgs : EventArgs
-    { 
+    {
         public EventWrapper TriggeredEvent { get; }
 
         internal ActivityEventArgs(EventWrapper triggeredEvent)
-        { 
+        {
             TriggeredEvent = triggeredEvent;
         }
     }
@@ -50,7 +50,9 @@ namespace Orts.Simulation.Activities
     public class Activity
     {
         private readonly Simulator simulator;
+        private EventWrapper triggeredEvent;
 
+        public EventWrapper TriggeredEvent => triggeredEvent;
         // Passenger tasks
         private double prevTrainSpeed = -1;
         internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
@@ -66,12 +68,10 @@ namespace Orts.Simulation.Activities
 #pragma warning restore CA1002 // Do not expose generic lists
         public bool Completed { get; private set; }          // true once activity is completed.
         public bool Succeeded { get; internal set; }        // status of completed activity
-        public EventWrapper TriggeredEvent { get; set; } // Indicates the currently triggered event whose data the ActivityWindow will pop up to display.
 
         // The ActivityWindow may be open when the simulation is saved with F2.
         // If so, we need to remember the event and the state of the window (is the activity resumed or still paused, so we can restore it.
         public bool IsActivityWindowOpen { get; set; }       // Remembers the status of the ActivityWindow [closed|opened]
-        public EventWrapper LastTriggeredActivityEvent { get; private set; } // Remembers the TriggeredEvent after it has been cancelled.
         public bool IsActivityResumed { get; set; }            // Remembers the status of the ActivityWindow [paused|resumed]
         public bool ReopenActivityWindow { get; set; }       // Set on Restore() and tested by ActivityWindow
         // Note: The variables above belong to the Activity, not the ActivityWindow because they run on different threads.
@@ -163,46 +163,37 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            if (!Completed)
+            if (!Completed && triggeredEvent == null)
             {
                 foreach (EventWrapper item in EventList)
                 {
-                    // Once an event has fired, we don't respond to any more events until that has been acknowledged.
-                    // so this line needs to be inside the EventList loop.
-                    if (TriggeredEvent != null)
-                        break;
-                    if (item?.ActivityEvent.ActivationLevel > 0)
+                    if (item?.ActivityEvent.ActivationLevel > 0 && (item.TimesTriggered < 1 || item.ActivityEvent.Reversible))
                     {
-                        if (item.TimesTriggered < 1 || item.ActivityEvent.Reversible)
+                        if (item.Triggered(this))
                         {
-                            if (item.Triggered(this))
+                            if (!item.Disabled)
                             {
-                                if (!item.Disabled)
-                                {
-                                    item.TimesTriggered += 1;
-                                    if (item.ActivityCompleted(this))
-                                        CompleteActivity();
-                                    TriggeredEvent = item;    // Note this for Viewer and ActivityWindow to use.
-                                    // Do this after IsActivityEnded() so values are ready for ActivityWindow
-                                    LastTriggeredActivityEvent = TriggeredEvent;
-
-                                    OnEventTriggered?.Invoke(this, new ActivityEventArgs(item));
-                                    break;
-                                }
+                                item.TimesTriggered += 1;
+                                if (item.CompletesActivity(this))
+                                    CompleteActivity();
+                                triggeredEvent =item;
+                                OnEventTriggered?.Invoke(this, new ActivityEventArgs(item));
+                                break;
                             }
-                            else
-                            {
-                                if (item.ActivityEvent.Reversible)
-                                    // Reversible event is no longer triggered, so can re-enable it.
-                                    item.Disabled = false;
-                            }
+                        }
+                        else
+                        {
+                            if (item.ActivityEvent.Reversible)
+                                // Reversible event is no longer triggered, so can re-enable it.
+                                item.Disabled = false;
                         }
                     }
                 }
             }
 
             // Update passenger tasks
-            if (ActivityTask == null) return;
+            if (ActivityTask == null)
+                return;
 
             ActivityTask.NotifyEvent(ActivityEventType.Timer);
             if (ActivityTask.IsCompleted != null)    // Surely this doesn't test for: 
@@ -257,6 +248,24 @@ namespace Orts.Simulation.Activities
             }
         }
 
+        public void AcknowledgeEvent(EventWrapper activityEvent)
+        {
+            if (activityEvent == null)
+                return;
+
+            if (triggeredEvent != activityEvent)
+            {
+                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {triggeredEvent?.ActivityEvent.Name}{triggeredEvent?.ActivityEvent.ID}");
+                return;
+            }
+
+            // Reversible event is no longer triggered, so can re-enable it.
+            if (activityEvent.ActivityEvent.Reversible)
+                activityEvent.Disabled = false;
+
+            triggeredEvent = null;
+        }
+
         public static void Save(BinaryWriter outf, Activity act)
         {
             if (outf == null)
@@ -294,7 +303,10 @@ namespace Orts.Simulation.Activities
             outf.Write(Tasks.Count);
             foreach (ActivityTask task in Tasks)
                 task.Save(outf);
-            if (ActivityTask == null) outf.Write(noval); else outf.Write(Tasks.IndexOf(ActivityTask));
+            if (ActivityTask == null)
+                outf.Write(noval);
+            else
+                outf.Write(Tasks.IndexOf(ActivityTask));
             outf.Write(prevTrainSpeed);
 
             // Save freight activity
@@ -303,25 +315,19 @@ namespace Orts.Simulation.Activities
             outf.Write((int)StartTime);
             foreach (EventWrapper e in EventList)
                 e.Save(outf);
-            if (TriggeredEvent == null)
+            if (triggeredEvent == null)
                 outf.Write(false);
             else
             {
                 outf.Write(true);
-                outf.Write(EventList.IndexOf(TriggeredEvent));
+                outf.Write(EventList.IndexOf(triggeredEvent));
             }
             outf.Write(IsActivityWindowOpen);
-            if (LastTriggeredActivityEvent == null)
-                outf.Write(false);
-            else
-            {
-                outf.Write(true);
-                outf.Write(EventList.IndexOf(LastTriggeredActivityEvent));
-            }
 
             // Save info for ActivityWindow coming from new player train
             outf.Write(NewMessageFromNewPlayer);
-            if (NewMessageFromNewPlayer) outf.Write(MessageFromNewPlayer);
+            if (NewMessageFromNewPlayer)
+                outf.Write(MessageFromNewPlayer);
 
             outf.Write(IsActivityResumed);
 
@@ -341,7 +347,7 @@ namespace Orts.Simulation.Activities
             rdval = inf.ReadInt32();
             for (int i = 0; i < rdval; i++)
             {
-                task = GetTask(inf, simulator);
+                task = inf.ReadInt32() == 1 ? new ActivityTaskPassengerStopAt(simulator) : (ActivityTask)null;
                 task.Restore(inf);
                 Tasks.Add(task);
             }
@@ -353,7 +359,8 @@ namespace Orts.Simulation.Activities
             for (int i = 0; i < Tasks.Count; i++)
             {
                 Tasks[i].PrevTask = task;
-                if (task != null) task.NextTask = Tasks[i];
+                if (task != null)
+                    task.NextTask = Tasks[i];
                 task = Tasks[i];
             }
 
@@ -368,16 +375,14 @@ namespace Orts.Simulation.Activities
             foreach (EventWrapper e in EventList)
                 e.Restore(inf);
 
-            if (inf.ReadBoolean()) 
-                TriggeredEvent = EventList[inf.ReadInt32()];
+            if (inf.ReadBoolean())
+                triggeredEvent = EventList[inf.ReadInt32()];
 
             IsActivityWindowOpen = inf.ReadBoolean();
-            if (inf.ReadBoolean()) 
-                LastTriggeredActivityEvent = EventList[inf.ReadInt32()];
 
             // Restore info for ActivityWindow coming from new player train
             NewMessageFromNewPlayer = inf.ReadBoolean();
-            if (NewMessageFromNewPlayer) 
+            if (NewMessageFromNewPlayer)
                 MessageFromNewPlayer = inf.ReadString();
 
             IsActivityResumed = inf.ReadBoolean();
@@ -394,14 +399,6 @@ namespace Orts.Simulation.Activities
             }
             else
                 stationStopLogFile = null;
-        }
-
-        private static ActivityTask GetTask(BinaryReader inf, Simulator simulator)
-        {
-            if (inf.ReadInt32() == 1)
-                return new ActivityTaskPassengerStopAt(simulator);
-            else
-                return null;
         }
 
         public void StartStationLogging(string stationLogFile)
@@ -443,7 +440,7 @@ namespace Orts.Simulation.Activities
             if (zones == null)
                 throw new ArgumentNullException(nameof(zones));
 
-            if (zones.Count < 1) 
+            if (zones.Count < 1)
                 return;
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
