@@ -487,11 +487,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             // First use the .save file to extract the route and activity.
             string saveFile = GetSaveFile(data);
-            using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+            string versionOrBuild = string.Empty;
+            using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
             {
-                inf.ReadString();    // Revision
-                inf.ReadString();    // Build
-                (string PathName, float InitialTileX, float InitialTileZ, string[] _, ActivityType ActivityType) = GetSavedValues(inf);
+                versionOrBuild = GetValidSaveVersionOrBuild(saveFile, inf);
+                (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
+                activityType = ActivityType;
+                data = Args;
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
