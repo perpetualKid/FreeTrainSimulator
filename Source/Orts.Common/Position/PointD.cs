@@ -9,10 +9,9 @@ namespace Orts.Common.Position
         private static readonly PointD none = new PointD(0, 0);
 
         public static ref readonly PointD None => ref none;
-#pragma warning disable CA1051 // Do not declare visible instance fields
+
         public readonly double X;
         public readonly double Y;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public PointD(double x, double y)
         {
@@ -41,10 +40,7 @@ namespace Orts.Common.Position
 
         public static PointD TileCenter(in ITile tile)
         {
-            if (tile == null)
-                throw new ArgumentNullException(nameof(tile));
-
-            return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
+            return tile == null ? throw new ArgumentNullException(nameof(tile)) : new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
         }
 
         public double Distance(in PointD other)

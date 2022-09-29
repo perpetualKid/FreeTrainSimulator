@@ -22,14 +22,12 @@ namespace Orts.Common
     public readonly struct ElapsedTime
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-#pragma warning disable CA1051 // Do not declare visible instance fields
+        private static readonly ElapsedTime zero;
+
         public readonly double ClockSeconds;
         public readonly double RealSeconds;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
-#pragma warning disable CA2211 // Non-constant fields should not be visible
-        public static ElapsedTime Zero;
-#pragma warning restore CA2211 // Non-constant fields should not be visible
+        public static ref readonly ElapsedTime Zero => ref zero;
 
 #pragma warning disable CA2225 // Operator overloads have named alternates
         public static ElapsedTime operator +(in ElapsedTime a, in ElapsedTime b)

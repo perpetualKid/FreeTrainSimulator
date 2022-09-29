@@ -245,9 +245,7 @@ namespace Orts.Formats.Msts.Models
     public readonly struct CurvePoint
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-#pragma warning disable CA1051 // Do not declare visible instance fields
         public readonly float X, Y;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public CurvePoint(float x, float y)
         {

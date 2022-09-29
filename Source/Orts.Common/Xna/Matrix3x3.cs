@@ -4,9 +4,7 @@
     public readonly struct Matrix3x3
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-#pragma warning disable CA1051 // Do not declare visible instance fields
         public readonly float M00, M01, M02, M10, M11, M12, M20, M21, M22;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public Matrix3x3(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)
         {

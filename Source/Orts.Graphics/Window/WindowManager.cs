@@ -404,6 +404,7 @@ namespace Orts.Graphics.Window
 
         public override void Update(GameTime gameTime)
         {
+            //TODO 20220929 could distribute the shouldUpdate for each Window to be in a different Update Cycle
             bool shouldUpdate = Environment.TickCount64 > nextWindowUpdate;
             if (shouldUpdate)
             {
