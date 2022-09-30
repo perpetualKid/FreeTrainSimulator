@@ -116,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private string pantographKeyInput;
 
         public DrivingTrainWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Driving Info"), relativeLocation, new Point(200, 100), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Driving Info"), relativeLocation, new Point(200, 220), catalog)
         {
             userCommandController = viewer.UserCommandController;
             this.settings = settings;

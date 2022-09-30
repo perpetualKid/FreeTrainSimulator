@@ -22,7 +22,6 @@ using Orts.Common.Logging;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.Toolbox.PopupWindows;

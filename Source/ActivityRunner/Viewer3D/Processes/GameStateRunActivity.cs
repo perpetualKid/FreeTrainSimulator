@@ -611,9 +611,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (!valid.HasValue)
             {
                 //Cannot make this multi-language using Viewer.Catalog as Viewer is still null.
-                Trace.TraceWarning($"Restoring from a save made by version {version}\n"
-                    + $"of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n"
-                    + "Please do not report any problems that may result.");
+                Trace.TraceWarning($"Restoring from a save made by version {version} "
+                    + $"of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.");
             }
             return version;
         }
