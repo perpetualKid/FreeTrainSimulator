@@ -32,12 +32,13 @@ namespace Orts.Graphics.Window
         [ThreadStatic]
         private static WindowManager instance;
         private List<WindowBase> windows = new List<WindowBase>();
-        private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
+        //private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
+        private readonly Stack<WindowBase> modalWindows = new Stack<WindowBase>();
 
         private readonly Texture2D windowTexture;
         internal Texture2D ScrollbarTexture { get; }
 
-        private WindowBase mouseActiveWindow;
+        private WindowBase activeWindow;
         private readonly SpriteBatch spriteBatch;
         private long nextWindowUpdate;
 
@@ -70,7 +71,7 @@ namespace Orts.Graphics.Window
 
         public UserCommandController UserCommandController { get; private set; }
 
-        public float WindowOpacity 
+        public float WindowOpacity
         {
             get => WindowShader.Opacity;
             set => WindowShader.Opacity = opacityDefault = value;
@@ -201,9 +202,8 @@ namespace Orts.Graphics.Window
 
         internal bool OpenWindow(WindowBase window)
         {
-            if (modalWindow != null)
+            if (modalWindows.TryPeek(out activeWindow) && !window.Modal)
             {
-                mouseActiveWindow = modalWindow;
                 return false;
             }
 
@@ -212,17 +212,17 @@ namespace Orts.Graphics.Window
                 SuppressDrawing = false;
                 window.UpdateLocation();
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
-                if (window != mouseActiveWindow)
+                if (window != activeWindow)
                 {
-                    mouseActiveWindow?.FocusLost();
-                    mouseActiveWindow = window;
+                    activeWindow?.FocusLost();
+                    activeWindow = window;
                     window?.FocusSet();
                 }
-                mouseActiveWindow = window;
+                activeWindow = window;
                 if (window.Modal)
                 {
                     UserCommandController.SuppressDownLevelEventHandling = true;
-                    modalWindow = window;
+                    modalWindows.Push(window);
                     OnModalWindow?.Invoke(this, new ModalWindowEventArgs(true));
                 }
                 return true;
@@ -232,15 +232,17 @@ namespace Orts.Graphics.Window
 
         internal bool CloseWindow(WindowBase window)
         {
-            if (window == modalWindow)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == window)
             {
                 UserCommandController.SuppressDownLevelEventHandling = false;
                 SuppressDrawing = false;
-                modalWindow = null;
+                modalWindows.Pop();
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
-            if (mouseActiveWindow == window)
-                mouseActiveWindow = null;
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            if (activeWindow == window)
+                activeWindow = null;
             List<WindowBase> updatedWindowList = windows;
             if (updatedWindowList.Remove(window))
             {
@@ -262,25 +264,29 @@ namespace Orts.Graphics.Window
 
         private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (modalWindow != null && modalWindow != mouseActiveWindow)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
             {
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
-            //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                              //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (modalWindow != null && modalWindow != mouseActiveWindow)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
             {
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
-            else if (mouseActiveWindow != null && userCommandArgs is ScrollCommandArgs scrollCommandArgs)
+            else if (activeWindow != null && userCommandArgs is ScrollCommandArgs scrollCommandArgs)
             {
-                userCommandArgs.Handled = mouseActiveWindow.HandleMouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
+                userCommandArgs.Handled = activeWindow.HandleMouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
             }
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         private void MouseDraggingEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -288,15 +294,14 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
                 SuppressDrawing = false;
-                if (modalWindow != null && modalWindow != mouseActiveWindow)
+                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position));
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
                 {
+                    activeWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                     userCommandArgs.Handled = true;
                 }
-                else if (mouseActiveWindow != null)
-                {
-                    mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
-                    userCommandArgs.Handled = true;
-                }
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
 
@@ -305,14 +310,16 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                if (modalWindow != null && mouseActiveWindow != modalWindow)
+                if (activeWindow != null)
                 {
                     userCommandArgs.Handled = true;
+                    _ = activeWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
                 }
-                else if (mouseActiveWindow != null)
+                else if (modalWindows.TryPeek(out WindowBase currentModalWindow))
                 {
                     userCommandArgs.Handled = true;
-                    _ = mouseActiveWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
+                    activeWindow = currentModalWindow;
+                    currentModalWindow.FocusSet();
                 }
             }
         }
@@ -322,25 +329,27 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                if (modalWindow != null && mouseActiveWindow != modalWindow)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
                 {
                     userCommandArgs.Handled = true;
-                    _ = modalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
+                    _ = currentModalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
-                else if (mouseActiveWindow != null)
+                else if (activeWindow != null)
                 {
                     userCommandArgs.Handled = true;
-                    if (mouseActiveWindow != windows.Last())
+                    if (activeWindow != windows.Last())
                     {
                         List<WindowBase> updatedWindowList = windows;
-                        if (updatedWindowList.Remove(mouseActiveWindow))
+                        if (updatedWindowList.Remove(activeWindow))
                         {
-                            updatedWindowList.Add(mouseActiveWindow);
+                            updatedWindowList.Add(activeWindow);
                             windows = updatedWindowList;
                         }
                     }
-                    _ = mouseActiveWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
+                    _ = activeWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
 
@@ -349,32 +358,21 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                WindowBase activeWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
-                if (activeWindow != mouseActiveWindow)
+                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                if (topMostTargetedWindow == null || (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != topMostTargetedWindow))
                 {
-                    mouseActiveWindow?.FocusLost();
-                    mouseActiveWindow = activeWindow;
-                    activeWindow?.FocusSet();
+                    activeWindow?.FocusLost();
+                    activeWindow = null;
                 }
-                if (mouseActiveWindow != null)
+                else if (topMostTargetedWindow != activeWindow)
                 {
-                    userCommandArgs.Handled = true;
-                    if (modalWindow == null && mouseActiveWindow != windows.Last())
-                    {
-                        List<WindowBase> updatedWindowList = windows;
-                        if (updatedWindowList.Remove(mouseActiveWindow))
-                        {
-                            updatedWindowList.Add(mouseActiveWindow);
-                            windows = updatedWindowList;
-                        }
-                    }
-                    else if (modalWindow != null && mouseActiveWindow != modalWindow)
-                    {
-                        mouseActiveWindow.FocusLost();
-                        mouseActiveWindow = null;
-                    }
-                    _ = (mouseActiveWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
+                    activeWindow?.FocusLost();
+                    activeWindow = topMostTargetedWindow;
+                    topMostTargetedWindow.FocusSet();
                 }
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                _ = (activeWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
             }
         }
 
@@ -391,7 +389,7 @@ namespace Orts.Graphics.Window
             {
                 WindowBase window = windows[i];
                 WindowShader.SetState();
-                WindowShader.Opacity = window == mouseActiveWindow ? opacityDefault * 1.2f : opacityDefault;
+                WindowShader.Opacity = window == activeWindow ? opacityDefault * 1.25f : opacityDefault;
                 window.WindowDraw();
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, null, null);
                 window.Draw(spriteBatch);
