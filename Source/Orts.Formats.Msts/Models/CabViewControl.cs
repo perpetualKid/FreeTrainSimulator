@@ -72,6 +72,8 @@ namespace Orts.Formats.Msts.Models
         public int CabViewpoint { get; protected set; }
 
         public CabViewControlType ControlType { get; protected set; }
+        public int ControlSubtype { get; protected set; }
+
         public CabViewControlStyle ControlStyle { get; protected set; }
         public CabViewControlUnit ControlUnit { get; protected set; }
 
@@ -83,14 +85,18 @@ namespace Orts.Formats.Msts.Models
         private protected void ParseType(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            if (!EnumExtension.GetValue(stf.ReadString(), out CabViewControlType type))
+            string name = stf.ReadString();
+            if (name != null && name.StartsWith("ORTS_TCS", StringComparison.OrdinalIgnoreCase))
             {
-                stf.StepBackOneItem();
-                STFException.TraceInformation(stf, "Skipped unknown ControlType " + stf.ReadString());
-                ControlType = CabViewControlType.None;
+                ControlType = CabViewControlType.Orts_TCS;
+                if (int.TryParse(name.AsSpan(8), out int subType))
+                    ControlSubtype = subType;
             }
-            ControlType = type;
-            //stf.ReadItem(); // Skip repeated Class Type 
+            else
+            {
+                if (EnumExtension.GetValue(stf.ReadString(), out CabViewControlType type))
+                    ControlType = type;
+            }
             stf.SkipRestOfBlock();
         }
 

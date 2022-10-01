@@ -41,11 +41,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 {
     public class ScriptedTrainControlSystem : ISubSystem<ScriptedTrainControlSystem>
     {
-
-        // Constants
-        private const int TCSCabviewControlCount = 48;
-        private const int TCSCommandCount = 48;
-
         private const float GravityMpS2 = 9.80665f;
         private const float GenericItemDistance = 400.0f;
 
@@ -72,7 +67,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         private MonitoringDevice AWSMonitor;
 
         // List of customized control strings;
-        private readonly string[] customizedCabviewControlNames = new string[TCSCabviewControlCount];
+        private readonly Dictionary<int, string> customizedCabviewControlNames = new Dictionary<int, string>();
 
         private string scriptName;
         private string soundFileName;
@@ -101,11 +96,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public float MaxThrottlePercent { get; private set; } = 100f;
         public bool FullDynamicBrakingOrder { get; private set; }
 
-        public float[] CabDisplayControls { get; } = new float[TCSCabviewControlCount];
+        public Dictionary<int, float> CabDisplayControls { get; } = new Dictionary<int, float>();
 
         // generic TCS commands
-        public bool[] TCSCommandButtonDown { get; } = new bool[TCSCommandCount];
-        public bool[] TCSCommandSwitchOn { get; } = new bool[TCSCommandCount];
+        public Dictionary<int, bool> TCSCommandButtonDown { get; } = new Dictionary<int, bool>();
+        public Dictionary<int, bool> TCSCommandSwitchOn { get; } = new Dictionary<int, bool>();
 
         public ETCSStatus ETCSStatus { get { return script?.ETCSStatus; } }
 
@@ -464,7 +459,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.SetCabDisplayControl = (arg1, arg2) => CabDisplayControls[arg1] = arg2;
                 script.SetCustomizedCabviewControlName = (id, value) =>
                 {
-                    if (id >= 0 && id < TCSCabviewControlCount)
+                    if (id >= 0)
                     {
                         customizedCabviewControlNames[id] = value;
                     }
@@ -835,15 +830,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         // Converts the generic string (e.g. ORTS_TCS5) shown when browsing with the mouse on a TCS control
         // to a customized string defined in the script
-        public string GetDisplayString(string source)
+        public string GetDisplayString(int commandIndex)
         {
-            if (string.IsNullOrEmpty(source) || source.Length < 9 || !source[..8].Equals("ORTS_TCS", StringComparison.OrdinalIgnoreCase))
-                return source;
-
-            string result = null;
-            if (int.TryParse(source[8..], out int commandIndex) && commandIndex <= TCSCabviewControlCount)
-                result = customizedCabviewControlNames[commandIndex - 1];
-            return string.IsNullOrEmpty(result) ? source : result;
+            return customizedCabviewControlNames.TryGetValue(commandIndex - 1, out string name) ? name : "ORTS_TCS" + commandIndex;
         }
 
         public void Save(BinaryWriter outf)

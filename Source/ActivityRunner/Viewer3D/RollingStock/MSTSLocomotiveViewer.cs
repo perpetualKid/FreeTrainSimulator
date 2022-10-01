@@ -2491,55 +2491,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
 
                 // Train Control System controls
-                case CabViewControlType.Orts_TCS1:
-                case CabViewControlType.Orts_TCS2:
-                case CabViewControlType.Orts_TCS3:
-                case CabViewControlType.Orts_TCS4:
-                case CabViewControlType.Orts_TCS5:
-                case CabViewControlType.Orts_TCS6:
-                case CabViewControlType.Orts_TCS7:
-                case CabViewControlType.Orts_TCS8:
-                case CabViewControlType.Orts_TCS9:
-                case CabViewControlType.Orts_TCS10:
-                case CabViewControlType.Orts_TCS11:
-                case CabViewControlType.Orts_TCS12:
-                case CabViewControlType.Orts_TCS13:
-                case CabViewControlType.Orts_TCS14:
-                case CabViewControlType.Orts_TCS15:
-                case CabViewControlType.Orts_TCS16:
-                case CabViewControlType.Orts_TCS17:
-                case CabViewControlType.Orts_TCS18:
-                case CabViewControlType.Orts_TCS19:
-                case CabViewControlType.Orts_TCS20:
-                case CabViewControlType.Orts_TCS21:
-                case CabViewControlType.Orts_TCS22:
-                case CabViewControlType.Orts_TCS23:
-                case CabViewControlType.Orts_TCS24:
-                case CabViewControlType.Orts_TCS25:
-                case CabViewControlType.Orts_TCS26:
-                case CabViewControlType.Orts_TCS27:
-                case CabViewControlType.Orts_TCS28:
-                case CabViewControlType.Orts_TCS29:
-                case CabViewControlType.Orts_TCS30:
-                case CabViewControlType.Orts_TCS31:
-                case CabViewControlType.Orts_TCS32:
-                case CabViewControlType.Orts_TCS33:
-                case CabViewControlType.Orts_TCS34:
-                case CabViewControlType.Orts_TCS35:
-                case CabViewControlType.Orts_TCS36:
-                case CabViewControlType.Orts_TCS37:
-                case CabViewControlType.Orts_TCS38:
-                case CabViewControlType.Orts_TCS39:
-                case CabViewControlType.Orts_TCS40:
-                case CabViewControlType.Orts_TCS41:
-                case CabViewControlType.Orts_TCS42:
-                case CabViewControlType.Orts_TCS43:
-                case CabViewControlType.Orts_TCS44:
-                case CabViewControlType.Orts_TCS45:
-                case CabViewControlType.Orts_TCS46:
-                case CabViewControlType.Orts_TCS47:
-                case CabViewControlType.Orts_TCS48:
-
+                case CabViewControlType.Orts_TCS:
                 // Jindrich
                 case CabViewControlType.Orts_Restricted_Speed_Zone_Active:
                 case CabViewControlType.Orts_Selected_Speed_Mode:
@@ -2609,13 +2561,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public string GetControlName(Point mousePoint)
         {
-            return Locomotive.TrainControlSystem.GetDisplayString(GetControlType().ToString());
+            return ControlDiscrete.ControlType == CabViewControlType.Orts_TCS
+                ? Locomotive.TrainControlSystem.GetDisplayString(ControlDiscrete.ControlSubtype)
+                : GetControlType().ToString();
         }
 
-        public string GetControlLabel()
-        {
-            return Control.Label;
-        }
+        public string ControlLabel => Control.Label;
 
         /// <summary>
         /// Handles cabview mouse events, and changes the corresponding locomotive control values.
@@ -2961,58 +2912,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     ButtonState = buttonState;
                     break;
                 // Train Control System controls
-                case CabViewControlType.Orts_TCS1:
-                case CabViewControlType.Orts_TCS2:
-                case CabViewControlType.Orts_TCS3:
-                case CabViewControlType.Orts_TCS4:
-                case CabViewControlType.Orts_TCS5:
-                case CabViewControlType.Orts_TCS6:
-                case CabViewControlType.Orts_TCS7:
-                case CabViewControlType.Orts_TCS8:
-                case CabViewControlType.Orts_TCS9:
-                case CabViewControlType.Orts_TCS10:
-                case CabViewControlType.Orts_TCS11:
-                case CabViewControlType.Orts_TCS12:
-                case CabViewControlType.Orts_TCS13:
-                case CabViewControlType.Orts_TCS14:
-                case CabViewControlType.Orts_TCS15:
-                case CabViewControlType.Orts_TCS16:
-                case CabViewControlType.Orts_TCS17:
-                case CabViewControlType.Orts_TCS18:
-                case CabViewControlType.Orts_TCS19:
-                case CabViewControlType.Orts_TCS20:
-                case CabViewControlType.Orts_TCS21:
-                case CabViewControlType.Orts_TCS22:
-                case CabViewControlType.Orts_TCS23:
-                case CabViewControlType.Orts_TCS24:
-                case CabViewControlType.Orts_TCS25:
-                case CabViewControlType.Orts_TCS26:
-                case CabViewControlType.Orts_TCS27:
-                case CabViewControlType.Orts_TCS28:
-                case CabViewControlType.Orts_TCS29:
-                case CabViewControlType.Orts_TCS30:
-                case CabViewControlType.Orts_TCS31:
-                case CabViewControlType.Orts_TCS32:
-                case CabViewControlType.Orts_TCS33:
-                case CabViewControlType.Orts_TCS34:
-                case CabViewControlType.Orts_TCS35:
-                case CabViewControlType.Orts_TCS36:
-                case CabViewControlType.Orts_TCS37:
-                case CabViewControlType.Orts_TCS38:
-                case CabViewControlType.Orts_TCS39:
-                case CabViewControlType.Orts_TCS40:
-                case CabViewControlType.Orts_TCS41:
-                case CabViewControlType.Orts_TCS42:
-                case CabViewControlType.Orts_TCS43:
-                case CabViewControlType.Orts_TCS44:
-                case CabViewControlType.Orts_TCS45:
-                case CabViewControlType.Orts_TCS46:
-                case CabViewControlType.Orts_TCS47:
-                case CabViewControlType.Orts_TCS48:
-                    int commandIndex = (int)Control.ControlType - (int)CabViewControlType.Orts_TCS1;
-                    if (UpdateCommandValue(1, buttonEventType, delta) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
-                        _ = new TCSButtonCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
-                    _ = new TCSSwitchCommand(Viewer.Log, UpdateCommandValue(Locomotive.TrainControlSystem.TCSCommandSwitchOn[commandIndex] ? 1 : 0, buttonEventType, delta) > 0, commandIndex);
+                case CabViewControlType.Orts_TCS:
+                    int commandIndex = Control.ControlSubtype - 1;
+                    Locomotive.TrainControlSystem.TCSCommandButtonDown.TryGetValue(commandIndex, out bool currentValue);
+                    if (UpdateCommandValue(1, buttonEventType, delta) > 0 ^ currentValue)
+                        _ = new TCSButtonCommand(Viewer.Log, !currentValue, commandIndex);
+                    Locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(commandIndex, out bool currentSwitchValue);
+                    _ = new TCSSwitchCommand(Viewer.Log, UpdateCommandValue(currentSwitchValue ? 1 : 0, buttonEventType, delta) > 0, commandIndex);
                     break;
                 // Jindrich
                 case CabViewControlType.Orts_CC_Selected_Speed:

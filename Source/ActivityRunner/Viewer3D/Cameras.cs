@@ -2304,7 +2304,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.GetControlLabel()) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.GetControlLabel());
+                        viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.ControlLabel) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.ControlLabel);
                     viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else
@@ -2657,7 +2657,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.GetControlLabel()) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.GetControlLabel());
+                        viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.ControlLabel) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.ControlLabel);
                     viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else

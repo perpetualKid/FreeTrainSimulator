@@ -5942,56 +5942,8 @@ namespace Orts.Simulation.RollingStocks
                         break;
                     }
 
-                // Train Control System controls
-                case CabViewControlType.Orts_TCS1:
-                case CabViewControlType.Orts_TCS2:
-                case CabViewControlType.Orts_TCS3:
-                case CabViewControlType.Orts_TCS4:
-                case CabViewControlType.Orts_TCS5:
-                case CabViewControlType.Orts_TCS6:
-                case CabViewControlType.Orts_TCS7:
-                case CabViewControlType.Orts_TCS8:
-                case CabViewControlType.Orts_TCS9:
-                case CabViewControlType.Orts_TCS10:
-                case CabViewControlType.Orts_TCS11:
-                case CabViewControlType.Orts_TCS12:
-                case CabViewControlType.Orts_TCS13:
-                case CabViewControlType.Orts_TCS14:
-                case CabViewControlType.Orts_TCS15:
-                case CabViewControlType.Orts_TCS16:
-                case CabViewControlType.Orts_TCS17:
-                case CabViewControlType.Orts_TCS18:
-                case CabViewControlType.Orts_TCS19:
-                case CabViewControlType.Orts_TCS20:
-                case CabViewControlType.Orts_TCS21:
-                case CabViewControlType.Orts_TCS22:
-                case CabViewControlType.Orts_TCS23:
-                case CabViewControlType.Orts_TCS24:
-                case CabViewControlType.Orts_TCS25:
-                case CabViewControlType.Orts_TCS26:
-                case CabViewControlType.Orts_TCS27:
-                case CabViewControlType.Orts_TCS28:
-                case CabViewControlType.Orts_TCS29:
-                case CabViewControlType.Orts_TCS30:
-                case CabViewControlType.Orts_TCS31:
-                case CabViewControlType.Orts_TCS32:
-                case CabViewControlType.Orts_TCS33:
-                case CabViewControlType.Orts_TCS34:
-                case CabViewControlType.Orts_TCS35:
-                case CabViewControlType.Orts_TCS36:
-                case CabViewControlType.Orts_TCS37:
-                case CabViewControlType.Orts_TCS38:
-                case CabViewControlType.Orts_TCS39:
-                case CabViewControlType.Orts_TCS40:
-                case CabViewControlType.Orts_TCS41:
-                case CabViewControlType.Orts_TCS42:
-                case CabViewControlType.Orts_TCS43:
-                case CabViewControlType.Orts_TCS44:
-                case CabViewControlType.Orts_TCS45:
-                case CabViewControlType.Orts_TCS46:
-                case CabViewControlType.Orts_TCS47:
-                case CabViewControlType.Orts_TCS48:
-                    data = TrainControlSystem.CabDisplayControls[(int)cvc.ControlType - (int)CabViewControlType.Orts_TCS1];
+                case CabViewControlType.Orts_TCS:
+                    TrainControlSystem.CabDisplayControls.TryGetValue(cvc.ControlSubtype - 1, out data);
                     break;
 
                 case CabViewControlType.Orts_Battery_Switch_Command_Switch:
