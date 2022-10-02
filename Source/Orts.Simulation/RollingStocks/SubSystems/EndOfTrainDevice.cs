@@ -205,7 +205,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (null == cabViewControl)
                 throw new ArgumentNullException(nameof(cabViewControl));
             float data = 0;
-            switch (cabViewControl.ControlType)
+            switch (cabViewControl.ControlType.CabViewControlType)
             {
                 case CabViewControlType.Orts_Eot_Id:
                     data = ID;

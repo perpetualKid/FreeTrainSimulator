@@ -2220,10 +2220,10 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 farPoint = viewport.Unproject(farsource, XnaProjection, XnaView, world);
 
             Shapes.PoseableShape trainCarShape = mstsLocomotiveViewer.CabViewer3D.TrainCarShape;
-            Dictionary<int, AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;
-            Dictionary<int, CabViewControlRenderer> controlMap = mstsLocomotiveViewer.CabRenderer3D.ControlMap;
+            Dictionary<(ControlType, int), AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;
+            Dictionary<(ControlType, int), CabViewControlRenderer> controlMap = mstsLocomotiveViewer.CabRenderer3D.ControlMap;
             float bestDistance = maxDelta;  // squared click range
-            foreach (KeyValuePair<int, AnimatedPartMultiState> animatedPart in animatedParts)
+            foreach (KeyValuePair<(ControlType, int), AnimatedPartMultiState> animatedPart in animatedParts)
             {
                 if (controlMap.TryGetValue(animatedPart.Value.Key, out CabViewControlRenderer cabRenderer) && cabRenderer is CabViewDiscreteRenderer screenRenderer)
                 {

@@ -635,10 +635,10 @@ namespace Orts.Simulation.RollingStocks
             if (cabView != null)
             {
                 msDisplay = cabView.CVFFile.CabViewControls.OfType<CabViewMultiStateDisplayControl>().Where(
-                    control => (control.ControlType == CabViewControlType.Dynamic_Brake_Display || control.ControlType == CabViewControlType.Cph_Display)).FirstOrDefault();
+                    control => (control.ControlType.CabViewControlType == CabViewControlType.Dynamic_Brake_Display || control.ControlType.CabViewControlType == CabViewControlType.Cph_Display)).FirstOrDefault();
                 if (msDisplay != null)
                 {
-                    if (msDisplay.ControlType == CabViewControlType.Dynamic_Brake_Display)
+                    if (msDisplay.ControlType.CabViewControlType == CabViewControlType.Dynamic_Brake_Display)
                     {
                         foreach (var switchval in msDisplay.Values)
                             dpDynController.AddNotch((float)switchval);
@@ -700,11 +700,9 @@ namespace Orts.Simulation.RollingStocks
                         CabViewControls cvcList = CabViewList[0].CVFFile.CabViewControls;
                         foreach (CabViewControl cvc in cvcList)
                         {
-                            if (brakeSystemComponents.ContainsKey(cvc.ControlType) && pressureUnits.ContainsKey(cvc.ControlUnit))
+                            if (brakeSystemComponents.TryGetValue(cvc.ControlType.CabViewControlType, out BrakeSystemComponent component) 
+                                && pressureUnits.TryGetValue(cvc.ControlUnit, out Pressure.Unit unit))
                             {
-                                BrakeSystemComponent component = brakeSystemComponents[cvc.ControlType];
-                                Pressure.Unit unit = pressureUnits[cvc.ControlUnit];
-
                                 BrakeSystemPressureUnits[component] = unit;
                             }
                         }
@@ -5117,7 +5115,7 @@ namespace Orts.Simulation.RollingStocks
         public virtual float GetDataOf(CabViewControl cvc)
         {
             float data = 0;
-            switch (cvc.ControlType)
+            switch (cvc.ControlType.CabViewControlType)
             {
                 case CabViewControlType.Speedometer:
                     {
@@ -5216,7 +5214,7 @@ namespace Orts.Simulation.RollingStocks
                             if (DynamicBrakePercent > 0 && MaxDynamicBrakeForceN > 0)
                             {
                                 float rangeFactor;
-                                if (cvc.ControlType == CabViewControlType.AmMeter_Abs)
+                                if (cvc.ControlType.CabViewControlType == CabViewControlType.AmMeter_Abs)
                                 {
                                     if (DynamicBrakeMaxCurrentA == 0)
                                         rangeFactor = direction == 0 ? (float)cvc.ScaleRangeMax : (float)cvc.ScaleRangeMin;
@@ -5234,12 +5232,12 @@ namespace Orts.Simulation.RollingStocks
                             }
                             if (direction == 1)
                                 data = -data;
-                            if (cvc.ControlType == CabViewControlType.AmMeter_Abs)
+                            if (cvc.ControlType.CabViewControlType == CabViewControlType.AmMeter_Abs)
                                 data = Math.Abs(data);
                             break;
                         }
                         data = this.MotiveForceN / MaxForceN * MaxCurrentA;
-                        if (cvc.ControlType == CabViewControlType.AmMeter_Abs)
+                        if (cvc.ControlType.CabViewControlType == CabViewControlType.AmMeter_Abs)
                             data = Math.Abs(data);
                         break;
                     }
@@ -5902,7 +5900,7 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Orts_LeftDoor:
                 case CabViewControlType.Orts_RightDoor:
                     {
-                        bool right = (cvc.ControlType == CabViewControlType.Orts_RightDoor) ^ Flipped ^ GetCabFlipped();
+                        bool right = (cvc.ControlType.CabViewControlType == CabViewControlType.Orts_RightDoor) ^ Flipped ^ GetCabFlipped();
                         var state = Train.DoorState(right ? DoorSide.Right : DoorSide.Left);
                         data = state >= DoorState.Opening ? 1 : 0;
                     }
@@ -5943,7 +5941,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                 case CabViewControlType.Orts_TCS:
-                    TrainControlSystem.CabDisplayControls.TryGetValue(cvc.ControlSubtype - 1, out data);
+                    TrainControlSystem.CabDisplayControls.TryGetValue(cvc.ControlType.Subtype - 1, out data);
                     break;
 
                 case CabViewControlType.Orts_Battery_Switch_Command_Switch:

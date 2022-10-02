@@ -1390,7 +1390,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private int _Location;
         private bool _isNightTexture;
         private bool HasCabLightDirectory;
-        public Dictionary<int, CabViewControlRenderer> ControlMap;
+        public Dictionary<(ControlType, int), CabViewControlRenderer> ControlMap { get; }
         public string[] ActiveScreen = { "default", "default", "default", "default", "default", "default", "default", "default" };
 
         public CabRenderer(Viewer viewer, MSTSLocomotive car)
@@ -1420,8 +1420,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             _SpriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, _Shader);
 
             #region Create Control renderers
-            ControlMap = new Dictionary<int, CabViewControlRenderer>();
-            int[] count = new int[EnumExtension.GetLength<CabViewControlType>()];//enough to hold all types, count the occurence of each type
+            ControlMap = new Dictionary<(ControlType, int), CabViewControlRenderer>();
+            Dictionary<ControlType, int> count = new Dictionary<ControlType, int>();
             var i = 0;
             bool firstOne = true;
             foreach (var cabView in car.CabViewList)
@@ -1462,7 +1462,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     foreach (CabViewControl cvc in cabView.CVFFile.CabViewControls)
                     {
                         controlSortIndex++;
-                        int key = 1000 * (int)cvc.ControlType + count[(int)cvc.ControlType];
+                        if (!count.ContainsKey(cvc.ControlType))
+                            count[cvc.ControlType] = 0;
+                        (ControlType ControlType, int) key = (cvc.ControlType, count[cvc.ControlType]);
                         CabViewDialControl dial = cvc as CabViewDialControl;
                         if (dial != null)
                         {
@@ -1471,7 +1473,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(cvcr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvcr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewFireboxControl firebox = cvc as CabViewFireboxControl;
@@ -1490,7 +1492,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(cvgr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvgr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewSignalControl asp = cvc as CabViewSignalControl;
@@ -1501,7 +1503,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(aspr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, aspr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewAnimatedDisplayControl anim = cvc as CabViewAnimatedDisplayControl;
@@ -1512,7 +1514,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(animr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, animr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewMultiStateDisplayControl multi = cvc as CabViewMultiStateDisplayControl;
@@ -1523,7 +1525,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(mspr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, mspr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewDiscreteControl disc = cvc as CabViewDiscreteControl;
@@ -1534,7 +1536,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(cvdr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvdr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewDigitalControl digital = cvc as CabViewDigitalControl;
@@ -1549,30 +1551,30 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(cvdr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvdr);
-                            count[(int)cvc.ControlType]++;
+                            count[cvc.ControlType]++;
                             continue;
                         }
                         CabViewScreenControl screen = cvc as CabViewScreenControl;
                         if (screen != null)
                         {
-                            if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                            if (screen.ControlType.CabViewControlType == CabViewControlType.Orts_Etcs)
                             {
                                 var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
                                 cvr.SortIndex = controlSortIndex;
                                 CabViewControlRenderersList[i].Add(cvr);
                                 if (!ControlMap.ContainsKey(key))
                                     ControlMap.Add(key, cvr);
-                                count[(int)cvc.ControlType]++;
+                                count[cvc.ControlType]++;
                                 continue;
                             }
-                            else if (screen.ControlType == CabViewControlType.Orts_DistributedPower)
+                            else if (screen.ControlType.CabViewControlType == CabViewControlType.Orts_DistributedPower)
                             {
                                 var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, _Shader);
                                 cvr.SortIndex = controlSortIndex;
                                 CabViewControlRenderersList[i].Add(cvr);
                                 if (!ControlMap.ContainsKey(key))
                                     ControlMap.Add(key, cvr);
-                                count[(int)cvc.ControlType]++;
+                                count[cvc.ControlType]++;
                                 continue;
                             }
                         }
@@ -1591,8 +1593,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
             #region Create Control renderers
-            ControlMap = new Dictionary<int, CabViewControlRenderer>();
-            int[] count = new int[256];//enough to hold all types, count the occurence of each type
+            ControlMap = new Dictionary<(ControlType, int), CabViewControlRenderer>();
+            Dictionary<ControlType, int> count = new Dictionary<ControlType, int>();
             var i = 0;
 
             var controlSortIndex = 1;  // Controls are drawn atop the cabview and in order they appear in the CVF file.
@@ -1601,7 +1603,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (CabViewControl cvc in CVFFile.CabViewControls)
             {
                 controlSortIndex++;
-                int key = 1000 * (int)cvc.ControlType + count[(int)cvc.ControlType];
+                if (!count.ContainsKey(cvc.ControlType))
+                    count[cvc.ControlType] = 0;
+                (ControlType ControlType, int) key = (cvc.ControlType, count[cvc.ControlType]);
                 CabViewDialControl dial = cvc as CabViewDialControl;
                 if (dial != null)
                 {
@@ -1610,7 +1614,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(cvcr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvcr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewFireboxControl firebox = cvc as CabViewFireboxControl;
@@ -1629,7 +1633,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(cvgr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvgr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewSignalControl asp = cvc as CabViewSignalControl;
@@ -1640,7 +1644,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(aspr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, aspr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewMultiStateDisplayControl multi = cvc as CabViewMultiStateDisplayControl;
@@ -1651,7 +1655,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(mspr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, mspr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewDiscreteControl disc = cvc as CabViewDiscreteControl;
@@ -1662,7 +1666,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(cvdr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvdr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewDigitalControl digital = cvc as CabViewDigitalControl;
@@ -1677,30 +1681,30 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(cvdr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvdr);
-                    count[(int)cvc.ControlType]++;
+                    count[cvc.ControlType]++;
                     continue;
                 }
                 CabViewScreenControl screen = cvc as CabViewScreenControl;
                 if (screen != null)
                 {
-                    if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                    if (screen.ControlType.CabViewControlType == CabViewControlType.Orts_Etcs)
                     {
                         var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
                         cvr.SortIndex = controlSortIndex;
                         CabViewControlRenderersList[i].Add(cvr);
                         if (!ControlMap.ContainsKey(key))
                             ControlMap.Add(key, cvr);
-                        count[(int)cvc.ControlType]++;
+                        count[cvc.ControlType]++;
                         continue;
                     }
-                    else if (screen.ControlType == CabViewControlType.Orts_DistributedPower)
+                    else if (screen.ControlType.CabViewControlType == CabViewControlType.Orts_DistributedPower)
                     {
                         var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, _Shader);
                         cvr.SortIndex = controlSortIndex;
                         CabViewControlRenderersList[i].Add(cvr);
                         if (!ControlMap.ContainsKey(key))
                             ControlMap.Add(key, cvr);
-                        count[(int)cvc.ControlType]++;
+                        count[cvc.ControlType]++;
                         continue;
                     }
                 }
@@ -1881,7 +1885,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public CabViewControlType GetControlType()
         {
-            return Control.ControlType;
+            return Control.ControlType.CabViewControlType;
         }
         /// <summary>
         /// Gets the requested Locomotive data and returns it as a fraction (from 0 to 1) of the range between Min and Max values.
@@ -2019,7 +2023,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             : base(viewer, locomotive, control, shader)
         {
             Gauge = control;
-            if ((Control.ControlType == CabViewControlType.Reverser_Plate) || (Gauge.ControlStyle == CabViewControlStyle.Pointer))
+            if ((Control.ControlType.CabViewControlType == CabViewControlType.Reverser_Plate) || (Gauge.ControlStyle == CabViewControlStyle.Pointer))
             {
                 DrawColor = Color.White;
                 Texture = CABTextureManager.GetTexture(Control.AceFile, false, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
@@ -2186,7 +2190,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (Gauge is CabViewFireboxControl)
                     destH = Math.Min(destH, (int)(yratio * (Control.Bounds.Y + 0.5 * Gauge.Area.Height)) - destY);
             }
-            if (Control.ControlType != CabViewControlType.Reverser_Plate && Gauge.ControlStyle != CabViewControlStyle.Pointer)
+            if (Control.ControlType.CabViewControlType != CabViewControlType.Reverser_Plate && Gauge.ControlStyle != CabViewControlStyle.Pointer)
             {
                 if (num < 0 && Gauge.NegativeColors[0].A != 0)
                 {
@@ -2309,7 +2313,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             float data = !IsPowered && Control.ValueIfDisabled != null ? (float)Control.ValueIfDisabled : Locomotive.GetDataOf(Control);
 
             int index = previousFrameIndex;
-            switch (ControlDiscrete.ControlType)
+            switch (ControlDiscrete.ControlType.CabViewControlType)
             {
                 case CabViewControlType.Engine_Brake:
                 case CabViewControlType.Brakeman_Brake:
@@ -2561,8 +2565,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public string GetControlName(Point mousePoint)
         {
-            return ControlDiscrete.ControlType == CabViewControlType.Orts_TCS
-                ? Locomotive.TrainControlSystem.GetDisplayString(ControlDiscrete.ControlSubtype)
+            return ControlDiscrete.ControlType.CabViewControlType == CabViewControlType.Orts_TCS
+                ? Locomotive.TrainControlSystem.GetDisplayString(ControlDiscrete.ControlType.Subtype)
                 : GetControlType().ToString();
         }
 
@@ -2573,7 +2577,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public void HandleUserInput(GenericButtonEventType buttonEventType, Point position, Vector2 delta)
         {
-            switch (Control.ControlType)
+            switch (Control.ControlType.CabViewControlType)
             {
                 case CabViewControlType.Regulator:
                 case CabViewControlType.Throttle:
@@ -2656,7 +2660,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             if (pantos > 0)
                                 _ = new PantographCommand(Viewer.Log, 1, true);
-                            else if (Control.ControlType == CabViewControlType.Pantographs_4C)
+                            else if (Control.ControlType.CabViewControlType == CabViewControlType.Pantographs_4C)
                                 _ = new PantographCommand(Viewer.Log, 2, true);
                         }
                         else if (Locomotive.Pantographs[1].State == PantographState.Up && Locomotive.Pantographs[2].State == PantographState.Down)
@@ -2677,7 +2681,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             if (pantos < 0)
                                 _ = new PantographCommand(Viewer.Log, 1, true);
-                            else if (Control.ControlType == CabViewControlType.Pantographs_4C)
+                            else if (Control.ControlType.CabViewControlType == CabViewControlType.Pantographs_4C)
                                 _ = new PantographCommand(Viewer.Log, 2, false);
                         }
 #pragma warning restore CA1508 // Avoid dead conditional code
@@ -2847,7 +2851,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_LeftDoor:
                 case CabViewControlType.Orts_RightDoor:
                     {
-                        bool right = (Control.ControlType == CabViewControlType.Orts_RightDoor) ^ Locomotive.Flipped ^ Locomotive.GetCabFlipped();
+                        bool right = (Control.ControlType.CabViewControlType == CabViewControlType.Orts_RightDoor) ^ Locomotive.Flipped ^ Locomotive.GetCabFlipped();
                         var state = Locomotive.Train.DoorState(right ? DoorSide.Right : DoorSide.Left);
                         int open = state >= DoorState.Opening ? 1 : 0;
                         if (open != UpdateCommandValue(open, buttonEventType, delta))
@@ -2913,7 +2917,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 // Train Control System controls
                 case CabViewControlType.Orts_TCS:
-                    int commandIndex = Control.ControlSubtype - 1;
+                    int commandIndex = Control.ControlType.Subtype - 1;
                     Locomotive.TrainControlSystem.TCSCommandButtonDown.TryGetValue(commandIndex, out bool currentValue);
                     if (UpdateCommandValue(1, buttonEventType, delta) > 0 ^ currentValue)
                         _ = new TCSButtonCommand(Viewer.Log, !currentValue, commandIndex);
@@ -3277,7 +3281,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             };
 
             // Clock defaults to centered.
-            if (Control.ControlType == CabViewControlType.Clock)
+            if (Control.ControlType.CabViewControlType == CabViewControlType.Clock)
             {
                 Alignment = CVDigitalAlignment.Center;
                 alignment = HorizontalAlignment.Center;
@@ -3308,7 +3312,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 numericValue = MathHelper.Clamp(numericValue, digital.ScaleRangeMin, digital.ScaleRangeMax);
             format = Math.Abs(numericValue) < digital.AccuracySwitch ? format2 : format1;
 
-            if (Control.ControlType == CabViewControlType.Clock)
+            if (Control.ControlType.CabViewControlType == CabViewControlType.Clock)
             {
                 text = digital.ControlStyle == CabViewControlStyle.Hour12
                     ? digital.Accuracy > 0 ? $"{DateTime.MinValue.AddSeconds(Simulator.Instance.ClockTime):hh:mm:ss}" : $"{DateTime.MinValue.AddSeconds(Simulator.Instance.ClockTime):hh:mm}"
@@ -3365,7 +3369,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else
                 format = format1;
 
-            if (Control.ControlType == CabViewControlType.Clock)
+            if (Control.ControlType.CabViewControlType == CabViewControlType.Clock)
             {
                 displayedText = digital.ControlStyle == CabViewControlStyle.Hour12
                     ? digital.Accuracy > 0 ? $"{DateTime.MinValue.AddSeconds(Simulator.Instance.ClockTime):hh:mm:sst}" : $"{DateTime.MinValue.AddSeconds(Simulator.Instance.ClockTime):hh:mmt}"
@@ -3403,13 +3407,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private MSTSLocomotive Locomotive;
 
         public PoseableShape TrainCarShape;
-        public Dictionary<int, AnimatedPartMultiState> AnimateParts;
-        private Dictionary<int, ThreeDimCabGaugeNative> Gauges;
-        private Dictionary<int, AnimatedPart> OnDemandAnimateParts; //like external wipers, and other parts that will be switched on by mouse in the future
-                                                                    //Dictionary<int, DigitalDisplay> DigitParts = null;
+        public Dictionary<(ControlType, int), AnimatedPartMultiState> AnimateParts;
+        private Dictionary<(ControlType, int), ThreeDimCabGaugeNative> Gauges;
+        private Dictionary<(ControlType, int), AnimatedPart> OnDemandAnimateParts; //like external wipers, and other parts that will be switched on by mouse in the future
+                                                                                   //Dictionary<int, DigitalDisplay> DigitParts = null;
 
-        private Dictionary<int, ThreeDimCabDigit> DigitParts3D;
-        private Dictionary<int, ThreeDimCabDPI> DPIDisplays3D;
+        private Dictionary<(ControlType, int), ThreeDimCabDigit> DigitParts3D;
+        private Dictionary<(ControlType, int), ThreeDimCabDPI> DPIDisplays3D;
         private AnimatedPart ExternalWipers; // setting to zero to prevent a warning. Probably this will be used later. TODO
         protected MSTSLocomotive MSTSLocomotive { get { return (MSTSLocomotive)Car; } }
 
@@ -3431,24 +3435,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else
                 locoViewer.CabRenderer3D = locoViewer.CabRenderer;
 
-            AnimateParts = new Dictionary<int, AnimatedPartMultiState>();
+            AnimateParts = new Dictionary<(ControlType, int), AnimatedPartMultiState>();
             //DigitParts = new Dictionary<int, DigitalDisplay>();
-            DigitParts3D = new Dictionary<int, ThreeDimCabDigit>();
-            Gauges = new Dictionary<int, ThreeDimCabGaugeNative>();
-            DPIDisplays3D = new Dictionary<int, ThreeDimCabDPI>();
-            OnDemandAnimateParts = new Dictionary<int, AnimatedPart>();
+            DigitParts3D = new Dictionary<(ControlType, int), ThreeDimCabDigit>();
+            Gauges = new Dictionary<(ControlType, int), ThreeDimCabGaugeNative>();
+            DPIDisplays3D = new Dictionary<(ControlType, int), ThreeDimCabDPI>();
+            OnDemandAnimateParts = new Dictionary<(ControlType, int), AnimatedPart>();
             // Find the animated parts
             if (TrainCarShape != null && TrainCarShape.SharedShape.Animations != null)
             {
                 MatrixVisible = new bool[TrainCarShape.SharedShape.MatrixNames.Count + 1];
                 for (int i = 0; i < MatrixVisible.Length; i++)
                     MatrixVisible[i] = true;
-                string matrixName = "";
                 string typeName = "";
                 AnimatedPartMultiState tmpPart = null;
                 for (int iMatrix = 0; iMatrix < TrainCarShape.SharedShape.MatrixNames.Count; ++iMatrix)
                 {
-                    matrixName = TrainCarShape.SharedShape.MatrixNames[iMatrix].ToUpper();
+                    string matrixName = TrainCarShape.SharedShape.MatrixNames[iMatrix].ToUpper();
                     //Name convention
                     //TYPE:Order:Parameter-PartN
                     //e.g. ASPECT_SIGNAL:0:0-1: first ASPECT_SIGNAL, parameter is 0, this component is part 1 of this cab control
@@ -3456,7 +3459,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     //     ASPECT_SIGNAL:1:0  second ASPECT_SIGNAL, parameter is 0, this component is the only one for this cab control
                     typeName = matrixName.Split('-')[0]; //a part may have several sub-parts, like ASPECT_SIGNAL:0:0-1, ASPECT_SIGNAL:0:0-2
                     tmpPart = null;
-                    int order = 0, key;
+                    int order = 0;
                     string parameter1 = "0", parameter2 = "";
                     CabViewControlRenderer style = null;
                     //ASPECT_SIGNAL:0:0
@@ -3473,33 +3476,31 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else
                         continue;
 
-                    if (EnumExtension.GetValue(tmp[0].Trim(), out CabViewControlType type))
+                    ControlType cvcType = new ControlType(tmp[0].Trim());
+                    var key = (cvcType, order);
+                    switch (cvcType.CabViewControlType)
                     {
-                        key = 1000 * (int)type + order;
-                        switch (type)
-                        {
-                            case CabViewControlType.ExternalWipers:
-                            case CabViewControlType.Mirrors:
-                            case CabViewControlType.LeftDoor:
-                            case CabViewControlType.RightDoor:
-                            case CabViewControlType.Orts_Item1Continuous:
-                            case CabViewControlType.Orts_Item2Continuous:
-                            case CabViewControlType.Orts_Item1TwoState:
-                            case CabViewControlType.Orts_Item2TwoState:
-                                break;
-                            default:
-                                //cvf file has no external wipers, left door, right door and mirrors key word
-                                if (!locoViewer.CabRenderer3D.ControlMap.TryGetValue(key, out style))
-                                {
-                                    var cvfBasePath = Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "CABVIEW");
-                                    var cvfFilePath = Path.Combine(cvfBasePath, Locomotive.CVFFileName);
-                                    Trace.TraceWarning($"Cabview control {tmp[0].Trim()} has not been defined in CVF file {cvfFilePath}");
-                                }
-                                break;
-                        }
+                        case CabViewControlType.ExternalWipers:
+                        case CabViewControlType.Mirrors:
+                        case CabViewControlType.LeftDoor:
+                        case CabViewControlType.RightDoor:
+                        case CabViewControlType.Orts_Item1Continuous:
+                        case CabViewControlType.Orts_Item2Continuous:
+                        case CabViewControlType.Orts_Item1TwoState:
+                        case CabViewControlType.Orts_Item2TwoState:
+                            //cvf file has no external wipers, left door, right door and mirrors key word
+                            break;
+                        default:
+                            //cvf file has no external wipers, left door, right door and mirrors key word
+                            if (!locoViewer.CabRenderer3D.ControlMap.TryGetValue(key, out style))
+                            {
+                                var cvfBasePath = Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "CABVIEW");
+                                var cvfFilePath = Path.Combine(cvfBasePath, Locomotive.CVFFileName);
+                                Trace.TraceWarning($"Cabview control {tmp[0].Trim()} has not been defined in CVF file {cvfFilePath}");
+                            }
+                            break;
                     }
 
-                    key = 1000 * (int)type + order;
                     if (style != null && style is CabViewDigitalRenderer)//digits?
                     {
                         //DigitParts.Add(key, new DigitalDisplay(viewer, TrainCarShape, iMatrix, parameter, locoViewer.ThreeDimentionCabRenderer.ControlMap[key]));
@@ -3518,7 +3519,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                          //if there is a part already, will insert this into it, otherwise, create a new
                             if (!AnimateParts.ContainsKey(key))
                             {
-                                tmpPart = new AnimatedPartMultiState(TrainCarShape, type, key);
+                                tmpPart = new AnimatedPartMultiState(TrainCarShape, key);
                                 AnimateParts.Add(key, tmpPart);
                             }
                             else
@@ -3535,7 +3536,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         //if there is a part already, will insert this into it, otherwise, create a new
                         if (!AnimateParts.ContainsKey(key))
                         {
-                            tmpPart = new AnimatedPartMultiState(TrainCarShape, type, key);
+                            tmpPart = new AnimatedPartMultiState(TrainCarShape, key);
                             AnimateParts.Add(key, tmpPart);
                         }
                         else
@@ -3736,7 +3737,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             { AceFile = ""; }
 
             CVFR = (CabViewDigitalRenderer)c;
-            if (CVFR.Control is CabViewDigitalClockControl digital && digital.ControlType == CabViewControlType.Clock && digital.Accuracy > 0)
+            if (CVFR.Control is CabViewDigitalClockControl digital && digital.ControlType.CabViewControlType == CabViewControlType.Clock && digital.Accuracy > 0)
                 MaxDigits = 8;
 
             Viewer = viewer;
@@ -4283,15 +4284,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     // On Update( position ) it slowly moves the parts towards the specified position
     public class AnimatedPartMultiState : AnimatedPart
     {
-        public CabViewControlType Type;
-        public int Key;
+        public CabViewControlType Type { get; }
+        public (ControlType, int) Key { get; }
         /// <summary>
         /// Construct with a link to the shape that contains the animated parts 
         /// </summary>
-        public AnimatedPartMultiState(PoseableShape poseableShape, CabViewControlType t, int k)
+        public AnimatedPartMultiState(PoseableShape poseableShape, (ControlType, int) k)
             : base(poseableShape)
         {
-            Type = t;
+            Type = k.Item1.CabViewControlType;
             Key = k;
         }
 

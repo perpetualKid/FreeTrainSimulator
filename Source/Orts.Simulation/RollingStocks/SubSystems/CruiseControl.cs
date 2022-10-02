@@ -1673,7 +1673,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float GetDataOf(CabViewControl cvc)
         {
             float data = 0;
-            switch (cvc.ControlType)
+            switch (cvc.ControlType.CabViewControlType)
             {
                 case CabViewControlType.Orts_Selected_Speed:
                 case CabViewControlType.Orts_Selected_Speed_Display:

@@ -11,6 +11,40 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
+    public class ControlType
+    {
+        public CabViewControlType CabViewControlType { get; }
+        public int Subtype { get; }
+
+        public ControlType(CabViewControlType cabViewControlType, int subType)
+        {
+            CabViewControlType = cabViewControlType;
+            Subtype = subType;
+        }
+
+        public ControlType(string name)
+        {
+            CabViewControlType = CabViewControlType.None;
+            Subtype = 0;
+            if (name != null && name.StartsWith("ORTS_TCS", StringComparison.OrdinalIgnoreCase))
+            {
+                if (int.TryParse(name.AsSpan(8), out int subtype))
+                {
+                    CabViewControlType = CabViewControlType.Orts_TCS;
+                    Subtype = subtype;
+                }
+            }
+            else
+                if (EnumExtension.GetValue(name, out CabViewControlType controlType))
+                CabViewControlType = controlType;
+        }
+
+        public override string ToString()
+        {
+            return CabViewControlType == CabViewControlType.Orts_TCS ? $"{CabViewControlType}{Subtype}" : CabViewControlType.ToString();
+        }
+    }
+
     public class CabViewControls : List<CabViewControl>
     {
         internal CabViewControls(STFReader stf, string basePath)
@@ -71,8 +105,7 @@ namespace Orts.Formats.Msts.Models
         public List<string> Screens { get; protected set; }
         public int CabViewpoint { get; protected set; }
 
-        public CabViewControlType ControlType { get; protected set; }
-        public int ControlSubtype { get; protected set; }
+        public ControlType ControlType { get; private protected set; }
 
         public CabViewControlStyle ControlStyle { get; protected set; }
         public CabViewControlUnit ControlUnit { get; protected set; }
@@ -85,17 +118,12 @@ namespace Orts.Formats.Msts.Models
         private protected void ParseType(STFReader stf)
         {
             stf.MustMatchBlockStart();
+
             string name = stf.ReadString();
-            if (name != null && name.StartsWith("ORTS_TCS", StringComparison.OrdinalIgnoreCase))
+            ControlType = new ControlType(name);
+            if (ControlType.CabViewControlType == CabViewControlType.None)
             {
-                ControlType = CabViewControlType.Orts_TCS;
-                if (int.TryParse(name.AsSpan(8), out int subType))
-                    ControlSubtype = subType;
-            }
-            else
-            {
-                if (EnumExtension.GetValue(stf.ReadString(), out CabViewControlType type))
-                    ControlType = type;
+                STFException.TraceInformation(stf, "Skipped unknown ControlType " + name);
             }
             stf.SkipRestOfBlock();
         }
@@ -269,7 +297,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("graphic", ()=>{ ParseGraphic(stf, basePath); }),
                 new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 });
-            ControlType = dialtype;
+            ControlType = new ControlType(dialtype, 0);
             ControlStyle = CabViewControlStyle.Needle;
             Direction = 0;
             ScaleRangeMax = maxValue;
@@ -892,7 +920,7 @@ namespace Orts.Formats.Msts.Models
             }
 
             // MSTS ignores/overrides various settings by the following exceptional cases:
-            switch (ControlType)
+            switch (ControlType.CabViewControlType)
             {
                 case CabViewControlType.Cp_Handle:
                     ControlStyle = CabViewControlStyle.Not_Sprung;
