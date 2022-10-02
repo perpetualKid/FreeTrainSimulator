@@ -222,261 +222,268 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
 
-        public void Parse(string lowercasetoken, STFReader stf)
+        public void Parse(STFReader stf)
         {
-            switch (lowercasetoken)
+            stf.MustMatch("(");
+            while (!stf.EndOfBlock())
             {
-                case "engine(ortscruisecontrol(speedismph":
-                    speedIsMph = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(usethrottle":
-                    useThrottle = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(usethrottleincombinedcontrol":
-                    UseThrottleInCombinedControl = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(speedselectorsteptimeseconds":
-                    SpeedSelectorStepTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 0.1f);
-                    break;
-                case "engine(ortscruisecontrol(throttlefullrangeincreasetimeseconds":
-                    throttleFullRangeIncreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
-                    break;
-                case "engine(ortscruisecontrol(throttlefullrangedecreasetimeseconds":
-                    throttleFullRangeDecreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
-                    break;
-                case "engine(ortscruisecontrol(resetforceafteranybraking":
-                    ResetForceAfterAnyBraking = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakefullrangeincreasetimeseconds":
-                    DynamicBrakeFullRangeIncreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakefullrangedecreasetimeseconds":
-                    DynamicBrakeFullRangeDecreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
-                    break;
-                case "engine(ortscruisecontrol(parkingbrakeengagespeed":
-                    ParkingBrakeEngageSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, 0);
-                    break;
-                case "engine(ortscruisecontrol(parkingbrakepercent":
-                    ParkingBrakePercent = stf.ReadFloatBlock(STFReader.Units.Any, 0);
-                    break;
-                case "engine(ortscruisecontrol(maxpowerthreshold":
-                    MaxPowerThreshold = stf.ReadFloatBlock(STFReader.Units.Any, 0);
-                    break;
-                case "engine(ortscruisecontrol(safespeedforautomaticoperationmps":
-                    SafeSpeedForAutomaticOperationMpS = stf.ReadFloatBlock(STFReader.Units.Any, 0);
-                    break;
-                case "engine(ortscruisecontrol(maxforcepercentunits":
-                    SpeedRegulatorMaxForcePercentUnits = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(maxforcesteps":
-                    SpeedRegulatorMaxForceSteps = stf.ReadIntBlock(0);
-                    break;
-                case "engine(ortscruisecontrol(maxforcesetsinglestep":
-                    MaxForceSetSingleStep = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(maxforcekeepselectedstepwhenmanualmodeset":
-                    MaxForceKeepSelectedStepWhenManualModeSet = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(keepselectedspeedwhenmanualmodeset":
-                    KeepSelectedSpeedWhenManualModeSet = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(forceregulatorautowhennonzerospeedselected":
-                    ForceRegulatorAutoWhenNonZeroSpeedSelected = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(forceregulatorautowhennonzeroforceselected":
-                    ForceRegulatorAutoWhenNonZeroForceSelected = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(forceregulatorautowhennonzerospeedselectedandthrottleatzero":
-                    ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(maxforceselectorisdiscrete":
-                    MaxForceSelectorIsDiscrete = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(continuousspeedincreasing":
-                    ContinuousSpeedIncreasing = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzerospeed":
-                    DisableCruiseControlOnThrottleAndZeroSpeed = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzeroforce":
-                    DisableCruiseControlOnThrottleAndZeroForce = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzeroforceandzerospeed":
-                    DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablemanualswitchtomanualwhensetforcenotatzero":
-                    DisableManualSwitchToManualWhenSetForceNotAtZero = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablemanualswitchtoautowhenthrottlenotatzero":
-                    DisableManualSwitchToAutoWhenThrottleNotAtZero = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(disablemanualswitchtoautowhensetspeednotattop":
-                    DisableManualSwitchToAutoWhenSetSpeedNotAtTop = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(enableselectedspeedselectionwhenmanualmodeset":
-                    EnableSelectedSpeedSelectionWhenManualModeSet = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(forcestepsthrottletable":
-                    foreach (string forceStepThrottleString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (int.TryParse(forceStepThrottleString, out int forceStepThrottleValue))
-                            forceStepsThrottleTable.Add(forceStepThrottleValue);
-                    }
-                    break;
-                case "engine(ortscruisecontrol(accelerationtable":
-                    foreach (string accelerationString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (float.TryParse(accelerationString, out float accelerationValue))
-                            accelerationTable.Add(accelerationValue);
-                    }
-                    break;
-                case "engine(ortscruisecontrol(powerbreakoutampers":
-                    PowerBreakoutAmpers = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
-                    break;
-                case "engine(ortscruisecontrol(powerbreakoutspeeddelta":
-                    PowerBreakoutSpeedDelta = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
-                    break;
-                case "engine(ortscruisecontrol(powerresumespeeddelta":
-                    PowerResumeSpeedDelta = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
-                    break;
-                case "engine(ortscruisecontrol(powerreductiondelaypaxtrain":
-                    PowerReductionDelayPaxTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
-                    break;
-                case "engine(ortscruisecontrol(powerreductiondelaycargotrain":
-                    PowerReductionDelayCargoTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
-                    break;
-                case "engine(ortscruisecontrol(powerreductionvalue":
-                    PowerReductionValue = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
-                    break;
-                case "engine(ortscruisecontrol(disablezeroforcestep":
-                    DisableZeroForceStep = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakeisselectedforcedependant":
-                    DynamicBrakeIsSelectedForceDependant = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(defaultforcestep":
-                    SelectedMaxAccelerationStep = stf.ReadFloatBlock(STFReader.Units.Any, 1.0f);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakemaxforceatselectorstep":
-                    dynamicBrakeMaxForceAtSelectorStep = stf.ReadFloatBlock(STFReader.Units.Any, 1.0f);
-                    break;
-                case "engine(ortscruisecontrol(startreducingspeeddelta":
-                    startReducingSpeedDelta = (stf.ReadFloatBlock(STFReader.Units.Any, 1.0f) / 10);
-                    break;
-                case "engine(ortscruisecontrol(startreducingspeeddeltadownwards":
-                    StartReducingSpeedDeltaDownwards = (stf.ReadFloatBlock(STFReader.Units.Any, 1.0f) / 10);
-                    break;
-                case "engine(ortscruisecontrol(maxacceleration":
-                    maxAccelerationMpSS = stf.ReadFloatBlock(STFReader.Units.Any, 1);
-                    break;
-                case "engine(ortscruisecontrol(maxdeceleration":
-                    maxDecelerationMpSS = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
-                    break;
-                case "engine(ortscruisecontrol(antiwheelspinequipped":
-                    antiWheelSpinEquipped = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(antiwheelspinspeeddiffthreshold":
-                    antiWheelSpinSpeedDiffThreshold = stf.ReadFloatBlock(STFReader.Units.None, 0.5f);
-                    break;
-                case "engine(ortscruisecontrol(nominalspeedstep":
-                    {
-                        speedRegulatorNominalSpeedStepKpHOrMpH = stf.ReadFloatBlock(STFReader.Units.Speed, 0);
-                        SpeedRegulatorNominalSpeedStepMpS = (float)(speedIsMph ? Speed.MeterPerSecond.FromMpH(speedRegulatorNominalSpeedStepKpHOrMpH) : Speed.MeterPerSecond.FromKpH(speedRegulatorNominalSpeedStepKpHOrMpH));
+                stf.ReadItem();
+                switch (stf.Tree.ToLower())
+                {
+                    case "engine(ortscruisecontrol(speedismph":
+                        speedIsMph = stf.ReadBoolBlock(false);
                         break;
-                    }
-                case "engine(ortscruisecontrol(usethrottleasspeedselector":
-                    UseThrottleAsSpeedSelector = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(usethrottleasforceselector":
-                    UseThrottleAsForceSelector = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakeincreasespeed":
-                    DynamicBrakeIncreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakedecreasespeed":
-                    DynamicBrakeDecreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
-                    break;
-                case "engine(ortscruisecontrol(forceresetrequiredafterbraking":
-                    ForceResetRequiredAfterBraking = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(forceresetincludedynamicbrake":
-                    ForceResetIncludeDynamicBrake = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(zeroselectedspeedwhenpassingtothrottlemode":
-                    ZeroSelectedSpeedWhenPassingToThrottleMode = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(dynamicbrakecommandhaspriorityovercruisecontrol":
-                    DynamicBrakeCommandHasPriorityOverCruiseControl = stf.ReadBoolBlock(true);
-                    break;
-                case "engine(ortscruisecontrol(hasindependentthrottledynamicbrakelever":
-                    HasIndependentThrottleDynamicBrakeLever = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(hasproportionalspeedselector":
-                    HasProportionalSpeedSelector = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(speedselectorisdiscrete":
-                    SpeedSelectorIsDiscrete = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(usetrainbrakeanddynbrake":
-                    UseTrainBrakeAndDynBrake = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(speeddeltatoenabletrainbrake":
-                    SpeedDeltaToEnableTrainBrake = stf.ReadFloatBlock(STFReader.Units.Speed, 5f);
-                    break;
-                case "engine(ortscruisecontrol(speeddeltatoenablefulltrainbrake":
-                    SpeedDeltaToEnableFullTrainBrake = stf.ReadFloatBlock(STFReader.Units.Speed, 10f);
-                    break;
-                case "engine(ortscruisecontrol(minimumspeedforcceffect":
-                    MinimumSpeedForCCEffectMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 0f);
-                    break;
-                case "engine(ortscruisecontrol(trainbrakeminpercentvalue":
-                    TrainBrakeMinPercentValue = stf.ReadFloatBlock(STFReader.Units.Any, 0.3f);
-                    break;
-                case "engine(ortscruisecontrol(trainbrakemaxpercentvalue":
-                    TrainBrakeMaxPercentValue = stf.ReadFloatBlock(STFReader.Units.Any, 0.85f);
-                    break;
-                case "engine(ortscruisecontrol(startinautomode":
-                    StartInAutoMode = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(throttleneutralposition":
-                    ThrottleNeutralPosition = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(throttlelowspeedposition":
-                    ThrottleLowSpeedPosition = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(lowspeed":
-                    LowSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, 2f);
-                    break;
-                case "engine(ortscruisecontrol(hasttwoforcevalues":
-                    HasTwoForceValues = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(docomputenumberofaxles":
-                    DoComputeNumberOfAxles = stf.ReadBoolBlock(false);
-                    break;
-                case "engine(ortscruisecontrol(options":
-                    foreach (string speedRegulatorString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                    {
-                        speedRegulatorOptions.Add(speedRegulatorString.ToLower());
-                    }
-                    break;
-                case "engine(ortscruisecontrol(controllercruisecontrollogic":
-                    {
-                        string speedControlLogic = stf.ReadStringBlock("none").ToLower();
-                        switch (speedControlLogic)
+                    case "engine(ortscruisecontrol(usethrottle":
+                        useThrottle = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(usethrottleincombinedcontrol":
+                        UseThrottleInCombinedControl = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(speedselectorsteptimeseconds":
+                        SpeedSelectorStepTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 0.1f);
+                        break;
+                    case "engine(ortscruisecontrol(throttlefullrangeincreasetimeseconds":
+                        throttleFullRangeIncreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
+                        break;
+                    case "engine(ortscruisecontrol(throttlefullrangedecreasetimeseconds":
+                        throttleFullRangeDecreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
+                        break;
+                    case "engine(ortscruisecontrol(resetforceafteranybraking":
+                        ResetForceAfterAnyBraking = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakefullrangeincreasetimeseconds":
+                        DynamicBrakeFullRangeIncreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakefullrangedecreasetimeseconds":
+                        DynamicBrakeFullRangeDecreaseTimeSeconds = stf.ReadFloatBlock(STFReader.Units.Any, 5);
+                        break;
+                    case "engine(ortscruisecontrol(parkingbrakeengagespeed":
+                        ParkingBrakeEngageSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, 0);
+                        break;
+                    case "engine(ortscruisecontrol(parkingbrakepercent":
+                        ParkingBrakePercent = stf.ReadFloatBlock(STFReader.Units.Any, 0);
+                        break;
+                    case "engine(ortscruisecontrol(maxpowerthreshold":
+                        MaxPowerThreshold = stf.ReadFloatBlock(STFReader.Units.Any, 0);
+                        break;
+                    case "engine(ortscruisecontrol(safespeedforautomaticoperationmps":
+                        SafeSpeedForAutomaticOperationMpS = stf.ReadFloatBlock(STFReader.Units.Any, 0);
+                        break;
+                    case "engine(ortscruisecontrol(maxforcepercentunits":
+                        SpeedRegulatorMaxForcePercentUnits = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(maxforcesteps":
+                        SpeedRegulatorMaxForceSteps = stf.ReadIntBlock(0);
+                        break;
+                    case "engine(ortscruisecontrol(maxforcesetsinglestep":
+                        MaxForceSetSingleStep = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(maxforcekeepselectedstepwhenmanualmodeset":
+                        MaxForceKeepSelectedStepWhenManualModeSet = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(keepselectedspeedwhenmanualmodeset":
+                        KeepSelectedSpeedWhenManualModeSet = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(forceregulatorautowhennonzerospeedselected":
+                        ForceRegulatorAutoWhenNonZeroSpeedSelected = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(forceregulatorautowhennonzeroforceselected":
+                        ForceRegulatorAutoWhenNonZeroForceSelected = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(forceregulatorautowhennonzerospeedselectedandthrottleatzero":
+                        ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(maxforceselectorisdiscrete":
+                        MaxForceSelectorIsDiscrete = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(continuousspeedincreasing":
+                        ContinuousSpeedIncreasing = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzerospeed":
+                        DisableCruiseControlOnThrottleAndZeroSpeed = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzeroforce":
+                        DisableCruiseControlOnThrottleAndZeroForce = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablecruisecontrolonthrottleandzeroforceandzerospeed":
+                        DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablemanualswitchtomanualwhensetforcenotatzero":
+                        DisableManualSwitchToManualWhenSetForceNotAtZero = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablemanualswitchtoautowhenthrottlenotatzero":
+                        DisableManualSwitchToAutoWhenThrottleNotAtZero = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(disablemanualswitchtoautowhensetspeednotattop":
+                        DisableManualSwitchToAutoWhenSetSpeedNotAtTop = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(enableselectedspeedselectionwhenmanualmodeset":
+                        EnableSelectedSpeedSelectionWhenManualModeSet = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(forcestepsthrottletable":
+                        foreach (string forceStepThrottleString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries))
                         {
-                            case "full":
-                                {
-                                    CruiseControlLogic = CruiseControlLogic.Full;
-                                    break;
-                                }
-                            case "speedonly":
-                                {
-                                    CruiseControlLogic = CruiseControlLogic.SpeedOnly;
-                                    break;
-                                }
+                            if (int.TryParse(forceStepThrottleString, out int forceStepThrottleValue))
+                                forceStepsThrottleTable.Add(forceStepThrottleValue);
                         }
                         break;
-                    }
+                    case "engine(ortscruisecontrol(accelerationtable":
+                        foreach (string accelerationString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            if (float.TryParse(accelerationString, out float accelerationValue))
+                                accelerationTable.Add(accelerationValue);
+                        }
+                        break;
+                    case "engine(ortscruisecontrol(powerbreakoutampers":
+                        PowerBreakoutAmpers = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
+                        break;
+                    case "engine(ortscruisecontrol(powerbreakoutspeeddelta":
+                        PowerBreakoutSpeedDelta = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
+                        break;
+                    case "engine(ortscruisecontrol(powerresumespeeddelta":
+                        PowerResumeSpeedDelta = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
+                        break;
+                    case "engine(ortscruisecontrol(powerreductiondelaypaxtrain":
+                        PowerReductionDelayPaxTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
+                        break;
+                    case "engine(ortscruisecontrol(powerreductiondelaycargotrain":
+                        PowerReductionDelayCargoTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
+                        break;
+                    case "engine(ortscruisecontrol(powerreductionvalue":
+                        PowerReductionValue = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
+                        break;
+                    case "engine(ortscruisecontrol(disablezeroforcestep":
+                        DisableZeroForceStep = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakeisselectedforcedependant":
+                        DynamicBrakeIsSelectedForceDependant = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(defaultforcestep":
+                        SelectedMaxAccelerationStep = stf.ReadFloatBlock(STFReader.Units.Any, 1.0f);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakemaxforceatselectorstep":
+                        dynamicBrakeMaxForceAtSelectorStep = stf.ReadFloatBlock(STFReader.Units.Any, 1.0f);
+                        break;
+                    case "engine(ortscruisecontrol(startreducingspeeddelta":
+                        startReducingSpeedDelta = (stf.ReadFloatBlock(STFReader.Units.Any, 1.0f) / 10);
+                        break;
+                    case "engine(ortscruisecontrol(startreducingspeeddeltadownwards":
+                        StartReducingSpeedDeltaDownwards = (stf.ReadFloatBlock(STFReader.Units.Any, 1.0f) / 10);
+                        break;
+                    case "engine(ortscruisecontrol(maxacceleration":
+                        maxAccelerationMpSS = stf.ReadFloatBlock(STFReader.Units.Any, 1);
+                        break;
+                    case "engine(ortscruisecontrol(maxdeceleration":
+                        maxDecelerationMpSS = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
+                        break;
+                    case "engine(ortscruisecontrol(antiwheelspinequipped":
+                        antiWheelSpinEquipped = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(antiwheelspinspeeddiffthreshold":
+                        antiWheelSpinSpeedDiffThreshold = stf.ReadFloatBlock(STFReader.Units.None, 0.5f);
+                        break;
+                    case "engine(ortscruisecontrol(nominalspeedstep":
+                        {
+                            speedRegulatorNominalSpeedStepKpHOrMpH = stf.ReadFloatBlock(STFReader.Units.Speed, 0);
+                            SpeedRegulatorNominalSpeedStepMpS = (float)(speedIsMph ? Speed.MeterPerSecond.FromMpH(speedRegulatorNominalSpeedStepKpHOrMpH) : Speed.MeterPerSecond.FromKpH(speedRegulatorNominalSpeedStepKpHOrMpH));
+                            break;
+                        }
+                    case "engine(ortscruisecontrol(usethrottleasspeedselector":
+                        UseThrottleAsSpeedSelector = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(usethrottleasforceselector":
+                        UseThrottleAsForceSelector = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakeincreasespeed":
+                        DynamicBrakeIncreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakedecreasespeed":
+                        DynamicBrakeDecreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
+                        break;
+                    case "engine(ortscruisecontrol(forceresetrequiredafterbraking":
+                        ForceResetRequiredAfterBraking = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(forceresetincludedynamicbrake":
+                        ForceResetIncludeDynamicBrake = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(zeroselectedspeedwhenpassingtothrottlemode":
+                        ZeroSelectedSpeedWhenPassingToThrottleMode = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(dynamicbrakecommandhaspriorityovercruisecontrol":
+                        DynamicBrakeCommandHasPriorityOverCruiseControl = stf.ReadBoolBlock(true);
+                        break;
+                    case "engine(ortscruisecontrol(hasindependentthrottledynamicbrakelever":
+                        HasIndependentThrottleDynamicBrakeLever = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(hasproportionalspeedselector":
+                        HasProportionalSpeedSelector = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(speedselectorisdiscrete":
+                        SpeedSelectorIsDiscrete = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(usetrainbrakeanddynbrake":
+                        UseTrainBrakeAndDynBrake = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(speeddeltatoenabletrainbrake":
+                        SpeedDeltaToEnableTrainBrake = stf.ReadFloatBlock(STFReader.Units.Speed, 5f);
+                        break;
+                    case "engine(ortscruisecontrol(speeddeltatoenablefulltrainbrake":
+                        SpeedDeltaToEnableFullTrainBrake = stf.ReadFloatBlock(STFReader.Units.Speed, 10f);
+                        break;
+                    case "engine(ortscruisecontrol(minimumspeedforcceffect":
+                        MinimumSpeedForCCEffectMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 0f);
+                        break;
+                    case "engine(ortscruisecontrol(trainbrakeminpercentvalue":
+                        TrainBrakeMinPercentValue = stf.ReadFloatBlock(STFReader.Units.Any, 0.3f);
+                        break;
+                    case "engine(ortscruisecontrol(trainbrakemaxpercentvalue":
+                        TrainBrakeMaxPercentValue = stf.ReadFloatBlock(STFReader.Units.Any, 0.85f);
+                        break;
+                    case "engine(ortscruisecontrol(startinautomode":
+                        StartInAutoMode = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(throttleneutralposition":
+                        ThrottleNeutralPosition = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(throttlelowspeedposition":
+                        ThrottleLowSpeedPosition = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(lowspeed":
+                        LowSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, 2f);
+                        break;
+                    case "engine(ortscruisecontrol(hasttwoforcevalues":
+                        HasTwoForceValues = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(docomputenumberofaxles":
+                        DoComputeNumberOfAxles = stf.ReadBoolBlock(false);
+                        break;
+                    case "engine(ortscruisecontrol(options":
+                        foreach (string speedRegulatorString in stf.ReadStringBlock("").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            speedRegulatorOptions.Add(speedRegulatorString.ToLower());
+                        }
+                        break;
+                    case "engine(ortscruisecontrol(controllercruisecontrollogic":
+                        {
+                            string speedControlLogic = stf.ReadStringBlock("none").ToLower();
+                            switch (speedControlLogic)
+                            {
+                                case "full":
+                                    {
+                                        CruiseControlLogic = CruiseControlLogic.Full;
+                                        break;
+                                    }
+                                case "speedonly":
+                                    {
+                                        CruiseControlLogic = CruiseControlLogic.SpeedOnly;
+                                        break;
+                                    }
+                            }
+                            break;
+                        }
+                    default:
+                        break;
+                }
             }
         }
 
@@ -1139,7 +1146,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SelectedSpeedMpS = Math.Max(MinimumSpeedForCCEffectMpS, SelectedSpeedMpS + SpeedRegulatorNominalSpeedStepMpS);
             if (SelectedSpeedMpS > locomotive.MaxSpeedMpS)
                 SelectedSpeedMpS = locomotive.MaxSpeedMpS;
-            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {Math.Round(Speed.MeterPerSecond.FromMpS(SelectedSpeedMpS, !speedIsMph), 0, MidpointRounding.AwayFromZero)} {(speedIsMph ? FormatStrings.mph : FormatStrings.kmph)}"));
+            
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {FormatStrings.FormatSpeedLimit(SelectedSpeedMpS, !speedIsMph)}"));
         }
 
         public void SpeedRegulatorSelectedSpeedStartDecrease()
@@ -1210,7 +1218,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
                 SelectedSpeedDecreasing = false;
             }
-            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {Math.Round(Speed.MeterPerSecond.FromMpS(SelectedSpeedMpS, !speedIsMph), 0, MidpointRounding.AwayFromZero)} {(speedIsMph ? FormatStrings.mph : FormatStrings.kmph)}"));
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {FormatStrings.FormatSpeedLimit(SelectedSpeedMpS, !speedIsMph)}"));
         }
 
         public void SpeedRegulatorSelectedSpeedChangeByMouse(float movExtension, bool metric, float maxValue)
@@ -1250,7 +1258,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     locomotive.SignalEvent(TrainEvent.LeverToZero);
                 }
-                simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {Math.Round(Speed.MeterPerSecond.FromMpS(SelectedSpeedMpS, !speedIsMph), 0, MidpointRounding.AwayFromZero)} {(speedIsMph ? FormatStrings.mph : FormatStrings.kmph)}"));
+                simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {FormatStrings.FormatSpeedLimit(SelectedSpeedMpS, !speedIsMph)}"));
             }
         }
 
@@ -1465,11 +1473,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                             reducingForce = false;
                     }
                 }
-                if (UseTrainBrakeAndDynBrake && CCIsUsingTrainBrake)
-                {
-                    canAddForce = true;
-                }
-                else if (Pressure.Atmospheric.FromPSI(locomotive.BrakeSystem.BrakeLine1PressurePSI) < 4.98)
+                if (!(UseTrainBrakeAndDynBrake && CCIsUsingTrainBrake) && locomotive.TrainBrakeController.MaxPressurePSI - locomotive.BrakeSystem.BrakeLine1PressurePSI > 1)
                 {
                     canAddForce = false;
                     reducingForce = true;
@@ -1481,7 +1485,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     locomotive.ThrottleController.SetPercent(0);
                     return;
                 }
-                else if (Pressure.Atmospheric.FromPSI(locomotive.BrakeSystem.BrakeLine1PressurePSI) > 4.7)
+                else
                 {
                     canAddForce = true;
                 }

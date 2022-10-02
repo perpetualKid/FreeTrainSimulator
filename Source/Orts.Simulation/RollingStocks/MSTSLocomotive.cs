@@ -1248,16 +1248,13 @@ namespace Orts.Simulation.RollingStocks
                     TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
                     break;
                 case "engine(ortscruisecontrol":
-                    SetUpCruiseControl();
+                    SetUpCruiseControl(stf);
                     break;
                 case "engine(ortsmultipositioncontroller":
-                    SetUpMultiPositionController(lowercasetoken, stf);
+                    SetUpMultiPositionController(stf);
                     break;
                 default:
                     base.Parse(lowercasetoken, stf);
-                    CruiseControl?.Parse(lowercasetoken, stf);
-                    //                    if (MultiPositionController != null)
-                    //                        MultiPositionController.Parse(lowercasetoken, stf);
                     break;
             }
         }
@@ -1854,21 +1851,22 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Make instance of Cruise Control and Initialize it
         /// </summary>
-        private void SetUpCruiseControl()
+        private void SetUpCruiseControl(STFReader stf)
         {
             CruiseControl = new CruiseControl(this)
             {
                 Equipped = true
             };
+            CruiseControl.Parse(stf);
         }
 
         /// <summary>
         /// Make instance of multi position controller
         /// </summary>
-        private void SetUpMultiPositionController(string lowercasetoken, STFReader stf)
+        private void SetUpMultiPositionController(STFReader stf)
         {
             MultiPositionController multiPositionController = new MultiPositionController(this);
-            multiPositionController.Parse(lowercasetoken, stf);
+            multiPositionController.Parse(stf);
             MultiPositionControllers ??= new Collection<MultiPositionController>();
             MultiPositionControllers.Add(multiPositionController);
         }
