@@ -1026,8 +1026,8 @@ namespace Orts.Common
         DrivingTrainWindow,
         DistributedPowerWindow,
         HudScrollWindow,
-        TrainDrivingWindow,
     }
+
     public enum FourCharAcronym
     {
         // DPU

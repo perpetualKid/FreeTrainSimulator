@@ -105,13 +105,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         public override bool Open()
         {
-            string playerEot = Simulator.Instance.PlayerLocomotive?.Train?.EndOfTrainDevice?.WagFilePath;
-
-            foreach (Label label in eotLabels)
+            bool result = base.Open();
+            if (result)
             {
-                label.TextColor = (label.Tag as string).Equals(playerEot, StringComparison.OrdinalIgnoreCase) ? Color.OrangeRed : Color.White;
+                string playerEot = Simulator.Instance.PlayerLocomotive?.Train?.EndOfTrainDevice?.WagFilePath;
+
+                foreach (Label label in eotLabels)
+                {
+                    label.TextColor = (label.Tag as string).Equals(playerEot, StringComparison.OrdinalIgnoreCase) ? Color.OrangeRed : Color.White;
+                }
             }
-            return base.Open();
+            return result;
         }
     }
 }

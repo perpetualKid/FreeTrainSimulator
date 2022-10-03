@@ -471,6 +471,19 @@ namespace Orts.Simulation.Activities
 
     }
 
+    public class EventCategorySystemWrapper : EventWrapper
+    {
+        public EventCategorySystemWrapper(string header, string text): 
+            base(new SystemActivityEvent(header, text))
+        {
+        }
+
+        public override bool Triggered(Activity activity)
+        {
+            return true;
+        }
+    }
+
     // Result of calculation
     internal enum DistanceResult
     {

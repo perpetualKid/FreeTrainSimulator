@@ -19,7 +19,7 @@
 
 using System;
 using Orts.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Simulation.Commanding;
 
@@ -28,7 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public abstract class ActivityCommand : PausedCommand
         {
-        public static ActivityWindow Receiver { get; set; }
+        internal static ActivityWindow Receiver { get; set; }
 
         private readonly string EventNameLabel;
 
@@ -203,24 +203,24 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         public static Viewer Receiver { get; set; }
 
-        private int CarPosition;    // 0 for head of train
+        private readonly int carPosition;    // 0 for head of train
 
         public UncoupleCommand( CommandLog log, int carPosition ) 
             : base(log)
         {
-            CarPosition = carPosition;
+            this.carPosition = carPosition;
             Redo();
         }
 
         public override void Redo()
         {
-            Receiver.UncoupleBehind( CarPosition );
+            Receiver.UncoupleBehind( carPosition );
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()} - {CarPosition}";
+            return $"{base.ToString()} - {carPosition}";
         }
     }
 
@@ -243,22 +243,6 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     [Serializable()]
-    public sealed class ResumeActivityCommand : ActivityCommand
-    {
-        public ResumeActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
-            : base(log, eventNameLabel, pauseDurationS)
-        {
-            Redo();
-        }
-
-        public override void Redo()
-        {
-            Receiver.ResumeActivity();
-            // Report();
-        }
-    }
-
-    [Serializable()]
     public sealed class CloseAndResumeActivityCommand : ActivityCommand
     {
         public CloseAndResumeActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
@@ -269,24 +253,7 @@ namespace Orts.ActivityRunner.Viewer3D
     
         public override void Redo()
         {
-            Receiver.CloseBox();
-            // Report();
-        }
-    }
-
-    [Serializable()]
-    public sealed class PauseActivityCommand : ActivityCommand
-    {
-        public PauseActivityCommand(CommandLog log, string eventNameLabel, double pauseDurationS)
-            : base(log, eventNameLabel, pauseDurationS)
-        {
-            Redo();
-        }
-
-        public override void Redo()
-        {
-            Receiver.PauseActivity();
-            // Report();
+            Receiver.CloseAndResumeCommand();
         }
     }
 
@@ -301,8 +268,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            Receiver.QuitActivity();
-            // Report();
+            Receiver.QuitActivityCommand();
         }
     }
     
@@ -546,18 +512,18 @@ namespace Orts.ActivityRunner.Viewer3D
     public abstract class MoveCameraCommand : CameraCommand
     {
         public static Viewer Receiver { get; set; }
-        protected double EndTime;
+        private protected double endTime;
 
         protected MoveCameraCommand( CommandLog log, double startTime, double endTime )
             : base(log)
         {
             Time = startTime;
-            EndTime = endTime;
+            this.endTime = endTime;
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()} - {FormatStrings.FormatPreciseTime(EndTime)}";
+            return $"{base.ToString()} - {FormatStrings.FormatPreciseTime(endTime)}";
         }
     }
 
@@ -579,7 +545,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as RotatingCamera;
                 c.RotationXTargetRadians = RotationXRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -608,7 +574,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as RotatingCamera;
                 c.RotationYTargetRadians = RotationYRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -641,7 +607,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Receiver.Camera is RotatingCamera)
             {
                 var c = Receiver.Camera as RotatingCamera;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
                 c.RotationXTargetRadians = RotationXRadians;
                 c.RotationYTargetRadians = RotationYRadians;
             }
@@ -650,7 +616,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {EndTime} {RotationXRadians} {RotationYRadians}";
+            return $"{base.ToString()}, {endTime} {RotationXRadians} {RotationYRadians}";
         }
     }
 
@@ -672,7 +638,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as RotatingCamera;
                 c.XTargetRadians = XRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -701,7 +667,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as RotatingCamera;
                 c.YTargetRadians = YRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -730,7 +696,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as RotatingCamera;
                 c.ZTargetRadians = ZRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             } // Report();
         }
 
@@ -758,7 +724,7 @@ namespace Orts.ActivityRunner.Viewer3D
 			{
 				var c = Receiver.Camera as CabCamera3D;
 				c.MoveCameraXYZ(X, Y, Z);
-				c.EndTime = EndTime;
+				c.EndTime = endTime;
 			}
 			// Report();
 		}
@@ -787,7 +753,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as TrackingCamera;
                 c.PositionXTargetRadians = PositionXRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -816,7 +782,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as TrackingCamera;
                 c.PositionYTargetRadians = PositionYRadians;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }
@@ -845,7 +811,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var c = Receiver.Camera as TrackingCamera;
                 c.PositionDistanceTargetMetres = PositionDistanceMetres;
-                c.EndTime = EndTime;
+                c.EndTime = endTime;
             }
             // Report();
         }

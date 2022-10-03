@@ -77,6 +77,8 @@ namespace Orts.Graphics.Window
             set => WindowShader.Opacity = opacityDefault = value;
         }
 
+        public bool MultiLayerModalWindows {get; set;}
+
         private protected WindowManager(Game game) :
             base(game)
         {
@@ -202,7 +204,7 @@ namespace Orts.Graphics.Window
 
         internal bool OpenWindow(WindowBase window)
         {
-            if (modalWindows.TryPeek(out activeWindow) && !window.Modal)
+            if (modalWindows.TryPeek(out activeWindow) || (MultiLayerModalWindows && !window.Modal))
             {
                 return false;
             }

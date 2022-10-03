@@ -50,8 +50,10 @@ namespace Orts.Simulation.Activities
     public class Activity
     {
         private readonly Simulator simulator;
+        private bool reloadedActivityEvent;
 
-        public EventWrapper TriggeredEvent { get; private set; }
+        private EventWrapper triggeredEvent;
+
         // Passenger tasks
         private double prevTrainSpeed = -1;
         internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
@@ -68,20 +70,11 @@ namespace Orts.Simulation.Activities
         public bool Completed { get; private set; }          // true once activity is completed.
         public bool Succeeded { get; internal set; }        // status of completed activity
 
-        // The ActivityWindow may be open when the simulation is saved with F2.
-        // If so, we need to remember the event and the state of the window (is the activity resumed or still paused, so we can restore it.
-        public bool IsActivityWindowOpen { get; set; }       // Remembers the status of the ActivityWindow [closed|opened]
-        public bool IsActivityResumed { get; set; }            // Remembers the status of the ActivityWindow [paused|resumed]
-        public bool ReopenActivityWindow { get; set; }       // Set on Restore() and tested by ActivityWindow
-        // Note: The variables above belong to the Activity, not the ActivityWindow because they run on different threads.
-        // The Simulator must not monitor variables in the Window thread, but it's OK for the Window thread to monitor the Simulator.
-
         // station stop logging flags - these are saved to resume correct logging after save
         private string stationStopLogFile;   // logfile name
         private bool stationStopLogActive;   // logging is active
         public EventWrapper TriggeredActivityEvent { get; set; }        // used for exchange with Sound.cs to trigger activity sounds;
         public bool NewMessageFromNewPlayer { get; set; } // flag to indicate to ActivityWindow that there is a new message to be shown;
-        public string MessageFromNewPlayer { get; internal set; } // string to be displayed in ActivityWindow
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
@@ -89,7 +82,23 @@ namespace Orts.Simulation.Activities
 
         public bool WeatherChangesPresent { get; private set; } // tested in case of randomized activities to state wheter weather should be randomized
 
-        public event EventHandler<ActivityEventArgs> OnEventTriggered;
+
+        private EventHandler<ActivityEventArgs> onActivityEventTriggered;
+        public event EventHandler<ActivityEventArgs> OnEventTriggered
+        {
+#pragma warning disable CA1030 // Use events where appropriate
+            add
+            {
+                onActivityEventTriggered += value;
+                if (null != triggeredEvent)
+                    value?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+            }
+            remove
+            {
+                onActivityEventTriggered -= value;
+            }
+#pragma warning restore CA1030 // Use events where appropriate
+        }
 
         private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
         {
@@ -162,7 +171,7 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            if (!Completed && TriggeredEvent == null)
+            if (!Completed && triggeredEvent == null)
             {
                 foreach (EventWrapper item in EventList)
                 {
@@ -175,8 +184,9 @@ namespace Orts.Simulation.Activities
                                 item.TimesTriggered += 1;
                                 if (item.CompletesActivity(this))
                                     CompleteActivity();
-                                TriggeredEvent =item;
-                                OnEventTriggered?.Invoke(this, new ActivityEventArgs(item));
+                                triggeredEvent = item;
+                                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                                simulator.GamePaused = true;
                                 break;
                             }
                         }
@@ -188,6 +198,18 @@ namespace Orts.Simulation.Activities
                         }
                     }
                 }
+            }
+            else if (reloadedActivityEvent && triggeredEvent != null) //should happen first time only
+            {
+                reloadedActivityEvent = false;
+                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                simulator.GamePaused = true;
+            }
+            else if (Completed && triggeredEvent == null)
+            {
+                triggeredEvent = new EventCategorySystemWrapper(triggeredEvent.ActivityEvent.Name, Simulator.Catalog.GetString($"This activity has ended {(Succeeded ? Simulator.Catalog.GetString("successfully") : Simulator.Catalog.GetString("without success"))}.\nFor a detailed evaluation, see the Help Window (F1)."));
+                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                simulator.GamePaused = true;
             }
 
             // Update passenger tasks
@@ -249,20 +271,27 @@ namespace Orts.Simulation.Activities
 
         public void AcknowledgeEvent(EventWrapper activityEvent)
         {
+            simulator.GamePaused = false;
+
             if (activityEvent == null)
                 return;
 
-            if (TriggeredEvent != activityEvent)
+            if (triggeredEvent != activityEvent)
             {
-                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {TriggeredEvent?.ActivityEvent.Name}{TriggeredEvent?.ActivityEvent.ID}");
+                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {triggeredEvent?.ActivityEvent.Name}{triggeredEvent?.ActivityEvent.ID}");
                 return;
             }
 
             // Reversible event is no longer triggered, so can re-enable it.
-            if (activityEvent.ActivityEvent.Reversible)
-                activityEvent.Disabled = false;
+            if (triggeredEvent.ActivityEvent.Reversible)
+                triggeredEvent.Disabled = false;
 
-            TriggeredEvent = null;
+            triggeredEvent = null;
+        }
+
+        public void SendActivityMessage(string header, string text)
+        {
+            EventList.Add(new EventCategorySystemWrapper(header, text));
         }
 
         public static void Save(BinaryWriter outf, Activity act)
@@ -314,24 +343,15 @@ namespace Orts.Simulation.Activities
             outf.Write((int)StartTime);
             foreach (EventWrapper e in EventList)
                 e.Save(outf);
-            if (TriggeredEvent == null)
+            if (triggeredEvent == null)
                 outf.Write(false);
             else
             {
                 outf.Write(true);
-                outf.Write(EventList.IndexOf(TriggeredEvent));
+                outf.Write(EventList.IndexOf(triggeredEvent));
             }
-            outf.Write(IsActivityWindowOpen);
-
-            // Save info for ActivityWindow coming from new player train
-            outf.Write(NewMessageFromNewPlayer);
-            if (NewMessageFromNewPlayer)
-                outf.Write(MessageFromNewPlayer);
-
-            outf.Write(IsActivityResumed);
 
             // write log details
-
             outf.Write(stationStopLogActive);
             if (stationStopLogActive)
                 outf.Write(stationStopLogFile);
@@ -374,18 +394,8 @@ namespace Orts.Simulation.Activities
             foreach (EventWrapper e in EventList)
                 e.Restore(inf);
 
-            if (inf.ReadBoolean())
-                TriggeredEvent = EventList[inf.ReadInt32()];
-
-            IsActivityWindowOpen = inf.ReadBoolean();
-
-            // Restore info for ActivityWindow coming from new player train
-            NewMessageFromNewPlayer = inf.ReadBoolean();
-            if (NewMessageFromNewPlayer)
-                MessageFromNewPlayer = inf.ReadString();
-
-            IsActivityResumed = inf.ReadBoolean();
-            ReopenActivityWindow = IsActivityWindowOpen;
+            if (reloadedActivityEvent = inf.ReadBoolean())
+                triggeredEvent = EventList[inf.ReadInt32()];
 
             // restore logging info
             stationStopLogActive = inf.ReadBoolean();

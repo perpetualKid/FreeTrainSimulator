@@ -260,6 +260,16 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
+    public class SystemActivityEvent : ActivityEvent
+    {
+        public SystemActivityEvent(string name, string text)
+        { 
+            Name = name;
+            Outcomes = new Outcomes(text);
+            ActivationLevel = 1;
+        }
+    }
+
     public class OrtsWeatherChange
     {
         public float Overcast {get; private set;}
@@ -327,6 +337,11 @@ namespace Orts.Formats.Msts.Models
         internal Outcomes(STFReader stf)
         {
             Update(stf);
+        }
+
+        internal Outcomes(string message)
+        {
+            DisplayMessage = message;
         }
 
         internal void Update(STFReader stf)

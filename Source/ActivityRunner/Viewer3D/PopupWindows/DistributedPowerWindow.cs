@@ -162,8 +162,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, TabAction, true);
-            return base.Open();
+            bool result = base.Open();
+            if (result)
+            {
+                userCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, TabAction, true);
+            }
+            return result;
         }
 
         public override bool Close()

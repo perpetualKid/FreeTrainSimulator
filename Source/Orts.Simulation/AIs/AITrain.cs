@@ -4048,8 +4048,7 @@ namespace Orts.Simulation.AIs
             delay = delay - 40000 - carsToKeep * 100;
             if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != simulator.OriginalPlayerTrain)
             {
-                simulator.ActivityRun.MessageFromNewPlayer = $"Uncouple and keep coupled only {carsToKeep} {(keepFront ? "first" : "last")} cars";
-                simulator.ActivityRun.NewMessageFromNewPlayer = true;
+                simulator.ActivityRun.SendActivityMessage(Name ,$"Uncouple and keep coupled only {carsToKeep} {(keepFront ? "first" : "last")} cars");
             }
             else UncoupleSomeWagons(carsToKeep, keepFront);
         }
@@ -4107,8 +4106,7 @@ namespace Orts.Simulation.AIs
             {
                 if (IsActualPlayerTrain && this != simulator.OriginalPlayerTrain)
                 {
-                    simulator.ActivityRun.MessageFromNewPlayer = "You are involved in a join and split task; when you will couple to next train, you automatically will be switched to drive such next train";
-                    simulator.ActivityRun.NewMessageFromNewPlayer = true;
+                    simulator.ActivityRun.SendActivityMessage(Name, "You are involved in a join and split task; when you will couple to next train, you automatically will be switched to drive such next train");
                 }
                 delay = 0;
                 UncondAttach = true;
@@ -4130,8 +4128,7 @@ namespace Orts.Simulation.AIs
                 delay = 20;
                 if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != simulator.OriginalPlayerTrain)
                 {
-                    simulator.ActivityRun.MessageFromNewPlayer = "Ask permission to pass signal (press TAB or Shift-TAB) and proceed";
-                    simulator.ActivityRun.NewMessageFromNewPlayer = true;
+                    simulator.ActivityRun.SendActivityMessage(Name, "Ask permission to pass signal (press TAB or Shift-TAB) and proceed");
                 }
                 else RequestSignalPermission(ValidRoute[0], 0);
             }

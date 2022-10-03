@@ -98,7 +98,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
         public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
         public PauseWindow PauseWindow { get; private set; } // Game paused window (special)
-        public ActivityWindow ActivityWindow { get; private set; } // Activity notices window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
@@ -223,8 +222,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-        private bool dbfEvalAutoPilot;//DebriefEval
-
         private bool lockShadows;
         private bool logRenderFrame;
         private bool uncoupleWithMouseActive;
@@ -307,17 +304,26 @@ namespace Orts.ActivityRunner.Viewer3D
             Simulator.PlayerTrainChanged += PlayerTrainChanged;
             Simulator.RequestTTDetachWindow += RequestTimetableDetachWindow;
 
-            // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
-            // so it is opened only in activity mode
-            if (Simulator.ActivityRun != null && Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
+            if (Simulator.ActivityRun != null)
             {
-                string speedpostDatFile = Path.Combine(Simulator.RouteFolder.CurrentFolder, "speedpost.dat");
-                if (File.Exists(speedpostDatFile))
+                // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
+                // so it is opened only in activity mode
+                if (Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
                 {
-                    Trace.Write(" SPEEDPOST");
-                    SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
+                    string speedpostDatFile = Path.Combine(Simulator.RouteFolder.CurrentFolder, "speedpost.dat");
+                    if (File.Exists(speedpostDatFile))
+                    {
+                        Trace.Write(" SPEEDPOST");
+                        SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
+                    }
                 }
+
             }
+        }
+
+        private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
+        {
+            (windowManager[ViewerWindowType.ActivityWindow] as PopupWindows.ActivityWindow).OpenFromEvent(e.TriggeredEvent);
         }
 
         private void SaveSettings()
@@ -328,8 +334,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
                 }
-                if (windowType != ViewerWindowType.QuitWindow)
-                    Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+                Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
             Settings.Save(nameof(Settings.PopupLocations));
@@ -461,7 +466,6 @@ namespace Orts.ActivityRunner.Viewer3D
             MessagesWindow = new MessagesWindow(WindowManager);
             NoticeWindow = new NoticeWindow(WindowManager);
             PauseWindow = new PauseWindow(WindowManager);
-            ActivityWindow = new ActivityWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
@@ -479,7 +483,7 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint());
+                PopupWindows.QuitWindow quitWindow = new PopupWindows.QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings);
                 return quitWindow;
             }));
             windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
@@ -489,7 +493,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint());
+                PopupWindows.ActivityWindow activityWindow = new PopupWindows.ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.ActivityWindow].ToPoint(), this);
                 return activityWindow;
             }));
             windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
@@ -618,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (MultiPlayerManager.IsMultiPlayer() || (Settings.MultiplayerClient && Simulator.Confirmer != null))
             {
                 UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () =>
-                { 
+                {
                     windowManager[ViewerWindowType.MultiPlayerWindow].ToggleVisibility();
                 });
             }
@@ -1045,9 +1049,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
-                if (Settings.PopupStatus[windowType])
+                if (Settings.PopupStatus[windowType] && windowType is not ViewerWindowType.QuitWindow and not ViewerWindowType.ActivityWindow)
                     windowManager[windowType].Open();
             }
+
+            if (Simulator.ActivityRun != null)
+                Simulator.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
+
         }
 
         private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)
@@ -1167,7 +1175,7 @@ namespace Orts.ActivityRunner.Viewer3D
             ToggleAnySwitchCommand.Receiver = this;
             UncoupleCommand.Receiver = this;
             SaveScreenshotCommand.Receiver = this;
-            ActivityCommand.Receiver = ActivityWindow;  // and therefore shared by all sub-classes
+            ActivityCommand.Receiver = windowManager[ViewerWindowType.ActivityWindow] as PopupWindows.ActivityWindow;
             UseCameraCommand.Receiver = this;
             MoveCameraCommand.Receiver = this;
             ToggleHelpersEngineCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
@@ -1426,9 +1434,6 @@ namespace Orts.ActivityRunner.Viewer3D
             frame.PrepareFrame(elapsedTime, lockShadows, logRenderFrame);
             World.PrepareFrame(frame, elapsedTime);
             InfoDisplay.PrepareFrame(frame, elapsedTime);
-            // TODO: This is not correct. The ActivityWindow's PrepareFrame is already called by the WindowManager!
-            if (Simulator.ActivityRun != null)
-                ActivityWindow.PrepareFrame(elapsedTime, true);
 
             WindowManager.PrepareFrame(frame, elapsedTime);
             logRenderFrame = false;

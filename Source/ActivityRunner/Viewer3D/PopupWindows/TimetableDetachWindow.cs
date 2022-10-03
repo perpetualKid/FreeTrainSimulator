@@ -62,34 +62,38 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         public override bool Open()
         {
-            playerTrain = Simulator.Instance.PlayerLocomotive.Train as TTTrain;
-            if (playerTrain?.DetachActive[1] >= 0)
+            bool result = base.Open();
+            if (result)
             {
-                List<DetachInfo> detachList = playerTrain.DetachDetails[playerTrain.DetachActive[0]];
-                detachRequest = detachList[playerTrain.DetachActive[1]];
-                string formedTrain = Catalog.GetString("static consist");
-                if (!string.IsNullOrEmpty(detachRequest.DetachFormedTrainName))
-                    formedTrain += $" : {detachRequest.DetachFormedTrainName}";
+                playerTrain = Simulator.Instance.PlayerLocomotive.Train as TTTrain;
+                if (playerTrain?.DetachActive[1] >= 0)
+                {
+                    List<DetachInfo> detachList = playerTrain.DetachDetails[playerTrain.DetachActive[0]];
+                    detachRequest = detachList[playerTrain.DetachActive[1]];
+                    string formedTrain = Catalog.GetString("static consist");
+                    if (!string.IsNullOrEmpty(detachRequest.DetachFormedTrainName))
+                        formedTrain += $" : {detachRequest.DetachFormedTrainName}";
 
-                string formedPortion = Catalog.GetString("Rear");
-                string otherPortion = Catalog.GetString("Front");
-                if (playerTrain.DetachPosition)
-                {
-                    (formedPortion, otherPortion) = (otherPortion, formedPortion);
-                }
+                    string formedPortion = Catalog.GetString("Rear");
+                    string otherPortion = Catalog.GetString("Front");
+                    if (playerTrain.DetachPosition)
+                    {
+                        (formedPortion, otherPortion) = (otherPortion, formedPortion);
+                    }
 
-                if (detachRequest.CheckPlayerPowerPortion(playerTrain))
-                {
-                    remainingTrain.Text = Catalog.GetString($"This portion will continue as train : {playerTrain.Name}");
-                    otherTrain.Text = Catalog.GetString($"{formedPortion} portion will form train : {formedTrain}");
-                }
-                else
-                {
-                    remainingTrain.Text = Catalog.GetString($"This portion will continue as train : {formedTrain}");
-                    otherTrain.Text = Catalog.GetString($"{otherPortion} portion will form train : {playerTrain.Name}");
+                    if (detachRequest.CheckPlayerPowerPortion(playerTrain))
+                    {
+                        remainingTrain.Text = Catalog.GetString($"This portion will continue as train : {playerTrain.Name}");
+                        otherTrain.Text = Catalog.GetString($"{formedPortion} portion will form train : {formedTrain}");
+                    }
+                    else
+                    {
+                        remainingTrain.Text = Catalog.GetString($"This portion will continue as train : {formedTrain}");
+                        otherTrain.Text = Catalog.GetString($"{otherPortion} portion will form train : {playerTrain.Name}");
+                    }
                 }
             }
-            return base.Open();
+            return result;
         }
     }
 }
