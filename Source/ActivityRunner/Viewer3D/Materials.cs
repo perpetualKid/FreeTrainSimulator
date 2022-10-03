@@ -80,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 Trace.TraceWarning($"Required texture {path} not existing; using existing texture {aceTexture}");
                             }
                             else
-                                texture = defaultTexture;
+                                return defaultTexture;
                         }
                     }
                     else if (Path.GetExtension(path).Equals(".ace", StringComparison.OrdinalIgnoreCase))
@@ -97,21 +97,17 @@ namespace Orts.ActivityRunner.Viewer3D
                         }
                         else
                         {
-                            try //in case of no texture in wintersnow etc, go up one level
+                            string parentPath = Path.Combine(Path.GetDirectoryName(path), "..", Path.GetFileName(path));
+                            if (File.Exists(parentPath) && parentPath.Contains("texture", StringComparison.OrdinalIgnoreCase)) //in texure and exists
                             {
-                                string parentPath = Path.Combine(Path.GetDirectoryName(path), "..", Path.GetFileName(path));
-                                if (File.Exists(parentPath) && parentPath.ToLower().Contains("texture")) //in texure and exists
-                                {
-                                    texture = AceFile.Texture2DFromFile(GraphicsDevice, parentPath);
-                                }
-                                else
-                                {
-                                    if (required)
-                                        Trace.TraceWarning("Missing texture {0} replaced with default texture", path);
-                                    return defaultTexture;
-                                }
+                                texture = AceFile.Texture2DFromFile(GraphicsDevice, parentPath);
                             }
-                            catch { texture = defaultTexture; return defaultTexture; }
+                            else
+                            {
+                                if (required)
+                                    Trace.TraceWarning("Missing texture {0} replaced with default texture", path);
+                                return defaultTexture;
+                            }
                         }
                     }
                     else
@@ -125,7 +121,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning("Skipped texture with error: {1} in {0}", path, error.Message);
                     return defaultTexture;
                 }
-                catch (Exception error)
+                catch (Exception error) when (error is Exception)
                 {
                     if (File.Exists(path))
                         Trace.WriteLine(new FileLoadException(path, error));
