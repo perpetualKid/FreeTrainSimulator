@@ -79,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             animationRunning = true;
             animationStart = viewer.RealTime;
-            animationSourceRectangle = new Rectangle(0, Simulator.Instance.GamePaused ? textureSize : 0, pauseTexture.Width, pauseTexture.Height / 2);
+            animationSourceRectangle = new Rectangle(0, Simulator.Instance.GamePaused ? textureSize : 0, textureSize, textureSize);
             return base.Open();
         }
 
