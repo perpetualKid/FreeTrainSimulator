@@ -51,8 +51,12 @@ namespace Orts.Simulation.Activities
     {
         private readonly Simulator simulator;
         private bool reloadedActivityEvent;
-
         private EventWrapper triggeredEvent;
+        private EventHandler<ActivityEventArgs> onActivityEventTriggered;
+
+        // station stop logging flags - these are saved to resume correct logging after save
+        private string stationStopLogFile;   // logfile name
+        private bool stationStopLogActive;   // logging is active
 
         // Passenger tasks
         private double prevTrainSpeed = -1;
@@ -70,11 +74,7 @@ namespace Orts.Simulation.Activities
         public bool Completed { get; private set; }          // true once activity is completed.
         public bool Succeeded { get; internal set; }        // status of completed activity
 
-        // station stop logging flags - these are saved to resume correct logging after save
-        private string stationStopLogFile;   // logfile name
-        private bool stationStopLogActive;   // logging is active
         public EventWrapper TriggeredActivityEvent { get; set; }        // used for exchange with Sound.cs to trigger activity sounds;
-        public bool NewMessageFromNewPlayer { get; set; } // flag to indicate to ActivityWindow that there is a new message to be shown;
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
@@ -82,8 +82,6 @@ namespace Orts.Simulation.Activities
 
         public bool WeatherChangesPresent { get; private set; } // tested in case of randomized activities to state wheter weather should be randomized
 
-
-        private EventHandler<ActivityEventArgs> onActivityEventTriggered;
         public event EventHandler<ActivityEventArgs> OnEventTriggered
         {
 #pragma warning disable CA1030 // Use events where appropriate
@@ -183,7 +181,7 @@ namespace Orts.Simulation.Activities
                             {
                                 item.TimesTriggered += 1;
                                 if (item.CompletesActivity(this))
-                                    CompleteActivity();
+                                    Completed = true;
                                 triggeredEvent = item;
                                 onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
                                 simulator.GamePaused = true;
@@ -208,6 +206,7 @@ namespace Orts.Simulation.Activities
             else if (Completed && triggeredEvent == null)
             {
                 triggeredEvent = new EventCategorySystemWrapper(triggeredEvent.ActivityEvent.Name, Simulator.Catalog.GetString($"This activity has ended {(Succeeded ? Simulator.Catalog.GetString("successfully") : Simulator.Catalog.GetString("without success"))}.\nFor a detailed evaluation, see the Help Window (F1)."));
+                EventList.Add(triggeredEvent);
                 onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
                 simulator.GamePaused = true;
             }
@@ -224,7 +223,7 @@ namespace Orts.Simulation.Activities
             {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
                 {
-                    if (Math.Abs(prevTrainSpeed) >= 0.2f)
+                    if (prevTrainSpeed >= 0.2f)
                     {
                         prevTrainSpeed = 0;
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
@@ -234,9 +233,9 @@ namespace Orts.Simulation.Activities
                 }
                 else
                 {
-                    if (Math.Abs(prevTrainSpeed) < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
+                    if (prevTrainSpeed < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
                     {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                        prevTrainSpeed = Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS);
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
@@ -257,10 +256,9 @@ namespace Orts.Simulation.Activities
                 }
                 else
                 {
-                    //if (prevTrainSpeed == 0 && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
                     if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
                     {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                        prevTrainSpeed = Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS);
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
@@ -555,11 +553,6 @@ namespace Orts.Simulation.Activities
                     eventWrapper.ActivityEvent.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
                     if (eventWrapper.ActivityEvent.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ActivityEvent.TrainStartingTime)
                         eventWrapper.Train = train;
-        }
-
-        public void CompleteActivity()
-        {
-            Completed = true;
         }
     }
 }
