@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             layout = base.Layout(layout, headerScaling);
             ControlLayout line = layout.AddLayoutHorizontalLineOfText();
             line.Add(new Label(this, 80, line.RemainingHeight, Catalog.GetString("Event:")));
-            line.Add(eventHeader = new Label(this, 120, line.RemainingHeight, null));
+            line.Add(eventHeader = new Label(this, line.RemainingWidth, line.RemainingHeight, null));
             layout.AddHorizontalSeparator();
             layout.Add(messageText = new TextBox(this, layout.RemainingWidth, layout.RemainingHeight - (int)(1.5 * Owner.TextFontDefault.Height), null, true));
             layout.AddHorizontalSeparator();

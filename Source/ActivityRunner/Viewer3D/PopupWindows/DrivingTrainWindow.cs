@@ -357,7 +357,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void Resize()
         {
-            int height = 32 + (additionalLines + constantLines) * Owner.TextFontDefault.Height + ((separatorLines + additonalSeparators) * 5) /* #separators * separator height */;
+            // since TextFontDefault.Height is already scaled, need to divide by scaling factor, since base Resize would apply scaling factor again
+            int height = 32 + (int)((additionalLines + constantLines) * Owner.TextFontDefault.Height / Owner.DpiScaling) + ((separatorLines + additonalSeparators) * 5) /* #separators * separator height */;
             Point size = windowMode switch
             {
                 WindowMode.Normal => new Point(normalLeadColumnWidth + 2 * normalColumnWidth + 36, height),
