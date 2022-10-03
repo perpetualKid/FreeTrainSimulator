@@ -1014,6 +1014,7 @@ namespace Orts.Common
     { 
         DebugScreen,
         QuitWindow,
+        PauseWindow,
         HelpWindow,
         ActivityWindow,
         CompassWindow,

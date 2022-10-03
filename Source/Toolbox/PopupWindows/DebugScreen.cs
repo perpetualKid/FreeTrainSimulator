@@ -27,7 +27,7 @@ namespace Orts.Toolbox.PopupWindows
         private DebugScreenInformation currentDebugScreen;
 
         public DebugScreen(WindowManager owner, ToolboxSettings settings, string caption, Color backgroundColor) :
-            base(owner, caption, Point.Zero, Point.Zero)
+            base(owner, caption)
         {
             ZOrder = 0;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

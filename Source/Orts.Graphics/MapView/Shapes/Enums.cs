@@ -3,11 +3,11 @@
     public enum BasicTextureType
     { 
         BlankPixel,
+        // next ones are used to map Resources, hence names should match exactly (case insensitive) the resource file name
         Circle, 
         Disc,
         Ring,
         RingCrossed,
-        // next ones are used to map Resources, hence names should match exactly (case insensitive) the resource file name
         ActiveBrokenNode,
         ActiveNode,
         ActiveNormalNode,
@@ -35,6 +35,7 @@
         Sound,
         PlayerTrain,
         LevelCrossing,
-        //
+        // Extended
+        PauseTexture,
     }
 }

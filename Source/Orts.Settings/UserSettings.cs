@@ -370,6 +370,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=20,60",
             $"{nameof(ViewerWindowType.DrivingTrainWindow)}=100,40",
             $"{nameof(ViewerWindowType.DistributedPowerWindow)}=10,20",
+            $"{nameof(ViewerWindowType.PauseWindow)}=0,0",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -388,6 +389,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=False",
             $"{nameof(ViewerWindowType.DrivingTrainWindow)}=False",
             $"{nameof(ViewerWindowType.DistributedPowerWindow)}=False",
+            $"{nameof(ViewerWindowType.PauseWindow)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -406,6 +408,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.MultiPlayerWindow)}=\"\"",
             $"{nameof(ViewerWindowType.DrivingTrainWindow)}=\"\"",
             $"{nameof(ViewerWindowType.DistributedPowerWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.PauseWindow)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

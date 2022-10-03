@@ -61,6 +61,8 @@ namespace Orts.ActivityRunner.Viewer3D
 {
     public class Viewer
     {
+        private bool pauseWindow;
+
         public static ICatalog Catalog { get; private set; }
         // User setups.
         public UserSettings Settings { get; private set; }
@@ -97,7 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public WindowManager WindowManager { get; private set; }
         public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
         public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
-        public PauseWindow PauseWindow { get; private set; } // Game paused window (special)
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
@@ -465,7 +466,6 @@ namespace Orts.ActivityRunner.Viewer3D
             WindowManager = new WindowManager(this);
             MessagesWindow = new MessagesWindow(WindowManager);
             NoticeWindow = new NoticeWindow(WindowManager);
-            PauseWindow = new PauseWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
@@ -479,6 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D
             WindowManager.Initialize();
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
+            windowManager.MultiLayerModalWindows = true;
             windowManager.WindowOpacity = 0.4f;
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
@@ -543,6 +544,11 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 PopupWindows.DrivingTrainWindow drivingTrainWindow = new PopupWindows.DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings, this);
                 return drivingTrainWindow;
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.PauseWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                PopupWindows.PauseWindow pauseWindow = new PopupWindows.PauseWindow(windowManager, this);
+                return pauseWindow;
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -1049,13 +1055,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
-                if (Settings.PopupStatus[windowType] && windowType is not ViewerWindowType.QuitWindow and not ViewerWindowType.ActivityWindow)
+                if (Settings.PopupStatus[windowType] && windowType is not ViewerWindowType.QuitWindow and not ViewerWindowType.ActivityWindow and not ViewerWindowType.PauseWindow)
                     windowManager[windowType].Open();
             }
 
             if (Simulator.ActivityRun != null)
                 Simulator.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
-
         }
 
         private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)
@@ -1437,6 +1442,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
             WindowManager.PrepareFrame(frame, elapsedTime);
             logRenderFrame = false;
+            if (pauseWindow != (pauseWindow = Simulator.GamePaused))
+            {
+                windowManager[ViewerWindowType.PauseWindow].Open();
+            }
         }
 
         private void LoadDefectCarSound(TrainCar car, string filename)

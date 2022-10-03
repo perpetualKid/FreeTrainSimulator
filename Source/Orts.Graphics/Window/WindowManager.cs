@@ -77,7 +77,7 @@ namespace Orts.Graphics.Window
             set => WindowShader.Opacity = opacityDefault = value;
         }
 
-        public bool MultiLayerModalWindows {get; set;}
+        public bool MultiLayerModalWindows { get; set; }
 
         private protected WindowManager(Game game) :
             base(game)
@@ -204,7 +204,7 @@ namespace Orts.Graphics.Window
 
         internal bool OpenWindow(WindowBase window)
         {
-            if (modalWindows.TryPeek(out activeWindow) || (MultiLayerModalWindows && !window.Modal))
+            if (modalWindows.TryPeek(out activeWindow) && (!window.Modal || !MultiLayerModalWindows))
             {
                 return false;
             }
@@ -234,17 +234,26 @@ namespace Orts.Graphics.Window
 
         internal bool CloseWindow(WindowBase window)
         {
+            window?.FocusLost();
 #pragma warning disable CA2000 // Dispose objects before losing scope
             if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == window)
             {
-                UserCommandController.SuppressDownLevelEventHandling = false;
                 SuppressDrawing = false;
                 modalWindows.Pop();
-                OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
+                if (modalWindows.Count == 0)
+                {
+                    if (window == activeWindow)
+                        activeWindow = null;
+                    UserCommandController.SuppressDownLevelEventHandling = false;
+                    OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
+                }
+                else
+                {
+                    modalWindows.TryPeek(out activeWindow);
+                }
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            if (activeWindow == window)
-                activeWindow = null;
+            activeWindow?.FocusSet();
             List<WindowBase> updatedWindowList = windows;
             if (updatedWindowList.Remove(window))
             {
@@ -273,7 +282,7 @@ namespace Orts.Graphics.Window
                 userCommandArgs.Handled = true;
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                              //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
+            //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

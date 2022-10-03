@@ -20,7 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
 
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
-            base(owner, caption, Point.Zero, Point.Zero)
+            base(owner, caption)
         {
             ZOrder = 0;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));

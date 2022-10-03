@@ -36,7 +36,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public static Texture2D ScrollbarTexture;
         public static Texture2D LabelShadowTexture;
         public static Texture2D NoticeTexture;
-        public static Texture2D PauseTexture;
 
         // This is all a bit of a hack, since SpriteBatch does not expose its own internal Flush() method. What we do
         // is draw with a different texture to anything else; the change of texture triggers an internal flush. The
@@ -126,28 +125,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // Notice texture is just the rounded corner background.
                 NoticeTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size, false, SurfaceFormat.Color);
                 NoticeTexture.SetData(data, 0, size * size);
-
-                // Clone the background for pause texture (it has two states).
-                Array.Copy(data, 0, data, size * size, size * size);
-
-                // Play ">" symbol.
-                for (var y = size / 7; y < size - size / 7; y++)
-                {
-                    for (var x = size / 7; x < size - size / 7 - 2 * Math.Abs(y - size / 2); x++)
-                        data[y * size + x] = Color.White;
-                }
-
-                // Pause "||" symbol.
-                for (var y = size + size / 7; y < 2 * size - size / 7; y++)
-                {
-                    for (var x = size * 2 / 7; x < size * 3 / 7; x++)
-                        data[y * size + x] = Color.White;
-                    for (var x = size * 4 / 7; x < size * 5 / 7; x++)
-                        data[y * size + x] = Color.White;
-                }
-
-                PauseTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size * 2, false, SurfaceFormat.Color);
-                PauseTexture.SetData(data);
             }
 
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
