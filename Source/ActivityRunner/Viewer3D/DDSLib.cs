@@ -182,9 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             for (int i = 0; i < map; i++)
                 size >>= 1;
-            if (size <= 0)
-                return 1;
-            return size;
+            return size <= 0 ? 1 : size;
         }
 
         //Surface formats that we can load from a dds
@@ -327,9 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //Get compression format.
         private static FourCC GetCompressionFormat(uint pixelFlags, uint pixelFourCC)
         {
-            if ((pixelFlags & DDPF_FOURCC) != 0)
-                return (FourCC)pixelFourCC;
-            else return 0;
+            return (pixelFlags & DDPF_FOURCC) != 0 ? (FourCC)pixelFourCC : 0;
         }
 
         //Get the size in bytes for a mip-map level.
@@ -593,12 +589,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             TextureCube texture = new TextureCube(device, width, true, expectedFormat); //hasMipMaps
 
-            if (texture.Format != expectedFormat)
-            {
-                throw new InvalidDataException($"Can't generate a {expectedFormat} surface.");
-            }
-
-            return texture;
+            return texture.Format != expectedFormat ? throw new InvalidDataException($"Can't generate a {expectedFormat} surface.") : texture;
         }
 
         //new 2d-map texture
@@ -609,12 +600,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Texture2D texture = new Texture2D(device, width, height, hasMipMaps, expectedFormat);
             texture.Tag = XNATextureNumAlphaBits(texture);
 
-            if (texture.Format != expectedFormat)
-            {
-                throw new InvalidDataException($"Can't generate a {expectedFormat} surface.");
-            }
-
-            return texture;
+            return texture.Format != expectedFormat ? throw new InvalidDataException($"Can't generate a {expectedFormat} surface.") : texture;
         }
 
         //new 3d-map texture
@@ -624,12 +610,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Texture3D texture = new Texture3D(device, width, height, depth, hasMipMaps, expectedFormat);
 
-            if (texture.Format != expectedFormat)
-            {
-                throw new InvalidDataException($"Can't generate a {expectedFormat} surface.");
-            }
-
-            return texture;
+            return texture.Format != expectedFormat ? throw new InvalidDataException($"Can't generate a {expectedFormat} surface.") : texture;
         }
 
         //loads the data from a stream in to a texture object.
