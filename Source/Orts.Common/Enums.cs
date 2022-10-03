@@ -1074,6 +1074,7 @@ namespace Orts.Common
         [Description("SPED")] Speed,
         [Description("STEM")] SteamUsage,
         [Description("WHEL")] Wheel,
+        [Description("ODO")] Odometer,
 
         //Braking
         [Description("BTRN")] TrainBrake,

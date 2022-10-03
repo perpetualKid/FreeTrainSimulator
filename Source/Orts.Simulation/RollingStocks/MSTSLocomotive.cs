@@ -318,22 +318,15 @@ namespace Orts.Simulation.RollingStocks
 
         public EnumArray<Pressure.Unit, BrakeSystemComponent> BrakeSystemPressureUnits { get; } = new EnumArray<Pressure.Unit, BrakeSystemComponent>(Pressure.Unit.None);
 
-        protected float OdometerResetPositionM;
-        protected bool OdometerCountingUp = true;
-        protected bool OdometerCountingForwards = true;
-        public bool OdometerResetButtonPressed;
+        private float odometerResetPositionM;
+        private bool odometerCountingUp = true;
+        private bool odometerCountingForwards = true;
+        public bool OdometerResetButtonPressed { get; private set; }
 
         public bool OdometerVisible { get; private set; }
-        public float OdometerM
-        {
-            get
-            {
-                if (Train == null)
-                    return 0;
-
-                return OdometerCountingForwards ? Train.DistanceTravelledM - OdometerResetPositionM : OdometerResetPositionM - Train.DistanceTravelledM;
-            }
-        }
+        public float OdometerM => Train == null
+                    ? 0
+                    : odometerCountingForwards ? Train.DistanceTravelledM - odometerResetPositionM : odometerResetPositionM - Train.DistanceTravelledM;
 
         // ENG file data
         public string CabSoundFileName;
@@ -1367,9 +1360,9 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(Sander);
             outf.Write(VacuumExhausterPressed);
             outf.Write(Wiper);
-            outf.Write(OdometerResetPositionM);
-            outf.Write(OdometerCountingUp);
-            outf.Write(OdometerCountingForwards);
+            outf.Write(odometerResetPositionM);
+            outf.Write(odometerCountingUp);
+            outf.Write(odometerCountingForwards);
             outf.Write(OdometerVisible);
             outf.Write(MainResPressurePSI);
             outf.Write(CompressorIsOn);
@@ -1419,9 +1412,9 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.VacuumExhausterOn);
             if (inf.ReadBoolean())
                 SignalEvent(TrainEvent.WiperOn);
-            OdometerResetPositionM = inf.ReadSingle();
-            OdometerCountingUp = inf.ReadBoolean();
-            OdometerCountingForwards = inf.ReadBoolean();
+            odometerResetPositionM = inf.ReadSingle();
+            odometerCountingUp = inf.ReadBoolean();
+            odometerCountingForwards = inf.ReadBoolean();
             OdometerVisible = inf.ReadBoolean();
             MainResPressurePSI = inf.ReadSingle();
             CompressorIsOn = inf.ReadBoolean();
@@ -4578,25 +4571,14 @@ namespace Orts.Simulation.RollingStocks
                 return;
             if (targetState)
             {
-                if (OdometerCountingForwards != OdometerCountingUp ^ (Direction == MidpointDirection.Reverse))
+                if (odometerCountingForwards != odometerCountingUp ^ (Direction == MidpointDirection.Reverse))
                 {
-                    OdometerCountingForwards = !OdometerCountingForwards;
+                    odometerCountingForwards = !odometerCountingForwards;
                 }
 
-                if (Direction == MidpointDirection.Reverse)
-                {
-                    if (OdometerCountingForwards)
-                        OdometerResetPositionM = Train.DistanceTravelledM - Train.Length;
-                    else
-                        OdometerResetPositionM = Train.DistanceTravelledM;
-                }
-                else
-                {
-                    if (OdometerCountingForwards)
-                        OdometerResetPositionM = Train.DistanceTravelledM;
-                    else
-                        OdometerResetPositionM = Train.DistanceTravelledM + Train.Length;
-                }
+                odometerResetPositionM = Direction == MidpointDirection.Reverse
+                    ? odometerCountingForwards ? Train.DistanceTravelledM - Train.Length : Train.DistanceTravelledM
+                    : odometerCountingForwards ? Train.DistanceTravelledM : Train.DistanceTravelledM + Train.Length;
 
                 simulator.Confirmer.Confirm(CabControl.Odometer, CabSetting.On);
             }
@@ -4608,9 +4590,9 @@ namespace Orts.Simulation.RollingStocks
             if (Train == null)
                 return;
 
-            OdometerCountingUp = !OdometerCountingUp;
+            odometerCountingUp = !odometerCountingUp;
 
-            simulator.Confirmer.Confirm(CabControl.Odometer, OdometerCountingUp ? CabSetting.Increase : CabSetting.Decrease);
+            simulator.Confirmer.Confirm(CabControl.Odometer, odometerCountingUp ? CabSetting.Increase : CabSetting.Decrease);
         }
 
         public void GenericItem1Toggle()
@@ -5655,7 +5637,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
                 case CabViewControlType.Orts_Odometer_Direction:
-                    data = OdometerCountingUp ? 1 : 0;
+                    data = odometerCountingUp ? 1 : 0;
                     break;
                 case CabViewControlType.Orts_Odometer_Reset:
                     data = OdometerResetButtonPressed ? 1 : 0;

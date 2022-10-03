@@ -37,7 +37,7 @@ namespace Orts.Simulation.Commanding
     {
         public double Time { get; set; }
 
-        protected static object CommandReceiver;
+        private protected static object CommandReceiver;
 
         /// <summary>
         /// Each command adds itself to the log when it is constructed.

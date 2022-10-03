@@ -50,6 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Replay,
             Speed,
             Gradient,
+            Odometer,
             Direction,
             Throttle,
             CylinderCocks,
@@ -101,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private long derailTimeout;
 
         private int additionalLines;
-        private const int constantLines = 10; //need to be updated if additional lines required
+        private const int constantLines = 11; //need to be updated if additional lines required
         private const int separatorLines = 4;
         private int additonalSeparators;
 
@@ -175,6 +176,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 AddDetailLine(DetailInfo.Replay, shortMode ? FourCharAcronym.Replay.GetLocalizedDescription() : Catalog.GetString("Replay"), font);
             AddDetailLine(DetailInfo.Speed, shortMode ? FourCharAcronym.Speed.GetLocalizedDescription() : Catalog.GetString("Speed"), font);
             AddDetailLine(DetailInfo.Gradient, shortMode ? FourCharAcronym.Gradient.GetLocalizedDescription() : Catalog.GetString("Gradient"), font);
+            AddDetailLine(DetailInfo.Odometer, shortMode ? FourCharAcronym.Odometer.GetLocalizedDescription() : Catalog.GetString("Odometer"), font);
             layout.AddHorizontalSeparator(true);
             AddDetailLine(DetailInfo.Direction, playerLocomotive.EngineType == EngineType.Steam ?
                 shortMode ? FourCharAcronym.Reverser.GetLocalizedDescription() : Catalog.GetString("Reverser") :
@@ -483,6 +485,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     gradient = 0;
                 gradientLabel.Text = $"{gradient:F1}% {(gradient > 0 ? FormatStrings.Markers.Ascent : gradient < 0 ? FormatStrings.Markers.Descent : string.Empty)}";
                 gradientLabel.TextColor = (gradient > 0 ? Color.Yellow : gradient < 0 ? Color.LightSkyBlue : Color.White);
+            }
+            // Odometer
+            if (groupDetails[DetailInfo.Odometer]?.Controls[3] is Label odometerLabel)
+            {
+                odometerLabel.Text = FormatStrings.FormatShortDistanceDisplay(playerLocomotive.OdometerM, Simulator.Instance.MetricUnits);
             }
             // Direction
             if (groupDetails[DetailInfo.Direction]?.Controls[3] is Label directionLabel)
