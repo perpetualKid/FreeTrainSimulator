@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Formats.Msts.Files;
+using Orts.Graphics.Xna;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials

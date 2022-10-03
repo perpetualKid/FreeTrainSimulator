@@ -57,7 +57,7 @@ using System.IO;
 
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.ActivityRunner.Viewer3D
+namespace Orts.Graphics.Xna
 {
     /// <summary>
     /// Read/Write dds files from/to files or from streams.

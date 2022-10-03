@@ -25,6 +25,7 @@ using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics.Xna;
 
 using System;
 using System.Collections.Generic;
