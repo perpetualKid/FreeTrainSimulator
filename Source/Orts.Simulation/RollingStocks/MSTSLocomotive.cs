@@ -1853,10 +1853,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         private void SetUpCruiseControl(STFReader stf)
         {
-            CruiseControl = new CruiseControl(this)
-            {
-                Equipped = true
-            };
+            CruiseControl = new CruiseControl(this);
             CruiseControl.Parse(stf);
         }
 
