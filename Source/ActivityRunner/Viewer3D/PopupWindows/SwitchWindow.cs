@@ -1,7 +1,4 @@
-﻿
-using System;
-
-using GetText;
+﻿using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,8 +10,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 using Orts.Simulation;
-using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -65,7 +62,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Initialize()
         {
-            switchStatesTexture = SharedTextureManager.Get(Owner.Game.GraphicsDevice, System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SwitchStates.png"));
+            switchStatesTexture = TextureManager.GetTextureStatic(System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SwitchStates.png"), Owner.Game);
             base.Initialize();
         }
 
