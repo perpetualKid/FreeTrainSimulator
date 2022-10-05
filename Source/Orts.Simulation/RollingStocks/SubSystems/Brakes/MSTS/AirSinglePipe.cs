@@ -37,7 +37,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     {
         private protected static string debugBrakeType = string.Empty;
 
-        private protected float handbrakePercent;
         private protected float cylPressurePSI = 64;
         private protected float autoCylPressurePSI = 64;
         private protected float auxResPressurePSI = 64;
@@ -97,11 +96,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             if (Simulator.Instance.Settings.RetainersOnAllCars && car is not MSTSLocomotive)
                 (car as MSTSWagon).RetainerPositions = 4;
-        }
-
-        public override bool GetHandbrakeStatus()
-        {
-            return handbrakePercent > 0;
         }
 
         public override void InitializeFrom(BrakeSystem source)
@@ -339,7 +333,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 emergResPressurePSI = Math.Max(auxResPressurePSI, maxPressurePSI);
             tripleValveState = ValveState.Lap;
             holdingValve = ValveState.Release;
-            handbrakePercent = handbrakeOn & (car as MSTSWagon).HandBrakePresent ? 100 : 0;
+            HandbrakePercent = handbrakeOn ? 100 : 0;
             SetRetainer(RetainerSetting.Exhaust);
             MSTSLocomotive loco = car as MSTSLocomotive;
             if (loco != null)
@@ -990,20 +984,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     retainerDebugState = "SD";
                     break;
             }
-        }
-
-        public override void SetHandbrakePercent(float percent)
-        {
-            if (!(car as MSTSWagon).HandBrakePresent)
-            {
-                handbrakePercent = 0;
-                return;
-            }
-            if (percent < 0)
-                percent = 0;
-            if (percent > 100)
-                percent = 100;
-            handbrakePercent = percent;
         }
 
         public override void AISetPercent(float percent)

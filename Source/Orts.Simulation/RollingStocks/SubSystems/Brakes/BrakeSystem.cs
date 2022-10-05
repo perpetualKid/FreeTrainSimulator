@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -43,7 +44,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
         private protected bool updateBrakeStatus;
 
+        private protected float handbrakePercent;
+
         private protected abstract void UpdateBrakeStatus();
+
+        public float HandbrakePercent 
+        {
+            get => handbrakePercent;
+            set
+            {
+                if ((car as MSTSWagon)?.HandBrakePresent ?? false)
+                {
+                    handbrakePercent = Math.Clamp(value, 0, 100);
+                }
+            }
+        }
 
         /// <summary>
         /// Main trainline pressure at this car in PSI
@@ -125,8 +140,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float InternalPressure(float realPressure);
 
         public abstract void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease);
-        public abstract void SetHandbrakePercent(float percent);
-        public abstract bool GetHandbrakeStatus();
+
         public abstract void SetRetainer(RetainerSetting setting);
         public abstract void InitializeMoving(); // starting conditions when starting speed > 0
         public abstract void LocoInitializeMoving(); // starting conditions when starting speed > 0

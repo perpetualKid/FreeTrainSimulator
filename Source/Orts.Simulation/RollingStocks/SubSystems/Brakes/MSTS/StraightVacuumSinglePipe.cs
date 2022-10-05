@@ -42,7 +42,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Initialize(bool handbrakeOn, float maxVacuumInHg, float fullServVacuumInHg, bool immediateRelease)
         {
             CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServVacuumInHg);
-            HandbrakePercent = handbrakeOn & (car as MSTSWagon).HandBrakePresent ? 100 : 0;
+            HandbrakePercent = handbrakeOn ? 100 : 0;
             VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxVacuumInHg); // Only used if car coupled to auto braked locomotive
         }
 
@@ -137,8 +137,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                         f = car.MaxBrakeForceN * brakecylinderfraction;
 
-                        if (f < car.MaxHandbrakeForceN * HandbrakePercent / 100)
-                            f = car.MaxHandbrakeForceN * HandbrakePercent / 100;
+                        if (f < car.MaxHandbrakeForceN * handbrakePercent / 100)
+                            f = car.MaxHandbrakeForceN * handbrakePercent / 100;
                     }
                     else
                     {
@@ -376,7 +376,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : string.Empty,
+                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected? "I" : "T",
                 $"A{(AngleCockAOpen? "+" : "-")} B{(AngleCockBOpen? "+" : "-")}",
                 };
@@ -395,7 +395,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : string.Empty,
+                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected? "I" : "T",
                 $"A{(AngleCockAOpen? "+" : "-")} B{(AngleCockBOpen? "+" : "-")}",
                 };

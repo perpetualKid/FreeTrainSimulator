@@ -3836,10 +3836,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void SetWagonHandbrake(bool ToState)
         {
-            if (ToState)
-                MSTSBrakeSystem.SetHandbrakePercent(100);
-            else
-                MSTSBrakeSystem.SetHandbrakePercent(0);
+            MSTSBrakeSystem.HandbrakePercent = ToState ? 100 : 0;
         }
 
         /// <summary>

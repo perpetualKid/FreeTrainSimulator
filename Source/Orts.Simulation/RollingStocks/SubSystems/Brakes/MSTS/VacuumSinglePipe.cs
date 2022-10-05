@@ -34,7 +34,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     public class VacuumSinglePipe : MSTSBrakeSystem
     {
         protected float MaxForcePressurePSI = (float)Pressure.Standard.ToPSI(Pressure.Standard.FromInHg(21));    // relative pressure difference for max brake force
-        protected float HandbrakePercent;
         protected float CylPressurePSIA;
         private float BrakeCutOffPSIA;
         private float BrakeRestorePSIA;
@@ -66,11 +65,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             // taking into account very short (fake) cars to prevent NaNs in brake line pressures
             base.BrakePipeVolumeM3 = (0.050f * 0.050f * (float)Math.PI / 4f) * Math.Max(5.0f, (1 + car.CarLengthM)); // Using (2") pipe
-        }
-
-        public override bool GetHandbrakeStatus()
-        {
-            return HandbrakePercent > 0;
         }
 
         public override void InitializeFrom(BrakeSystem source)
@@ -136,8 +130,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             //            string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Units.InHg, Pressure.Units.InHg, true));
             if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                 s += Simulator.Catalog.GetString(" EOT ") + lastCarBrakeSystem.GetStatus(units);
-            if (HandbrakePercent > 0)
-                s += Simulator.Catalog.GetString($" Handbrake {HandbrakePercent:F0}%");
+            if (handbrakePercent > 0)
+                s += Simulator.Catalog.GetString($" Handbrake {handbrakePercent:F0}%");
             return s;
         }
 
@@ -155,7 +149,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{HandbrakePercent:F0}%" : string.Empty,
+                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",
                 $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
                 BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
@@ -174,7 +168,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : string.Empty,
+                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",
                 $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
                 BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
@@ -260,7 +254,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServVacuumInHg);
             VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxVacuumInHg);
-            HandbrakePercent = handbrakeOn & (car as MSTSWagon).HandBrakePresent ? 100 : 0;
+            HandbrakePercent = handbrakeOn ? 100 : 0;
             BrakeLine3PressurePSI = BrakeLine1PressurePSI;  // Initialise engine brake as same value on train
             //CylVolumeM3 = MaxForcePressurePSI * MaxBrakeForceN * 0.00000059733491f; //an average volume (M3) of air used in brake cylinder for 1 N brake force.
             car.Train.PreviousCarCount = car.Train.Cars.Count;
@@ -552,8 +546,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 {
                     f = CylPressurePSIA <= vrp ? 0 : car.MaxBrakeForceN * Math.Min((CylPressurePSIA - vrp) / MaxForcePressurePSI, 1);
                 }
-                if (f < car.MaxHandbrakeForceN * HandbrakePercent / 100)
-                    f = car.MaxHandbrakeForceN * HandbrakePercent / 100;
+                if (f < car.MaxHandbrakeForceN * handbrakePercent / 100)
+                    f = car.MaxHandbrakeForceN * handbrakePercent / 100;
             }
             else 
                 f = Math.Max(car.MaxBrakeForceN, car.MaxHandbrakeForceN / 2);
@@ -1413,17 +1407,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return (float)Pressure.Vacuum.ToPressure(realPressure);
         }
 
-        public override void SetHandbrakePercent(float percent)
-        {
-            if (!(car as MSTSWagon).HandBrakePresent)
-            {
-                HandbrakePercent = 0;
-                return;
-            }
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
-            HandbrakePercent = percent;
-        }
         public override void SetRetainer(RetainerSetting setting)
         {
         }

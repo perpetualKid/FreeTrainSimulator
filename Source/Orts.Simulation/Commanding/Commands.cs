@@ -213,7 +213,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ReverserChangeTo(targetState, target);
         }
     }
@@ -1164,8 +1165,10 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver.GetCabFlipped()) Receiver.ToggleDoorsRight();
-            else Receiver.ToggleDoorsLeft();
+            if (Receiver.GetCabFlipped())
+                Receiver.ToggleDoorsRight();
+            else
+                Receiver.ToggleDoorsLeft();
         }
     }
 
@@ -1182,8 +1185,10 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver.GetCabFlipped()) Receiver.ToggleDoorsLeft();
-            else Receiver.ToggleDoorsRight();
+            if (Receiver.GetCabFlipped())
+                Receiver.ToggleDoorsLeft();
+            else
+                Receiver.ToggleDoorsRight();
         }
     }
 
@@ -1506,7 +1511,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             {
                 Receiver.SteamHeatChangeTo(targetState, target);
             }
@@ -1527,7 +1533,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             {
                 Receiver.LargeEjectorChangeTo(targetState, target);
             }
@@ -1548,7 +1555,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             {
                 Receiver.SmallEjectorChangeTo(targetState, target);
             }
@@ -1570,11 +1578,14 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             switch (injector)
             {
-                case 1: { Receiver.Injector1ChangeTo(targetState, target); break; }
-                case 2: { Receiver.Injector2ChangeTo(targetState, target); break; }
+                case 1:
+                    { Receiver.Injector1ChangeTo(targetState, target); break; }
+                case 2:
+                    { Receiver.Injector2ChangeTo(targetState, target); break; }
             }
         }
 
@@ -1600,11 +1611,14 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             switch (injector)
             {
-                case 1: { Receiver.ToggleInjector1(); break; }
-                case 2: { Receiver.ToggleInjector2(); break; }
+                case 1:
+                    { Receiver.ToggleInjector1(); break; }
+                case 2:
+                    { Receiver.ToggleInjector2(); break; }
             }
         }
 
@@ -1627,7 +1641,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.BlowerChangeTo(targetState, target);
         }
     }
@@ -1645,7 +1660,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.DamperChangeTo(targetState, target);
         }
     }
@@ -1663,7 +1679,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.FireboxDoorChangeTo(targetState, target);
         }
     }
@@ -1681,7 +1698,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.FiringRateChangeTo(targetState, target);
         }
     }
@@ -1699,7 +1717,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ToggleManualFiring();
         }
     }
@@ -1774,7 +1793,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.FireShovelfull();
         }
     }
@@ -1859,7 +1879,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ToggleWaterScoop();
         }
     }
@@ -1878,7 +1899,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ToggleCylinderCocks();
         }
     }
@@ -1897,7 +1919,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ToggleCylinderCompound();
         }
     }
@@ -1915,7 +1938,8 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.ToggleBlowdownValve();
             // Report();
         }
@@ -2197,7 +2221,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-                Receiver?.Train?.EndOfTrainDevice?.CommTest();
+            Receiver?.Train?.EndOfTrainDevice?.CommTest();
         }
     }
 
@@ -2214,7 +2238,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-                Receiver?.Train?.EndOfTrainDevice?.Disarm();
+            Receiver?.Train?.EndOfTrainDevice?.Disarm();
         }
     }
 
@@ -2231,7 +2255,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-                Receiver?.Train?.EndOfTrainDevice?.ArmTwoWay();
+            Receiver?.Train?.EndOfTrainDevice?.ArmTwoWay();
         }
     }
 
@@ -2248,7 +2272,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-                Receiver?.Train?.EndOfTrainDevice?.EmergencyBrake(targetState);
+            Receiver?.Train?.EndOfTrainDevice?.EmergencyBrake(targetState);
         }
     }
 
@@ -2265,7 +2289,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-                Receiver.Train.EndOfTrainDevice?.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
+            Receiver.Train.EndOfTrainDevice?.EmergencyBrake(!Receiver.Train.EndOfTrainDevice.EOTEmergencyBrakingOn);
         }
     }
 

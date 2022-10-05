@@ -29,7 +29,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     public class ManualBraking : MSTSBrakeSystem
     {
         private protected string debugBrakeType = string.Empty;
-        private float HandbrakePercent;
 
         public ManualBraking(TrainCar car) : base(car)
         {
@@ -47,11 +46,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         private float SteamBrakePressurePSI;
         private float SteamBrakeCylinderPressurePSI;
         private float BrakeForceFraction;
-
-        public override bool GetHandbrakeStatus()
-        {
-            return HandbrakePercent > 0;
-        }
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
@@ -209,8 +203,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             if (!car.BrakesStuck)
             {
                 f = car.MaxBrakeForceN * Math.Min(BrakeForceFraction, 1);
-                if (f < car.MaxHandbrakeForceN * HandbrakePercent / 100)
-                    f = car.MaxHandbrakeForceN * HandbrakePercent / 100;
+                if (f < car.MaxHandbrakeForceN * handbrakePercent / 100)
+                    f = car.MaxHandbrakeForceN * handbrakePercent / 100;
             }
             else
                 f = Math.Max(car.MaxBrakeForceN, car.MaxHandbrakeForceN / 2);
@@ -254,7 +248,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{HandbrakePercent:F0}%" : string.Empty,
+                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -272,7 +266,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{HandbrakePercent:F0}%" : string.Empty,
+                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -290,7 +284,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{HandbrakePercent:F0}%" : string.Empty,
+                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -308,20 +302,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             if (percent > 100)
                 percent = 100;
             //  car.Train.EqualReservoirPressurePSIorInHg = Vac.FromPress(Const.OneAtmospherePSI - MaxForcePressurePSI * (1 - percent / 100));
-        }
-
-        public override void SetHandbrakePercent(float percent)
-        {
-            if (!(car as MSTSWagon).HandBrakePresent)
-            {
-                HandbrakePercent = 0;
-                return;
-            }
-            if (percent < 0)
-                percent = 0;
-            if (percent > 100)
-                percent = 100;
-            HandbrakePercent = percent;
         }
 
         public override float GetCylPressurePSI()
@@ -385,7 +365,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         private protected override void UpdateBrakeStatus()
         {
             brakeInfo["Manual Brake"] = Simulator.Catalog.GetString("Manual Brake");
-            brakeInfo["Handbrake"] = HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : null;
+            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
             brakeInfo["Status"] = $"{brakeInfo["Manual Brake"]}";
             brakeInfo["StatusShort"] = Simulator.Catalog.GetParticularString("Braking", "Manual");
         }

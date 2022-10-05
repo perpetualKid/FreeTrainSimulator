@@ -116,7 +116,7 @@ namespace Orts.Simulation.Physics
             if (Math.Abs(SpeedMpS) > 0.1)
                 return;
             foreach (TrainCar car in Cars)
-                car.BrakeSystem.SetHandbrakePercent(percent);
+                car.BrakeSystem.HandbrakePercent = percent;
         }
 
         /// Connect brake hoses when train is initialised
