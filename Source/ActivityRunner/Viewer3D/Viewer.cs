@@ -104,7 +104,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
-        public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
@@ -471,7 +470,6 @@ namespace Orts.ActivityRunner.Viewer3D
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
-            TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
@@ -658,10 +656,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainOperationsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainOperationsWindow.TabAction();
-                else
-                    TrainOperationsWindow.Visible = !TrainOperationsWindow.Visible;
                 windowManager[ViewerWindowType.TrainOperationsWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
