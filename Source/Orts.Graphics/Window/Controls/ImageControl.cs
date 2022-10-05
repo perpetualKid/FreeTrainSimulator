@@ -9,6 +9,8 @@ namespace Orts.Graphics.Window.Controls
     {
         public Rectangle? ClippingRectangle { get; set; }
 
+        public Color Color { get; set; } = Color.White;
+
         public ImageControl(WindowBase window, Texture2D image, int x, int y) :
             base(window ?? throw new ArgumentNullException(nameof(window)), x, y, 
                 (int)((image?.Width ?? throw new ArgumentNullException(nameof(image))) * window.Owner.DpiScaling), (int)(image.Height * window.Owner.DpiScaling))
@@ -33,7 +35,7 @@ namespace Orts.Graphics.Window.Controls
         {
             Rectangle destination = Bounds;
             destination.Offset(offset);
-            spriteBatch.Draw(texture, destination, ClippingRectangle, Color.White);
+            spriteBatch.Draw(texture, destination, ClippingRectangle, Color);
             base.Draw(spriteBatch, offset); 
         }
     }

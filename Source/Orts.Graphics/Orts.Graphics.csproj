@@ -53,8 +53,14 @@
 		<PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
 	</ItemGroup>
 	<ItemGroup>
+		<None Update="Content\blank.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Content\NoTitleBarWindow.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\SimpleCar.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Content\TitleBarWindow.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

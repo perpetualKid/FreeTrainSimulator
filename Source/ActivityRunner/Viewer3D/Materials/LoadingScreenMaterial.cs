@@ -1,10 +1,8 @@
 ﻿using System.IO;
 
-using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
-using Orts.Formats.Msts.Files;
-using Orts.Graphics.Xna;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
@@ -12,67 +10,15 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
     internal class LoadingScreenMaterial : LoadingMaterial
     {
         public LoadingScreenMaterial(GameHost game)
-            : base(game)
+            : base(game, LoadingTexturePath(game))
         {
         }
 
-        private static bool IsWideScreen(GameHost game)
+        private static string LoadingTexturePath(Game game)
         {
-            float x = game.RenderProcess.DisplaySize.X;
-            float y = game.RenderProcess.DisplaySize.Y;
-
-            return (x / y > 1.5);
-        }
-
-        protected override Texture2D GetTexture(GameHost game)
-        {
-            Texture2D texture;
-            GraphicsDevice gd = game.RenderProcess.GraphicsDevice;
-            string defaultScreen = "load.ace";
-
-            string loadingScreen = Simulator.Instance.Route.LoadingScreen;
-            if (IsWideScreen(game))
-            {
-                string loadingScreenWide = Simulator.Instance.Route.LoadingScreenWide;
-                loadingScreen = loadingScreenWide ?? loadingScreen;
-            }
-            loadingScreen ??= defaultScreen;
-            string path = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, loadingScreen);
-            if (Path.GetExtension(path) == ".dds" && File.Exists(path))
-            {
-                DDSLib.DDSFromFile(path, gd, true, out texture);
-            }
-            else if (Path.GetExtension(path) == ".ace")
-            {
-                string alternativeTexture = Path.ChangeExtension(path, ".dds");
-
-                if (File.Exists(alternativeTexture) && game.Settings.PreferDDSTexture)
-                {
-                    DDSLib.DDSFromFile(alternativeTexture, gd, true, out texture);
-                }
-                else if (File.Exists(path))
-                {
-                    texture = AceFile.Texture2DFromFile(gd, path);
-                }
-                else
-                {
-                    path = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, defaultScreen);
-                    if (File.Exists(path))
-                    {
-                        texture = AceFile.Texture2DFromFile(gd, path);
-                    }
-                    else
-                    {
-                        texture = null;
-                    }
-                }
-
-            }
-            else
-            {
-                texture = null;
-            }
-            return texture;
+            return Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder,
+                ((game.GraphicsDevice.Adapter.IsWideScreen && !string.IsNullOrEmpty(Simulator.Instance.Route.LoadingScreenWide)) ?
+                Simulator.Instance.Route.LoadingScreenWide : Simulator.Instance.Route.LoadingScreen) ?? (string.IsNullOrEmpty(Simulator.Instance.Route.Thumbnail) ? "load.ace" : Simulator.Instance.Route.Thumbnail));
         }
     }
 }

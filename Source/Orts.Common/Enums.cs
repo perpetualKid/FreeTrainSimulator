@@ -1027,6 +1027,8 @@ namespace Orts.Common
         DrivingTrainWindow,
         DistributedPowerWindow,
         HudScrollWindow,
+        TrainOperationsWindow,
+        CarOperationsWindow,
     }
 
     public enum FourCharAcronym

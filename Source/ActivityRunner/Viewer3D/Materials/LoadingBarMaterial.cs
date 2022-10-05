@@ -13,7 +13,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
         public override void SetState(Material previousMaterial)
         {
             base.SetState(previousMaterial);
-            shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
+            Shader.CurrentTechnique = Shader.Techniques[1]; //["LoadingBar"];
         }
     }
 }

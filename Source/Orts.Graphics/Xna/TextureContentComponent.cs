@@ -11,7 +11,7 @@ namespace Orts.Graphics.Xna
     /// <summary>
     /// Abstract base class for components containing content which gets rendered to a texture when it updates, 
     /// and when drawn, the texture is drawn to screen
-    /// Component includes some  basic handling for screen positioning
+    /// Component includes some basic handling for screen positioning
     /// </summary>
     public abstract class TextureContentComponent: DrawableGameComponent
     {

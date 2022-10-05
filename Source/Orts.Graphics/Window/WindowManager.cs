@@ -12,6 +12,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
+using Orts.Graphics.Xna;
 
 using static Orts.Common.Native.NativeMethods;
 
@@ -105,15 +106,8 @@ namespace Orts.Graphics.Window
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             DrawOrder = 100;
 
-            //TODO 20211104 needs to move to a TextureManager
-            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png")))
-            {
-                windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
-            }
-            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png")))
-            {
-                ScrollbarTexture = Texture2D.FromStream(GraphicsDevice, stream);
-            }
+            windowTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png"), game);
+            ScrollbarTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png"), game);
 
             WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
             WindowShader.GlassColor = Color.Black;

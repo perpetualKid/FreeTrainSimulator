@@ -124,12 +124,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (loadingBar != null)
             {
-                loadingBar.Material.shader.LoadingPercent = loadedPercent;
+                loadingBar.Material.Shader.LoadingPercent = loadedPercent;
                 frame.AddPrimitive(loadingBar.Material, loadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
             if (simulator != null && simulator.TimetableMode && timetableLoadingBar != null && simulator.TimetableLoadedFraction < 0.99f)    // 0.99 to hide loading bar at end of timetable pre-run
             {
-                timetableLoadingBar.Material.shader.LoadingPercent = simulator.TimetableLoadedFraction;
+                timetableLoadingBar.Material.Shader.LoadingPercent = simulator.TimetableLoadedFraction;
                 frame.AddPrimitive(timetableLoadingBar.Material, timetableLoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
