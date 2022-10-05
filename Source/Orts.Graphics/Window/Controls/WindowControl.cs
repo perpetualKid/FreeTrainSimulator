@@ -86,6 +86,11 @@ namespace Orts.Graphics.Window.Controls
             bounds.Offset(x, y);
         }
 
+        internal virtual void Resize(in Point size)
+        {
+            bounds.Size = size;
+        }
+
         internal virtual void MouseClick(WindowMouseEvent e)
         {
             OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - bounds.Location, e.KeyModifiers));

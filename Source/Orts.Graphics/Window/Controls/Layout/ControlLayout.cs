@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -47,6 +46,16 @@ namespace Orts.Graphics.Window.Controls.Layout
             // Offset control by our position and current values. Don't touch its size, also consider alignment
             control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
+            switch (Container)
+            {
+                // extend the virtual size for scrollbox content (affecting the .Client property of the scrollboxes)
+                case VerticalScrollboxControlLayout:
+                    Resize(new Point(Bounds.Width, CurrentTop));
+                    break;
+                case HorizontalScrollboxControlLayout:
+                    Resize(new Point(CurrentLeft, Bounds.Height));
+                    break;
+            }
             control.Container = this;
             return control;
         }
