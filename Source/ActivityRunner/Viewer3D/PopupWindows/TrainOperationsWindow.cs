@@ -58,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 carLayout.Add(imageControl = new ImageControl(this, carTexture, 0, 0, (int)(32 * Owner.DpiScaling), (int)(10 * Owner.DpiScaling)));
                 if (car is MSTSLocomotive)
                 {
-                    imageControl.Color = car == Simulator.Instance.PlayerLocomotive ? Color.LightGreen : Color.DarkGreen;
+                    imageControl.Color = car == Simulator.Instance.PlayerLocomotive ? Color.LimeGreen : Color.DarkGreen;
                 }
                 carLayout.OnClick += CarControl_OnClick;
                 carLayout.Tag = car;

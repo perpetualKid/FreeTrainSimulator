@@ -181,7 +181,6 @@ namespace Orts.Graphics.Window.Controls.Layout
             base(window, 0, 0, width, height)
         {
             Client = AddLayoutHorizontal(RemainingHeight - scrollbarSize - SeparatorPadding * 2);
-            SetScrollPosition(200);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
@@ -267,7 +266,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             if (Environment.TickCount64 < scrollDelayTicks)
                 return true;
             scrollDelayTicks = Environment.TickCount64 + mouseClickScrollDelay;
-            if (e.MousePosition.Y > Bounds.Height - scrollbarSize && Window.CapturedControl == null)
+            if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && Window.CapturedControl == null)
             {
                 double mousePositionInScrollbar = (e.MousePosition.X - Bounds.Left - scrollbarSize) / (Bounds.Width - scrollbarSize * 2.0);
                 // Mouse down occured within the scrollbar.
