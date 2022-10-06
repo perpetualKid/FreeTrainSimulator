@@ -59,7 +59,7 @@ namespace Orts.Simulation.Activities
         private bool stationStopLogActive;   // logging is active
 
         // Passenger tasks
-        private double prevTrainSpeed = -1;
+        private double prevTrainSpeed = 1;  // set a start value above stop-limit (0.2) so if the train speed at activity start is below, this will trigger a Station-Stop
         internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
 
 #pragma warning disable CA1002 // Do not expose generic lists
