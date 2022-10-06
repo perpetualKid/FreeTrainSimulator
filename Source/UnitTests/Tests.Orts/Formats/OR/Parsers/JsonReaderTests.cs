@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.OR.Parsers;
+
+using Tests.Orts.Shared;
 
 namespace Tests.Orts.Formats.OR.Parsers
 {
@@ -15,6 +15,10 @@ namespace Tests.Orts.Formats.OR.Parsers
     {
         private static void ReadJsonText(string text, Func<JsonReader, bool> tryParse, int expectedWarning = 0, int expectedInformation = 0, [CallerMemberName] string memberName = "")
         {
+            if (expectedWarning > 0)
+                AssertWarnings.Expected();
+            else
+                AssertWarnings.NotExpected();
             (int Warning, int Information) = JsonReader.ReadTest(text, $"{memberName}.json", tryParse);
             Assert.IsTrue(expectedWarning == Warning, $"Expected {expectedWarning} warning log messages; got {Warning}");
             Assert.IsTrue(expectedInformation == Information, $"Expected {expectedInformation} information log messages; got {Information}");
@@ -225,7 +229,7 @@ namespace Tests.Orts.Formats.OR.Parsers
         }
 
         [TestMethod]
-        public static void TryRead()
+        public void TryRead()
         {
             ReadJsonText(@"{
                 ""a"": {
@@ -249,7 +253,7 @@ namespace Tests.Orts.Formats.OR.Parsers
             }, expectedWarning: 1);
         }
 
-        static int TryReadObject(JsonReader json)
+        private int TryReadObject(JsonReader json)
         {
             json.ReadBlock(item =>
             {
