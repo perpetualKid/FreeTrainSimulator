@@ -57,8 +57,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal virtual bool HandleMouseReleased(WindowMouseEvent e)
         {
-            MouseClick(e);
-            return false;
+            return MouseClick(e);
         }
 
         internal virtual bool HandleMouseDown(WindowMouseEvent e)
@@ -91,9 +90,10 @@ namespace Orts.Graphics.Window.Controls
             bounds.Size = size;
         }
 
-        internal virtual void MouseClick(WindowMouseEvent e)
+        internal virtual bool MouseClick(WindowMouseEvent e)
         {
             OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - bounds.Location, e.KeyModifiers));
+            return OnClick != null;
         }
 
         #region IDisposable

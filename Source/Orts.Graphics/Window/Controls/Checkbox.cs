@@ -52,10 +52,11 @@ namespace Orts.Graphics.Window.Controls
             this.useColors = useColors;
         }
 
-        internal override void MouseClick(WindowMouseEvent e)
+        internal override bool MouseClick(WindowMouseEvent e)
         {
             State = tristate ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
-            base.MouseClick(e);
+            _ = base.MouseClick(e);
+            return true;
         }
     }
 }

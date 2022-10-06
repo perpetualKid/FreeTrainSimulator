@@ -349,8 +349,6 @@ namespace Orts.Settings
         [Default(new[] { 100, 0 })]
         public int[] WindowPosition_TrackMonitor { get; set; }
         [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_CarOperations { get; set; }
-        [Default(new[] { 50, 50 })]
         public int[] WindowPosition_ComposeMessage { get; set; }
 
         [Default(new string[]

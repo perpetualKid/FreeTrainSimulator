@@ -49,10 +49,11 @@ namespace Orts.Graphics.Window.Controls
             base.Draw(spriteBatch, offset);
         }
 
-        internal override void MouseClick(WindowMouseEvent e)
+        internal override bool MouseClick(WindowMouseEvent e)
         {
             State = true;
-            base.MouseClick(e);
+            _ = base.MouseClick(e);
+            return true;
         }
     }
 

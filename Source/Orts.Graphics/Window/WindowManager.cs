@@ -51,7 +51,7 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
         private Rectangle clientBounds;
-        internal ref readonly Rectangle ClientBounds => ref clientBounds;
+        public ref readonly Rectangle ClientBounds => ref clientBounds;
 
         public float DpiScaling { get; private set; }
         public System.Drawing.Font TextFontDefault { get; }

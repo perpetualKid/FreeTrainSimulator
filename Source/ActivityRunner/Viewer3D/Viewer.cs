@@ -104,7 +104,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
-        public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
         public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
@@ -470,7 +469,6 @@ namespace Orts.ActivityRunner.Viewer3D
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
-            CarOperationsWindow = new CarOperationsWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
@@ -535,6 +533,10 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
                 return new PopupWindows.TrainOperationsWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainOperationsWindow].ToPoint(), this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.CarOperationsWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                return new PopupWindows.CarOperationsWindow(windowManager, this);
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -1038,7 +1040,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
-                if (Settings.PopupStatus[windowType] && windowType is not ViewerWindowType.QuitWindow and not ViewerWindowType.ActivityWindow and not ViewerWindowType.PauseWindow)
+                if (Settings.PopupStatus[windowType] && 
+                    (windowType is not ViewerWindowType.QuitWindow 
+                    and not ViewerWindowType.ActivityWindow 
+                    and not ViewerWindowType.PauseWindow
+                    and not ViewerWindowType.CarOperationsWindow))
                     windowManager[windowType].Open();
             }
 

@@ -1402,9 +1402,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     //Update Brake Information view to show selected car from TrainOperationsWindow (F9)
                     //Once a car clicked CarOperationsWindow remains visible
                     BrakeInfoVisible = false;
-                    if (Viewer.CarOperationsWindow.Visible)
+                    //TODO 20221006 need some other way to map selected car from Train/Car operations Window
+                    int carPosition = 0;
+                    if (true)
                     {
-                        int indexMatch = statusBrake.FindIndex(x => x.Contains(Viewer.Catalog.GetString((Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID))));
+                        int indexMatch = statusBrake.FindIndex(x => x.Contains(Viewer.Catalog.GetString((carPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[carPosition].CarID))));
                         hudWindowLinesActualPage = (int)Math.Ceiling(Convert.ToDouble(indexMatch / nLinesShow) + 0.5);
                         BrakeInfoVisible = true;
                     }
@@ -1412,8 +1414,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     //Add yellow color to string when car was selected at CarOperationWindow (F9).
                     stringStatusToList = (statusBrake[i].TrimEnd('\t').Split('\t'));//Convert to string[]
 
-                    var EndText = stringStatusToList[0] == (Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID) ? "???" : "";
+                    var EndText = stringStatusToList[0] == (carPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[carPosition].CarID) ? "???" : "";
                     var arrow = "";
+
+                    //if (Viewer.CarOperationsWindow.Visible)
+                    //{
+                    //    int indexMatch = statusBrake.FindIndex(x => x.Contains(Viewer.Catalog.GetString((Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID))));
+                    //    hudWindowLinesActualPage = (int)Math.Ceiling(Convert.ToDouble(indexMatch / nLinesShow) + 0.5);
+                    //    BrakeInfoVisible = true;
+                    //}
+
+                    ////Add yellow color to string when car was selected at CarOperationWindow (F9).
+                    //stringStatusToList = (statusBrake[i].TrimEnd('\t').Split('\t'));//Convert to string[]
+
+                    //var EndText = stringStatusToList[0] == (Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID) ? "???" : "";
+                    //var arrow = "";
 
                     //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
                     if (hudWindowColumnsActualPage > 0)

@@ -4,8 +4,11 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
+using Orts.Common;
 using Orts.Common.Info;
+using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -24,11 +27,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private int numberCars;
         private readonly List<Label> carLabels = new List<Label>();
         private readonly Viewer viewer;
+        private readonly WindowManager<ViewerWindowType> windowManager;
 
         public TrainOperationsWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Operations"), relativeLocation, new Point(600, 72), catalog)
         {
             this.viewer = viewer;
+            windowManager = owner as WindowManager<ViewerWindowType>;
         }
 
         protected override void Initialize()
@@ -44,7 +49,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
             ControlLayout scrollbox = layout.AddLayoutScrollboxHorizontal(layout.RemainingHeight);
             scrollbox.VerticalChildAlignment = VerticalAlignment.Bottom;
-
+            scrollbox.Container.OnClick += Scrollbox_OnClick;
             carLabels.Clear();
 
             int carIndex = 0;
@@ -72,6 +77,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return layout;
         }
 
+        private void Scrollbox_OnClick(object sender, MouseClickEventArgs e)
+        {
+            windowManager[ViewerWindowType.CarOperationsWindow].Close();
+        }
+
         private void CouplerControl_OnClick(object sender, MouseClickEventArgs e)
         {
             if (Simulator.Instance.TimetableMode)
@@ -86,11 +96,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void CarControl_OnClick(object sender, MouseClickEventArgs e)
         {
-            viewer.CarOperationsWindow.CarPosition = Simulator.Instance.PlayerLocomotive.Train.Cars.IndexOf((sender as WindowControl).Tag as TrainCar);
-            viewer.CarOperationsWindow.Visible = true;
-
-            //if (Viewer.CarOperationsWindow.CarPosition > CarPosition)
-            //    Viewer.CarOperationsWindow.Visible = false;
+            bool openAbove  = Borders.Top > Owner.ClientBounds.Height / 2;
+            Point openPoint = new Point(Mouse.GetState().Position.X, openAbove ? Borders.Top : Borders.Bottom);
+            (windowManager[ViewerWindowType.CarOperationsWindow] as CarOperationsWindow).OpenAt(openPoint, openAbove, (sender as WindowControl).Tag as TrainCar);
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
