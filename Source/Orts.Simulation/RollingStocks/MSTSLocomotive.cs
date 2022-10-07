@@ -5561,7 +5561,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Train_Brake:
                     {
-                        if (CruiseControl != null && CruiseControl.CCIsUsingTrainBrake)
+                        if (CruiseControl != null && CruiseControl.UsingTrainBrake)
                             break;
                         data = (TrainBrakeController == null) ? 0.0f : TrainBrakeController.CurrentValue;
                         break;
