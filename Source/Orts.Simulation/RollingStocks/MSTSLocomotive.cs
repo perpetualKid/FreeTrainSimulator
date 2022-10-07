@@ -488,6 +488,7 @@ namespace Orts.Simulation.RollingStocks
             TrainBrakeController = new ScriptedTrainBrakeController(this);
             EngineBrakeController = new ScriptedEngineBrakeController(this);
             BrakemanBrakeController = new ScriptedBrakeController(this);
+            MultiPositionControllers = new Collection<MultiPositionController>();
             ThrottleController = new MSTSNotchController();
             DynamicBrakeController = new MSTSNotchController();
             TrainControlSystem = new ScriptedTrainControlSystem(this);
@@ -1248,10 +1249,10 @@ namespace Orts.Simulation.RollingStocks
                     TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
                     break;
                 case "engine(ortscruisecontrol":
-                    SetUpCruiseControl(stf);
+                    SetupCruiseControl(stf);
                     break;
                 case "engine(ortsmultipositioncontroller":
-                    SetUpMultiPositionController(stf);
+                    SetupMultiPositionController(stf);
                     break;
                 default:
                     base.Parse(lowercasetoken, stf);
@@ -1378,8 +1379,7 @@ namespace Orts.Simulation.RollingStocks
             MoveParamsToAxle();
             if (sourceLocomotive.CruiseControl != null)
                 CruiseControl = new CruiseControl(sourceLocomotive.CruiseControl, this);
-            if (sourceLocomotive.MultiPositionControllers != null)
-                MultiPositionControllers = CloneMultiPositionController(sourceLocomotive);
+            MultiPositionControllers = CloneMultiPositionController(sourceLocomotive);
         }
 
         /// <summary>
@@ -1584,7 +1584,10 @@ namespace Orts.Simulation.RollingStocks
             LocomotivePowerSupply?.Initialize();
             TrainControlSystem.Initialize();
             CruiseControl?.Initialize();
-
+            foreach (MultiPositionController multiPositionController in MultiPositionControllers)
+            {
+                multiPositionController.Initialize();
+            }
             IsSteamHeatFitted = MaxSteamHeatPressurePSI != 0;
 
             SteamHeatPressureToTemperaturePSItoF = SteamTable.SteamHeatPressureToTemperatureInterpolatorPSItoF();
@@ -1851,7 +1854,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Make instance of Cruise Control and Initialize it
         /// </summary>
-        private void SetUpCruiseControl(STFReader stf)
+        private void SetupCruiseControl(STFReader stf)
         {
             CruiseControl = new CruiseControl(this);
             CruiseControl.Parse(stf);
@@ -1860,11 +1863,10 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Make instance of multi position controller
         /// </summary>
-        private void SetUpMultiPositionController(STFReader stf)
+        private void SetupMultiPositionController(STFReader stf)
         {
             MultiPositionController multiPositionController = new MultiPositionController(this);
             multiPositionController.Parse(stf);
-            MultiPositionControllers ??= new Collection<MultiPositionController>();
             MultiPositionControllers.Add(multiPositionController);
         }
 
@@ -2084,13 +2086,11 @@ namespace Orts.Simulation.RollingStocks
 
             // Cruise Control
             CruiseControl?.Update(elapsedClockSeconds);
+            // TODO  this is a wild simplification for electric and diesel electric
             UpdateTractiveForce(elapsedClockSeconds, ThrottlePercent / 100f, AbsSpeedMpS, AbsWheelSpeedMpS);
 
-            if (MultiPositionControllers != null)
-            {
-                foreach (MultiPositionController mpc in MultiPositionControllers)
-                    mpc.Update(elapsedClockSeconds);
-            }
+            foreach (MultiPositionController mpc in MultiPositionControllers)
+                mpc.Update(elapsedClockSeconds);
 
             ApplyDirectionToTractiveForce();
 
@@ -3508,20 +3508,15 @@ namespace Orts.Simulation.RollingStocks
                 }
                 CruiseControl.SkipThrottleDisplay = false;
             }
-            if (MultiPositionControllers != null)
+            MultiPositionController mpc = MultiPositionControllers.Where(x => x.ControllerBinding == CruiseControllerBinding.Throttle).FirstOrDefault();
+            if (mpc != null)
             {
-                foreach (MultiPositionController mpc in MultiPositionControllers)
+                if (!mpc.StateChanged)
                 {
-                    if (mpc.ControllerBinding == CruiseControllerBinding.Throttle)
-                    {
-                        if (!mpc.StateChanged)
-                        {
-                            mpc.StateChanged = true;
-                            mpc.DoMovement(Movement.Forward);
-                        }
-                        return;
-                    }
+                    mpc.StateChanged = true;
+                    mpc.DoMovement(Movement.Forward);
                 }
+                return;
             }
             if (CruiseControl != null && (CombinedControlType == CombinedControl.None || CruiseControl.UseThrottleInCombinedControl))
             {
@@ -3567,20 +3562,15 @@ namespace Orts.Simulation.RollingStocks
 
         public void StopThrottleIncrease()
         {
-            if (MultiPositionControllers != null)
+            MultiPositionController mpc = MultiPositionControllers.Where(x => x.ControllerBinding == CruiseControllerBinding.Throttle).FirstOrDefault();
+            if (mpc != null)
             {
-                foreach (MultiPositionController mpc in MultiPositionControllers)
+                if (mpc.StateChanged)
                 {
-                    if (mpc.ControllerBinding == CruiseControllerBinding.Throttle)
-                    {
-                        if (mpc.StateChanged)
-                        {
-                            mpc.StateChanged = false;
-                            mpc.DoMovement(Movement.Neutral);
-                        }
-                        return;
-                    }
+                    mpc.StateChanged = false;
+                    mpc.DoMovement(Movement.Neutral);
                 }
+                return;
             }
             if (CruiseControl != null)
             {
@@ -3649,20 +3639,15 @@ namespace Orts.Simulation.RollingStocks
                 }
                 CruiseControl.SkipThrottleDisplay = false;
             }
-            if (MultiPositionControllers != null)
+            MultiPositionController mpc = MultiPositionControllers.Where(x => x.ControllerBinding == CruiseControllerBinding.Throttle).FirstOrDefault();
+            if (mpc != null)
             {
-                foreach (MultiPositionController mpc in MultiPositionControllers)
+                if (!mpc.StateChanged)
                 {
-                    if (mpc.ControllerBinding == CruiseControllerBinding.Throttle)
-                    {
-                        if (!mpc.StateChanged)
-                        {
-                            mpc.StateChanged = true;
-                            mpc.DoMovement(Movement.Backward);
-                        }
-                        return;
-                    }
+                    mpc.StateChanged = true;
+                    mpc.DoMovement(Movement.Backward);
                 }
+                return;
             }
             if (CruiseControl != null && (CombinedControlType == CombinedControl.None || CruiseControl.UseThrottleInCombinedControl))
             {
@@ -3696,20 +3681,15 @@ namespace Orts.Simulation.RollingStocks
 
         public void StopThrottleDecrease()
         {
-            if (MultiPositionControllers != null)
+            MultiPositionController mpc = MultiPositionControllers.Where(x => x.ControllerBinding == CruiseControllerBinding.Throttle).FirstOrDefault();
+            if (mpc != null)
             {
-                foreach (MultiPositionController mpc in MultiPositionControllers)
+                if (mpc.StateChanged)
                 {
-                    if (mpc.ControllerBinding == CruiseControllerBinding.Throttle)
-                    {
-                        if (mpc.StateChanged)
-                        {
-                            mpc.StateChanged = false;
-                            mpc.DoMovement(Movement.Neutral);
-                        }
-                        return;
-                    }
+                    mpc.StateChanged = false;
+                    mpc.DoMovement(Movement.Neutral);
                 }
+                return;
             }
             if (CruiseControl != null)
             {

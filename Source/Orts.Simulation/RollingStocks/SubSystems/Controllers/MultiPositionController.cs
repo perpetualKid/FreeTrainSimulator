@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Orts.Common;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -48,13 +47,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private bool previousDriveModeWasAddPower;
         private bool isBraking;
         private bool needPowerUpAfterBrake;
-        private bool initialized;
         private bool movedForward;
         private bool movedAft;
         private bool haveCruiseControl;
 
         private readonly List<Position> positionsList = new List<Position>();
-        public bool Equipped { get; set; }
         public bool StateChanged { get; set; }
         public CruiseControllerPosition ControllerPosition { get; private set; }
         public CruiseControllerBinding ControllerBinding { get; private set; }
@@ -86,87 +83,74 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Save(BinaryWriter outf)
         {
-            outf.Write(this.checkNeutral);
-            outf.Write((int)this.ControllerPosition);
-            outf.Write((int)this.currentPosition);
-            outf.Write(this.elapsedSecondsFromLastChange);
-            outf.Write(this.emergencyBrake);
-            outf.Write(this.Equipped);
-            outf.Write(this.isBraking);
-            outf.Write(this.noKeyPressed);
-            outf.Write(this.previousDriveModeWasAddPower);
-            outf.Write(this.StateChanged);
-            outf.Write(haveCruiseControl);
+            outf.Write(checkNeutral);
+            outf.Write((int)ControllerPosition);
+            outf.Write((int)currentPosition);
+            outf.Write(elapsedSecondsFromLastChange);
+            outf.Write(emergencyBrake);
+            outf.Write(isBraking);
+            outf.Write(noKeyPressed);
+            outf.Write(previousDriveModeWasAddPower);
+            outf.Write(StateChanged);
         }
 
         public void Restore(BinaryReader inf)
         {
-            initialized = true;
             checkNeutral = inf.ReadBoolean();
             ControllerPosition = (CruiseControllerPosition)inf.ReadInt32();
             currentPosition = (CruiseControllerPosition)inf.ReadInt32();
             elapsedSecondsFromLastChange = inf.ReadSingle();
             emergencyBrake = inf.ReadBoolean();
-            Equipped = inf.ReadBoolean();
             isBraking = inf.ReadBoolean();
             noKeyPressed = inf.ReadBoolean();
             previousDriveModeWasAddPower = inf.ReadBoolean();
             StateChanged = inf.ReadBoolean();
-            haveCruiseControl = inf.ReadBoolean();
         }
 
         public void Parse(STFReader stf)
         {
             stf.MustMatch("(");
-            while (!stf.EndOfBlock())
-            {
-                stf.ReadItem();
-                switch (stf.Tree.ToLower())
-                {
-                    case "engine(ortsmultipositioncontroller(positions":
-                        stf.MustMatch("(");
-                        while (!stf.EndOfBlock())
-                        {
-                            stf.ParseBlock(new STFReader.TokenProcessor[] {
+            stf.ParseBlock(new[] {
+                new STFReader.TokenProcessor("positions", () => {
+                    stf.MustMatch("(");
+                    stf.ParseBlock(new [] {
                         new STFReader.TokenProcessor("position", ()=>{
                             stf.MustMatch("(");
-                            positionsList.Add(new Position(stf.ReadString(), stf.ReadString(), stf.ReadString()));
+                            string positionType = stf.ReadString();
+                            string positionFlag = stf.ReadString();
+                            string positionName = stf.ReadString();
+                            stf.SkipRestOfBlock();
+                            positionsList.Add(new Position(positionType, positionFlag, positionName));
                         }),
                     });
-                        }
-                        break;
-                    case "engine(ortsmultipositioncontroller(controllerbinding":
+                }),
+                new STFReader.TokenProcessor("controllerbinding", () =>
+                {
                         string binding = stf.ReadStringBlock("null");
                         if (EnumExtension.GetValue(binding, out CruiseControllerBinding controllerBinding))
                             ControllerBinding = controllerBinding;
-                        break;
-                    case "engine(ortsmultipositioncontroller(controllerid":
-                        ControllerId = stf.ReadIntBlock(0);
-                        break;
-                    case "engine(ortsmultipositioncontrollercancontroltrainbrake":
-                        CanControlTrainBrake = stf.ReadBoolBlock(false);
-                        break;
-                    default:
-                        break;
+                }),
+                new STFReader.TokenProcessor("controllerid", () => ControllerId = stf.ReadIntBlock(0)),
+                new STFReader.TokenProcessor("cancontroltrainbrake", () => CanControlTrainBrake = stf.ReadBoolBlock(false)),
+            });
+        }
+
+        public void Initialize()
+        {
+            if (locomotive.CruiseControl != null)
+                haveCruiseControl = true;
+            foreach (Position pair in positionsList)
+            {
+                if (pair.Flag == Simulation.ControllerPosition.Default)
+                {
+                    currentPosition = pair.Type;
+                    break;
                 }
             }
         }
+
         public void Update(double elapsedClockSeconds)
         {
-            if (!initialized)
-            {
-                if (locomotive.CruiseControl != null)
-                    haveCruiseControl = true;
-                foreach (Position pair in positionsList)
-                {
-                    if (string.Equals(pair.Flag, "default", StringComparison.OrdinalIgnoreCase))
-                    {
-                        currentPosition = pair.Type;
-                        break;
-                    }
-                }
-                initialized = true;
-            }
             if (!locomotive.IsPlayerTrain)
                 return;
 
@@ -179,7 +163,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 if (emergencyBrake)
                 {
-                    locomotive.TrainBrakeController.TCSEmergencyBraking = true;
+                    locomotive.TrainBrakeController.EmergencyBrakingPushButton = true;
                     return;
                 }
             }
@@ -187,10 +171,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 emergencyBrake = false;
             }
-            /*            if (Locomotive.TrainBrakeController.TCSEmergencyBraking)
-                            Locomotive.TrainBrakeController.TCSEmergencyBraking = false; */
             elapsedSecondsFromLastChange += (float)elapsedClockSeconds;
-            // Simulator.Confirmer.MSG(currentPosition.ToString());
             if (checkNeutral)
             {
                 // Check every 200 ms if state of MPC has changed
@@ -650,7 +631,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 foreach (Position pair in positionsList)
                 {
-                    if (pair.Flag.ToLower() == "default")
+                    if (pair.Flag == Simulation.ControllerPosition.Default)
                     {
                         currentPosition = pair.Type;
                         break;
@@ -701,23 +682,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 {
                     if (pair.Type == currentPosition)
                     {
-                        if (pair.Flag.ToLower() == "springloadedbackwards" || pair.Flag.ToLower() == "springloadedforwards")
+                        switch (pair.Flag)
                         {
-                            checkNeutral = true;
-                            elapsedSecondsFromLastChange = 0;
-                        }
-                        if (pair.Flag.ToLower() == "springloadedbackwardsimmediately" || pair.Flag.ToLower() == "springloadedforwardsimmediately")
-                        {
-                            if (!MouseInputActive)
-                            {
-                                CheckNeutralPosition();
-                                ReloadPositions();
-                            }
+                            case Simulation.ControllerPosition.SpringLoadedBackwards:
+                            case Simulation.ControllerPosition.SpringLoadedForwards:
+                                checkNeutral = true;
+                                elapsedSecondsFromLastChange = 0;
+                                break;
+                            case Simulation.ControllerPosition.SpringLoadedForwardsImmediately:
+                            case Simulation.ControllerPosition.SpringLoadedBackwardsImmediately:
+                                if (!MouseInputActive)
+                                {
+                                    CheckNeutralPosition();
+                                    ReloadPositions();
+                                }
+                                break;
                         }
                     }
                 }
             }
-
         }
 
         protected void ReloadPositions()
@@ -728,17 +711,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 {
                     if (pair.Type == currentPosition)
                     {
-                        if (string.Equals(pair.Flag, "cruisecontrol.needincreaseafteranybrake", StringComparison.OrdinalIgnoreCase))
+                        switch (pair.Flag)
                         {
-                            needPowerUpAfterBrake = true;
-                        }
-                        if (string.Equals(pair.Flag, "springloadedforwards", StringComparison.OrdinalIgnoreCase) || string.Equals(pair.Flag, "springloadedbackwards", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (elapsedSecondsFromLastChange > 0.2f)
-                            {
-                                elapsedSecondsFromLastChange = 0;
-                                checkNeutral = true;
-                            }
+                            case Simulation.ControllerPosition.CCNeedIncreaseAfterAnyBrake:
+                                needPowerUpAfterBrake = true;
+                                break;
+                            case Simulation.ControllerPosition.SpringLoadedForwards:
+                            case Simulation.ControllerPosition.SpringLoadedBackwards:
+                                if (elapsedSecondsFromLastChange > 0.2f)
+                                {
+                                    elapsedSecondsFromLastChange = 0;
+                                    checkNeutral = true;
+                                }
+                                break;
                         }
                     }
                 }
@@ -767,15 +752,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
                 if (pair.Type == currentPosition)
                 {
-                    if (string.Equals(pair.Flag, "springloadedbackwards", StringComparison.OrdinalIgnoreCase) || string.Equals(pair.Flag, "springloadedbackwardsimmediately", StringComparison.OrdinalIgnoreCase))
+                    switch (pair.Flag)
                     {
-                        setNext = true;
-                    }
-                    if (string.Equals(pair.Flag, "springloadedforwards", StringComparison.OrdinalIgnoreCase) || pair.Flag.ToLower() == "springloadedforwardsimmediately")
-                    {
-                        currentPosition = previous;
-                        locomotive.SignalEvent(TrainEvent.MPCChangePosition);
-                        break;
+                        case Simulation.ControllerPosition.SpringLoadedBackwards:
+                        case Simulation.ControllerPosition.SpringLoadedBackwardsImmediately:
+                            setNext = true;
+                            break;
+                        case Simulation.ControllerPosition.SpringLoadedForwards:
+                        case Simulation.ControllerPosition.SpringLoadedForwardsImmediately:
+                            currentPosition = previous;
+                            locomotive.SignalEvent(TrainEvent.MPCChangePosition);
+                            break;
                     }
                 }
                 previous = pair.Type;
@@ -796,7 +783,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             locomotive.SetThrottlePercent(0);
             locomotive.SetDynamicBrakePercent(100);
-            locomotive.TrainBrakeController.TCSEmergencyBraking = true;
+            locomotive.TrainBrakeController.EmergencyBrakingPushButton = true;
         }
 
         public float GetDataOf(CabViewControl cvc)
@@ -849,14 +836,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         private class Position
         {
             public CruiseControllerPosition Type { get; }
-            public string Flag { get; }
+            public ControllerPosition Flag { get; }
             public string Name { get; }
 
             public Position(string positionType, string positionFlag, string name)
             {
                 if (EnumExtension.GetValue(positionType, out CruiseControllerPosition type))
                     Type = type;
-                Flag = positionFlag;
+                if (!EnumExtension.GetValue(positionFlag, out ControllerPosition controllerPosition))
+                {
+                    if (string.Equals(positionFlag, "cruisecontrol.needincreaseafteranybrake", StringComparison.OrdinalIgnoreCase))
+                    {
+                        controllerPosition = Simulation.ControllerPosition.CCNeedIncreaseAfterAnyBrake;
+                    }
+                }
+                Flag = controllerPosition;
                 Name = name;
             }
         }

@@ -229,4 +229,15 @@ namespace Orts.Simulation
         SpeedOnly
     }
 
+    public enum ControllerPosition
+    {
+        Default,
+        Stable,
+        SpringLoadedForwards,
+        SpringLoadedForwardsImmediately,
+        SpringLoadedBackwards,
+        SpringLoadedBackwardsImmediately,
+        CCNeedIncreaseAfterAnyBrake
+    }
+
 }
