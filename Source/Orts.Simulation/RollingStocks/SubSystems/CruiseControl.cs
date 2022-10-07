@@ -101,8 +101,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private float trainLength;
         private int trainLengthMeters;
         private float currentSelectedSpeedMpS;
-        private Odometer restrictedRegionOdometer;
-        private float restrictedRegionTravelledDistance;
+        private readonly Odometer restrictedRegionOdometer;
 
         private float startReducingSpeedDelta = 0.5f;
         private float StartReducingSpeedDeltaDownwards;
@@ -114,7 +113,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private readonly List<float> accelerationTable = new List<float>();
 
         public bool DynamicBrakePriority { get; set; }
-        private float brakePercent;
         public float DynamicBrakeIncreaseSpeed { get; set; }
         public float DynamicBrakeDecreaseSpeed { get; set; }
         public uint MinimumMetersToPass { get; set; } = 19;
@@ -136,8 +134,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float PowerBreakoutAmpers { get; set; }
         public float PowerBreakoutSpeedDelta { get; set; }
         public float PowerResumeSpeedDelta { get; set; }
-        public float PowerReductionDelayPaxTrain { get; set; }
-        public float PowerReductionDelayCargoTrain { get; set; }
+        private float powerReductionDelayPaxTrain;
+        private float powerReductionDelayCargoTrain;
         public float PowerReductionValue { get; set; }
         public float MaxPowerThreshold { get; set; }
         public float SafeSpeedForAutomaticOperationMpS { get; set; }
@@ -176,12 +174,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float LowSpeed { get; set; } = 2f; // default parking speed
         public bool HasTwoForceValues { get; set; } // when UseThrottleAsSpeedSelector is true, two max force values (50% and 100%) are available
 
-        public bool OverrideForceCalculation { get; set; }
-
-        private bool brakeIncreasing;
-        private float controllerTime;
-        private float fromAcceleration;
-        private bool applyingPneumaticBrake;
         private bool firstIteration = true;
         // throttleOrDynBrakePercent may vary from -100 to 100 and is the percentage value which the Cruise Control
         // sets to throttle (if throttleOrDynBrakePercent >=0) or to dynamic brake (if throttleOrDynBrakePercent <0)
@@ -261,8 +253,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             PowerBreakoutAmpers = source.PowerBreakoutAmpers;
             PowerBreakoutSpeedDelta = source.PowerBreakoutSpeedDelta;
             PowerResumeSpeedDelta = source.PowerResumeSpeedDelta;
-            PowerReductionDelayPaxTrain = source.PowerReductionDelayPaxTrain;
-            PowerReductionDelayCargoTrain = source.PowerReductionDelayCargoTrain;
+            powerReductionDelayPaxTrain = source.powerReductionDelayPaxTrain;
+            powerReductionDelayCargoTrain = source.powerReductionDelayCargoTrain;
             PowerReductionValue = source.PowerReductionValue;
             MaxPowerThreshold = source.MaxPowerThreshold;
             SafeSpeedForAutomaticOperationMpS = source.SafeSpeedForAutomaticOperationMpS;
@@ -413,10 +405,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         PowerResumeSpeedDelta = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
                         break;
                     case "powerreductiondelaypaxtrain":
-                        PowerReductionDelayPaxTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
+                        powerReductionDelayPaxTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
                         break;
                     case "powerreductiondelaycargotrain":
-                        PowerReductionDelayCargoTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
+                        powerReductionDelayCargoTrain = stf.ReadFloatBlock(STFReader.Units.Any, 0.0f);
                         break;
                     case "powerreductionvalue":
                         PowerReductionValue = stf.ReadFloatBlock(STFReader.Units.Any, 100.0f);
@@ -590,6 +582,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 wasForceReset = false;
                 throttleOrDynBrakePercent = 0;
+                trainBrakePercent = 0;
                 return;
             }
 
@@ -609,14 +602,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 wasBraking = true;
                 throttleOrDynBrakePercent = 0;
+                trainBrakePercent = 0;
             }
             else if (SpeedRegulatorMode == SpeedRegulatorMode.Manual || (SpeedRegulatorMode == SpeedRegulatorMode.Auto && (DynamicBrakePriority || throttleNeutralPriority)))
             {
                 wasForceReset = false;
                 throttleOrDynBrakePercent = 0;
+                trainBrakePercent = 0;
             }
             else if (SpeedRegulatorMode == SpeedRegulatorMode.Auto)
             {
+                float prevTrainBrakePercent = trainBrakePercent;
                 CalculateRequiredForce(elapsedClockSeconds, locomotive.AbsWheelSpeedMpS);
                 throttleOrDynBrakePercent = Math.Clamp(throttleOrDynBrakePercent, -100, 100);
                 if (throttleOrDynBrakePercent >= 0)
@@ -630,6 +626,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         locomotive.DynamicBrakeCommandStartTime = Simulator.Instance.ClockTime;
                     locomotive.ThrottlePercent = 0;
                     locomotive.DynamicBrakePercent = (float)-throttleOrDynBrakePercent;
+                }
+                if (prevTrainBrakePercent != trainBrakePercent && !TrainBrakePriority)
+                {
+                    locomotive.TrainBrakeController.SetPercent(trainBrakePercent); // TODO: do not move actual train brake lever
                 }
                 cruiseControlActive = true;
             }
@@ -1293,54 +1293,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 TrainBrakePriority = false;
             }
-            if (TrainBrakePriority)
-            {
-                wasForceReset = false;
-                wasBraking = true;
-                if (SpeedSelectorMode == SpeedSelectorMode.Parking)
-                    if (absWheelSpeedMpS < (speedIsMph ? Speed.MeterPerSecond.FromMpH(ParkingBrakeEngageSpeed) : Speed.MeterPerSecond.FromKpH(ParkingBrakeEngageSpeed)))
-                        locomotive.SetEngineBrakePercent(ParkingBrakePercent);
-                throttleOrDynBrakePercent = 0;
-                return;
-            }
-            bool canAddForce = false;
 
             if ((SpeedSelectorMode == SpeedSelectorMode.On || SpeedSelectorMode == SpeedSelectorMode.Start) && !TrainBrakePriority)
-            {
-                canAddForce = true;
-            }
-            else
-            {
-                canAddForce = false;
-                timeFromEngineMoved = 0;
-                reducingForce = true;
-            }
-
-            if (SpeedSelectorMode == SpeedSelectorMode.Start)
-                wasForceReset = true;
-
-            if (SelectedMaxAccelerationPercent == 0 && SelectedMaxAccelerationStep == 0)
-            {
-                wasBraking = false;
-                wasForceReset = true;
-            }
-            if (ForceResetRequiredAfterBraking && (!wasForceReset || (wasBraking && (SelectedMaxAccelerationStep > 0 || SelectedMaxAccelerationPercent > 0))))
-            {
-                throttleOrDynBrakePercent = 0;
-                if (SpeedSelectorMode == SpeedSelectorMode.Parking)
-                    if (absWheelSpeedMpS < (speedIsMph ? Speed.MeterPerSecond.FromMpH(ParkingBrakeEngageSpeed) : Speed.MeterPerSecond.FromKpH(ParkingBrakeEngageSpeed)))
-                        locomotive.SetEngineBrakePercent(ParkingBrakePercent);
-                return;
-            }
-
-            if (ThrottleNeutralPosition && SelectedSpeedMpS == 0)
-            {
-                throttleOrDynBrakePercent = 0;
-                return;
-            }
-
-
-            if (canAddForce)
             {
                 if (locomotive.AbsSpeedMpS == 0)
                 {
@@ -1349,20 +1303,51 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
                 else if (reducingForce)
                 {
-
                     timeFromEngineMoved += elapsedClockSeconds;
-                    float timeToReduce = locomotive.SelectedTrainType == TrainCategory.Passenger ? PowerReductionDelayPaxTrain : PowerReductionDelayCargoTrain;
+                    float timeToReduce = locomotive.SelectedTrainType == TrainCategory.Passenger ? powerReductionDelayPaxTrain : powerReductionDelayCargoTrain;
                     if (timeFromEngineMoved > timeToReduce)
                         reducingForce = false;
                 }
             }
-            if ((!UseTrainBrakeAndDynBrake || !CCIsUsingTrainBrake) && locomotive.TrainBrakeController.MaxPressurePSI - locomotive.BrakeSystem.BrakeLine1PressurePSI > 1)
+            else
             {
-                reducingForce = true;
                 timeFromEngineMoved = 0;
-                if (throttleOrDynBrakePercent > 0)
-                    throttleOrDynBrakePercent = 0;
+                reducingForce = true;
+            }
+
+            if (TrainBrakePriority)
+            {
+                wasForceReset = false;
+                wasBraking = true;
+            }
+            else if (SpeedSelectorMode == SpeedSelectorMode.Start)
+                wasForceReset = true;
+            else if (SelectedMaxAccelerationPercent == 0 && SelectedMaxAccelerationStep == 0)
+            {
+                wasBraking = false;
+                wasForceReset = true;
+            }
+            if (TrainBrakePriority || (ThrottleNeutralPosition && SelectedSpeedMpS == 0) || SelectedMaxAccelerationStep == 0 ||
+                (ForceResetRequiredAfterBraking &&
+                    (!wasForceReset || (wasBraking && (SelectedMaxAccelerationStep > 0 || SelectedMaxAccelerationPercent > 0)))))
+            {
+                if (SpeedSelectorMode == SpeedSelectorMode.Parking)
+                    if (absWheelSpeedMpS < (speedIsMph ? Speed.MeterPerSecond.FromMpH(ParkingBrakeEngageSpeed) : Speed.MeterPerSecond.FromKpH(ParkingBrakeEngageSpeed)))
+                        locomotive.SetEngineBrakePercent(ParkingBrakePercent);
+                throttleOrDynBrakePercent = 0;
+                trainBrakePercent = 0;
                 return;
+            }
+            if (locomotive.TrainBrakeController.MaxPressurePSI - locomotive.BrakeSystem.BrakeLine1PressurePSI > 1)
+            {
+                if (!UseTrainBrakeAndDynBrake || !CCIsUsingTrainBrake)
+                {
+                    reducingForce = true;
+                    timeFromEngineMoved = 0;
+                    if (throttleOrDynBrakePercent > 0)
+                        throttleOrDynBrakePercent = 0;
+                    return;
+                }
             }
 
             if (speedRegulatorOptions.Contains("engageforceonnonzerospeed") && SelectedSpeedMpS > 0)
@@ -1378,12 +1363,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 if (!DoComputeNumberOfAxles)
                     SelectedNumberOfAxles = (int)(locomotive.Train.Length / 6.6f); // also set the axles, for better delta computing, if user omits to set it
                 firstIteration = false;
-            }
-
-            if (SelectedMaxAccelerationStep == 0) // no effort, no throttle (i.e. for reverser change, etc) and return
-            {
-                throttleOrDynBrakePercent = 0;
-                return;
             }
 
             float deltaSpeedMpS = SetSpeedMpS - absWheelSpeedMpS;
@@ -1406,6 +1385,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         IncreaseForce(elapsedClockSeconds, 0);
                     else if (throttleOrDynBrakePercent > 0)
                         DecreaseForce(elapsedClockSeconds, 0);
+                    trainBrakePercent = 0;
                 }
                 else // start braking
                 {
@@ -1415,6 +1395,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     }
                     else
                     {
+                        deltaSpeedMpS = SetSpeedMpS + (trainElevation < -0.01 ? trainElevation * (SelectedNumberOfAxles / 12) : 0) - absWheelSpeedMpS;
                         if (locomotive.DynamicBrakeAvailable)
                         {
                             deltaSpeedMpS = SetSpeedMpS + (trainElevation < -0.01 ? trainElevation * (SelectedNumberOfAxles / 12) : 0) - absWheelSpeedMpS;
@@ -1431,44 +1412,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                                 IncreaseForce(elapsedClockSeconds, 0);
                             }
                         }
-                        else // use TrainBrake
-                        {
-                            throttleOrDynBrakePercent = 0;
-                            if (deltaSpeedMpS > -1)
-                            {
-                                brakePercent = TrainBrakeMinPercentValue - 3.0f + (-deltaSpeedMpS * 10);
-                            }
-                            else
-                            {
-                                if (RelativeAccelerationMpSS > -maxDecelerationMpSS + 0.01f)
-                                    brakePercent += 0.5f;
-                                else if (RelativeAccelerationMpSS < -maxDecelerationMpSS - 0.01f)
-                                    brakePercent -= 1;
-                                brakePercent = MathHelper.Clamp(brakePercent, TrainBrakeMinPercentValue - 3.0f, TrainBrakeMaxPercentValue);
-                            }
-                            locomotive.SetTrainBrakePercent(brakePercent);
-                        }
-                        if (UseTrainBrakeAndDynBrake)
-                        {
-                            if (-deltaSpeedMpS > SpeedDeltaToEnableTrainBrake)
-                            {
-                                CCIsUsingTrainBrake = true;
-                                /*                               brakePercent = Math.Max(TrainBrakeMinPercentValue + 3.0f, -delta * 2);
-                                                                if (brakePercent > TrainBrakeMaxPercentValue)
-                                                                brakePercent = TrainBrakeMaxPercentValue;*/
-                                brakePercent = (TrainBrakeMaxPercentValue - TrainBrakeMinPercentValue - 3.0f) * SelectedMaxAccelerationStep / SpeedRegulatorMaxForceSteps + TrainBrakeMinPercentValue + 3.0f;
-                                if (-deltaSpeedMpS < SpeedDeltaToEnableFullTrainBrake)
-                                    brakePercent = Math.Min(brakePercent, TrainBrakeMinPercentValue + 13.0f);
-                                locomotive.SetTrainBrakePercent(brakePercent);
-                            }
-                            else if (-deltaSpeedMpS < SpeedDeltaToEnableTrainBrake)
-                            {
-                                brakePercent = 0;
-                                locomotive.SetTrainBrakePercent(brakePercent);
-                                if (Pressure.Atmospheric.FromPSI(locomotive.BrakeSystem.BrakeLine1PressurePSI) >= 4.98)
-                                    CCIsUsingTrainBrake = false;
-                            }
-                        }
+                        if (UseTrainBrakeAndDynBrake || !locomotive.DynamicBrakeAvailable) // use TrainBrake
+                            SetTrainBrake(elapsedClockSeconds, deltaSpeedMpS);
                     }
                 }
             }
@@ -1479,10 +1424,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 if (deltaSpeedMpS >= 0)
                 {
                     AccelerationDemandMpSS = (float)Math.Sqrt(startReducingSpeedDelta * coeff * deltaSpeedMpS);
-                    if ((SpeedSelectorMode == SpeedSelectorMode.On || SpeedSelectorMode == SpeedSelectorMode.Start) && throttleOrDynBrakePercent <= 0)
+                    if ((SpeedSelectorMode == SpeedSelectorMode.On || SpeedSelectorMode == SpeedSelectorMode.Start) && throttleOrDynBrakePercent < 0)
                     {
                         IncreaseForce(elapsedClockSeconds, 0);
                     }
+                    trainBrakePercent = 0;
                 }
                 else // start braking
                 {
@@ -1506,43 +1452,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                                 IncreaseForce(elapsedClockSeconds, 0);
                             }
                         }
-                        else // use TrainBrake
-                        {
-                            if (deltaSpeedMpS > -1)
-                            {
-                                brakePercent = TrainBrakeMinPercentValue - 3.0f + (-deltaSpeedMpS * 10);
-                            }
-                            else
-                            {
-                                if (RelativeAccelerationMpSS > -maxDecelerationMpSS + 0.01f)
-                                    brakePercent += 0.5f;
-                                else if (RelativeAccelerationMpSS < -maxDecelerationMpSS - 0.01f)
-                                    brakePercent -= 1;
-                                brakePercent = MathHelper.Clamp(brakePercent, TrainBrakeMinPercentValue - 3.0f, TrainBrakeMaxPercentValue);
-                            }
-                            locomotive.SetTrainBrakePercent(brakePercent);
-                        }
-                        if (UseTrainBrakeAndDynBrake)
-                        {
-                            if (-deltaSpeedMpS > SpeedDeltaToEnableTrainBrake)
-                            {
-                                CCIsUsingTrainBrake = true;
-                                /*                               brakePercent = Math.Max(TrainBrakeMinPercentValue + 3.0f, -delta * 2);
-                                                                if (brakePercent > TrainBrakeMaxPercentValue)
-                                                                brakePercent = TrainBrakeMaxPercentValue;*/
-                                brakePercent = (TrainBrakeMaxPercentValue - TrainBrakeMinPercentValue - 3.0f) * SelectedMaxAccelerationStep / SpeedRegulatorMaxForceSteps + TrainBrakeMinPercentValue + 3.0f;
-                                if (-deltaSpeedMpS < SpeedDeltaToEnableFullTrainBrake)
-                                    brakePercent = Math.Min(brakePercent, TrainBrakeMinPercentValue + 13.0f);
-                                locomotive.SetTrainBrakePercent(brakePercent);
-                            }
-                            else if (-deltaSpeedMpS < SpeedDeltaToEnableTrainBrake)
-                            {
-                                brakePercent = 0;
-                                locomotive.SetTrainBrakePercent(brakePercent);
-                                if (Pressure.Atmospheric.FromPSI(locomotive.BrakeSystem.BrakeLine1PressurePSI) >= 4.98)
-                                    CCIsUsingTrainBrake = false;
-                            }
-                        }
+                        if (UseTrainBrakeAndDynBrake || !locomotive.DynamicBrakeAvailable) // use TrainBrake
+                            SetTrainBrake(elapsedClockSeconds, deltaSpeedMpS);
                     }
                 }
 
@@ -1666,6 +1577,31 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 double step = 100 / DynamicBrakeFullRangeIncreaseTimeSeconds * elapsedClockSeconds;
                 throttleOrDynBrakePercent = Math.Min(throttleOrDynBrakePercent - step, minPercent);
+            }
+        }
+
+        private void SetTrainBrake(double elapsedClockSeconds, float deltaSpeedMpS)
+        {
+            if (deltaSpeedMpS > -SpeedDeltaToEnableFullTrainBrake)
+            {
+                if (!locomotive.DynamicBrakeAvailable || deltaSpeedMpS < -SpeedDeltaToEnableTrainBrake)
+                {
+                    CCIsUsingTrainBrake = true;
+                    trainBrakePercent = TrainBrakeMinPercentValue - 3.0f + (-deltaSpeedMpS * 10) / SpeedDeltaToEnableTrainBrake;
+                }
+                else
+                {
+                    trainBrakePercent = 0;
+                }
+            }
+            else
+            {
+                CCIsUsingTrainBrake = true;
+                if (RelativeAccelerationMpSS > -maxDecelerationMpSS + 0.01f)
+                    trainBrakePercent += (float)(10 * elapsedClockSeconds);
+                else if (RelativeAccelerationMpSS < -maxDecelerationMpSS - 0.01f)
+                    trainBrakePercent -= (float)(20 * elapsedClockSeconds);
+                trainBrakePercent = MathHelper.Clamp(trainBrakePercent, TrainBrakeMinPercentValue - 3.0f, TrainBrakeMaxPercentValue);
             }
         }
 
