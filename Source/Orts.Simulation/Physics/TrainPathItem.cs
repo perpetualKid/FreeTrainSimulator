@@ -60,6 +60,8 @@ namespace Orts.Simulation.Physics
         //      Signal
 
 
+        public static TrainPathItem Undefined { get; } = new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f);
+
         //================================================================================================//
         /// <summary>
         /// Constructors

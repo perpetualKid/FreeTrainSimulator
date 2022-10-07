@@ -10901,7 +10901,7 @@ namespace Orts.Simulation.Physics
                     break;
                 default:// no state? should not occur, but just set no details at all
                     result = new TrainInfo(ControlMode, Direction.Forward, 0);
-                    TrainPathItem dummyItem = new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f);
+                    TrainPathItem dummyItem = TrainPathItem.Undefined;
                     result.ObjectInfoForward.Add(dummyItem);
                     result.ObjectInfoBackward.Add(dummyItem);
                     break;
