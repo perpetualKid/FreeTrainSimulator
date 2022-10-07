@@ -490,7 +490,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             // Odometer
             if (groupDetails[DetailInfo.Odometer]?.Controls[3] is Label odometerLabel)
             {
-                odometerLabel.Text = FormatStrings.FormatShortDistanceDisplay(playerLocomotive.OdometerM, Simulator.Instance.MetricUnits);
+                odometerLabel.Text = FormatStrings.FormatDistanceDisplay(playerLocomotive.OdometerM, Simulator.Instance.MetricUnits);
             }
             // Direction
             if (groupDetails[DetailInfo.Direction]?.Controls[3] is Label directionLabel)

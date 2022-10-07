@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private void CarControl_OnClick(object sender, MouseClickEventArgs e)
         {
             bool openAbove  = Borders.Top > Owner.ClientBounds.Height / 2;
-            Point openPoint = new Point(Mouse.GetState().Position.X, openAbove ? Borders.Top : Borders.Bottom);
+            Point openPoint = new Point(Mouse.GetState(Owner.Game.Window).Position.X, openAbove ? Borders.Top : Borders.Bottom);
             (windowManager[ViewerWindowType.CarOperationsWindow] as CarOperationsWindow).OpenAt(openPoint, openAbove, (sender as WindowControl).Tag as TrainCar);
         }
 

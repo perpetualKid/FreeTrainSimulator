@@ -538,6 +538,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new PopupWindows.CarOperationsWindow(windowManager, this);
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                return new PopupWindows.TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint(), this);
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -646,6 +650,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     TrackMonitorWindow.TabAction();
                 else
                     TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.TrackMonitorWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainDrivingWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

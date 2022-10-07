@@ -58,9 +58,11 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefaultBold { get; }
         public System.Drawing.Font TextFontMonoDefault { get; }
         public System.Drawing.Font TextFontMonoDefaultBold { get; }
+        public System.Drawing.Font TextFontSmall { get; }
 
         public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
         public int DefaultFontSize { get; } = 13;
+        public int SmallFontSize { get; } = 10;
         public string DefaultMonoFontName { get; } = "Courier New";
 
         //publish some events to allow interaction between Graphcis WindowManager and outside Window world
@@ -119,7 +121,7 @@ namespace Orts.Graphics.Window
             TextFontDefaultBold = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Bold)[DefaultFontSize];
             TextFontMonoDefault = FontManager.Scaled(DefaultMonoFontName, System.Drawing.FontStyle.Regular)[DefaultFontSize];
             TextFontMonoDefaultBold = FontManager.Scaled(DefaultMonoFontName, System.Drawing.FontStyle.Bold)[DefaultFontSize];
-
+            TextFontSmall = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Regular)[SmallFontSize];
             UpdateSize();
         }
 
