@@ -1559,12 +1559,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (throttleOrDynBrakePercent > 0)
             {
                 double step = 100 / throttleFullRangeDecreaseTimeSeconds * elapsedClockSeconds;
-                throttleOrDynBrakePercent = Math.Min(throttleOrDynBrakePercent - step, Math.Max(minPercent, 0));
+                throttleOrDynBrakePercent = Math.Max(throttleOrDynBrakePercent - step, Math.Max(minPercent, 0));
             }
             else
             {
                 double step = 100 / dynamicBrakeFullRangeIncreaseTimeSeconds * elapsedClockSeconds;
-                throttleOrDynBrakePercent = Math.Min(throttleOrDynBrakePercent - step, minPercent);
+                throttleOrDynBrakePercent = Math.Max(throttleOrDynBrakePercent - step, minPercent);
             }
         }
 
