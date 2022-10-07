@@ -27,6 +27,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.World;
 using System.IO;
+using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
 
 namespace Orts.Simulation.Commanding
 {
