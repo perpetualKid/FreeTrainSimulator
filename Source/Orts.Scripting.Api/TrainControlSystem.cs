@@ -442,11 +442,6 @@ namespace Orts.Scripting.Api
         public Action<int, float> SetCabDisplayControl { get; set; }
         /// <summary>
         /// Sets the name which is to be shown which putting the cursor above a cabview control.
-        /// DEPRECATED
-        /// </summary>
-        public Action<string> SetCustomizedTCSControlString { get; set; }
-        /// <summary>
-        /// Sets the name which is to be shown which putting the cursor above a cabview control.
         /// </summary>
         public Action<int, string> SetCustomizedCabviewControlName { get; set; }
         /// <summary>
@@ -496,11 +491,6 @@ namespace Orts.Scripting.Api
         /// <param name="evt">The event happened</param>
         /// <param name="message">The message the event wants to communicate. May be empty.</param>
         public virtual void HandleEvent(PowerSupplyEvent evt, string message) { }
-        /// <summary>
-        /// Called by signalling code externally to stop the train in certain circumstances.
-        /// </summary>
-        [Obsolete("SetEmergency method is deprecated, use HandleEvent(TCSEvent, string) instead")]
-        public virtual void SetEmergency(bool emergency) { }
         /// <summary>
         /// Called when player has requested a game save. 
         /// Set at virtual to keep compatibility with scripts not providing this method.
