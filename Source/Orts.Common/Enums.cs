@@ -242,6 +242,9 @@ namespace Orts.Common
         Odometer,
         Battery,
         MasterKey,
+        // Cruise control
+        MaxAcceleration,
+        RestrictedSpeedZone,
         // Train Devices
         DoorsLeft,
         DoorsRight,
@@ -262,9 +265,9 @@ namespace Orts.Common
     }
     #endregion
 
-    public enum TrainCategory 
-    { 
-        Passenger, 
+    public enum TrainCategory
+    {
+        Passenger,
         Freight,
     }
 
@@ -997,7 +1000,7 @@ namespace Orts.Common
         ThrottleDecrease,
         ThrottleIncreaseFast,
         ThrottleDecreaseFast,
-        DynamicBrakeIncrease, 
+        DynamicBrakeIncrease,
         DynamicBrakeDecrease,
         DynamicBrakeIncreaseFast,
         TrainBrakeIncrease,
@@ -1029,12 +1032,12 @@ namespace Orts.Common
         AVV,
     }
 
-    public enum SpeedSelectorMode 
-    { 
-        Parking, 
-        Neutral, 
-        On, 
-        Start, 
+    public enum SpeedSelectorMode
+    {
+        Parking,
+        Neutral,
+        On,
+        Start,
     }
 
     public enum RemoteControlGroup

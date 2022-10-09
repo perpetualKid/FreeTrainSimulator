@@ -735,10 +735,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     groupDetails[DetailInfo.CruiseControlTarget]?.Controls[3] is Label ccTargetLabel)
                 {
                     ccTargetLabel.Text = $"{FormatStrings.FormatSpeedDisplay(cruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits)}";                    
-
-                    (groupDetails[DetailInfo.CruiseControlMaxAccel]?.Controls[3] as Label).Text = 
-                        $"{Math.Round((cruiseControl.MaxForceSelectorIsDiscrete ? (int)cruiseControl.SelectedMaxAccelerationStep : cruiseControl.SelectedMaxAccelerationStep) * 100 / cruiseControl.SpeedRegulatorMaxForceSteps):0}%";
-
+                    (groupDetails[DetailInfo.CruiseControlMaxAccel]?.Controls[3] as Label).Text = $"{Math.Round(cruiseControl.SelectedMaxAccelerationPercent):0}%";
                     linesAdded += 2;
                 }
             }

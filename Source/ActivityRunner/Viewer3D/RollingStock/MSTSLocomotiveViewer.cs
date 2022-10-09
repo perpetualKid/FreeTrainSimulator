@@ -2658,8 +2658,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 case CabViewControlType.Regulator:
                 case CabViewControlType.Throttle:
-                    if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 &&
-                        Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
+                    if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                         && (Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce || Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed &&
                         Locomotive.CruiseControl.SelectedSpeedMpS == 0))
                     {
@@ -2673,7 +2672,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Locomotive.CruiseControl.SkipThrottleDisplay = false;
                     }
                     if (Locomotive.CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto
-                        && Locomotive.CruiseControl.SelectedMaxAccelerationStep != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
+                        && Locomotive.CruiseControl.SelectedMaxAccelerationPercent != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
                         break;
                     Locomotive.SetThrottleValue(UpdateCommandValue(Locomotive.ThrottleController.IntermediateValue, buttonEventType, delta));
                     break;
@@ -2809,8 +2808,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     _ = new AlerterCommand(Viewer.Log, UpdateCommandValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0, buttonEventType, delta) > 0);
                     break;
                 case CabViewControlType.Cp_Handle:
-                    if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 &&
-                        Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
+                    if ((Locomotive.CruiseControl?.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                          && (Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce || Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed && Locomotive.CruiseControl.SelectedSpeedMpS == 0))
                     {
                         if (Locomotive.CruiseControl.ZeroSelectedSpeedWhenPassingToThrottleMode)
@@ -2823,7 +2821,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Locomotive.CruiseControl.SkipThrottleDisplay = false;
                     }
                     if (Locomotive.CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto
-                        && Locomotive.CruiseControl.SelectedMaxAccelerationStep != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
+                        && Locomotive.CruiseControl.SelectedMaxAccelerationPercent != 0 && Locomotive.CruiseControl.HasIndependentThrottleDynamicBrakeLever)
                         break;
                     Locomotive.SetCombinedHandleValue(UpdateCommandValue(Locomotive.GetCombinedHandleValue(true), buttonEventType, delta));
                     break;
@@ -3137,7 +3135,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                 p = UpdateCommandValue(0, buttonEventType, delta);
                                 if (!mpc.StateChanged)
                                     mpc.StateChanged = true;
-                                if (p != 0 && Locomotive.CruiseControl.SelectedMaxAccelerationStep == 0 && Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce &&
+                                if (p != 0 && Locomotive.CruiseControl.SelectedMaxAccelerationPercent == 0 && Locomotive.CruiseControl.DisableCruiseControlOnThrottleAndZeroForce &&
                                     Locomotive.CruiseControl.ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero && Locomotive.ThrottleController.CurrentValue == 0 &&
                                     Locomotive.DynamicBrakeController.CurrentValue == 0 && Locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Manual)
                                     Locomotive.CruiseControl.SpeedRegulatorMode = SpeedRegulatorMode.Auto;

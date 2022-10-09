@@ -135,6 +135,9 @@ namespace Orts.Simulation
                 , new string [] { GetString("Odometer"), null, null, GetParticularString("Odometer", "reset"), GetParticularString("Odometer", "counting down"), GetParticularString("Odometer", "counting up") }
                 , new string [] { GetString("Battery"), GetString("off"), null, GetString("on") }
                 , new string [] { GetString("Master key"), GetString("off"), null, GetString("on") }
+                // Cruise control
+                , new string [] { GetString("Max acceleration"), null, null, null }
+                , new string [] { GetString("Restricted speed zone"), GetString("off"), null, GetString("on") }
                 // Train Devices
                 , new string [] { GetString("Doors Left"), GetString("close"), null, GetString("open") } 
                 , new string [] { GetString("Doors Right"), GetString("close"), null, GetString("open") } 
@@ -159,7 +162,6 @@ namespace Orts.Simulation
         }
 
         #region Control confirmation
-
         public void Confirm(CabControl control, string text)
         {
             Message(control, Simulator.Catalog.GetString("{0} {1}"), ConfirmText[(int)control][0], text);
@@ -193,10 +195,9 @@ namespace Orts.Simulation
         {
             Message(control, Simulator.Catalog.GetString("{0:0}%"), perCent);
         }
-
         #endregion
-        #region Control updates
 
+        #region Control updates
         public void UpdateWithPerCent(CabControl control, int action, float perCent)
         {
             Message(control, Simulator.Catalog.GetString("{0} {1:0}%"), ConfirmText[(int)control][action], perCent);
@@ -211,10 +212,9 @@ namespace Orts.Simulation
         {
             Message(control, Simulator.Catalog.GetString("{0} {1}"), ConfirmText[(int)control][(int)setting], text);
         }
-
         #endregion
-        #region Control messages
 
+        #region Control messages
         public void Message(CabControl control, string format, params object[] args)
         {
             Message(control, ConfirmLevel.None, string.Format(CultureInfo.CurrentCulture, format, args));
@@ -225,10 +225,9 @@ namespace Orts.Simulation
             PlayErrorSound?.Invoke(this, EventArgs.Empty);
             Message(control, ConfirmLevel.Warning, ConfirmText[(int)control][(int)setting]);
         }
-
         #endregion
-        #region Non-control messages
 
+        #region Non-control messages
         public void Information(string message)
         {
             Message(CabControl.None, ConfirmLevel.Information, message);
@@ -258,7 +257,6 @@ namespace Orts.Simulation
         {
             DisplayMessage?.Invoke(this, new DisplayMessageEventArgs(null, message, duration));
         }
-
         #endregion
 
         private void Message(CabControl control, ConfirmLevel level, string message, double duration = double.NaN)

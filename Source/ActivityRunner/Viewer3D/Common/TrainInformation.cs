@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     if (locomotive.CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                     {
                         this[catalog.GetString("Target Speed")] = FormatStrings.FormatSpeedDisplay(locomotive.CruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits);
-                        this[catalog.GetString("Max Acceleration")] = $"{(locomotive.CruiseControl.SpeedRegulatorMaxForcePercentUnits ? locomotive.CruiseControl.SelectedMaxAccelerationPercent : locomotive.CruiseControl.SelectedMaxAccelerationStep)}";
+                        this[catalog.GetString("Max Acceleration")] = $"{locomotive.CruiseControl.SelectedMaxAccelerationPercent}";
                     }
                 }
                 else
