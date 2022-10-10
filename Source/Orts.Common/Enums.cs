@@ -33,8 +33,8 @@ namespace Orts.Common
     public enum Rotation
     {
         [Description("CounterClockwise")] CounterClockwise = -1,
-        [Description("None")]None = 0,
-        [Description("Clockwise")]Clockwise = 1,
+        [Description("None")] None = 0,
+        [Description("Clockwise")] Clockwise = 1,
     }
 
     [Description("Separator")]
@@ -82,7 +82,7 @@ namespace Orts.Common
     }
 
     //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Distance Travelled, Control Mode, Throttle, Brake, Dyn Brake, Gear
-    [ Flags]
+    [Flags]
     public enum EvaluationLogContents
     {
         [Description("None")] None = 0,
@@ -140,7 +140,7 @@ namespace Orts.Common
     }
 
     public enum CurveDirection
-    { 
+    {
         Straight,
         Left,
         Right,
@@ -742,6 +742,17 @@ namespace Orts.Common
         [Description("Unknown")] Undefined,
     }
 
+    public enum TrainControlModeExtended
+    {
+        None, //covers Inactive, Undefined
+        Auto, // covers AutoSignal AutoNode
+        MultiPlayer,
+        Turntable,
+        Manual, //covers Manaual and Explorer
+        OutOfControl,
+
+    }
+
     public enum TCSEvent
     {
         /// <summary>
@@ -1011,7 +1022,7 @@ namespace Orts.Common
     }
 
     public enum ViewerWindowType
-    { 
+    {
         DebugScreen,
         QuitWindow,
         PauseWindow,
@@ -1097,5 +1108,22 @@ namespace Orts.Common
         [Description("BATT")] BatterySwitch,
 
         [Description("EOTD")] EotDevice,
+    }
+
+    public static class EnumTranslators
+    {
+        public static TrainControlModeExtended GetTrainControlModeExtended(this TrainControlMode controlMode, bool multiPlayer)
+        {
+            return multiPlayer
+                ? TrainControlModeExtended.MultiPlayer
+                : controlMode switch
+            {
+                TrainControlMode.AutoSignal or TrainControlMode.AutoNode => TrainControlModeExtended.Auto,
+                TrainControlMode.TurnTable => TrainControlModeExtended.Turntable,
+                TrainControlMode.OutOfControl=> TrainControlModeExtended.OutOfControl,
+                TrainControlMode.Explorer or TrainControlMode.Manual=> TrainControlModeExtended.Manual,
+                _=> TrainControlModeExtended.None,
+            };
+        }
     }
 }

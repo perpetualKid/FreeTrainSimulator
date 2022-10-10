@@ -45,6 +45,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10877,6 +10878,21 @@ namespace Orts.Simulation.Physics
                     if (setSection < 0)
                         continue;
                 }
+            }
+        }
+
+        public TrainControlModeExtended ExtendedControlMode => ControlMode.GetTrainControlModeExtended(MultiPlayerManager.IsMultiPlayer());
+
+        public bool TrainOnPath
+        {
+            get
+            {
+                if (TCRoute?.ActiveSubPath >= 0 && TCRoute?.TCRouteSubpaths.Count > TCRoute.ActiveSubPath)
+                {
+                    TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
+                    return pathRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0) >= 0;
+                }
+                return false;
             }
         }
 

@@ -19,80 +19,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class TrackMonitorWindow : WindowBase
     {
-        private enum Symbols
-        {
-            Eye,
-            TrainForwardAuto,
-            TrainBackwardAuto,
-            TrainForwardManual,
-            TrainBackwardManual,
-            EndOfAuthority,
-            OppositeTrainForward,
-            OppositeTrainBackward,
-            Station,
-            Reversal,
-            WaitingPoint,
-            ArrowForward,
-            ArrowBackward,
-            ArrowLeft,
-            ArrowRight,
-            Invalid,
-        }
-
-        private Texture2D symbolTexture;
-        private Texture2D signalTexture;
-
         private readonly Viewer viewer;
         private Label speedCurrentLabel;
         private Label speedProjectedLabel;
         private Label speedLimitLabel;
         private Label gradientLabel;
         private Label controlModeLabel;
+        private TrackMonitorControl trackMonitor;
 
-        private EnumArray<Rectangle, Symbols> symbols = new EnumArray<Rectangle, Symbols>(new Rectangle[] {
-            new Rectangle(0, 144, 24, 24),
-            new Rectangle(0, 72, 24, 24),
-            new Rectangle(24, 72, 24, 24),
-            new Rectangle(24, 96, 24, 24),
-            new Rectangle(0, 96, 24, 24),
-            new Rectangle(0, 0, 24, 24),
-            new Rectangle(24, 120, 24, 24),
-            new Rectangle(0, 120, 24, 24),
-            new Rectangle(24, 0, 24, 24),
-            new Rectangle(0, 24, 24, 24),
-            new Rectangle(24, 24, 24, 24),
-            new Rectangle(24, 48, 24, 24),
-            new Rectangle(0, 48, 24, 24),
-            new Rectangle(0, 168, 24, 24),
-            new Rectangle(24, 168, 24, 24),
-            new Rectangle(24, 144, 24, 24),
-        });
-
-        private EnumArray<Rectangle, TrackMonitorSignalAspect> signalAspects = new EnumArray<Rectangle, TrackMonitorSignalAspect>(new Rectangle[] {
-            new Rectangle(16, 64, 16, 16),
-            new Rectangle(0, 0, 16, 16),
-            new Rectangle(16, 0, 16, 16),
-            new Rectangle(0, 16, 16, 16),
-            new Rectangle(16, 16, 16, 16),
-            new Rectangle(0, 32, 16, 16),
-            new Rectangle(16, 32, 16, 16),
-            new Rectangle(0, 48, 16, 16),
-            new Rectangle(16, 48, 16, 16),
-            new Rectangle(0, 64, 16, 16),
-        });
 
         public TrackMonitorWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Monitor"), relativeLocation, new Point(160, 320), catalog)
         {
             this.viewer = viewer;
-        }
-
-        protected override void Initialize()
-        {
-            symbolTexture = TextureManager.GetTextureStatic(System.IO.Path.Combine(RuntimeInfo.ContentFolder, "TrackMonitorImages.png"), Owner.Game);
-            signalTexture = TextureManager.GetTextureStatic(System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SignalAspects.png"), Owner.Game);
-
-            base.Initialize();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -114,7 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             line.Add(controlModeLabel = new Label(this, (int)(columnWidth / 5 * 7), Owner.TextFontDefault.Height, null));
             line.Add(gradientLabel = new Label(this, (int)(columnWidth / 5 * 3), Owner.TextFontDefault.Height, null, HorizontalAlignment.Right));
             layout.AddHorizontalSeparator();
-
+            layout.Add(trackMonitor = new TrackMonitorControl(this, layout.RemainingWidth, layout.RemainingHeight));
             return layout;
         }
 
@@ -137,7 +76,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 gradientLabel.Text = $"{gradient:F1}% {(gradient > 0 ? FormatStrings.Markers.Ascent : gradient < 0 ? FormatStrings.Markers.Descent : string.Empty)}";
                 gradientLabel.TextColor = (gradient > 0 ? Color.Yellow : gradient < 0 ? Color.LightSkyBlue : Color.White);
 
+                trackMonitor.SpeedingColor = speedCurrentLabel.TextColor;
+                trackMonitor.CabOrientation = playerLocomotive.Flipped ^ playerLocomotive.GetCabFlipped() ? Direction.Backward : Direction.Forward;
+                trackMonitor.TrainDirection = playerLocomotive.Train.MUDirection;
+                trackMonitor.TrainOnRoute = playerLocomotive.Train.TrainOnPath;
+                trackMonitor.TrainControlMode = playerLocomotive.Train.ExtendedControlMode;
             }
+        }
+
+        protected override void Draw(SpriteBatch spriteBatch)
+        {
+            base.Draw(spriteBatch);
         }
     }
 }
