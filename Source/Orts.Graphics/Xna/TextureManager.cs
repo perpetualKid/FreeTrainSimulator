@@ -13,9 +13,6 @@ namespace Orts.Graphics.Xna
 {
     public class TextureManager : ResourceGameComponent<Texture2D>
     {
-        [ThreadStatic]
-        private static TextureManager instance;
-
         public bool PreferDDSTextures { get; set; }
 
         public Texture2D MissingTexture { get; private set; }
@@ -23,9 +20,7 @@ namespace Orts.Graphics.Xna
         public TextureManager(Game game) : base(game)
         {
             SweepInterval = 60;
-            if (null == instance)
-                instance = this;
-            MissingTexture = LoadTexture(Path.Combine(RuntimeInfo.ContentFolder, "blank.png"));
+            MissingTexture = LoadTexture(Path.Combine(RuntimeInfo.ContentFolder, "blank.png"), game);
         }
 
         public Texture2D GetTextureCached(string path)
@@ -49,7 +44,7 @@ namespace Orts.Graphics.Xna
             {
                 if (!previousResources.TryGetValue(identifier, out texture))
                 {
-                    texture = LoadTexture(path, PreferDDSTextures);
+                    texture = LoadTexture(path, Game, PreferDDSTextures);
                     if (texture != null)
                         currentResources.Add(identifier, texture);
                     else
@@ -75,11 +70,14 @@ namespace Orts.Graphics.Xna
         /// </summary>
         public static Texture2D GetTextureStatic(string path, Game game)
         {
-            instance ??= game?.Components.OfType<TextureManager>().FirstOrDefault() ?? new TextureManager(game);
-            return string.IsNullOrEmpty(path) ? instance.MissingTexture : LoadTexture(path);
+            TextureManager instance = game?.Components.OfType<TextureManager>().FirstOrDefault()
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                ?? new TextureManager(game);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            return string.IsNullOrEmpty(path) ? instance.MissingTexture : instance.GetTextureCached(path, null);
         }
 
-        private static Texture2D LoadTexture(string path, bool preferDdsLoading = false)
+        private static Texture2D LoadTexture(string path, Game game, bool preferDdsLoading = false)
         {
             string extension = Path.GetExtension(path);
             Texture2D result = null;
@@ -91,12 +89,12 @@ namespace Orts.Graphics.Xna
                         {
                             if (File.Exists(path))
                             {
-                                DDSLib.DDSFromFile(path, instance.Game.GraphicsDevice, true, out result);
+                                DDSLib.DDSFromFile(path, game.GraphicsDevice, true, out result);
                             }
                             else
                             {
                                 Trace.TraceWarning($"Required dds texture {path} not existing; trying ace texture instead.");
-                                result = LoadTexture(Path.ChangeExtension(path, "ace"), false);
+                                result = LoadTexture(Path.ChangeExtension(path, "ace"), game, false);
                             }
                             break;
                         }
@@ -104,10 +102,10 @@ namespace Orts.Graphics.Xna
                         {
                             string alternativeTexture;
                             if (preferDdsLoading && File.Exists(alternativeTexture = Path.ChangeExtension(path, "dds")))
-                                result = LoadTexture(alternativeTexture, false);
+                                result = LoadTexture(alternativeTexture, game, false);
                             else if (File.Exists(path))
                             {
-                                result = AceFile.Texture2DFromFile(instance.Game.GraphicsDevice, path);
+                                result = AceFile.Texture2DFromFile(game.GraphicsDevice, path);
                             }
                             break;
                         }
@@ -119,7 +117,7 @@ namespace Orts.Graphics.Xna
                             if (File.Exists(path))
                             {
                                 using (FileStream stream = File.OpenRead(path))
-                                    result = Texture2D.FromStream(instance.Game.GraphicsDevice, stream);
+                                    result = Texture2D.FromStream(game.GraphicsDevice, stream);
                             }
                             break;
                         }
@@ -133,7 +131,7 @@ namespace Orts.Graphics.Xna
                                     {
                                         image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
                                         memoryStream.Position = 0;
-                                        return Texture2D.FromStream(instance.Game.GraphicsDevice, memoryStream);
+                                        return Texture2D.FromStream(game.GraphicsDevice, memoryStream);
                                     }
                                 }
                             }

@@ -30,10 +30,7 @@ namespace Orts.Graphics.Window
 
     public class WindowManager : DrawableGameComponent
     {
-        [ThreadStatic]
-        private static WindowManager instance;
         private List<WindowBase> windows = new List<WindowBase>();
-        //private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
         private readonly Stack<WindowBase> modalWindows = new Stack<WindowBase>();
 
         private readonly Texture2D windowTexture;
@@ -104,14 +101,13 @@ namespace Orts.Graphics.Window
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
-            MaterialManager.Initialize(game.GraphicsDevice);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             DrawOrder = 100;
 
             windowTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png"), game);
             ScrollbarTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png"), game);
 
-            WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
+            WindowShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
             WindowShader.GlassColor = Color.Black;
             WindowShader.Opacity = opacityDefault;
             WindowShader.WindowTexture = windowTexture;
@@ -125,45 +121,20 @@ namespace Orts.Graphics.Window
             UpdateSize();
         }
 
-        public static WindowManager Initialize<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
-        {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
-
-            if (null == instance)
-            {
-                instance = new WindowManager(game)
-                {
-                    UserCommandController = userCommandController
-                };
-                instance.AddUserCommandEvents(userCommandController);
-            }
-            return instance;
-        }
-
         public static WindowManager<TWindowType> Initialize<T, TWindowType>(Game game, UserCommandController<T> userCommandController)
             where T : Enum where TWindowType : Enum
         {
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
 
-            if (null == WindowManager<TWindowType>.Instance)
+            WindowManager<TWindowType> result;
+            if ((result = game.Services.GetService<WindowManager<TWindowType>>()) == null)
             {
-                WindowManager<TWindowType>.Initialize(game);
-                WindowManager<TWindowType>.Instance.UserCommandController = userCommandController;
-                WindowManager<TWindowType>.Instance.AddUserCommandEvents(userCommandController);
+                game.Services.AddService(result = new WindowManager<TWindowType>(game));
+                result.UserCommandController = userCommandController;
+                result.AddUserCommandEvents(userCommandController);
             }
-            return WindowManager<TWindowType>.Instance;
-        }
-
-        public static WindowManager GetInstance<T>() where T : Enum
-        {
-            return instance;
-        }
-
-        public static WindowManager<TWindowType> GetInstance<TWindowType, T>() where T : Enum where TWindowType : Enum
-        {
-            return WindowManager<TWindowType>.Instance;
+            return result;
         }
 
         protected void AddUserCommandEvents<T>(UserCommandController<T> userCommandController) where T : Enum
@@ -465,20 +436,9 @@ namespace Orts.Graphics.Window
         private readonly EnumArray<WindowBase, TWindowType> windows = new EnumArray<WindowBase, TWindowType>();
         private readonly EnumArray<Lazy<WindowBase>, TWindowType> lazyWindows = new EnumArray<Lazy<WindowBase>, TWindowType>();
 
-        [ThreadStatic]
-        internal static WindowManager<TWindowType> Instance;
-
         internal WindowManager(Game game) :
             base(game)
         {
-        }
-
-        internal static void Initialize(Game game)
-        {
-            if (Instance != null)
-                throw new InvalidOperationException($"WindowManager {typeof(WindowManager<TWindowType>)} already initialized.");
-
-            Instance = new WindowManager<TWindowType>(game);
         }
 
         public override void Initialize()

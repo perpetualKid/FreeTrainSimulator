@@ -86,11 +86,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch = null)
         {
-            Vector2 scaledSize;
-            if (size < 0)
-                scaledSize = new Vector2(-size);
-            else
-                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / instance.basicTextures[texture].Width);
 
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
             (spriteBatch ?? instance.spriteBatch).Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, Color.White, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
@@ -107,11 +103,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch = null)
         {
-            Vector2 scaledSize;
-            if (size < 0)
-                scaledSize = new Vector2(-size);
-            else
-                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / instance.basicTextures[texture].Width);
 
             (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
         }
