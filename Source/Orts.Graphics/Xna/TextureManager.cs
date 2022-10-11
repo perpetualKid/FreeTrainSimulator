@@ -58,7 +58,6 @@ namespace Orts.Graphics.Xna
                     currentResources.Add(identifier, texture);
                     previousResources.Remove(identifier);
                 }
-
             }
             return texture;
         }
@@ -68,13 +67,13 @@ namespace Orts.Graphics.Xna
         /// Calling component holds a reference to the retrieved texture.
         /// Should be used for components permanently holding a texture, or do not need to reuse and manage lifecycle themselves.
         /// </summary>
-        public static Texture2D GetTextureStatic(string path, Game game)
+        public static Texture2D GetTextureStatic(string path, Game game, bool cache = false)
         {
             TextureManager instance = game?.Components.OfType<TextureManager>().FirstOrDefault()
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 ?? new TextureManager(game);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            return string.IsNullOrEmpty(path) ? instance.MissingTexture : instance.GetTextureCached(path, null);
+            return string.IsNullOrEmpty(path) ? instance.MissingTexture : cache ? instance.GetTextureCached(path, null) : LoadTexture(path, game);
         }
 
         private static Texture2D LoadTexture(string path, Game game, bool preferDdsLoading = false)

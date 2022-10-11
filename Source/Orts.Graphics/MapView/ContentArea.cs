@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -41,7 +42,7 @@ namespace Orts.Graphics.MapView
         internal SpriteBatch SpriteBatch { get; }
 
         private readonly FontManagerInstance fontManager;
-
+        private readonly TextShape contentText;
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
 
@@ -80,6 +81,7 @@ namespace Orts.Graphics.MapView
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
+            contentText = TextShape.Instance(Game, SpriteBatch);
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
@@ -474,6 +476,11 @@ namespace Orts.Graphics.MapView
             TrackItemBase.SetFont(CurrentFont);
         }
 
+        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)
+        {
+            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -481,6 +488,7 @@ namespace Orts.Graphics.MapView
                 SpriteBatch?.Dispose();
                 inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
+                contentText?.Dispose();
 
             }
             base.Dispose(disposing);

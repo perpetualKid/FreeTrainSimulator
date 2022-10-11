@@ -24,11 +24,6 @@ namespace Orts.Graphics.Xna
             game?.Components.Add(this);
         }
 
-        public override void Initialize()
-        {
-            base.Initialize();
-        }
-
         protected int SweepInterval
         {
             get => (int)sweepInterval.TotalSeconds;
@@ -39,7 +34,6 @@ namespace Orts.Graphics.Xna
         {
             if (gameTime?.TotalGameTime > nextSweep)
             {
-
                 (currentResources, previousResources, sweepResources) = (sweepResources, currentResources, previousResources);
                 if (disposableT)
                 {

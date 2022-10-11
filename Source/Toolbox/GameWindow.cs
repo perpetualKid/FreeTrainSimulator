@@ -344,7 +344,6 @@ namespace Orts.Toolbox
             InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextShape.Initialize(this, spriteBatch);
 
             UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
 

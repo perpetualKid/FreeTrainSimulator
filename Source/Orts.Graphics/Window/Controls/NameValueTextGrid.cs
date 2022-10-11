@@ -43,13 +43,13 @@ namespace Orts.Graphics.Window.Controls
         public NameValueTextGrid(WindowBase window, int x, int y) : base(window, x, y, 0, 0)
         {
             font = Window.Owner.TextFontDefault;
-            textureHolder = new TextTextureResourceHolder(Window.Owner.Game);
+            textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
         }
 
         public NameValueTextGrid(WindowBase window, int x, int y, int width, int heigth) : base(window, x, y, width, heigth)
         {
             font = Window.Owner.TextFontDefault;
-            textureHolder = new TextTextureResourceHolder(Window.Owner.Game);
+            textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
             clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
         }
@@ -95,15 +95,6 @@ namespace Orts.Graphics.Window.Controls
                 spriteBatch.Draw(texture, position + locationVector, clippingRectangleValueColumn, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             }
             base.Draw(spriteBatch, offset);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                textureHolder?.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

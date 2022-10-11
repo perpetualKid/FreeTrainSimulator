@@ -9,20 +9,17 @@ namespace Orts.Graphics.Window.Controls
         private protected Font font;
         private protected static Brush whiteBrush = new SolidBrush(Color.White);
 
+        private readonly TextTextureResourceHolder resourceHolder;
+
         protected TextControl(WindowBase window, int x, int y, int width, int height) : 
             base(window, x, y, width, height)
         {
-        }
-
-        internal override void Initialize()
-        {
-            base.Initialize();
+            resourceHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
         }
 
         protected virtual void InitializeText(string text)
         {
-            TextTextureRenderer.Resize(text, font, ref texture, Window.Owner.GraphicsDevice);
-            TextTextureRenderer.RenderText(text, font, texture);
+            texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder.PrepareResource(text, font);
         }
     }
 }

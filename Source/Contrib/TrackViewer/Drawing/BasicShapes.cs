@@ -540,7 +540,7 @@ namespace ORTS.TrackViewer.Drawing
 
         private TextManager(Game game)
         {
-            textTextures = new TextTextureResourceHolder(game);
+            textTextures = TextTextureResourceHolder.Instance(game);
             Orts.Graphics.FontManager.ScalingFactor *= 96f / 72;
             DefaultFont = Orts.Graphics.FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
         }

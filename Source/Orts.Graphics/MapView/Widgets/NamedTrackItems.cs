@@ -35,7 +35,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color fontColor = this.GetColor<PlatformPath>(colorVariation);
             if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.1)
-                TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+                contentArea.DrawText(Location, fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top);
         }
 
         public static IEnumerable<StationNameItem> CreateStationItems(IEnumerable<IGrouping<string, PlatformPath>> stationPlatforms)
@@ -67,7 +67,7 @@ namespace Orts.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = this.GetColor<PlatformPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Bottom);
         }
     }
 
@@ -79,7 +79,7 @@ namespace Orts.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = this.GetColor<SidingPath>(colorVariation);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center);
         }
     }
 

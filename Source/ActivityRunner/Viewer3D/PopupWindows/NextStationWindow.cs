@@ -443,12 +443,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
 
                     UpdateCurrentStop(currentStop);
-                    currentStationDistance.Text = null;
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.Station, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
                     }
+                    else
+                        currentStationDistance.Text = null;
 
                     UpdateNextStop(currentStop?.NextTask as ActivityTaskPassengerStopAt);
                     nextStationDistance.Text = null;

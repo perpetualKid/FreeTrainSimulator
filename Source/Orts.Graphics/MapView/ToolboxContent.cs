@@ -184,14 +184,7 @@ namespace Orts.Graphics.MapView
         #region additional content (Paths)
         public void InitializePath(PathFile path)
         {
-            if (path != null)
-            {
-                currentPath = new TrainPath(path);
-            }
-            else
-            { 
-                currentPath = null;
-            }
+            currentPath = path != null ? new TrainPath(path) : null;
         }
         #endregion
 

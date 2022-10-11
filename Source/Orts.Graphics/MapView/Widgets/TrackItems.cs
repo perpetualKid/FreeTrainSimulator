@@ -207,7 +207,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<SidingTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top);
         }
     }
     #endregion
@@ -235,8 +235,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<PlatformTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top);
+            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom);
         }
     }
     #endregion
@@ -271,7 +271,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(in Location), fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center);
         }
     }
     #endregion

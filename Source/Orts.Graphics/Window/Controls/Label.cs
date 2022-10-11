@@ -100,6 +100,13 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
+        internal override void Update(GameTime gameTime, bool shouldUpdate)
+        {
+            if (shouldUpdate)
+                InitializeText(Text); //refresh cache
+            base.Update(gameTime, shouldUpdate);
+        }
+
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             if (null != texture)

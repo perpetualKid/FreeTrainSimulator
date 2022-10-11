@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,17 +8,28 @@ namespace Orts.Graphics.Xna
 {
     public class TextTextureResourceHolder : ResourceGameComponent<Texture2D>
     {
-        private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
-        private readonly System.Drawing.Graphics measureGraphics;
+        private readonly TextTextureRenderer textRenderer;
 
-        public TextTextureResourceHolder(Game game) : this(game, 60)
+        public Texture2D EmptyTexture { get; }
+
+        private TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
         {
+            SweepInterval = sweepInterval;
+            EmptyTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 
-        public TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
+        public static TextTextureResourceHolder Instance(Game game) 
         {
-            measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
-            SweepInterval = sweepInterval;
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+
+            TextTextureResourceHolder instance;
+            if ((instance = game.Components.OfType<TextTextureResourceHolder>().FirstOrDefault()) == null)
+            { 
+                instance = new TextTextureResourceHolder(game, 30);
+            }
+            return instance;
         }
 
         public Texture2D PrepareResource(string text, System.Drawing.Font font)
@@ -27,8 +39,8 @@ namespace Orts.Graphics.Xna
             {
                 if (!previousResources.TryGetValue(identifier, out texture))
                 {
-                    texture = TextTextureRenderer.Resize(text, font, Game.GraphicsDevice, measureGraphics);
-                    TextTextureRenderer.RenderText(text, font, texture);
+                    texture = textRenderer.Resize(text, font);
+                    textRenderer.RenderText(text, font, texture);
                     currentResources.Add(identifier, texture);
                 }
                 else

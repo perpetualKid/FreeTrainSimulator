@@ -91,7 +91,7 @@ namespace Orts.Graphics.Window.Controls
                 throw new ArgumentOutOfRangeException(nameof(width), "TrackMonitor width must be 150 or more");
             if ((height / Window.Owner.DpiScaling) < 200)
                 throw new ArgumentOutOfRangeException(nameof(height), "TrackMonitor height must be 250 or more");
-            textureHolder = new TextTextureResourceHolder(Window.Owner.Game, 30);
+            textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             scaling = Window.Owner.DpiScaling;
             iconSize = (int)(iconSize * scaling);
             trackOffset = (int)(trackOffset * scaling);

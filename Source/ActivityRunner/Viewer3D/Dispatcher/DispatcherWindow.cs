@@ -151,7 +151,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         protected override void Initialize()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextShape.Initialize(this, spriteBatch);
             InputSettings.Initialize();
             userCommandController = new UserCommandController<UserCommand>();
 

@@ -57,7 +57,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal void DrawName(ContentArea contentArea)
         {
             Color fontColor = Color.Red;
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top);
         }
     }
 
