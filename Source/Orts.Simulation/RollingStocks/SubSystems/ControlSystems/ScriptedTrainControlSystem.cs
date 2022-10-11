@@ -153,7 +153,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Copy(ScriptedTrainControlSystem source)
         {
-            scriptName = source?.scriptName ?? throw new ArgumentNullException(nameof(source));
+            if (null == source)
+                 throw new ArgumentNullException(nameof(source));
+            scriptName = source.scriptName;
             soundFileName = source.soundFileName;
             parametersFileName = source.parametersFileName;
             trainParametersFileName = source.trainParametersFileName;
