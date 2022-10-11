@@ -14,12 +14,19 @@ namespace Orts.Graphics.Window.Controls
         public string Text
         {
             get => text;
-            set { text = value; Initialize(); }
+            set
+            {
+                if (value != text)
+                { 
+                    text = value; 
+                    Initialize(); 
+                }
+            }
         }
 
-        public HorizontalAlignment Alignment 
-        { 
-            get => alignment; 
+        public HorizontalAlignment Alignment
+        {
+            get => alignment;
             set { alignment = value; Initialize(); }
         }
 
