@@ -34,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 
         private Train train;
         private TrainCar locomotive;
-        
+
         public TrainInformationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Information"), relativeLocation, new Point(200, 180), catalog)
         {
@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         public void UpdateTrain(ITrain train)
         {
             if (train is Train physicalTrain)
-            {                
+            {
                 this.train = physicalTrain;
                 locomotive = physicalTrain.LeadLocomotive ?? physicalTrain.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
                 trainInformation.DebugInfo[Catalog.GetString("Train")] = train.Name;
@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             if (shouldUpdate && train != null)
             {
                 trainInformation.DebugInfo[Catalog.GetString("Speed")] = FormatStrings.FormatSpeedDisplay(train.SpeedMpS, Simulator.Instance.MetricUnits);
-                double gradient = Math.Round(locomotive.CurrentElevationPercent, 1);
+                double gradient = Math.Round(locomotive?.CurrentElevationPercent ?? train.Cars[0].CurrentElevationPercent, 1);
                 if (gradient == 0) // to avoid negative zero string output if gradient after rounding is -0.0
                     gradient = 0;
                 trainInformation.DebugInfo["Gradient"] = $"{gradient:F1}%";

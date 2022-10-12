@@ -891,8 +891,6 @@ namespace Orts.Formats.Msts.Models
                 if (!float.IsNaN(angle))
                     return angle;
 
-                //try //so many things can be in conflict for trackshapes, tracksections etc.
-                //{
                 TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
                 SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
@@ -914,10 +912,6 @@ namespace Orts.Formats.Msts.Models
                         }
                     }
                 }
-                //                }
-                //#pragma warning disable CA1031 // Do not catch general exception types
-                //                catch (Exception) { }
-                //#pragma warning restore CA1031 // Do not catch general exception types
                 return angle;
             }
         }

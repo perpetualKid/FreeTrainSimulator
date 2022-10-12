@@ -201,7 +201,11 @@ namespace Orts.Graphics.Window
 
         internal bool CloseWindow(WindowBase window)
         {
-            window?.FocusLost();
+            if (window == activeWindow)
+            {
+                activeWindow = null;
+                window?.FocusLost();
+            }
 #pragma warning disable CA2000 // Dispose objects before losing scope
             if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == window)
             {
