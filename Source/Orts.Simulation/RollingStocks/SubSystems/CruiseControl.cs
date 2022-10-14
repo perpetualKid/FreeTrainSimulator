@@ -74,33 +74,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private float speedRegulatorMaxForceSteps;
         private float selectedMaxAccelerationStep;
         private float selectedMaxAccelerationPercent;
+        private bool speedRegulatorMaxForcePercentUnits;
 
-        public bool SpeedRegulatorMaxForcePercentUnits { get; set; }
+        private bool maxForceSetSingleStep;
+        private bool maxForceKeepSelectedStepWhenManualModeSet;
+        private bool keepSelectedSpeedWhenManualModeSet;
+        private bool maxForceSelectorIsDiscrete;
+        private readonly List<string> speedRegulatorOptions = new List<string>();
+
         public float SelectedMaxAccelerationPercent
         {
             get
             {
-                return SpeedRegulatorMaxForcePercentUnits
+                return speedRegulatorMaxForcePercentUnits
                     ? selectedMaxAccelerationPercent
+                    : maxForceSelectorIsDiscrete
+                    ? (float)Math.Round(selectedMaxAccelerationStep) / speedRegulatorMaxForceSteps * 100
                     : selectedMaxAccelerationStep / speedRegulatorMaxForceSteps * 100;
             }
             set
             {
-                if (SpeedRegulatorMaxForcePercentUnits)
+                if (speedRegulatorMaxForcePercentUnits)
                     selectedMaxAccelerationPercent = value;
+                else if (maxForceSelectorIsDiscrete)
+                    selectedMaxAccelerationStep = (int)Math.Round(value * speedRegulatorMaxForceSteps / 100);
                 else
                     selectedMaxAccelerationStep = value * speedRegulatorMaxForceSteps / 100;
             }
         }
 
-        public bool MaxForceSetSingleStep { get; set; }
-        public bool MaxForceKeepSelectedStepWhenManualModeSet { get; set; }
-        public bool KeepSelectedSpeedWhenManualModeSet { get; set; }
         public bool ForceRegulatorAutoWhenNonZeroSpeedSelected { get; set; }
         public bool ForceRegulatorAutoWhenNonZeroForceSelected { get; set; }
         public bool ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero { get; set; }
-        public bool MaxForceSelectorIsDiscrete { get; set; }
-        private readonly List<string> speedRegulatorOptions = new List<string>();
         public SpeedRegulatorMode SpeedRegulatorMode { get; set; } = SpeedRegulatorMode.Manual;
         public SpeedSelectorMode SpeedSelectorMode { get; set; } = SpeedSelectorMode.Neutral;
         public CruiseControlLogic CruiseControlLogic { get; private set; }
@@ -224,16 +229,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             restrictedRegionOdometer = new Odometer(locomotive);
 
             speedIsMph = source.speedIsMph;
-            SpeedRegulatorMaxForcePercentUnits = source.SpeedRegulatorMaxForcePercentUnits;
+            speedRegulatorMaxForcePercentUnits = source.speedRegulatorMaxForcePercentUnits;
             speedRegulatorMaxForceSteps = source.speedRegulatorMaxForceSteps;
             SelectedMaxAccelerationPercent = source.SelectedMaxAccelerationPercent;
-            MaxForceSetSingleStep = source.MaxForceSetSingleStep;
-            MaxForceKeepSelectedStepWhenManualModeSet = source.MaxForceKeepSelectedStepWhenManualModeSet;
-            KeepSelectedSpeedWhenManualModeSet = source.KeepSelectedSpeedWhenManualModeSet;
+            maxForceSetSingleStep = source.maxForceSetSingleStep;
+            maxForceKeepSelectedStepWhenManualModeSet = source.maxForceKeepSelectedStepWhenManualModeSet;
+            keepSelectedSpeedWhenManualModeSet = source.keepSelectedSpeedWhenManualModeSet;
             ForceRegulatorAutoWhenNonZeroSpeedSelected = source.ForceRegulatorAutoWhenNonZeroSpeedSelected;
             ForceRegulatorAutoWhenNonZeroForceSelected = source.ForceRegulatorAutoWhenNonZeroForceSelected;
             ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero = source.ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero;
-            MaxForceSelectorIsDiscrete = source.MaxForceSelectorIsDiscrete;
+            maxForceSelectorIsDiscrete = source.maxForceSelectorIsDiscrete;
             speedRegulatorOptions = source.speedRegulatorOptions;
             CruiseControlLogic = source.CruiseControlLogic;
             SpeedRegulatorNominalSpeedStepMpS = source.SpeedRegulatorNominalSpeedStepMpS;
@@ -351,19 +356,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         safeSpeedForAutomaticOperationMpS = stf.ReadFloatBlock(STFReader.Units.Any, 0);
                         break;
                     case "maxforcepercentunits":
-                        SpeedRegulatorMaxForcePercentUnits = stf.ReadBoolBlock(false);
+                        speedRegulatorMaxForcePercentUnits = stf.ReadBoolBlock(false);
                         break;
                     case "maxforcesteps":
                         speedRegulatorMaxForceSteps = stf.ReadIntBlock(0);
                         break;
                     case "maxforcesetsinglestep":
-                        MaxForceSetSingleStep = stf.ReadBoolBlock(false);
+                        maxForceSetSingleStep = stf.ReadBoolBlock(false);
                         break;
                     case "maxforcekeepselectedstepwhenmanualmodeset":
-                        MaxForceKeepSelectedStepWhenManualModeSet = stf.ReadBoolBlock(false);
+                        maxForceKeepSelectedStepWhenManualModeSet = stf.ReadBoolBlock(false);
                         break;
                     case "keepselectedspeedwhenmanualmodeset":
-                        KeepSelectedSpeedWhenManualModeSet = stf.ReadBoolBlock(false);
+                        keepSelectedSpeedWhenManualModeSet = stf.ReadBoolBlock(false);
                         break;
                     case "forceregulatorautowhennonzerospeedselected":
                         ForceRegulatorAutoWhenNonZeroSpeedSelected = stf.ReadBoolBlock(false);
@@ -375,7 +380,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero = stf.ReadBoolBlock(false);
                         break;
                     case "maxforceselectorisdiscrete":
-                        MaxForceSelectorIsDiscrete = stf.ReadBoolBlock(false);
+                        maxForceSelectorIsDiscrete = stf.ReadBoolBlock(false);
                         break;
                     case "continuousspeedincreasing":
                         ContinuousSpeedIncreasing = stf.ReadBoolBlock(false);
@@ -816,7 +821,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         {
                             if (speedRegulatorOptions.Contains("regulatorauto"))
                                 test = true;
-                            if (!disableManualSwitchToAutoWhenSetSpeedNotAtTop && !KeepSelectedSpeedWhenManualModeSet)
+                            if (!disableManualSwitchToAutoWhenSetSpeedNotAtTop && !keepSelectedSpeedWhenManualModeSet)
                                 SelectedSpeedMpS = locomotive.AbsSpeedMpS;
                             break;
                         }
@@ -993,7 +998,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 wasForceReset = true;
             }
             maxForceIncreasing = true;
-            speedRegulatorIntermediateValue = SpeedRegulatorMaxForcePercentUnits ? selectedMaxAccelerationPercent : selectedMaxAccelerationStep;
+            speedRegulatorIntermediateValue = speedRegulatorMaxForcePercentUnits ? selectedMaxAccelerationPercent : selectedMaxAccelerationStep;
         }
 
         public void SpeedRegulatorMaxForceStopIncrease()
@@ -1004,12 +1009,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         protected void SpeedRegulatorMaxForceIncrease(double elapsedClockSeconds)
         {
             locomotive.SignalEvent(TrainEvent.CruiseControlMaxForce);
-            if (MaxForceSetSingleStep)
+            if (maxForceSetSingleStep)
                 maxForceIncreasing = false;
             if (selectedMaxAccelerationStep == 0.5f)
                 selectedMaxAccelerationStep = 0;
 
-            if (SpeedRegulatorMaxForcePercentUnits)
+            if (speedRegulatorMaxForcePercentUnits)
             {
                 if (selectedMaxAccelerationPercent == 100)
                     return;
@@ -1020,7 +1025,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 if (selectedMaxAccelerationStep == speedRegulatorMaxForceSteps)
                     return;
-                speedRegulatorIntermediateValue += MaxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
+                speedRegulatorIntermediateValue += maxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
                 selectedMaxAccelerationStep = Math.Min((float)Math.Truncate(speedRegulatorIntermediateValue + 1), speedRegulatorMaxForceSteps);
             }
             simulator.Confirmer.ConfirmWithPerCent(CabControl.MaxAcceleration, SelectedMaxAccelerationPercent);
@@ -1030,6 +1035,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             locomotive.SignalEvent(TrainEvent.CruiseControlMaxForce);
             maxForceDecreasing = true;
+            speedRegulatorIntermediateValue = speedRegulatorMaxForcePercentUnits ? selectedMaxAccelerationPercent : selectedMaxAccelerationStep;
         }
 
         public void SpeedRegulatorMaxForceStopDecrease()
@@ -1040,9 +1046,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         protected void SpeedRegulatorMaxForceDecrease(double elapsedClockSeconds)
         {
             locomotive.SignalEvent(TrainEvent.CruiseControlMaxForce);
-            if (MaxForceSetSingleStep)
+            if (maxForceSetSingleStep)
                 maxForceDecreasing = false;
-            if (SpeedRegulatorMaxForcePercentUnits)
+            if (speedRegulatorMaxForcePercentUnits)
             {
                 if (selectedMaxAccelerationPercent == 0)
                     return;
@@ -1058,7 +1064,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 if (selectedMaxAccelerationStep <= (disableZeroForceStep ? 1 : 0))
                     return;
-                speedRegulatorIntermediateValue -= MaxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
+                speedRegulatorIntermediateValue -= maxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
                 selectedMaxAccelerationStep = Math.Max((int)speedRegulatorIntermediateValue, disableZeroForceStep ? 1 : 0);
                 if (selectedMaxAccelerationStep <= (disableZeroForceStep ? 1 : 0))
                 {
@@ -1086,7 +1092,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 else if (movExtension < 0)
                     return;
             }
-            if (SpeedRegulatorMaxForcePercentUnits)
+            if (speedRegulatorMaxForcePercentUnits)
             {
                 if (movExtension != 0)
                 {
@@ -1263,10 +1269,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     else if (movExtension < 0)
                         return;
                 }
-                double deltaSpeed = speedSelectorIsDiscrete ? (metric ? Speed.MeterPerSecond.FromKpH((float)Math.Round(movExtension * maxValue / speedRegulatorNominalSpeedStepKpHOrMpH) * speedRegulatorNominalSpeedStepKpHOrMpH) :
-                    Speed.MeterPerSecond.FromMpH((float)Math.Round(movExtension * maxValue / speedRegulatorNominalSpeedStepKpHOrMpH) * speedRegulatorNominalSpeedStepKpHOrMpH)) :
-                    (metric ? Speed.MeterPerSecond.FromKpH((float)Math.Round(movExtension * maxValue)) :
-                    Speed.MeterPerSecond.FromMpH((float)Math.Round(movExtension * maxValue)));
+                double deltaSpeed = speedSelectorIsDiscrete ?
+                     Speed.MeterPerSecond.ToMpS((float)Math.Round(movExtension * maxValue / speedRegulatorNominalSpeedStepKpHOrMpH) * speedRegulatorNominalSpeedStepKpHOrMpH, metric) :
+                     Speed.MeterPerSecond.ToMpS((float)Math.Round(movExtension * maxValue), true);
                 if (deltaSpeed > 0)
                     SelectedSpeedMpS = (float)Math.Max(SelectedSpeedMpS + deltaSpeed, MinimumSpeedForCCEffectMpS);
                 else
@@ -1482,7 +1487,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                                 percentComplete = 100;
                             newThrottle = percentComplete;
                         }
-                        if (forceStepsThrottleTable.Count > 0 && !SpeedRegulatorMaxForcePercentUnits)
+                        if (forceStepsThrottleTable.Count > 0 && !speedRegulatorMaxForcePercentUnits)
                         {
                             demandedPercent = forceStepsThrottleTable[(int)selectedMaxAccelerationStep - 1];
                             if (accelerationTable.Count > 0)
@@ -1640,7 +1645,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     data = (float)Math.Round(Speed.MeterPerSecond.FromMpS(SelectedSpeedMpS, metric));
                     break;
                 case CabViewControlType.Orts_Selected_Speed_Maximum_Acceleration:
-                    if (SpeedRegulatorMode == SpeedRegulatorMode.Auto || MaxForceKeepSelectedStepWhenManualModeSet)
+                    if (SpeedRegulatorMode == SpeedRegulatorMode.Auto || maxForceKeepSelectedStepWhenManualModeSet)
                     {
                         data = SelectedMaxAccelerationPercent * (float)cvc.ScaleRangeMax / 100;
                     }
