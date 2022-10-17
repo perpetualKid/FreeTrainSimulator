@@ -1432,7 +1432,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
-            string s;
             // display depending upon whether an EQ reservoir fitted
             if (car.Train.BrakeSystem.EQEquippedVacLoco)
             {

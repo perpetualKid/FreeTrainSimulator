@@ -882,7 +882,6 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Calculate the angle (direction in 2D) of the current junction (result will be cached).
         /// </summary>
-        /// <param name="tsectionDat">The datafile with all the track sections</param>
         /// <returns>The angle calculated</returns>
         public float Angle
         {
