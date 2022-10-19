@@ -42,7 +42,9 @@ namespace Orts.Graphics.MapView
         internal SpriteBatch SpriteBatch { get; }
 
         private readonly FontManagerInstance fontManager;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly TextShape contentText;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
 
@@ -488,8 +490,6 @@ namespace Orts.Graphics.MapView
                 SpriteBatch?.Dispose();
                 inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
-                contentText?.Dispose();
-
             }
             base.Dispose(disposing);
         }

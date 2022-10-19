@@ -40,24 +40,11 @@ namespace Orts.Graphics.Xna
                 return defaultTexture;
 
             int identifier = string.GetHashCode(path, StringComparison.OrdinalIgnoreCase);
-            if (!currentResources.TryGetValue(identifier, out Texture2D texture))
+            Texture2D texture = Get(identifier, () => LoadTexture(path, Game, PreferDDSTextures));
+            if (texture == null)
             {
-                if (!previousResources.TryGetValue(identifier, out texture))
-                {
-                    texture = LoadTexture(path, Game, PreferDDSTextures);
-                    if (texture != null)
-                        currentResources.Add(identifier, texture);
-                    else
-                    {
-                        Trace.TraceWarning($"Missing texture {path} replaced with default texture");
-                        texture = defaultTexture;
-                    }
-                }
-                else
-                {
-                    currentResources.Add(identifier, texture);
-                    previousResources.Remove(identifier);
-                }
+                Trace.TraceWarning($"Missing texture {path} replaced with default texture");
+                texture = defaultTexture;
             }
             return texture;
         }

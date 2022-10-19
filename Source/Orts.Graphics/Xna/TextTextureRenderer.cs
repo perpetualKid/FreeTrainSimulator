@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -11,8 +10,8 @@ namespace Orts.Graphics.Xna
 {
     public class TextTextureRenderer: IDisposable
     {
-        private Texture2D emptyTexture;
-        private Bitmap measureBitmap;
+        private readonly Texture2D emptyTexture;
+        private readonly Bitmap measureBitmap;
         private readonly Microsoft.Xna.Framework.Game game;
         private readonly ConcurrentQueue<System.Drawing.Graphics> measureGraphicsHolder = new ConcurrentQueue<System.Drawing.Graphics>();
         private readonly ConcurrentQueue<Brush> whiteBrushHolder = new ConcurrentQueue<Brush>();

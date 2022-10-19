@@ -34,6 +34,8 @@ namespace Orts.Graphics.Window
 
         public string Caption { get; protected set; }
 
+        public event EventHandler OnWindowOpened;
+
         public event EventHandler OnWindowClosed;
 
         public bool Modal { get; protected set; }
@@ -45,6 +47,8 @@ namespace Orts.Graphics.Window
         public int ZOrder { get; protected set; }
 
         internal WindowControl CapturedControl { get; set; }
+
+        public bool Visible { get; private set; }
 
         public Catalog Catalog { get; }
 
@@ -77,12 +81,16 @@ namespace Orts.Graphics.Window
 
         public virtual bool Open()
         {
-            return Owner.OpenWindow(this);
+            Visible = Owner.OpenWindow(this);
+            if (Visible)
+                OnWindowOpened?.Invoke(this, EventArgs.Empty);
+            return Visible;
         }
 
         public virtual bool Close()
         {
             OnWindowClosed?.Invoke(this, EventArgs.Empty);
+            Visible = false;
             return Owner.CloseWindow(this);
         }
 
@@ -93,7 +101,8 @@ namespace Orts.Graphics.Window
 
         internal protected virtual void Update(GameTime gameTime, bool shouldUpdate)
         {
-            windowLayout.Update(gameTime, shouldUpdate);
+            if (Visible)
+                windowLayout.Update(gameTime, shouldUpdate);
         }
 
         internal protected virtual void WindowDraw()

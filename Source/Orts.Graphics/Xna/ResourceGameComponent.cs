@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
@@ -14,9 +15,9 @@ namespace Orts.Graphics.Xna
     {
         private TimeSpan sweepInterval = TimeSpan.FromSeconds(10);
         private TimeSpan nextSweep;
-        private protected Dictionary<int, T> currentResources = new Dictionary<int, T>();
-        private protected Dictionary<int, T> previousResources = new Dictionary<int, T>();
-        private Dictionary<int, T> sweepResources = new Dictionary<int, T>();
+        private protected ConcurrentDictionary<int, T> currentResources = new ConcurrentDictionary<int, T>();
+        private protected ConcurrentDictionary<int, T> previousResources = new ConcurrentDictionary<int, T>();
+        private ConcurrentDictionary<int, T> sweepResources = new ConcurrentDictionary<int, T>();
         private readonly bool disposableT = typeof(IDisposable).IsAssignableFrom(typeof(T));
 
         protected ResourceGameComponent(Game game) : base(game)
@@ -30,6 +31,8 @@ namespace Orts.Graphics.Xna
             set => sweepInterval = TimeSpan.FromSeconds(value);
         }
 
+        public event EventHandler<EventArgs> Refresh;
+
         public override void Update(GameTime gameTime)
         {
             if (gameTime?.TotalGameTime > nextSweep)
@@ -40,10 +43,43 @@ namespace Orts.Graphics.Xna
                     foreach (T value in sweepResources.Values)
                         (value as IDisposable).Dispose();
                 }
+                Trace.TraceInformation($"Clearing {sweepResources.Count} resources");
                 sweepResources.Clear();
                 nextSweep = gameTime.TotalGameTime.Add(sweepInterval);
+                Refresh?.Invoke(this, EventArgs.Empty);
             }
             base.Update(gameTime);
+        }
+
+        private protected T Get(int identifier, Func<T> create)
+        {
+            if (!currentResources.TryGetValue(identifier, out T resource))
+            {
+                if (previousResources.TryRemove(identifier, out resource))
+                {
+                    if (!currentResources.TryAdd(identifier, resource))
+                    {
+                        if (disposableT)
+                            (resource as IDisposable).Dispose();
+                        Trace.TraceInformation($"Resource of type '{typeof(T)}' already added.");
+                    }
+                }
+                else
+                {
+                    if ((resource = create()) != null && !currentResources.TryAdd(identifier, resource))
+                    {
+                        T holder = resource;
+                        if (currentResources.TryGetValue(identifier, out resource))
+                        {
+                            if (disposableT)
+                                (holder as IDisposable).Dispose();
+                        }
+                        else
+                            resource = holder;
+                    }
+                }
+            }
+            return resource;
         }
 
         protected override void Dispose(bool disposing)

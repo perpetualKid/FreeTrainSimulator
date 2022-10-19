@@ -10,6 +10,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Graphics.Xna;
 
+using SharpDX.MediaFoundation;
+
 namespace Orts.Graphics.MapView.Shapes
 {
     public class BasicShapes
@@ -53,7 +55,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="spriteBatch">The spritebatch to use for drawing</param>
         public static void LoadContent(GraphicsDevice graphicsDevice)
         {
-            instance.basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1);
+            instance.basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color);
             instance.basicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
 
             // textures modified from http://www.iconsdb.com
@@ -111,9 +113,9 @@ namespace Orts.Graphics.MapView.Shapes
         /// <summary>
         /// Draw one of the (predefined) textures at the given location with the given angle
         /// </summary>
-        /// <param name="texture">name by which the texture is internally known</param>
-        /// <param name="targetRectangle">area where the texture is drawn</param>
-        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
+        /// <param name="texture">name by which the texture is internally known<br/></param>
+        /// <param name="targetRectangle">area where the texture is drawn<br/></param>
+        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)<br/></param>
         public static void DrawTexture(BasicTextureType texture, Rectangle targetRectangle, Color color, SpriteBatch spriteBatch = null)
         {
             (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], targetRectangle, color);
@@ -122,16 +124,21 @@ namespace Orts.Graphics.MapView.Shapes
         /// <summary>
         /// Basic method to draw a line. Coordinates are in screen coordinates.
         /// </summary>
-        /// <param name="width">Width of the line to draw </param>
-        /// <param name="color">Color of the line</param>
-        /// <param name="point">Vector to the first point of the line</param>
-        /// <param name="length">Length of the line</param>
-        /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
+        /// <param name="width">Width of the line to draw<br/></param>
+        /// <param name="color">Color of the line<br/></param>
+        /// <param name="point">Vector to the first point of the line<br/></param>
+        /// <param name="length">Length of the line<br/></param>
+        /// <param name="angle">Angle (in down from horizontal) of where the line is pointing<br/></param>
         public static void DrawLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch = null)
         {
             // offset to compensate for the width of the line
-            Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
-            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            if (width >= 2)
+            {
+                Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
+                (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            }
+            else
+                (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
         }
 
         /// <summary>

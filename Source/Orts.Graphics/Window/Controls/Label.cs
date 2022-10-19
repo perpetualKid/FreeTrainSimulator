@@ -6,7 +6,6 @@ namespace Orts.Graphics.Window.Controls
 {
     public class Label : TextControl
     {
-        private string text;
         private HorizontalAlignment alignment;
         private Point alignmentOffset;
         private Rectangle? clippingRectangle;
@@ -98,13 +97,6 @@ namespace Orts.Graphics.Window.Controls
                         clippingRectangle = new Rectangle(new Point(texture.Width - Bounds.Width, 0), Bounds.Size);
                     break;
             }
-        }
-
-        internal override void Update(GameTime gameTime, bool shouldUpdate)
-        {
-            if (shouldUpdate)
-                InitializeText(Text); //refresh cache
-            base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

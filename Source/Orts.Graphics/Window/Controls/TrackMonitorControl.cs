@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Xna;
@@ -12,6 +14,8 @@ namespace Orts.Graphics.Window.Controls
 {
     public class TrackMonitorControl : WindowControl
     {
+        private const double maxDistance = 5000.0;
+
         public enum Symbols
         {
             Eye,
@@ -32,6 +36,14 @@ namespace Orts.Graphics.Window.Controls
             Invalid,
         }
 
+        public enum TrainPositionMode
+        {
+            None,
+            AutoForward,
+            ManualBothWays,
+
+
+        }
         private readonly TextTextureResourceHolder textureHolder;
         private Texture2D symbolTexture;
         private Texture2D signalTexture;
@@ -40,9 +52,19 @@ namespace Orts.Graphics.Window.Controls
         //precalculated values
         private readonly int trackOffset = 50;
         private readonly int arrowOffset = 32;
+        private readonly int distanceMarkerOffset = 115;
         private readonly Point trackLeftRail;
         private readonly Point trackRightRail;
         private readonly int iconSize = 24;
+        private readonly bool metric;
+        private readonly double maxDistanceDisplay;
+        private bool trainSymbolPositionChange;
+        private TrainControlModeExtended controlMode;
+        private int trainPositionOffset;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly TextTextureResourceHolder textRenderer;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly List<(Texture2D, Point)> distanceMarkers = new List<(Texture2D, Point)>();
 
         private EnumArray<Rectangle, Symbols> symbols = new EnumArray<Rectangle, Symbols>(new Rectangle[] {
             new Rectangle(0, 144, 24, 24),
@@ -82,9 +104,10 @@ namespace Orts.Graphics.Window.Controls
         public MidpointDirection TrainDirection { get; set; }
         public TrainControlModeExtended TrainControlMode { get; set; }
         public bool TrainOnRoute { get; set; }
+        public TrainPositionMode PositionMode { get; set; }
 
 
-        public TrackMonitorControl(WindowBase window, int width, int height) :
+        public TrackMonitorControl(WindowBase window, int width, int height, bool metric) :
             base(window, 0, 0, width, height)
         {
             if ((width / Window.Owner.DpiScaling) < 150)
@@ -98,6 +121,28 @@ namespace Orts.Graphics.Window.Controls
             trackLeftRail = new Point(trackOffset + (int)(7 * scaling), 0);
             trackRightRail = new Point(trackOffset + (int)(17 * scaling), 0);
             arrowOffset = (int)(arrowOffset * scaling);
+            distanceMarkerOffset = (int)(distanceMarkerOffset * scaling);
+            this.metric = metric;
+            maxDistanceDisplay = Size.Length.FromM(maxDistance, metric); // in displayed units
+            textRenderer = TextTextureResourceHolder.Instance(Window.Owner.Game);
+            Window.OnWindowOpened += Window_OnWindowOpened;
+            Window.OnWindowClosed += Window_OnWindowClosed;
+        }
+
+        private void Window_OnWindowClosed(object sender, EventArgs e)
+        {
+            textRenderer.Refresh -= TextRenderer_Refresh;
+        }
+
+        private void Window_OnWindowOpened(object sender, EventArgs e)
+        {
+            trainSymbolPositionChange = true;
+            textRenderer.Refresh += TextRenderer_Refresh;
+        }
+
+        private void TextRenderer_Refresh(object sender, EventArgs e)
+        {
+            trainSymbolPositionChange = true;
         }
 
         internal override void Initialize()
@@ -111,6 +156,40 @@ namespace Orts.Graphics.Window.Controls
         internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
             base.Update(gameTime, shouldUpdate);
+
+            trainSymbolPositionChange |= controlMode != (controlMode = TrainControlMode);
+            if (trainSymbolPositionChange)
+            {
+                trainPositionOffset = TrainControlMode == TrainControlModeExtended.Auto ? Bounds.Height - (int)(iconSize * 1.5) : Bounds.Height / 2 - iconSize / 2;
+
+                #region right hand side distance markers
+                distanceMarkers.Clear();
+                int numberMarkers = controlMode == TrainControlModeExtended.Auto ? 5 : 3;
+
+                double distanceFactor = (trainPositionOffset - 18 * scaling) / maxDistance;
+                double markerInterval = Size.Length.ToM((maxDistanceDisplay / numberMarkers) switch
+                {
+                    <= 0.6 => 0.5,
+                    <= 1.1 => 1.0,
+                    _ => 1.5,
+                }, metric);
+
+                double distance = markerInterval;
+
+                while (distance <= maxDistance)
+                {
+                    int itemOffset = Convert.ToInt32(distance * distanceFactor);
+                    string distanceString = FormatStrings.FormatDistanceDisplay(distance, metric);
+                    Texture2D distanceTexture = textRenderer.PrepareResource(distanceString, Window.Owner.TextFontSmall);
+                    distanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset - itemOffset - distanceTexture.Height)));
+                    if (controlMode != TrainControlModeExtended.Auto)
+                        distanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset + iconSize + itemOffset)));
+                    distance += markerInterval;
+                }
+                #endregion
+
+                trainSymbolPositionChange = false;
+            }
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
@@ -119,10 +198,10 @@ namespace Orts.Graphics.Window.Controls
 
             DrawTrack(spriteBatch, offset);
             DrawEyeLooking(spriteBatch, offset);
-            int trainPositionOffset = TrainControlMode == TrainControlModeExtended.Auto ? Bounds.Height - (int)(iconSize * 1.5) : Bounds.Height / 2 - iconSize / 2;
 
             DrawTrainPosition(spriteBatch, offset, trainPositionOffset);
             DrawDirectionArrow(spriteBatch, offset, trainPositionOffset);
+            DrawDistanceMarkers(spriteBatch, offset);
             DrawTrain(spriteBatch, offset, trainPositionOffset);
             base.Draw(spriteBatch, offset);
         }
@@ -162,12 +241,19 @@ namespace Orts.Graphics.Window.Controls
 
         private void DrawTrainPosition(SpriteBatch spriteBatch, Point offset, int positionOffset)
         {
-            Color color = Color.DarkGray;
-            if (TrainControlMode != TrainControlModeExtended.Auto)
-                BasicShapes.DrawLine(scaling / 2f, color, (offset + new Point(0, positionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
-            BasicShapes.DrawLine(scaling / 2f, color, (offset + new Point(0, positionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
-
-            spriteBatch.Draw(symbolTexture, new Rectangle(offset.X + trackOffset, offset.Y + positionOffset - iconSize *2, iconSize, iconSize), symbols[Symbols.Station], Color.White);
+            switch (PositionMode)
+            {
+                case TrainPositionMode.AutoForward:
+                    BasicShapes.DrawLine(scaling / 1f, Color.OrangeRed, (offset + new Point(0, positionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    BasicShapes.DrawLine(scaling / 1f, Color.DarkGray, (offset + new Point(0, positionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    break;
+                case TrainPositionMode.ManualBothWays:
+                    BasicShapes.DrawLine(scaling / 1f, Color.DarkGray, (offset + new Point(0, positionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    BasicShapes.DrawLine(scaling / 1f, Color.DarkGray, (offset + new Point(0, positionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void DrawTrain(SpriteBatch spriteBatch, Point offset, int positionOffset)
@@ -194,6 +280,14 @@ namespace Orts.Graphics.Window.Controls
                     spriteBatch.Draw(symbolTexture, new Rectangle(offset.X + trackOffset, offset.Y + positionOffset, iconSize, iconSize), symbols[Symbols.TrainOffRouteManual], Color.White);
                     break;
 
+            }
+        }
+
+        private void DrawDistanceMarkers(SpriteBatch spriteBatch, Point offset)
+        {
+            foreach ((Texture2D texture, Point position) in distanceMarkers)
+            {
+                spriteBatch.Draw(texture, (offset + position).ToVector2(), Color.White);
             }
         }
     }

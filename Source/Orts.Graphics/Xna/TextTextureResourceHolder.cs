@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -19,14 +20,14 @@ namespace Orts.Graphics.Xna
             textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 
-        public static TextTextureResourceHolder Instance(Game game) 
+        public static TextTextureResourceHolder Instance(Game game)
         {
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
 
             TextTextureResourceHolder instance;
             if ((instance = game.Components.OfType<TextTextureResourceHolder>().FirstOrDefault()) == null)
-            { 
+            {
                 instance = new TextTextureResourceHolder(game, 30);
             }
             return instance;
@@ -37,16 +38,21 @@ namespace Orts.Graphics.Xna
             int identifier = HashCode.Combine(text, font);
             if (!currentResources.TryGetValue(identifier, out Texture2D texture))
             {
-                if (!previousResources.TryGetValue(identifier, out texture))
+                if (previousResources.TryRemove(identifier, out texture))
                 {
-                    texture = textRenderer.Resize(text, font);
-                    textRenderer.RenderText(text, font, texture);
-                    currentResources.Add(identifier, texture);
+                    if (!currentResources.TryAdd(identifier, texture))
+                        Trace.TraceInformation($"Texture Resource '{text}' already added.");
                 }
                 else
                 {
-                    currentResources.Add(identifier, texture);
-                    previousResources.Remove(identifier);
+                    texture = textRenderer.Resize(text, font);
+                    textRenderer.RenderText(text, font, texture);
+                    if (!currentResources.TryAdd(identifier, texture))
+                    {
+                        texture.Dispose();
+                        if (!currentResources.TryGetValue(identifier, out texture))
+                            Trace.TraceError($"Texture Resource '{text}' not found. Retrying.");
+                    }
                 }
             }
             return texture;

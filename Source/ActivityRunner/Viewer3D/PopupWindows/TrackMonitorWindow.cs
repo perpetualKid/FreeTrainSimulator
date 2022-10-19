@@ -3,17 +3,18 @@
 using GetText;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.Graphics.Xna;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+
+using SharpDX.MediaFoundation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -29,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
 
         public TrackMonitorWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Monitor"), relativeLocation, new Point(160, 320), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Monitor"), relativeLocation, new Point(160, 340), catalog)
         {
             this.viewer = viewer;
         }
@@ -53,7 +54,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             line.Add(controlModeLabel = new Label(this, (int)(columnWidth / 5 * 7), Owner.TextFontDefault.Height, null));
             line.Add(gradientLabel = new Label(this, (int)(columnWidth / 5 * 3), Owner.TextFontDefault.Height, null, HorizontalAlignment.Right));
             layout.AddHorizontalSeparator();
-            layout.Add(trackMonitor = new TrackMonitorControl(this, layout.RemainingWidth, layout.RemainingHeight));
+            layout.Add(trackMonitor = new TrackMonitorControl(this, layout.RemainingWidth, layout.RemainingHeight, Simulator.Instance.Route.MilepostUnitsMetric));
             return layout;
         }
 
@@ -81,12 +82,40 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 trackMonitor.TrainDirection = playerLocomotive.Train.MUDirection;
                 trackMonitor.TrainOnRoute = playerLocomotive.Train.TrainOnPath;
                 trackMonitor.TrainControlMode = playerLocomotive.Train.ExtendedControlMode;
+
+                TrainInfo current = playerLocomotive.Train.GetTrainInfo();
+                if (MultiPlayerManager.IsMultiPlayer())
+                {
+                    MultiPlayerMode(current);
+                }
+                else if (playerLocomotive.Train.ControlMode is TrainControlMode.AutoNode or TrainControlMode.AutoSignal)
+                {
+                    AutoMode(current);
+                }
+                else if (playerLocomotive.Train.ControlMode == TrainControlMode.TurnTable)
+                    return;
+                else
+                {
+                    ManualMode(current);
+                }
             }
         }
 
-        protected override void Draw(SpriteBatch spriteBatch)
+        private void MultiPlayerMode(TrainInfo trainInfo)
         {
-            base.Draw(spriteBatch);
+            trackMonitor.PositionMode = TrackMonitorControl.TrainPositionMode.None;
         }
+
+        private void AutoMode(TrainInfo trainInfo)
+        {
+            trackMonitor.PositionMode = (trainInfo.ObjectInfoBackward?.Count > 0 && trainInfo.ObjectInfoBackward[0].ItemType == TrainPathItemType.Authority &&
+                trainInfo.ObjectInfoBackward[0].AuthorityType == EndAuthorityType.NoPathReserved) ? TrackMonitorControl.TrainPositionMode.AutoForward : TrackMonitorControl.TrainPositionMode.ManualBothWays;
+        }
+
+        private void ManualMode(TrainInfo trainInfo)
+        {
+            trackMonitor.PositionMode = TrackMonitorControl.TrainPositionMode.ManualBothWays;
+        }
+
     }
 }

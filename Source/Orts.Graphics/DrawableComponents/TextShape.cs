@@ -7,8 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Graphics.Xna;
 
-using static System.Net.Mime.MediaTypeNames;
-
 namespace Orts.Graphics.DrawableComponents
 {
     public class TextShape : ResourceGameComponent<Texture2D>
@@ -44,20 +42,13 @@ namespace Orts.Graphics.DrawableComponents
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
             int identifier = HashCode.Combine(font, message);
-            if (!currentResources.TryGetValue(identifier, out Texture2D texture))
-            {
-                if (!previousResources.TryGetValue(identifier, out texture))
+            Texture2D texture = Get(identifier, () =>
                 {
-                    texture = textRenderer.Resize(message, font);
-                    textRenderer.RenderText(message, font, texture);
-                    currentResources.Add(identifier, texture);
-                }
-                else
-                {
-                    currentResources.Add(identifier, texture);
-                    previousResources.Remove(identifier);
-                }
-            }
+                Texture2D inner = textRenderer.Resize(message, font);
+                textRenderer.RenderText(message, font, inner);
+                return inner;
+            });
+
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
             (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
