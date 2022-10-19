@@ -10807,8 +10807,8 @@ namespace Orts.Simulation.Physics
                         else if (section.Pins[sectionDirection, Location.FarEnd].Link == -1)
                         {
                             // trailing
-                            if ((section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute == 0) ||
-                                (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
+                            if ((section.ActivePins[sectionDirection.Reverse(), Location.FarEnd].Link > 0 && section.JunctionDefaultRoute == 0) ||
+                                (section.ActivePins[sectionDirection.Reverse(), Location.NearEnd].Link > 0 && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
                                 float junctionAngle = junctionNode.Angle;
