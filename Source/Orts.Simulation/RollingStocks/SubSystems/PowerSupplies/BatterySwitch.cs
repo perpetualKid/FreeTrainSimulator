@@ -49,7 +49,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Wagon = wagon;
 
             Timer = new Timer(Simulator.Instance);
-            Timer.Setup(DelayS);
         }
 
         public virtual void Parse(string lowercasetoken, STFReader stf)
@@ -92,6 +91,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public virtual void Initialize()
         {
+            Timer.Setup(DelayS);
         }
 
         /// <summary>
