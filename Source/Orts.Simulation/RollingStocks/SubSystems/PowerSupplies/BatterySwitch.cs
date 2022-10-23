@@ -35,6 +35,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
         public ModeType Mode { get; protected set; } = ModeType.AlwaysOn;
         public float DelayS { get; protected set; }
+        public bool DefaultOn { get; protected set; }
 
         // Variables
         readonly MSTSWagon Wagon;
@@ -80,6 +81,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 case "wagon(ortsbattery(delay":
                     DelayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
                     break;
+
+                case "engine(ortsbattery(defaulton":
+                case "wagon(ortsbattery(defaulton":
+                    DefaultOn = stf.ReadBoolBlock(false);
+                    break;
             }
         }
 
@@ -87,11 +93,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             Mode = source.Mode;
             DelayS = source.DelayS;
+            DefaultOn = source.DefaultOn;
         }
 
         public virtual void Initialize()
         {
             Timer.Setup(DelayS);
+
+            if (DefaultOn)
+            {
+                On = true;
+
+                if (Mode == ModeType.Switch)
+                {
+                    CommandSwitch = true;
+                }
+            }
         }
 
         /// <summary>
@@ -99,8 +116,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public virtual void InitializeMoving()
         {
-            CommandSwitch = true;
             On = true;
+
+            if (Mode == ModeType.Switch)
+            {
+                CommandSwitch = true;
+            }
         }
 
         public virtual void Save(BinaryWriter outf)
