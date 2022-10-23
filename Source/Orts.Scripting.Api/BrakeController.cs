@@ -85,6 +85,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> CurrentValue { get; set; }
         /// <summary>
+        /// Intermediate value of the brake controller
+        /// </summary>
+        public Func<float> IntermediateValue { get; set; }
+        /// <summary>
         /// Minimum value of the brake controller
         /// </summary>
         public Func<float> MinimumValue { get; set; }
@@ -108,6 +112,10 @@ namespace Orts.Scripting.Api
         /// Fraction of train brake demanded by cruise control
         /// </summary>
         public Func<float> CruiseControlBrakeDemand { get; set; }
+        /// <summary>
+        /// Current notch of the brake controller
+        /// </summary>
+        public Func<int> CurrentNotch { get; set; }
         /// <summary>
         /// Sets the current value of the brake controller lever
         /// </summary>
