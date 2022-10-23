@@ -383,6 +383,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             script.StepSize = () => StepSize;
             script.UpdateValue = () => UpdateValue;
             script.Notches = () => notches;
+            script.CruiseControlBrakeDemand = () => locomotive.CruiseControl != null ? locomotive.CruiseControl.TrainBrakePercent / 100 : 0;
 
             script.SetCurrentValue = (value) => CurrentValue = value;
             script.SetUpdateValue = (value) => UpdateValue = value;

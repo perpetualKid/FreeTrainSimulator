@@ -104,7 +104,10 @@ namespace Orts.Scripting.Api
         /// Gives the list of notches
         /// </summary>
         public Func<List<IControllerNotch>> Notches { get; set; }
-
+        /// <summary>
+        /// Fraction of train brake demanded by cruise control
+        /// </summary>
+        public Func<float> CruiseControlBrakeDemand { get; set; }
         /// <summary>
         /// Sets the current value of the brake controller lever
         /// </summary>
