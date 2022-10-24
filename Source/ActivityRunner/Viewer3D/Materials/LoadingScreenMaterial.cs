@@ -16,9 +16,14 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
 
         private static string LoadingTexturePath(Game game)
         {
-            return Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder,
-                ((game.GraphicsDevice.Adapter.IsWideScreen && !string.IsNullOrEmpty(Simulator.Instance.Route.LoadingScreenWide)) ?
-                Simulator.Instance.Route.LoadingScreenWide : Simulator.Instance.Route.LoadingScreen) ?? (string.IsNullOrEmpty(Simulator.Instance.Route.Thumbnail) ? "load.ace" : Simulator.Instance.Route.Thumbnail));
+            string texturePath = (game.GraphicsDevice.Adapter.IsWideScreen && !string.IsNullOrEmpty(Simulator.Instance.Route.LoadingScreenWide)) ?
+                Simulator.Instance.Route.LoadingScreenWide : Simulator.Instance.Route.LoadingScreen;
+            if (string.IsNullOrEmpty(texturePath) || !File.Exists(texturePath = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder,texturePath)))
+            {
+//                if (string.IsNullOrEmpty(texturePath = Simulator.Instance.Route.Thumbnail) || !File.Exists(texturePath = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, texturePath)))
+                    texturePath = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, "load.ace");
+            }
+            return texturePath;
         }
     }
 }

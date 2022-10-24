@@ -18,6 +18,8 @@ namespace Orts.Graphics.Window.Controls
             resourceHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             Window.OnWindowOpened += Window_OnWindowOpened;
             Window.OnWindowClosed += Window_OnWindowClosed;
+            if (Window.Visible)
+                resourceHolder.Refresh += ResourceHolder_Refresh;
         }
 
         private void Window_OnWindowClosed(object sender, System.EventArgs e)

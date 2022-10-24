@@ -280,10 +280,6 @@ namespace Orts.Simulation.Activities
                 return;
             }
 
-            // Reversible event is no longer triggered, so can re-enable it.
-            if (triggeredEvent.ActivityEvent.Reversible)
-                triggeredEvent.Disabled = false;
-
             triggeredEvent = null;
         }
 
