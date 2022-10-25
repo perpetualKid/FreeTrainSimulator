@@ -26,11 +26,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(280, 112), catalog)
         {
             Modal = true;
-            if (MultiPlayerManager.IsMultiPlayer())
-                Resize(new Point(300, 95));
             OnWindowClosed += QuitWindow_OnWindowClosed;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
+            if (MultiPlayerManager.IsMultiPlayer())
+                Resize(new Point(300, 95));
         }
 
         private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
