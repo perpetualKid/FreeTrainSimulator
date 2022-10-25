@@ -82,6 +82,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             windowManager[ViewerWindowType.CarOperationsWindow].Close();
         }
 
+        public override bool Close()
+        {
+            windowManager[ViewerWindowType.CarOperationsWindow].Close();
+            return base.Close();
+        }
+
         private void CouplerControl_OnClick(object sender, MouseClickEventArgs e)
         {
             if (Simulator.Instance.TimetableMode)
