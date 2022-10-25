@@ -14,24 +14,24 @@ namespace Orts.Formats.Msts.Models
     public class ControlType
     {
         public CabViewControlType CabViewControlType { get; }
-        public int Subtype { get; }
+        public int Id { get; }
 
         public ControlType(CabViewControlType cabViewControlType, int subType)
         {
             CabViewControlType = cabViewControlType;
-            Subtype = subType;
+            Id = subType;
         }
 
         public ControlType(string name)
         {
             CabViewControlType = CabViewControlType.None;
-            Subtype = 0;
+            Id = 0;
             if (name != null && name.StartsWith("ORTS_TCS", StringComparison.OrdinalIgnoreCase))
             {
                 if (int.TryParse(name.AsSpan(8), out int subtype))
                 {
                     CabViewControlType = CabViewControlType.Orts_TCS;
-                    Subtype = subtype;
+                    Id = subtype;
                 }
             }
             else
@@ -41,7 +41,7 @@ namespace Orts.Formats.Msts.Models
 
         public override string ToString()
         {
-            return CabViewControlType == CabViewControlType.Orts_TCS ? $"{CabViewControlType}{Subtype}" : CabViewControlType.ToString();
+            return CabViewControlType == CabViewControlType.Orts_TCS ? $"{CabViewControlType}{Id}" : CabViewControlType.ToString();
         }
     }
 

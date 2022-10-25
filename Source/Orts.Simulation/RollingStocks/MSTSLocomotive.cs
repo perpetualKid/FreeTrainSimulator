@@ -5941,7 +5941,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                 case CabViewControlType.Orts_TCS:
-                    TrainControlSystem.CabDisplayControls.TryGetValue(cvc.ControlType.Subtype - 1, out data);
+                    TrainControlSystem.CabDisplayControls.TryGetValue(cvc.ControlType.Id - 1, out data);
                     break;
 
                 case CabViewControlType.Orts_Battery_Switch_Command_Switch:
