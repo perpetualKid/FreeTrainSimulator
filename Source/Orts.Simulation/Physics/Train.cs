@@ -10881,8 +10881,6 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        public TrainControlModeExtended ExtendedControlMode => ControlMode.GetTrainControlModeExtended(MultiPlayerManager.IsMultiPlayer());
-
         public bool TrainOnPath
         {
             get

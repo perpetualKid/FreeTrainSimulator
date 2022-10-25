@@ -742,17 +742,6 @@ namespace Orts.Common
         [Description("Unknown")] Undefined,
     }
 
-    public enum TrainControlModeExtended
-    {
-        None, //covers Inactive, Undefined
-        Auto, // covers AutoSignal AutoNode
-        MultiPlayer,
-        Turntable,
-        Manual, //covers Manaual and Explorer
-        OutOfControl,
-
-    }
-
     public enum TCSEvent
     {
         /// <summary>
@@ -1108,22 +1097,5 @@ namespace Orts.Common
         [Description("BATT")] BatterySwitch,
 
         [Description("EOTD")] EotDevice,
-    }
-
-    public static class EnumTranslators
-    {
-        public static TrainControlModeExtended GetTrainControlModeExtended(this TrainControlMode controlMode, bool multiPlayer)
-        {
-            return multiPlayer
-                ? TrainControlModeExtended.MultiPlayer
-                : controlMode switch
-            {
-                TrainControlMode.AutoSignal or TrainControlMode.AutoNode => TrainControlModeExtended.Auto,
-                TrainControlMode.TurnTable => TrainControlModeExtended.Turntable,
-                TrainControlMode.OutOfControl=> TrainControlModeExtended.OutOfControl,
-                TrainControlMode.Explorer or TrainControlMode.Manual=> TrainControlModeExtended.Manual,
-                _=> TrainControlModeExtended.None,
-            };
-        }
     }
 }

@@ -540,7 +540,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
             {
-                return new PopupWindows.TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint(), this);
+                return new PopupWindows.TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
             }));
 
             Game.GameComponents.Add(windowManager);
