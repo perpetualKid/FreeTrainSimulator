@@ -99,7 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public WindowManager WindowManager { get; private set; }
         public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
         public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
-        public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
@@ -292,7 +291,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
                 var train = sender as Train;
-                if (!TrackMonitorWindow.Visible && Simulator.Confirmer != null && train != null)
+                if (Simulator.Confirmer != null && train != null)
                 {
                     var message = Catalog.GetString("Allowed speed raised to {0}", FormatStrings.FormatSpeedDisplay(train.AllowedMaxSpeedMpS, MilepostUnitsMetric));
                     Simulator.Confirmer.Message(ConfirmLevel.Information, message);
@@ -464,7 +463,6 @@ namespace Orts.ActivityRunner.Viewer3D
             WindowManager = new WindowManager(this);
             MessagesWindow = new MessagesWindow(WindowManager);
             NoticeWindow = new NoticeWindow(WindowManager);
-            TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
@@ -646,10 +644,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrackMonitorWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrackMonitorWindow.TabAction();
-                else
-                    TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.TrackMonitorWindow].ToggleVisibility();
             });
