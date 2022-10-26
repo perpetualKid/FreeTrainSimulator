@@ -171,7 +171,7 @@ namespace Orts.Graphics.Window
 
         internal bool OpenWindow(WindowBase window)
         {
-            if (modalWindows.TryPeek(out activeWindow) && (!window.Modal || !MultiLayerModalWindows))
+            if (modalWindows.TryPeek(out _) && (!window.Modal || !MultiLayerModalWindows))
             {
                 return false;
             }
