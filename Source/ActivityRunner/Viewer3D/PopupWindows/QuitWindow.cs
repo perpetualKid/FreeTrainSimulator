@@ -26,16 +26,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(280, 112), catalog)
         {
             Modal = true;
-            OnWindowClosed += QuitWindow_OnWindowClosed;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
             if (MultiPlayerManager.IsMultiPlayer())
                 Resize(new Point(300, 95));
-        }
-
-        private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
-        {
-            Program.Viewer.ResumeReplaying();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -92,6 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             userCommandController.RemoveEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, QuitGame);
             userCommandController.RemoveEvent(UserCommand.GameSave, KeyEventType.KeyPressed, QuitGame);
+            Program.Viewer.ResumeReplaying();
             return base.Close();
         }
 
