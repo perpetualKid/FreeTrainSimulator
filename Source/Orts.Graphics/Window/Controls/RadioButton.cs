@@ -49,10 +49,10 @@ namespace Orts.Graphics.Window.Controls
             base.Draw(spriteBatch, offset);
         }
 
-        internal override bool MouseClick(WindowMouseEvent e)
+        internal override bool RaiseMouseClick(WindowMouseEvent e)
         {
             State = true;
-            _ = base.MouseClick(e);
+            _ = base.RaiseMouseClick(e);
             return true;
         }
     }
