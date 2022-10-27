@@ -74,7 +74,7 @@ namespace Orts.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
-            nearestSegmentForStatus = (float.NaN, null);
+            nearestSegmentForStatus = (float.MaxValue, null);
             GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
             {

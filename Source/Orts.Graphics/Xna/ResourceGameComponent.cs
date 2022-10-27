@@ -43,7 +43,6 @@ namespace Orts.Graphics.Xna
                     foreach (T value in sweepResources.Values)
                         (value as IDisposable).Dispose();
                 }
-                Trace.TraceInformation($"Clearing {sweepResources.Count} resources");
                 sweepResources.Clear();
                 nextSweep = gameTime.TotalGameTime.Add(sweepInterval);
                 Refresh?.Invoke(this, EventArgs.Empty);
@@ -61,7 +60,6 @@ namespace Orts.Graphics.Xna
                     {
                         if (disposableT)
                             (resource as IDisposable).Dispose();
-                        Trace.TraceInformation($"Resource of type '{typeof(T)}' already added.");
                     }
                 }
                 else
