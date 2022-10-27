@@ -8,12 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Graphics.Xna
 {
-    public class TextTextureRenderer: IDisposable
+    public class TextTextureRenderer : IDisposable
     {
         private readonly Texture2D emptyTexture;
         private readonly Bitmap measureBitmap;
         private readonly Microsoft.Xna.Framework.Game game;
-        private readonly ConcurrentQueue<System.Drawing.Graphics> measureGraphicsHolder = new ConcurrentQueue<System.Drawing.Graphics>();
+        private readonly ConcurrentQueue<(System.Drawing.Graphics, StringFormat)> measureGraphicsHolder = new ConcurrentQueue<(System.Drawing.Graphics, StringFormat)>();
         private readonly ConcurrentQueue<Brush> whiteBrushHolder = new ConcurrentQueue<Brush>();
         private bool disposedValue;
 
@@ -40,23 +40,30 @@ namespace Orts.Graphics.Xna
 
         public Size Measure(string text, Font font)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            if (!measureGraphicsHolder.TryDequeue(out System.Drawing.Graphics measureGraphics))
-                measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            Size result = measureGraphics.MeasureString(text, font).ToSize();
-            measureGraphicsHolder.Enqueue(measureGraphics);
-            return result;
+            if (!measureGraphicsHolder.TryDequeue(out (System.Drawing.Graphics measureGraphics, StringFormat formatHolder) measureContainer))
+            {
+                measureContainer.measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
+                measureContainer.measureGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                measureContainer.formatHolder = new StringFormat(StringFormat.GenericDefault);
+            }
+
+            Size size = Size.Empty; // measureGraphics.MeasureString(text, font).ToSize();
+
+            if (!string.IsNullOrEmpty(text) && font != null)
+            {
+                measureContainer.formatHolder.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(0, text.Length) });
+                var ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, font.Height), measureContainer.formatHolder);
+                SizeF actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
+                int padding = (int)Math.Ceiling(font.Size * 0.2);
+                size = new Size((int)Math.Ceiling(actual.Width + padding), (int)Math.Ceiling(actual.Height + padding));
+            }
+            measureGraphicsHolder.Enqueue(measureContainer);
+            return size;
         }
 
         public Texture2D Resize(string text, Font font)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            if (!measureGraphicsHolder.TryDequeue(out System.Drawing.Graphics measureGraphics))
-                measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            Size size = measureGraphics.MeasureString(text, font).ToSize();
-            measureGraphicsHolder.Enqueue(measureGraphics);
+            Size size = Measure(text, font);
             return (size.Width == 0 || size.Height == 0) ? emptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
         }
 
@@ -74,8 +81,8 @@ namespace Orts.Graphics.Xna
                 {
                     g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
                     // Draw the text to the clean bitmap
                     g.Clear(Color.Transparent);
@@ -83,7 +90,7 @@ namespace Orts.Graphics.Xna
                     if (!whiteBrushHolder.TryDequeue(out Brush whiteBrush))
                         whiteBrush = new SolidBrush(Color.White);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                    g.DrawString(text, font, whiteBrush, PointF.Empty);
+                    g.DrawString(text, font, whiteBrush, Point.Empty);
                     whiteBrushHolder.Enqueue(whiteBrush);
                     BitmapData bmd = bmpSurface.LockBits(new Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
                     int bufferSize = bmd.Height * bmd.Stride;
@@ -106,8 +113,11 @@ namespace Orts.Graphics.Xna
             {
                 if (disposing)
                 {
-                    while(measureGraphicsHolder.TryDequeue(out System.Drawing.Graphics measureGraphics))
-                        measureGraphics?.Dispose();
+                    while (measureGraphicsHolder.TryDequeue(out (System.Drawing.Graphics measureGraphics, StringFormat formatHolder) measureContainer))
+                    {
+                        measureContainer.measureGraphics?.Dispose();
+                        measureContainer.formatHolder?.Dispose();
+                    }
                     while (whiteBrushHolder.TryDequeue(out Brush brush))
                         brush?.Dispose();
 
