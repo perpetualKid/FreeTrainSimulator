@@ -11,7 +11,6 @@ namespace Orts.Common.Input
         private ILookup<int, T> userCommandsLookup;
         private ILookup<int, (T, KeyModifiers)> modifyableCommandsLookup;
         private UserCommandController<T> userCommandController;
-        private bool suspended;
 
         public void Initialize(EnumArray<UserCommandInput, T> userCommands, KeyboardInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {

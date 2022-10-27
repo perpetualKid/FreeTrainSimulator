@@ -37,17 +37,13 @@ namespace Orts.Common.Input
 
         public static int KeyEventCode(Keys key, KeyModifiers modifiers, KeyEventType keyEventType)
         {
-            switch (keyEventType)
+            return keyEventType switch
             {
-                case KeyEventType.KeyDown:
-                    return (int)key << KeyDownShift ^ (int)modifiers;
-                case KeyEventType.KeyPressed:
-                    return (int)key << KeyPressShift ^ (int)modifiers;
-                case KeyEventType.KeyReleased:
-                    return (int)key << KeyUpShift ^ (int)modifiers;
-                default:
-                    throw new NotSupportedException();
-            }
+                KeyEventType.KeyDown => (int)key << KeyDownShift ^ (int)modifiers,
+                KeyEventType.KeyPressed => (int)key << KeyPressShift ^ (int)modifiers,
+                KeyEventType.KeyReleased => (int)key << KeyUpShift ^ (int)modifiers,
+                _ => throw new NotSupportedException(),
+            };
         }
 
         public void AddInputHandler(Action<int, GameTime, KeyEventType, KeyModifiers> inputAction)
