@@ -463,6 +463,35 @@ namespace Orts.Simulation.MultiPlayer
 
         public bool PlayerAdded;
 
+        public void SendMessage(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            //we need to send message out
+            string user = "";
+            if (string.IsNullOrEmpty(lastSender)) //server will broadcast the message to everyone
+                user = IsServer() ? string.Join("", OnlineTrains.Players.Keys.Select((string k) => $"{k}\r")) + "0END" : "0Server\r0END";
+
+            int index = text.IndexOf(':', StringComparison.OrdinalIgnoreCase);
+            if (index > 0)
+            {
+
+                IEnumerable<string> onlinePlayers = text[..index].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where((string nt) => OnlineTrains.Players.ContainsKey(nt));
+
+                string newUser = string.Join("\r", onlinePlayers);
+                if (newUser.Length > 0)
+                    user = newUser;
+                user += "0END";
+
+                text = text[(index + 1)..];
+
+            }
+
+            string msgText = new MSGText(GetUserName(), user, text).ToString();
+            Notify(msgText);
+        }
+
         public void AddPlayer()
         {
             if (!IsServer())
@@ -548,7 +577,7 @@ namespace Orts.Simulation.MultiPlayer
         {
             return MultiplayerState != MultiplayerState.None
                 ? MultiplayerState == MultiplayerState.Dispatcher
-                ? $"{Catalog.GetString("Dispatcher")}" 
+                ? $"{Catalog.GetString("Dispatcher")}"
                 : AmAider || (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote) ? Catalog.GetString("Helper")
                 : $"{Catalog.GetString("Client")}"
                 : $"{Catalog.GetString("Connection to the server lost")}";

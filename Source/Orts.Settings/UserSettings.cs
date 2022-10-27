@@ -346,8 +346,6 @@ namespace Orts.Settings
         public int[] WindowPosition_DriverAid { get; set; }
         [Default(new[] { 75, 0 })]
         public int[] WindowPosition_HUDScroll { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_ComposeMessage { get; set; }
 
         [Default(new string[]
         {
@@ -368,6 +366,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrainOperationsWindow)}=50,50",
             $"{nameof(ViewerWindowType.CarOperationsWindow)}=50,50",
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=100,0",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=50,50",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -390,6 +389,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrainOperationsWindow)}=False",
             $"{nameof(ViewerWindowType.CarOperationsWindow)}=False",
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=False",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -412,6 +412,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrainOperationsWindow)}=\"\"",
             $"{nameof(ViewerWindowType.CarOperationsWindow)}=\"\"",
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

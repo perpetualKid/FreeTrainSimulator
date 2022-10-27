@@ -10,7 +10,7 @@ namespace Orts.Graphics.Window.Controls
         private protected Font font;
         private protected static Brush whiteBrush = new SolidBrush(Color.White);
 
-        private readonly TextTextureResourceHolder resourceHolder;
+        private protected readonly TextTextureResourceHolder resourceHolder;
 
         protected TextControl(WindowBase window, int x, int y, int width, int height) :
             base(window, x, y, width, height)
@@ -19,21 +19,21 @@ namespace Orts.Graphics.Window.Controls
             Window.OnWindowOpened += Window_OnWindowOpened;
             Window.OnWindowClosed += Window_OnWindowClosed;
             if (Window.Visible)
-                resourceHolder.Refresh += ResourceHolder_Refresh;
+                resourceHolder.Refresh += RefreshResources;
         }
 
         private void Window_OnWindowClosed(object sender, System.EventArgs e)
         {
-            resourceHolder.Refresh -= ResourceHolder_Refresh;
+            resourceHolder.Refresh -= RefreshResources;
         }
 
         private void Window_OnWindowOpened(object sender, System.EventArgs e)
         {
             InitializeText(text);
-            resourceHolder.Refresh += ResourceHolder_Refresh;
+            resourceHolder.Refresh += RefreshResources;
         }
 
-        private void ResourceHolder_Refresh(object sender, System.EventArgs e)
+        private protected virtual void RefreshResources(object sender, System.EventArgs e)
         {
             InitializeText(text);
         }

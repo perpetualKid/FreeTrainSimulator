@@ -52,7 +52,7 @@ namespace Orts.Graphics.Xna
             if (!string.IsNullOrEmpty(text) && font != null)
             {
                 measureContainer.formatHolder.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(0, text.Length) });
-                var ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, font.Height), measureContainer.formatHolder);
+                var ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, text.Length * font.Height), measureContainer.formatHolder);
                 SizeF actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
                 int padding = (int)Math.Ceiling(font.Size * 0.2);
                 size = new Size((int)Math.Ceiling(actual.Width + padding), (int)Math.Ceiling(actual.Height + padding));

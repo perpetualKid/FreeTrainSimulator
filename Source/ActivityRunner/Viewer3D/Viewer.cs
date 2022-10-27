@@ -105,7 +105,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
-        public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
 
         // Route Information
         public TileManager Tiles { get; private set; }
@@ -469,7 +468,6 @@ namespace Orts.ActivityRunner.Viewer3D
             OSDCars = new OSDCars(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
-            ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
             WindowManager.Initialize();
 
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
@@ -540,6 +538,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new PopupWindows.TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            {
+                return new PopupWindows.MultiPlayerMessaging(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -589,7 +591,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => Simulator.Confirmer?.Information(Catalog.GetString("In multiplayer mode, use Alt-F4 to quit directly")));
                 UserCommandController.AddEvent(UserCommand.GameMultiPlayerTexting, KeyEventType.KeyPressed, () =>
                 {
-                    ComposeMessageWindow.InitMessage();
+                    windowManager[ViewerWindowType.MultiPlayerMessagingWindow].ToggleVisibility();
                 });
             }
             else
@@ -1040,11 +1042,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
-                if (Settings.PopupStatus[windowType] && 
-                    (windowType is not ViewerWindowType.QuitWindow 
-                    and not ViewerWindowType.ActivityWindow 
+                if (Settings.PopupStatus[windowType] &&
+                    (windowType is not ViewerWindowType.QuitWindow
+                    and not ViewerWindowType.ActivityWindow
                     and not ViewerWindowType.PauseWindow
-                    and not ViewerWindowType.CarOperationsWindow))
+                    and not ViewerWindowType.CarOperationsWindow
+                    and not ViewerWindowType.MultiPlayerMessagingWindow))
                     windowManager[windowType].Open();
             }
 

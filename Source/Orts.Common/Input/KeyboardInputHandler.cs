@@ -56,21 +56,8 @@ namespace Orts.Common.Input
 
         }
 
-        public void SuspendForOverlayInput()
-        {
-            suspended = true;
-        }
-
-        public void ResumeFromOverlayInput()
-        {
-            suspended = false;
-        }
-
         private void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
         {
-            if (suspended)
-                return;
-
             foreach (T command in userCommandsLookup[eventCode])
                 userCommandController.Trigger(command, eventType, UserCommandArgs.Empty, gameTime);
 

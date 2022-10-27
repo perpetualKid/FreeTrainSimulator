@@ -48,6 +48,9 @@ namespace Orts.Graphics.Window
 
         internal WindowControl CapturedControl { get; set; }
 
+        private WindowControl inactiveControl;
+        internal WindowControl ActiveControl { get; set; }
+
         public bool Visible { get; private set; }
 
         public Catalog Catalog { get; }
@@ -156,6 +159,11 @@ namespace Orts.Graphics.Window
             Layout();
         }
 
+        protected void ActivateControl(WindowControl control)
+        {
+            ActiveControl = control;
+        }
+
         internal void UpdateLocation()
         {
             Point position;
@@ -223,10 +231,15 @@ namespace Orts.Graphics.Window
         }
 
         protected internal virtual void FocusSet()
-        { }
+        { 
+            ActiveControl = inactiveControl;
+        }
 
         protected internal virtual void FocusLost()
-        { }
+        {
+            inactiveControl = ActiveControl;
+            ActiveControl = null;
+        }
 
         protected virtual ControlLayout Layout(ControlLayout layout, float headerScaling = 1.0f)
         {

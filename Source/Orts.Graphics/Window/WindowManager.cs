@@ -102,6 +102,7 @@ namespace Orts.Graphics.Window
             WhiteTexture.SetData(new[] { Color.White });
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            game.Window.TextInput += Window_TextInput;
             DrawOrder = 100;
 
             windowTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png"), game);
@@ -154,6 +155,11 @@ namespace Orts.Graphics.Window
         {
             clientBounds = Game.Window.ClientBounds;
             UpdateSize();
+        }
+
+        private void Window_TextInput(object sender, TextInputEventArgs e)
+        {
+            UserCommandController.SuppressDownLevelEventHandling = activeWindow?.ActiveControl?.HandleTextInput(e) ?? false;
         }
 
         private void UpdateSize()
