@@ -18,7 +18,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class NextStationWindow : WindowBase
+    internal class NextStationWindow : FramedWindowBase
     {
         private Label stationPlatform;
         private Label currentDelay;

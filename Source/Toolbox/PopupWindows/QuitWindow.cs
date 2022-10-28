@@ -16,7 +16,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class QuitWindow : WindowBase
+    public class QuitWindow : FramedWindowBase
     {
         private Label quitButton;
         private Label cancelButton;

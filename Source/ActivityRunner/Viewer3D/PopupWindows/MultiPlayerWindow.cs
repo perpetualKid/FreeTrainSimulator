@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using GetText;
@@ -19,7 +18,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class MultiPlayerWindow : WindowBase
+    internal class MultiPlayerWindow : FramedWindowBase
     {
         private Label labelTime;
         private Label labelStatus;

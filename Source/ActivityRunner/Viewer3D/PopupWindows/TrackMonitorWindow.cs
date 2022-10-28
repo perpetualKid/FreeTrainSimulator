@@ -18,7 +18,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TrackMonitorWindow : WindowBase
+    internal class TrackMonitorWindow : FramedWindowBase
     {
         private Label speedCurrentLabel;
         private Label speedProjectedLabel;

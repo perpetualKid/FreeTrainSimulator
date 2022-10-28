@@ -9,7 +9,7 @@ using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class MultiPlayerMessaging : WindowBase
+    internal class MultiPlayerMessaging : FramedWindowBase
     {
         private Label sendButton;
         private TextInput textInput;

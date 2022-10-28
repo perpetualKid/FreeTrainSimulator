@@ -9,7 +9,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class TrackNodeInfoWindow : WindowBase
+    internal class TrackNodeInfoWindow : FramedWindowBase
     {
         private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;

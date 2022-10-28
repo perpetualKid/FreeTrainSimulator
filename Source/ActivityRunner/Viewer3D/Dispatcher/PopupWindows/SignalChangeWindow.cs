@@ -11,7 +11,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    public class SignalChangeWindow : WindowBase
+    public class SignalChangeWindow : FramedWindowBase
     {
         private readonly Point offset;
         private ISignal signal;

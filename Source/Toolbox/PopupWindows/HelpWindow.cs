@@ -10,7 +10,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class HelpWindow : WindowBase
+    public class HelpWindow : FramedWindowBase
     {
         public HelpWindow(WindowManager owner, Point relativeLocation) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), "Help", relativeLocation, new Point(360, 134))

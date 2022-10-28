@@ -17,7 +17,7 @@ using Orts.Simulation.Activities;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class ActivityWindow : WindowBase
+    internal class ActivityWindow : FramedWindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
         private TextBox messageText;

@@ -15,7 +15,7 @@ using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    public class SignalStateWindow : WindowBase
+    public class SignalStateWindow : FramedWindowBase
     {
         private class SignalStateInformation : INameValueInformationProvider
         {

@@ -12,7 +12,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class StatusTextWindow : WindowBase
+    public class StatusTextWindow : FramedWindowBase
     {
         private Label routeLabel;
 

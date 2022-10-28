@@ -32,7 +32,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override bool HandleTextInput(TextInputEventArgs e)
         {
-            if (Window.ActiveControl == this)
+            if (Window is FramedWindowBase frameWindow && frameWindow.ActiveControl == this)
             {
                 switch (e.Character)
                 {
@@ -41,11 +41,11 @@ namespace Orts.Graphics.Window.Controls
                             Text = Text.Remove(text.Length - 1);
                         break;
                     case '\r':
-                        Window.ActiveControl = null;
+                        frameWindow.ActiveControl = null;
                         OnEnterKey?.Invoke(this, EventArgs.Empty);
                         break;
                     case '\u001b':
-                        Window.ActiveControl = null;
+                        frameWindow.ActiveControl = null;
                         OnEscapeKey?.Invoke(this, EventArgs.Empty);
                         break;
                     default:
@@ -60,7 +60,8 @@ namespace Orts.Graphics.Window.Controls
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
         {
-            Window.ActiveControl = this;
+            if (Window is FramedWindowBase framedWindow)
+                framedWindow.ActiveControl = this;
             return base.HandleMouseClicked(e);
         }
 
@@ -68,7 +69,7 @@ namespace Orts.Graphics.Window.Controls
         {
             if (Environment.TickCount64 > nextCaretTick)
             {
-                caretBlink = !caretBlink && Window.ActiveControl == this;
+                caretBlink = !caretBlink && Window is FramedWindowBase framedWindow && framedWindow.ActiveControl == this;
                 nextCaretTick = Environment.TickCount64 + caretFrequency;
             }
             base.Update(gameTime, shouldUpdate);

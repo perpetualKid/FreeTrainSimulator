@@ -9,7 +9,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class AboutWindow : WindowBase
+    internal class AboutWindow : FramedWindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
 

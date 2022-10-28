@@ -20,7 +20,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    internal class TrainInformationWindow : WindowBase
+    internal class TrainInformationWindow : FramedWindowBase
     {
 
         private class TrainInformation : INameValueInformationProvider

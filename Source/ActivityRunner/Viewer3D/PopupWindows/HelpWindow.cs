@@ -26,7 +26,7 @@ using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class HelpWindow : WindowBase
+    internal class HelpWindow : FramedWindowBase
     {
         private enum TabSettings
         {

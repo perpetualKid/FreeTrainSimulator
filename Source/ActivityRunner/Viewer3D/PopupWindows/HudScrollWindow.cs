@@ -13,7 +13,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class HudScrollWindow : WindowBase
+    internal class HudScrollWindow : FramedWindowBase
     {
         private Viewer viewer;
 

@@ -16,7 +16,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class LocationWindow : WindowBase
+    public class LocationWindow : FramedWindowBase
     {
         private ContentArea contentArea;
         private Label locationLabel;

@@ -14,7 +14,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class SettingsWindow : WindowBase
+    internal class SettingsWindow : FramedWindowBase
     {
         private readonly ToolboxSettings toolboxSettings;
 

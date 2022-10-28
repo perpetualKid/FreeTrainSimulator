@@ -11,7 +11,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class LoggingWindow : WindowBase
+    internal class LoggingWindow : FramedWindowBase
     {
         private readonly string logText;
 

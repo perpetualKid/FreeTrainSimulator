@@ -21,7 +21,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class DistributedPowerWindow : WindowBase
+    internal class DistributedPowerWindow : FramedWindowBase
     {
         private const int monoColumnWidth = 40;
         private const int normalColumnWidth = 64;
