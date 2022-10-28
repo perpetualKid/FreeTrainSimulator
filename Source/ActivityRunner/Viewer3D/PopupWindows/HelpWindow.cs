@@ -56,6 +56,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Report,
         }
 
+        private enum SearchColumn
+        {
+            Command = 1,
+            Key = 2,
+        }
+
         private TabControl<TabSettings> tabControl;
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
@@ -69,6 +75,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private ControlLayout evaluationTab;
         private TextBox reportText;
         private bool evaluationCompleted;
+
+        private TextInput searchBox;
+        private SearchColumn searchMode;
+        private readonly List<WindowControl> helpCommandControls = new List<WindowControl>();
+        private VerticalScrollboxControlLayout helpCommandScrollbox;
 
         public HelpWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(560, 380), catalog)
@@ -88,7 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabControl.TabLayouts[TabSettings.KeyboardShortcuts] = (layoutContainer) =>
             {
                 System.Drawing.Font keyFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Regular)[Owner.DefaultFontSize - 1];
-                layoutContainer = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Center;
 
                 int keyWidth = layoutContainer.RemainingWidth / KeyboardMap.MapWidth;
@@ -106,14 +116,29 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.AddHorizontalSeparator();
                 ControlLayoutHorizontal headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 int width = headerLine.RemainingWidth / 2;
-                headerLine.Add(new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Function")));
-                headerLine.Add(new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Key")));
+                Label headerLabel;
+
+                headerLine.Add(headerLabel = new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Command") + TextInput.SearchIcon));
+                headerLabel.Tag = SearchColumn.Command;
+                headerLabel.OnClick += CommandListFilter_OnClick;
+                headerLine.Add(headerLabel = new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Key") + TextInput.SearchIcon));
+                headerLabel.Tag = SearchColumn.Key;
+                headerLabel.OnClick += CommandListFilter_OnClick;
+                headerLine.Add(searchBox = new TextInput(this, -headerLine.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
+                searchBox.Visible = false;
+                searchBox.TextChanged += SearchBox_TextChanged;
+                searchBox.OnEnterKey += SearchBox_OnEnterKey;
+
                 layoutContainer.AddHorizontalSeparator();
+                
+                layoutContainer.Add(helpCommandScrollbox = new VerticalScrollboxControlLayout(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight));
+
                 foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 {
-                    ControlLayoutHorizontal line = layoutContainer.AddLayoutHorizontalLineOfText();
+                    ControlLayoutHorizontal line = helpCommandScrollbox.Client.AddLayoutHorizontalLineOfText();
                     line.Add(new Label(this, width, line.RemainingHeight, command.GetLocalizedDescription()));
                     line.Add(new Label(this, width, line.RemainingHeight, settings.Input.UserCommands[command].ToString()));
+                    helpCommandControls.Add(line);
                 }
             };
             #endregion
@@ -604,5 +629,63 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             }
             return result;
         }
+
+        private void CommandListFilter_OnClick(object sender, MouseClickEventArgs e)
+        {
+            searchMode = (SearchColumn)((sender as Label).Tag);
+            searchBox.Container.Controls[0].Visible = false;
+            searchBox.Container.Controls[1].Visible = false;
+            searchBox.Visible = true;
+        }
+
+        private void SearchBox_OnEnterKey(object sender, EventArgs e)
+        {
+            searchBox.Text = null;
+            searchBox.Visible = false;
+            searchBox.Container.Controls[0].Visible = true;
+            searchBox.Container.Controls[1].Visible = true;
+        }
+
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            Filter((sender as TextInput).Text, searchMode);
+        }
+
+        private void Filter(string searchText, SearchColumn searchFlags)
+        {
+            helpCommandScrollbox.Clear();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                foreach (ControlLayoutHorizontal line in helpCommandControls)
+                    helpCommandScrollbox.Client.Add(line);
+            }
+            else
+            {
+                foreach (ControlLayoutHorizontal line in helpCommandControls)
+                {
+                    switch (searchMode)
+                    {
+
+                        case SearchColumn.Command:
+                            if ((line.Controls[0] as Label)?.Text?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                                helpCommandScrollbox.Client.Add(line);
+                            break;
+                        case SearchColumn.Key:
+                            if ((line.Controls[1] as Label)?.Text?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                                helpCommandScrollbox.Client.Add(line);
+                            break;
+                    }
+                }
+            }
+            helpCommandScrollbox.UpdateContent();
+        }
+
+        protected override void FocusLost()
+        {
+            searchBox.ReleaseFocus();
+            base.FocusLost();
+        }
+
     }
 }

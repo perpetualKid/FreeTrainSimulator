@@ -150,6 +150,7 @@ namespace Orts.Toolbox
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
+            windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)

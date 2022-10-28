@@ -10,7 +10,7 @@ namespace Orts.Graphics.Window.Controls
         private Point alignmentOffset;
         private Rectangle? clippingRectangle;
 
-        public string Text
+        public virtual string Text
         {
             get => text;
             set

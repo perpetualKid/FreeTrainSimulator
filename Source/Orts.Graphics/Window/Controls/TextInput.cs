@@ -20,7 +20,13 @@ namespace Orts.Graphics.Window.Controls
         public event EventHandler<EventArgs> OnEscapeKey;
         public event EventHandler<EventArgs> OnEnterKey;
 
-        public TextInput(WindowBase window, int width, int height, char caretSymbol = '_') : base(window, width, height, null)
+        public const string SearchIcon = " ⌕"; // \u2315
+
+        public TextInput(WindowBase window, int width, int height, char caretSymbol = '_') : this(window, 0, 0, width, height, caretSymbol)
+        {
+        }
+
+        public TextInput(WindowBase window, int x, int y, int width, int height, char caretSymbol = '_') : base(window, x, y, width, height, null)
         {
             this.caretSymbol = caretSymbol.ToString();
             caretTexture = resourceHolder.PrepareResource(this.caretSymbol, font);
@@ -37,8 +43,11 @@ namespace Orts.Graphics.Window.Controls
                 switch (e.Character)
                 {
                     case '\b':
-                        if (text.Length > 0)
+                        if (!string.IsNullOrEmpty(Text))
+                        {
                             Text = Text.Remove(text.Length - 1);
+                            TextChanged?.Invoke(this, EventArgs.Empty);
+                        }
                         break;
                     case '\r':
                         frameWindow.ActiveControl = null;
@@ -49,13 +58,36 @@ namespace Orts.Graphics.Window.Controls
                         OnEscapeKey?.Invoke(this, EventArgs.Empty);
                         break;
                     default:
-                        Text += e.Character;
-                        TextChanged?.Invoke(this, EventArgs.Empty);
+                        if (texture.Width + caretTexture.Width < Bounds.Width)
+                        {
+                            Text += e.Character;
+                            TextChanged?.Invoke(this, EventArgs.Empty);
+                        }
                         break;
                 }
                 return true;
             }
             return false;
+        }
+
+        public override string Text
+        {
+            get => base.Text;
+            set
+            {
+                base.Text = value;
+                TextChanged?.Invoke(this, EventArgs.Empty);
+
+            }
+        }
+
+        public void ReleaseFocus()
+        {
+            if (Window is FramedWindowBase frameWindow && frameWindow.ActiveControl == this)
+            {
+                frameWindow.ActiveControl = null;
+                OnEnterKey?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
