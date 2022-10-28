@@ -55,6 +55,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         Speed180,
         Speed190,
         Speed200,
+        SpeedPlus5,
+        SpeedMinus5,
+        SpeedPlus1,
+        SpeedMinus1,
     }
 
     public class CruiseControl
@@ -110,7 +114,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public SpeedSelectorMode SpeedSelectorMode { get; set; } = SpeedSelectorMode.Neutral;
         public CruiseControlLogic CruiseControlLogic { get; private set; }
         public float SelectedSpeedMpS { get; set; }
-        public float SetSpeedMpS => restrictedRegionOdometer.Started ? currentSelectedSpeedMpS : SelectedSpeedMpS;
+        
+        private float SetSpeedMpS => restrictedRegionOdometer.Started ? currentSelectedSpeedMpS : SelectedSpeedMpS;
+        private float SetSpeedKpHOrMpH => (float)(speedIsMph ? Speed.MeterPerSecond.ToMpH(SetSpeedMpS) : Speed.MeterPerSecond.ToKpH(SetSpeedMpS));
+
         private int selectedNumberOfAxles;
         public float SpeedRegulatorNominalSpeedStepMpS { get; set; }
         private float speedRegulatorNominalSpeedStepKpHOrMpH;
@@ -212,7 +219,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public bool SelectingSpeedPressed { get; set; }
         public bool EngineBrakePriority { get; set; }
         public int AccelerationBits { get; }
-        public EnumArray<bool, CruiseControlSpeed> SpeedPressed { get; } = new EnumArray<bool, CruiseControlSpeed>();
+        private EnumArray<bool, CruiseControlSpeed> speedPressed = new EnumArray<bool, CruiseControlSpeed>();
 
         public CruiseControl(MSTSLocomotive locomotive)
         {
@@ -1332,6 +1339,89 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             simulator.Confirmer.Confirm(CabControl.RestrictedSpeedZone, CabSetting.On);
         }
 
+        public void SetSpeed(CruiseControlSpeed speedValue, bool pressed)
+        {
+            switch (speedValue)
+            {
+                case CruiseControlSpeed.Speed0:
+                    SetSpeed(0f);
+                    break;
+                case CruiseControlSpeed.Speed10:
+                    SetSpeed(10f);
+                    break;
+                case CruiseControlSpeed.Speed20:
+                    SetSpeed(20f);
+                    break;
+                case CruiseControlSpeed.Speed30:
+                    SetSpeed(3f);
+                    break;
+                case CruiseControlSpeed.Speed40:
+                    SetSpeed(40f);
+                    break;
+                case CruiseControlSpeed.Speed50:
+                    SetSpeed(50f);
+                    break;
+                case CruiseControlSpeed.Speed60:
+                    SetSpeed(60f);
+                    break;
+                case CruiseControlSpeed.Speed70:
+                    SetSpeed(70f);
+                    break;
+                case CruiseControlSpeed.Speed80:
+                    SetSpeed(80f);
+                    break;
+                case CruiseControlSpeed.Speed90:
+                    SetSpeed(90f);
+                    break;
+                case CruiseControlSpeed.Speed100:
+                    SetSpeed(100f);
+                    break;
+                case CruiseControlSpeed.Speed110:
+                    SetSpeed(110f);
+                    break;
+                case CruiseControlSpeed.Speed120:
+                    SetSpeed(120f);
+                    break;
+                case CruiseControlSpeed.Speed130:
+                    SetSpeed(130f);
+                    break;
+                case CruiseControlSpeed.Speed140:
+                    SetSpeed(140f);
+                    break;
+                case CruiseControlSpeed.Speed150:
+                    SetSpeed(150f);
+                    break;
+                case CruiseControlSpeed.Speed160:
+                    SetSpeed(160f);
+                    break;
+                case CruiseControlSpeed.Speed170:
+                    SetSpeed(170f);
+                    break;
+                case CruiseControlSpeed.Speed180:
+                    SetSpeed(180f);
+                    break;
+                case CruiseControlSpeed.Speed190:
+                    SetSpeed(190f);
+                    break;
+                case CruiseControlSpeed.Speed200:
+                    SetSpeed(200f);
+                    break;
+                case CruiseControlSpeed.SpeedPlus5:
+                    SetSpeed(SetSpeedKpHOrMpH + 5);
+                    break;
+                case CruiseControlSpeed.SpeedMinus5:
+                    SetSpeed(SetSpeedKpHOrMpH - 5);
+                    break;
+                case CruiseControlSpeed.SpeedPlus1:
+                    SetSpeed(SetSpeedKpHOrMpH + 1);
+                    break;
+                case CruiseControlSpeed.SpeedMinus1:
+                    SetSpeed(SetSpeedKpHOrMpH - 1);
+                    break;
+            }
+            speedPressed[speedValue] = pressed;
+        }
+
         public void SetSpeed(float speed)
         {
             if (SpeedRegulatorMode == SpeedRegulatorMode.Manual && (ForceRegulatorAutoWhenNonZeroSpeedSelected || ForceRegulatorAutoWhenNonZeroSpeedSelectedAndThrottleAtZero))
@@ -1735,107 +1825,127 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     break;
                 case CabViewControlType.Orts_CC_Speed_0:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed0] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed0] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_10:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed10] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed10] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_20:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed20] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed20] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_30:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed30] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed30] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_40:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed40] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed40] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_50:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed50] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed50] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_60:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed60] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed60] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_70:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed70] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed70] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_80:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed80] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed80] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_90:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed90] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed90] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_100:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed100] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed100] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_110:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed110] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed110] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_120:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed120] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed120] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_130:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed130] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed130] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_140:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed140] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed140] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_150:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed150] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed150] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_160:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed160] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed160] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_170:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed170] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed170] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_180:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed180] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed180] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_190:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed190] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed190] ? 1 : 0;
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_200:
                     {
-                        data = SpeedPressed[CruiseControlSpeed.Speed200] ? 1 : 0;
+                        data = speedPressed[CruiseControlSpeed.Speed200] ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Plus5:
+                    {
+                        data = speedPressed[CruiseControlSpeed.SpeedPlus5] ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Minus5:
+                    {
+                        data = speedPressed[CruiseControlSpeed.SpeedMinus5] ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Plus1:
+                    {
+                        data = speedPressed[CruiseControlSpeed.SpeedPlus1] ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Minus1:
+                    {
+                        data = speedPressed[CruiseControlSpeed.SpeedMinus1] ? 1 : 0;
                         break;
                     }
                 default:

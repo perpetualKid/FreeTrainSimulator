@@ -2574,6 +2574,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_CC_Select_Speed:
                 case CabViewControlType.Orts_Multi_Position_Controller:
                 case CabViewControlType.Orts_Acceleration_In_Time:
+                case CabViewControlType.Orts_CC_Speed_Plus5:
+                case CabViewControlType.Orts_CC_Speed_Minus5:
+                case CabViewControlType.Orts_CC_Speed_Plus1:
+                case CabViewControlType.Orts_CC_Speed_Minus1:
                 case CabViewControlType.Orts_CC_Speed_0:
                 case CabViewControlType.Orts_CC_Speed_10:
                 case CabViewControlType.Orts_CC_Speed_20:
@@ -3161,254 +3165,127 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     }
                 case CabViewControlType.Orts_CC_Speed_0:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(0);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed0] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed0] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed0, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_10:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(10);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed10] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed10] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed10, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_20:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(20);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed20] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed20] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed20, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_30:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(30);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed30] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed30] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed30, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_40:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(40);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed40] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed40] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed40, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_50:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(50);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed50] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed50] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed50, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_60:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(60);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed60] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed60] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed60, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_70:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(70);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed70] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed70] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed70, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_80:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(80);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed80] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed80] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed80, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_90:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(90);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed90] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed90] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed90, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_100:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(100);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed100] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed100] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed100, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_110:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(110);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed110] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed110] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed110, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_120:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(120);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed120] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed120] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed120, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_130:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(130);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed130] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed130] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed130, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_140:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(140);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed140] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed140] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed140, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_150:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(150);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed150] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed150] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed150, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_160:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(160);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed160] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed160] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed160, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_170:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(170);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed170] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed170] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed170, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_180:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(180);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed180] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed180] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed180, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_190:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(190);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed190] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed190] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed190, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_CC_Speed_200:
                     {
-                        p = UpdateCommandValue(0, buttonEventType, delta);
-                        if (p == 1)
-                        {
-                            Locomotive.CruiseControl.SetSpeed(200);
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed200] = true;
-                        }
-                        else if (p == 0)
-                            Locomotive.CruiseControl.SpeedPressed[CruiseControlSpeed.Speed200] = false;
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed200, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Plus5:
+                    {
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedPlus5, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Minus5:
+                    {
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedMinus5, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Plus1:
+                    {
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedPlus1, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        break;
+                    }
+                case CabViewControlType.Orts_CC_Speed_Minus1:
+                    {
+                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedMinus1, UpdateCommandValue(0, buttonEventType, delta) == 1);
                         break;
                     }
                 case CabViewControlType.Orts_DistributedPower_MoveToFront:
