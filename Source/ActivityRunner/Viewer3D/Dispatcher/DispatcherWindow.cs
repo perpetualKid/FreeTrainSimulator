@@ -166,33 +166,33 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
             {
                 return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
             {
                 return new SwitchChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
             {
                 return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
                 return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<FormBase>(() =>
             {
                 return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
             {
                 return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));

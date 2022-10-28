@@ -13,7 +13,7 @@ using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    public class SwitchChangeWindow : FramedWindowBase
+    public class SwitchChangeWindow : WindowBase
     {
         private readonly Point offset;
         private IJunction junction;

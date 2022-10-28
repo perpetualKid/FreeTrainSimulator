@@ -12,7 +12,7 @@ namespace Orts.Graphics.Window.Controls
 
         private protected readonly TextTextureResourceHolder resourceHolder;
 
-        protected TextControl(WindowBase window, int x, int y, int width, int height) :
+        protected TextControl(FormBase window, int x, int y, int width, int height) :
             base(window, x, y, width, height)
         {
             resourceHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);

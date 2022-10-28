@@ -5,10 +5,10 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Graphics.Window
 {
-    public abstract class OverlayWindowBase : WindowBase
+    public abstract class OverlayBase : FormBase
     {
-        protected OverlayWindowBase(WindowManager owner, string caption, Catalog catalog = null) :
-            base(owner, caption, catalog)
+        protected OverlayBase(WindowManager owner, Catalog catalog) :
+            base(owner, catalog)
         {
             Interactive = false;
             location = Point.Zero;

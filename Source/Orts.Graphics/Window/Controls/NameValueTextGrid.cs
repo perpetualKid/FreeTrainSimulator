@@ -40,13 +40,13 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public NameValueTextGrid(WindowBase window, int x, int y) : base(window, x, y, 0, 0)
+        public NameValueTextGrid(FormBase window, int x, int y) : base(window, x, y, 0, 0)
         {
             font = Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
         }
 
-        public NameValueTextGrid(WindowBase window, int x, int y, int width, int heigth) : base(window, x, y, width, heigth)
+        public NameValueTextGrid(FormBase window, int x, int y, int width, int heigth) : base(window, x, y, width, heigth)
         {
             font = Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);

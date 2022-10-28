@@ -1,5 +1,7 @@
 ﻿using System;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,7 +11,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class PauseWindow : OverlayWindowBase
+    internal class PauseWindow : OverlayBase
     {
 
         private const double AnimationLength = 0.6;
@@ -27,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private float fade = 1.0f;
 
         public PauseWindow(WindowManager owner, Viewer viewer) :
-            base(owner, string.Empty)
+            base(owner, CatalogManager.Catalog)
         {
             this.viewer = viewer;
             ZOrder = 80;

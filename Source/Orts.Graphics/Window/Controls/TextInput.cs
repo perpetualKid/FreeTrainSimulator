@@ -22,11 +22,11 @@ namespace Orts.Graphics.Window.Controls
 
         public const string SearchIcon = " ⌕"; // \u2315
 
-        public TextInput(WindowBase window, int width, int height, char caretSymbol = '_') : this(window, 0, 0, width, height, caretSymbol)
+        public TextInput(FormBase window, int width, int height, char caretSymbol = '_') : this(window, 0, 0, width, height, caretSymbol)
         {
         }
 
-        public TextInput(WindowBase window, int x, int y, int width, int height, char caretSymbol = '_') : base(window, x, y, width, height, null)
+        public TextInput(FormBase window, int x, int y, int width, int height, char caretSymbol = '_') : base(window, x, y, width, height, null)
         {
             this.caretSymbol = caretSymbol.ToString();
             caretTexture = resourceHolder.PrepareResource(this.caretSymbol, font);
@@ -38,7 +38,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override bool HandleTextInput(TextInputEventArgs e)
         {
-            if (Window is FramedWindowBase frameWindow && frameWindow.ActiveControl == this)
+            if (Window is WindowBase frameWindow && frameWindow.ActiveControl == this)
             {
                 switch (e.Character)
                 {
@@ -83,7 +83,7 @@ namespace Orts.Graphics.Window.Controls
 
         public void ReleaseFocus()
         {
-            if (Window is FramedWindowBase frameWindow && frameWindow.ActiveControl == this)
+            if (Window is WindowBase frameWindow && frameWindow.ActiveControl == this)
             {
                 frameWindow.ActiveControl = null;
                 OnEnterKey?.Invoke(this, EventArgs.Empty);
@@ -92,7 +92,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
         {
-            if (Window is FramedWindowBase framedWindow)
+            if (Window is WindowBase framedWindow)
                 framedWindow.ActiveControl = this;
             return base.HandleMouseClicked(e);
         }
@@ -101,7 +101,7 @@ namespace Orts.Graphics.Window.Controls
         {
             if (Environment.TickCount64 > nextCaretTick)
             {
-                caretBlink = !caretBlink && Window is FramedWindowBase framedWindow && framedWindow.ActiveControl == this;
+                caretBlink = !caretBlink && Window is WindowBase framedWindow && framedWindow.ActiveControl == this;
                 nextCaretTick = Environment.TickCount64 + caretFrequency;
             }
             base.Update(gameTime, shouldUpdate);

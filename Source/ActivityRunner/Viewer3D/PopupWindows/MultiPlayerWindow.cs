@@ -18,7 +18,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class MultiPlayerWindow : FramedWindowBase
+    internal class MultiPlayerWindow : WindowBase
     {
         private Label labelTime;
         private Label labelStatus;

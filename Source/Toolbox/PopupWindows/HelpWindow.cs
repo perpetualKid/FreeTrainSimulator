@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -11,7 +13,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class HelpWindow : FramedWindowBase
+    public class HelpWindow : WindowBase
     {
         private enum SearchColumn
         {
@@ -24,8 +26,8 @@ namespace Orts.Toolbox.PopupWindows
         private TextInput searchBox;
         private SearchColumn searchMode;
 
-        public HelpWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Help", relativeLocation, new Point(360, 134))
+        public HelpWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(360, 134), catalog)
         {
         }
 

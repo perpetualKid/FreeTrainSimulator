@@ -1,4 +1,6 @@
 ﻿
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Input;
@@ -9,14 +11,14 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class TrackNodeInfoWindow : FramedWindowBase
+    internal class TrackNodeInfoWindow : WindowBase
     {
         private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;
         private NameValueTextGrid trackNodeInfoGrid;
 
-        public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
-            base(owner, "Track Node Information", relativeLocation, new Point(240, 174))
+        public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 174), catalog)
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

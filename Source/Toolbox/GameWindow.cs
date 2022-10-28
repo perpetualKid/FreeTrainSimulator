@@ -408,7 +408,7 @@ namespace Orts.Toolbox
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[WindowType.StatusWindow].ToPoint());
             windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[WindowType.AboutWindow].ToPoint());
-            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
                 QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[WindowType.QuitWindow].ToPoint());
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
@@ -417,9 +417,9 @@ namespace Orts.Toolbox
                 return quitWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
@@ -427,29 +427,29 @@ namespace Orts.Toolbox
                 return debugWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
                 LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
                 HelpWindow helpWindow = new HelpWindow(windowManager, Settings.PopupLocations[WindowType.HelpWindow].ToPoint());
                 return helpWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
                 TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[WindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
                 SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
                 return settingsWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<FormBase>(() =>
             {
                 LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[WindowType.LogWindow].ToPoint());
                 return loggingWindow;

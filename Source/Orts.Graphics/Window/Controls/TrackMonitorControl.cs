@@ -150,7 +150,7 @@ namespace Orts.Graphics.Window.Controls
         public TrackItemsContainer ForwardItems { get; } = new TrackItemsContainer(Direction.Forward);
         public TrackItemsContainer BackwardItems { get; } = new TrackItemsContainer(Direction.Backward);
 
-        public TrackMonitorControl(WindowBase window, int width, int height, bool metric) :
+        public TrackMonitorControl(FormBase window, int width, int height, bool metric) :
             base(window, 0, 0, width, height)
         {
             if ((width / Window.Owner.DpiScaling) < 150)

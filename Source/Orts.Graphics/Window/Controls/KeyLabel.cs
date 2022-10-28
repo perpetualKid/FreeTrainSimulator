@@ -10,7 +10,7 @@ namespace Orts.Graphics.Window.Controls
     {
         private Color keyColor;
 
-        public KeyLabel(WindowBase window, int x, int y, int width, int height, string text, System.Drawing.Font font, Color keyColor)
+        public KeyLabel(FormBase window, int x, int y, int width, int height, string text, System.Drawing.Font font, Color keyColor)
             : base(window, x, y, width, height, text, HorizontalAlignment.Center, font, Color.White)
         {
             this.keyColor = keyColor;

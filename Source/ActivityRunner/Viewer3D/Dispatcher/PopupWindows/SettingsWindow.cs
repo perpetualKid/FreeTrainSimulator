@@ -11,7 +11,7 @@ using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    internal class SettingsWindow : FramedWindowBase
+    internal class SettingsWindow : WindowBase
     {
         private readonly DispatcherSettings settings;
         private Checkbox chkShowPlatforms;

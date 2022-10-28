@@ -40,7 +40,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public event EventHandler<TabChangedEventArgs<T>> TabChanged;
 
-        public TabControl(WindowBase window, int width, int height, bool hideEmptyTabs = false) : base(window, 0, 0, width, height)
+        public TabControl(FormBase window, int width, int height, bool hideEmptyTabs = false) : base(window, 0, 0, width, height)
         {
             ControlLayout verticalLayout = AddLayoutVertical();
             tabHeader = verticalLayout.AddLayoutHorizontal(window?.Owner.TextFontDefault.Height ?? throw new ArgumentNullException(nameof(window)));

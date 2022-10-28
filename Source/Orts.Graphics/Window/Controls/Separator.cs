@@ -8,7 +8,7 @@ namespace Orts.Graphics.Window.Controls
     {
         public int Padding { get; }
 
-        public Separator(WindowBase window, int width, int height, int padding) : 
+        public Separator(FormBase window, int width, int height, int padding) : 
             base(window, 0, 0, width, height)
         {
             Padding = padding;

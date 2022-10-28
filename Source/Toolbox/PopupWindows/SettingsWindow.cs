@@ -14,7 +14,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class SettingsWindow : FramedWindowBase
+    internal class SettingsWindow : WindowBase
     {
         private readonly ToolboxSettings toolboxSettings;
 
@@ -32,7 +32,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public SettingsWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) : 
-            base(owner, "Settings", relativeLocation, new Point(360, 200), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

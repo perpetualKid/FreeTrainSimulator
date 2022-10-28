@@ -19,7 +19,7 @@ namespace Orts.Graphics.Window.Controls
 
         public int Heading { get; set; }
 
-        public CompassControl(WindowBase window, int width, int height) : base(window, 0, 0, width, height)
+        public CompassControl(FormBase window, int width, int height) : base(window, 0, 0, width, height)
         {
             compassTexture = DrawCompassTexture();
             halfWidth = width / 2;

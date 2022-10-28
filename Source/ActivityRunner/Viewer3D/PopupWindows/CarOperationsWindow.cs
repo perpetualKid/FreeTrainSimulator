@@ -16,7 +16,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class CarOperationsWindow : FramedWindowBase
+    internal class CarOperationsWindow : WindowBase
     {
         private readonly Viewer viewer;
         private TrainCar currentCar;

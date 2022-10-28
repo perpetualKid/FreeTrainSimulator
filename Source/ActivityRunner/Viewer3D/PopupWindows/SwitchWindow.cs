@@ -16,7 +16,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class SwitchWindow : FramedWindowBase
+    internal class SwitchWindow : WindowBase
     {
         private const int SwitchImageSize = 32;
         private ImageControl forwardEye;

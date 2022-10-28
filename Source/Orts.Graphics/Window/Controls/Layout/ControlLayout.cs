@@ -17,7 +17,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
 
-        protected ControlLayout(WindowBase window, int x, int y, int width, int height)
+        protected ControlLayout(FormBase window, int x, int y, int width, int height)
             : base(window, x, y, width, height)
         {
         }

@@ -16,7 +16,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class LocationWindow : FramedWindowBase
+    public class LocationWindow : WindowBase
     {
         private ContentArea contentArea;
         private Label locationLabel;
@@ -28,8 +28,8 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly ToolboxSettings toolboxSettings;
 
-        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation) :
-            base(owner, "World Coordinates", relativeLocation, new Point(200, 48))
+        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("World Coordinates"), relativeLocation, new Point(200, 48), catalog)
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

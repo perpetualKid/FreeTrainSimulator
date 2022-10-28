@@ -26,7 +26,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         private protected static readonly Vector2 rotateOrigin = new Vector2(0, 16);
         private protected static int scrollbarSize;
 
-        protected ScrollboxControlLayout(WindowBase window, int x, int y, int width, int height) : base(window, x, y, width, height)
+        protected ScrollboxControlLayout(FormBase window, int x, int y, int width, int height) : base(window, x, y, width, height)
         {
             scrollbarSize = (int)(16 * Window.Owner.DpiScaling);
         }
@@ -66,7 +66,7 @@ namespace Orts.Graphics.Window.Controls.Layout
     {
         private readonly int usableHeight;
 
-        public VerticalScrollboxControlLayout(WindowBase window, int width, int height) :
+        public VerticalScrollboxControlLayout(FormBase window, int width, int height) :
             base(window, 0, 0, width, height)
         {
             Client = AddLayoutVertical(RemainingWidth - scrollbarSize - SeparatorPadding * 2);
@@ -182,7 +182,7 @@ namespace Orts.Graphics.Window.Controls.Layout
     {
         private readonly int usableWidth;
 
-        public HorizontalScrollboxControlLayout(WindowBase window, int width, int height) :
+        public HorizontalScrollboxControlLayout(FormBase window, int width, int height) :
             base(window, 0, 0, width, height)
         {
             Client = AddLayoutHorizontal(RemainingHeight - scrollbarSize - SeparatorPadding * 2);

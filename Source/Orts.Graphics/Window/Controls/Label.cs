@@ -30,7 +30,7 @@ namespace Orts.Graphics.Window.Controls
         }
 
 
-        public Label(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
+        public Label(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
         {
             this.text = text;
@@ -39,27 +39,27 @@ namespace Orts.Graphics.Window.Controls
             this.font = font ?? window?.Owner.TextFontDefault;
         }
 
-        public Label(WindowBase window, int width, int height, string text, System.Drawing.Font font)
+        public Label(FormBase window, int width, int height, string text, System.Drawing.Font font)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, font, Color.White)
         {
         }
 
-        public Label(WindowBase window, int x, int y, int width, int height, string text)
+        public Label(FormBase window, int x, int y, int width, int height, string text)
             : this(window, x, y, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align)
+        public Label(FormBase window, int width, int height, string text, HorizontalAlignment align)
             : this(window, 0, 0, width, height, text, align, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text)
+        public Label(FormBase window, int width, int height, string text)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align, Color color)
+        public Label(FormBase window, int width, int height, string text, HorizontalAlignment align, Color color)
             : this(window, 0, 0, width, height, text, align, null, color)
         {
         }

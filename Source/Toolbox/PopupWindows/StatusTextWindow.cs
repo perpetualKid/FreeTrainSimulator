@@ -12,14 +12,14 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class StatusTextWindow : FramedWindowBase
+    public class StatusTextWindow : WindowBase
     {
         private Label routeLabel;
 
         public string RouteName { get => routeLabel?.Text; set => routeLabel.Text = value; }
 
-        public StatusTextWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, "Loading Route", relativeLocation, new Point(300, 70))
+        public StatusTextWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Loading Route"), relativeLocation, new Point(300, 70), catalog)
         {
             Interactive = false;
             CloseButton = false;

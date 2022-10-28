@@ -474,71 +474,71 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.MultiLayerModalWindows = true;
             windowManager.WindowOpacity = 0.4f;
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
-            windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.HelpWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint(), Settings, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.ActivityWindow].ToPoint(), this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.CompassWindow(windowManager, Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.SwitchWindow(windowManager, Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.EndOfTrainDeviceWindow(windowManager, Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.NextStationWindow(windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.TrainListWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.TrainListWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.TrainListWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.MultiPlayerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.DistributedPowerWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.DistributedPowerWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.DistributedPowerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), Settings, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.DrivingTrainWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.DrivingTrainWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.PauseWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.PauseWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.PauseWindow(windowManager, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.TrainOperationsWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainOperationsWindow].ToPoint(), this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.CarOperationsWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.CarOperationsWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.CarOperationsWindow(windowManager, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<Orts.Graphics.Window.WindowBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.MultiPlayerMessaging(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
             }));

@@ -30,7 +30,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class DrivingTrainWindow : FramedWindowBase
+    internal class DrivingTrainWindow : WindowBase
     {
         private const int monoLeadColumnWidth = 40;
         private const int normalLeadColumnWidth = 64;

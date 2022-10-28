@@ -13,7 +13,7 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class CompassWindow : FramedWindowBase
+    internal class CompassWindow : WindowBase
     {
         private Label latitudeLabel;
         private Label longitudeLabel;

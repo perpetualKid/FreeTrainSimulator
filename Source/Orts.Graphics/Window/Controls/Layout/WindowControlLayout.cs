@@ -2,7 +2,7 @@
 {
     internal class WindowControlLayout : ControlLayout
     {
-        public WindowControlLayout(WindowBase window, int width, int height)
+        public WindowControlLayout(FormBase window, int width, int height)
             : base(window, 0, 0, width, height)
         {
         }

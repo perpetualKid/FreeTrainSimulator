@@ -13,7 +13,7 @@ using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TimetableDetachWindow : FramedWindowBase
+    internal class TimetableDetachWindow : WindowBase
     {
         private Label remainingTrain;
         private Label otherTrain;

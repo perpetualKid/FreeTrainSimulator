@@ -1,4 +1,6 @@
 ﻿
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Info;
@@ -9,12 +11,12 @@ using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class AboutWindow : FramedWindowBase
+    internal class AboutWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public AboutWindow(WindowManager owner, Point location) : 
-            base(owner, "About", location, new Point(180, 60))
+        public AboutWindow(WindowManager owner, Point location, Catalog catalog = null) : 
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("About"), location, new Point(180, 60), catalog)
         {
             Modal = true;
             ZOrder = 100;

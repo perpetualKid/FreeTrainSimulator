@@ -65,7 +65,7 @@ namespace Orts.Graphics.Window.Controls
 
         public HorizontalAlignment Alignment { get; }
 
-        public TextBox(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, bool wordWrap, System.Drawing.Font font, Color color)
+        public TextBox(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, bool wordWrap, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
         {
             Alignment = alignment;
@@ -78,22 +78,22 @@ namespace Orts.Graphics.Window.Controls
             InitializeText();
         }
 
-        public TextBox(WindowBase window, int x, int y, int width, int height, string text, bool wordWrap)
+        public TextBox(FormBase window, int x, int y, int width, int height, string text, bool wordWrap)
             : this(window, x, y, width, height, text, HorizontalAlignment.Left, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap)
+        public TextBox(FormBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap)
             : this(window, 0, 0, width, height, text, align, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, bool wordWrap)
+        public TextBox(FormBase window, int width, int height, string text, bool wordWrap)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap, Color color)
+        public TextBox(FormBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap, Color color)
             : this(window, 0, 0, width, height, text, align, wordWrap, null, color)
         {
         }

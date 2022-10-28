@@ -33,7 +33,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public RadioButton(WindowBase window, RadioButtonGroup group) :
+        public RadioButton(FormBase window, RadioButtonGroup group) :
             base(window ?? throw new ArgumentNullException(nameof(window)), 0, 0, 
                 window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height)
         {

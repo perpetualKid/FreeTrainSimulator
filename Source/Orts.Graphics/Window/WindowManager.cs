@@ -30,13 +30,13 @@ namespace Orts.Graphics.Window
 
     public class WindowManager : DrawableGameComponent
     {
-        private List<WindowBase> windows = new List<WindowBase>();
-        private readonly Stack<FramedWindowBase> modalWindows = new Stack<FramedWindowBase>();
+        private List<FormBase> windows = new List<FormBase>();
+        private readonly Stack<WindowBase> modalWindows = new Stack<WindowBase>();
 
         private readonly Texture2D windowTexture;
         internal Texture2D ScrollbarTexture { get; }
 
-        private FramedWindowBase activeWindow;
+        private WindowBase activeWindow;
         private readonly SpriteBatch spriteBatch;
         private long nextWindowUpdate;
 
@@ -171,12 +171,12 @@ namespace Orts.Graphics.Window
             xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
             for (int i = 0; i < windows.Count; i++)
             {
-                if (windows[i] is FramedWindowBase framedWindow)
+                if (windows[i] is WindowBase framedWindow)
                     framedWindow.UpdateLocation();
             }
         }
 
-        internal bool OpenWindow(WindowBase window)
+        internal bool OpenWindow(FormBase window)
         {
             if (modalWindows.TryPeek(out _) && (!window.Modal || !MultiLayerModalWindows))
             {
@@ -187,7 +187,7 @@ namespace Orts.Graphics.Window
             {
                 SuppressDrawing = false;
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
-                if (window is FramedWindowBase framedWindow)
+                if (window is WindowBase framedWindow)
                 {
                     framedWindow.UpdateLocation();
                     if (framedWindow != activeWindow)
@@ -209,16 +209,16 @@ namespace Orts.Graphics.Window
             return false;
         }
 
-        internal bool CloseWindow(WindowBase window)
+        internal bool CloseWindow(FormBase window)
         {
             if (window == activeWindow)
             {
                 activeWindow = null;
-                if (window is FramedWindowBase framedWindow)
+                if (window is WindowBase framedWindow)
                     framedWindow.FocusLost();
             }
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            if (modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow == window)
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == window)
             {
                 SuppressDrawing = false;
                 modalWindows.Pop();
@@ -236,7 +236,7 @@ namespace Orts.Graphics.Window
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
             activeWindow?.FocusSet();
-            List<WindowBase> updatedWindowList = windows;
+            List<FormBase> updatedWindowList = windows;
             if (updatedWindowList.Remove(window))
             {
                 windows = updatedWindowList;
@@ -245,20 +245,15 @@ namespace Orts.Graphics.Window
             return false;
         }
 
-        internal bool WindowOpen(WindowBase window)
+        internal bool WindowOpen(FormBase window)
         {
             return windows.IndexOf(window) > -1;
-        }
-
-        internal WindowBase FindWindow(string caption)
-        {
-            return windows.Where(w => w.Caption == caption).FirstOrDefault();
         }
 
         private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            if (modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow != activeWindow)
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
             {
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
@@ -270,7 +265,7 @@ namespace Orts.Graphics.Window
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            if (modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow != activeWindow)
+            if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
             {
                 SuppressDrawing = false;
                 userCommandArgs.Handled = true;
@@ -287,9 +282,9 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
                 SuppressDrawing = false;
-                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position));
+                FormBase topMostTargetedWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position));
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow == activeWindow)
+                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
                 {
                     activeWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                     userCommandArgs.Handled = true;
@@ -308,7 +303,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     _ = activeWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
                 }
-                else if (modalWindows.TryPeek(out FramedWindowBase currentModalWindow))
+                else if (modalWindows.TryPeek(out WindowBase currentModalWindow))
                 {
                     userCommandArgs.Handled = true;
                     activeWindow = currentModalWindow;
@@ -323,7 +318,7 @@ namespace Orts.Graphics.Window
             {
                 SuppressDrawing = false;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if (modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow != activeWindow)
+                if (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != activeWindow)
                 {
                     userCommandArgs.Handled = true;
                     _ = currentModalWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
@@ -333,7 +328,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     if (activeWindow != windows.Last())
                     {
-                        List<WindowBase> updatedWindowList = windows;
+                        List<FormBase> updatedWindowList = windows;
                         if (updatedWindowList.Remove(activeWindow))
                         {
                             updatedWindowList.Add(activeWindow);
@@ -351,9 +346,9 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 SuppressDrawing = false;
-                FramedWindowBase topMostTargetedWindow = windows.LastOrDefault(w => w is FramedWindowBase && w.Interactive && w.Borders.Contains(pointerCommandArgs.Position)) as FramedWindowBase;
+                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w is WindowBase && w.Interactive && w.Borders.Contains(pointerCommandArgs.Position)) as WindowBase;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if (topMostTargetedWindow == null || (modalWindows.TryPeek(out FramedWindowBase currentModalWindow) && currentModalWindow != topMostTargetedWindow))
+                if (topMostTargetedWindow == null || (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow != topMostTargetedWindow))
                 {
                     activeWindow?.FocusLost();
                     activeWindow = null;
@@ -380,8 +375,8 @@ namespace Orts.Graphics.Window
         {
             for (int i = 0; i < windows.Count; i++)
             {
-                WindowBase window = windows[i];
-                if (window is FramedWindowBase framedWindow)
+                FormBase window = windows[i];
+                if (window is WindowBase framedWindow)
                 {
                     WindowShader.SetState();
                     WindowShader.Opacity = window == activeWindow ? opacityDefault * 1.25f : opacityDefault;
@@ -451,8 +446,8 @@ namespace Orts.Graphics.Window
 
     public sealed class WindowManager<TWindowType> : WindowManager where TWindowType : Enum
     {
-        private readonly EnumArray<WindowBase, TWindowType> windows = new EnumArray<WindowBase, TWindowType>();
-        private readonly EnumArray<Lazy<WindowBase>, TWindowType> lazyWindows = new EnumArray<Lazy<WindowBase>, TWindowType>();
+        private readonly EnumArray<FormBase, TWindowType> windows = new EnumArray<FormBase, TWindowType>();
+        private readonly EnumArray<Lazy<FormBase>, TWindowType> lazyWindows = new EnumArray<Lazy<FormBase>, TWindowType>();
 
         internal WindowManager(Game game) :
             base(game)
@@ -462,13 +457,13 @@ namespace Orts.Graphics.Window
         public override void Initialize()
         {
             base.Initialize();
-            foreach (WindowBase window in windows)
+            foreach (FormBase window in windows)
             {
                 window?.Initialize();
             }
         }
 
-        public WindowBase this[TWindowType window]
+        public FormBase this[TWindowType window]
         {
             get
             {
@@ -486,7 +481,7 @@ namespace Orts.Graphics.Window
 
         public bool WindowOpened(TWindowType window) => (lazyWindows[window]?.IsValueCreated ?? false) && WindowOpen(windows[window]);
 
-        public void SetLazyWindows(TWindowType window, Lazy<WindowBase> lazyWindow)
+        public void SetLazyWindows(TWindowType window, Lazy<FormBase> lazyWindow)
         {
             lazyWindows[window] = lazyWindow;
         }

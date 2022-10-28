@@ -43,7 +43,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public Checkbox(WindowBase window, bool threeStates = false, CheckMarkStyle checkMarkStyle = CheckMarkStyle.Check, bool useColors = true) :
+        public Checkbox(FormBase window, bool threeStates = false, CheckMarkStyle checkMarkStyle = CheckMarkStyle.Check, bool useColors = true) :
             base(window ?? throw new ArgumentNullException(nameof(window)), window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height, "", HorizontalAlignment.Center)
         {
             tristate = threeStates;

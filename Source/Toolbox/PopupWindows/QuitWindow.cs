@@ -16,7 +16,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    public class QuitWindow : FramedWindowBase
+    public class QuitWindow : WindowBase
     {
         private Label quitButton;
         private Label cancelButton;
@@ -28,12 +28,12 @@ namespace Orts.Toolbox.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), $"Exit {RuntimeInfo.ApplicationName}", relativeLocation, new Point(340, 82))
+        public QuitWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(340, 82), catalog)
         {
             Modal = true;
             ZOrder = 100;
-            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)

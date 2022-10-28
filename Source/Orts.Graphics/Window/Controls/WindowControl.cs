@@ -15,7 +15,7 @@ namespace Orts.Graphics.Window.Controls
 
         public ref readonly Rectangle Bounds => ref bounds;
 
-        public WindowBase Window { get; }
+        public FormBase Window { get; }
 
         public ControlLayout Container { get; internal set; }
 
@@ -27,7 +27,7 @@ namespace Orts.Graphics.Window.Controls
 
         public bool Visible { get; set; } = true;
 
-        protected WindowControl(WindowBase window, int x, int y, int width, int height)
+        protected WindowControl(FormBase window, int x, int y, int width, int height)
         {
             bounds = new Rectangle(x, y, width, height);
             Window = window ?? throw new ArgumentNullException(nameof(window));

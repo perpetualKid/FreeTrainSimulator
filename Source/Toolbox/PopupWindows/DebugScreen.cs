@@ -1,4 +1,6 @@
 ﻿
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -19,15 +21,15 @@ namespace Orts.Toolbox.PopupWindows
         Route,
     }
 
-    public class DebugScreen : OverlayWindowBase
+    public class DebugScreen : OverlayBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly ToolboxSettings toolboxSettings;
         private DebugScreenInformation currentDebugScreen;
 
-        public DebugScreen(WindowManager owner, ToolboxSettings settings, string caption, Color backgroundColor) :
-            base(owner, caption)
+        public DebugScreen(WindowManager owner, ToolboxSettings settings, Color backgroundColor) :
+            base(owner, CatalogManager.Catalog)
         {
             ZOrder = 0;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

@@ -15,7 +15,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TrainListWindow : FramedWindowBase
+    internal class TrainListWindow : WindowBase
     {
         private readonly Viewer viewer;
         private ControlLayout scrollbox;
