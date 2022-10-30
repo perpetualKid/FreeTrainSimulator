@@ -142,8 +142,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private readonly List<float> accelerationTable = new List<float>();
 
         public bool DynamicBrakePriority { get; set; }
-        private float dynamicBrakeIncreaseSpeed;
-        private float dynamicBrakeDecreaseSpeed;
         private float accelerationRampMaxMpSSS = 0.7f;
         private float accelerationDemandMpSS;
         private float accelerationRampMinMpSSS = 0.01f;
@@ -261,8 +259,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             StartReducingSpeedDeltaDownwards = source.StartReducingSpeedDeltaDownwards;
             forceStepsThrottleTable = source.forceStepsThrottleTable;
             accelerationTable = source.accelerationTable;
-            dynamicBrakeIncreaseSpeed = source.dynamicBrakeIncreaseSpeed;
-            dynamicBrakeDecreaseSpeed = source.dynamicBrakeDecreaseSpeed;
             accelerationRampMaxMpSSS = source.accelerationRampMaxMpSSS;
             accelerationRampMinMpSSS = source.accelerationRampMinMpSSS;
             resetForceAfterAnyBraking = source.resetForceAfterAnyBraking;
@@ -488,12 +484,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         break;
                     case "usethrottleasforceselector":
                         UseThrottleAsForceSelector = stf.ReadBoolBlock(false);
-                        break;
-                    case "dynamicbrakeincreasespeed":
-                        dynamicBrakeIncreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
-                        break;
-                    case "dynamicbrakedecreasespeed":
-                        dynamicBrakeDecreaseSpeed = stf.ReadFloatBlock(STFReader.Units.Any, 0.5f);
                         break;
                     case "forceresetrequiredafterbraking":
                         forceResetRequiredAfterBraking = stf.ReadBoolBlock(false);
