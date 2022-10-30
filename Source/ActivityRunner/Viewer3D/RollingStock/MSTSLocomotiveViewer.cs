@@ -2571,35 +2571,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Train_Type_Pax_Or_Cargo:
                 case CabViewControlType.Orts_Controller_Voltage:
                 case CabViewControlType.Orts_Ampers_By_Controller_Voltage:
-                case CabViewControlType.Orts_CC_Select_Speed:
+                case CabViewControlType.Orts_CC_Selected_Speed:
                 case CabViewControlType.Orts_Multi_Position_Controller:
                 case CabViewControlType.Orts_Acceleration_In_Time:
-                case CabViewControlType.Orts_CC_Speed_Plus5:
-                case CabViewControlType.Orts_CC_Speed_Minus5:
-                case CabViewControlType.Orts_CC_Speed_Plus1:
-                case CabViewControlType.Orts_CC_Speed_Minus1:
                 case CabViewControlType.Orts_CC_Speed_0:
-                case CabViewControlType.Orts_CC_Speed_10:
-                case CabViewControlType.Orts_CC_Speed_20:
-                case CabViewControlType.Orts_CC_Speed_30:
-                case CabViewControlType.Orts_CC_Speed_40:
-                case CabViewControlType.Orts_CC_Speed_50:
-                case CabViewControlType.Orts_CC_Speed_60:
-                case CabViewControlType.Orts_CC_Speed_70:
-                case CabViewControlType.Orts_CC_Speed_80:
-                case CabViewControlType.Orts_CC_Speed_90:
-                case CabViewControlType.Orts_CC_Speed_100:
-                case CabViewControlType.Orts_CC_Speed_110:
-                case CabViewControlType.Orts_CC_Speed_120:
-                case CabViewControlType.Orts_CC_Speed_130:
-                case CabViewControlType.Orts_CC_Speed_140:
-                case CabViewControlType.Orts_CC_Speed_150:
-                case CabViewControlType.Orts_CC_Speed_160:
-                case CabViewControlType.Orts_CC_Speed_170:
-                case CabViewControlType.Orts_CC_Speed_180:
-                case CabViewControlType.Orts_CC_Speed_190:
-                case CabViewControlType.Orts_CC_Speed_200:
-
+                case CabViewControlType.Orts_CC_Speed_Delta:
                     index = (int)data;
                     break;
                 case CabViewControlType.Orts_Selected_Speed_Selector:
@@ -3046,17 +3022,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     _ = new TCSSwitchCommand(Viewer.Log, UpdateCommandValue(Locomotive.TrainControlSystem.TCSCommandSwitchOn[commandIndex] ? 1 : 0, buttonEventType, delta) > 0, commandIndex);
                     break;
                 // Jindrich
-                case CabViewControlType.Orts_CC_Select_Speed:
+                case CabViewControlType.Orts_CC_Selected_Speed:
                     if (Locomotive.CruiseControl == null)
                         break;
                     float p = UpdateCommandValue(0, buttonEventType, delta);
                     if (p == 1)
                     {
-                        Locomotive.CruiseControl.SetSpeed((float)Control.ScaleRangeMax);
-                        Locomotive.CruiseControl.SelectingSpeedPressed = true;
+                        Locomotive.CruiseControl.SetSpeed(Control.Parameter1);
+                        Locomotive.CruiseControl.SelectedSpeedPressed = true;
                     }
                     else if (p == 0)
-                        Locomotive.CruiseControl.SelectingSpeedPressed = false;
+                        Locomotive.CruiseControl.SelectedSpeedPressed = false;
                     break;
                 case CabViewControlType.Orts_Selected_Speed_Regulator_Mode:
                     p = UpdateCommandValue(0, buttonEventType, delta);
@@ -3165,127 +3141,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     }
                 case CabViewControlType.Orts_CC_Speed_0:
                     {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed0, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        Locomotive.CruiseControl.SetSpeed(0, UpdateCommandValue(0, buttonEventType, delta) == 1, true);
                         break;
                     }
-                case CabViewControlType.Orts_CC_Speed_10:
+                case CabViewControlType.Orts_CC_Speed_Delta:
                     {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed10, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_20:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed20, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_30:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed30, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_40:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed40, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_50:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed50, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_60:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed60, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_70:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed70, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_80:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed80, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_90:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed90, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_100:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed100, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_110:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed110, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_120:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed120, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_130:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed130, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_140:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed140, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_150:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed150, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_160:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed160, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_170:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed170, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_180:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed180, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_190:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed190, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_200:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.Speed200, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_Plus5:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedPlus5, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_Minus5:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedMinus5, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_Plus1:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedPlus1, UpdateCommandValue(0, buttonEventType, delta) == 1);
-                        break;
-                    }
-                case CabViewControlType.Orts_CC_Speed_Minus1:
-                    {
-                        Locomotive.CruiseControl.SetSpeed(CruiseControlSpeed.SpeedMinus1, UpdateCommandValue(0, buttonEventType, delta) == 1);
+                        Locomotive.CruiseControl.SetSpeed(Control.Parameter1, UpdateCommandValue(0, buttonEventType, delta) == 1, false);
                         break;
                     }
                 case CabViewControlType.Orts_DistributedPower_MoveToFront:
