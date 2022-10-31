@@ -28,24 +28,12 @@ using Orts.Common.Input;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    public class MouseClickEventArgs: EventArgs
-    { 
-        public Point Position { get; }
-        public KeyModifiers KeyModifiers { get; }
 
-        public MouseClickEventArgs(Point position, KeyModifiers keyModifiers)
-        {
-            Position = position;
-            KeyModifiers = keyModifiers;
-        }
-
-    }
     public abstract class Control
     {
         public Rectangle Position;
         public object Tag { get; set; }
         public event Action<Control, Point> Click;
-        public event EventHandler<MouseClickEventArgs> OnClick;
 
         protected Control(int x, int y, int width, int height)
         {
@@ -93,7 +81,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal virtual void MouseClick(WindowMouseEvent e)
         {
             Click?.Invoke(this, e.MousePosition - Position.Location);
-            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - Position.Location, e.KeyModifiers)); 
         }
     }
 
@@ -147,11 +134,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Color = Color.White;
         }
 
-        public Label(int x, int y, int width, int height, string text)
-            : this(x, y, width, height, text, LabelAlignment.Left)
-        {
-        }
-
         public Label(int width, int height, string text, LabelAlignment align)
             : this(0, 0, width, height, text, align)
         {
@@ -171,75 +153,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             Font.Draw(spriteBatch, Position, offset, Text, Align, Color);
-        }
-    }
-
-    public class LabelMono : Control
-    {
-        public string Text;
-        public LabelAlignment Align;
-        public Color Color;
-        protected WindowTextFont Font;
-
-        public LabelMono(int x, int y, int width, int height, string text, LabelAlignment align)
-            : base(x, y, width, height)
-        {
-            Text = text;
-            Align = align;
-            Color = Color.White;
-        }
-
-        public LabelMono(int x, int y, int width, int height, string text)
-            : this(x, y, width, height, text, LabelAlignment.Left)
-        {
-        }
-
-        public LabelMono(int width, int height, string text, LabelAlignment align)
-            : this(0, 0, width, height, text, align)
-        {
-        }
-
-        public LabelMono(int width, int height, string text)
-            : this(0, 0, width, height, text, LabelAlignment.Left)
-        {
-        }
-
-        public override void Initialize(WindowManager windowManager)
-        {
-            base.Initialize(windowManager);
-            Font = windowManager.TextFontMonoSpacedBold;
-        }
-
-        internal override void Draw(SpriteBatch spriteBatch, Point offset)
-        {
-            Font.Draw(spriteBatch, Position, offset, Text, Align, Color);
-        }
-    }
-
-    public class LabelShadow : Control
-    {
-        public const int ShadowSize = 8;
-        public const int ShadowExtraSizeX = 4;
-        public const int ShadowExtraSizeY = 0;
-
-        public Color Color;
-
-        public LabelShadow(int x, int y, int width, int height)
-            : base(x, y, width, height)
-        {
-            Color = Color.White;
-        }
-
-        public LabelShadow(int width, int height)
-            : this(0, 0, width, height)
-        {
-        }
-
-        internal override void Draw(SpriteBatch spriteBatch, Point offset)
-        {
-            spriteBatch.Draw(WindowManager.LabelShadowTexture, new Rectangle(offset.X + Position.X - ShadowExtraSizeX, offset.Y + Position.Y - ShadowExtraSizeY, ShadowSize + ShadowExtraSizeY, Position.Height + 2 * ShadowExtraSizeY), new Rectangle(0, 0, ShadowSize, 2 * ShadowSize), Color);
-            spriteBatch.Draw(WindowManager.LabelShadowTexture, new Rectangle(offset.X + Position.X - ShadowExtraSizeX + ShadowSize + ShadowExtraSizeY, offset.Y + Position.Y - ShadowExtraSizeY, Position.Width + 2 * ShadowExtraSizeX - 2 * ShadowSize - 2 * ShadowExtraSizeY, Position.Height + 2 * ShadowExtraSizeY), new Rectangle(ShadowSize, 0, ShadowSize, 2 * ShadowSize), Color);
-            spriteBatch.Draw(WindowManager.LabelShadowTexture, new Rectangle(offset.X + Position.X + ShadowExtraSizeX - ShadowSize - ShadowExtraSizeY + Position.Width, offset.Y + Position.Y - ShadowExtraSizeY, ShadowSize + ShadowExtraSizeY, Position.Height + 2 * ShadowExtraSizeY), new Rectangle(2 * ShadowSize, 0, ShadowSize, 2 * ShadowSize), Color);
         }
     }
 

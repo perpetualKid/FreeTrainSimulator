@@ -33,9 +33,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     public class WindowManager : RenderPrimitive
     {
         public static Texture2D WhiteTexture;
-        public static Texture2D ScrollbarTexture;
-        public static Texture2D LabelShadowTexture;
-        public static Texture2D NoticeTexture;
 
         // This is all a bit of a hack, since SpriteBatch does not expose its own internal Flush() method. What we do
         // is draw with a different texture to anything else; the change of texture triggers an internal flush. The
@@ -50,13 +47,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public readonly Viewer Viewer;
         public readonly WindowTextManager TextManager;
         public readonly WindowTextFont TextFontDefault;
-        public readonly WindowTextFont TextFontDefaultBold;
         public readonly WindowTextFont TextFontDefaultOutlined;
 
-        public readonly WindowTextFont TextFontMonoSpacedBold;
         public readonly WindowTextFont TextFontMonoSpacedOutlined;
 
-        public readonly WindowTextFont TextFontSmall;
         public readonly WindowTextFont TextFontSmallOutlined;
 
         public Label3DMaterial Label3DMaterial { get; private set; }
@@ -80,11 +74,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             PopupWindowMaterial = (PopupWindowMaterial)Viewer.MaterialManager.Load("PopupWindow");
             TextManager = new WindowTextManager();
             TextFontDefault = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular);
-            TextFontDefaultBold = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Bold);
             TextFontDefaultOutlined = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular, 1);
-            TextFontMonoSpacedBold = TextManager.GetScaled("Consolas", 11.29f, System.Drawing.FontStyle.Bold);
             TextFontMonoSpacedOutlined = TextManager.GetScaled("Consolas", 10, System.Drawing.FontStyle.Regular, 1);
-            TextFontSmall = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular);
             TextFontSmallOutlined = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular, 1);
 
             SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
@@ -98,33 +89,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 FlushTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 FlushTexture.SetData(new[] { Color.Transparent });
-            }
-            if (ScrollbarTexture == null)
-                // TODO: This should happen on the loader thread.
-                ScrollbarTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "WindowScrollbar.png"));
-            if (LabelShadowTexture == null)
-                // TODO: This should happen on the loader thread.
-                LabelShadowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "WindowLabelShadow.png"));
-            if (NoticeTexture == null)
-            {
-                var size = 256;
-                var background = Color.Black * 0.5f;
-                var borderRadius = size / 7;
-                var data = new Color[size * size * 2];
-
-                // Rounded corner background.
-                for (var y = 0; y < size; y++)
-                    for (var x = 0; x < size; x++)
-                        if ((x > borderRadius && x < size - borderRadius) || (y > borderRadius && y < size - borderRadius)
-                            || (Math.Sqrt((x - borderRadius) * (x - borderRadius) + (y - borderRadius) * (y - borderRadius)) < borderRadius)
-                            || (Math.Sqrt((x - size + borderRadius) * (x - size + borderRadius) + (y - borderRadius) * (y - borderRadius)) < borderRadius)
-                            || (Math.Sqrt((x - borderRadius) * (x - borderRadius) + (y - size + borderRadius) * (y - size + borderRadius)) < borderRadius)
-                            || (Math.Sqrt((x - size + borderRadius) * (x - size + borderRadius) + (y - size + borderRadius) * (y - size + borderRadius)) < borderRadius))
-                            data[y * size + x] = background;
-
-                // Notice texture is just the rounded corner background.
-                NoticeTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size, false, SurfaceFormat.Color);
-                NoticeTexture.SetData(data, 0, size * size);
             }
 
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
@@ -158,7 +122,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
-                mouseDownPosition = pointerCommandArgs.Position;
                 mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
                 mouseActiveWindow?.MouseDown(pointerCommandArgs.Position, keyModifiers);
             }
@@ -168,7 +131,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
-                mouseDownPosition = pointerCommandArgs.Position;
                 mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
                 if ((mouseActiveWindow != null) && (mouseActiveWindow != WindowsZOrder.Last()))
                     BringWindowToTop(mouseActiveWindow);
@@ -297,11 +259,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             WindowsZOrder = Windows.Concat(new[] { window }).ToArray();
         }
 
-        public bool HasVisiblePopupWindows()
-        {
-            return WindowsZOrder.Any(w => w.Visible);
-        }
-
         public IEnumerable<Window> VisibleWindows
         {
             get
@@ -309,9 +266,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 return WindowsZOrder.Where(w => w.Visible);
             }
         }
-
-        private Point mouseDownPosition;
-        public Point MouseDownPosition { get { return mouseDownPosition; } }
 
         private Window mouseActiveWindow;
 

@@ -127,10 +127,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             windowVertexBuffer = null;
         }
 
-        internal virtual void ActiveChanged()
-        {
-        }
-
         internal virtual void ScreenChanged()
         {
         }
@@ -168,22 +164,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 location.X = x;
                 location.Y = y;
                 LocationChanged();
-            }
-        }
-
-        public void MoveBy(int dx, int dy)
-        {
-            MoveTo(location.X + dx, location.Y + dy);
-        }
-
-        public void SizeTo(int width, int height)
-        {
-            if ((location.Width != width) || (location.Height != height))
-            {
-                location.Width = width;
-                location.Height = height;
-                MoveTo(location.X, location.Y);
-                SizeChanged();
             }
         }
 
