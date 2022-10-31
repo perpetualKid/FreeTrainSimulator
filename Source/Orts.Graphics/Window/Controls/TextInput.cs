@@ -12,7 +12,6 @@ namespace Orts.Graphics.Window.Controls
         private bool caretBlink;
 
         private Texture2D caretTexture;
-        private readonly Texture2D background;
 
         private readonly string caretSymbol;
 
@@ -30,10 +29,6 @@ namespace Orts.Graphics.Window.Controls
         {
             this.caretSymbol = caretSymbol.ToString();
             caretTexture = resourceHolder.PrepareResource(this.caretSymbol, font);
-            background = new Texture2D(Window.Owner.GraphicsDevice, 1, 1);
-            Color backColor = Color.Black;
-            backColor.A = (int)(256 * 0.5);
-            background.SetData(new Color[] { backColor });
         }
 
         internal override bool HandleTextInput(TextInputEventArgs e)
@@ -111,7 +106,7 @@ namespace Orts.Graphics.Window.Controls
         {
             Rectangle target = Bounds;
             target.Offset(offset);
-            spriteBatch.Draw(background, target, Color.White);
+            spriteBatch.Draw(Window.Owner.BackgroundTexture, target, Color.White);
             base.Draw(spriteBatch, offset);
             if (caretBlink)
                 spriteBatch.Draw(caretTexture, (Bounds.Location + offset + new Point(texture?.Width ?? 0, 0)).ToVector2(), TextColor);
@@ -126,7 +121,6 @@ namespace Orts.Graphics.Window.Controls
         protected override void Dispose(bool disposing)
         {
             caretTexture?.Dispose();
-            background?.Dispose();
             base.Dispose(disposing);
         }
     }
