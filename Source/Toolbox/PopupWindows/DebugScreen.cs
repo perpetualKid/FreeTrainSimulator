@@ -44,11 +44,14 @@ namespace Orts.Toolbox.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
+            layout = base.Layout(layout, headerScaling);
+            layout = layout.AddLayoutVertical();
+            layout.HorizontalChildAlignment = Graphics.HorizontalAlignment.Left;
             foreach (NameValueTextGrid item in currentProvider)
             {
                 layout?.Add(item);
             }
-            return base.Layout(layout, headerScaling);
+            return layout;
         }
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
