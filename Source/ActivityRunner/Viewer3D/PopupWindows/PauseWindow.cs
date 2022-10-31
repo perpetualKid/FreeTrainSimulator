@@ -11,7 +11,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class PauseWindow : OverlayBase
+    internal class PauseOverlay : OverlayBase
     {
 
         private const double AnimationLength = 0.6;
@@ -28,7 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Rectangle animationTargetRectangle;
         private float fade = 1.0f;
 
-        public PauseWindow(WindowManager owner, Viewer viewer) :
+        public PauseOverlay(WindowManager owner, Viewer viewer) :
             base(owner, CatalogManager.Catalog)
         {
             this.viewer = viewer;
@@ -121,6 +121,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             spriteBatch.Draw(pauseTexture, animationTargetRectangle, animationSourceRectangle, Color.White * fade);
             base.Draw(spriteBatch);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            pauseTexture?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

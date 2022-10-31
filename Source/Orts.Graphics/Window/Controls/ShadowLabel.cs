@@ -8,6 +8,7 @@ namespace Orts.Graphics.Window.Controls
     public class ShadowLabel : Label
     {
         private const int cornerRadius = 8;
+
         private Texture2D roundedShadowTexture;
         private Point topRight;
         private Rectangle rectangleShadow;

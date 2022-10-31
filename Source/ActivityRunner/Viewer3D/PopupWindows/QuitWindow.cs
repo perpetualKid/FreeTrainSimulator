@@ -26,6 +26,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(280, 112), catalog)
         {
             Modal = true;
+            ZOrder = 100;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
             if (MultiPlayerManager.IsMultiPlayer())

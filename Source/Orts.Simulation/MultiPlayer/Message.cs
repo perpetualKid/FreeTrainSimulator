@@ -3469,7 +3469,7 @@ namespace Orts.Simulation.MultiPlayer
                     Trace.WriteLine("MSG from " + sender + ":" + msgx);
                     MultiPlayerManager.Instance().lastSender = sender;
                     if (Simulator.Instance.Confirmer != null)
-                        Simulator.Instance.Confirmer.MSG(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
+                        Simulator.Instance.Confirmer.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
                     MultiPlayerManager.Instance().OnMessageReceived(Simulator.Instance.GameTime, sender + ": " + msgx);
                     break;
                 }

@@ -141,7 +141,7 @@ namespace Orts.Common.Input
         [Description("Control Initialize Brakes")] ControlInitializeBrakes,
         [Description("Control Handbrake Full")] ControlHandbrakeFull,
         [Description("Control Handbrake None")] ControlHandbrakeNone,
-        [Description("Control Odometer Show/Hide")] ControlOdoMeterShowHide,
+        [Description("Control Odometer Distance Mode")] ControlOdoMeterDisplayMode,
         [Description("Control Odometer Reset")] ControlOdoMeterReset,
         [Description("Control Odometer Direction")] ControlOdoMeterDirection,
         [Description("Control Retainers On")] ControlRetainersOn,

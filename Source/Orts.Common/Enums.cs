@@ -1014,7 +1014,7 @@ namespace Orts.Common
     {
         DebugScreen,
         QuitWindow,
-        PauseWindow,
+        PauseOverlay,
         HelpWindow,
         ActivityWindow,
         CompassWindow,
@@ -1031,6 +1031,7 @@ namespace Orts.Common
         CarOperationsWindow,
         TrackMonitorWindow,
         MultiPlayerMessagingWindow,
+        NotificationOverlay,
     }
 
     public enum FourCharAcronym

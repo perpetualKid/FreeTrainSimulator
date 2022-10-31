@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Windows.Forms;
 
 using Orts.Common;
 
@@ -233,7 +234,7 @@ namespace Orts.Simulation
             Message(CabControl.None, ConfirmLevel.Information, message);
         }
 
-		public void MSG(string message)
+		public void Message(string message)
 		{
 			Message(CabControl.None, ConfirmLevel.Message, message);
 		}
@@ -253,9 +254,14 @@ namespace Orts.Simulation
             Message(CabControl.None, level, message);
         }
 
+        public void PlainTextMessage(ConfirmLevel level, string message, double duration)
+        {
+            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs(null, message, duration));
+        }
+
         #endregion
 
-        private void Message(CabControl control, ConfirmLevel level, string message)
+        private void Message(CabControl control, ConfirmLevel level, string message, double duration = double.NaN)
         {
             // User can suppress levels None and Information but not Warning, Error and MSGs.
             // Cab control confirmations have level None.
@@ -268,7 +274,8 @@ namespace Orts.Simulation
                 format = "{0}: " + format;
             if (level >= ConfirmLevel.Information)
                 format = "{1} - " + format;
-            double duration = level switch
+            if (double.IsNaN(duration))
+            duration = level switch
             {
                 >= ConfirmLevel.Message => defaultDuration * 10,
                 >= ConfirmLevel.Error => defaultDuration * 5,

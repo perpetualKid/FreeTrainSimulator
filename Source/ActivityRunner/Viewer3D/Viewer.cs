@@ -32,6 +32,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
@@ -56,6 +57,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.World;
+
+using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -97,8 +100,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
-        public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
-        public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
@@ -132,6 +133,10 @@ namespace Orts.ActivityRunner.Viewer3D
         private List<Camera> WellKnownCameras; // Providing Camera save functionality by GeorgeS
 
         private TrainCarViewer playerLocomotiveViewer;
+
+        private Camera currentCamera;
+        private float fieldOfView;
+
 
         public TrainCarViewer PlayerLocomotiveViewer
         {
@@ -237,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     double lastTime = Simulator.ReplayCommandList[lastEntry].Time;
                     Log.ReplayEndsAt = lastTime;
                     double duration = lastTime - Simulator.ClockTime;
-                    MessagesWindow.AddMessage($"Replay started: ending at {FormatStrings.FormatApproximateTime(lastTime)} after {FormatStrings.FormatTime(duration)}", 3.0);
+                    Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, $"Replay started: ending at {FormatStrings.FormatApproximateTime(lastTime)} after {FormatStrings.FormatTime(duration)}", 3.0);
                 }
             }
         }
@@ -337,6 +342,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Settings.Save(nameof(Settings.PopupLocations));
             Settings.Save(nameof(Settings.PopupStatus));
             Settings.Save(nameof(Settings.PopupSettings));
+            Settings.Save(nameof(Settings.OdometerShortDistanceMode));
         }
 
         public void Save(BinaryWriter outf, string fileStem)
@@ -460,8 +466,6 @@ namespace Orts.ActivityRunner.Viewer3D
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
             WindowManager = new WindowManager(this);
-            MessagesWindow = new MessagesWindow(WindowManager);
-            NoticeWindow = new NoticeWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
@@ -522,9 +526,9 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new PopupWindows.DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.PauseWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.PauseOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
-                return new PopupWindows.PauseWindow(windowManager, this);
+                return new PopupWindows.PauseOverlay(windowManager, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
@@ -541,6 +545,10 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new PopupWindows.MultiPlayerMessaging(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.NotificationOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            {
+                return new PopupWindows.NotificationOverlay(windowManager);
             }));
 
             Game.GameComponents.Add(windowManager);
@@ -562,7 +570,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (World.GameSounds != null)
                     World.GameSounds.HandleEvent(TrainEvent.ControlError);
             };
-            Simulator.Confirmer.DisplayMessage += (s, e) => MessagesWindow.AddMessage(e.Key, e.Text, e.Duration);
+            Simulator.Confirmer.DisplayMessage += (s, e) => (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddMessage(e.Key, e.Text, e.Duration);
 
             if (Simulator.PlayerLocomotive.HasFront3DCab || Simulator.PlayerLocomotive.HasRear3DCab)
             {
@@ -710,22 +718,22 @@ namespace Orts.ActivityRunner.Viewer3D
                         switch (OSDLocations.CurrentDisplayState)
                         {
                             case OSDLocations.DisplayState.Auto:
-                                MessagesWindow.AddMessage(Catalog.GetString("Automatic platform and siding labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Automatic platform and siding labels visible."), 5);
                                 break;
                             case OSDLocations.DisplayState.All:
-                                MessagesWindow.AddMessage(Catalog.GetString("Platform and siding labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform and siding labels visible."), 5);
                                 break;
                             case OSDLocations.DisplayState.Platforms:
-                                MessagesWindow.AddMessage(Catalog.GetString("Platform labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform labels visible."), 5);
                                 break;
                             case OSDLocations.DisplayState.Sidings:
-                                MessagesWindow.AddMessage(Catalog.GetString("Siding labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Siding labels visible."), 5);
                                 break;
                         }
                     }
                     else
                     {
-                        MessagesWindow.AddMessage(Catalog.GetString("Platform and siding labels hidden."), 5);
+                        Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform and siding labels hidden."), 5);
                     }
                 }
             });
@@ -741,16 +749,16 @@ namespace Orts.ActivityRunner.Viewer3D
                         switch (OSDCars.CurrentDisplayState)
                         {
                             case OSDCars.DisplayState.Trains:
-                                MessagesWindow.AddMessage(Catalog.GetString("Train labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Train labels visible."), 5);
                                 break;
                             case OSDCars.DisplayState.Cars:
-                                MessagesWindow.AddMessage(Catalog.GetString("Car labels visible."), 5);
+                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Car labels visible."), 5);
                                 break;
                         }
                     }
                     else
                     {
-                        MessagesWindow.AddMessage(Catalog.GetString("Train and car labels hidden."), 5);
+                        Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Train and car labels hidden."), 5);
                     }
                 }
             });
@@ -916,12 +924,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 //TODO 20210320 move path settings to RuntimeInfo
                 string textPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.txt");
                 Settings.Input.DumpToText(textPath);
-                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
                 string graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
                 KeyboardMap.DumpToGraphic(Settings.Input, graphicPath);
-                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             });
+
+            UserCommandController.AddEvent(UserCommand.ControlOdoMeterDisplayMode, KeyEventType.KeyPressed, () => Settings.OdometerShortDistanceMode = !Settings.OdometerShortDistanceMode);
 
             // Turntable commands
             if (Simulator.MovingTables.Any())
@@ -1045,12 +1055,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (Settings.PopupStatus[windowType] &&
                     (windowType is not ViewerWindowType.QuitWindow
                     and not ViewerWindowType.ActivityWindow
-                    and not ViewerWindowType.PauseWindow
+                    and not ViewerWindowType.PauseOverlay
                     and not ViewerWindowType.CarOperationsWindow
                     and not ViewerWindowType.MultiPlayerMessagingWindow))
                     windowManager[windowType].Open();
             }
-
+            windowManager[ViewerWindowType.NotificationOverlay].Open();
             if (Simulator.ActivityRun != null)
                 Simulator.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
         }
@@ -1152,7 +1162,6 @@ namespace Orts.ActivityRunner.Viewer3D
             ImmediateRefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
             RefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
             SelectScreenCommand.Receiver = this;
-            ToggleOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ResetOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ToggleOdometerDirectionCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             SanderCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
@@ -1367,7 +1376,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (Log.ReplayComplete)
             {
-                MessagesWindow.AddMessage("Replay complete", 2);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, "Replay complete", 2);
                 Log.ReplayComplete = false;
             }
 
@@ -1436,8 +1445,17 @@ namespace Orts.ActivityRunner.Viewer3D
             logRenderFrame = false;
             if (pauseWindow != (pauseWindow = Simulator.GamePaused))
             {
-                windowManager[ViewerWindowType.PauseWindow].Open();
+                windowManager[ViewerWindowType.PauseOverlay].Open();
             }
+
+            // Camera notices
+            if (currentCamera == (currentCamera = Camera) && currentCamera != null)
+            {
+                if (fieldOfView != (fieldOfView = Camera.FieldOfView))
+                    (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddNotice(Catalog.GetString($"FOV: {fieldOfView:F0}°"));
+            }
+            else
+                fieldOfView = Camera?.FieldOfView ?? 0;
         }
 
         private void LoadDefectCarSound(TrainCar car, string filename)
@@ -1800,7 +1818,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 Visibility = VisibilityState.Hidden;
                 // Hide MessageWindow
-                MessagesWindow.Visible = false;
+                windowManager[ViewerWindowType.NotificationOverlay].Close();
                 // Audible confirmation that screenshot taken
                 ViewerSounds.HandleEvent(TrainEvent.TakeScreenshot);
             }
@@ -1818,7 +1836,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 SaveActivityThumbnail = false;
                 SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(RuntimeInfo.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
-                MessagesWindow.AddMessage(Catalog.GetString("Game saved"), 5);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Game saved"), 5);
             }
         }
 
@@ -1858,10 +1876,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             });
             if (!silent)
-                MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, $"Saving screenshot to '{fileName}'.", 10);
             Visibility = VisibilityState.Visible;
             // Reveal MessageWindow
-            MessagesWindow.Visible = true;
+            windowManager[ViewerWindowType.NotificationOverlay].Open();
         }
     }
 }

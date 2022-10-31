@@ -220,7 +220,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ToggleOdometerCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerOnCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyReleased, ResetOdometerOffCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand, true);
@@ -323,7 +322,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ToggleOdometerCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerOnCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyReleased, ResetOdometerOffCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand);
@@ -393,7 +391,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void HeadlightDecreaseCommand() => _ = new HeadlightCommand(Viewer.Log, false);
         private void ToggleCabLightCommand() => _ = new ToggleCabLightCommand(Viewer.Log);
         private void ToggleWaterScoopCommand() => _ = new ToggleWaterScoopCommand(Viewer.Log);
-        private void ToggleOdometerCommand() => _ = new ToggleOdometerCommand(Viewer.Log);
         private void ResetOdometerOnCommand() => _ = new ResetOdometerCommand(Viewer.Log, true);
         private void ResetOdometerOffCommand() => _ = new ResetOdometerCommand(Viewer.Log, false);
         private void ToggleOdometerDirectionCommand() => _ = new ToggleOdometerDirectionCommand(Viewer.Log);
