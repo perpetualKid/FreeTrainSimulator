@@ -35,6 +35,8 @@ namespace Orts.Graphics.Window
 
         public int ZOrder { get; protected set; }
 
+        public bool TopMost { get; protected set; }
+
         internal WindowControl CapturedControl { get; set; }
 
         public bool Visible { get; private set; }

@@ -30,13 +30,36 @@ namespace Orts.Graphics.Window
 
     public class WindowManager : DrawableGameComponent
     {
+        private class WindowSortComparer : IComparer<FormBase>
+        {
+            private readonly WindowManager host;
+
+            public WindowSortComparer(WindowManager host)
+            {
+                this.host = host;
+            }
+
+            public int Compare(FormBase x, FormBase y)
+            {
+                return (x.TopMost || x.Modal) == (y.TopMost || y.Modal)? 
+                    x == host.activeWindow ?
+                    1 : y == host.activeWindow ? -11: x.ZOrder.CompareTo(y.ZOrder) :
+                    x == host.activeWindow ? 1 : (x.TopMost || x.Modal).CompareTo((y.TopMost|| y.Modal));
+            }
+        }
+
         private List<FormBase> windows = new List<FormBase>();
+        private List<FormBase> updatedWindowList = new List<FormBase>();
         private readonly Stack<WindowBase> modalWindows = new Stack<WindowBase>();
+        private readonly WindowSortComparer windowSortComparer;
 
         private readonly Texture2D windowTexture;
         internal Texture2D ScrollbarTexture { get; }
+        internal Dictionary<int, Texture2D> RoundedShadows { get; } = new Dictionary<int, Texture2D>();
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private WindowBase activeWindow;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly SpriteBatch spriteBatch;
         private long nextWindowUpdate;
 
@@ -69,6 +92,10 @@ namespace Orts.Graphics.Window
 
         internal Texture2D WhiteTexture { get; }
 
+        internal Texture2D BackgroundTexture { get; }
+
+        internal Color BackgroundColor = Color.Black * 0.5f;
+
         public UserCommandController UserCommandController { get; private set; }
 
         public float WindowOpacity
@@ -97,9 +124,14 @@ namespace Orts.Graphics.Window
                 });
             }
 
+            windowSortComparer = new WindowSortComparer(this);
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
+
+            BackgroundTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            BackgroundTexture.SetData(new[] { BackgroundColor});
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             game.Window.TextInput += Window_TextInput;
@@ -159,7 +191,7 @@ namespace Orts.Graphics.Window
 
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
-            UserCommandController.SuppressDownLevelEventHandling = activeWindow?.ActiveControl?.HandleTextInput(e) ?? false;
+            UserCommandController.SuppressDownLevelEventHandling |= activeWindow?.ActiveControl?.HandleTextInput(e) ?? false;
         }
 
         private void UpdateSize()
@@ -186,7 +218,14 @@ namespace Orts.Graphics.Window
             if (!WindowOpen(window))
             {
                 SuppressDrawing = false;
-                windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
+                lock (updatedWindowList)
+                {
+                    updatedWindowList.Clear();
+                    updatedWindowList.AddRange(windows);
+                    updatedWindowList.Add(window);
+                        updatedWindowList.Sort(windowSortComparer);
+                    (windows, updatedWindowList) = (updatedWindowList, windows);
+                }
                 if (window is WindowBase framedWindow)
                 {
                     framedWindow.UpdateLocation();
@@ -196,7 +235,6 @@ namespace Orts.Graphics.Window
                         activeWindow = framedWindow;
                         framedWindow.FocusSet();
                     }
-                    activeWindow = framedWindow;
                     if (window.Modal)
                     {
                         UserCommandController.SuppressDownLevelEventHandling = true;
@@ -236,11 +274,16 @@ namespace Orts.Graphics.Window
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
             activeWindow?.FocusSet();
-            List<FormBase> updatedWindowList = windows;
-            if (updatedWindowList.Remove(window))
+            lock (updatedWindowList)
             {
-                windows = updatedWindowList;
-                return true;
+                updatedWindowList.Clear();
+                updatedWindowList.AddRange(windows);
+                if (updatedWindowList.Remove(window))
+                {
+                    (windows, updatedWindowList) = (updatedWindowList, windows);
+                    updatedWindowList.Clear();
+                    return true;
+                }
             }
             return false;
         }
@@ -259,7 +302,6 @@ namespace Orts.Graphics.Window
                 userCommandArgs.Handled = true;
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            //            UserCommandController.SuppressDownLevelEventHandling = (userCommandArgs is PointerCommandArgs pointerCommandArgs && windows.Where(w => w.Borders.Contains(pointerCommandArgs.Position)).Any());
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -326,15 +368,6 @@ namespace Orts.Graphics.Window
                 else if (activeWindow != null)
                 {
                     userCommandArgs.Handled = true;
-                    if (activeWindow != windows.Last())
-                    {
-                        List<FormBase> updatedWindowList = windows;
-                        if (updatedWindowList.Remove(activeWindow))
-                        {
-                            updatedWindowList.Add(activeWindow);
-                            windows = updatedWindowList;
-                        }
-                    }
                     _ = activeWindow.HandleMouseDown(pointerCommandArgs.Position, keyModifiers);
                 }
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -358,6 +391,10 @@ namespace Orts.Graphics.Window
                     activeWindow?.FocusLost();
                     activeWindow = topMostTargetedWindow;
                     topMostTargetedWindow.FocusSet();
+                    lock(updatedWindowList)
+                    {
+                        windows.Sort(windowSortComparer);
+                    }
                 }
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 _ = (activeWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
@@ -442,6 +479,17 @@ namespace Orts.Graphics.Window
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            windowTexture?.Dispose();
+            WhiteTexture?.Dispose();
+            BackgroundTexture?.Dispose();
+            ScrollbarTexture.Dispose();
+            foreach (Texture2D texture in RoundedShadows.Values)
+                texture?.Dispose();
+            spriteBatch?.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     public sealed class WindowManager<TWindowType> : WindowManager where TWindowType : Enum
@@ -484,6 +532,18 @@ namespace Orts.Graphics.Window
         public void SetLazyWindows(TWindowType window, Lazy<FormBase> lazyWindow)
         {
             lazyWindows[window] = lazyWindow;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            foreach (TWindowType windowType in EnumExtension.GetValues<TWindowType>())
+            {
+                if (WindowInitialized(windowType))
+                {
+                    windows[windowType]?.Dispose();
+                }
+            }
+            base.Dispose(disposing);
         }
     }
 }

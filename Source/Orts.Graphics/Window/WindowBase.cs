@@ -30,7 +30,6 @@ namespace Orts.Graphics.Window
 
         public string Caption { get; protected set; }
 
-
         protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog) : 
             base(owner, catalog)
         {
