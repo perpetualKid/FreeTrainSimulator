@@ -33,9 +33,9 @@ namespace Orts.Graphics.Xna
             return instance;
         }
 
-        public Texture2D PrepareResource(string text, System.Drawing.Font font)
+        public Texture2D PrepareResource(string text, System.Drawing.Font font, OutlineRenderOptions outline = null)
         {
-            int identifier = HashCode.Combine(text, font);
+            int identifier = HashCode.Combine(text, font, outline);
             if (!currentResources.TryGetValue(identifier, out Texture2D texture))
             {
                 if (previousResources.TryRemove(identifier, out texture))
@@ -45,8 +45,8 @@ namespace Orts.Graphics.Xna
                 }
                 else
                 {
-                    texture = textRenderer.Resize(text, font);
-                    textRenderer.RenderText(text, font, texture);
+                    texture = textRenderer.Resize(text, font, outline);
+                    textRenderer.RenderText(text, font, texture, outline);
                     if (!currentResources.TryAdd(identifier, texture))
                     {
                         texture.Dispose();

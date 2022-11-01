@@ -43,7 +43,7 @@ namespace Orts.Graphics.DrawableComponents
         {
             int identifier = HashCode.Combine(font, message);
             Texture2D texture = Get(identifier, () =>
-                {
+            {
                 Texture2D inner = textRenderer.Resize(message, font);
                 textRenderer.RenderText(message, font, inner);
                 return inner;

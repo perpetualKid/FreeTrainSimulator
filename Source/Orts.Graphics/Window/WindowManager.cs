@@ -41,10 +41,10 @@ namespace Orts.Graphics.Window
 
             public int Compare(FormBase x, FormBase y)
             {
-                return (x.TopMost || x.Modal) == (y.TopMost || y.Modal)? 
+                return (x.TopMost || x.Modal) == (y.TopMost || y.Modal) ?
                     x == host.activeWindow ?
-                    1 : y == host.activeWindow ? -11: x.ZOrder.CompareTo(y.ZOrder) :
-                    x == host.activeWindow ? 1 : (x.TopMost || x.Modal).CompareTo((y.TopMost|| y.Modal));
+                    1 : y == host.activeWindow ? -11 : x.ZOrder.CompareTo(y.ZOrder) :
+                    x == host.activeWindow ? 1 : (x.TopMost || x.Modal).CompareTo((y.TopMost || y.Modal));
             }
         }
 
@@ -131,7 +131,7 @@ namespace Orts.Graphics.Window
             WhiteTexture.SetData(new[] { Color.White });
 
             BackgroundTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            BackgroundTexture.SetData(new[] { BackgroundColor});
+            BackgroundTexture.SetData(new[] { BackgroundColor });
 
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             game.Window.TextInput += Window_TextInput;
@@ -223,7 +223,7 @@ namespace Orts.Graphics.Window
                     updatedWindowList.Clear();
                     updatedWindowList.AddRange(windows);
                     updatedWindowList.Add(window);
-                        updatedWindowList.Sort(windowSortComparer);
+                    updatedWindowList.Sort(windowSortComparer);
                     (windows, updatedWindowList) = (updatedWindowList, windows);
                 }
                 if (window is WindowBase framedWindow)
@@ -324,11 +324,10 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
                 SuppressDrawing = false;
-                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w is WindowBase windowBase && w.Interactive && w.Borders.Contains(moveCommandArgs.Position)) as WindowBase;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if ((topMostTargetedWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
+                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
                 {
-                    topMostTargetedWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
+                    activeWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                     userCommandArgs.Handled = true;
                 }
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -391,7 +390,7 @@ namespace Orts.Graphics.Window
                     activeWindow?.FocusLost();
                     activeWindow = topMostTargetedWindow;
                     topMostTargetedWindow.FocusSet();
-                    lock(updatedWindowList)
+                    lock (updatedWindowList)
                     {
                         windows.Sort(windowSortComparer);
                     }
