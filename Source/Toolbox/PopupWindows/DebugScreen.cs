@@ -36,7 +36,7 @@ namespace Orts.Toolbox.PopupWindows
             toolboxSettings = settings;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
-            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
+            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 150 };
             UpdateBackgroundColor(backgroundColor);
             _ = EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.DebugScreen], out currentDebugScreen);
             currentProvider[currentDebugScreen].Visible = true;
@@ -45,8 +45,6 @@ namespace Orts.Toolbox.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
             layout = base.Layout(layout, headerScaling);
-            layout = layout.AddLayoutVertical();
-            layout.HorizontalChildAlignment = Graphics.HorizontalAlignment.Left;
             foreach (NameValueTextGrid item in currentProvider)
             {
                 layout?.Add(item);
@@ -66,7 +64,7 @@ namespace Orts.Toolbox.PopupWindows
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
-            foreach(NameValueTextGrid item in currentProvider)
+            foreach (NameValueTextGrid item in currentProvider)
                 item.TextColor = backgroundColor.ComplementColor();
         }
 
