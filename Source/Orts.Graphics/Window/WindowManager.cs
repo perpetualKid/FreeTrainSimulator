@@ -324,11 +324,11 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
                 SuppressDrawing = false;
-                FormBase topMostTargetedWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position));
+                WindowBase topMostTargetedWindow = windows.LastOrDefault(w => w is WindowBase windowBase && w.Interactive && w.Borders.Contains(moveCommandArgs.Position)) as WindowBase;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
+                if ((topMostTargetedWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
                 {
-                    activeWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
+                    topMostTargetedWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                     userCommandArgs.Handled = true;
                 }
 #pragma warning restore CA2000 // Dispose objects before losing scope
