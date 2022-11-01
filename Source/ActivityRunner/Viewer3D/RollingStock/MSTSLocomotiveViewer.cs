@@ -420,7 +420,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void TCSGenericCommand1On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 0);
-            _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[0], 0);
+            Locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(0, out bool pressed);
+            _ = new TCSSwitchCommand(Viewer.Log, !pressed, 0);
         }
         private void TCSGenericCommand1Off()
         {
@@ -429,7 +430,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void TCSGenericCommand2On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 1);
-            _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[1], 1);
+            Locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(1, out bool pressed);
+            _ = new TCSSwitchCommand(Viewer.Log, !pressed, 1);
         }
         private void TCSGenericCommand2Off()
         {
