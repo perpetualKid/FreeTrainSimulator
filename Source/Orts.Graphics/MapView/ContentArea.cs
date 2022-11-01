@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -68,6 +67,12 @@ namespace Orts.Graphics.MapView
 
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
+
+        public OutlineRenderOptions FontOutlineOptions 
+        {
+            get => contentText.OutlineRenderOptions;
+            set => contentText.OutlineRenderOptions = value; 
+        }
 
         internal ContentArea(Game game, ContentBase content) :
             base(game)

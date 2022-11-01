@@ -7,9 +7,12 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Graphics;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
@@ -17,6 +20,7 @@ namespace Orts.Toolbox.PopupWindows
     internal class SettingsWindow : WindowBase
     {
         private readonly ToolboxSettings toolboxSettings;
+        private ContentArea contentArea;
 
         private enum TabSettings
         {
@@ -31,10 +35,11 @@ namespace Orts.Toolbox.PopupWindows
         private TabControl<TabSettings> tabControl;
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public SettingsWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) : 
+        public SettingsWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
+            this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
@@ -59,6 +64,18 @@ namespace Orts.Toolbox.PopupWindows
                 chkRestoreView.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.RestoreLastView = (sender as Checkbox).State.Value;
                 chkRestoreView.State = toolboxSettings.RestoreLastView;
                 line.Add(chkRestoreView);
+
+                line = layoutContainer.AddLayoutHorizontalLineOfText();
+                line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Complement Font Color")));
+                Checkbox chkFontColorComplement = new Checkbox(this);
+                chkFontColorComplement.OnClick += (object sender, MouseClickEventArgs e) =>
+                {
+                    toolboxSettings.ComplementFontColor = (sender as Checkbox).State.Value;
+                    contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
+                    ((Owner as WindowManager<WindowType>)[WindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
+                };
+                chkFontColorComplement.State = toolboxSettings.ComplementFontColor;
+                line.Add(chkFontColorComplement);
             };
             layout.Add(tabControl);
 

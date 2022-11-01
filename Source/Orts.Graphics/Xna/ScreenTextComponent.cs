@@ -38,7 +38,7 @@ namespace Orts.Graphics.Xna
 
         protected virtual void RenderText(string text)
         {
-            textRenderer.RenderText(text, font, texture);
+            textRenderer.RenderText(text, font, texture, OutlineRenderOptions.Default);
         }
 
         protected override void Dispose(bool disposing)

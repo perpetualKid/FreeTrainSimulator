@@ -22,7 +22,9 @@ namespace Orts.Graphics.Window.Controls
         private readonly System.Drawing.Font font;
         private readonly TextTextureResourceHolder textureHolder;
 
-        public Color TextColor { get; set; } = Color.White;
+        public Color TextColor { get; set; } = Color.White; 
+
+        public OutlineRenderOptions OutlineRenderOptions { get; set; }
 
         public float LineSpacing { get; set; } = 1.25f;
 
@@ -74,9 +76,9 @@ namespace Orts.Graphics.Window.Controls
                         currentFont = FontManager.Scaled(Window.Owner.DefaultFontName, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
                     }
 
-                    Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
+                    Texture2D texture = textureHolder.PrepareResource(identifier, currentFont, OutlineRenderOptions);
                     drawItemsNameColumn.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
-                    texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont);
+                    texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont, OutlineRenderOptions);
                     drawItemsValueColumn.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                     lineOffset += font.Size * LineSpacing;
                 }

@@ -14,6 +14,8 @@ namespace Orts.Graphics.DrawableComponents
         private readonly SpriteBatch spriteBatch;
         private readonly TextTextureRenderer textRenderer; 
 
+        public OutlineRenderOptions OutlineRenderOptions { get; set; }
+
         private TextShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
             this.spriteBatch = spriteBatch;
@@ -41,14 +43,15 @@ namespace Orts.Graphics.DrawableComponents
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
-            int identifier = HashCode.Combine(font, message);
+            int identifier = HashCode.Combine(font, message, OutlineRenderOptions);
             Texture2D texture = Get(identifier, () =>
             {
-                Texture2D inner = textRenderer.Resize(message, font);
-                textRenderer.RenderText(message, font, inner);
+                Texture2D inner = textRenderer.Resize(message, font, OutlineRenderOptions);
+                textRenderer.RenderText(message, font, inner, OutlineRenderOptions);
                 return inner;
             });
-
+            if (null != OutlineRenderOptions)
+                color = Color.White;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
             (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);

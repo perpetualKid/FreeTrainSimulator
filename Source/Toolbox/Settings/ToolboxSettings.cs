@@ -81,6 +81,9 @@ namespace Orts.Toolbox.Settings
         [Default(true)]
         public bool RestoreLastView { get; set; }
 
+        [Default(true)]
+        public bool ComplementFontColor { get; set; }
+
         [Default(new string[]
         {
         $"{nameof(MapViewItemSettings.Tracks)}=True",

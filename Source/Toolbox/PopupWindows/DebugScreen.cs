@@ -64,8 +64,12 @@ namespace Orts.Toolbox.PopupWindows
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
+            bool complementColor = toolboxSettings.ComplementFontColor;
             foreach (NameValueTextGrid item in currentProvider)
-                item.TextColor = backgroundColor.ComplementColor();
+            {
+                item.OutlineRenderOptions = !complementColor ? OutlineRenderOptions.Default : null;
+                item.TextColor = complementColor ? backgroundColor.ComplementColor() : Color.White;
+            }
         }
 
         public override bool Open()

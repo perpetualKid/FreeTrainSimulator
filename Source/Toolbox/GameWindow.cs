@@ -446,7 +446,7 @@ namespace Orts.Toolbox
             }));
             windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
                 return settingsWindow;
             }));
             windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<FormBase>(() =>

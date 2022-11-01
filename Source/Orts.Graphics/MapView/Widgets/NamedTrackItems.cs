@@ -2,10 +2,8 @@
 using System.Linq;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Graphics.DrawableComponents;
 
 namespace Orts.Graphics.MapView.Widgets
 {
