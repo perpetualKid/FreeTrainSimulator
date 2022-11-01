@@ -31,8 +31,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private static int panto4;
         private static int wiper;
         private static int headlight;
-        private static int doorLeft;
-        private static int doorRight;
         private static int mirrors;
 
         public static void RegisterInputEvents(Viewer viewer)
