@@ -28,6 +28,7 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Common;
 using Orts.Common.Info;
@@ -41,7 +42,7 @@ using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class GameStateRunActivity : GameState
     {
@@ -287,7 +288,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                MultiPlayerManager.Notify((new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
+                MultiPlayerManager.Notify(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -318,8 +319,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             string fileStem = simulator.SaveFileName;
 
-            using (BinaryWriter outf = simulator.Settings.LogSaveData ? 
-                new LoggedBinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)) : 
+            using (BinaryWriter outf = simulator.Settings.LogSaveData ?
+                new LoggedBinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)) :
                 new BinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
             {
                 // Save some version identifiers so we can validate on load.
@@ -333,8 +334,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 outf.Write((int)simulator.GameTime);
                 outf.Write(DateTime.Now.ToBinary());
-                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileX + (simulator.Trains[0].FrontTDBTraveller.X / 2048));
-                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileZ + (simulator.Trains[0].FrontTDBTraveller.Z / 2048));
+                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileX + simulator.Trains[0].FrontTDBTraveller.X / 2048);
+                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileZ + simulator.Trains[0].FrontTDBTraveller.Z / 2048);
                 outf.Write(simulator.InitialTileX);
                 outf.Write(simulator.InitialTileZ);
 

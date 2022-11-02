@@ -35,7 +35,7 @@ using Orts.Common.Logging;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     /// <summary>
     /// Provides the foundation for running the game.

@@ -8,7 +8,7 @@ using Orts.Common.Logging;
 using Orts.Settings;
 using Orts.Simulation;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     internal class GameStateViewer3DTest : GameState
     {
@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 using (StreamWriter writer = File.AppendText(summaryFileName))
                 {
                     // Route, Activity, Passed, Errors, Warnings, Infos, Load Time, Frame Rate
-                    writer.WriteLine($"{Simulator.Instance.Route?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase) },{Simulator.Instance.ActivityFile?.Activity?.Header?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase)},{(passed ? "Yes" : "No")}," +
+                    writer.WriteLine($"{Simulator.Instance.Route?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase)},{Simulator.Instance.ActivityFile?.Activity?.Header?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase)},{(passed ? "Yes" : "No")}," +
                         $"{traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0}," +
                         $"{traceListener?.EventCount(TraceEventType.Warning) ?? 0}," +
                         $"{traceListener?.EventCount(TraceEventType.Information) ?? 0},{loadTime:F1},{Program.Viewer.RenderProcess.FrameRate.SmoothedValue:F1}");

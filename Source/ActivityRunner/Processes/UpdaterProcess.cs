@@ -23,9 +23,9 @@ using System.Threading;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Viewer3D;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class UpdaterProcess : IDisposable
     {
@@ -118,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 CurrentFrame.Clear();
                 for (int i = 0; i < game.GameComponents.Count; i++)
                 {
-                    if ((game.GameComponents[i] is GameComponent gameComponent) && gameComponent.Enabled)
+                    if (game.GameComponents[i] is GameComponent gameComponent && gameComponent.Enabled)
                         gameComponent.Update(gameTime);
                 }
                 if (game.State != null)

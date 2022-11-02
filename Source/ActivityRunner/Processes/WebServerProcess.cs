@@ -27,10 +27,9 @@ using System.Windows.Forms;
 
 using EmbedIO.Net;
 
-using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.WebServices;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class WebServerProcess
     {
