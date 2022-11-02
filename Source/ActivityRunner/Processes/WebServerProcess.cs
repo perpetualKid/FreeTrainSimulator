@@ -31,57 +31,75 @@ using Orts.ActivityRunner.Viewer3D.WebServices;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class WebServerProcess
+    public class WebServerProcess: IDisposable
     {
-        private readonly Profiler Profiler = new Profiler("WebServer");
-        private readonly ProcessState State = new ProcessState("WebServer");
-        private readonly GameHost game;
-        private readonly Thread Thread;
-        private readonly CancellationTokenSource StopServer = new CancellationTokenSource();
+        private readonly Thread thread;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private bool disposedValue;
+        private readonly int portNumber;
 
         public WebServerProcess(GameHost game)
         {
-            this.game = game;
-            Thread = new Thread(WebServerThread);
+            if (game == null)
+                throw new ArgumentNullException(nameof(game));
+
+            if (!game.Settings.WebServer)
+                return;
+            portNumber = game.Settings.WebServerPort;
+            thread = new Thread(WebServerThread);
         }
 
         public void Start()
         {
-            State.SignalStart();
-            Thread.Start();
+            thread?.Start();
         }
 
         public void Stop()
         {
-            StopServer.Cancel();
-            State.SignalTerminate();
+            cancellationTokenSource.Cancel();
         }
 
         private void WebServerThread()
         {
-            Profiler.SetThread();
-            game.SetThreadLanguage();
-            if (!game.Settings.WebServer)
-                return;
-
             string contentPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Content\\Web");
             EndPointManager.UseIpv6 = true;
             try
             {
-                using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{game.Settings.WebServerPort}", contentPath))
-                    server.RunAsync(StopServer.Token).Wait();
+                using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{portNumber}", contentPath))
+                    server.RunAsync(cancellationTokenSource.Token).Wait();
             }
             catch (AggregateException ex)
             {
                 if (ex.InnerException is SocketException)
                 {
-                    Trace.TraceWarning($"Port {game.Settings.WebServerPort} is already in use. Continuing without webserver");
+                    Trace.TraceWarning($"Port {portNumber} is already in use. Continuing without webserver.");
                 }
                 else
                 {
-                    throw ex;
+                    throw;
                 }
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    cancellationTokenSource?.Cancel();
+                    cancellationTokenSource.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
