@@ -19,6 +19,7 @@ namespace Orts.Graphics.Window.Controls
         private List<(Vector2, Texture2D, Color)> drawItemsNameColumn = new List<(Vector2, Texture2D, Color)>();
         private List<(Vector2, Texture2D, Color)> drawItemsValueColumn = new List<(Vector2, Texture2D, Color)>();
 
+        private bool dataPrepared;
         private List<(Vector2, Texture2D, Color)> prepareNameColumn = new List<(Vector2, Texture2D, Color)>();
         private List<(Vector2, Texture2D, Color)> prepareValueColumn = new List<(Vector2, Texture2D, Color)>();
 
@@ -56,8 +57,8 @@ namespace Orts.Graphics.Window.Controls
         {
             this.font = font ?? Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
-            clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
-            clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
+            clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * window.Owner.DpiScaling), (int)(this.font.Size * LineSpacing));
+            clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(this.font.Size * LineSpacing));
         }
 
         internal override void Update(GameTime gameTime, bool shouldUpdate)
@@ -86,13 +87,19 @@ namespace Orts.Graphics.Window.Controls
                     prepareValueColumn.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                     lineOffset += font.Size * LineSpacing;
                 }
+                dataPrepared = true;
             }
             base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            (drawItemsNameColumn, drawItemsValueColumn, prepareNameColumn, prepareValueColumn) = (prepareNameColumn, prepareValueColumn, drawItemsNameColumn, drawItemsValueColumn);
+            if (dataPrepared)
+            {
+                (drawItemsNameColumn, prepareNameColumn) = (prepareNameColumn, drawItemsNameColumn);
+                (drawItemsValueColumn, prepareValueColumn) = (prepareValueColumn, drawItemsValueColumn);
+                dataPrepared = false;
+            }
             Vector2 locationVector = (Bounds.Location + offset).ToVector2();
             foreach ((Vector2 position, Texture2D texture, Color color) in drawItemsNameColumn)
             {
