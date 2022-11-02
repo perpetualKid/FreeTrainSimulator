@@ -1,5 +1,5 @@
 ﻿
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {

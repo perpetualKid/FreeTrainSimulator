@@ -25,10 +25,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Orts.Common;
-using Orts.ActivityRunner.Processes;
 using Orts.Simulation;
+using Orts.ActivityRunner.Viewer3D;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class SoundProcess
     {
@@ -129,12 +129,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (viewer == null)
                     return;
 
-                OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : (float)Game.Settings.SoundVolumePercent / 100f);
+                OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : Game.Settings.SoundVolumePercent / 100f);
 
                 // Update activity sounds
                 if (viewer.Simulator.SoundNotify != TrainEvent.None)
                 {
-                    if (viewer.World.GameSounds != null) viewer.World.GameSounds.HandleEvent(viewer.Simulator.SoundNotify);
+                    if (viewer.World.GameSounds != null)
+                        viewer.World.GameSounds.HandleEvent(viewer.Simulator.SoundNotify);
                     viewer.Simulator.SoundNotify = TrainEvent.None;
                 }
 
@@ -143,7 +144,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 StartUpdateTime = viewer.RealTime;
                 int RetryUpdate = 0;
                 int restartIndex = -1;
-                
+
                 while (RetryUpdate >= 0)
                 {
                     bool updateInterrupted = false;
@@ -220,10 +221,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 //    Trace.TraceInformation("Sound Source Update Interrupted more than once: {0}", UpdateInterrupts);
 
                 // <CSComment> the block below could provide better sound response but is more demanding in terms of CPU time, especially for slow CPUs
-/*              int resptime = (int)((viewer.RealTime - StartUpdateTime) * 1000);
-                SleepTime = 50 - resptime;
-                if (SleepTime < 5)
-                    SleepTime = 5;*/
+                /*              int resptime = (int)((viewer.RealTime - StartUpdateTime) * 1000);
+                                SleepTime = 50 - resptime;
+                                if (SleepTime < 5)
+                                    SleepTime = 5;*/
 #if DEBUG_SOURCE_SOURCES
                 SoundTime += (int)((viewer.RealTime - StartUpdateTime) * 1000);
                 if (viewer.RealTime - ConsoleWriteTime >= 15f)

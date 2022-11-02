@@ -1282,9 +1282,9 @@ namespace Orts.Simulation.Timetables
                 train.InitializeSignals(true);
 
                 // start new train
-                if (train.AI.Simulator.StartReference.Contains(train.Number))
+                if (Simulator.Instance.StartReference.Contains(train.Number))
                 {
-                    train.AI.Simulator.StartReference.Remove(train.Number);
+                    Simulator.Instance.StartReference.Remove(train.Number);
                 }
 
                 // existing train is player, so continue as player
@@ -1335,11 +1335,11 @@ namespace Orts.Simulation.Timetables
 
                     // set player locomotive
                     // first test first and last cars - if either is drivable, use it as player locomotive
-                    train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[0] as MSTSLocomotive ?? train.Cars[^1] as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
+                    Simulator.Instance.PlayerLocomotive = train.LeadLocomotive = train.Cars[0] as MSTSLocomotive ?? train.Cars[^1] as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                     train.InitializeBrakes();
 
-                    if (train.AI.Simulator.PlayerLocomotive == null)
+                    if (Simulator.Instance.PlayerLocomotive == null)
                     {
                         throw new InvalidDataException("Can't find player locomotive in " + train.Name);
                     }

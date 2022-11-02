@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common.Info;
 using Orts.Common.Xna;
