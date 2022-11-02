@@ -19,7 +19,6 @@ using System;
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
-using System.Security.Policy;
 using System.Text;
 
 using Microsoft.Xna.Framework.Graphics;
