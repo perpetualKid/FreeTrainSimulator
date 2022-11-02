@@ -16,8 +16,12 @@ namespace Orts.Graphics.Window.Controls
         private Rectangle? clippingRectangleNameColumn;
         private Rectangle? clippingRectangleValueColumn;
 
-        private readonly List<(Vector2, Texture2D, Color)> drawItemsNameColumn = new List<(Vector2, Texture2D, Color)>();
-        private readonly List<(Vector2, Texture2D, Color)> drawItemsValueColumn = new List<(Vector2, Texture2D, Color)>();
+        private List<(Vector2, Texture2D, Color)> drawItemsNameColumn = new List<(Vector2, Texture2D, Color)>();
+        private List<(Vector2, Texture2D, Color)> drawItemsValueColumn = new List<(Vector2, Texture2D, Color)>();
+
+        private List<(Vector2, Texture2D, Color)> prepareNameColumn = new List<(Vector2, Texture2D, Color)>();
+        private List<(Vector2, Texture2D, Color)> prepareValueColumn = new List<(Vector2, Texture2D, Color)>();
+
         public INameValueInformationProvider InformationProvider { get; set; }
         private readonly System.Drawing.Font font;
         private readonly TextTextureResourceHolder textureHolder;
@@ -42,15 +46,15 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public NameValueTextGrid(FormBase window, int x, int y) : base(window, x, y, 0, 0)
+        public NameValueTextGrid(FormBase window, int x, int y, System.Drawing.Font font = null) : base(window, x, y, 0, 0)
         {
-            font = Window.Owner.TextFontDefault;
+            this.font = font ?? Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
         }
 
-        public NameValueTextGrid(FormBase window, int x, int y, int width, int heigth) : base(window, x, y, width, heigth)
+        public NameValueTextGrid(FormBase window, int x, int y, int width, int heigth, System.Drawing.Font font = null) : base(window, x, y, width, heigth)
         {
-            font = Window.Owner.TextFontDefault;
+            this.font = font ?? Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
             clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
@@ -61,8 +65,8 @@ namespace Orts.Graphics.Window.Controls
             if (shouldUpdate)
             {
                 float lineOffset = 0;
-                drawItemsNameColumn.Clear();
-                drawItemsValueColumn.Clear();
+                prepareNameColumn.Clear();
+                prepareValueColumn.Clear();
 
                 if (null == InformationProvider?.DebugInfo)
                     return;
@@ -77,9 +81,9 @@ namespace Orts.Graphics.Window.Controls
                     }
 
                     Texture2D texture = textureHolder.PrepareResource(identifier, currentFont, OutlineRenderOptions);
-                    drawItemsNameColumn.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
+                    prepareNameColumn.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                     texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont, OutlineRenderOptions);
-                    drawItemsValueColumn.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
+                    prepareValueColumn.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                     lineOffset += font.Size * LineSpacing;
                 }
             }
@@ -88,6 +92,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
+            (drawItemsNameColumn, drawItemsValueColumn, prepareNameColumn, prepareValueColumn) = (prepareNameColumn, prepareValueColumn, drawItemsNameColumn, drawItemsValueColumn);
             Vector2 locationVector = (Bounds.Location + offset).ToVector2();
             foreach ((Vector2 position, Texture2D texture, Color color) in drawItemsNameColumn)
             {
