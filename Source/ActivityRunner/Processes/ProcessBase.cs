@@ -49,6 +49,11 @@ namespace Orts.ActivityRunner.Processes
             ProcessState.SignalStart();
         }
 
+        internal void WaitForComplection()
+        {
+            ProcessState.WaitTillFinished();
+        }
+
         protected abstract void Update(GameTime gameTime);
 
         protected virtual void Initialize()
@@ -63,8 +68,8 @@ namespace Orts.ActivityRunner.Processes
                 if (timerBased)
                     Thread.Sleep(timerPeriod);
                 else
-                // Wait for a new trigger command
-                ProcessState.WaitTillStarted();
+                    // Wait for a new trigger command
+                    ProcessState.WaitTillStarted();
                 try
                 {
                     try

@@ -261,7 +261,7 @@ namespace Orts.ActivityRunner.Processes
 
             if (gameTime.TotalGameTime.TotalSeconds > 0.001)
             {
-                game.UpdaterProcess.WaitTillFinished();
+                game.UpdaterProcess.WaitForComplection();
 
                 // Swap frames and start the next update (non-threaded updater does the whole update).
                 (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);

@@ -17,8 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
-using System.Diagnostics;
 using System.Threading;
 
 using Microsoft.Xna.Framework;

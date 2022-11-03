@@ -17,15 +17,9 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
-using System.Diagnostics;
-using System.Threading;
-
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
-
-using SharpDX.Direct3D9;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -43,11 +37,6 @@ namespace Orts.ActivityRunner.Processes
             foreach (GameComponent component in gameHost.GameComponents)
                 component.Enabled = false;
             base.Stop();
-        }
-
-        public void WaitTillFinished()
-        {
-            ProcessState.WaitTillFinished();
         }
 
         internal void TriggerUpdate(RenderFrame frame, GameTime gameTime)
