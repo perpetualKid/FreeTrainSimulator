@@ -26,7 +26,7 @@ namespace Orts.Graphics.MapView.Shapes
         private static readonly double[] cosTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // table with precalculated Cosine values: cosTable[numberDrawn] = cos(numberDrawn * 0.1degrees)
         private static readonly double[] sinTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // similar
 
-        [ThreadStatic] //TODO 20221103 internalize BasicShapes and remove ThreadStatic
+        //[ThreadStatic] //TODO 20221103 internalize BasicShapes and remove ThreadStatic
         private static BasicShapes instance;
         private readonly SpriteBatch spriteBatch;
 

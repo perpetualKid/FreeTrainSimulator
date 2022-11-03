@@ -47,6 +47,7 @@ namespace Orts.ActivityRunner.Processes
         public SoundProcess(GameHost gameHost) : base(gameHost, "Sound", 50)
         {
             activitySoundSourceList = new ORTSActSoundSources();
+            Profiler.ProfilingData[ProcessType.Sound] = profiler;
         }
 
         internal override void Start()

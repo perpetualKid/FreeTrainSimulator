@@ -16,14 +16,14 @@ namespace Orts.ActivityRunner.Processes
         private readonly int timerPeriod;
         private GameTime gameTime;
 
-        public ProcessState ProcessState { get; }
-        public Profiler Profiler { get; }
+        private protected ProcessState processState;
+        private protected Profiler profiler;
 
         protected ProcessBase(GameHost gameHost, string name, int timerPeriod = 0)
         {
             this.gameHost = gameHost;
-            ProcessState = new ProcessState(name);
-            Profiler = new Profiler(name);
+            processState = new ProcessState(name);
+            profiler = new Profiler(name);
             thread = new Thread(ThreadMethod);
             if (timerPeriod > 0)
             {
@@ -39,19 +39,19 @@ namespace Orts.ActivityRunner.Processes
 
         internal virtual void Stop()
         {
-            ProcessState.SignalTerminate();
+            processState.SignalTerminate();
             cancellationTokenSource.Cancel();
         }
 
         internal virtual void TriggerUpdate(GameTime gameTime)
         {
             this.gameTime = gameTime;
-            ProcessState.SignalStart();
+            processState.SignalStart();
         }
 
         internal void WaitForComplection()
         {
-            ProcessState.WaitTillFinished();
+            processState.WaitTillFinished();
         }
 
         protected abstract void Update(GameTime gameTime);
@@ -61,35 +61,35 @@ namespace Orts.ActivityRunner.Processes
 
         protected void ThreadMethod()
         {
-            Profiler.SetThread();
+            profiler.SetThread();
             Initialize();
-            while (!ProcessState.Terminated)
+            while (!processState.Terminated)
             {
                 if (timerBased)
                     Thread.Sleep(timerPeriod);
                 else
                     // Wait for a new trigger command
-                    ProcessState.WaitTillStarted();
+                    processState.WaitTillStarted();
                 try
                 {
                     try
                     {
-                        Profiler.Start();
+                        profiler.Start();
                         Update(gameTime);
                     }
                     finally
                     {
-                        Profiler.Stop();
+                        profiler.Stop();
                     }
                 }
                 catch (Exception error) when (!Debugger.IsAttached)
                 {
                     // Unblock anyone waiting for us, report error and die.
-                    ProcessState.SignalTerminate();
+                    processState.SignalTerminate();
                     gameHost.ProcessReportError(error);
                 }
                 // Signal finished so RenderProcess can start drawing
-                ProcessState.SignalFinish();
+                processState.SignalFinish();
             }
         }
 
@@ -101,8 +101,8 @@ namespace Orts.ActivityRunner.Processes
                 {
                     cancellationTokenSource.Cancel();
                     cancellationTokenSource.Dispose();
-                    ProcessState.SignalTerminate();
-                    ProcessState.Dispose();
+                    processState.SignalTerminate();
+                    processState.Dispose();
                 }
                 disposedValue = true;
             }

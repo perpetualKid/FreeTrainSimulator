@@ -29,6 +29,7 @@ namespace Orts.ActivityRunner.Processes
 
         public UpdaterProcess(GameHost gameHost): base(gameHost, "Updater")
         {
+            Profiler.ProfilingData[ProcessType.Updater] = profiler;
         }
 
 

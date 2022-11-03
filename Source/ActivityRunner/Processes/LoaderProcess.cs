@@ -27,9 +27,10 @@ namespace Orts.ActivityRunner.Processes
     {
         public LoaderProcess(GameHost gameHost) : base(gameHost, "Loader")
         {
+            Profiler.ProfilingData[ProcessType.Loader] = profiler;
         }
 
-        public bool Finished => ProcessState.Finished;
+        public bool Finished => processState.Finished;
 
         /// <summary>
         /// Returns a token (copyable object) which can be queried for the cancellation (termination) of the loader.

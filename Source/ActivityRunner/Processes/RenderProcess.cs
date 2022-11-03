@@ -19,6 +19,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
@@ -44,10 +45,12 @@ namespace Orts.ActivityRunner.Processes
         public bool IsActive { get { return game.IsActive; } }
         public Viewer Viewer { get { return (game.State as GameStateViewer3D)?.Viewer; } }
 
-        public Profiler Profiler { get; private set; }
+        private readonly Profiler profiler;
 
         private readonly GameHost game;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly Form windowForm;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool syncing;
         private Point windowPosition;
         private System.Drawing.Size windowSize;
@@ -85,13 +88,21 @@ namespace Orts.ActivityRunner.Processes
             this.game = game;
             windowForm = (Form)Control.FromHandle(game.Window.Handle);
 
-            Profiler = new Profiler("Render");
-            Profiler.SetThread();
-            game.SetThreadLanguage();
-
-            game.Window.Title = "Open Rails";
+            profiler = new Profiler("Render");
+            profiler.SetThread();
+            Profiler.ProfilingData[ProcessType.Render] = profiler;
+            game.Window.Title = RuntimeInfo.ApplicationName;
 
             LoadSettings();
+
+            if (game.Settings.Language.Length > 0)
+            {
+                try
+                {
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(game.Settings.Language);
+                }
+                catch (CultureNotFoundException) { }
+            }
 
             FrameRate = new SmoothedData();
             FrameTime = new SmoothedDataWithPercentiles();
@@ -114,8 +125,7 @@ namespace Orts.ActivityRunner.Processes
             };
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
 
-            currentScreenMode = currentScreenMode.Previous();
-            SetScreenMode(currentScreenMode.Next());
+            SetScreenMode(currentScreenMode);
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
@@ -245,6 +255,12 @@ namespace Orts.ActivityRunner.Processes
             }
         }
 
+        internal void Initialize()
+        {
+            SetScreenMode(currentScreenMode);
+            Viewer.DefaultViewport = GraphicsDevice.Viewport;
+        }
+
         internal void Update(GameTime gameTime)
         {
             if (IsMouseVisible != game.IsMouseVisible)
@@ -259,19 +275,11 @@ namespace Orts.ActivityRunner.Processes
                 Viewer.DefaultViewport = GraphicsDevice.Viewport;
             }
 
-            if (gameTime.TotalGameTime.TotalSeconds > 0.001)
-            {
-                game.UpdaterProcess.WaitForComplection();
+            game.UpdaterProcess.WaitForComplection();
 
-                // Swap frames and start the next update (non-threaded updater does the whole update).
-                (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);
-                game.UpdaterProcess.TriggerUpdate(NextFrame, gameTime);
-            }
-            else
-            {
-                SetScreenMode(currentScreenMode);
-                Viewer.DefaultViewport = GraphicsDevice.Viewport;
-            }
+            // Swap frames and start the next update (non-threaded updater does the whole update).
+            (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);
+            game.UpdaterProcess.TriggerUpdate(NextFrame, gameTime);
         }
 
         private void LoadSettings()
@@ -358,7 +366,7 @@ namespace Orts.ActivityRunner.Processes
             if (game.State == null)
                 return;
 
-            Profiler.Start();
+            profiler.Start();
 
             CurrentFrame.IsScreenChanged = DisplaySize.X != GraphicsDevice.Viewport.Width || DisplaySize.Y != GraphicsDevice.Viewport.Height;
             if (CurrentFrame.IsScreenChanged)
@@ -401,7 +409,7 @@ namespace Orts.ActivityRunner.Processes
             Array.Copy(PrimitiveCount, PrimitivePerFrame, (int)RenderPrimitiveSequence.Sentinel);
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
 
-            Profiler.Stop();
+            profiler.Stop();
         }
 
         internal void Stop()

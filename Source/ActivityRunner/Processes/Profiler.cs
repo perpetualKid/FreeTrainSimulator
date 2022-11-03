@@ -21,6 +21,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Native;
 
@@ -28,6 +29,8 @@ namespace Orts.ActivityRunner.Processes
 {
     public class Profiler
     {
+        public static EnumArray<Profiler, ProcessType> ProfilingData { get; } = new EnumArray<Profiler, ProcessType>();
+
         private readonly string name;
         public SmoothedData Wall { get; private set; }
         public SmoothedData CPU { get; private set; }
@@ -95,7 +98,8 @@ namespace Orts.ActivityRunner.Processes
             this.timeTotal.Reset();
             this.timeTotal.Start();
             this.timeRunning.Reset();
-            if (running) this.timeRunning.Start();
+            if (running) 
+                this.timeRunning.Start();
             this.timeCPU = TimeSpan.Zero;
 
             // Calculate the Wall and CPU times from timer data.

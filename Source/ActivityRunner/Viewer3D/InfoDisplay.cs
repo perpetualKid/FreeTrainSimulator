@@ -34,6 +34,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using Orts.ActivityRunner.Processes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
@@ -53,7 +54,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly int ProcessorCount = Environment.ProcessorCount;
 
         private int frameNumber;
-        private double lastUpdateRealTime;   // update text message only 4 times per second
 
         private float previousLoggedSteamSpeedMpH = -5.0f;
         private bool recordSteamPerformance;
@@ -164,13 +164,6 @@ namespace Orts.ActivityRunner.Viewer3D
             _ = elapsedTime;
 
             frameNumber++;
-
-            double elapsedRealSeconds = viewer.RealTime - lastUpdateRealTime;
-            if (elapsedRealSeconds >= 0.25)
-            {
-                lastUpdateRealTime = viewer.RealTime;
-                Profile(elapsedRealSeconds);
-            }
                         
 #if DEBUG_DUMP_STEAM_POWER_CURVE
             if (recordSteamPowerCurve && viewer.PlayerLocomotive is MSTSSteamLocomotive)
@@ -205,10 +198,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data($"{viewer.RenderProcess.FrameTime.Value:F6}");
                         dataLog.Data($"{viewer.RenderProcess.ShadowPrimitivePerFrame.Sum():F0}");
                         dataLog.Data($"{viewer.RenderProcess.PrimitivePerFrame.Sum():F0}");
-                        dataLog.Data($"{viewer.RenderProcess.Profiler.Wall.Value:F0}");
-                        dataLog.Data($"{viewer.UpdaterProcess.Profiler.Wall.Value:F0}");
-                        dataLog.Data($"{viewer.LoaderProcess.Profiler.Wall.Value:F0}");
-                        dataLog.Data($"{viewer.SoundProcess.Profiler.Wall.Value:F0}");
+                        dataLog.Data($"{Profiler.ProfilingData[ProcessType.Render].Wall.Value:F0}");
+                        dataLog.Data($"{Profiler.ProfilingData[ProcessType.Updater].Wall.Value:F0}");
+                        dataLog.Data($"{Profiler.ProfilingData[ProcessType.Loader].Wall.Value:F0}");
+                        dataLog.Data($"{Profiler.ProfilingData[ProcessType.Sound].Wall.Value:F0}");
                     }
                     if (viewer.Settings.DataLogPhysics)
                     {
@@ -218,8 +211,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data($"{viewer.PlayerLocomotive.ThrottlePercent:F0}");
                         dataLog.Data($"{viewer.PlayerLocomotive.MotiveForceN:F0}");
                         dataLog.Data($"{viewer.PlayerLocomotive.BrakeForceN:F0}");
-                        dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).LocomotiveAxle.AxleForceN:F2}");
-                        dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).LocomotiveAxle.SlipSpeedPercent:F1}");
+                        dataLog.Data($"{viewer.PlayerLocomotive.LocomotiveAxle.AxleForceN:F2}");
+                        dataLog.Data($"{viewer.PlayerLocomotive.LocomotiveAxle.SlipSpeedPercent:F1}");
 
                         string LogSpeed(float speedMpS)
                         {
@@ -464,17 +457,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private void DataLoggerStop()
         {
             dataLog.Flush();
-        }
-
-        public void Profile(double elapsedRealSeconds) // should be called every 100mS
-        {
-            if (elapsedRealSeconds < 0.01)  // just in case
-                return;
-
-            viewer.RenderProcess.Profiler.Mark();
-            viewer.UpdaterProcess.Profiler.Mark();
-            viewer.LoaderProcess.Profiler.Mark();
-            viewer.SoundProcess.Profiler.Mark();
         }
 
         protected virtual void Dispose(bool disposing)

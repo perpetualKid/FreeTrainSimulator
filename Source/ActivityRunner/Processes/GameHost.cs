@@ -21,10 +21,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
@@ -53,7 +51,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Exposes access to the <see cref="RenderProcess"/> for the game.
         /// </summary>
-        public RenderProcess RenderProcess { get; private set; }
+        internal RenderProcess RenderProcess { get; private set; }
 
         /// <summary>
         /// Exposes access to the <see cref="UpdaterProcess"/> for the game.
@@ -117,6 +115,7 @@ namespace Orts.ActivityRunner.Processes
             base.Initialize();
             foreach (GameComponent component in GameComponents)
                 component.Initialize();
+            RenderProcess.Initialize();
         }
 
         protected override void LoadContent()
@@ -148,15 +147,13 @@ namespace Orts.ActivityRunner.Processes
             else
             {
                 systemProcess.TriggerUpdate(gameTime);
-                RenderProcess.Update(gameTime ?? throw new ArgumentNullException(nameof(gameTime)));
+                RenderProcess.Update(gameTime);
             }
             base.Update(gameTime);
         }
 
         protected override bool BeginDraw()
         {
-            if (!base.BeginDraw())
-                return false;
             RenderProcess.BeginDraw();
             return true;
         }
@@ -214,21 +211,6 @@ namespace Orts.ActivityRunner.Processes
             state.Game = this;
             gameStates.Push(state);
             Trace.TraceInformation($"Game.ReplaceState({state.GetType().Name})  {string.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray())}");
-        }
-
-        /// <summary>
-        /// Updates the calling thread's <see cref="Thread.CurrentUICulture"/> to match the <see cref="GameHost"/>'s <see cref="Settings"/>.
-        /// </summary>
-        public void SetThreadLanguage()
-        {
-            if (Settings.Language.Length > 0)
-            {
-                try
-                {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
-                }
-                catch (CultureNotFoundException) { }
-            }
         }
 
         /// <summary>

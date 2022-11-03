@@ -21,6 +21,7 @@ using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Simulation;
@@ -140,8 +141,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Work out how much spare CPU we have; the target is 90%.
                     //   +ve = under-performing/too much detail
                     //   -ve = over-performing/not enough detail
-                    var cpuTargetRender = Viewer.RenderProcess.Profiler.Wall.SmoothedValue - 90;
-                    var cpuTargetUpdater = Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue - 90;
+                    var cpuTargetRender = Profiler.ProfilingData[ProcessType.Render].Wall.SmoothedValue - 90;
+                    var cpuTargetUpdater = Profiler.ProfilingData[ProcessType.Updater].Wall.SmoothedValue - 90;
                     cpuTarget = cpuTargetRender > cpuTargetUpdater ? cpuTargetRender : cpuTargetUpdater;
 
                     // Summarise the CPS adjustment to: +1 (add detail), 0 (keep), -1 (remove detail).
