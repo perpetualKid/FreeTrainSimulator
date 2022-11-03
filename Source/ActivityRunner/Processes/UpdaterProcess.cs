@@ -25,133 +25,51 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 
+using SharpDX.Direct3D9;
+
 namespace Orts.ActivityRunner.Processes
 {
-    public class UpdaterProcess : IDisposable
+    internal class UpdaterProcess : ProcessBase
     {
-        public Profiler Profiler { get; } = new Profiler("Updater");
-
-        private readonly ProcessState State = new ProcessState("Updater");
-        private readonly GameHost game;
-        private readonly Thread thread;
-
         private RenderFrame CurrentFrame;
-        private GameTime gameTime;
-        private bool disposedValue;
 
-        public UpdaterProcess(GameHost game)
+        public UpdaterProcess(GameHost gameHost): base(gameHost, "Updater")
         {
-            this.game = game;
-            thread = new Thread(UpdaterThread);
         }
 
-        public void Start()
-        {
-            thread.Start();
-        }
 
-        public void Stop()
+        internal override void Stop()
         {
-            foreach (GameComponent component in game.GameComponents)
+            foreach (GameComponent component in gameHost.GameComponents)
                 component.Enabled = false;
-            State.SignalTerminate();
+            base.Stop();
         }
 
         public void WaitTillFinished()
         {
-            State.WaitTillFinished();
+            ProcessState.WaitTillFinished();
         }
 
-        private void UpdaterThread()
-        {
-            Profiler.SetThread();
-            game.SetThreadLanguage();
-
-            while (!State.Terminated)
-            {
-                // Wait for a new Update() command
-                State.WaitTillStarted();
-                if (!DoUpdate())
-                    return;
-                // Signal finished so RenderProcess can start drawing
-                State.SignalFinish();
-            }
-        }
-
-        internal void StartUpdate(RenderFrame frame, GameTime gameTime)
+        internal void TriggerUpdate(RenderFrame frame, GameTime gameTime)
         {
             CurrentFrame = frame;
-            this.gameTime = gameTime;
-            State.SignalStart();
+            base.TriggerUpdate(gameTime);
         }
 
-        private bool DoUpdate()
+        protected override void Update(GameTime gameTime)
         {
-            if (Debugger.IsAttached)
+            CurrentFrame.Clear();
+            for (int i = 0; i < gameHost.GameComponents.Count; i++)
             {
-                Update();
+                if (gameHost.GameComponents[i] is GameComponent gameComponent && gameComponent.Enabled)
+                    gameComponent.Update(gameTime);
             }
-            else
+            if (gameHost.State != null)
             {
-                try
-                {
-                    Update();
-                }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch (Exception error)
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                    // Unblock anyone waiting for us, report error and die.
-                    State.SignalTerminate();
-                    game.ProcessReportError(error);
-                    return false;
-                }
+                gameHost.State.Update(CurrentFrame, gameTime);
+                gameHost.RenderProcess.ComputeFPS(gameTime.ElapsedGameTime.TotalSeconds);
+                CurrentFrame.Sort();
             }
-            return true;
-        }
-
-        public void Update()
-        {
-            Profiler.Start();
-            try
-            {
-                CurrentFrame.Clear();
-                for (int i = 0; i < game.GameComponents.Count; i++)
-                {
-                    if (game.GameComponents[i] is GameComponent gameComponent && gameComponent.Enabled)
-                        gameComponent.Update(gameTime);
-                }
-                if (game.State != null)
-                {
-                    game.State.Update(CurrentFrame, gameTime);
-                    game.RenderProcess.ComputeFPS(gameTime.ElapsedGameTime.TotalSeconds);
-                    CurrentFrame.Sort();
-                }
-            }
-            finally
-            {
-                Profiler.Stop();
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    State?.Dispose();
-                    // TODO: dispose managed state (managed objects)
-                }
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

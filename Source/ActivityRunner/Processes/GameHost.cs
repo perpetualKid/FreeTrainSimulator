@@ -30,6 +30,7 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Graphics.Xna;
@@ -42,6 +43,8 @@ namespace Orts.ActivityRunner.Processes
     /// </summary>
     public class GameHost : Game
     {
+        private readonly SystemProcess systemProcess;
+
         /// <summary>
         /// Gets the <see cref="UserSettings"/> for the game.
         /// </summary>
@@ -55,17 +58,17 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Exposes access to the <see cref="UpdaterProcess"/> for the game.
         /// </summary>
-        public UpdaterProcess UpdaterProcess { get; private set; }
+        internal UpdaterProcess UpdaterProcess { get; private set; }
 
         /// <summary>
         /// Exposes access to the <see cref="LoaderProcess"/> for the game.
         /// </summary>
-        public LoaderProcess LoaderProcess { get; private set; }
+        internal LoaderProcess LoaderProcess { get; private set; }
 
         /// <summary>
         /// Exposes access to the <see cref="SoundProcess"/> for the game.
         /// </summary>
-        public SoundProcess SoundProcess { get; private set; }
+        internal SoundProcess SoundProcess { get; private set; }
 
         /// <summary>
         /// Exposes access to the <see cref="WebServer"/> for the game.
@@ -82,6 +85,8 @@ namespace Orts.ActivityRunner.Processes
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
+        public INameValueInformationProvider SystemDebugInfo { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
         /// </summary>
@@ -97,6 +102,9 @@ namespace Orts.ActivityRunner.Processes
             SoundProcess = new SoundProcess(this);
             WebServerProcess = new WebServerProcess(this);
             gameStates = new Stack<GameState>();
+            systemProcess = new SystemProcess(this);
+
+            SystemDebugInfo = systemProcess.SystemInfo[Processes.State.StateType.Common];
         }
 
         private void GameComponents_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
@@ -119,11 +127,12 @@ namespace Orts.ActivityRunner.Processes
         protected override void BeginRun()
         {
             // At this point, GraphicsDevice is initialized and set up.
-            WebServerProcess.Start();
             SoundProcess.Start();
             LoaderProcess.Start();
             UpdaterProcess.Start();
             RenderProcess.Start();
+            WebServerProcess.Start();
+            systemProcess.Start();
             base.BeginRun();
         }
 
@@ -137,7 +146,10 @@ namespace Orts.ActivityRunner.Processes
             if (State == null)
                 Exit();
             else
+            {
+                systemProcess.TriggerUpdate(gameTime);
                 RenderProcess.Update(gameTime ?? throw new ArgumentNullException(nameof(gameTime)));
+            }
             base.Update(gameTime);
         }
 
@@ -169,6 +181,7 @@ namespace Orts.ActivityRunner.Processes
             LoaderProcess.Stop();
             SoundProcess.Stop();
             WebServerProcess.Stop();
+            systemProcess.Stop();
         }
 
         private void Game_Exiting(object sender, EventArgs e)

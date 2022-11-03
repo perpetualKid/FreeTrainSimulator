@@ -59,14 +59,6 @@ namespace Orts.ActivityRunner.Processes
             }
             catch (InvalidOperationException) { }
 
-            //// This is so that you can identify threads from programs like Process Monitor. The call
-            //// should always fail but will appear in Process Monitor's log against the correct thread.
-            //try
-            //{
-            //    File.ReadAllBytes($@"DEBUG\THREAD\{name} Process");
-            //}
-            //catch (DirectoryNotFoundException) { }
-
             uint threadId = NativeMethods.GetCurrentWin32ThreadId();
             foreach (ProcessThread thread in Process.GetCurrentProcess().Threads)
             {

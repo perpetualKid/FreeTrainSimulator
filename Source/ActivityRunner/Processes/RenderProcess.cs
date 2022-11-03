@@ -265,7 +265,7 @@ namespace Orts.ActivityRunner.Processes
 
                 // Swap frames and start the next update (non-threaded updater does the whole update).
                 (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);
-                game.UpdaterProcess.StartUpdate(NextFrame, gameTime);
+                game.UpdaterProcess.TriggerUpdate(NextFrame, gameTime);
             }
             else
             {

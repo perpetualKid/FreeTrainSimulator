@@ -90,7 +90,7 @@ namespace Orts.ActivityRunner.Processes
             {
                 lastLoadRealTime = totalRealSeconds;
                 Viewer.World.LoadPrep();
-                Game.LoaderProcess.StartLoad();
+                Game.LoaderProcess.TriggerUpdate(gameTime);
             }
 
             // The first time we update, the TotalRealSeconds will be ~time

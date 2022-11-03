@@ -59,7 +59,7 @@ namespace Orts.ActivityRunner.Processes
         {
             // By default, every update tries to trigger a load.
             if (Game.LoaderProcess.Finished)
-                Game.LoaderProcess.StartLoad();
+                Game.LoaderProcess.TriggerUpdate(gameTime);
         }
 
         /// <summary>

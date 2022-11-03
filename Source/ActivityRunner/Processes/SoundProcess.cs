@@ -20,243 +20,143 @@
 // Define this to log each change of the sound sources.
 //#define DEBUG_SOURCE_SOURCES
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
+
+using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
 using Orts.Simulation;
-using Orts.ActivityRunner.Viewer3D;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class SoundProcess
+    internal class SoundProcess : ProcessBase
     {
-        public readonly Profiler Profiler = new Profiler("Sound");
-        private readonly ProcessState State = new ProcessState("Sound");
-        private readonly GameHost Game;
-        private readonly Thread Thread;
-
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
-        public Dictionary<object, List<SoundSourceBase>> SoundSources = new Dictionary<object, List<SoundSourceBase>>();
+        public Dictionary<object, List<SoundSourceBase>> SoundSources { get; } = new Dictionary<object, List<SoundSourceBase>>();
 
-#if DEBUG_SOURCE_SOURCES
-        private float SoundSrcCount = 0;
-        private float SoundSrcBaseCount = 0;
-        private float NullSoundSrcBaseCount = 0;
-        private float SoundTime = 0;
-
-        private double ConsoleWriteTime = 0;
-#endif
-        private int UpdateCounter = -1;
-        private int SleepTime = 50;
-        private double StartUpdateTime;
-        private int ASyncUpdatePending;
+        private int updateCounter = -1;
+        private int asyncUpdatePending;
         private const int FULLUPDATECYCLE = 4; // Number of frequent updates needed till a full update
 
-        private ORTSActSoundSources ORTSActSoundSourceList; // Dictionary of activity sound sources
+        private readonly ORTSActSoundSources activitySoundSourceList; // Dictionary of activity sound sources
 
-        public SoundProcess(GameHost game)
+        public SoundProcess(GameHost gameHost) : base(gameHost, "Sound", 50)
         {
-            Game = game;
-            Thread = new Thread(SoundThread);
-            ORTSActSoundSourceList = new ORTSActSoundSources();
+            activitySoundSourceList = new ORTSActSoundSources();
         }
 
-        public void Start()
+        internal override void Start()
         {
-            if (Game.Settings.SoundDetailLevel > 0)
+            if (gameHost.Settings.SoundDetailLevel > 0)
             {
-                Thread.Start();
+                base.Start();
             }
         }
 
-        public void Stop()
+        protected override void Initialize()
         {
-            if (Game.Settings.SoundDetailLevel > 0)
-            {
-                State.SignalTerminate();
-            }
-        }
-
-        private void SoundThread()
-        {
-            Profiler.SetThread();
-
+            base.Initialize();
             OpenAL.Initialize();
-
-            while (true)
-            {
-                Thread.Sleep(SleepTime);
-                if (State.Terminated)
-                    break;
-                if (!DoSound())
-                    return;
-            }
         }
 
-        private bool DoSound()
+        //private void SoundThread()
+        //{
+        //    Profiler.SetThread();
+
+        //    while (true)
+        //    {
+        //        Thread.Sleep(SleepTime);
+        //        if (State.Terminated)
+        //            break;
+        //        if (!DoSound())
+        //            return;
+        //    }
+        //}
+
+        protected override void Update(GameTime gameTime)
         {
-            if (Debugger.IsAttached)
+            var viewer = gameHost.RenderProcess.Viewer;
+            if (viewer == null)
+                return;
+
+            OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : gameHost.Settings.SoundVolumePercent / 100f);
+
+            // Update activity sounds
+            if (viewer.Simulator.SoundNotify != TrainEvent.None)
             {
-                Sound();
+                if (viewer.World.GameSounds != null)
+                    viewer.World.GameSounds.HandleEvent(viewer.Simulator.SoundNotify);
+                viewer.Simulator.SoundNotify = TrainEvent.None;
             }
-            else
+
+            // Update all sound in our list
+            int RetryUpdate = 0;
+            int restartIndex = -1;
+
+            while (RetryUpdate >= 0)
             {
-                try
+                bool updateInterrupted = false;
+                lock (SoundSources)
                 {
-                    Sound();
-                }
-                catch (Exception error)
-                {
-                    // Unblock anyone waiting for us, report error and die.
-                    State.SignalTerminate();
-                    Game.ProcessReportError(error);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private void Sound()
-        {
-            Profiler.Start();
-            try
-            {
-                var viewer = Game.RenderProcess.Viewer;
-                if (viewer == null)
-                    return;
-
-                OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : Game.Settings.SoundVolumePercent / 100f);
-
-                // Update activity sounds
-                if (viewer.Simulator.SoundNotify != TrainEvent.None)
-                {
-                    if (viewer.World.GameSounds != null)
-                        viewer.World.GameSounds.HandleEvent(viewer.Simulator.SoundNotify);
-                    viewer.Simulator.SoundNotify = TrainEvent.None;
-                }
-
-                // Update all sound in our list
-                //float UpdateInterrupts = 0;
-                StartUpdateTime = viewer.RealTime;
-                int RetryUpdate = 0;
-                int restartIndex = -1;
-
-                while (RetryUpdate >= 0)
-                {
-                    bool updateInterrupted = false;
-                    lock (SoundSources)
+                    updateCounter++;
+                    updateCounter %= FULLUPDATECYCLE;
+                    var removals = new List<KeyValuePair<object, SoundSourceBase>>();
+                    foreach (var sources in SoundSources)
                     {
-                        UpdateCounter++;
-                        UpdateCounter %= FULLUPDATECYCLE;
-                        var removals = new List<KeyValuePair<object, SoundSourceBase>>();
-#if DEBUG_SOURCE_SOURCES
-                        SoundSrcBaseCount += SoundSources.Count;
-#endif
-                        foreach (var sources in SoundSources)
+                        restartIndex++;
+                        if (restartIndex >= RetryUpdate)
                         {
-                            restartIndex++;
-#if DEBUG_SOURCE_SOURCES
-                            SoundSrcCount += sources.Value.Count;
-                            if (sources.Value.Count < 1)
+                            for (int i = 0; i < sources.Value.Count; i++)
                             {
-                                NullSoundSrcBaseCount++;
-                                //Trace.TraceInformation("Null SoundSourceBase {0}", sources.Key.ToString());
-                            }
-#endif
-                            if (restartIndex >= RetryUpdate)
-                            {
-                                for (int i = 0; i < sources.Value.Count; i++)
-                                {
-                                    if (!sources.Value[i].NeedsFrequentUpdate && UpdateCounter > 0)
-                                        continue;
+                                if (!sources.Value[i].NeedsFrequentUpdate && updateCounter > 0)
+                                    continue;
 
-                                    if (!sources.Value[i].Update())
-                                    {
-                                        removals.Add(new KeyValuePair<object, SoundSourceBase>(sources.Key, sources.Value[i]));
-                                    }
+                                if (!sources.Value[i].Update())
+                                {
+                                    removals.Add(new KeyValuePair<object, SoundSourceBase>(sources.Key, sources.Value[i]));
                                 }
                             }
-                            // Check if Add or Remove Sound Sources is waiting to get in - allow it if so.
-                            // Update can be a (relatively) long process.
-                            if (ASyncUpdatePending > 0)
-                            {
-                                updateInterrupted = true;
-                                RetryUpdate = restartIndex;
-                                //Trace.TraceInformation("Sound Source Updates Interrupted: {0}, Restart Index:{1}", UpdateInterrupts, restartIndex);
-                                break;
-                            }
-
                         }
-                        if (!updateInterrupted)
-                            RetryUpdate = -1;
-#if DEBUG_SOURCE_SOURCES
-                        Trace.TraceInformation("SoundProcess: sound source self-removal on " + Thread.CurrentThread.Name);
-#endif
-                        // Remove Sound Sources for train no longer active.  This doesn't seem to be necessary -
-                        // cleanup when a train is removed seems to do it anyway with hardly any delay.
-                        foreach (var removal in removals)
+                        // Check if Add or Remove Sound Sources is waiting to get in - allow it if so.
+                        // Update can be a (relatively) long process.
+                        if (asyncUpdatePending > 0)
                         {
-                            // If either of the key or value no longer exist, we can't remove them - so skip over them.
-                            if (SoundSources.ContainsKey(removal.Key) && SoundSources[removal.Key].Contains(removal.Value))
+                            updateInterrupted = true;
+                            RetryUpdate = restartIndex;
+                            //Trace.TraceInformation("Sound Source Updates Interrupted: {0}, Restart Index:{1}", UpdateInterrupts, restartIndex);
+                            break;
+                        }
+
+                    }
+                    if (!updateInterrupted)
+                        RetryUpdate = -1;
+                    // Remove Sound Sources for train no longer active.  This doesn't seem to be necessary -
+                    // cleanup when a train is removed seems to do it anyway with hardly any delay.
+                    foreach (var removal in removals)
+                    {
+                        // If either of the key or value no longer exist, we can't remove them - so skip over them.
+                        if (SoundSources.ContainsKey(removal.Key) && SoundSources[removal.Key].Contains(removal.Value))
+                        {
+                            removal.Value.Uninitialize();
+                            SoundSources[removal.Key].Remove(removal.Value);
+                            if (SoundSources[removal.Key].Count == 0)
                             {
-                                removal.Value.Uninitialize();
-                                SoundSources[removal.Key].Remove(removal.Value);
-                                if (SoundSources[removal.Key].Count == 0)
-                                {
-                                    SoundSources.Remove(removal.Key);
-                                }
+                                SoundSources.Remove(removal.Key);
                             }
                         }
                     }
-
-                    //Update check for activity sounds
-                    if (ORTSActSoundSourceList != null)
-                        ORTSActSoundSourceList.Update();
                 }
-                //if (UpdateInterrupts > 1)
-                //    Trace.TraceInformation("Sound Source Update Interrupted more than once: {0}", UpdateInterrupts);
 
-                // <CSComment> the block below could provide better sound response but is more demanding in terms of CPU time, especially for slow CPUs
-                /*              int resptime = (int)((viewer.RealTime - StartUpdateTime) * 1000);
-                                SleepTime = 50 - resptime;
-                                if (SleepTime < 5)
-                                    SleepTime = 5;*/
-#if DEBUG_SOURCE_SOURCES
-                SoundTime += (int)((viewer.RealTime - StartUpdateTime) * 1000);
-                if (viewer.RealTime - ConsoleWriteTime >= 15f)
-                {
-                    Trace.WriteLine("SoundSourceBases (Null): {0} ({1}), SoundSources: {2}, Time: {3}ms",
-                        (int)(SoundSrcBaseCount/UpdateCounter), (int)(NullSoundSrcBaseCount/UpdateCounter), (int)(SoundSrcCount/UpdateCounter), (int)(SoundTime/UpdateCounter));
-                    ConsoleWriteTime = viewer.RealTime;
-                    SoundTime = 0;
-                    UpdateCounter = 0;
-                    SoundSrcCount = 0;
-                    SoundSrcBaseCount = 0;
-                    NullSoundSrcBaseCount = 0;
-                }
-#endif
-
+                //Update check for activity sounds
+                if (activitySoundSourceList != null)
+                    activitySoundSourceList.Update();
             }
-            finally
-            {
-                Profiler.Stop();
-            }
-        }
-
-        /// <summary>
-        /// Used by Sound Debug Form. Warning: Creates garbage.
-        /// </summary>
-        /// <returns></returns>
-        internal Dictionary<object, List<SoundSourceBase>> GetSoundSources()
-        {
-            //lock (SoundSources)
-            {
-                return new Dictionary<object, List<SoundSourceBase>>(SoundSources);
-            }
+            //if (UpdateInterrupts > 1)
+            //    Trace.TraceInformation("Sound Source Update Interrupted more than once: {0}", UpdateInterrupts);
         }
 
         /// <summary>
@@ -266,18 +166,15 @@ namespace Orts.ActivityRunner.Processes
         /// <param name="sources">The sound sources to add.</param>
         public void AddSoundSources(object owner, List<SoundSourceBase> sources)
         {
-#if DEBUG_SOURCE_SOURCES
-            Trace.TraceInformation("SoundProcess: AddSoundSources on " + Thread.CurrentThread.Name + " by " + owner);
-#endif
             // We use lock to thread-safely update the list.  Interlocked compare-exchange
             // is used to interrupt the update.
             int j;
-            while (ASyncUpdatePending < 1)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 1, 0);
+            while (asyncUpdatePending < 1)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 1, 0);
             lock (SoundSources)
                 SoundSources.Add(owner, sources);
-            while (ASyncUpdatePending > 0)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 0, 1);
+            while (asyncUpdatePending > 0)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 0, 1);
         }
 
         /// <summary>
@@ -287,22 +184,19 @@ namespace Orts.ActivityRunner.Processes
         /// <param name="source">The sound source to add.</param>
         public void AddSoundSource(object owner, SoundSourceBase source)
         {
-#if DEBUG_SOURCE_SOURCES
-            Trace.TraceInformation("SoundProcess: AddSoundSource on " + Thread.CurrentThread.Name + " by " + owner);
-#endif
             // We use lock to thread-safely update the list.  Interlocked compare-exchange
             // is used to interrupt the update.
             int j;
-            while (ASyncUpdatePending < 1)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 1, 0);
+            while (asyncUpdatePending < 1)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 1, 0);
             lock (SoundSources)
             {
                 if (!SoundSources.ContainsKey(owner))
                     SoundSources.Add(owner, new List<SoundSourceBase>());
                 SoundSources[owner].Add(source);
             }
-            while (ASyncUpdatePending > 0)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 0, 1);
+            while (asyncUpdatePending > 0)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 0, 1);
         }
 
         /// <summary>
@@ -322,14 +216,11 @@ namespace Orts.ActivityRunner.Processes
         /// <param name="owner">The object to which the sound sources are attached.</param>
         public void RemoveSoundSources(object owner)
         {
-#if DEBUG_SOURCE_SOURCES
-            Trace.TraceInformation("SoundProcess: RemoveSoundSources on " + Thread.CurrentThread.Name + " by " + owner);
-#endif
             // We use lock to thread-safely update the list.  Interlocked compare-exchange
             // is used to interrupt the update.
             int j;
-            while (ASyncUpdatePending < 1)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 1, 0);
+            while (asyncUpdatePending < 1)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 1, 0);
             lock (SoundSources)
             {
                 if (SoundSources.ContainsKey(owner))
@@ -339,8 +230,8 @@ namespace Orts.ActivityRunner.Processes
                     SoundSources.Remove(owner);
                 }
             }
-            while (ASyncUpdatePending > 0)
-                j = Interlocked.CompareExchange(ref ASyncUpdatePending, 0, 1);
+            while (asyncUpdatePending > 0)
+                j = Interlocked.CompareExchange(ref asyncUpdatePending, 0, 1);
         }
     }
 }
