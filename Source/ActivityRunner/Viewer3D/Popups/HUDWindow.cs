@@ -2501,8 +2501,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public HUDGraphMesh(Viewer viewer, Color color, int height)
         {
-            VertexBuffer = new DynamicVertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColor), VertexCount, BufferUsage.WriteOnly);
-            BorderVertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColor), 10, BufferUsage.WriteOnly);
+            VertexBuffer = new DynamicVertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionColor), VertexCount, BufferUsage.WriteOnly);
+            BorderVertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionColor), 10, BufferUsage.WriteOnly);
             var borderOffset = new Vector2(1f / SampleCount, 1f / height);
             var borderColor = new Color(1f, 1f, 1f, 0f);
             BorderVertexBuffer.SetData(new[] {

@@ -657,7 +657,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 new VertexPositionColorTexture(new Vector3(+radius, -radius, 0), color, new Vector2(textureCoordinates.M00, textureCoordinates.M11)),
             };
 
-            VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
+            VertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(verticies);
         }
 
@@ -736,7 +736,7 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, null)
         {
             shader = Viewer.MaterialManager.SceneryShader;
-            texture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
+            texture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "SignalLightGlow")

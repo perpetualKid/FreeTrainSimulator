@@ -27,7 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
         public LoadingMaterial(GameHost game, string texturePath)
             : base(game.GraphicsDevice)
         {
-            Shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
+            Shader = new LoadingShader(game.GraphicsDevice);
             texture = TextureManager.GetTextureStatic(texturePath, game);
         }
 

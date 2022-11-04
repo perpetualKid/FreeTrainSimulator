@@ -120,7 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Update(in ElapsedTime elapsedTime)
         {
-            if (PerformanceTune && Viewer.RenderProcess.IsActive)
+            if (PerformanceTune && Viewer.Game.IsActive)
             {
                 // Work out how far we need to change the actual FPS to get to the target.
                 //   +ve = under-performing/too much detail

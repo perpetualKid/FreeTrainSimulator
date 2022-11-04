@@ -27,12 +27,13 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
         internal void Update(GameTime gameTime)
         {
             double elapsed = gameTime.ElapsedGameTime.TotalMilliseconds;
-            process.Refresh();
-
             double timeCpu = (process.TotalProcessorTime - lastCpuTime).TotalMilliseconds;
             lastCpuTime = process.TotalProcessorTime;
 
             Metrics[SlidingMetric.ProcessorTime].Update(elapsed / 1000, 100 * timeCpu / elapsed);
+            Metrics[SlidingMetric.FrameRate].Update(elapsed, 1 / elapsed);
+            Metrics[SlidingMetric.FrameTime].Update(elapsed, elapsed);
+
         }
     }
 }

@@ -226,18 +226,18 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             // TODO: Move to Loader process.
-            LightConeShader = new LightConeShader(viewer.RenderProcess.GraphicsDevice);
-            LightGlowShader = new LightGlowShader(viewer.RenderProcess.GraphicsDevice);
-            ParticleEmitterShader = new ParticleEmitterShader(viewer.RenderProcess.GraphicsDevice);
-            PopupWindowShader = new PopupWindowShader(viewer, viewer.RenderProcess.GraphicsDevice);
-            PrecipitationShader = new PrecipitationShader(viewer.RenderProcess.GraphicsDevice);
-            SceneryShader = new SceneryShader(viewer.RenderProcess.GraphicsDevice);
+            LightConeShader = new LightConeShader(viewer.Game.GraphicsDevice);
+            LightGlowShader = new LightGlowShader(viewer.Game.GraphicsDevice);
+            ParticleEmitterShader = new ParticleEmitterShader(viewer.Game.GraphicsDevice);
+            PopupWindowShader = new PopupWindowShader(viewer, viewer.Game.GraphicsDevice);
+            PrecipitationShader = new PrecipitationShader(viewer.Game.GraphicsDevice);
+            SceneryShader = new SceneryShader(viewer.Game.GraphicsDevice);
             var microtexPath = Path.Combine(viewer.Simulator.RouteFolder.TerrainTexturesFolder, "microtex.ace");
             if (File.Exists(microtexPath))
             {
                 try
                 {
-                    SceneryShader.OverlayTexture = AceFile.Texture2DFromFile(viewer.RenderProcess.GraphicsDevice, microtexPath);
+                    SceneryShader.OverlayTexture = AceFile.Texture2DFromFile(viewer.Game.GraphicsDevice, microtexPath);
                 }
                 catch (InvalidDataException error)
                 {
@@ -248,17 +248,17 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.WriteLine(new FileLoadException(microtexPath, error));
                 }
             }
-            ShadowMapShader = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+            ShadowMapShader = new ShadowMapShader(viewer.Game.GraphicsDevice);
             ShadowMapShaders = new ShadowMapShader[4];
             for (int i = 0; i < ShadowMapShaders.Length; i++)
             {
-                ShadowMapShaders[i] = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+                ShadowMapShaders[i] = new ShadowMapShader(viewer.Game.GraphicsDevice);
             }
-            SkyShader = new SkyShader(viewer.RenderProcess.GraphicsDevice);
-            DebugShader = new DebugShader(viewer.RenderProcess.GraphicsDevice);
+            SkyShader = new SkyShader(viewer.Game.GraphicsDevice);
+            DebugShader = new DebugShader(viewer.Game.GraphicsDevice);
 
             // TODO: This should happen on the loader thread.
-            MissingTexture = SharedTextureManager.Get(viewer.RenderProcess.GraphicsDevice, Path.Combine(viewer.ContentPath, "blank.bmp"));
+            MissingTexture = SharedTextureManager.Get(viewer.Game.GraphicsDevice, Path.Combine(viewer.ContentPath, "blank.bmp"));
 
             // Managing default snow textures
             var defaultSnowTexturePath = Path.Combine(viewer.Simulator.RouteFolder.TerrainTexturesFolder, "Snow", "ORTSDefaultSnow.ace");

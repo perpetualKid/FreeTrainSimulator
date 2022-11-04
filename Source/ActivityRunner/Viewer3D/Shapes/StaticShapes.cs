@@ -74,7 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             foreach (var lod in shapes[0].SharedShape.LodControls)
                 for (var subObjectIndex = 0; subObjectIndex < lod.DistanceLevels[0].SubObjects.Length; subObjectIndex++)
                     foreach (var primitive in lod.DistanceLevels[0].SubObjects[subObjectIndex].ShapePrimitives)
-                        primitivesList.Add(new ShapePrimitiveInstances(viewer.RenderProcess.GraphicsDevice, primitive, GetMatricies(shapes, primitive), subObjectIndex));
+                        primitivesList.Add(new ShapePrimitiveInstances(viewer.Game.GraphicsDevice, primitive, GetMatricies(shapes, primitive), subObjectIndex));
             primitives = primitivesList.ToArray();
         }
 

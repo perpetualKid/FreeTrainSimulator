@@ -78,16 +78,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextFontMonoSpacedOutlined = TextManager.GetScaled("Consolas", 10, System.Drawing.FontStyle.Regular, 1);
             TextFontSmallOutlined = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular, 1);
 
-            SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
+            SpriteBatch = new SpriteBatch(Viewer.Game.GraphicsDevice);
 
             if (WhiteTexture == null)
             {
-                WhiteTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                WhiteTexture = new Texture2D(Viewer.Game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 WhiteTexture.SetData(new[] { Color.White });
             }
             if (FlushTexture == null)
             {
-                FlushTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                FlushTexture = new Texture2D(Viewer.Game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 FlushTexture.SetData(new[] { Color.Transparent });
             }
 
@@ -186,7 +186,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if (Screen != null)
                     Screen.Dispose();
-                Screen = new RenderTarget2D(Viewer.RenderProcess.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.RenderProcess.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
+                Screen = new RenderTarget2D(Viewer.Game.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.Game.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
             }
 
             // Reposition all the windows.
@@ -292,7 +292,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public void Load()
         {
-            TextManager.Load(Viewer.RenderProcess.GraphicsDevice);
+            TextManager.Load(Viewer.Game.GraphicsDevice);
         }
     }
 }

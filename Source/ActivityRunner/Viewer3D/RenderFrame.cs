@@ -276,8 +276,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     shadowMapRenderTarget = new RenderTarget2D[shadowMapCount];
                     for (int shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                     {
-                        shadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
-                        shadowMap[shadowMapIndex] = new RenderTarget2D(game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(game.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMap[shadowMapIndex] = new RenderTarget2D(game.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
                     }
                 }
 

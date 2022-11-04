@@ -160,7 +160,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Material = viewer.MaterialManager.Load("Sky");
 
             // Instantiate classes
-            Primitive = new SkyPrimitive(Viewer.RenderProcess);
+            Primitive = new SkyPrimitive(Viewer);
             skyVectors = new SunMoonPos();
 
             // Set starting values
@@ -260,7 +260,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SkyPrimitive(RenderProcess renderProcess)
+        public SkyPrimitive(Viewer viewer)
         {
             // Initialize the vertex and point-index buffers
             vertexList = new VertexPositionNormalTexture[numVertices];
@@ -274,7 +274,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Moon quad
             MoonLists(numVertices - 5, indexCount - 6);
             // Meshes have now been assembled, so put everything into vertex and index buffers
-            InitializeVertexBuffers(renderProcess.GraphicsDevice);
+            InitializeVertexBuffers(viewer.Game.GraphicsDevice);
         }
 
         public override void Draw()
@@ -465,12 +465,12 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             skyShader = Viewer.MaterialManager.SkyShader;
             // TODO: This should happen on the loader thread.
-            skyTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png"));
-            starTextureN = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
-            starTextureS = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_S.png"));
-            moonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
-            moonMask = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png"));
-            cloudTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Clouds01.png"));
+            skyTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png"));
+            starTextureN = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
+            starTextureS = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_S.png"));
+            moonTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
+            moonMask = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png"));
+            cloudTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Clouds01.png"));
 
             skyShader.SkyMapTexture = skyTexture;
             skyShader.StarMapTexture = starTextureN;

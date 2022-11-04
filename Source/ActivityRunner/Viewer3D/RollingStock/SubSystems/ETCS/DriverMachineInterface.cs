@@ -143,7 +143,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             else
                 MipMapScale = 1;
 
-            Shader = new DriverMachineInterfaceShader(viewer.RenderProcess.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(viewer.Game.GraphicsDevice);
             ETCSDefaultWindow = new ETCSDefaultWindow(this, control);
             ETCSDefaultWindow.Visible = true;
 
@@ -170,7 +170,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "mipmap-2", name);
             else
                 path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", name);
-            return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, path);
+            return SharedTextureManager.Get(Viewer.Game.GraphicsDevice, path);
         }
         public void PrepareFrame(double elapsedSeconds)
         {

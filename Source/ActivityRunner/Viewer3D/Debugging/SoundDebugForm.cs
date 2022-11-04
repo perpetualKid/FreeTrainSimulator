@@ -60,8 +60,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void UITimer_Tick(object sender, EventArgs e)
         {
             Visible = Viewer.SoundDebugFormEnabled;
-            if (!Visible || Viewer.RenderProcess.Viewer.RealTime - lastUpdateTime < 0.5 ) return;
-            lastUpdateTime = Viewer.RenderProcess.Viewer.RealTime;
+            if (!Visible || Viewer.RealTime - lastUpdateTime < 0.5 ) return;
+            lastUpdateTime = Viewer.RealTime;
 
             UpdateContent();
         }

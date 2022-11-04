@@ -46,7 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal override void ScreenChanged()
         {
             base.ScreenChanged();
-            Viewport = Owner.Viewer.RenderProcess.GraphicsDevice.Viewport;
+            Viewport = Owner.Viewer.Game.GraphicsDevice.Viewport;
         }
 
         public override bool Interactive

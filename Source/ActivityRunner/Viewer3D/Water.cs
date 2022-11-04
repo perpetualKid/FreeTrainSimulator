@@ -50,9 +50,9 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Viewer.ENVFile.WaterLayers != null)
             WaterLayers = Viewer.ENVFile.WaterLayers.Select(layer => new KeyValuePair<float, Material>(layer.Height, Viewer.MaterialManager.Load("Water", Viewer.Simulator.RouteFolder.EnvironmentTextureFile(layer.TextureName)))).ToArray();
 
-            LoadGeometry(Viewer.RenderProcess.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
+            LoadGeometry(Viewer.Game.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
             
-            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.RenderProcess.GraphicsDevice)) };
+            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.Game.GraphicsDevice)) };
         }
 
         public void PrepareFrame(RenderFrame frame)

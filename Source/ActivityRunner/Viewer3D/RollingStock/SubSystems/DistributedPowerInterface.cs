@@ -95,7 +95,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             else
                 MipMapScale = 1;
 
-            Shader = new DriverMachineInterfaceShader(this.viewer.RenderProcess.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(this.viewer.Game.GraphicsDevice);
             DPDefaultWindow = new DPDefaultWindow(this, control);
             DPDefaultWindow.Visible = true;
 

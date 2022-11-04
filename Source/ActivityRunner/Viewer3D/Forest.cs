@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (trees.Count > 0)
             {
-                VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
+                VertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
                 VertexBuffer.SetData(trees.ToArray());
             }
 

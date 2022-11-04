@@ -1305,13 +1305,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             _PrevScreenSize = DisplaySize;
 
-            letterboxTexture = new Texture2D(viewer.RenderProcess.GraphicsDevice, 1, 1);
+            letterboxTexture = new Texture2D(viewer.Game.GraphicsDevice, 1, 1);
             letterboxTexture.SetData(new Color[] { Color.Black });
 
             // Use same shader for both front-facing and rear-facing cabs.
             if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
             {
-                _Shader = new CabShader(viewer.RenderProcess.GraphicsDevice,
+                _Shader = new CabShader(viewer.Game.GraphicsDevice,
                     ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
                     ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
                     ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
@@ -1344,7 +1344,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         // Use same shader for both front-facing and rear-facing cabs.
                         if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
                         {
-                            _Shader = new CabShader(viewer.RenderProcess.GraphicsDevice,
+                            _Shader = new CabShader(viewer.Game.GraphicsDevice,
                             ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
                             ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
                             ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
@@ -2162,7 +2162,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             : base(viewer, locomotive, control, shader)
         {
             ControlDiscrete = control;
-            CABTextureManager.DisassembleTexture(viewer.RenderProcess.GraphicsDevice, Control.AceFile, Control.Bounds.Width, Control.Bounds.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
+            CABTextureManager.DisassembleTexture(viewer.Game.GraphicsDevice, Control.AceFile, Control.Bounds.Width, Control.Bounds.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
             Texture = CABTextureManager.GetTextureByIndexes(Control.AceFile, 0, false, false, out IsNightTexture, HasCabLightDirectory);
             SourceRectangle = new Rectangle(0, 0, Texture.Width, Texture.Height);
         }
@@ -3713,7 +3713,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             //create the shape primitive
-            shapePrimitive = new MutableShapePrimitive(viewer.RenderProcess.GraphicsDevice, Material, NumVertices, NumIndices, new[] { -1 }, 0);
+            shapePrimitive = new MutableShapePrimitive(viewer.Game.GraphicsDevice, Material, NumVertices, NumIndices, new[] { -1 }, 0);
             UpdateShapePrimitive(Material);
 
         }
@@ -3995,7 +3995,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             //create the shape primitive
             var material = FindMaterial();
-            shapePrimitive = new MutableShapePrimitive(viewer.RenderProcess.GraphicsDevice, FindMaterial(), NumVertices, NumIndices, new[] { -1 }, 0);
+            shapePrimitive = new MutableShapePrimitive(viewer.Game.GraphicsDevice, FindMaterial(), NumVertices, NumIndices, new[] { -1 }, 0);
             UpdateShapePrimitive(material);
 
         }

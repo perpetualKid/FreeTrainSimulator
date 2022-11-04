@@ -22,9 +22,9 @@ namespace Orts.ActivityRunner.Processes
 
         protected override void Update(GameTime gameTime)
         {
+            metric.Update(gameTime);
             if (gameTime.TotalGameTime.TotalSeconds > nextUpdate)
             {
-                metric.Update(gameTime);
 
                 foreach (Profiler profiler in Profiler.ProfilingData)
                 {
@@ -35,10 +35,6 @@ namespace Orts.ActivityRunner.Processes
 
                 nextUpdate = gameTime.TotalGameTime.TotalSeconds + UpdateInterval;
             }
-            double elapsed = gameTime.ElapsedGameTime.TotalSeconds;
-            //need to capture them here so we got every single frame
-            metric.Metrics[SlidingMetric.FrameRate].Update(elapsed, 1/elapsed);
-            metric.Metrics[SlidingMetric.FrameTime].Update(elapsed, elapsed);
 
         }
     }

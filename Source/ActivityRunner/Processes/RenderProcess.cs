@@ -42,9 +42,6 @@ namespace Orts.ActivityRunner.Processes
         public const int ShadowMapCountMaximum = 4;
 
         public Point DisplaySize { get; private set; }
-        public GraphicsDevice GraphicsDevice { get { return game.GraphicsDevice; } }
-        public bool IsActive { get { return game.IsActive; } }
-        public Viewer Viewer { get { return (game.State as GameStateViewer3D)?.Viewer; } }
 
         private readonly Profiler profiler;
 
@@ -173,7 +170,7 @@ namespace Orts.ActivityRunner.Processes
 
         internal void Start()
         {
-            DisplaySize = GraphicsDevice.Viewport.Bounds.Size;
+            DisplaySize = game.GraphicsDevice.Viewport.Bounds.Size;
 
             if (game.Settings.ShadowMapDistance == 0)
                 game.Settings.ShadowMapDistance = game.Settings.ViewingDistance / 2;
@@ -255,7 +252,7 @@ namespace Orts.ActivityRunner.Processes
         internal void Initialize()
         {
             SetScreenMode(currentScreenMode);
-            Viewer.DefaultViewport = GraphicsDevice.Viewport;
+            Viewer.DefaultViewport = game.GraphicsDevice.Viewport;
         }
 
         internal void Update(GameTime gameTime)
@@ -269,7 +266,7 @@ namespace Orts.ActivityRunner.Processes
             {
                 SetScreenMode(currentScreenMode.Next());
                 toggleScreenRequested = false;
-                Viewer.DefaultViewport = GraphicsDevice.Viewport;
+                Viewer.DefaultViewport = game.GraphicsDevice.Viewport;
             }
 
             game.UpdaterProcess.WaitForComplection();
@@ -365,10 +362,10 @@ namespace Orts.ActivityRunner.Processes
 
             profiler.Start();
 
-            CurrentFrame.IsScreenChanged = DisplaySize.X != GraphicsDevice.Viewport.Width || DisplaySize.Y != GraphicsDevice.Viewport.Height;
+            CurrentFrame.IsScreenChanged = DisplaySize != game.GraphicsDevice.Viewport.Bounds.Size;
             if (CurrentFrame.IsScreenChanged)
             {
-                DisplaySize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+                DisplaySize = game.GraphicsDevice.Viewport.Bounds.Size;
                 InitializeShadowMapLocations();
             }
 

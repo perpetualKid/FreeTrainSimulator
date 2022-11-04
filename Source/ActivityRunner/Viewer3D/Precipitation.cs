@@ -38,8 +38,6 @@ namespace Orts.ActivityRunner.Viewer3D
     public class PrecipitationViewer
     {
         public const float MinIntensityPPSPM2 = 0;
-        // 16 bit version.
-        public const float MaxIntensityPPSPM2_16 = 0.010f;
         // Default 32 bit version.
         public const float MaxIntensityPPSPM2 = 0.035f;
         private readonly Viewer Viewer;
@@ -56,7 +54,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Weather = viewer.Simulator.Weather;
 
             Material = viewer.MaterialManager.Load("Precipitation");
-            Pricipitation = new PrecipitationPrimitive(Viewer.RenderProcess.GraphicsDevice);
+            Pricipitation = new PrecipitationPrimitive(Viewer.Game.GraphicsDevice);
 
             Wind = new Vector3(0, 0, 0);
             Reset();
@@ -83,11 +81,12 @@ namespace Orts.ActivityRunner.Viewer3D
             // Added random Wind.X value for rain and snow.
             // Max value used by randWind.Next is max value - 1.
             Wind.X = Viewer.Simulator.WeatherType == WeatherType.Snow ? StaticRandom.Next(2, 6) : StaticRandom.Next(15, 21);
-                                    
+
             var gameTime = (float)Viewer.Simulator.GameTime;
             Pricipitation.Initialize(Viewer.Simulator.WeatherType, Wind);
             // Camera is null during first initialisation.
-            if (Viewer.Camera != null) Pricipitation.Update(gameTime, ElapsedTime.Zero, Weather.PrecipitationIntensity, Viewer);
+            if (Viewer.Camera != null)
+                Pricipitation.Update(gameTime, ElapsedTime.Zero, Weather.PrecipitationIntensity, Viewer);
         }
 
         internal void Mark()
@@ -162,35 +161,17 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Snow is the slower particle, hence longer duration, hence more particles in total.
             // Setting the precipitaton box size based on GraphicsDeviceCapabilities.
-            if (graphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
-            {
-                ParticleBoxLengthM = (float)Simulator.Instance.Settings.PrecipitationBoxLength;
-                ParticleBoxWidthM = (float)Simulator.Instance.Settings.PrecipitationBoxWidth;
-                ParticleBoxHeightM = (float)Simulator.Instance.Settings.PrecipitationBoxHeight;
-            }
-            else
-            {
-                ParticleBoxLengthM = ParticleBoxLengthM_16;
-                ParticleBoxWidthM = ParticleBoxWidthM_16;
-                ParticleBoxHeightM = ParticleBoxHeightM_16;
-            }
-            if (graphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
-                MaxParticles = (int)(PrecipitationViewer.MaxIntensityPPSPM2 * ParticleBoxLengthM * ParticleBoxWidthM * ParticleBoxHeightM / SnowVelocityMpS / ParticleVelocityFactor);
-            // Processing 16bit device
-            else
-                MaxParticles = (int)(PrecipitationViewer.MaxIntensityPPSPM2_16 * ParticleBoxLengthM * ParticleBoxWidthM * ParticleBoxHeightM / SnowVelocityMpS / ParticleVelocityFactor);
+            ParticleBoxLengthM = (float)Simulator.Instance.Settings.PrecipitationBoxLength;
+            ParticleBoxWidthM = (float)Simulator.Instance.Settings.PrecipitationBoxWidth;
+            ParticleBoxHeightM = (float)Simulator.Instance.Settings.PrecipitationBoxHeight;
+            MaxParticles = (int)(PrecipitationViewer.MaxIntensityPPSPM2 * ParticleBoxLengthM * ParticleBoxWidthM * ParticleBoxHeightM / SnowVelocityMpS / ParticleVelocityFactor);
             // Checking if graphics device is 16bit.
-            if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
-                Debug.Assert(MaxParticles * VerticiesPerParticle < ushort.MaxValue, "The maximum number of precipitation verticies must be able to fit in a ushort (16bit unsigned) index buffer.");
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];
             VertexDeclaration = new VertexDeclaration(ParticleVertex.SizeInBytes, ParticleVertex.VertexElements);
             VertexStride = Marshal.SizeOf(typeof(ParticleVertex));
             VertexBuffer = new DynamicVertexBuffer(graphicsDevice, VertexDeclaration, MaxParticles * VerticiesPerParticle, BufferUsage.WriteOnly);
             // Processing either 32bit or 16bit InitIndexBuffer depending on GraphicsDeviceCapabilities.
-            if (graphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
-                IndexBuffer = InitIndexBuffer(graphicsDevice, MaxParticles * IndiciesPerParticle);
-            else
-                IndexBuffer = InitIndexBuffer16(graphicsDevice, MaxParticles * IndiciesPerParticle);
+            IndexBuffer = InitIndexBuffer(graphicsDevice, MaxParticles * IndiciesPerParticle);
             Heights = new HeightCache(8);
             // This Trace command is used to show how much memory is used.
             Trace.TraceInformation(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Allocation for {0:N0} particles:\n\n  {1,13:N0} B RAM vertex data\n  {2,13:N0} B RAM index data (temporary)\n  {1,13:N0} B VRAM DynamicVertexBuffer\n  {2,13:N0} B VRAM IndexBuffer", MaxParticles, Marshal.SizeOf(typeof(ParticleVertex)) * MaxParticles * VerticiesPerParticle, sizeof(uint) * MaxParticles * IndiciesPerParticle));
@@ -298,8 +279,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void DynamicUpdate(WeatherControl weatherControl, Weather weather, Viewer viewer, ref Vector3 wind)
         {
-            if (!weatherControl.weatherChangeOn || weatherControl.dynamicWeather.precipitationLiquidityTimer <= 0) return;
-            ParticleDuration = ParticleBoxHeightM / ((RainVelocityMpS-SnowVelocityMpS) *  weather.PrecipitationLiquidity + SnowVelocityMpS)/ ParticleVelocityFactor;
+            if (!weatherControl.weatherChangeOn || weatherControl.dynamicWeather.precipitationLiquidityTimer <= 0)
+                return;
+            ParticleDuration = ParticleBoxHeightM / ((RainVelocityMpS - SnowVelocityMpS) * weather.PrecipitationLiquidity + SnowVelocityMpS) / ParticleVelocityFactor;
             wind.X = 18 * weather.PrecipitationLiquidity + 2;
             ParticleDirection = wind;
         }
@@ -331,9 +313,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
             for (var i = 0; i < numToEmit; i++)
             {
-                WorldLocation temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ, 
-                    worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM), 
-                    0, 
+                WorldLocation temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ,
+                    worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM),
+                    0,
                     worldLocation.Location.Z + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxLengthM));
                 temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, Heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
                 var position = new WorldPosition(temp);
@@ -450,10 +432,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     Trace.TraceWarning("Precipitation indexes are out of bounds:  x = {0}, z = {1}, Location.X = {2}, Location.Z = {3}, BlockSize = {4}, HeightDimensionX = {5}, HeightDimensionZ = {6}",
                         x, z, location.Location.X, location.Location.Z, BlockSize, tile.Height.GetLength(0), tile.Height.GetLength(1));
-                    if (x > 255) x = 255;
-                    else if (z > 255) z = 255;
-                    else if (x < 0) x = 0;
-                    else z = 0;
+                    if (x > 255)
+                        x = 255;
+                    else if (z > 255)
+                        z = 255;
+                    else if (x < 0)
+                        x = 0;
+                    else
+                        z = 0;
                 }
                 // If we don't have it cached, load it.
                 if (tile.Height[x, z] == float.MinValue)
@@ -498,14 +484,14 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            rainTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Raindrop.png"));
-            snowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Snowflake.png"));
+            rainTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Raindrop.png"));
+            snowTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Snowflake.png"));
             dynamicPrecipitationTexture[0] = snowTexture;
             dynamicPrecipitationTexture[11] = rainTexture;
-            for (int i = 1; i<=10; i++)
+            for (int i = 1; i <= 10; i++)
             {
                 var path = $"Raindrop{i}.png";
-                dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
+                dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
             }
             shader = Viewer.MaterialManager.PrecipitationShader;
         }

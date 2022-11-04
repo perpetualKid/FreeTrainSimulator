@@ -713,9 +713,9 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // Create and populate a new ShapePrimitive
-            var indexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short), NumIndices, BufferUsage.WriteOnly);
+            var indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), NumIndices, BufferUsage.WriteOnly);
             indexBuffer.SetData(TriangleListIndices);
-            return new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, lodItem.LODMaterial, new SharedShape.VertexBufferSet(VertexList, viewer.RenderProcess.GraphicsDevice), indexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            return new ShapePrimitive(viewer.Game.GraphicsDevice, lodItem.LODMaterial, new SharedShape.VertexBufferSet(VertexList, viewer.Game.GraphicsDevice), indexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
         }
 
         /// <summary>

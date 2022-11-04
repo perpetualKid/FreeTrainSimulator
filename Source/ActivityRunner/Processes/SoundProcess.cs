@@ -65,23 +65,9 @@ namespace Orts.ActivityRunner.Processes
             OpenAL.Initialize();
         }
 
-        //private void SoundThread()
-        //{
-        //    Profiler.SetThread();
-
-        //    while (true)
-        //    {
-        //        Thread.Sleep(SleepTime);
-        //        if (State.Terminated)
-        //            break;
-        //        if (!DoSound())
-        //            return;
-        //    }
-        //}
-
         protected override void Update(GameTime gameTime)
         {
-            var viewer = gameHost.RenderProcess.Viewer;
+            var viewer = (gameHost.State as GameStateViewer3D)?.Viewer;
             if (viewer == null)
                 return;
 
