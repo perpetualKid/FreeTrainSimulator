@@ -323,6 +323,7 @@ namespace Orts.Settings
         [Default(true)]
         public bool OdometerShortDistanceMode { get; set; }
         #endregion
+
         // Internal settings:
         [Default(false)]
         public bool DataLogger { get; set; }
@@ -353,7 +354,7 @@ namespace Orts.Settings
         {
             $"{nameof(ViewerWindowType.QuitWindow)}=50,50",
             $"{nameof(ViewerWindowType.HelpWindow)}=20,70",
-            $"{nameof(ViewerWindowType.DebugScreen)}=0,0",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=0,0",
             $"{nameof(ViewerWindowType.ActivityWindow)}=50,30",
             $"{nameof(ViewerWindowType.CompassWindow)}=50,0",
             $"{nameof(ViewerWindowType.SwitchWindow)}=0,50",
@@ -376,7 +377,7 @@ namespace Orts.Settings
         [Default(new string[]
         {
             $"{nameof(ViewerWindowType.QuitWindow)}=False",
-            $"{nameof(ViewerWindowType.DebugScreen)}=False",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=False",
             $"{nameof(ViewerWindowType.HelpWindow)}=True",
             $"{nameof(ViewerWindowType.ActivityWindow)}=False",
             $"{nameof(ViewerWindowType.CompassWindow)}=False",
@@ -400,7 +401,7 @@ namespace Orts.Settings
         [Default(new string[]
         {
             $"{nameof(ViewerWindowType.QuitWindow)}=\"\"",
-            $"{nameof(ViewerWindowType.DebugScreen)}=\"\"",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=\"\"",
             $"{nameof(ViewerWindowType.HelpWindow)}=\"\"",
             $"{nameof(ViewerWindowType.ActivityWindow)}=\"\"",
             $"{nameof(ViewerWindowType.CompassWindow)}=\"\"",

@@ -1012,7 +1012,7 @@ namespace Orts.Common
 
     public enum ViewerWindowType
     {
-        DebugScreen,
+        DebugOverlay,
         QuitWindow,
         PauseOverlay,
         HelpWindow,

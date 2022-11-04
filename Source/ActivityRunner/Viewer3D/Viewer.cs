@@ -256,7 +256,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Catalog = CatalogManager.Catalog;
 
             Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
-            Game = game;
+            Game = game ?? throw new ArgumentNullException(nameof(game));
             Settings = simulator.Settings;
 
             RenderProcess = game.RenderProcess;
@@ -548,10 +548,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new NotificationOverlay(windowManager);
             }));
-            //windowManager.SetLazyWindows(ViewerWindowType.DebugOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
-            //{
-            //    return new DebugOverlay(windowManager, Settings);
-            //}));
+            windowManager.SetLazyWindows(ViewerWindowType.DebugOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            {
+                return new DebugOverlay(windowManager, Settings, this);
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -645,7 +645,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     HUDWindow.Visible = !HUDWindow.Visible;
                     if (!HUDWindow.Visible)
                         HUDScrollWindow.Visible = false;
-                    //windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
+                    windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
                 }
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
