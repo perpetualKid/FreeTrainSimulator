@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms.Design;
+﻿using Microsoft.Xna.Framework;
 
-using Microsoft.Xna.Framework;
-
-using Orts.ActivityRunner.Processes.State;
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 
@@ -17,13 +8,15 @@ namespace Orts.ActivityRunner.Processes
 {
     internal class SystemProcess : ProcessBase
     {
-        double nextUpdate;
+        internal const double UpdateInterval = 0.25;
 
-        public EnumArray<DebugInfoBase, StateType> SystemInfo { get; } = new EnumArray<DebugInfoBase, StateType>();
+        private double nextUpdate;
+        private readonly MetricCollector metric = MetricCollector.Instance;
 
         public SystemProcess(GameHost gameHost) : base(gameHost, "System")
         {
-            SystemInfo[StateType.Common] = new CommonInfo(gameHost);
+            gameHost.SystemInfo[StateType.Common] = new CommonInfo(gameHost);
+            gameHost.SystemInfo[StateType.Clr] = new ClrEventListener();
             Profiler.ProfilingData[ProcessType.System] = profiler;
         }
 
@@ -31,15 +24,16 @@ namespace Orts.ActivityRunner.Processes
         {
             if (gameTime.TotalGameTime.TotalSeconds > nextUpdate)
             {
+                metric.Update(gameTime);
+
                 foreach (Profiler profiler in Profiler.ProfilingData)
                 {
                     profiler?.Mark();
                 }
-                nextUpdate = gameTime.ElapsedGameTime.TotalSeconds + 0.25;
-            }
-            foreach(DebugInfoBase stateInfo in SystemInfo)
-            {
-                stateInfo.Update(gameTime);
+
+                (gameHost.SystemInfo[StateType.Common] as DebugInfoBase).Update(gameTime);
+
+                nextUpdate = gameTime.ElapsedGameTime.TotalSeconds + UpdateInterval;
             }
         }
     }

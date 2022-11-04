@@ -9,4 +9,11 @@
         System,
         WebServer,
     }
+
+    public enum SlidingMetric
+    {
+        ProcessorTime,
+        FrameRate,
+        FrameTime,
+    }
 }

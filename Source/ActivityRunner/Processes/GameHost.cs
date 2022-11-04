@@ -27,6 +27,7 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Info;
@@ -73,6 +74,8 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         public WebServerProcess WebServerProcess { get; private set; }
 
+        public EnumArray<INameValueInformationProvider, StateType> SystemInfo { get; } = new EnumArray<INameValueInformationProvider, StateType>();
+
         /// <summary>
         /// Gets the current <see cref="GameState"/>, if there is one, or <c>null</c>.
         /// </summary>
@@ -82,8 +85,6 @@ namespace Orts.ActivityRunner.Processes
         private readonly ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
-
-        public INameValueInformationProvider SystemDebugInfo { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
@@ -101,8 +102,6 @@ namespace Orts.ActivityRunner.Processes
             WebServerProcess = new WebServerProcess(this);
             gameStates = new Stack<GameState>();
             systemProcess = new SystemProcess(this);
-
-            SystemDebugInfo = systemProcess.SystemInfo[Processes.State.StateType.Common];
         }
 
         private void GameComponents_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
@@ -232,7 +231,7 @@ namespace Orts.ActivityRunner.Processes
                         ">>> Click OK to report this error on the GitHub bug tracker <<<",
                         $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                 if (openTracker == DialogResult.OK)
-                    SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
+                    Orts.Common.Info.SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
             }
             // Stop the world!
             Exit();

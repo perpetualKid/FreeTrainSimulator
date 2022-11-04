@@ -19,6 +19,7 @@
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 
 namespace Orts.ActivityRunner.Processes

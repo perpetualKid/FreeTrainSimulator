@@ -99,12 +99,12 @@ namespace Orts.Common.Calc
                 historyCount.Enqueue(0);
         }
 
-        public override void Update(double periodS, double value)
+        public override void Update(double elapsed, double value)
         {
-            base.Update(periodS, value);
+            base.Update(elapsed, value);
 
             longHistory.Enqueue(value);
-            position += periodS;
+            position += elapsed;
             count++;
 
             if (position >= historyStepSize)

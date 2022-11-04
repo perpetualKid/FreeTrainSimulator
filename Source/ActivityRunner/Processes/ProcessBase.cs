@@ -4,6 +4,8 @@ using System.Threading;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
+
 namespace Orts.ActivityRunner.Processes
 {
     internal abstract class ProcessBase : IDisposable

@@ -25,7 +25,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Native;
 
-namespace Orts.ActivityRunner.Processes
+namespace Orts.ActivityRunner.Processes.Diagnostics
 {
     public class Profiler
     {
@@ -98,7 +98,7 @@ namespace Orts.ActivityRunner.Processes
             this.timeTotal.Reset();
             this.timeTotal.Start();
             this.timeRunning.Reset();
-            if (running) 
+            if (running)
                 this.timeRunning.Start();
             this.timeCPU = TimeSpan.Zero;
 

@@ -30,6 +30,7 @@ namespace Orts.Common.Info
     public static class SystemInfo
     {
         public static string GraphicAdapterMemoryInformation { get; private set; }
+        public static string CpuInformation { get; private set; }
 
         public static string SetGraphicAdapterInformation(string adapterName)
         {
@@ -94,7 +95,8 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementBaseObject processor in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)");
+                        CpuInformation = $"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)";
+                        output.AppendLine(CpuInformation);
                     }
                 }
             }

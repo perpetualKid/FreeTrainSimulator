@@ -35,6 +35,7 @@ using System.Linq;
 using System.Text;
 
 using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
