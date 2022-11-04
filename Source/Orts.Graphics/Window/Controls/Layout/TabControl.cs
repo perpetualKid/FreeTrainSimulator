@@ -145,10 +145,5 @@ namespace Orts.Graphics.Window.Controls.Layout
             }
             ActivateTab(tab);
         }
-
-        internal override void Draw(SpriteBatch spriteBatch, Microsoft.Xna.Framework.Point offset)
-        {
-            base.Draw(spriteBatch, offset);
-        }
     }
 }
