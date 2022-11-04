@@ -195,8 +195,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data($"{GC.CollectionCount(1):F0}");
                         dataLog.Data($"{GC.CollectionCount(2):F0}");
                         dataLog.Data($"{ProcessorCount:F0}");
-                        dataLog.Data($"{viewer.RenderProcess.FrameRate.Value:F0}");
-                        dataLog.Data($"{viewer.RenderProcess.FrameTime.Value:F6}");
+                        dataLog.Data($"{MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].Value:F0}");
+                        dataLog.Data($"{MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value:F6}");
                         dataLog.Data($"{viewer.RenderProcess.ShadowPrimitivePerFrame.Sum():F0}");
                         dataLog.Data($"{viewer.RenderProcess.PrimitivePerFrame.Sum():F0}");
                         dataLog.Data($"{Profiler.ProfilingData[ProcessType.Render].Wall.Value:F0}");

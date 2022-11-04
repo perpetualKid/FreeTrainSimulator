@@ -5,8 +5,8 @@ using Orts.Common;
 namespace Orts.Graphics.Window.Controls.Layout
 {
     /// <summary>
-    /// Tabbed layout, similar to TabControl but with no UI interaction.
-    /// Changing between tabs only happens through other means input
+    /// Tabbed layout, similar to <cref="TabControl"/> but without UI interaction to change tabs, and no tab header.
+    /// Changing between tabs only happens through other means of iinput
     /// </summary>
     public class TabLayout<T> : ControlLayout where T : Enum
     {

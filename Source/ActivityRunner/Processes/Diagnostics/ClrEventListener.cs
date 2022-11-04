@@ -57,7 +57,16 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
                         if (eventPayload.TryGetValue("DisplayName", out object displayName) && displayName is string displayNameString && Array.BinarySearch(counters, displayName) > -1 &&
                             (eventPayload.TryGetValue("Mean", out object value) || eventPayload.TryGetValue("Increment", out value)))
                         {
-                            debugInfo[displayNameString] = $"{value} {(eventPayload.TryGetValue("DisplayUnits", out object unit) ? unit : null)}";
+                            if (eventPayload.TryGetValue("DisplayUnits", out object unit) && unit is string unitString && unitString == "B" &&
+                                (value is double numericValue) && numericValue > 8192)
+                            {
+                                numericValue /= 1024;
+                                debugInfo[displayNameString] = $"{numericValue:0} KB";
+                            }
+                            else
+                            {
+                                debugInfo[displayNameString] = $"{value} {unit}";
+                            }
                         }
                     }
                 }

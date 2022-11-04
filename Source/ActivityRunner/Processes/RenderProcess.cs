@@ -70,8 +70,6 @@ namespace Orts.ActivityRunner.Processes
         public Cursor ActualCursor { get; set; } = Cursors.Default;
 
         // Diagnostic information
-        public SmoothedData FrameRate { get; private set; }
-        public SmoothedDataWithPercentiles FrameTime { get; private set; }
         public int[] PrimitiveCount { get; private set; }
         public int[] PrimitivePerFrame { get; private set; }
         public int[] ShadowPrimitiveCount { get; private set; }
@@ -105,8 +103,6 @@ namespace Orts.ActivityRunner.Processes
                 catch (CultureNotFoundException) { }
             }
 
-            FrameRate = new SmoothedData();
-            FrameTime = new SmoothedDataWithPercentiles();
             PrimitiveCount = new int[(int)RenderPrimitiveSequence.Sentinel];
             PrimitivePerFrame = new int[(int)RenderPrimitiveSequence.Sentinel];
 
@@ -136,7 +132,7 @@ namespace Orts.ActivityRunner.Processes
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
-            SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+            Common.Info.SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
         }
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)
@@ -421,15 +417,6 @@ namespace Orts.ActivityRunner.Processes
         public void ToggleFullScreen()
         {
             toggleScreenRequested = true;
-        }
-
-        public void ComputeFPS(double elapsedRealTime)
-        {
-            if (elapsedRealTime < 0.001)
-                return;
-
-            FrameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
-            FrameTime.Update(elapsedRealTime, elapsedRealTime);
         }
 
         protected virtual void Dispose(bool disposing)

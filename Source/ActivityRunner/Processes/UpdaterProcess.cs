@@ -58,7 +58,6 @@ namespace Orts.ActivityRunner.Processes
             if (gameHost.State != null)
             {
                 gameHost.State.Update(CurrentFrame, gameTime);
-                gameHost.RenderProcess.ComputeFPS(gameTime.ElapsedGameTime.TotalSeconds);
                 CurrentFrame.Sort();
             }
         }

@@ -16,4 +16,10 @@
         FrameRate,
         FrameTime,
     }
+
+    public enum DiagnosticInfo
+    {
+        System,
+        Clr,
+    }
 }

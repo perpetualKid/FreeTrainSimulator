@@ -35,6 +35,8 @@ using Orts.Common.Logging;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.ActivityRunner.Processes
 {
     /// <summary>
@@ -74,7 +76,7 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         public WebServerProcess WebServerProcess { get; private set; }
 
-        public EnumArray<INameValueInformationProvider, StateType> SystemInfo { get; } = new EnumArray<INameValueInformationProvider, StateType>();
+        public EnumArray<INameValueInformationProvider, DiagnosticInfo> SystemInfo { get; } = new EnumArray<INameValueInformationProvider, DiagnosticInfo>();
 
         /// <summary>
         /// Gets the current <see cref="GameState"/>, if there is one, or <c>null</c>.
@@ -147,6 +149,7 @@ namespace Orts.ActivityRunner.Processes
             {
                 systemProcess.TriggerUpdate(gameTime);
                 RenderProcess.Update(gameTime);
+                SystemInfo[DiagnosticInfo.System].DebugInfo["Resolution"] = Window.ClientBounds.ToString();// need to update from main/render thread otherwise results are invalid
             }
             base.Update(gameTime);
         }

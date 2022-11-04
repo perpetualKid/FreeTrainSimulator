@@ -13,21 +13,16 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
         private readonly Process process = Process.GetCurrentProcess();
         private TimeSpan lastCpuTime;
 
-        public static EnumArray<SmoothedData, SlidingMetric> Metrics { get; } = new EnumArray<SmoothedData, SlidingMetric>();
+        public EnumArray<SmoothedData, SlidingMetric> Metrics { get; } = new EnumArray<SmoothedData, SlidingMetric>();
 
         private MetricCollector()
-        {
-
-        }
-
-        public static MetricCollector Instance { get; } = new MetricCollector();
-
-        static MetricCollector()
         {
             Metrics[SlidingMetric.ProcessorTime] = new SmoothedData();
             Metrics[SlidingMetric.FrameRate] = new SmoothedData();
             Metrics[SlidingMetric.FrameTime] = new SmoothedDataWithPercentiles();
         }
+
+        public static MetricCollector Instance { get; } = new MetricCollector();
 
         internal void Update(GameTime gameTime)
         {
@@ -38,7 +33,6 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             lastCpuTime = process.TotalProcessorTime;
 
             Metrics[SlidingMetric.ProcessorTime].Update(elapsed / 1000, 100 * timeCpu / elapsed);
-
         }
     }
 }

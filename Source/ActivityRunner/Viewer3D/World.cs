@@ -125,7 +125,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Work out how far we need to change the actual FPS to get to the target.
                 //   +ve = under-performing/too much detail
                 //   -ve = over-performing/not enough detail
-                var fpsTarget = Viewer.Settings.PerformanceTunerTarget - Viewer.RenderProcess.FrameRate.SmoothedValue;
+                var fpsTarget = Viewer.Settings.PerformanceTunerTarget - MetricCollector.Instance.Metrics[Processes.SlidingMetric.FrameRate].SmoothedValue;
 
                 // If vertical sync is on, we're capped to 60 FPS. This means we need to shift a target of 60FPS down to 57FPS.
                 if (Viewer.Settings.VerticalSync && Viewer.Settings.PerformanceTunerTarget > 55)

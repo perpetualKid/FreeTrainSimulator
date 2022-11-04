@@ -282,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var gcCounts = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) };
                 DebugGraphMemory.AddSample((float)GetWorkingSetSize() / ProcessVirtualAddressLimit);
                 DebugGraphGCs.AddSample(gcCounts[2] > lastGCCounts[2] ? 1.0f : gcCounts[1] > lastGCCounts[1] ? 0.5f : gcCounts[0] > lastGCCounts[0] ? 0.25f : 0);
-                DebugGraphFrameTime.AddSample((float)Viewer.RenderProcess.FrameTime.Value * 10);
+                DebugGraphFrameTime.AddSample((float)MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 10);
                 DebugGraphProcessRender.AddSample((float)Profiler.ProfilingData[ProcessType.Render].Wall.Value / 100);
                 DebugGraphProcessUpdater.AddSample((float)Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
                 DebugGraphProcessLoader.AddSample((float)Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
@@ -502,7 +502,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (multipleUnitsConfiguration != null)
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Multiple Units"), "{0}", multipleUnitsConfiguration);
             TableAddLine(table);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("FPS"), "{0:F0}", Viewer.RenderProcess.FrameRate.SmoothedValue);
+            TableAddLabelValue(table, Viewer.Catalog.GetString("FPS"), "{0:F0}", 0);
             TableAddLine(table);
 
             if (Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
@@ -1982,10 +1982,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Logging enabled"), Viewer.Settings.DataLogger ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Build"), VersionInfo.Build);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetString("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), AllocatedBytesPerSecLastValue / Viewer.RenderProcess.FrameRate.SmoothedValue / 1024));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetString("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), 0 / 1024));
             TableAddLabelValue(table, Viewer.Catalog.GetString("CPU"), Viewer.Catalog.GetString("{0:F0}% ({1})", (Profiler.ProfilingData[ProcessType.Render].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Updater].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Loader].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Sound].CPU.SmoothedValue) / ProcessorCount, Viewer.Catalog.GetPluralString("{0} logical processor", "{0} logical processors", ProcessorCount)));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetString("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)", Viewer.RenderProcess.FrameRate.SmoothedValue, Viewer.RenderProcess.FrameTime.SmoothedP50 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP95 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP99 * 1000));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetString("{0} ({1}) ({2:F0} pixels x {3:F0} pixels)", Viewer.Game.GraphicsDevice.Adapter.Description, SystemInfo.GraphicAdapterMemoryInformation, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetString("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)", 0, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP50 * 1000, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP95 * 1000, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP99 * 1000));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetString("{0} ({1}) ({2:F0} pixels x {3:F0} pixels)", Viewer.Game.GraphicsDevice.Adapter.Description, Orts.Common.Info.SystemInfo.GraphicAdapterMemoryInformation, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
             if (Viewer.Settings.DynamicShadows)
             {
                 TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => Viewer.Catalog.GetString($"{RenderProcess.ShadowMapDistance[i]}/{RenderProcess.ShadowMapDiameter[i]}")).ToArray());

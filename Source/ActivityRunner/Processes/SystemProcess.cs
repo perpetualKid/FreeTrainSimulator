@@ -15,8 +15,8 @@ namespace Orts.ActivityRunner.Processes
 
         public SystemProcess(GameHost gameHost) : base(gameHost, "System")
         {
-            gameHost.SystemInfo[StateType.Common] = new CommonInfo(gameHost);
-            gameHost.SystemInfo[StateType.Clr] = new ClrEventListener();
+            gameHost.SystemInfo[DiagnosticInfo.System] = new SystemInfo(gameHost);
+            gameHost.SystemInfo[DiagnosticInfo.Clr] = new ClrEventListener();
             Profiler.ProfilingData[ProcessType.System] = profiler;
         }
 
@@ -31,10 +31,15 @@ namespace Orts.ActivityRunner.Processes
                     profiler?.Mark();
                 }
 
-                (gameHost.SystemInfo[StateType.Common] as DebugInfoBase).Update(gameTime);
+                (gameHost.SystemInfo[DiagnosticInfo.System] as DebugInfoBase).Update(gameTime);
 
-                nextUpdate = gameTime.ElapsedGameTime.TotalSeconds + UpdateInterval;
+                nextUpdate = gameTime.TotalGameTime.TotalSeconds + UpdateInterval;
             }
+            double elapsed = gameTime.ElapsedGameTime.TotalSeconds;
+            //need to capture them here so we got every single frame
+            metric.Metrics[SlidingMetric.FrameRate].Update(elapsed, 1/elapsed);
+            metric.Metrics[SlidingMetric.FrameTime].Update(elapsed, elapsed);
+
         }
     }
 }

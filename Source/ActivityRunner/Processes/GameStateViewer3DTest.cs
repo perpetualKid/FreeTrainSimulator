@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Settings;
@@ -45,7 +46,7 @@ namespace Orts.ActivityRunner.Processes
                     writer.WriteLine($"{Simulator.Instance.Route?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase)},{Simulator.Instance.ActivityFile?.Activity?.Header?.Name?.Replace(",", ";", StringComparison.OrdinalIgnoreCase)},{(passed ? "Yes" : "No")}," +
                         $"{traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0}," +
                         $"{traceListener?.EventCount(TraceEventType.Warning) ?? 0}," +
-                        $"{traceListener?.EventCount(TraceEventType.Information) ?? 0},{loadTime:F1},{Program.Viewer.RenderProcess.FrameRate.SmoothedValue:F1}");
+                        $"{traceListener?.EventCount(TraceEventType.Information) ?? 0},{loadTime:F1},{MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].SmoothedValue:F1}");
                 }
             }
             catch (IOException) { }// Ignore any errors

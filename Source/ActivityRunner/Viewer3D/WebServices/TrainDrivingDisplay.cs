@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
@@ -691,7 +692,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("FPS"),
-                    LastCol = $"{Math.Floor(viewer.RenderProcess.FrameRate.SmoothedValue)}",
+                    LastCol = $"{Math.Floor(MetricCollector.Instance.Metrics[Processes.SlidingMetric.FrameRate].SmoothedValue)}",
                 });
             }
 
