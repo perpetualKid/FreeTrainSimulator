@@ -5,7 +5,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics;

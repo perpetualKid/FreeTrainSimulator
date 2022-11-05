@@ -21,11 +21,12 @@ using System;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class GameStateViewer3D : GameState
     {
@@ -49,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             // Do this here (instead of RenderProcess) because we only want to measure/time the running game.
             if (Game.Settings.Profiling)
-                if ((Game.Settings.ProfilingFrameCount > 0 && ++profileFrames > Game.Settings.ProfilingFrameCount) || (Game.Settings.ProfilingTime > 0 && Viewer?.RealTime >= Game.Settings.ProfilingTime))
+                if (Game.Settings.ProfilingFrameCount > 0 && ++profileFrames > Game.Settings.ProfilingFrameCount || Game.Settings.ProfilingTime > 0 && Viewer?.RealTime >= Game.Settings.ProfilingTime)
                     Game.PopState();
 
             if (firstFrame)

@@ -21,10 +21,8 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-using Orts.ActivityRunner.Processes;
 
-
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
     public class LoaderProcess : IDisposable
     {

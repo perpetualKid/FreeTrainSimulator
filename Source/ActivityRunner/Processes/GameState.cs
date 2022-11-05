@@ -21,7 +21,9 @@ using System;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+using Orts.ActivityRunner.Viewer3D;
+
+namespace Orts.ActivityRunner.Processes
 {
     /// <summary>
     /// Represents a single state for the game to be in (e.g. loading, running, in menu).

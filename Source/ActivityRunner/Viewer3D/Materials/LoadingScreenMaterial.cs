@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials

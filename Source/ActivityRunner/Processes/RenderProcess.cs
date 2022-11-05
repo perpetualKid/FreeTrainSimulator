@@ -26,16 +26,16 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Graphics.Xna;
 
-namespace Orts.ActivityRunner.Viewer3D.Processes
+namespace Orts.ActivityRunner.Processes
 {
-    public class RenderProcess: IDisposable
+    public class RenderProcess : IDisposable
     {
         public const int ShadowMapCountMaximum = 4;
 
@@ -277,12 +277,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private void LoadSettings()
         {
             currentScreenMode = game.Settings.FullScreen ? game.Settings.NativeFullscreenResolution ? ScreenMode.BorderlessFullscreen : ScreenMode.WindowedFullscreen : ScreenMode.Windowed;
-            currentScreen = (game.Settings.WindowScreen >= 0 && game.Settings.WindowScreen < Screen.AllScreens.Length) ? Screen.AllScreens[game.Settings.WindowScreen] : Screen.PrimaryScreen;
+            currentScreen = game.Settings.WindowScreen >= 0 && game.Settings.WindowScreen < Screen.AllScreens.Length ? Screen.AllScreens[game.Settings.WindowScreen] : Screen.PrimaryScreen;
 
             windowSize.Width = game.Settings.WindowSettings[WindowSetting.Size][0];
             windowSize.Height = game.Settings.WindowSettings[WindowSetting.Size][1];
 
-            windowPosition = PointExtension.ToPoint(game.Settings.WindowSettings[WindowSetting.Location]);
+            windowPosition = game.Settings.WindowSettings[WindowSetting.Location].ToPoint();
             if (windowPosition != PointExtension.EmptyPoint)
             {
                 windowPosition = new Point(
@@ -360,7 +360,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             Profiler.Start();
 
-            CurrentFrame.IsScreenChanged = (DisplaySize.X != GraphicsDevice.Viewport.Width) || (DisplaySize.Y != GraphicsDevice.Viewport.Height);
+            CurrentFrame.IsScreenChanged = DisplaySize.X != GraphicsDevice.Viewport.Width || DisplaySize.Y != GraphicsDevice.Viewport.Height;
             if (CurrentFrame.IsScreenChanged)
             {
                 DisplaySize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
