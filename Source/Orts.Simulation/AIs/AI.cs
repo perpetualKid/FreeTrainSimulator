@@ -55,7 +55,7 @@ namespace Orts.Simulation.AIs
 
         public StartTrains StartList = new StartTrains(); // trains yet to be started
         public List<AITrain> AutoGenTrains = new List<AITrain>(); // auto-generated trains
-        public double clockTime; // clock time : local time before activity start, common time from simulator after start
+        public double ClockTime { get; private set; } // clock time : local time before activity start, common time from simulator after start
         private bool localTime;  // if true : clockTime is local time
         public List<AITrain> TrainsToRemove = new List<AITrain>();
         public List<AITrain> TrainsToAdd = new List<AITrain>();
@@ -92,7 +92,7 @@ namespace Orts.Simulation.AIs
             // prerun trains
             PrerunAI(cancellationToken);
 
-            clockTime = this.simulator.ClockTime;
+            ClockTime = this.simulator.ClockTime;
             localTime = false;
         }
 
@@ -344,7 +344,7 @@ namespace Orts.Simulation.AIs
 
                 // perform update for AI trains upto actual start time
 
-                clockTime = firstAITime - 1.0f;
+                ClockTime = firstAITime - 1.0f;
                 localTime = true;
                 simulator.PreUpdate = true;
 
@@ -354,9 +354,9 @@ namespace Orts.Simulation.AIs
                     if (fullsec % 3600 == 0)
                         Trace.Write($" {fullsec / 3600:00}:00 ");
 
-                    AIUpdate((float)(runTime - clockTime), simulator.PreUpdate);
+                    AIUpdate((float)(runTime - ClockTime), simulator.PreUpdate);
                     simulator.SignalEnvironment.Update(true);
-                    clockTime = runTime;
+                    ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
                         return; // ping watchdog process
                 }
@@ -376,7 +376,7 @@ namespace Orts.Simulation.AIs
 
                 // perform update for AI trains upto actual start time
 
-                clockTime = firstAITime - 1.0f;
+                ClockTime = firstAITime - 1.0f;
                 localTime = true;
                 simulator.PreUpdate = true;
                 bool activeTrains = false;
@@ -389,14 +389,14 @@ namespace Orts.Simulation.AIs
                     if (fullsec % 3600 < 5)
                         Trace.Write($" {(fullsec / 3600):00}:00 ");
 
-                    endPreRun = AITTUpdate((float)(runTime - clockTime), simulator.PreUpdate, ref activeTrains);
+                    endPreRun = AITTUpdate((float)(runTime - ClockTime), simulator.PreUpdate, ref activeTrains);
 
                     if (activeTrains)
                     {
                         simulator.SignalEnvironment.Update(true);
                     }
 
-                    clockTime = runTime;
+                    ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
                         return; // ping watchdog process
                 }
@@ -434,7 +434,7 @@ namespace Orts.Simulation.AIs
                     if (simulator.PoolHolder.Pools.ContainsKey(playerTrain.CreateFromPool))
                     {
                         TimetablePool thisPool = simulator.PoolHolder.Pools[playerTrain.CreateFromPool];
-                        int presentTime = Convert.ToInt32(Math.Floor(clockTime));
+                        int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
                         extractResult = thisPool.ExtractTrain(ref playerTrain, presentTime);
                     }
                     else
@@ -550,9 +550,9 @@ namespace Orts.Simulation.AIs
 
                     while (!playerTrainStarted)
                     {
-                        endPreRun = AITTUpdate((float)(runTime - clockTime), simulator.PreUpdate, ref dummy);
+                        endPreRun = AITTUpdate((float)(runTime - ClockTime), simulator.PreUpdate, ref dummy);
                         simulator.SignalEnvironment.Update(true);
-                        clockTime = runTime;
+                        ClockTime = runTime;
                         runTime += deltaTime;
                         if (cancellation.IsCancellationRequested) // ping loader watchdog
                             return;
@@ -603,7 +603,7 @@ namespace Orts.Simulation.AIs
                         }
                     }
 
-                    TimeSpan delayedStart = new TimeSpan((long)(Math.Pow(10, 7) * (clockTime - simulator.ClockTime)));
+                    TimeSpan delayedStart = new TimeSpan((long)(Math.Pow(10, 7) * (ClockTime - simulator.ClockTime)));
                     Trace.TraceInformation("Start delayed by : {0}", delayedStart.ToString());
                     StartList.RemovePlayerTrain();
                     TTTrain playerTTTrain = playerTrain as TTTrain;
@@ -631,7 +631,7 @@ namespace Orts.Simulation.AIs
                 TTTrain playerTTTrain = playerTrain as TTTrain;
                 playerTTTrain.InitalizePlayerTrain();
 
-                clockTime = simulator.ClockTime = playerTTTrain.StartTime.Value;
+                ClockTime = simulator.ClockTime = playerTTTrain.StartTime.Value;
             }
 
             Trace.Write("\n");
@@ -655,15 +655,15 @@ namespace Orts.Simulation.AIs
 
             if (!localTime)
             {
-                clockTime = simulator.ClockTime;
+                ClockTime = simulator.ClockTime;
             }
 
             // check to see if any train to be added
 
             float nextTrainTime = StartList.NextTime;
-            if (nextTrainTime > 0 && nextTrainTime < clockTime)
+            if (nextTrainTime > 0 && nextTrainTime < ClockTime)
             {
-                List<AITrain> newTrains = StartList.GetTrains((float)clockTime);
+                List<AITrain> newTrains = StartList.GetTrains((float)ClockTime);
                 foreach (AITrain thisTrain in newTrains)
                 {
                     simulator.StartReference.Remove(thisTrain.Number);
@@ -680,7 +680,7 @@ namespace Orts.Simulation.AIs
                 if (train.TrainType != TrainType.AiIncorporated && (train.Cars.Count == 0 && train.TrainType != TrainType.AiIncorporated || train.Cars[0].Train != train))
                     TrainsToRemove.Add(train);
                 else
-                    train.AIUpdate(elapsedClockSeconds, clockTime, preUpdate);
+                    train.AIUpdate(elapsedClockSeconds, ClockTime, preUpdate);
             }
 
             RemoveTrains();
@@ -702,15 +702,15 @@ namespace Orts.Simulation.AIs
 
             if (!localTime)
             {
-                clockTime = simulator.ClockTime;
+                ClockTime = simulator.ClockTime;
             }
 
             // check to see if any train to be added
 
             float nextTrainTime = StartList.NextTime;
-            if (nextTrainTime > 0 && nextTrainTime < clockTime)
+            if (nextTrainTime > 0 && nextTrainTime < ClockTime)
             {
-                List<TTTrain> newTrains = StartList.GetTTTrains((float)clockTime);
+                List<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
 
                 foreach (TTTrain thisTrain in newTrains)
                 {
@@ -735,7 +735,7 @@ namespace Orts.Simulation.AIs
                         activeTrains = true;
                         break;
                     }
-                    else if (acttrain.MovementState == AiMovementState.Static && actTTTrain.ActivateTime < clockTime)
+                    else if (acttrain.MovementState == AiMovementState.Static && actTTTrain.ActivateTime < ClockTime)
                     {
                         activeTrains = true;
                         break;
@@ -751,11 +751,11 @@ namespace Orts.Simulation.AIs
 
                     for (float trainUpdateTime = 0; trainUpdateTime < elapsedClockSeconds && !endPreRun; trainUpdateTime += intervalTime)
                     {
-                        clockTime += intervalTime;
+                        ClockTime += intervalTime;
                         nextTrainTime = StartList.NextTime;
-                        if (nextTrainTime > 0 && nextTrainTime < clockTime)
+                        if (nextTrainTime > 0 && nextTrainTime < ClockTime)
                         {
-                            List<TTTrain> newTrains = StartList.GetTTTrains((float)clockTime);
+                            List<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
 
                             foreach (TTTrain thisTrain in newTrains)
                             {
@@ -778,13 +778,13 @@ namespace Orts.Simulation.AIs
                                 }
                                 else
                                 {
-                                    train.AIUpdate(intervalTime, clockTime, preUpdate);
+                                    train.AIUpdate(intervalTime, ClockTime, preUpdate);
                                 }
                             }
                             else if (train.TrainType == TrainType.PlayerIntended && train.MovementState == AiMovementState.Static)
                             {
                                 TTTrain trainTT = train as TTTrain;
-                                int presentTime = Convert.ToInt32(Math.Floor(clockTime));
+                                int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
                                 trainTT.UpdateAIStaticState(presentTime);
                             }
                         }
@@ -806,7 +806,7 @@ namespace Orts.Simulation.AIs
                             }
                             else
                             {
-                                train.AIUpdate(elapsedClockSeconds, clockTime, preUpdate);
+                                train.AIUpdate(elapsedClockSeconds, ClockTime, preUpdate);
                             }
                         }
                     }
@@ -1114,7 +1114,7 @@ namespace Orts.Simulation.AIs
 
             if (!String.IsNullOrEmpty(thisTrain.CreateFromPool))
             {
-                int presentTime = Convert.ToInt32(Math.Floor(clockTime));
+                int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
 
                 TimetablePool thisPool = simulator.PoolHolder.Pools[thisTrain.CreateFromPool];
                 TimetablePool.TrainFromPool poolResult = thisPool.ExtractTrain(ref thisTrain, presentTime);
@@ -1168,7 +1168,7 @@ namespace Orts.Simulation.AIs
             else if (!String.IsNullOrEmpty(thisTrain.CreateInPool))
             {
                 // find place in pool
-                int presentTime = Convert.ToInt32(Math.Floor(clockTime));
+                int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
                 TimetablePool thisPool = simulator.PoolHolder.Pools[thisTrain.CreateInPool];
 
                 int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;

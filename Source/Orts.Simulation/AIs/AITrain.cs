@@ -4423,7 +4423,7 @@ namespace Orts.Simulation.AIs
                 {
                     var presentTime = 0;
                     if (!PreUpdate) presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
-                    else presentTime = Convert.ToInt32(Math.Floor(AI.clockTime));
+                    else presentTime = Convert.ToInt32(Math.Floor(AI.ClockTime));
                     var actionState = ((AuxActionItem)thisAction).ProcessAction(this, presentTime);
                     if (actionState != AiMovementState.InitAction && actionState != AiMovementState.HandleAction)
                         MovementState = actionState;
