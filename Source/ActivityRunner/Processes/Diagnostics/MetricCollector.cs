@@ -26,8 +26,8 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
         internal void Update(GameTime gameTime)
         {
-            double elapsed = gameTime.ElapsedGameTime.TotalMilliseconds;
-            double timeCpu = (process.TotalProcessorTime - lastCpuTime).TotalMilliseconds;
+            double elapsed = gameTime.ElapsedGameTime.TotalSeconds;
+            double timeCpu = (process.TotalProcessorTime - lastCpuTime).TotalSeconds;
             lastCpuTime = process.TotalProcessorTime;
 
             Metrics[SlidingMetric.ProcessorTime].Update(elapsed / 1000, 100 * timeCpu / elapsed);

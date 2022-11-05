@@ -44,37 +44,37 @@ namespace Orts.ActivityRunner.Processes
     /// </summary>
     public class GameHost : Game
     {
-        private readonly SystemProcess systemProcess;
+        internal SystemProcess systemProcess { get; }
 
         /// <summary>
         /// Gets the <see cref="UserSettings"/> for the game.
         /// </summary>
-        public UserSettings Settings { get; private set; }
+        public UserSettings Settings { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="RenderProcess"/> for the game.
         /// </summary>
-        internal RenderProcess RenderProcess { get; private set; }
+        internal RenderProcess RenderProcess { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="UpdaterProcess"/> for the game.
         /// </summary>
-        internal UpdaterProcess UpdaterProcess { get; private set; }
+        internal UpdaterProcess UpdaterProcess { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="LoaderProcess"/> for the game.
         /// </summary>
-        internal LoaderProcess LoaderProcess { get; private set; }
+        internal LoaderProcess LoaderProcess { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="SoundProcess"/> for the game.
         /// </summary>
-        internal SoundProcess SoundProcess { get; private set; }
+        internal SoundProcess SoundProcess { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="WebServer"/> for the game.
         /// </summary>
-        public WebServerProcess WebServerProcess { get; private set; }
+        public WebServerProcess WebServerProcess { get; }
 
         public EnumArray<INameValueInformationProvider, DiagnosticInfo> SystemInfo { get; } = new EnumArray<INameValueInformationProvider, DiagnosticInfo>();
 
@@ -147,7 +147,6 @@ namespace Orts.ActivityRunner.Processes
                 Exit();
             else
             {
-                systemProcess.TriggerUpdate(gameTime);
                 RenderProcess.Update(gameTime);
                 SystemInfo[DiagnosticInfo.System].DebugInfo["Resolution"] = Window.ClientBounds.ToString();// need to update from main/render thread otherwise results are invalid
             }
