@@ -1933,6 +1933,8 @@ namespace Orts.Formats.Msts.Parsers
                             fileName = ReadItem(skip_mode, string_mode);
                             SkipRestOfBlock();
                         }
+                        if (Path.GetFileName(fileName).Equals("##samename##", StringComparison.OrdinalIgnoreCase))
+                            fileName = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileName(FileName));
                         string includeFileName = Path.Combine(Path.GetDirectoryName(FileName), fileName);
                         if (!File.Exists(includeFileName))
                             STFException.TraceWarning(this, $"'{includeFileName}' not found");
