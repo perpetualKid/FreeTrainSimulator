@@ -898,7 +898,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!IsPowered)
+            if (!IsPowered && Control.HideIfDisabled)
                 return;
 
             base.PrepareFrame(frame, elapsedTime);
