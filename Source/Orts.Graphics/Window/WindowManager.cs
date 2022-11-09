@@ -70,6 +70,7 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAView => ref xnaView;
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
+        internal readonly GraphShader GraphShader;
         private Rectangle clientBounds;
         public ref readonly Rectangle ClientBounds => ref clientBounds;
 
@@ -144,6 +145,8 @@ namespace Orts.Graphics.Window
             WindowShader.GlassColor = Color.Black;
             WindowShader.Opacity = opacityDefault;
             WindowShader.WindowTexture = windowTexture;
+
+            GraphShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.Diagram] as GraphShader;
 
             FontManager.ScalingFactor = DpiScaling;
             TextFontDefault = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Regular)[DefaultFontSize];
@@ -411,11 +414,11 @@ namespace Orts.Graphics.Window
         {
             for (int i = 0; i < windows.Count; i++)
             {
+                WindowShader.SetState();
                 FormBase window = windows[i];
+                WindowShader.Opacity = window == activeWindow ? opacityDefault * 1.25f : opacityDefault;
                 if (window is WindowBase framedWindow)
                 {
-                    WindowShader.SetState();
-                    WindowShader.Opacity = window == activeWindow ? opacityDefault * 1.25f : opacityDefault;
                     framedWindow.WindowDraw();
                 }
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, null, null);

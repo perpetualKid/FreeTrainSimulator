@@ -30,7 +30,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             double timeCpu = (process.TotalProcessorTime - lastCpuTime).TotalSeconds;
             lastCpuTime = process.TotalProcessorTime;
 
-            Metrics[SlidingMetric.ProcessorTime].Update(elapsed / 1000, 100 * timeCpu / elapsed);
+            Metrics[SlidingMetric.ProcessorTime].Update(elapsed , 100 * timeCpu / elapsed);
             Metrics[SlidingMetric.FrameRate].Update(elapsed, 1 / elapsed);
             Metrics[SlidingMetric.FrameTime].Update(elapsed, elapsed);
 

@@ -14,6 +14,7 @@ namespace Orts.Graphics.Shaders
         private MaterialManager(GraphicsDevice graphicsDevice)
         {
             EffectShaders[ShaderEffect.PopupWindow] = new PopupWindowShader(graphicsDevice);
+            EffectShaders[ShaderEffect.Diagram] = new GraphShader(graphicsDevice);
         }
 
         public static MaterialManager Instance(Game game)

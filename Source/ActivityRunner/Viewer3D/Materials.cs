@@ -281,9 +281,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     case "Debug":
                         Materials[materialKey] = new HUDGraphMaterial(Viewer);
                         break;
-                    case "DebugNormals":
-                        Materials[materialKey] = new DebugNormalMaterial(Viewer);
-                        break;
                     case "Forest":
                         Materials[materialKey] = new ForestMaterial(Viewer, textureName);
                         break;
@@ -1344,38 +1341,6 @@ namespace Orts.ActivityRunner.Viewer3D
             // And we're done.
             textBoxes.Add(textBox);
             return new Point(textBox.X + 5, textBox.Y + 2);
-        }
-    }
-
-    public class DebugNormalMaterial : Material
-    {
-        private readonly EffectPassCollection shaderPasses;
-        private readonly DebugShader shader;
-
-        public DebugNormalMaterial(Viewer viewer)
-            : base(viewer, null)
-        {
-            shader = viewer.MaterialManager.DebugShader;
-            shaderPasses = shader.Techniques[0].Passes;
-        }
-
-        public override void SetState(Material previousMaterial)
-        {
-            shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProjection);
-                    shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw();
-                }
-            }
         }
     }
 }

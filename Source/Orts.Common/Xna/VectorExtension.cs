@@ -76,5 +76,9 @@ namespace Orts.Common.Xna
             return Color.Transparent;
         }
 
+        public static Vector4 ToVector4(this Rectangle value)
+        {
+            return new Vector4(value.X, value.Y, value.Width, value.Height);
+        }
     }
 }
