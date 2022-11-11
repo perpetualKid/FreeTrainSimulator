@@ -1133,7 +1133,7 @@ namespace Orts.Simulation.Timetables
 
                 // pool underflow : create engine from scratch
                 DateTime baseDTA = new DateTime();
-                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.clockTime);
+                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.ClockTime);
 
                 if (ForceCreation)
                 {

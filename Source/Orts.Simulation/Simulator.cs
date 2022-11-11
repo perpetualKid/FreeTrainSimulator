@@ -392,7 +392,7 @@ namespace Orts.Simulation
             TTTrain playerTTTrain = allTrains[0];
 
             AI = new AI(this, allTrains, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellationToken);
-            ClockTime = AI.clockTime;
+            ClockTime = AI.ClockTime;
 
             if (playerTTTrain != null)
             {

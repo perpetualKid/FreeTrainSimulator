@@ -918,7 +918,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 DateTime baseDTA = new DateTime();
-                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.clockTime);
+                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.ClockTime);
 
                 if (ForceCreation)
                 {

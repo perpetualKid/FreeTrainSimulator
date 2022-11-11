@@ -2610,7 +2610,7 @@ namespace Orts.Simulation.Timetables
             if (TrainType == TrainType.Ai)
             {
                 AITrain thisAI = this as AITrain;
-                presentTime = Convert.ToInt32(Math.Floor(thisAI.AI.clockTime));
+                presentTime = Convert.ToInt32(Math.Floor(thisAI.AI.ClockTime));
             }
 
             if (StationStops != null && StationStops.Count > 0 && !AtStation)
@@ -3581,7 +3581,7 @@ namespace Orts.Simulation.Timetables
             }
 
             DateTime baseDTd = new DateTime();
-            DateTime depTime = baseDTd.AddSeconds(AI.clockTime);
+            DateTime depTime = baseDTd.AddSeconds(AI.ClockTime);
 
             // change state if train still exists
             if (endOfPath[1])
@@ -7803,7 +7803,7 @@ namespace Orts.Simulation.Timetables
             if (TrainType == TrainType.Ai)
             {
                 AITrain aitrain = this as AITrain;
-                presentTime = aitrain.AI.clockTime;
+                presentTime = aitrain.AI.ClockTime;
             }
 
             if (reqWait.waittrigger.HasValue)
@@ -11529,10 +11529,10 @@ namespace Orts.Simulation.Timetables
             }
 
             DateTime baseDT = new DateTime();
-            DateTime stopTime = baseDT.AddSeconds(AI.clockTime);
+            DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.clockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
@@ -11588,10 +11588,10 @@ namespace Orts.Simulation.Timetables
                 }
 
                 DateTime baseDT = new DateTime();
-                DateTime stopTime = baseDT.AddSeconds(AI.clockTime);
+                DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
                 StringBuilder sob = new StringBuilder();
-                sob.Append($"{Number};{AI.clockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+                sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
                 File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
             }
         }
@@ -11654,20 +11654,20 @@ namespace Orts.Simulation.Timetables
             }
 
             DateTime baseDT = new DateTime();
-            DateTime stopTime = baseDT.AddSeconds(AI.clockTime);
+            DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.clockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
         public void TTAnalysisStartMoving(string info)
         {
             DateTime baseDTA = new DateTime();
-            DateTime moveTimeA = baseDTA.AddSeconds(AI.clockTime);
+            DateTime moveTimeA = baseDTA.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.clockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
+            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
     }

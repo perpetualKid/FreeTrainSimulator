@@ -42,14 +42,14 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="EmbedIO" Version="3.4.3" />
+		<PackageReference Include="EmbedIO" Version="3.5.2" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
-		<PackageReference Include="GetText.NET" Version="1.6.6" />
-		<PackageReference Include="GetText.NET.WindowsForms" Version="1.6.6" />
+		<PackageReference Include="GetText.NET" Version="1.7.14" />
+		<PackageReference Include="GetText.NET.WindowsForms" Version="1.7.14" />
 		<PackageReference Include="OpenAL-Soft" Version="1.16.0">
 			<GeneratePathProperty>True</GeneratePathProperty>
 		</PackageReference>
-		<PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+		<PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
