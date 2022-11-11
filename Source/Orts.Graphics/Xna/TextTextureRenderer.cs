@@ -114,6 +114,13 @@ namespace Orts.Graphics.Xna
             return (size.Width == 0 || size.Height == 0) ? emptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
         }
 
+        public Texture2D RenderText(string text, Font font, OutlineRenderOptions outlineOptions = null)
+        {
+            Texture2D result = Resize(text, font, outlineOptions);
+            RenderText(text, font, result, outlineOptions);
+            return result;
+        }
+
         public void RenderText(string text, Font font, Texture2D texture, OutlineRenderOptions outlineOptions = null)
         {
             if (null == texture)

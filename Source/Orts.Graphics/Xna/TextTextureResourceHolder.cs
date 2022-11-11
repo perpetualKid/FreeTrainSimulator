@@ -45,8 +45,7 @@ namespace Orts.Graphics.Xna
                 }
                 else
                 {
-                    texture = textRenderer.Resize(text, font, outline);
-                    textRenderer.RenderText(text, font, texture, outline);
+                    texture = textRenderer.RenderText(text, font, outline);
                     if (!currentResources.TryAdd(identifier, texture))
                     {
                         texture.Dispose();

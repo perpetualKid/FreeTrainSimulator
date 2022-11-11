@@ -46,9 +46,7 @@ namespace Orts.Graphics.DrawableComponents
             int identifier = HashCode.Combine(font, message, OutlineRenderOptions);
             Texture2D texture = Get(identifier, () =>
             {
-                Texture2D inner = textRenderer.Resize(message, font, OutlineRenderOptions);
-                textRenderer.RenderText(message, font, inner, OutlineRenderOptions);
-                return inner;
+                return textRenderer.RenderText(message, font, OutlineRenderOptions);
             });
             if (null != OutlineRenderOptions)
                 color = Color.White;
