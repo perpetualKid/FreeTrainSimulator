@@ -1,22 +1,3 @@
-// COPYRIGHT 2013 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// This file is the responsibility of the 3D & Environment Team. 
-
 ////////////////////////////////////////////////////////////////////////////////
 //              D I A G R A M   O V E R L A Y   S H A D E R                   //
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,8 +5,8 @@
 ////////////////////    G L O B A L   V A L U E S    ///////////////////////////
 
 float2 ScreenSize;
-float4 Bounds; // xy = xy position, zw = width/height
-float2 GraphSample; // x = index, y = count
+float4 Bounds; 		// xy = xy position, zw = width/height
+float2 GraphSample; // x = index, y = count, z = left or right side of triangle for wrapping
 float4 BorderColor;
 float4 GraphColor;
 
@@ -48,11 +29,13 @@ struct VERTEX_OUTPUT
 VERTEX_OUTPUT VSGraph(in VERTEX_INPUT In)
 {
 	VERTEX_OUTPUT Out = (VERTEX_OUTPUT)0;
-	
-	// The graph is displayed at (Bounds.xy) and is sized (Bounds.zw).
-	float x = frac(In.Position.x - GraphSample.x / GraphSample.y);
+	float threshold = 0.5 / GraphSample.y;
+	float x = In.Position.x - GraphSample.x / GraphSample.y;
+	x = lerp(frac(x), abs(x), abs(x) < threshold);
+	x = lerp(x, lerp(x, 1.0, x < threshold), In.Position.z);
 	Out.Position.x = Bounds.x + (Bounds.z - 2) * x + 1;
 	Out.Position.y = - Bounds.y + (Bounds.w - 2)* In.Position.y - Bounds.w + 1;
+	// Viewport adjustment.
 	Out.Position.xy /= ScreenSize / 2;
 	Out.Position.xy -= float2(1, -1);
 	Out.Position.w = 1;

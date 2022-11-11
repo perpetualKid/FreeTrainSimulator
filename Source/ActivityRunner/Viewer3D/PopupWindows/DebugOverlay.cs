@@ -2,6 +2,8 @@
 
 using GetText;
 
+using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Processes;
 using Orts.Common;
 using Orts.Common.Input;
@@ -28,6 +30,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private TabLayout<TabSettings> tabLayout;
         private readonly System.Drawing.Font textFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[12];
 
+        private GraphControl graphControl;
+
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
@@ -44,6 +48,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
                 layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 250 });
                 systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System];
+
+                layoutContainer.Add(graphControl = new GraphControl(this, 0, 200, 1024, 40, "Min", "Max", "") { BorderColor = Color.GreenYellow});
             };
             tabLayout.TabLayouts[TabSettings.Clr] = (layoutContainer) =>
             {
