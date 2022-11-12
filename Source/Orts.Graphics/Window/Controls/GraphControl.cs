@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Graphics.Shaders;
@@ -30,12 +32,24 @@ namespace Orts.Graphics.Window.Controls
         private readonly GraphShader graphShader;
         private Vector2 graphSample;
 
-        public Color GraphColor { get; set; }
+        private Color graphColor;
+
+        public Color GraphColor 
+        {
+            get => graphColor;
+            set
+            {
+                graphColor = value;
+                graphColor.A = (byte)(value.A * Window.Owner.WindowOpacity);
+                    }
+        }
 
         public int SampleCount { get; }
 
-        public GraphControl(FormBase window, int x, int y, int width, int height, string minLabel, string maxLabel, string name, int sampleCount = 1024) : base(window, x, y, width, height)
+        public GraphControl(FormBase window, int x, int y, int width, int height, string minLabel, string maxLabel, string name, int sampleCount = 1024) : 
+            base(window ?? throw new ArgumentNullException(nameof(window)), x, y, (int)(width * window.Owner.DpiScaling), (int)(height* window.Owner.DpiScaling))
         {
+            BorderColor= Color.White;
             graphShader = Window.Owner.GraphShader;
             SampleCount = sampleCount;
             VertexCount = VerticiesPerSample * SampleCount;
@@ -62,16 +76,15 @@ namespace Orts.Graphics.Window.Controls
         internal override void Initialize()
         {
             Window.Owner.GraphShader.ScreenSize = Window.Owner.ClientBounds.Size.ToVector2();
-            Rectangle bounds = Bounds;
-            //bounds.Inflate(-10, -2);
-            //bounds.Offset(-10, 1);
-            Window.Owner.GraphShader.Bounds = bounds;
-            Window.Owner.GraphShader.BorderColor = BorderColor;
-            Window.Owner.GraphShader.GraphColor = GraphColor;
 
-            labelNamePosition = bounds.Location + new Point((bounds.Size.X - labelName.Width) / 2, 4);
-            labelMaxPosition = bounds.Location + new Point((bounds.Size.X - labelMax.Width), 4);
-            labelMinPosition = bounds.Location + new Point((bounds.Size.X - labelMax.Width), bounds.Size.Y - labelMin.Height);
+            labelNamePosition = Bounds.Location + new Point((Bounds.Size.X - labelName.Width) / 2, 4);
+            labelMaxPosition = Bounds.Location + new Point((Bounds.Size.X - labelMax.Width), 4);
+            labelMinPosition = Bounds.Location + new Point((Bounds.Size.X - labelMin.Width), Bounds.Size.Y - labelMin.Height);
+        }
+
+        public void AddSample(double value)
+        {
+            AddSample((float)value);
         }
 
         public void AddSample(float value)
@@ -96,6 +109,9 @@ namespace Orts.Graphics.Window.Controls
             graphShader.SetState();
 
             graphShader.CurrentTechnique = Window.Owner.GraphShader.BorderTechnique;
+            graphShader.Bounds = Bounds;
+            graphShader.BorderColor = BorderColor;
+            graphShader.GraphColor = GraphColor;
             graphShader.CurrentTechnique.Passes[0].Apply();
             // Draw border
             Window.Owner.GraphicsDevice.SetVertexBuffer(vertexBufferBorder);
@@ -109,8 +125,6 @@ namespace Orts.Graphics.Window.Controls
 
             Window.Owner.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, SampleCount * PrimitivesPerSample);
             graphShader.ResetState();
-
-            base.Draw(spriteBatch, offset);
 
             spriteBatch.Draw(labelName, (labelNamePosition + offset).ToVector2(), Color.White);
             spriteBatch.Draw(labelMin, (labelMinPosition + offset).ToVector2(), Color.White);
