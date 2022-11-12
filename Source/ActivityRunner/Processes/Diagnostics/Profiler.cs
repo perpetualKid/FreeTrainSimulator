@@ -34,7 +34,6 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
         private readonly string name;
         public SmoothedData Wall { get; private set; }
         public SmoothedData CPU { get; private set; }
-        public SmoothedData Wait { get; private set; }
 
         private readonly Stopwatch timeTotal;
         private readonly Stopwatch timeRunning;
@@ -47,7 +46,6 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             this.name = name;
             Wall = new SmoothedData();
             CPU = new SmoothedData();
-            Wait = new SmoothedData();
             timeTotal = new Stopwatch();
             timeRunning = new Stopwatch();
             timeTotal.Start();
@@ -105,7 +103,6 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             // Calculate the Wall and CPU times from timer data.
             Wall.Update(timeTotal / 1000, 100 * timeRunning / timeTotal);
             CPU.Update(timeTotal / 1000, 100 * timeCPU / timeTotal);
-            Wait.Update(timeTotal / 1000, Math.Max(0, (timeRunning - timeCPU) / timeTotal));
-        }
+      }
     }
 }
