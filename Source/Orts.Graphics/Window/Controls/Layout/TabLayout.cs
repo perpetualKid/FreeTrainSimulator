@@ -16,7 +16,6 @@ namespace Orts.Graphics.Window.Controls.Layout
         private class TabData
         {
             internal T Tab;
-            internal Label TabLabel;
             internal ControlLayout TabLayout;
         }
 

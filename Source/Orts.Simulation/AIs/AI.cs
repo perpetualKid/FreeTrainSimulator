@@ -70,15 +70,6 @@ namespace Orts.Simulation.AIs
         public AI(Simulator simulator, double activityStartTime, CancellationToken cancellationToken)
         {
             this.simulator = simulator;
-#if WITH_PATH_DEBUG
-
-            if (File.Exists(@"C:\temp\checkpath.txt"))
-            {
-                File.Delete(@"C:\temp\checkpath.txt");
-            }
-
-
-#endif
             if (simulator.ActivityFile != null && simulator.ActivityFile.Activity.Traffic != null)
             {
                 foreach (var sd in simulator.ActivityFile.Activity.Traffic.Services)
@@ -984,9 +975,6 @@ namespace Orts.Simulation.AIs
 
             // Patch placingproblem JeroenP (1 line)
             train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "-----  New AI Train  -----\n");
-#endif
             train.CreateRoute(false);  // create route without use of FrontTDBtraveller
             train.CheckFreight(); // check if train is freight or passenger
             train.SetDistributedPowerUnitIds(); // distributed power

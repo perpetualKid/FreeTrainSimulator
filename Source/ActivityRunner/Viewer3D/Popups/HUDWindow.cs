@@ -94,14 +94,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private HUDGraphMesh LocomotiveGraphsThrottle;
         private HUDGraphMesh LocomotiveGraphsInputPower;
         private HUDGraphMesh LocomotiveGraphsOutputPower;
-        private HUDGraphSet DebugGraphs;
-        private HUDGraphMesh DebugGraphMemory;
-        private HUDGraphMesh DebugGraphGCs;
-        private HUDGraphMesh DebugGraphFrameTime;
-        private HUDGraphMesh DebugGraphProcessRender;
-        private HUDGraphMesh DebugGraphProcessUpdater;
-        private HUDGraphMesh DebugGraphProcessLoader;
-        private HUDGraphMesh DebugGraphProcessSound;
 
         public HUDWindow(WindowManager owner)
             : base(owner, TextOffset, TextOffset, "HUD")
@@ -158,18 +150,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ForceGraphMotiveForce = ForceGraphs.Add(Viewer.Catalog.GetString("Motive force"), "0%", "100%", Color.Green, 75);
             ForceGraphDynamicForce = ForceGraphs.AddOverlapped(Color.Red, 75);
             ForceGraphNumOfSubsteps = ForceGraphs.Add(Viewer.Catalog.GetString("Num of substeps"), "0", "300", Color.Blue, 25);
-
-            DebugGraphs = new HUDGraphSet(Viewer, HUDGraphMaterial);
-            DebugGraphMemory = DebugGraphs.Add(Viewer.Catalog.GetString("Memory"), "0GB", $"{8:F0}GB", Color.Orange, 50);
-            DebugGraphGCs = DebugGraphs.Add(Viewer.Catalog.GetString("GCs"), "0", "2", Color.Magenta, 20); // Multiple of 4
-            DebugGraphFrameTime = DebugGraphs.Add(Viewer.Catalog.GetString("Frame time"), "0.0s", "0.1s", Color.LightGreen, 50);
-            DebugGraphProcessRender = DebugGraphs.Add(Viewer.Catalog.GetString("Render process"), "0%", "100%", Color.Red, 20);
-            DebugGraphProcessUpdater = DebugGraphs.Add(Viewer.Catalog.GetString("Updater process"), "0%", "100%", Color.Yellow, 20);
-            DebugGraphProcessLoader = DebugGraphs.Add(Viewer.Catalog.GetString("Loader process"), "0%", "100%", Color.Magenta, 20);
-            DebugGraphProcessSound = DebugGraphs.Add(Viewer.Catalog.GetString("Sound process"), "0%", "100%", Color.Cyan, 20);
-#if WITH_PATH_DEBUG
-            TextPage = 5;
-#endif
         }
 
         internal protected override void Save(BinaryWriter outf)
@@ -221,8 +201,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextPage = TextPage == 0 ? LastTextPage : 0;
         }
 
-        private int[] lastGCCounts = new int[3];
-
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(frame, elapsedTime, updateFull);
@@ -273,19 +251,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 LocomotiveGraphs.PrepareFrame(frame);
             }
 #endif
-            if (Visible && TextPages[TextPage] == TextPageDebugInfo)
-            {
-                var gcCounts = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) };
-                DebugGraphMemory.AddSample((float)GetWorkingSetSize() / 8);
-                DebugGraphGCs.AddSample(gcCounts[2] > lastGCCounts[2] ? 1.0f : gcCounts[1] > lastGCCounts[1] ? 0.5f : gcCounts[0] > lastGCCounts[0] ? 0.25f : 0);
-                DebugGraphFrameTime.AddSample((float)MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 10);
-                DebugGraphProcessRender.AddSample((float)Profiler.ProfilingData[ProcessType.Render].Wall.Value / 100);
-                DebugGraphProcessUpdater.AddSample((float)Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
-                DebugGraphProcessLoader.AddSample((float)Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
-                DebugGraphProcessSound.AddSample((float)Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
-                lastGCCounts = gcCounts;
-                DebugGraphs.PrepareFrame(frame);
-            }
         }
 
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
@@ -361,8 +326,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (Visible && TextPages[TextPage] == TextPageLocomotiveInfo)
                 LocomotiveGraphs.Draw(spriteBatch);
 #endif
-            if (Visible && TextPages[TextPage] == TextPageDebugInfo)
-                DebugGraphs.Draw(spriteBatch);
         }
 
         #region Table handling
@@ -1883,64 +1846,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableAddLine(table);
                 }
             }
-
-
-
-#if WITH_PATH_DEBUG
-            TextPageHeading(table, "PATH info");
-
-            TableSetCells(table, 0, "Train", "Path ");
-            TableSetCells(table, 8, "Type", "Info");
-            TableAddLine(table);
-
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC)
-                {
-                    TextPagePathInfo(thisTrain, table);
-                }
-            }
-            TextPageHeading(table, "ACTIONs info");
-
-            TableSetCells(table, 0, "Train", "Actions ");
-            TableAddLine(table);
-
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC)
-                {
-                    TextPageActionsInfo(thisTrain, table);
-                }
-            }
-#endif
-
         }
-#if WITH_PATH_DEBUG
-        void TextPagePathInfo(AITrain thisTrain, TableData table)
-        {
-            // next is active AI trains
-            if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC)
-            {
-                var status = thisTrain.GetPathStatus(Viewer.MilepostUnitsMetric);
-                status = thisTrain.AddPathInfo(status, Viewer.MilepostUnitsMetric);
-                for (var iCell = 0; iCell < status.Length; iCell++)
-                    TableSetCell(table, table.CurrentRow, iCell, status[iCell]);
-                TableAddLine(table);
-            }
-        }
-
-        void TextPageActionsInfo(AITrain thisTrain, TableData table)
-        {
-            // next is active AI trains
-            if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC)
-            {
-                var status = thisTrain.GetActionStatus(Viewer.MilepostUnitsMetric);
-                for (var iCell = 0; iCell < status.Length; iCell++)
-                    TableSetCell(table, table.CurrentRow, iCell, status[iCell]);
-                TableAddLine(table);
-            }
-        }
-#endif
 
         private void TextPageWeather(TableData table)
         {

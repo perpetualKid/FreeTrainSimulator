@@ -97,14 +97,6 @@ namespace Orts.Simulation.AIs
         internal const float minStopDistanceM = 3.0f;           // minimum clear distance for stopping at signal in station
         internal const float signalApproachDistanceM = 20.0f;   // final approach to signal
 
-#if WITH_PATH_DEBUG
-        //  Only for EnhancedActCompatibility
-        public string currentAIState = "";
-        public string currentAIStation = "";
-        int countRequiredAction = 0;
-        public AIActionItem savedActionInfo = null;              // no next action
-
-#endif
         //================================================================================================//
         /// <summary>
         /// Constructor
@@ -513,21 +505,6 @@ namespace Orts.Simulation.AIs
         public void AIUpdate(double elapsedClockSeconds, double clockTime, bool preUpdate)
         {
             PreUpdate = preUpdate;   // flag for pre-update phase
-#if WITH_PATH_DEBUG
-            int lastIndex = PreviousPosition[0].RouteListIndex;
-            int presentIndex = PresentPosition[Direction.Forward].RouteListIndex;
-            if (lastIndex != presentIndex || countRequiredAction != requiredActions.Count)
-            {
-                countRequiredAction = requiredActions.Count;
-                File.AppendAllText(@"C:\temp\checkpath.txt", "Train position change: Train" + Number  
-                    + " direction " + PresentPosition[Direction.Forward].TCDirection 
-                    + "\n");
-            }
-            if (nextActionInfo != savedActionInfo)
-            {
-                savedActionInfo = nextActionInfo;
-            }
-#endif
 
             if (TrainType == TrainType.AiIncorporated || TrainType == TrainType.Static || MovementState == AiMovementState.Suspended || MovementState == AiMovementState.Frozen)
                 return;
@@ -604,9 +581,6 @@ namespace Orts.Simulation.AIs
 
             int presentTime = Convert.ToInt32(Math.Floor(clockTime));
 
-#if WITH_PATH_DEBUG
-            currentAIStation = " ---";
-#endif
             bool[] stillExist;
 
             AuxActionsContainer.ProcessGenAction(this, presentTime, elapsedClockSeconds, MovementState);
@@ -674,100 +648,7 @@ namespace Orts.Simulation.AIs
                     break;
 
             }
-#if WITH_PATH_DEBUG
-            //if (Simulator.Settings.EnhancedActCompatibility)
-            {
-                switch (MovementState)
-                {
-                    case AI_MOVEMENT_STATE.AI_STATIC:
-                        currentAIState = "STATIC";
-                        break;
-                    case AI_MOVEMENT_STATE.STOPPED:
-                        currentAIState = "STOPPED";
-                        break;
-                    case AI_MOVEMENT_STATE.INIT:
-                        currentAIState = "INIT";
-                        break;
-                    case AI_MOVEMENT_STATE.STATION_STOP:
-                        currentAIState = "STATION_STOP";
-                        break;
-                    case AI_MOVEMENT_STATE.BRAKING:
-                        currentAIState = "BRAKING";
-                        break;
-                    case AI_MOVEMENT_STATE.APPROACHING_END_OF_PATH:
-                        currentAIState = "APPROACHING_EOP";
-                        break;
-                    case AI_MOVEMENT_STATE.ACCELERATING:
-                        currentAIState = "ACCELERATING";
-                        break;
-                    case AI_MOVEMENT_STATE.FOLLOWING:
-                        currentAIState = "FOLLOWING";
-                        break;
-                    case AI_MOVEMENT_STATE.RUNNING:
-                        currentAIState = "RUNNING";
-                        break;
-                    case AI_MOVEMENT_STATE.HANDLE_ACTION:
-                        currentAIState = "HANDLE";
-                        break;
-                }
-                if (nextActionInfo != null)
-                {
-                    switch (nextActionInfo.NextAction)
-                    {
-                        case AIActionItem.AI_ACTION_TYPE.STATION_STOP:
-                            currentAIState = String.Concat(currentAIState, " to STOP");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT:
-                            currentAIState = String.Concat(currentAIState, " to SPEED_LIMIT");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL:
-                            currentAIState = String.Concat(currentAIState, " to SPEED_SIGNAL");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP:
-                            currentAIState = String.Concat(currentAIState, " to SIGNAL_ASPECT_STOP");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED:
-                            currentAIState = String.Concat(currentAIState, " to SIGNAL_ASPECT_RESTRICTED");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY:
-                            currentAIState = String.Concat(currentAIState, " to END_OF_AUTHORITY");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD:
-                            currentAIState = String.Concat(currentAIState, " to TRAIN_AHEAD");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE:
-                            currentAIState = String.Concat(currentAIState, " to END_OF_ROUTE");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.REVERSAL:
-                            currentAIState = String.Concat(currentAIState, " to REVERSAL");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.AUX_ACTION:
-                            currentAIState = String.Concat(currentAIState, " to AUX ACTION ");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.NONE:
-                            currentAIState = String.Concat(currentAIState, " to NONE ");
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    currentAIState = String.Concat(currentAIState, " to ???? ");
-                }
-                currentAIState = String.Concat(currentAIState, currentAIStation);
-            }
-#endif
             LastSpeedMpS = SpeedMpS;
-
-#if WITH_PATH_DEBUG
-            lastIndex = PreviousPosition[0].RouteListIndex;
-            presentIndex = PresentPosition[Direction.Forward].RouteListIndex;
-            if (lastIndex != presentIndex || countRequiredAction != requiredActions.Count)
-            {
-                countRequiredAction = requiredActions.Count;
-            }
-#endif
  //            Trace.TraceWarning ("Time {0} Train no. {1} Speed {2} AllowedMaxSpeed {3} Throttle percent {4} Distance travelled {5} Movement State {6} BrakePerCent {7}",
  //               clockTime, Number, SpeedMpS, AllowedMaxSpeedMpS, AITrainThrottlePercent, DistanceTravelledM, MovementState, AITrainBrakePercent);
         }
@@ -1638,31 +1519,6 @@ namespace Orts.Simulation.AIs
                 correctedTime = presentTime - 24 * 3600;
             }
 
-#if WITH_PATH_DEBUG
-            if (Simulator.Settings.EnhancedActCompatibility)
-            {
-                currentAIStation = " ---";
-                switch (thisStation.ActualStopType)
-                {
-                    case StationStop.STOPTYPE.MANUAL_STOP:
-                        currentAIStation = " Manual stop";
-                        break;
-                    case StationStop.STOPTYPE.SIDING_STOP:
-                        currentAIStation = " Siding stop";
-                        break;
-                    case StationStop.STOPTYPE.STATION_STOP:
-                        currentAIStation = " Station stop";
-                        break;
-                    case StationStop.STOPTYPE.WAITING_POINT:
-                        currentAIStation = " Waiting Point";
-                        break;
-                    default:
-                        currentAIStation = " ---";
-                        break;
-                }
-                currentAIStation = String.Concat(currentAIStation, " ", actualdepart.ToString(), "?", correctedTime.ToString());
-            }
-#endif
             if (actualdepart > correctedTime)
             {
                 if (thisStation.StopType == StationStopType.Station &&
@@ -5185,117 +5041,6 @@ namespace Orts.Simulation.AIs
             success = true;
             return success;
         }
-
-
-#if WITH_PATH_DEBUG 
-        //================================================================================================//
-        /// <summary>
-        /// AddPathInfo:  Used to construct a single line for path debug in HUD Windows
-        /// </summary>
-
-        public String[] AddPathInfo(String[] stateString, bool metric)
-        {
-            String[] retString = this.TCRoute.GetTCRouteInfo(stateString, PresentPosition[Direction.Forward]);
-
-            retString[1] = currentAIState;
-            return (retString);
-        }
-
-        public String[] GetActionStatus(bool metric)
-        {
-            int iColumn = 0;
-
-            string[] statusString = new string[2];
-
-            //  "Train"
-            statusString[0] = Number.ToString();
-            iColumn++;
-
-            //  "Action"
-            statusString[1] = "Actions: ";
-            foreach (var action in requiredActions)
-            {
-                statusString[1] = String.Concat(statusString[1], showActionInfo(action));
-            }
-            statusString[1] = String.Concat(statusString[1], "NextAction->", showActionInfo(nextActionInfo));
-            return statusString;
-        }
-
-        String showActionInfo(Train.DistanceTravelledItem action)
-        {
-            string actionString = String.Empty;
-            //actionString = string.Concat(actionString, "Actions:");
-            if (action == null)
-                return "";
-
-            if (action.GetType() == typeof(ClearSectionItem))
-            {
-                ClearSectionItem TrainAction = action as ClearSectionItem;
-                //actionString = String.Concat(actionString, " ClearSection(", action.RequiredDistance.ToString("F0"), "):");
-                actionString = String.Concat(actionString, " CLR Section(", TrainAction.TrackSectionIndex, "):");
-            }
-            else if (action.GetType() == typeof(ActivateSpeedLimit))
-            {
-                actionString = String.Concat(actionString, " ASL(", action.RequiredDistance.ToString("F0"), "m):");
-            }
-
-            else if (action.GetType() == typeof(AIActionItem) || action.GetType().IsSubclassOf(typeof(AuxActionItem)))
-            {
-                AIActionItem AIaction = action as AIActionItem;
-                {
-                    switch (AIaction.NextAction)
-                    {
-                        case AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY:
-                            actionString = String.Concat(actionString, " EOA(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE:
-                            actionString = String.Concat(actionString, " EOR(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.REVERSAL:
-                            actionString = String.Concat(actionString, " REV(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED:
-                            actionString = String.Concat(actionString, " SAR(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP:
-                            string infoSignal = "";
-                            if (AIaction.ActiveItem.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
-                            {
-                                infoSignal = AIaction.ActiveItem.signal_state.ToString();
-                                infoSignal = String.Concat(infoSignal, ",", AIaction.ActiveItem.ObjectDetails.blockState.ToString());
-                            }
-                            actionString = String.Concat(actionString, " SAS(", infoSignal, "):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT:
-                            actionString = String.Concat(actionString, " SL(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL:
-                            actionString = String.Concat(actionString, " Speed(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.STATION_STOP:
-                            actionString = String.Concat(actionString, " StationStop(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD:
-                            float diff = AIaction.ActivateDistanceM - AIaction.InsertedDistanceM;
-                            actionString = String.Concat(actionString, " TrainAhead(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-                        case AIActionItem.AI_ACTION_TYPE.NONE:
-                            actionString = String.Concat(actionString, " None(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-
-                        case AIActionItem.AI_ACTION_TYPE.AUX_ACTION:
-                            string coord = String.Concat("X:", this.FrontTDBTraveller.X.ToString(), ", Z:", this.FrontTDBTraveller.Z.ToString());
-                            actionString = String.Concat(actionString, AIaction.AsString(this), NextStopDistanceM.ToString("F0"), "m):", coord);
-                            //actionString = String.Concat(actionString, " AUX(", NextStopDistanceM.ToString("F0"), "m):");
-                            break;
-
-                    }
-                }
-            }
-
-            return (actionString);
-        }
-#endif
 
         //================================================================================================//
         /// <summary>

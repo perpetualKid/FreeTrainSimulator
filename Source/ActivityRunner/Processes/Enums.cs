@@ -22,6 +22,6 @@
         System,
         Clr,
         ProcessMetric,
-        GpuMetric
+        GpuMetric,
     }
 }
