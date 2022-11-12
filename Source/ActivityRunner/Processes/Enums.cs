@@ -21,5 +21,7 @@
     {
         System,
         Clr,
+        ProcessMetric,
+        GpuMetric
     }
 }

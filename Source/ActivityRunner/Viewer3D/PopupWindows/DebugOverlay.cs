@@ -1,11 +1,15 @@
 ﻿using System;
+using System.ComponentModel;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -20,17 +24,23 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     {
         private enum TabSettings
         {
-            Common,
-            Clr,
+            [Description("System Information")]Common,
+            [Description(".NET runtime")]Clr,
+            [Description("Performance")]Performance,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
         private NameValueTextGrid systemInformation;
         private TabLayout<TabSettings> tabLayout;
-        private readonly System.Drawing.Font textFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[12];
+        private readonly System.Drawing.Font textFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[13];
 
-        private GraphControl graphControl;
+        private GraphControl graphFrameTime;
+        private GraphControl graphFrameRate;
+        private GraphControl graphRenderProcess;
+        private GraphControl graphUpdateProcess;
+        private GraphControl graphSoundProcess;
+        private GraphControl graphLoaderProcess;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
@@ -41,6 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
+            NameValueTextGrid textGrid;
             layout = base.Layout(layout, headerScaling);
             tabLayout = new TabLayout<TabSettings>(this, 10, 10, layout.RemainingWidth - 20, layout.RemainingHeight - 20);
             tabLayout.TabLayouts[TabSettings.Common] = (layoutContainer) =>
@@ -48,8 +59,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
                 layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 250 });
                 systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System];
-
-                layoutContainer.Add(graphControl = new GraphControl(this, 0, 200, 1024, 40, "Min", "Max", "") { BorderColor = Color.GreenYellow});
             };
             tabLayout.TabLayouts[TabSettings.Clr] = (layoutContainer) =>
             {
@@ -57,10 +66,44 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 250 });
                 systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr];
             };
+            tabLayout.TabLayouts[TabSettings.Performance] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
+                textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric];
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
+                textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric];
+                int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
+                layoutContainer.Add(graphFrameRate = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(260 * Owner.DpiScaling), graphWidth, 40, "0", "60", Catalog.GetString("Frame rate fps"), graphWidth) { GraphColor = Color.Purple });
+                layoutContainer.Add(graphFrameTime = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100", Catalog.GetString("Frame time ms"), graphWidth) { GraphColor = Color.LightGreen });
+                layoutContainer.Add(graphRenderProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Render Process %"), graphWidth) { GraphColor = Color.Red });
+                layoutContainer.Add(graphUpdateProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Update Process %"), graphWidth) { GraphColor = Color.Yellow });
+                layoutContainer.Add(graphLoaderProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Loader Process %"), graphWidth) { GraphColor = Color.Magenta });
+                layoutContainer.Add(graphSoundProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Sound Process %"), graphWidth) { GraphColor = Color.Cyan });
+            };
             layout.Add(tabLayout);
             return layout;
         }
 
+        protected override void Update(GameTime gameTime, bool shouldUpdate)
+        {
+            if (shouldUpdate)
+            {
+                switch (tabLayout.CurrentTab)
+                {
+                    case TabSettings.Performance:
+                        graphFrameRate.AddSample(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].Value / 60);
+                        graphFrameTime.AddSample(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 10);
+                        graphRenderProcess.AddSample(Profiler.ProfilingData[ProcessType.Render].Wall.Value / 100);
+                        graphUpdateProcess.AddSample(Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
+                        graphLoaderProcess.AddSample(Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
+                        graphSoundProcess.AddSample(Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
+                        break;
+                }
+                base.Update(gameTime, true);
+            }
+        }
         public override bool Open()
         {
             userCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction, true);
@@ -88,6 +131,5 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 settings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
             }
         }
-
     }
 }

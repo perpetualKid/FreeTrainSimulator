@@ -30,7 +30,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
-using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Graphics.Xna;
@@ -46,6 +46,8 @@ namespace Orts.ActivityRunner.Processes
         private readonly Profiler profiler;
 
         private readonly GameHost game;
+        private readonly GraphicMetrics gpuMetric;
+
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly Form windowForm;
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -79,23 +81,23 @@ namespace Orts.ActivityRunner.Processes
         public static float[] ShadowMapLimit; // diameter of shadow map far edge from camera
         private bool disposedValue;
 
-        internal RenderProcess(GameHost game)
+        internal RenderProcess(GameHost gameHost)
         {
-            this.game = game;
-            windowForm = (Form)Control.FromHandle(game.Window.Handle);
+            this.game = gameHost;
+            windowForm = (Form)Control.FromHandle(gameHost.Window.Handle);
 
             profiler = new Profiler("Render");
             profiler.SetThread();
             Profiler.ProfilingData[ProcessType.Render] = profiler;
-            game.Window.Title = RuntimeInfo.ApplicationName;
+            gameHost.Window.Title = RuntimeInfo.ApplicationName;
 
             LoadSettings();
 
-            if (game.Settings.Language.Length > 0)
+            if (gameHost.Settings.Language.Length > 0)
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(game.Settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(gameHost.Settings.Language);
                 }
                 catch (CultureNotFoundException) { }
             }
@@ -104,32 +106,35 @@ namespace Orts.ActivityRunner.Processes
             PrimitivePerFrame = new int[(int)RenderPrimitiveSequence.Sentinel];
 
             // Run the game initially at 10FPS fixed-time-step. Do not change this! It affects the loading performance.
-            game.IsFixedTimeStep = true;
-            game.TargetElapsedTime = TimeSpan.FromMilliseconds(100);
-            game.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
+            gameHost.IsFixedTimeStep = true;
+            gameHost.TargetElapsedTime = TimeSpan.FromMilliseconds(100);
+            gameHost.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
 
-            graphicsDeviceManager = new GraphicsDeviceManager(game)
+            graphicsDeviceManager = new GraphicsDeviceManager(gameHost)
             {
                 // Set up the rest of the graphics according to the settings.
-                SynchronizeWithVerticalRetrace = game.Settings.VerticalSync,
+                SynchronizeWithVerticalRetrace = gameHost.Settings.VerticalSync,
                 PreferredBackBufferFormat = SurfaceFormat.Color,
                 PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8,
-                PreferMultiSampling = game.Settings.MultisamplingCount > 0,
-                IsFullScreen = game.Settings.FullScreen,
+                PreferMultiSampling = gameHost.Settings.MultisamplingCount > 0,
+                IsFullScreen = gameHost.Settings.FullScreen,
             };
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
 
             SetScreenMode(currentScreenMode);
-            RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
+            RenderPrimitive.SetGraphicsDevice(gameHost.GraphicsDevice);
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
-            MethodInfo m = game.Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), game.Window, m);
+            MethodInfo m = gameHost.Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), gameHost.Window, m);
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
             Common.Info.SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+
+            gpuMetric = new GraphicMetrics();
+            gameHost.SystemInfo[DiagnosticInfo.GpuMetric] = gpuMetric;
         }
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)
@@ -375,22 +380,13 @@ namespace Orts.ActivityRunner.Processes
 
         internal void Draw(GameTime gameTime)
         {
-            if (Debugger.IsAttached)
+            try
             {
                 CurrentFrame.Draw(gameTime);
             }
-            else
+            catch(Exception error) when (!Debugger.IsAttached)
             {
-#pragma warning disable CA1031 // Do not catch general exception types
-                try
-                {
-                    CurrentFrame.Draw(gameTime);
-                }
-                catch (Exception error)
-                {
-                    game.ProcessReportError(error);
-                }
-#pragma warning restore CA1031 // Do not catch general exception types
+                game.ProcessReportError(error);
             }
         }
 
@@ -405,6 +401,7 @@ namespace Orts.ActivityRunner.Processes
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
 
             profiler.Stop();
+            gpuMetric.CurrentMetrics = game.GraphicsDevice.Metrics;
         }
 
         internal void Stop()
@@ -436,5 +433,39 @@ namespace Orts.ActivityRunner.Processes
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        private class GraphicMetrics : DebugInfoBase
+        {
+            public override string Get(string name)
+            {
+                return name switch
+                {
+                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
+                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
+                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
+                    "Textures" => $"{CurrentMetrics.TextureCount}",
+                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
+                    "Targets" => $"{CurrentMetrics.TargetCount}",
+                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
+                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
+                    _ => base.Get(name),
+                };
+            }
+
+            public GraphicsMetrics CurrentMetrics;
+
+            public GraphicMetrics() : base(true)
+            {
+                DebugInfo.Add("Clear Calls", null);
+                DebugInfo.Add("Draw Calls", null);
+                DebugInfo.Add("Primitives", null);
+                DebugInfo.Add("Textures", null);
+                DebugInfo.Add("Sprites", null);
+                DebugInfo.Add("Targets", null);
+                DebugInfo.Add("PixelShaders", null);
+                DebugInfo.Add("VertexShaders", null);
+            }
+        }
+
     }
 }

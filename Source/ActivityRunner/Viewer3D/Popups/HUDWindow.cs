@@ -31,7 +31,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
-using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
@@ -55,7 +54,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         // Set to distance from top-left corner to place text.
         private const int TextOffset = 10;
-        private readonly int ProcessorCount = System.Environment.ProcessorCount;
         private readonly PerformanceCounter AllocatedBytesPerSecCounter; // \.NET CLR Memory(*)\Allocated Bytes/sec
         private float AllocatedBytesPerSecLastValue;
         private readonly Viewer Viewer;
@@ -111,8 +109,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Viewer = owner.Viewer;
             LastTextPage = LocomotivePage;
 
-            ProcessVirtualAddressLimit = GetVirtualAddressLimit();
-
             try
             {
                 var counterDotNetClrMemory = new PerformanceCounterCategory(".NET CLR Memory");
@@ -164,7 +160,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ForceGraphNumOfSubsteps = ForceGraphs.Add(Viewer.Catalog.GetString("Num of substeps"), "0", "300", Color.Blue, 25);
 
             DebugGraphs = new HUDGraphSet(Viewer, HUDGraphMaterial);
-            DebugGraphMemory = DebugGraphs.Add(Viewer.Catalog.GetString("Memory"), "0GB", $"{(float)ProcessVirtualAddressLimit / (1 << 30):F0}GB", Color.Orange, 50);
+            DebugGraphMemory = DebugGraphs.Add(Viewer.Catalog.GetString("Memory"), "0GB", $"{8:F0}GB", Color.Orange, 50);
             DebugGraphGCs = DebugGraphs.Add(Viewer.Catalog.GetString("GCs"), "0", "2", Color.Magenta, 20); // Multiple of 4
             DebugGraphFrameTime = DebugGraphs.Add(Viewer.Catalog.GetString("Frame time"), "0.0s", "0.1s", Color.LightGreen, 50);
             DebugGraphProcessRender = DebugGraphs.Add(Viewer.Catalog.GetString("Render process"), "0%", "100%", Color.Red, 20);
@@ -280,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (Visible && TextPages[TextPage] == TextPageDebugInfo)
             {
                 var gcCounts = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) };
-                DebugGraphMemory.AddSample((float)GetWorkingSetSize() / ProcessVirtualAddressLimit);
+                DebugGraphMemory.AddSample((float)GetWorkingSetSize() / 8);
                 DebugGraphGCs.AddSample(gcCounts[2] > lastGCCounts[2] ? 1.0f : gcCounts[1] > lastGCCounts[1] ? 0.5f : gcCounts[0] > lastGCCounts[0] ? 0.25f : 0);
                 DebugGraphFrameTime.AddSample((float)MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 10);
                 DebugGraphProcessRender.AddSample((float)Profiler.ProfilingData[ProcessType.Render].Wall.Value / 100);
@@ -1970,9 +1966,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableSetLabelValueColumns(table, 0, 2);
             TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
 
-            //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
-
             if (hudWindowFullScreen)
                 TableSetLabelValueColumns(table, 0, 2);
 
@@ -1980,12 +1973,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (allocatedBytesPerSecond >= 1 && AllocatedBytesPerSecLastValue != allocatedBytesPerSecond)
                 AllocatedBytesPerSecLastValue = allocatedBytesPerSecond;
 
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Logging enabled"), Viewer.Settings.DataLogger ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Build"), VersionInfo.Build);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetString("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), 0 / 1024));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("CPU"), Viewer.Catalog.GetString("{0:F0}% ({1})", (Profiler.ProfilingData[ProcessType.Render].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Updater].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Loader].CPU.SmoothedValue + Profiler.ProfilingData[ProcessType.Sound].CPU.SmoothedValue) / ProcessorCount, Viewer.Catalog.GetPluralString("{0} logical processor", "{0} logical processors", ProcessorCount)));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetString("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)", 0, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP50 * 1000, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP95 * 1000, (MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP99 * 1000));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetString("{0} ({1}) ({2:F0} pixels x {3:F0} pixels)", Viewer.Game.GraphicsDevice.Adapter.Description, Orts.Common.Info.SystemInfo.GraphicAdapterMemoryInformation, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
             if (Viewer.Settings.DynamicShadows)
             {
                 TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => Viewer.Catalog.GetString($"{RenderProcess.ShadowMapDistance[i]}/{RenderProcess.ShadowMapDiameter[i]}")).ToArray());
@@ -2375,19 +2363,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLine(table, name);
         }
 
-        private readonly ulong ProcessVirtualAddressLimit;
-
         public long GetWorkingSetSize()
         {
             Viewer.CurrentProcess.Refresh();
             return Viewer.CurrentProcess.WorkingSet64;
-        }
-
-        public static ulong GetVirtualAddressLimit()
-        {
-            var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
-            NativeMethods.GlobalMemoryStatusEx(buffer);
-            return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
         }
     }
 

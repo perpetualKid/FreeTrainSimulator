@@ -18,7 +18,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
         private MetricCollector()
         {
             Metrics[SlidingMetric.ProcessorTime] = new SmoothedData();
-            Metrics[SlidingMetric.FrameRate] = new SmoothedData();
+            Metrics[SlidingMetric.FrameRate] = new SmoothedDataWithPercentiles();
             Metrics[SlidingMetric.FrameTime] = new SmoothedDataWithPercentiles();
         }
 
