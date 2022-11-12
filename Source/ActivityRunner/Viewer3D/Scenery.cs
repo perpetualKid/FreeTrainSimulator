@@ -120,7 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
                 {
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Night is coming, it's time to load the night textures
@@ -140,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)
                 {
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Day is coming, it's time to load the day textures

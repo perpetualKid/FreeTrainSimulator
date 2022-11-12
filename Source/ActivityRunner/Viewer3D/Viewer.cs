@@ -40,6 +40,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Common.Native;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -408,7 +409,7 @@ namespace Orts.ActivityRunner.Viewer3D
             CabXOffsetPixels = inf.ReadInt32();
             NightTexturesNotLoaded = inf.ReadBoolean();
             DayTexturesNotLoaded = inf.ReadBoolean();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             tryLoadingNightTextures = true;
             tryLoadingDayTextures = true;
 
@@ -589,7 +590,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // all loading is performed on a single thread that we can handle in debugging and tracing.
             World.LoadPrep();
             MaterialManager.LoadPrep();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             Load();
 
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
@@ -1887,5 +1888,13 @@ namespace Orts.ActivityRunner.Viewer3D
             // Reveal MessageWindow
             windowManager[ViewerWindowType.NotificationOverlay].Open();
         }
+
+        private static ulong GetVirtualAddressLimit()
+        {
+            var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
+            NativeMethods.GlobalMemoryStatusEx(buffer);
+            return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
+        }
+
     }
 }
