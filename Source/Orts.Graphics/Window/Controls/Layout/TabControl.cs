@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
 
-using Microsoft.Xna.Framework.Graphics;
-
 using Orts.Common;
 
 namespace Orts.Graphics.Window.Controls.Layout
@@ -86,7 +84,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                     tabData[item] = new TabData()
                     {
                         Tab = item,
-                        TabLabel = new Label(this.Window, labelWidth, tabHeader.RemainingHeight, item.GetDescription(), HorizontalAlignment.Center)
+                        TabLabel = new Label(this.Window, labelWidth, tabHeader.RemainingHeight, item.GetLocalizedDescription(), HorizontalAlignment.Center)
                         {
                             Tag = item,
                         },

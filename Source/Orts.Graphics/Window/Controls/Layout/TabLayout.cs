@@ -1,6 +1,9 @@
 ﻿using System;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
+using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls.Layout
 {
@@ -13,9 +16,12 @@ namespace Orts.Graphics.Window.Controls.Layout
         private class TabData
         {
             internal T Tab;
+            internal Label TabLabel;
             internal ControlLayout TabLayout;
         }
 
+        private readonly ControlLayout tabHeader;
+        private readonly Label tabLabel;
         private readonly bool hideEmptyTabs;
 
         public EnumArray<Action<ControlLayout>, T> TabLayouts { get; } = new EnumArray<Action<ControlLayout>, T>();
@@ -26,10 +32,15 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public ControlLayout Client { get; private protected set; }
 
+        public string Name { get; }
 
         public TabLayout(FormBase window, int x, int y, int width, int height, bool hideEmptyTabs = false) : base(window, x, y, width, height)
         {
-            Client = AddLayoutVertical();
+            ControlLayout verticalLayout = AddLayoutVertical();
+            tabHeader = verticalLayout.AddLayoutHorizontal(window?.Owner.TextFontDefault.Height ?? throw new ArgumentNullException(nameof(window)));
+            tabHeader.Add(tabLabel = new Label(Window, 0, 0, tabHeader.RemainingWidth, tabHeader.RemainingHeight, null, HorizontalAlignment.Left, Window.Owner.TextFontDefaultBold, Color.White, OutlineRenderOptions.Default));
+            verticalLayout.AddLayoutHorizontalLineOfText();
+            Client = verticalLayout.AddLayoutVertical();
             this.hideEmptyTabs = hideEmptyTabs;
         }
 
@@ -105,6 +116,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                     Client.Initialize();
                 }
             }
+            tabLabel.Text = tab.GetLocalizedDescription();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Orts.Graphics.Window.Controls
         private protected string text;
         private protected Font font;
         private protected static Brush whiteBrush = new SolidBrush(Color.White);
+        private protected OutlineRenderOptions outlineRenderOptions;
 
         private protected readonly TextTextureResourceHolder resourceHolder;
 
@@ -40,7 +41,7 @@ namespace Orts.Graphics.Window.Controls
 
         protected virtual void InitializeText(string text)
         {
-            texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder.PrepareResource(text, font);
+            texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder.PrepareResource(text, font, outlineRenderOptions);
         }
     }
 }
