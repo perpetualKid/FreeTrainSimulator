@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Graphics.Xna;
+
 namespace Orts.Graphics.Window.Controls
 {
     public class Label : TextControl
@@ -30,13 +32,14 @@ namespace Orts.Graphics.Window.Controls
         }
 
 
-        public Label(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
+        public Label(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color, OutlineRenderOptions outlineRenderOptions = null)
             : base(window, x, y, width, height)
         {
             this.text = text;
             this.alignment = alignment;
             TextColor = color;
             this.font = font ?? window?.Owner.TextFontDefault;
+            this.outlineRenderOptions = outlineRenderOptions;
         }
 
         public Label(FormBase window, int width, int height, string text, System.Drawing.Font font)
