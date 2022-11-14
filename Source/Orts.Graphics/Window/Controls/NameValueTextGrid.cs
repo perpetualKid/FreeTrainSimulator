@@ -104,10 +104,13 @@ namespace Orts.Graphics.Window.Controls
                     if (multiValueOffset != Vector2.Zero)
                     {
                         string[] multiValues = InformationProvider.DebugInfo[identifier]?.Split('\t');
-                        Texture2D[] textures = new Texture2D[multiValues.Length];
-                        for (int i = 0; i < multiValues.Length; i++)
-                            textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
-                        prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
+                        if (multiValues != null)
+                        {
+                            Texture2D[] textures = new Texture2D[multiValues.Length];
+                            for (int i = 0; i < multiValues.Length; i++)
+                                textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
+                            prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
+                        }
                     }
                     else
                     {

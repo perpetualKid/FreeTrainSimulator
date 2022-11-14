@@ -46,7 +46,6 @@ namespace Orts.ActivityRunner.Processes
         private readonly Profiler profiler;
 
         private readonly GameHost game;
-        private readonly GraphicMetrics gpuMetric;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly Form windowForm;
@@ -132,9 +131,6 @@ namespace Orts.ActivityRunner.Processes
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
             Common.Info.SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
-
-            gpuMetric = new GraphicMetrics();
-            gameHost.SystemInfo[DiagnosticInfo.GpuMetric] = gpuMetric;
         }
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)
@@ -279,7 +275,7 @@ namespace Orts.ActivityRunner.Processes
             // Swap frames and start the next update (non-threaded updater does the whole update).
             (CurrentFrame, NextFrame) = (NextFrame, CurrentFrame);
             game.UpdaterProcess.TriggerUpdate(NextFrame, gameTime);
-            game.systemProcess.TriggerUpdate(gameTime);
+            game.SystemProcess.TriggerUpdate(gameTime);
         }
 
         private void LoadSettings()
@@ -384,7 +380,7 @@ namespace Orts.ActivityRunner.Processes
             {
                 CurrentFrame.Draw(gameTime);
             }
-            catch(Exception error) when (!Debugger.IsAttached)
+            catch (Exception error) when (!Debugger.IsAttached)
             {
                 game.ProcessReportError(error);
             }
@@ -401,7 +397,7 @@ namespace Orts.ActivityRunner.Processes
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
 
             profiler.Stop();
-            gpuMetric.CurrentMetrics = game.GraphicsDevice.Metrics;
+            (game.SystemInfo[DiagnosticInfo.GpuMetric] as GraphicMetrics).CurrentMetrics = game.GraphicsDevice.Metrics;
         }
 
         internal void Stop()
@@ -432,39 +428,6 @@ namespace Orts.ActivityRunner.Processes
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
-        }
-
-        private class GraphicMetrics : DebugInfoBase
-        {
-            public override string Get(string name)
-            {
-                return name switch
-                {
-                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
-                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
-                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
-                    "Textures" => $"{CurrentMetrics.TextureCount}",
-                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
-                    "Targets" => $"{CurrentMetrics.TargetCount}",
-                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
-                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
-                    _ => base.Get(name),
-                };
-            }
-
-            public GraphicsMetrics CurrentMetrics;
-
-            public GraphicMetrics() : base(true)
-            {
-                DebugInfo.Add("Clear Calls", null);
-                DebugInfo.Add("Draw Calls", null);
-                DebugInfo.Add("Primitives", null);
-                DebugInfo.Add("Textures", null);
-                DebugInfo.Add("Sprites", null);
-                DebugInfo.Add("Targets", null);
-                DebugInfo.Add("PixelShaders", null);
-                DebugInfo.Add("VertexShaders", null);
-            }
         }
 
     }

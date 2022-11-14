@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Processes
     /// </summary>
     public sealed class GameHost : Game
     {
-        internal SystemProcess systemProcess { get; }
+        internal SystemProcess SystemProcess { get; }
 
         /// <summary>
         /// Gets the <see cref="UserSettings"/> for the game.
@@ -100,7 +100,7 @@ namespace Orts.ActivityRunner.Processes
             SoundProcess = new SoundProcess(this);
             WebServerProcess = new WebServerProcess(this);
             gameStates = new Stack<GameState>();
-            systemProcess = new SystemProcess(this);
+            SystemProcess = new SystemProcess(this);
         }
 
         private void GameComponents_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
@@ -129,7 +129,7 @@ namespace Orts.ActivityRunner.Processes
             UpdaterProcess.Start();
             RenderProcess.Start();
             WebServerProcess.Start();
-            systemProcess.Start();
+            SystemProcess.Start();
             base.BeginRun();
         }
 
@@ -176,7 +176,7 @@ namespace Orts.ActivityRunner.Processes
             LoaderProcess.Stop();
             SoundProcess.Stop();
             WebServerProcess.Stop();
-            systemProcess.Stop();
+            SystemProcess.Stop();
         }
 
         private void Game_Exiting(object sender, EventArgs e)

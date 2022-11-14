@@ -76,24 +76,4 @@ namespace Orts.Common.DebugInfo
             return HashCode.Combine(TextColor, FontStyle);
         }
     }
-
-#pragma warning disable CA1010 // Generic interface should also be implemented
-    public class DebugInfoBase : NameValueCollection, INameValueInformationProvider
-#pragma warning restore CA1010 // Generic interface should also be implemented
-    {
-        public DebugInfoBase(bool includeFormattingOptions = false)
-        {
-            if (includeFormattingOptions)
-                FormattingOptions = new Dictionary<string, FormatOption>();
-        }
-
-        public virtual void Update(GameTime gameTime)
-        {
-        }
-
-        public NameValueCollection DebugInfo => this;
-
-        public Dictionary<string, FormatOption> FormattingOptions { get; }
-    }
-
 }

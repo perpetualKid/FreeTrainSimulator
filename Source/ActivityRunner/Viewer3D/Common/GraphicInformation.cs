@@ -1,37 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Processes;
-using Orts.Common.DebugInfo;
 using Orts.Common;
-using Orts.Graphics.Window;
+using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal partial class DebugOverlay: OverlayBase
+    internal class GraphicInformation : DebugInfoBase
     {
+        private readonly Viewer viewer;
 
-        private enum DetailInfoType
+        public GraphicInformation(Viewer viewer)
         {
-            GraphicDetails,
+            this.viewer = viewer;
+            this["Graphics Information"] = null;
+            this[".0"] = null;
         }
 
-        private readonly EnumArray<INameValueInformationProvider, DetailInfoType> detailInfo = new EnumArray<INameValueInformationProvider, DetailInfoType>();
-
-        private class GraphicInformation : DebugInfoBase
+        public override void Update(GameTime gameTime)
         {
-            private readonly Viewer viewer;
-
-            public GraphicInformation(Viewer viewer)
-            {
-                this.viewer = viewer;
-            }
-
-            public override void Update(GameTime gameTime)
+            if (update)
             {
                 this["TextureManager"] = viewer.TextureManager.GetStatus();
                 this["MaterialManager"] = viewer.MaterialManager.GetStatus();
@@ -48,6 +38,5 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 base.Update(gameTime);
             }
         }
-
     }
 }

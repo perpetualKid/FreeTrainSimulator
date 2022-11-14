@@ -29,7 +29,6 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Processes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
@@ -106,7 +105,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             textPages.Add(TextPageBrakeInfo);
             textPages.Add(TextPageForceInfo);
             textPages.Add(TextPageDispatcherInfo);
-            textPages.Add(TextPageWeather);
             TextPages = textPages.ToArray();
 
             TextFont = owner.TextFontMonoSpacedOutlined;
@@ -1815,25 +1813,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableAddLine(table);
                 }
             }
-        }
-
-        private void TextPageWeather(TableData table)
-        {
-            TableSetLabelValueColumns(table, 0, 2);
-            TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
-
-            //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
-
-            if (hudWindowFullScreen)
-                TableSetLabelValueColumns(table, 0, 2);
-
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetString("{0:N0} m", Viewer.Simulator.Weather.FogVisibilityDistance));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetString("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PrecipitationIntensity));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Liquidity"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.PrecipitationLiquidity * 100));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Wind"), Viewer.Catalog.GetString("{0:F1},{1:F1} m/s", Viewer.Simulator.Weather.WindSpeed.X, Viewer.Simulator.Weather.WindSpeed.Y));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.CarOutsideTempC, Simulator.Instance.MetricUnits));
         }
 
         /// <summary>

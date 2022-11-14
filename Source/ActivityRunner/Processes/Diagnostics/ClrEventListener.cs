@@ -18,6 +18,8 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
             public ClrDebugInfo() : base()
             {
+                this["CLR .NET Metrics"] = null;
+                this[".0"] = null;
                 this["CPU Usage"] = null;
                 this["Memory Size (Gen0/Gen1/Gen2)"] = null;
                 this["GC Count (Gen0/Gen1/Gen2)"] = null;
@@ -26,10 +28,13 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
             public override void Update(GameTime gameTime)
             {
-                this["Memory Size (Gen0/Gen1/Gen2)"] = $"{FormatBytes(GcSize[0])} / {FormatBytes(GcSize[1])} / {FormatBytes(GcSize[2])}";
-                this["GC Count (Gen0/Gen1/Gen2)"] = $"{GcCollections[0]} / {GcCollections[1]} / {GcCollections[2]}";
-                this["GC Count total (Gen0/Gen1/Gen2)"] = $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}";
-                base.Update(gameTime);
+                if (update)
+                {
+                    this["Memory Size (Gen0/Gen1/Gen2)"] = $"{FormatBytes(GcSize[0])} / {FormatBytes(GcSize[1])} / {FormatBytes(GcSize[2])}";
+                    this["GC Count (Gen0/Gen1/Gen2)"] = $"{GcCollections[0]} / {GcCollections[1]} / {GcCollections[2]}";
+                    this["GC Count total (Gen0/Gen1/Gen2)"] = $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}";
+                    base.Update(gameTime);
+                }
             }
         }
 

@@ -10,23 +10,15 @@ using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
-
-using SharpDX.Direct3D11;
-
-using Swan;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskBand;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

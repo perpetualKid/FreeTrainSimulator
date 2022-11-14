@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
-using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -19,16 +18,17 @@ using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal partial class DebugOverlay : OverlayBase
+    internal class DebugOverlay : OverlayBase
     {
         private enum TabSettings
         {
             [Description("System Information")] Common,
-            [Description(".NET runtime")] Clr,
+            [Description("Weather Information")] Weather,
             [Description("Performance")] Performance,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly Viewer viewer;
         private readonly UserSettings settings;
         private NameValueTextGrid systemInformation;
         private TabLayout<TabSettings> tabLayout;
@@ -46,39 +46,60 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ArgumentNullException.ThrowIfNull(viewer);
             this.settings = settings;
             userCommandController = viewer.UserCommandController;
-            detailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(viewer);
+            this.viewer = viewer;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            NameValueTextGrid textGrid;
             layout = base.Layout(layout, headerScaling);
             tabLayout = new TabLayout<TabSettings>(this, 10, 10, layout.RemainingWidth - 20, layout.RemainingHeight - 20);
             tabLayout.TabLayouts[TabSettings.Common] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 250 });
-                systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System];
+                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) 
+                { 
+                    OutlineRenderOptions = OutlineRenderOptions.Default, 
+                    NameColumnWidth = 240,
+                    InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System],
+                });
             };
-            tabLayout.TabLayouts[TabSettings.Clr] = (layoutContainer) =>
+            tabLayout.TabLayouts[TabSettings.Weather] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 250 });
-                systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr];
+                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.WeatherDetails],
+                });
             };
             tabLayout.TabLayouts[TabSettings.Performance] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 240 });
-                textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric];
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 240 });
-                textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric];
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont)
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric]
+                });
+                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, layoutContainer.RemainingWidth / 2, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr]
+                });
+                layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric],
+                });
+                layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,
                     MultiValueColumnWidth = 80,
-                    InformationProvider = detailInfo[DetailInfoType.GraphicDetails],
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.GraphicDetails],
                     Column = 0
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
@@ -107,8 +128,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         graphUpdateProcess.AddSample(Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
                         graphLoaderProcess.AddSample(Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
                         graphSoundProcess.AddSample(Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
-
-                        (detailInfo[DetailInfoType.GraphicDetails] as DebugInfoBase).Update(gameTime);
 
                         break;
                 }

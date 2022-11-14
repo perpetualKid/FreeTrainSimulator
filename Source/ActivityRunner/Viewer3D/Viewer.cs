@@ -32,6 +32,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
@@ -62,6 +63,13 @@ using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
+    public enum DetailInfoType
+    {
+        GraphicDetails,
+        WeatherDetails,
+    }
+
+
     public class Viewer
     {
         private bool pauseWindow;
@@ -71,6 +79,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public UserSettings Settings { get; private set; }
 
         public UserCommandController<UserCommand> UserCommandController { get; }
+
+        public EnumArray<DebugInfoBase, DetailInfoType> DetailInfo { get; } = new EnumArray<DebugInfoBase, DetailInfoType>();
 
         // Multi-threaded processes
         internal LoaderProcess LoaderProcess { get; private set; }
@@ -319,8 +329,12 @@ namespace Orts.ActivityRunner.Viewer3D
                         SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
                     }
                 }
-
             }
+
+            DetailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(this);
+            DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation();
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GraphicDetails]);
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails]);
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
