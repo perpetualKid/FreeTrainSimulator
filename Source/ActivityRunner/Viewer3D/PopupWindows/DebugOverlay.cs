@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -18,17 +19,16 @@ using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class DebugOverlay : OverlayBase
+    internal partial class DebugOverlay : OverlayBase
     {
         private enum TabSettings
         {
-            [Description("System Information")]Common,
-            [Description(".NET runtime")]Clr,
-            [Description("Performance")]Performance,
+            [Description("System Information")] Common,
+            [Description(".NET runtime")] Clr,
+            [Description("Performance")] Performance,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
-        private readonly Viewer viewer;
         private readonly UserSettings settings;
         private NameValueTextGrid systemInformation;
         private TabLayout<TabSettings> tabLayout;
@@ -44,9 +44,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
-            this.viewer = viewer;
             this.settings = settings;
             userCommandController = viewer.UserCommandController;
+            detailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(viewer);
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -57,24 +57,30 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabLayout.TabLayouts[TabSettings.Common] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 250 });
+                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 250 });
                 systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System];
             };
             tabLayout.TabLayouts[TabSettings.Clr] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 250 });
+                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 250 });
                 systemInformation.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr];
             };
             tabLayout.TabLayouts[TabSettings.Performance] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, 0, textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 240 });
                 textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric];
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, NameColumnWidth = 240 });
                 textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric];
-                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
-                textGrid.InformationProvider = viewer.ViewerInfo[ViewerInfoType.GraphicDetails];
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    MultiValueColumnWidth = 80,
+                    InformationProvider = detailInfo[DetailInfoType.GraphicDetails],
+                    Column = 0
+                });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
                 layoutContainer.Add(graphFrameRate = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(260 * Owner.DpiScaling), graphWidth, 40, "0", "60", Catalog.GetString("Frame rate fps"), graphWidth) { GraphColor = Color.Purple });
@@ -101,6 +107,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         graphUpdateProcess.AddSample(Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
                         graphLoaderProcess.AddSample(Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
                         graphSoundProcess.AddSample(Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
+
+                        (detailInfo[DetailInfoType.GraphicDetails] as DebugInfoBase).Update(gameTime);
+
                         break;
                 }
                 base.Update(gameTime, true);

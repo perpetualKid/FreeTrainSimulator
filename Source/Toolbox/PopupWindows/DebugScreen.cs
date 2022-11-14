@@ -36,7 +36,7 @@ namespace Orts.Toolbox.PopupWindows
             toolboxSettings = settings;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
-            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 150 };
+            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, NameColumnWidth = 150 };
             UpdateBackgroundColor(backgroundColor);
             _ = EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.DebugScreen], out currentDebugScreen);
             currentProvider[currentDebugScreen].Visible = true;

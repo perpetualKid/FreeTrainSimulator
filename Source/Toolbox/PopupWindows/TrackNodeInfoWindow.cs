@@ -31,7 +31,7 @@ namespace Orts.Toolbox.PopupWindows
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = contentArea?.Content.TrackNodeInfo,
-                ColumnWidth = layout.RemainingWidth / 2,
+                NameColumnWidth = layout.RemainingWidth / 2,
             };
             layout.Add(trackNodeInfoGrid);
             return layout;

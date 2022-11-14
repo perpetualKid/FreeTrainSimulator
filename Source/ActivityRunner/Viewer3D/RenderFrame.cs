@@ -47,8 +47,6 @@ namespace Orts.ActivityRunner.Viewer3D
         CabBlended,
         OverlayOpaque,
         OverlayBlended,
-        // This value must be last.
-        Sentinel
     }
 
     public enum RenderPrimitiveGroup
@@ -234,7 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly Vector3[] shadowMapCenter;
         private readonly Material DummyBlendedMaterial;
 
-        private readonly Dictionary<Material, List<RenderItem>>[] renderItems = new Dictionary<Material, List<RenderItem>>[(int)RenderPrimitiveSequence.Sentinel];
+        private readonly Dictionary<Material, List<RenderItem>>[] renderItems = new Dictionary<Material, List<RenderItem>>[EnumExtension.GetLength<RenderPrimitiveSequence>()];
         private readonly List<RenderItem> renderItemsSequence = new List<RenderItem>();
         private readonly List<RenderItem>[] renderShadowTerrainItems;
         private readonly List<RenderItem>[] renderShadowForestItems;
@@ -564,7 +562,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
                 DrawShadows(logRenderFrame);
             DrawSimple(logRenderFrame);
-            for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
+            for (var i = 0; i < EnumExtension.GetLength<RenderPrimitiveSequence>(); i++)
                 game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
             if (logRenderFrame)
@@ -697,7 +695,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
 
             renderItemsSequence.Clear();
-            for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
+            for (var i = 0; i < EnumExtension.GetLength<RenderPrimitiveSequence>(); i++)
             {
                 if (logging)
                     Trace.WriteLine($"    {(RenderPrimitiveSequence)i} {{");
@@ -769,7 +767,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else
                 MatrixExtension.Multiply(in camera.XnaView, in Camera.XnaDistantMountainProjection, out mountainViewProjection);
 
-            for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
+            for (var i = 0; i < EnumExtension.GetLength<RenderPrimitiveSequence>(); i++)
             {
                 if (logging)
                     Trace.WriteLine($"    {(RenderPrimitiveSequence)i} {{");

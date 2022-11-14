@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,13 +14,16 @@ namespace Orts.Graphics.Window.Controls
         private int columnWidth = defaultColumnSize;
         private Rectangle? clippingRectangleNameColumn;
         private Rectangle? clippingRectangleValueColumn;
+        private Rectangle? clippingRectangleMultiValueColumn;
+
+        private Vector2 multiValueOffset;
 
         private List<(Vector2, Texture2D, Color)> drawItemsNameColumn = new List<(Vector2, Texture2D, Color)>();
-        private List<(Vector2, Texture2D, Color)> drawItemsValueColumn = new List<(Vector2, Texture2D, Color)>();
+        private List<(Vector2, Texture2D[], Color)> drawItemsValueColumn = new List<(Vector2, Texture2D[], Color)>();
 
         private bool dataPrepared;
         private List<(Vector2, Texture2D, Color)> prepareNameColumn = new List<(Vector2, Texture2D, Color)>();
-        private List<(Vector2, Texture2D, Color)> prepareValueColumn = new List<(Vector2, Texture2D, Color)>();
+        private List<(Vector2, Texture2D[], Color)> prepareValueColumn = new List<(Vector2, Texture2D[], Color)>();
 
         public INameValueInformationProvider InformationProvider { get; set; }
         private readonly System.Drawing.Font font;
@@ -33,7 +35,11 @@ namespace Orts.Graphics.Window.Controls
 
         public float LineSpacing { get; set; } = 1.25f;
 
-        public int ColumnWidth
+        public int Column { get; set; }
+
+        public int Row { get; set; }
+
+        public int NameColumnWidth
         {
             get { return columnWidth; }
             set
@@ -47,6 +53,16 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
+        public int MultiValueColumnWidth
+        {
+            get { return (int)(multiValueOffset.X / Window.Owner.DpiScaling); }
+            set
+            {
+                multiValueOffset.X = (int)(value * Window.Owner.DpiScaling);
+                clippingRectangleMultiValueColumn = new Rectangle(0, 0, (int)(value * Window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
+            }
+        }
+
         public NameValueTextGrid(FormBase window, int x, int y, System.Drawing.Font font = null) : base(window, x, y, 0, 0)
         {
             this.font = font ?? Window.Owner.TextFontDefault;
@@ -57,8 +73,7 @@ namespace Orts.Graphics.Window.Controls
         {
             this.font = font ?? Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
-            clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * window.Owner.DpiScaling), (int)(this.font.Size * LineSpacing));
-            clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * window.Owner.DpiScaling), (int)(this.font.Size * LineSpacing));
+            NameColumnWidth = defaultColumnSize;
         }
 
         internal override void Update(GameTime gameTime, bool shouldUpdate)
@@ -86,8 +101,19 @@ namespace Orts.Graphics.Window.Controls
                         emptySpace = null;
                     Texture2D texture = textureHolder.PrepareResource(emptySpace, currentFont, OutlineRenderOptions);
                     prepareNameColumn.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
-                    texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont, OutlineRenderOptions);
-                    prepareValueColumn.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
+                    if (multiValueOffset != Vector2.Zero)
+                    {
+                        string[] multiValues = InformationProvider.DebugInfo[identifier]?.Split('\t');
+                        Texture2D[] textures = new Texture2D[multiValues.Length];
+                        for (int i = 0; i < multiValues.Length; i++)
+                            textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
+                        prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
+                    }
+                    else
+                    {
+                        texture = textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont, OutlineRenderOptions);
+                        prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), new Texture2D[] { texture }, formatOption?.TextColor ?? TextColor));
+                    }
                     lineOffset += font.Size * LineSpacing;
                 }
                 dataPrepared = true;
@@ -108,9 +134,13 @@ namespace Orts.Graphics.Window.Controls
             {
                 spriteBatch.Draw(texture, position + locationVector, clippingRectangleNameColumn, color);
             }
-            foreach ((Vector2 position, Texture2D texture, Color color) in drawItemsValueColumn)
+            foreach ((Vector2 position, Texture2D[] textures, Color color) in drawItemsValueColumn)
             {
-                spriteBatch.Draw(texture, position + locationVector, clippingRectangleValueColumn, color);
+                if (textures.Length > 1)
+                    for (int i = Column; i < textures.Length; i++)
+                        spriteBatch.Draw(textures[i], position + locationVector + (i - Column) * multiValueOffset, clippingRectangleMultiValueColumn, color);
+                else
+                    spriteBatch.Draw(textures[0], position + locationVector, clippingRectangleValueColumn, color);
             }
             base.Draw(spriteBatch, offset);
         }

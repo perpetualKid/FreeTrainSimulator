@@ -102,8 +102,8 @@ namespace Orts.ActivityRunner.Processes
                 catch (CultureNotFoundException) { }
             }
 
-            PrimitiveCount = new int[(int)RenderPrimitiveSequence.Sentinel];
-            PrimitivePerFrame = new int[(int)RenderPrimitiveSequence.Sentinel];
+            PrimitiveCount = new int[EnumExtension.GetLength<RenderPrimitiveSequence>()];
+            PrimitivePerFrame = new int[EnumExtension.GetLength<RenderPrimitiveSequence>()];
 
             // Run the game initially at 10FPS fixed-time-step. Do not change this! It affects the loading performance.
             gameHost.IsFixedTimeStep = true;
@@ -397,7 +397,7 @@ namespace Orts.ActivityRunner.Processes
 
             game.State.EndRender(CurrentFrame);
 
-            Array.Copy(PrimitiveCount, PrimitivePerFrame, (int)RenderPrimitiveSequence.Sentinel);
+            Array.Copy(PrimitiveCount, PrimitivePerFrame, PrimitiveCount.Length);
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
 
             profiler.Stop();
