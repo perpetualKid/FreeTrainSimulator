@@ -3,30 +3,56 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.Tracing;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
-    internal class ClrEventListener : EventListener, INameValueInformationProvider
+    internal sealed class ClrEventListener : EventListener, INameValueInformationProvider
     {
-        private readonly DebugInfoBase debugInfo = new DebugInfoBase();
+        private class ClrDebugInfo : DebugInfoBase
+        {
+            internal int[] GcCollections = new int[3];
+            internal long[] GcSize = new long[3];
+
+            public ClrDebugInfo() : base()
+            {
+                this["CPU Usage"] = null;
+                this["Memory Size (Gen0/Gen1/Gen2)"] = null;
+                this["GC Count (Gen0/Gen1/Gen2)"] = null;
+                this["GC Count total (Gen0/Gen1/Gen2)"] = null;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                this["Memory Size (Gen0/Gen1/Gen2)"] = $"{FormatBytes(GcSize[0])} / {FormatBytes(GcSize[1])} / {FormatBytes(GcSize[2])}";
+                this["GC Count (Gen0/Gen1/Gen2)"] = $"{GcCollections[0]} / {GcCollections[1]} / {GcCollections[2]}";
+                this["GC Count total (Gen0/Gen1/Gen2)"] = $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}";
+                base.Update(gameTime);
+            }
+        }
 
         private readonly string[] counters = {
-            "CPU Usage",
-            "Working Set",
-            "Gen 0 Size",
-            "Gen 1 Size",
-            "Gen 2 Size",
-            "Gen 0 GC Count",
-            "Gen 1 GC Count",
-            "Gen 2 GC Count",
-            "ThreadPool Thread Count",
-            "Monitor Lock Contention Count",
-            "Allocation Rate",
-            "GC Fragmentation,",
-            "Exception Count",
-            "Number of Assemblies Loaded",
+            "cpu-usage",
+            "working-set",
+            "gen-0-size",
+            "gen-1-size",
+            "gen-2-size",
+            "gen-0-gc-count",
+            "gen-1-gc-count",
+            "gen-2-gc-count",
+            "threadpool-thread-count",
+            "monitor-lock-contention-count",
+            "alloc-rate",
+            "gc-fragmentation",
+            "gc-heap-size",
+            "loh-size",
+            "exception-count",
+            "assembly-count",
         };
+
+        private readonly ClrDebugInfo debugInfo = new ClrDebugInfo();
 
         public NameValueCollection DebugInfo => debugInfo.DebugInfo;
 
@@ -37,12 +63,17 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             Array.Sort(counters);
         }
 
+        public void Update(GameTime gameTime)
+        {
+            debugInfo.Update(gameTime);
+        }
+
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
             if (eventSource.Name.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase))
                 EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All, new Dictionary<string, string>()
                 {
-                    ["EventCounterIntervalSec"] = SystemProcess.UpdateInterval.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["EventCounterIntervalSec"] = "1", // SystemProcess.UpdateInterval.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 });
         }
 
@@ -54,23 +85,52 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
                 {
                     if (eventData.Payload[i] is IDictionary<string, object> eventPayload)
                     {
-                        if (eventPayload.TryGetValue("DisplayName", out object displayName) && displayName is string displayNameString && Array.BinarySearch(counters, displayName) > -1 &&
-                            (eventPayload.TryGetValue("Mean", out object value) || eventPayload.TryGetValue("Increment", out value)))
+                        if (eventPayload.TryGetValue("Name", out object name) && name is string nameString && Array.BinarySearch(counters, nameString) > -1 &&
+                        (eventPayload.TryGetValue("Mean", out object value) || eventPayload.TryGetValue("Increment", out value)))
                         {
-                            if (eventPayload.TryGetValue("DisplayUnits", out object unit) && unit is string unitString && unitString == "B" &&
-                                (value is double numericValue) && numericValue > 8192)
+                            switch (nameString)
                             {
-                                numericValue /= 1024;
-                                debugInfo[displayNameString] = $"{numericValue:0} KB";
-                            }
-                            else
-                            {
-                                debugInfo[displayNameString] = $"{value} {unit}";
+                                case "gen-0-size":
+                                    debugInfo.GcSize[0] = (long)(double)value;
+                                    break;
+                                case "gen-1-size":
+                                    debugInfo.GcSize[1] = (long)(double)value;
+                                    break;
+                                case "gen-2-size":
+                                    debugInfo.GcSize[2] = (long)(double)value;
+                                    break;
+                                case "gen-0-gc-count":
+                                    debugInfo.GcCollections[0] = (int)(double)value;
+                                    break;
+                                case "gen-1-gc-count":
+                                    debugInfo.GcCollections[1] = (int)(double)value;
+                                    break;
+                                case "gen-2-gc-count":
+                                    debugInfo.GcCollections[2] = (int)(double)value;
+                                    break;
+                                default:
+                                    if (eventPayload.TryGetValue("DisplayName", out object displayName) && displayName is string displayNameString && eventPayload.TryGetValue("DisplayUnits", out object unit) && unit is string unitString)
+                                    {
+                                        debugInfo[displayNameString] = unitString == "B" ? $"{FormatBytes((long)(double)value)}" : $"{value:0} {unit}";
+                                    }
+                                    break;
                             }
                         }
                     }
                 }
             }
         }
+
+        private static string FormatBytes(long bytes)
+        {
+            return bytes switch
+            {
+                > 8388608 => $"{bytes >> 20} MB",
+                > 8192 => $"{bytes >> 10} kB",
+                _ => $"{bytes} B",
+            };
+        }
+
+
     }
 }

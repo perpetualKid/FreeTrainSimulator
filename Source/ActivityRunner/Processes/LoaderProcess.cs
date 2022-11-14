@@ -25,7 +25,7 @@ using Orts.ActivityRunner.Processes.Diagnostics;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class LoaderProcess : ProcessBase
+    internal sealed class LoaderProcess : ProcessBase
     {
         public LoaderProcess(GameHost gameHost) : base(gameHost, "Loader")
         {

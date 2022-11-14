@@ -28,7 +28,7 @@ namespace Orts.ActivityRunner.Processes
     /// <summary>
     /// Represents a single state for the game to be in (e.g. loading, running, in menu).
     /// </summary>
-    public abstract class GameState : IDisposable
+    internal abstract class GameState : IDisposable
     {
         private bool disposedValue;
 

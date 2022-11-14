@@ -24,7 +24,7 @@ using Orts.ActivityRunner.Viewer3D;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class UpdaterProcess : ProcessBase
+    internal sealed class UpdaterProcess : ProcessBase
     {
         private RenderFrame CurrentFrame;
 

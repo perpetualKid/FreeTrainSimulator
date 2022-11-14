@@ -31,7 +31,7 @@ using Orts.ActivityRunner.Viewer3D.WebServices;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class WebServerProcess: IDisposable
+    internal sealed class WebServerProcess : IDisposable
     {
         private readonly Thread thread;
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -81,7 +81,7 @@ namespace Orts.ActivityRunner.Processes
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

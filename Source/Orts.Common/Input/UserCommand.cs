@@ -50,7 +50,6 @@ namespace Orts.Common.Input
         [Description("Display Train Dpu Window")] DisplayDistributedPowerWindow,
         [Description("Display Next Station Window")] DisplayNextStationWindow,
         [Description("Display Compass Window")] DisplayCompassWindow,
-        [Description("Display Basic HUD Toggle")] DisplayBasicHUDToggle,
         [Description("Display Train List Window")] DisplayTrainListWindow,
         [Description("Display EOT List Window")] DisplayEOTListWindow,
 

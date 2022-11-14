@@ -37,7 +37,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class RenderProcess : IDisposable
+    internal sealed class RenderProcess : IDisposable
     {
         public const int ShadowMapCountMaximum = 4;
 
@@ -414,7 +414,7 @@ namespace Orts.ActivityRunner.Processes
             toggleScreenRequested = true;
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

@@ -44,7 +44,7 @@ using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class GameStateRunActivity : GameState
+    internal sealed class GameStateRunActivity : GameState
     {
 
         private enum ActivityType

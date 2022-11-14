@@ -28,7 +28,7 @@ using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class GameStateViewer3D : GameState
+    internal sealed class GameStateViewer3D : GameState
     {
         internal readonly Viewer Viewer;
         private bool firstFrame = true;

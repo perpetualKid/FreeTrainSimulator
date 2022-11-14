@@ -8,7 +8,7 @@ using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
-    internal class MetricCollector
+    internal sealed class MetricCollector
     {
         private readonly Process process = Process.GetCurrentProcess();
         private TimeSpan lastCpuTime;

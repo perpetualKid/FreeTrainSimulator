@@ -30,11 +30,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
-using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.AIs;
@@ -54,8 +52,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         // Set to distance from top-left corner to place text.
         private const int TextOffset = 10;
-        private readonly PerformanceCounter AllocatedBytesPerSecCounter; // \.NET CLR Memory(*)\Allocated Bytes/sec
-        private float AllocatedBytesPerSecLastValue;
         private readonly Viewer Viewer;
         private readonly Action<TableData>[] TextPages;
         private readonly WindowTextFont TextFont;
@@ -101,27 +97,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Viewer = owner.Viewer;
             LastTextPage = LocomotivePage;
 
-            try
-            {
-                var counterDotNetClrMemory = new PerformanceCounterCategory(".NET CLR Memory");
-                foreach (var process in counterDotNetClrMemory.GetInstanceNames())
-                {
-                    var processId = new PerformanceCounter(".NET CLR Memory", "Process ID", process);
-                    if (processId.NextValue() == Process.GetCurrentProcess().Id)
-                    {
-                        AllocatedBytesPerSecCounter = new PerformanceCounter(".NET CLR Memory", "Allocated Bytes/sec", process);
-                        break;
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-                Trace.TraceWarning("Unable to access Microsoft .NET Framework performance counters. This may be resolved by following the instructions at http://support.microsoft.com/kb/300956");
-            }
-
-            Debug.Assert(GC.MaxGeneration == 2, "Runtime is expected to have a MaxGeneration of 2.");
-
             var textPages = new List<Action<TableData>>();
             textPages.Add(TextPageCommon);
             textPages.Add(TextPageConsistInfo);
@@ -132,7 +107,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             textPages.Add(TextPageForceInfo);
             textPages.Add(TextPageDispatcherInfo);
             textPages.Add(TextPageWeather);
-            textPages.Add(TextPageDebugInfo);
             TextPages = textPages.ToArray();
 
             TextFont = owner.TextFontMonoSpacedOutlined;
@@ -194,11 +168,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 LastTextPage = TextPage;
                 lResetHudScroll = false;
             }
-        }
-
-        public void ToggleBasicHUD()
-        {
-            TextPage = TextPage == 0 ? LastTextPage : 0;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
@@ -1867,33 +1836,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.CarOutsideTempC, Simulator.Instance.MetricUnits));
         }
 
-        private void TextPageDebugInfo(TableData table)
-        {
-            TableSetLabelValueColumns(table, 0, 2);
-            TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
-
-            if (hudWindowFullScreen)
-                TableSetLabelValueColumns(table, 0, 2);
-
-            var allocatedBytesPerSecond = AllocatedBytesPerSecCounter == null ? 0 : AllocatedBytesPerSecCounter.NextValue();
-            if (allocatedBytesPerSecond >= 1 && AllocatedBytesPerSecLastValue != allocatedBytesPerSecond)
-                AllocatedBytesPerSecLastValue = allocatedBytesPerSecond;
-
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetString("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), 0 / 1024));
-            if (Viewer.Settings.DynamicShadows)
-            {
-                TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => Viewer.Catalog.GetString($"{RenderProcess.ShadowMapDistance[i]}/{RenderProcess.ShadowMapDiameter[i]}")).ToArray());
-                TableSetCell(table, 3 + RenderProcess.ShadowMapCount, Viewer.Catalog.GetString("({0}x{0})", Viewer.Settings.ShadowMapResolution));
-                TableAddLine(table, Viewer.Catalog.GetString("Shadow maps"));
-                TableSetCells(table, 3, Viewer.RenderProcess.ShadowPrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Shadow primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.ShadowPrimitivePerFrame.Sum()));
-            }
-            TableSetCells(table, 3, Viewer.RenderProcess.PrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Render primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.PrimitivePerFrame.Sum()));
-            TableSetCells(table, 0, Viewer.Catalog.GetString("Camera"), "", $"{Viewer.Camera.TileX:F0}", $"{Viewer.Camera.TileZ:F0}", $"{Viewer.Camera.Location.X:F2}", $"{Viewer.Camera.Location.Y:F2}", $"{Viewer.Camera.Location.Z:F2}", $"{Viewer.Tiles.GetElevation(Viewer.Camera.CameraWorldLocation):F1} {FormatStrings.m}", Viewer.Settings.LODBias + "%", $"{Viewer.Settings.ViewingDistance} {FormatStrings.m}", Viewer.Settings.DistantMountains ? $"{Viewer.Settings.DistantMountainsViewingDistance * 1e-3f:F0} {FormatStrings.km}" : "");
-            TableAddLine(table);
-        }
-
         /// <summary>
         /// Columns count
         /// Used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
@@ -2267,12 +2209,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             TableAddLine(table);
             TableAddLine(table, name);
-        }
-
-        public long GetWorkingSetSize()
-        {
-            Viewer.CurrentProcess.Refresh();
-            return Viewer.CurrentProcess.WorkingSet64;
         }
     }
 

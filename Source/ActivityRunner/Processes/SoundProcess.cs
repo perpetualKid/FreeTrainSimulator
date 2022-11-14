@@ -32,7 +32,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class SoundProcess : ProcessBase
+    internal sealed class SoundProcess : ProcessBase
     {
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by

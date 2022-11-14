@@ -8,7 +8,7 @@ using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class SystemProcess : ProcessBase
+    internal sealed class SystemProcess : ProcessBase
     {
         internal const double UpdateInterval = 0.25;
 
@@ -36,6 +36,7 @@ namespace Orts.ActivityRunner.Processes
 
                 (gameHost.SystemInfo[DiagnosticInfo.System] as DebugInfoBase).Update(gameTime);
                 (gameHost.SystemInfo[DiagnosticInfo.ProcessMetric] as DebugInfoBase).Update(gameTime);
+                (gameHost.SystemInfo[DiagnosticInfo.Clr] as ClrEventListener).Update(gameTime);
 
                 nextUpdate = gameTime.TotalGameTime.TotalSeconds + UpdateInterval;
             }
@@ -53,7 +54,7 @@ namespace Orts.ActivityRunner.Processes
                 this["Loader process"] = $"{Profiler.ProfilingData[ProcessType.Loader].CPU.SmoothedValue:F0} %";
                 this["Sound process"] = $"{Profiler.ProfilingData[ProcessType.Sound].CPU.SmoothedValue:F0} %";
                 this["Memory use"] = $"{Environment.WorkingSet / 1024 / 1024} Mb";
-                this["Frame rate (actual/P50/P95/P99)"] = $"{(int)MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].Value} ms / {((int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP50)} ms / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP95} ms / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP99} ms";
+                this["Frame rate (actual/P50/P95/P99)"] = $"{(int)MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].Value} fps / {((int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP50)} fps / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP95} fps / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP99} fps";
                 this["Frame time (actual/P50/P95/P99)"] = $"{MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP50 * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP95 * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP99 * 1000:F1} ms";
                 base.Update(gameTime);
             }

@@ -38,6 +38,7 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Native;
@@ -61,6 +62,11 @@ using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
+    public enum ViewerInfoType
+    {
+        GraphicDetails,
+    }
+
     public class Viewer
     {
         private bool pauseWindow;
@@ -74,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // Multi-threaded processes
         internal LoaderProcess LoaderProcess { get; private set; }
         internal UpdaterProcess UpdaterProcess { get; private set; }
-        public RenderProcess RenderProcess { get; private set; }
+        internal RenderProcess RenderProcess { get; private set; }
         internal SoundProcess SoundProcess { get; private set; }
         public string ContentPath { get; private set; }
         public SharedTextureManager TextureManager { get; private set; }
@@ -97,6 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private Orts.Graphics.Window.WindowManager<ViewerWindowType> windowManager;
 
+        internal EnumArray<INameValueInformationProvider, ViewerInfoType> ViewerInfo { get; } = new EnumArray<INameValueInformationProvider, ViewerInfoType>();
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
         public HUDWindow HUDWindow { get; private set; } // F5 hud
@@ -320,6 +327,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
             }
+
+            ViewerInfo[ViewerInfoType.GraphicDetails] = new GraphicInformation(this);
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
@@ -701,7 +710,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 else
                     SignallingDebugWindow.Visible = !SignallingDebugWindow.Visible;
             });
-            UserCommandController.AddEvent(UserCommand.DisplayBasicHUDToggle, KeyEventType.KeyPressed, HUDWindow.ToggleBasicHUD);
             UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () =>
             {
                 windowManager[ViewerWindowType.TrainListWindow].ToggleVisibility();
@@ -1357,6 +1365,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
 
+            (ViewerInfo[ViewerInfoType.GraphicDetails] as DebugInfoBase).Update(new GameTime());
+
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
             foreach (var car in cars)
@@ -1894,6 +1904,37 @@ namespace Orts.ActivityRunner.Viewer3D
             var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
             NativeMethods.GlobalMemoryStatusEx(buffer);
             return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
+        }
+
+        private class GraphicInformation: DebugInfoBase
+        {
+            private Viewer viewer;
+
+            public GraphicInformation(Viewer viewer)
+            { 
+                this.viewer = viewer;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                this["TextureManager"] = viewer.TextureManager.GetStatus();
+                this["MaterialManager"] = viewer.MaterialManager.GetStatus();
+                this["ShapeManager"] = viewer.ShapeManager.GetStatus();
+                this["Terrain"] = viewer.World.Terrain.GetStatus();
+                this["LongText"] = "Some very long but not very meaningful text just to test the clipping in NameValueTextGRid control from Orts Graaphics Library to see if there is any clipping at all";
+                if (viewer.Settings.DynamicShadows)
+                {
+                    this["Shadow Maps"] = string.Join("\t\t", Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => $"{RenderProcess.ShadowMapDistance[i]}/{RenderProcess.ShadowMapDiameter[i]}").ToArray()) + $"\t({viewer.Settings.ShadowMapResolution}x{viewer.Settings.ShadowMapResolution})";
+                    ;
+                    //TableSetCells(table, 3, Viewer.RenderProcess.ShadowPrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
+                    //TableAddLabelValue(table, Viewer.Catalog.GetString("Shadow primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.ShadowPrimitivePerFrame.Sum()));
+                }
+//                TableSetCells(table, 3, Viewer.RenderProcess.PrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
+                this["Render primitives"] = $"{viewer.RenderProcess.PrimitivePerFrame.Sum():0}";
+                this["Render Primitives/Frame"] = string.Join('\t', viewer.RenderProcess.PrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
+                this["Camera"] = $"{viewer.Camera.TileX:F0} \t{viewer.Camera.TileZ:F0} \t{viewer.Camera.Location.X:F2} \t{viewer.Camera.Location.Y:F2} \t{viewer.Camera.Location.Z:F2} \t{viewer.Tiles.GetElevation(viewer.Camera.CameraWorldLocation):F1} {FormatStrings.m} \t{viewer.Settings.LODBias} % \t{viewer.Settings.ViewingDistance} {FormatStrings.m} \t{(viewer.Settings.DistantMountains ? $"{viewer.Settings.DistantMountainsViewingDistance * 1e-3f:F0} {FormatStrings.km}" : "")}";
+                base.Update(gameTime);
+            }
         }
 
     }

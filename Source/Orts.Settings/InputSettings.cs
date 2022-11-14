@@ -312,7 +312,6 @@ namespace Orts.Settings
             commands[UserCommand.DebugToggleConfirmations] = new UserCommandKeyInput(0x44, KeyModifiers.Control | KeyModifiers.Alt);
 
             commands[UserCommand.DisplayTrainListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Alt);
-            commands[UserCommand.DisplayBasicHUDToggle] = new UserCommandKeyInput(0x3F, KeyModifiers.Alt);
             commands[UserCommand.DisplayCarLabels] = new UserCommandModifiableKeyInput(0x41, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             commands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, commands[UserCommand.DisplayNextWindowTab]);

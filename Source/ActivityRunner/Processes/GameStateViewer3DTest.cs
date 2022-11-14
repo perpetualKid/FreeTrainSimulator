@@ -11,7 +11,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class GameStateViewer3DTest : GameState
+    internal sealed class GameStateViewer3DTest : GameState
     {
         public bool Passed { get; set; }
         public double LoadTime { get; set; }

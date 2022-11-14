@@ -27,7 +27,7 @@ using Orts.Common.Native;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
-    public class Profiler
+    internal sealed class Profiler
     {
         public static EnumArray<Profiler, ProcessType> ProfilingData { get; } = new EnumArray<Profiler, ProcessType>();
 

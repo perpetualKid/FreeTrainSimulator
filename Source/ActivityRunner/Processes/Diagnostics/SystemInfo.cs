@@ -10,7 +10,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
-    internal class SystemInfo : DebugInfoBase
+    internal sealed class SystemInfo : DebugInfoBase
     {
         private readonly GameHost gameHost;
         private readonly int processorCount = Environment.ProcessorCount;
@@ -28,6 +28,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             this["Resolution"] = gameHost.Window.ClientBounds.ToString();
             this["CPU"] = null;
             this["Memory"] = null;
+            this[".0"] = null;
             this["Frame rate"] = null;
         }
 

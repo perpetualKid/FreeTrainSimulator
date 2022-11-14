@@ -8,8 +8,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -30,6 +28,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly Viewer viewer;
         private readonly UserSettings settings;
         private NameValueTextGrid systemInformation;
         private TabLayout<TabSettings> tabLayout;
@@ -45,6 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
+            this.viewer = viewer;
             this.settings = settings;
             userCommandController = viewer.UserCommandController;
         }
@@ -73,6 +73,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric];
                 layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
                 textGrid.InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric];
+                layoutContainer.Add(textGrid = new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont) { OutlineRenderOptions = OutlineRenderOptions.Default, ColumnWidth = 240 });
+                textGrid.InformationProvider = viewer.ViewerInfo[ViewerInfoType.GraphicDetails];
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
                 layoutContainer.Add(graphFrameRate = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(260 * Owner.DpiScaling), graphWidth, 40, "0", "60", Catalog.GetString("Frame rate fps"), graphWidth) { GraphColor = Color.Purple });

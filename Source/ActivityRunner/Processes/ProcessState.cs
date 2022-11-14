@@ -22,7 +22,7 @@ using System.Threading;
 
 namespace Orts.ActivityRunner.Processes
 {
-    public class ProcessState : IDisposable
+    internal sealed class ProcessState : IDisposable
     {
         public bool Finished { get; private set; }
         public bool Terminated { get; private set; }
@@ -73,7 +73,7 @@ namespace Orts.ActivityRunner.Processes
             WaitHandle.WaitAny(finishEvents);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

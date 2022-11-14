@@ -27,7 +27,6 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Info;
@@ -35,14 +34,12 @@ using Orts.Common.Logging;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 
-using static Orts.Common.Calc.Dynamics;
-
 namespace Orts.ActivityRunner.Processes
 {
     /// <summary>
     /// Provides the foundation for running the game.
     /// </summary>
-    public class GameHost : Game
+    public sealed class GameHost : Game
     {
         internal SystemProcess systemProcess { get; }
 
@@ -74,14 +71,14 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Exposes access to the <see cref="WebServer"/> for the game.
         /// </summary>
-        public WebServerProcess WebServerProcess { get; }
+        internal WebServerProcess WebServerProcess { get; }
 
         public EnumArray<INameValueInformationProvider, DiagnosticInfo> SystemInfo { get; } = new EnumArray<INameValueInformationProvider, DiagnosticInfo>();
 
         /// <summary>
         /// Gets the current <see cref="GameState"/>, if there is one, or <c>null</c>.
         /// </summary>
-        public GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
+        internal GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
         private readonly Stack<GameState> gameStates;
         private readonly ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
