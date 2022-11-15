@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
         public override void Update(GameTime gameTime)
         {
-            if (update)
+            if (UpdateNeeded)
             {
                 this["System Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
                 this["Game Time"] = Simulator.Instance != null ? $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}" : null;

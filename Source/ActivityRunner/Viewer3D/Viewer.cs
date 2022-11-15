@@ -67,6 +67,8 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         GraphicDetails,
         WeatherDetails,
+        TrainDetails,
+        ConsistDetails
     }
 
 
@@ -331,10 +333,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            DetailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(this);
-            DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation();
-            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GraphicDetails]);
-            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails]);
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(this));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.TrainDetails] = new TrainInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ConsistDetails] = new ConsistInformation(Catalog as Catalog));
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
@@ -949,7 +951,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             });
 
-            UserCommandController.AddEvent(UserCommand.ControlOdoMeterDisplayMode, KeyEventType.KeyPressed, () => {
+            UserCommandController.AddEvent(UserCommand.ControlOdoMeterDisplayMode, KeyEventType.KeyPressed, () =>
+            {
                 Settings.OdometerShortDistanceMode = !Settings.OdometerShortDistanceMode;
                 Simulator.Confirmer.Confirm(CabControl.Odometer, Settings.OdometerShortDistanceMode ? "Short distance Measure mode" : "Long distance mode");
             });

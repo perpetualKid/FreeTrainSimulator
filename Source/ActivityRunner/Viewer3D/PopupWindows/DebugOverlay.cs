@@ -25,12 +25,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("System Information")] Common,
             [Description("Weather Information")] Weather,
             [Description("Performance")] Performance,
+            [Description("Consist Information")]Consist,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
         private readonly UserSettings settings;
-        private NameValueTextGrid systemInformation;
+
         private TabLayout<TabSettings> tabLayout;
         private readonly System.Drawing.Font textFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[13];
 
@@ -56,17 +57,35 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabLayout.TabLayouts[TabSettings.Common] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont) 
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont) 
                 { 
                     OutlineRenderOptions = OutlineRenderOptions.Default, 
                     NameColumnWidth = 240,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System],
                 });
             };
+            tabLayout.TabLayouts[TabSettings.Consist] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
+                });
+                layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 40,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
+                    MultiValueColumnWidth = 60,
+                });
+
+            };
             tabLayout.TabLayouts[TabSettings.Weather] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, 0, 0, textFont)
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,
@@ -82,7 +101,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     NameColumnWidth = 240,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric]
                 });
-                layoutContainer.Add(systemInformation = new NameValueTextGrid(this, layoutContainer.RemainingWidth / 2, 0, textFont)
+                layoutContainer.Add(new NameValueTextGrid(this, layoutContainer.RemainingWidth / 2, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,

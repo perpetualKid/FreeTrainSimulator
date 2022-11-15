@@ -21,7 +21,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         public override void Update(GameTime gameTime)
         {
-            if (update)
+            if (UpdateNeeded)
             {
                 this["TextureManager"] = viewer.TextureManager.GetStatus();
                 this["MaterialManager"] = viewer.MaterialManager.GetStatus();

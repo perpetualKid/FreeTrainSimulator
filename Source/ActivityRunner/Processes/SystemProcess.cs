@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Processes
 
             public override void Update(GameTime gameTime)
             {
-                if (update)
+                if (UpdateNeeded)
                 {
                     this["CPU"] = $"{MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue / processorCount:0} % total / {MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue:0} % single core";
                     this["Render process"] = $"{Profiler.ProfilingData[ProcessType.Render].CPU.SmoothedValue:F0} %";

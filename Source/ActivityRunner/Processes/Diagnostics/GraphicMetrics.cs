@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Processes
 
         public override void Update(GameTime gameTime)
         {
-            if (update)
+            if (UpdateNeeded)
             {
                 this["Clear Calls"] = $"{CurrentMetrics.ClearCount}";
                 this["Draw Calls"] = $"{CurrentMetrics.DrawCount}";

@@ -28,7 +28,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
             public override void Update(GameTime gameTime)
             {
-                if (update)
+                if (UpdateNeeded)
                 {
                     this["Memory Size (Gen0/Gen1/Gen2)"] = $"{FormatBytes(GcSize[0])} / {FormatBytes(GcSize[1])} / {FormatBytes(GcSize[2])}";
                     this["GC Count (Gen0/Gen1/Gen2)"] = $"{GcCollections[0]} / {GcCollections[1]} / {GcCollections[2]}";

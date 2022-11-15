@@ -19,7 +19,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public override void Update(GameTime gameTime)
         {
-            if (update)
+            if (UpdateNeeded)
             {
                 this["Visibility"] = $"{simulator.Weather.FogVisibilityDistance:0} m";
                 this["Cloud cover"] = $"{simulator.Weather.OvercastFactor * 100:0} %";

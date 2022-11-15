@@ -38,6 +38,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 using Microsoft.Xna.Framework;
 
@@ -253,6 +254,9 @@ namespace Orts.Simulation.RollingStocks
         public bool Flipped { get; internal set; } // the car is reversed in the consist
         public int UiD { get; internal set; }
         public string CarID { get; internal set; } = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
+
+        private string wheelAxleInformation;
+        public string WheelAxleInformation => wheelAxleInformation ??= GetWheelAxleInformation();
 
         // status of the traincar - set by the train physics after it calls TrainCar.Update()
         private WorldPosition worldPosition = WorldPosition.None;
@@ -3051,5 +3055,38 @@ namespace Orts.Simulation.RollingStocks
         {
             this.worldPosition = worldPosition;
         }
+
+        private string GetWheelAxleInformation()
+        {
+            if (WheelAxles.Count == 0)
+                return string.Empty;
+
+            StringBuilder builder = new StringBuilder();
+
+            int currentBogie = WheelAxles[0].BogieIndex;
+            int count = 0;
+            foreach (WheelAxle axle in WheelAxles)
+            {
+                if (currentBogie != (currentBogie = axle.BogieIndex))
+                {
+                    if (count > 0)
+                    {
+                        if (builder.Length > 0)
+                            builder.Append('-');
+                        builder.Append($"{count}");
+                    }
+                    count = 0;
+                }
+                count += 2;
+            }
+            if (count > 0)
+            {
+                if (builder.Length > 0)
+                    builder.Append('-');
+                builder.Append($"{count}");
+            }
+            return builder.ToString();
+        }
+
     }
 }

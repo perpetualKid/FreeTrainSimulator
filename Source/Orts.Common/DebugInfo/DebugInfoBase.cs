@@ -9,7 +9,7 @@ namespace Orts.Common.DebugInfo
     public class DebugInfoBase : NameValueCollection, INameValueInformationProvider
 #pragma warning restore CA1010 // Generic interface should also be implemented
     {
-        protected bool update { get; set; }
+        protected bool UpdateNeeded { get; set; }
 
         public DebugInfoBase(bool includeFormattingOptions = false)
         {
@@ -19,9 +19,9 @@ namespace Orts.Common.DebugInfo
 
         public virtual void Update(GameTime gameTime)
         {
-            if (update)
+            if (UpdateNeeded)
             {
-                update = false;
+                UpdateNeeded = false;
             }
         }
 
@@ -29,7 +29,7 @@ namespace Orts.Common.DebugInfo
         {
             get
             {
-                update = true;
+                UpdateNeeded = true;
                 return this;
             }
         }
