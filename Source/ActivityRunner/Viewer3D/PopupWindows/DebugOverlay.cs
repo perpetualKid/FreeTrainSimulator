@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 40,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
-                    MultiValueColumnWidth = 60,
+                    MultiValueColumnWidth = 64,
                 });
 
             };
