@@ -764,7 +764,8 @@ namespace Orts.Simulation.RollingStocks
                         // Tractive force is read from Table using the apparent throttle setting, and then reduced by the number of engines running (power ratio)
                         TractiveForceN = (float)TractiveForceCurves.Get(LocomotiveApparentThrottleSetting, AbsTractionSpeedMpS) * DieselEngineFractionPower * (1 - PowerReduction);
                     }
-                    TractiveForceN = 0;
+                    if (TractiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
+                        TractiveForceN = 0;
                 }
 
             }
