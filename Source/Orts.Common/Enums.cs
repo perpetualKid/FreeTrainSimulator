@@ -1026,7 +1026,6 @@ namespace Orts.Common
         MultiPlayerWindow,
         DrivingTrainWindow,
         DistributedPowerWindow,
-        HudScrollWindow,
         TrainOperationsWindow,
         CarOperationsWindow,
         TrackMonitorWindow,

@@ -160,8 +160,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public override bool Open()
         {
             userCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction, true);
-            userCommandController.AddEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyDown, ScrollUp, true);
-            userCommandController.AddEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyDown, ScrollDown, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyPressed, ScrollUp, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyPressed, ScrollDown, true);
             userCommandController.AddEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft, true);
             userCommandController.AddEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight, true);
             return base.Open();
@@ -170,8 +170,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public override bool Close()
         {
             userCommandController.RemoveEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction);
-            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyDown, ScrollUp);
-            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyDown, ScrollDown);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyPressed, ScrollUp);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyPressed, ScrollDown);
             userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft);
             userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight);
             return base.Close();

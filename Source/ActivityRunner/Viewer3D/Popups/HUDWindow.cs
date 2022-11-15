@@ -98,7 +98,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             var textPages = new List<Action<TableData>>();
             textPages.Add(TextPageCommon);
-            textPages.Add(TextPageConsistInfo);
             textPages.Add(TextPageLocomotiveInfo);
             textPages.Add(TextPageDistributedPowerInfo);
             textPages.Add(TextPagePowerSupplyInfo);
@@ -476,116 +475,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 foreach (var t in text.Split('\t'))
                     TableAddLine(table, "{0}", t);
             }
-        }
-
-        private void TextPageConsistInfo(TableData table)
-        {
-            TextPageHeading(table, Viewer.Catalog.GetString("CONSIST INFORMATION"));
-
-            var locomotive = Viewer.PlayerLocomotive;
-            var mstsLocomotive = locomotive as MSTSLocomotive;
-            var train = locomotive.Train;
-            float tonnage = 0f;
-            foreach (var car in train.Cars)
-            {
-                if (car.WagonType == WagonType.Freight || car.WagonType == WagonType.Passenger)
-                    tonnage += car.MassKG;
-            }
-
-            ResetHudScroll();//Reset Hudscroll.
-
-            List<string> statusConsist = new List<string>();
-            //Consist information. Header.
-            statusConsist.Add(string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
-                Viewer.Catalog.GetString("Player"),
-                Viewer.Catalog.GetString("Tilted"),
-                Viewer.Catalog.GetString("Type"),
-                Viewer.Catalog.GetString("Length"),
-                Viewer.Catalog.GetString("Weight"), //"",
-                Viewer.Catalog.GetString("Tonnage"), //"",
-                Viewer.Catalog.GetString("Control Mode"),// "",
-                Viewer.Catalog.GetString("Out of Control"),// "",
-                Viewer.Catalog.GetString("Cab Aspect")
-
-                //Add new header data here, if adding additional column.
-
-                ));
-            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-            //Consist information. Data.
-            statusConsist.Add(string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
-                locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetParticularString("Cab", "R") : Viewer.Catalog.GetParticularString("Cab", "F")),
-                (train.IsTilting ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No")),
-                (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")),
-                FormatStrings.FormatShortDistanceDisplay(train.Length, Simulator.Instance.MetricUnits),
-                FormatStrings.FormatLargeMass(train.MassKg, Simulator.Instance.MetricUnits, isUK),
-                FormatStrings.FormatLargeMass(tonnage, Simulator.Instance.MetricUnits, isUK),
-                train.ControlMode.ToString(),
-                train.OutOfControlReason.ToString(),
-                mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString()
-
-                //Add new data here, if adding additional column.
-
-                ));
-
-            //Car information
-            statusConsist.Add(string.Format(CultureInfo.CurrentCulture, "\n{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}",
-                Viewer.Catalog.GetString("Car"),
-                Viewer.Catalog.GetString("Flipped"),
-                Viewer.Catalog.GetString("Type"),
-                Viewer.Catalog.GetString("Length"),
-                Viewer.Catalog.GetString("Weight"),
-                Viewer.Catalog.GetString("Drv/Cabs"),
-                Viewer.Catalog.GetString("Wheels"),
-                Viewer.Catalog.GetString("Temp")
-                //Add new header data here, if adding additional column.
-
-                ));
-
-            //Pages count from number of nLinesShow.
-            columnsCount = statusConsist[statusConsist.Count - 1].Count(x => x == '\t') + (statusConsist[statusConsist.Count - 1].EndsWith("\t") ? 0 : 1);
-            //table.CurrentRow + 1 (Consist information. Header) + 1 (Consist information. Data.) + 1 (TableAddLine(table)) + 1 (Car information)
-            TextLineNumber(train.Cars.Count, table.CurrentRow + 4, columnsCount);//HudScroll
-
-            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (train.Cars.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : train.Cars.Count); i++)
-            {
-                var j = (i == 0) ? 0 : i;
-                var car = train.Cars[j];
-                statusConsist.Add(car.CarID + "\t" +
-                    (car.Flipped ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No")) + "\t" +
-                    (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")) + "\t" +
-                    FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, Simulator.Instance.MetricUnits) + "\t" +
-                    FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK) + "\t" +
-                    (car is MSTSLocomotive ? Viewer.Catalog.GetParticularString("Cab", "D") : "") + (car.HasFrontCab || car.HasFront3DCab ? Viewer.Catalog.GetParticularString("Cab", "F") : "") + (car.HasRearCab || car.HasRear3DCab ? Viewer.Catalog.GetParticularString("Cab", "R") : "") + "\t" +
-                    GetCarWhyteLikeNotation(car) + "\t" +
-                    (car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, Simulator.Instance.MetricUnits) : string.Empty));
-
-                //Add new data here, if adding additional column.
-
-            }
-
-            DrawScrollArrows(statusConsist, table, false);
-        }
-
-        private static string GetCarWhyteLikeNotation(TrainCar car)
-        {
-            if (car.WheelAxles.Count == 0)
-                return "";
-
-            var whyte = new List<string>();
-            var currentCount = 0;
-            var currentBogie = car.WheelAxles[0].BogieIndex;
-            foreach (var axle in car.WheelAxles)
-            {
-                if (currentBogie != axle.BogieIndex)
-                {
-                    whyte.Add(currentCount.ToString());
-                    currentBogie = axle.BogieIndex;
-                    currentCount = 0;
-                }
-                currentCount += 2;
-            }
-            whyte.Add(currentCount.ToString());
-            return String.Join("-", whyte.ToArray());
         }
 
         private void TextPageLocomotiveInfo(TableData table)
