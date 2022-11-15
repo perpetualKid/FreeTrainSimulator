@@ -25,7 +25,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("System Information")] Common,
             [Description("Weather Information")] Weather,
             [Description("Performance")] Performance,
-            [Description("Consist Information")]Consist,
+            [Description("Consist Information")] Consist,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
@@ -42,6 +42,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private GraphControl graphSoundProcess;
         private GraphControl graphLoaderProcess;
 
+        private NameValueTextGrid consistTableGrid;
+        private NameValueTextGrid scrollableGrid;
+
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
@@ -57,9 +60,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabLayout.TabLayouts[TabSettings.Common] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont) 
-                { 
-                    OutlineRenderOptions = OutlineRenderOptions.Default, 
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System],
                 });
@@ -73,7 +76,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     NameColumnWidth = 240,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
                 });
-                layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(160 * Owner.DpiScaling), textFont)
+                int y = (int)(160 * Owner.DpiScaling);
+                layoutContainer.Add(consistTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 40,
@@ -156,12 +160,20 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public override bool Open()
         {
             userCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyDown, ScrollUp, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyDown, ScrollDown, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight, true);
             return base.Open();
         }
 
         public override bool Close()
         {
             userCommandController.RemoveEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollUp, KeyEventType.KeyDown, ScrollUp);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyDown, ScrollDown);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight);
             return base.Close();
         }
 
@@ -170,6 +182,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base.Initialize();
             if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DebugOverlay], out TabSettings tab))
                 tabLayout.TabAction(tab);
+            scrollableGrid = tabLayout.CurrentTab switch
+            {
+                TabSettings.Consist => consistTableGrid,
+                _ => null,
+            };
         }
 
         private void TabAction(UserCommandArgs args)
@@ -178,7 +195,37 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 tabLayout.TabAction();
                 settings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
+                scrollableGrid = tabLayout.CurrentTab switch
+                {
+                    TabSettings.Consist => consistTableGrid,
+                    _ => null,
+                };
             }
         }
+
+        private void ScrollUp()
+        {
+            if (null != scrollableGrid)
+                scrollableGrid.Row--;
+        }
+
+        private void ScrollDown()
+        {
+            if (null != scrollableGrid)
+                scrollableGrid.Row++;
+        }
+
+        private void ScrollLeft()
+        {
+            if (null != scrollableGrid)
+                scrollableGrid.Column++;
+        }
+
+        private void ScrollRight()
+        {
+            if (null != scrollableGrid)
+                scrollableGrid.Column--;
+        }
+
     }
 }

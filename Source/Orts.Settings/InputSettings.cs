@@ -316,6 +316,12 @@ namespace Orts.Settings
             commands[UserCommand.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             commands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, commands[UserCommand.DisplayNextWindowTab]);
+            commands[UserCommand.DisplayHUDScrollLeft] = new UserCommandKeyInput(0x4B, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.DisplayHUDScrollRight] = new UserCommandKeyInput(0x4D, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.DisplayHUDScrollUp] = new UserCommandKeyInput(0x48, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.DisplayHUDScrollDown] = new UserCommandKeyInput(0x50, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.DisplayHUDPageUp] = new UserCommandKeyInput(0x49, KeyModifiers.Control | KeyModifiers.Shift);
+            commands[UserCommand.DisplayHUDPageDown] = new UserCommandKeyInput(0x51, KeyModifiers.Control | KeyModifiers.Shift);
             commands[UserCommand.DisplayTrainDrivingWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayMultiPlayerWindow] = new UserCommandKeyInput(0x0A, KeyModifiers.Shift);
             commands[UserCommand.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
