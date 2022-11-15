@@ -18,6 +18,7 @@ namespace Orts.Graphics.Window.Controls
         private Rectangle? clippingRectangleValueColumn;
         private Rectangle? clippingRectangleMultiValueColumn;
 
+        private string[] keys;
         private Vector2 multiValueOffset;
 
         private List<(Vector2, Texture2D, Color)> drawItemsNameColumn = new List<(Vector2, Texture2D, Color)>();
@@ -109,16 +110,15 @@ namespace Orts.Graphics.Window.Controls
                     if (multiValueOffset != Vector2.Zero)
                     {
                         string[] multiValues = InformationProvider.DebugInfo[identifier]?.Split('\t');
+                        Texture2D[] textures = new Texture2D[multiValues?.Length ?? 0];
                         if (multiValues != null)
                         {
-                            Texture2D[] textures = new Texture2D[multiValues.Length];
                             for (int i = 0; i < multiValues.Length; i++)
                                 textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
-                            prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
-
                             if (maxColumn < multiValues.Length)
                                 maxColumn = multiValues.Length;
                         }
+                        prepareValueColumn.Add((new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
                     }
                     else
                     {
@@ -154,6 +154,7 @@ namespace Orts.Graphics.Window.Controls
                 //header
                 (Vector2 position, Texture2D texture, Color color) = drawItemsNameColumn[0];
                 spriteBatch.Draw(texture, position + locationVector, clippingRectangleNameColumn, color);
+
                 (position, Texture2D[] textures, color) = drawItemsValueColumn[0];
                 for (int j = column; j < textures.Length; j++)
                     spriteBatch.Draw(textures[j], position + locationVector + (j - column) * multiValueOffset, clippingRectangleMultiValueColumn, color);
