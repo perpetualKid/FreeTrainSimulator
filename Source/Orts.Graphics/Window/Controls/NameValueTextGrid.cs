@@ -104,9 +104,10 @@ namespace Orts.Graphics.Window.Controls
                     Texture2D[] textures;
                     if (multiValueOffset != Vector2.Zero)
                     {
-                        string[] multiValues = InformationProvider.DebugInfo[identifier]?.Split('\t');
-                        textures = new Texture2D[multiValues?.Length ?? 0];
-                        if (multiValues != null)
+                        if (InformationProvider.Next != null)
+                        {
+                            INameValueInformationProvider provider = InformationProvider;
+                            textures = new Texture2D[InformationProvider.MultiElementCount];
                             int i = 0;
                             while (provider != null)
                             {
