@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 
 using Orts.Common;
@@ -32,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
     public class ScriptedBrakeController : IController, INameValueInformationProvider
     {
-        private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
+        private protected readonly DetailInfoBase brakeInfo = new DetailInfoBase();
         private bool updateBrakeStatus;
 
         private protected readonly MSTSLocomotive locomotive;
@@ -525,7 +524,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return FormatStrings.JoinIfNotEmpty(' ', status, percentage);
         }
 
-        public NameValueCollection DebugInfo => GetBrakeStatus();
+        public InformationDictionary DetailInfo => GetBrakeStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
@@ -558,7 +557,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             brakeInfo["StatusShort"] = FormatStrings.JoinIfNotEmpty(' ', brakeInfo["State"].Max(string.IsNullOrEmpty(brakeInfo["Value"]) ? 20 : 5), brakeInfo["Value"]);
         }
 
-        private NameValueCollection GetBrakeStatus()
+        private InformationDictionary GetBrakeStatus()
         {
             updateBrakeStatus = true;
             return brakeInfo;
@@ -602,12 +601,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                     else
                     {
-                        brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DebugInfo["BC"];
+                        brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DetailInfo["BC"];
                     }
                 }
                 else
                 {
-                    brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DebugInfo["BC"];
+                    brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DetailInfo["BC"];
                     brakeInfo["BailOff"] = locomotive.BailOff ? Simulator.Catalog.GetString("BailOff") : null;
                 }
                 // Fraction not found so display BC                

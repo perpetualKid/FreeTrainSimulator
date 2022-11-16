@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -35,8 +34,8 @@ namespace Orts.Graphics.MapView
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
-            DebugInfo.Add("Route Information", null);
-            DebugInfo["Route Name"] = RuntimeData.Instance.RouteName;
+            DetailInfo.Add("Route Information", null);
+            DetailInfo["Route Name"] = RuntimeData.Instance.RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
             TrackNodeInfo = trackNodeInfo;
         }
@@ -50,15 +49,15 @@ namespace Orts.Graphics.MapView
             //just put an empty list so the draw method does not skip the paths
             contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
 
-            DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
-            DebugInfo["Track Nodes"] = $"{TrackModel.Instance.SegmentSections.Count}";
-            DebugInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
-            DebugInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
-            DebugInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
-            DebugInfo["Road Nodes"] = $"{roadTrackNodeSegments.Count}";
-            DebugInfo["Road Segments"] = $"{contentItems[MapViewItemSettings.Roads].ItemCount}";
-            DebugInfo["Road End Segments"] = $"{contentItems[MapViewItemSettings.RoadEndNodes].ItemCount}";
-            DebugInfo["Tiles"] = $"{contentItems[MapViewItemSettings.Grid].Count}";
+            DetailInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
+            DetailInfo["Track Nodes"] = $"{TrackModel.Instance.SegmentSections.Count}";
+            DetailInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
+            DetailInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
+            DetailInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
+            DetailInfo["Road Nodes"] = $"{roadTrackNodeSegments.Count}";
+            DetailInfo["Road Segments"] = $"{contentItems[MapViewItemSettings.Roads].ItemCount}";
+            DetailInfo["Road End Segments"] = $"{contentItems[MapViewItemSettings.RoadEndNodes].ItemCount}";
+            DetailInfo["Tiles"] = $"{contentItems[MapViewItemSettings.Grid].Count}";
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
@@ -308,7 +307,7 @@ namespace Orts.Graphics.MapView
         {
             internal INameValueInformationProvider Source;
 
-            public override NameValueCollection DebugInfo => Source?.DebugInfo;
+            public override InformationDictionary DetailInfo => Source?.DetailInfo;
 
             public override Dictionary<string, FormatOption> FormattingOptions => Source?.FormattingOptions;
         }

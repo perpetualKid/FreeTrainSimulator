@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 
 using Microsoft.Xna.Framework;
@@ -208,7 +207,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public const float StandardBoost = 5.0f; // standard step size multiplier
         public const float FastBoost = 20.0f;
 
-        private protected readonly DebugInfoBase controllerInfo = new DebugInfoBase();
+        private protected readonly DetailInfoBase controllerInfo = new DetailInfoBase();
         private bool updateControllerStatus;
 
         private float previousValue;
@@ -677,7 +676,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public IControllerNotch CurrentNotch => Notches.Count == 0 ? null : Notches[NotchIndex];
 
-        public NameValueCollection DebugInfo => GetControllerStatus();
+        public InformationDictionary DetailInfo => GetControllerStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => controllerInfo.FormattingOptions;
 
@@ -743,7 +742,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return notch;
         }
 
-        private NameValueCollection GetControllerStatus()
+        private InformationDictionary GetControllerStatus()
         {
             updateControllerStatus = true;
             return controllerInfo;

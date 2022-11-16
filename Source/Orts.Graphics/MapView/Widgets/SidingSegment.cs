@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Graphics.MapView.Shapes;

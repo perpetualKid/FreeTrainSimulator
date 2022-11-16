@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -21,7 +20,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal class JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
         public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
             base(junctionNode, mainRoute, vectorNodes, trackSections)
@@ -29,7 +28,7 @@ namespace Orts.Graphics.MapView.Widgets
             Size = diameter;
         }
 
-        public NameValueCollection DebugInfo
+        public InformationDictionary DetailInfo
         {
             get
             {

@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 
@@ -41,7 +40,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
     public abstract class BrakeSystem : INameValueInformationProvider
     {
         private protected readonly TrainCar car;
-        private protected readonly DebugInfoBase brakeInfo = new DebugInfoBase();
+        private protected readonly DetailInfoBase brakeInfo = new DetailInfoBase();
         private protected bool updateBrakeStatus;
 
         private protected float handbrakePercent;
@@ -122,7 +121,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float VacBrakeCylNumber { get; }
         public bool CarBPIntact { get; set; }
 
-        public NameValueCollection DebugInfo => GetBrakeStatus();
+        public InformationDictionary DetailInfo => GetBrakeStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
@@ -152,7 +151,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
             this.car = car;
         }
 
-        private NameValueCollection GetBrakeStatus()
+        private InformationDictionary GetBrakeStatus()
         {
             updateBrakeStatus = true;
             return brakeInfo;

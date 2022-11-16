@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics.Tracing;
 
 using Microsoft.Xna.Framework;
@@ -11,7 +10,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 {
     internal sealed class ClrEventListener : EventListener, INameValueInformationProvider
     {
-        private class ClrDebugInfo : DebugInfoBase
+        private class ClrDebugInfo : DetailInfoBase
         {
             internal int[] GcCollections = new int[3];
             internal long[] GcSize = new long[3];
@@ -59,7 +58,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
         private readonly ClrDebugInfo debugInfo = new ClrDebugInfo();
 
-        public NameValueCollection DebugInfo => debugInfo.DebugInfo;
+        public InformationDictionary DetailInfo => debugInfo.DetailInfo;
 
         public Dictionary<string, FormatOption> FormattingOptions => debugInfo.FormattingOptions;
 

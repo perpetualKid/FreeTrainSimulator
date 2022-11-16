@@ -10,7 +10,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
-    internal sealed class SystemInfo : DebugInfoBase
+    internal sealed class SystemInfo : DetailInfoBase
     {
         private readonly GameHost gameHost;
         private readonly int processorCount = Environment.ProcessorCount;

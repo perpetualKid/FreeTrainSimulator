@@ -1,79 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-
-using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
 
 namespace Orts.Common.DebugInfo
 {
-    public interface INameValueInformationProvider
+    /// <summary>
+    /// Specialized dictionary which does not throw but returns null if a key was not found 
+    /// </summary>
+    public class InformationDictionary : Dictionary<string, string>
     {
-        NameValueCollection DebugInfo { get; }
+        public new string this[string key]
+        {
+            get
+            {
+                if (!TryGetValue(key, out string result))
+                    base[key] = result = null;
+                return result;
 
-        Dictionary<string, FormatOption> FormattingOptions { get; }
+            }
+            set { base[key] = value; }
+        }
     }
 
-    public class FormatOption : IEquatable<FormatOption>
+    public interface INameValueInformationProvider
     {
-        public Color? TextColor { get; }
-        public System.Drawing.FontStyle FontStyle { get; } = System.Drawing.FontStyle.Regular;
+        public InformationDictionary DetailInfo { get; }
 
-        public static FormatOption RegularRed { get; } = new FormatOption(Color.Red);
-        public static FormatOption RegularGreen { get; } = new FormatOption(Color.Green);
-        public static FormatOption RegularBlue { get; } = new FormatOption(Color.Blue);
-        public static FormatOption RegularYellow { get; } = new FormatOption(Color.Yellow);
-        public static FormatOption RegularOrange { get; } = new FormatOption(Color.Orange);
-        public static FormatOption RegularOrangeRed { get; } = new FormatOption(Color.OrangeRed);
-        public static FormatOption RegularCyan { get; } = new FormatOption(Color.Cyan);
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public static FormatOption Bold { get; } = new FormatOption(System.Drawing.FontStyle.Bold);
-        public static FormatOption BoldRed { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Red);
-        public static FormatOption BoldGreen { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Green);
-        public static FormatOption BoldBlue { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Blue);
-        public static FormatOption BoldYellow { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Yellow);
-        public static FormatOption BoldOrange { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Orange);
-        public static FormatOption BoldOrangeRed { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.OrangeRed);
-        public static FormatOption BoldCyan { get; } = new FormatOption(System.Drawing.FontStyle.Bold, Color.Cyan);
+        public INameValueInformationProvider Next { get => null; }
 
-        public FormatOption(Color color)
-        {
-            TextColor = color;
-        }
-
-        public FormatOption(System.Drawing.FontStyle fontStyle)
-        {
-            FontStyle = fontStyle;
-        }
-
-        public FormatOption(System.Drawing.FontStyle fontStyle, Color color)
-        {
-            TextColor = color;
-            FontStyle = fontStyle;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is FormatOption formatOption && Equals(formatOption);
-        }
-
-        public bool Equals(FormatOption other)
-        {
-            return other != null && TextColor == other.TextColor && FontStyle == other.FontStyle;
-        }
-
-        public static bool operator ==(FormatOption x, FormatOption y)
-        {
-            return Equals(x, y);
-        }
-
-        public static bool operator !=(FormatOption x, FormatOption y)
-        {
-            return !(x == y);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(TextColor, FontStyle);
-        }
+        public int MultiElementCount { get => 0; }
     }
 }

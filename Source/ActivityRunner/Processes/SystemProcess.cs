@@ -16,7 +16,7 @@ namespace Orts.ActivityRunner.Processes
         private double nextUpdate;
         private readonly MetricCollector metric = MetricCollector.Instance;
 
-        public List<DebugInfoBase> Updateables { get; } = new List<DebugInfoBase>();
+        public List<DetailInfoBase> Updateables { get; } = new List<DetailInfoBase>();
 
         public SystemProcess(GameHost gameHost) : base(gameHost, "System")
         {
@@ -27,9 +27,9 @@ namespace Orts.ActivityRunner.Processes
 
             Profiler.ProfilingData[ProcessType.System] = profiler;
 
-            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.System] as DebugInfoBase);
-            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.ProcessMetric] as DebugInfoBase);
-            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.GpuMetric] as DebugInfoBase);
+            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.System] as DetailInfoBase);
+            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.ProcessMetric] as DetailInfoBase);
+            Updateables.Add(gameHost.SystemInfo[DiagnosticInfo.GpuMetric] as DetailInfoBase);
         }
 
         protected override void Update(GameTime gameTime)
@@ -45,13 +45,13 @@ namespace Orts.ActivityRunner.Processes
 
                 (gameHost.SystemInfo[DiagnosticInfo.Clr] as ClrEventListener).Update(gameTime);
 
-                foreach (DebugInfoBase item in Updateables)
+                foreach (DetailInfoBase item in Updateables)
                     item.Update(gameTime);
                 nextUpdate = gameTime.TotalGameTime.TotalSeconds + UpdateInterval;
             }
         }
 
-        private class PerformanceDetails : DebugInfoBase
+        private class PerformanceDetails : DetailInfoBase
         {
             private readonly int processorCount = Environment.ProcessorCount;
 

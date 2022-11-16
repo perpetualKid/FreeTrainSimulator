@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
-
-using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes;
+﻿using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 namespace Orts.Simulation.Physics
 {

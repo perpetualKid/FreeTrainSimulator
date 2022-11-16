@@ -82,12 +82,13 @@ namespace Orts.Graphics.Window.Controls
             {
                 float lineOffset = 0;
                 prepareItems.Clear();
-                int maxColumn = 0;
 
-                if (null == InformationProvider?.DebugInfo)
+                if (null == InformationProvider?.DetailInfo)
                     return;
 
-                foreach (string identifier in InformationProvider.DebugInfo.AllKeys)
+                int maxColumn = InformationProvider.MultiElementCount;
+
+                foreach (string identifier in InformationProvider.DetailInfo.Keys)
                 {
                     System.Drawing.Font currentFont = font;
                     FormatOption formatOption = null;
@@ -106,16 +107,31 @@ namespace Orts.Graphics.Window.Controls
                         string[] multiValues = InformationProvider.DebugInfo[identifier]?.Split('\t');
                         textures = new Texture2D[multiValues?.Length ?? 0];
                         if (multiValues != null)
+                            int i = 0;
+                            while (provider != null)
+                            {
+                                textures[i++] = textureHolder.PrepareResource(provider.DetailInfo[identifier], currentFont, OutlineRenderOptions);
+                                provider = provider.Next;
+                            }
+                        }
+                        else
                         {
-                            for (int i = 0; i < multiValues.Length; i++)
-                                textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
-                            if (maxColumn < multiValues.Length)
-                                maxColumn = multiValues.Length;
+                            string[] multiValues = InformationProvider.DetailInfo[identifier]?.Split('\t');
+                            textures = new Texture2D[multiValues?.Length ?? 0];
+                            if (multiValues != null)
+                            {
+                                {
+                                    for (int i = 0; i < multiValues.Length; i++)
+                                        textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
+                                    if (maxColumn < multiValues.Length)
+                                        maxColumn = multiValues.Length;
+                                }
+                            }
                         }
                     }
                     else
                     {
-                        textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DebugInfo[identifier], currentFont, OutlineRenderOptions) };
+                        textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions) };
                     }
                     prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
                     lineOffset += font.Size * LineSpacing;

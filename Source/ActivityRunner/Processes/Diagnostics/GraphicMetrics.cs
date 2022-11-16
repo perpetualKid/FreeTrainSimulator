@@ -24,7 +24,7 @@ using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class GraphicMetrics : DebugInfoBase
+    internal class GraphicMetrics : DetailInfoBase
     {
         public GraphicsMetrics CurrentMetrics;
 

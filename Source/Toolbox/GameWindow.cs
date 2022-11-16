@@ -521,9 +521,10 @@ namespace Orts.Toolbox
             base.Draw(gameTime);
 
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
+            graphicsDebugInfo.Update(gameTime);
         }
 
-        private class CommonDebugInfo : DebugInfoBase
+        private class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private ContentArea contentArea;
@@ -555,22 +556,22 @@ namespace Orts.Toolbox
             }
         }
 
-        private class GraphicsDebugInfo : DebugInfoBase
+        private class GraphicsDebugInfo : DetailInfoBase
         {
-            public override string Get(string name)
+            public override void Update(GameTime gameTime)
             {
-                return name switch
+                if (UpdateNeeded)
                 {
-                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
-                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
-                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
-                    "Textures" => $"{CurrentMetrics.TextureCount}",
-                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
-                    "Targets" => $"{CurrentMetrics.TargetCount}",
-                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
-                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
-                    _ => base.Get(name),
-                };
+                    this["Clear Calls"] = $"{CurrentMetrics.ClearCount}";
+                    this["Draw Calls"] = $"{CurrentMetrics.DrawCount}";
+                    this["Primitives"] = $"{CurrentMetrics.PrimitiveCount}";
+                    this["Textures"] = $"{CurrentMetrics.TextureCount}";
+                    this["Sprites"] = $"{CurrentMetrics.SpriteCount}";
+                    this["Targets"] = $"{CurrentMetrics.TargetCount}";
+                    this["PixelShaders"] = $"{CurrentMetrics.PixelShaderCount}";
+                    this["VertexShaders"] = $"{CurrentMetrics.VertexShaderCount}";
+                }
+                base.Update(gameTime);
             }
 
             public GraphicsMetrics CurrentMetrics;
@@ -578,15 +579,15 @@ namespace Orts.Toolbox
             public GraphicsDebugInfo(): base(true)
             {
                 FormattingOptions["GPU Information"] = FormatOption.Bold;
-                DebugInfo.Add("GPU Information", null);
-                DebugInfo.Add("Clear Calls", null);
-                DebugInfo.Add("Draw Calls", null);
-                DebugInfo.Add("Primitives", null);
-                DebugInfo.Add("Textures", null);
-                DebugInfo.Add("Sprites", null);
-                DebugInfo.Add("Targets", null);
-                DebugInfo.Add("PixelShaders", null);
-                DebugInfo.Add("VertexShaders", null);
+                this["GPU Information"] = null;
+                this["Clear Calls"] = null;
+                this["Draw Calls"] = null;
+                this["Primitives"] = null;
+                this["Textures"] = null;
+                this["Sprites"] = null;
+                this["Targets"] = null;
+                this["PixelShaders"] = null;
+                this["VertexShaders"] = null;
             }
         }
     }

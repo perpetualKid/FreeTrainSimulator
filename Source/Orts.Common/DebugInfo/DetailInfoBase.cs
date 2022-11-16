@@ -1,17 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.DebugInfo
 {
-#pragma warning disable CA1010 // Generic interface should also be implemented
-    public class DebugInfoBase : NameValueCollection, INameValueInformationProvider
-#pragma warning restore CA1010 // Generic interface should also be implemented
+    public class DetailInfoBase : InformationDictionary, INameValueInformationProvider
     {
         protected bool UpdateNeeded { get; set; }
 
-        public DebugInfoBase(bool includeFormattingOptions = false)
+        public DetailInfoBase(bool includeFormattingOptions = false)
         {
             if (includeFormattingOptions)
                 FormattingOptions = new Dictionary<string, FormatOption>();
@@ -25,7 +22,7 @@ namespace Orts.Common.DebugInfo
             }
         }
 
-        public NameValueCollection DebugInfo
+        public InformationDictionary DetailInfo
         {
             get
             {
@@ -35,6 +32,10 @@ namespace Orts.Common.DebugInfo
         }
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual INameValueInformationProvider Next { get; set; }
+
+        public virtual int MultiElementCount { get; protected set; }
     }
 
 }

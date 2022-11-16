@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
@@ -29,7 +28,7 @@ namespace Orts.Graphics.MapView
 
         public Rectangle Bounds { get; protected set; }
 
-        public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+        public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
@@ -107,7 +106,7 @@ namespace Orts.Graphics.MapView
 
         private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
         {
-            public abstract NameValueCollection DebugInfo { get; }
+            public abstract InformationDictionary DetailInfo { get; }
 
             public abstract Dictionary<string, FormatOption> FormattingOptions { get; }
         }

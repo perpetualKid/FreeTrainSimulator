@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public UserCommandController<UserCommand> UserCommandController { get; }
 
-        public EnumArray<DebugInfoBase, DetailInfoType> DetailInfo { get; } = new EnumArray<DebugInfoBase, DetailInfoType>();
+        public EnumArray<DetailInfoBase, DetailInfoType> DetailInfo { get; } = new EnumArray<DetailInfoBase, DetailInfoType>();
 
         // Multi-threaded processes
         internal LoaderProcess LoaderProcess { get; private set; }

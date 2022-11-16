@@ -8,7 +8,7 @@ using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class GraphicInformation : DebugInfoBase
+    internal class GraphicInformation : DetailInfoBase
     {
         private readonly Viewer viewer;
 

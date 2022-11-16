@@ -46,7 +46,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -91,7 +90,7 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public partial class MSTSLocomotive : MSTSWagon, INameValueInformationProvider
     {
-        private protected readonly DebugInfoBase locomotiveStatus = new DebugInfoBase(true);
+        private protected readonly DetailInfoBase locomotiveStatus = new DetailInfoBase(true);
         private protected bool updateLocomotiveStatus;
 
         public enum CombinedControl
@@ -449,7 +448,7 @@ namespace Orts.Simulation.RollingStocks
             set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
         }
 
-        public NameValueCollection DebugInfo => GetLocomotiveStatus();
+        public InformationDictionary DetailInfo => GetLocomotiveStatus();
 
         public Dictionary<string, FormatOption> FormattingOptions => locomotiveStatus.FormattingOptions;
 
@@ -3978,7 +3977,7 @@ namespace Orts.Simulation.RollingStocks
 
         public string GetTrainBrakeStatus()
         {
-            string s = (TrainBrakeController as INameValueInformationProvider).DebugInfo["Status"];
+            string s = (TrainBrakeController as INameValueInformationProvider).DetailInfo["Status"];
 
             TrainCar lastCar = Train.Cars[^1];
             if (lastCar == this)
@@ -5708,7 +5707,7 @@ namespace Orts.Simulation.RollingStocks
             return;
         }
 
-        private NameValueCollection GetLocomotiveStatus()
+        private InformationDictionary GetLocomotiveStatus()
         {
             updateLocomotiveStatus = true;
             return locomotiveStatus;

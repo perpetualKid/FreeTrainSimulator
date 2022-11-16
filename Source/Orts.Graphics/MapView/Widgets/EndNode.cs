@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -14,7 +13,7 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class EndNode: EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
         protected const int Length = 2;
@@ -25,7 +24,7 @@ namespace Orts.Graphics.MapView.Widgets
             Size = width;
         }
 
-        public virtual NameValueCollection DebugInfo
+        public virtual InformationDictionary DetailInfo
         {
             get
             {
@@ -47,11 +46,11 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadEndSegment : EndNode
     {
-        public override NameValueCollection DebugInfo
+        public override InformationDictionary DetailInfo
         {
             get
             {
-                NameValueCollection result = base.DebugInfo;
+                InformationDictionary result = base.DetailInfo;
                 result["Segment Type"] = "Road";
                 return result;
             }

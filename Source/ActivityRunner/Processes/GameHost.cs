@@ -145,7 +145,7 @@ namespace Orts.ActivityRunner.Processes
             else
             {
                 RenderProcess.Update(gameTime);
-                SystemInfo[DiagnosticInfo.System].DebugInfo["Resolution"] = Window.ClientBounds.ToString();// need to update from main/render thread otherwise results are invalid
+                SystemInfo[DiagnosticInfo.System].DetailInfo["Resolution"] = Window.ClientBounds.ToString();// need to update from main/render thread otherwise results are invalid
             }
             base.Update(gameTime);
         }

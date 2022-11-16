@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -16,12 +15,12 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public virtual NameValueCollection DebugInfo
+        public virtual InformationDictionary DetailInfo
         {
             get
             {
@@ -60,11 +59,11 @@ namespace Orts.Graphics.MapView.Widgets
 
     internal class RoadSegment : TrackSegment
     {
-        public override NameValueCollection DebugInfo
+        public override InformationDictionary DetailInfo
         {
             get
             {
-                NameValueCollection result = base.DebugInfo;
+                InformationDictionary result = base.DetailInfo;
                 result["Segment Type"] = "Road";
                 return result;
             }
