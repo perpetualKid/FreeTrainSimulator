@@ -285,7 +285,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {
-                        foreach (DieselEngine dieselEngine in locomotive.DieselEngines.DEList.Where(de => de != locomotive.DieselEngines[0]))
+                        foreach (DieselEngine dieselEngine in locomotive.DieselEngines.Skip(1))
                         {
                             if (dieselEngine.State > state)
                                 state = dieselEngine.State;
