@@ -2335,11 +2335,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Small_Ejector:
                 case CabViewControlType.Orts_Large_Ejector:
                 case CabViewControlType.FireHole:
-                    index = PercentToIndex(data);
-                    break;
                 case CabViewControlType.Throttle:
-                    index = PercentToIndex(Locomotive.GetThrottleHandleValue(data));
-                    break;
                 case CabViewControlType.Throttle_Display:
                     index = PercentToIndex(data);
                     break;

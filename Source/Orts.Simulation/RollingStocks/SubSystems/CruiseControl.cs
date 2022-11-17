@@ -114,7 +114,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public SpeedSelectorMode SpeedSelectorMode { get; set; } = SpeedSelectorMode.Neutral;
         public CruiseControlLogic CruiseControlLogic { get; private set; }
         public float SelectedSpeedMpS { get; set; }
-        
+
         private float SetSpeedMpS => restrictedRegionOdometer.Started ? currentSelectedSpeedMpS : SelectedSpeedMpS;
         private float SetSpeedKpHOrMpH => (float)(speedIsMph ? Speed.MeterPerSecond.ToMpH(SetSpeedMpS) : Speed.MeterPerSecond.ToKpH(SetSpeedMpS));
 
@@ -688,7 +688,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     throttleOrDynBrakePercent = 0;
                     TrainBrakePercent = 0;
                 }
-                else if ((locomotive.TrainBrakeController.MaxPressurePSI - locomotive.BrakeSystem.BrakeLine1PressurePSI > 1 || locomotive.Train.BrakeSystem.BrakeLine4Pressure > 0)
+                else if ((locomotive.TrainBrakeController.MaxPressurePSI - locomotive.BrakeSystem.BrakeLine1PressurePSI > 1 ||
+                    locomotive.Train.BrakeSystem.BrakeLine4Pressure > 0 && TrainBrakePriority)
                     && !UsingTrainBrake)
                 {
                     reducingForce = true;
@@ -825,6 +826,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                                 SelectedSpeedMpS = locomotive.AbsSpeedMpS;
                             if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero)
                                 SelectedMaxAccelerationPercent = locomotive.ThrottleController.CurrentValue * 100;
+                            if (UseThrottleAsSpeedSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                            {
+                                SelectedSpeedMpS = locomotive.ThrottleController.CurrentValue * locomotive.MaxSpeedMpS;
+                                SelectedMaxAccelerationPercent = 100;
+                            }
                             break;
                         }
                     case SpeedRegulatorMode.Testing:
@@ -848,7 +854,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (SpeedRegulatorMode == SpeedRegulatorMode.Manual)
                 return;
             if (SpeedRegulatorMode == SpeedRegulatorMode.Auto &&
-                (modeSwitchAllowedWithThrottleNotAtZero && SelectedMaxAccelerationPercent != 0))
+                !modeSwitchAllowedWithThrottleNotAtZero &&
+               (SelectedMaxAccelerationPercent != 0 && !UseThrottleAsSpeedSelector || SelectedSpeedMpS > 0 && UseThrottleAsSpeedSelector))
                 return;
             bool test = false;
             while (!test)
@@ -862,6 +869,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         break;
                     case SpeedRegulatorMode.Manual:
                         {
+                            if (UseThrottleAsSpeedSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                            {
+                                locomotive.ThrottleController.SetPercent(SelectedSpeedMpS / locomotive.MaxSpeedMpS * 100);
+                                if (SelectedSpeedMpS > 0)
+                                    locomotive.DynamicBrakeController.SetPercent(-1);
+                            }
+                            if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                            {
+                                locomotive.ThrottleController.SetPercent(SelectedMaxAccelerationPercent);
+                                if (SelectedMaxAccelerationPercent > 0)
+                                    locomotive.DynamicBrakeController.SetPercent(-1);
+                            }
                             if (!modeSwitchAllowedWithThrottleNotAtZero)
                                 locomotive.ThrottleController.SetPercent(0);
                             if (speedRegulatorOptions.Contains("regulatormanual"))
@@ -1023,7 +1042,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     return;
                 speedRegulatorIntermediateValue += stepSize * elapsedClockSeconds;
                 selectedMaxAccelerationPercent = Math.Min((float)Math.Truncate(speedRegulatorIntermediateValue + 1), 100);
-                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                    (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                     locomotive.ThrottleController.SetPercent(selectedMaxAccelerationPercent);
             }
             else
@@ -1032,7 +1052,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     return;
                 speedRegulatorIntermediateValue += maxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
                 selectedMaxAccelerationStep = Math.Min((float)Math.Truncate(speedRegulatorIntermediateValue + 1), speedRegulatorMaxForceSteps);
-                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                    (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                     locomotive.ThrottleController.SetPercent(selectedMaxAccelerationStep * 100 / speedRegulatorMaxForceSteps);
             }
             simulator.Confirmer.ConfirmWithPerCent(CabControl.MaxAcceleration, SelectedMaxAccelerationPercent);
@@ -1061,7 +1082,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     return;
                 speedRegulatorIntermediateValue -= stepSize * elapsedClockSeconds;
                 selectedMaxAccelerationPercent = Math.Max((int)speedRegulatorIntermediateValue, 100);
-                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                    (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                     locomotive.ThrottleController.SetPercent(selectedMaxAccelerationPercent);
                 if (selectedMaxAccelerationPercent == 0)
                 {
@@ -1075,7 +1097,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     return;
                 speedRegulatorIntermediateValue -= maxForceSelectorIsDiscrete ? elapsedClockSeconds : stepSize * elapsedClockSeconds * speedRegulatorMaxForceSteps / 100.0f;
                 selectedMaxAccelerationStep = Math.Max((int)speedRegulatorIntermediateValue, disableZeroForceStep ? 1 : 0);
-                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                    (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                     locomotive.ThrottleController.SetPercent(selectedMaxAccelerationStep * 100 / speedRegulatorMaxForceSteps);
                 if (selectedMaxAccelerationStep <= (disableZeroForceStep ? 1 : 0))
                 {
@@ -1109,7 +1132,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     selectedMaxAccelerationPercent += movExtension * maxValue;
                     selectedMaxAccelerationPercent = MathHelper.Clamp(selectedMaxAccelerationPercent, 0, 100);
-                    if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                    if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                        (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                         locomotive.ThrottleController.SetPercent(selectedMaxAccelerationPercent);
                     if (selectedMaxAccelerationPercent == 0)
                     {
@@ -1131,7 +1155,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     selectedMaxAccelerationStep += movExtension * maxValue;
                     selectedMaxAccelerationStep = MathHelper.Clamp(selectedMaxAccelerationStep, disableZeroForceStep ? 1 : 0, speedRegulatorMaxForceSteps);
-                    if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero && !UseThrottleInCombinedControl)
+                    if (UseThrottleAsForceSelector && modeSwitchAllowedWithThrottleNotAtZero &&
+                        (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && !locomotive.DynamicBrake))
                         locomotive.ThrottleController.SetPercent(selectedMaxAccelerationStep * 100 / speedRegulatorMaxForceSteps);
                     if (selectedMaxAccelerationStep == (disableZeroForceStep ? 1 : 0))
                     {
@@ -1172,7 +1197,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 SpeedRegulatorMode = SpeedRegulatorMode.Auto;
             }
-            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector)
+            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector || (UseThrottleAsForceSelector && multiPositionController == null))
             {
                 selectedSpeedIncreasing = true;
                 if (SelectedSpeedMpS == 0)
@@ -1193,7 +1218,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 multiPositionController.DoMovement(Movement.Neutral);
                 return;
             }
-            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector)
+            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector || (UseThrottleAsForceSelector && multiPositionController == null))
                 selectedSpeedIncreasing = false;
             else
                 SpeedSelectorModeStopIncrease();
@@ -1208,6 +1233,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SelectedSpeedMpS = Math.Max(MinimumSpeedForCCEffectMpS, SelectedSpeedMpS + SpeedRegulatorNominalSpeedStepMpS);
             if (SelectedSpeedMpS > locomotive.MaxSpeedMpS)
                 SelectedSpeedMpS = locomotive.MaxSpeedMpS;
+            if (SpeedRegulatorMode == SpeedRegulatorMode.Auto && UseThrottleAsSpeedSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                locomotive.ThrottleController.SetPercent(SelectedSpeedMpS / locomotive.MaxSpeedMpS * 100);
 
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Selected speed changed to {FormatStrings.FormatSpeedLimit(SelectedSpeedMpS, !speedIsMph)}"));
         }
@@ -1221,7 +1248,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 multiPositionController.DoMovement(Movement.Backward);
                 return;
             }
-            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector)
+            if (UseThrottleAsSpeedSelector || HasProportionalSpeedSelector || (UseThrottleAsForceSelector && multiPositionController == null))
                 SelectedSpeedDecreasing = true;
             else
                 SpeedSelectorModeDecrease();
@@ -1251,6 +1278,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 SelectedSpeedMpS = 0f;
             if (MinimumSpeedForCCEffectMpS > 0 && SelectedSpeedMpS < MinimumSpeedForCCEffectMpS)
                 SelectedSpeedMpS = 0;
+            if (SpeedRegulatorMode == SpeedRegulatorMode.Auto && UseThrottleAsSpeedSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                locomotive.ThrottleController.SetPercent(SelectedSpeedMpS / locomotive.MaxSpeedMpS * 100);
             if (SpeedRegulatorMode == SpeedRegulatorMode.Auto && ForceRegulatorAutoWhenNonZeroSpeedSelected && SelectedSpeedMpS == 0)
             {
                 // return back to manual, clear all we have controlled before and let the driver to set up new stuff
@@ -1302,6 +1331,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     SelectedSpeedMpS = locomotive.MaxSpeedMpS;
                 if (SelectedSpeedMpS < 0)
                     SelectedSpeedMpS = 0;
+                if (SpeedRegulatorMode == SpeedRegulatorMode.Auto && UseThrottleAsSpeedSelector && modeSwitchAllowedWithThrottleNotAtZero)
+                    locomotive.ThrottleController.SetPercent(SelectedSpeedMpS / locomotive.MaxSpeedMpS * 100);
                 if (SelectedSpeedMpS == 0 && movExtension < 0)
                 {
                     locomotive.SignalEvent(TrainEvent.LeverToZero);
@@ -1315,9 +1346,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             NumerOfAxlesIncrease(1);
         }
 
-        public void NumerOfAxlesIncrease(int ByAmount)
+        public void NumerOfAxlesIncrease(int amount)
         {
-            selectedNumberOfAxles += ByAmount;
+            selectedNumberOfAxles += amount;
             trainLength = selectedNumberOfAxles * 6.6f;
             trainLengthMeters = (int)Math.Round(trainLength + 0.5, 0);
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString($"Number of axles increased to {selectedNumberOfAxles}"));
