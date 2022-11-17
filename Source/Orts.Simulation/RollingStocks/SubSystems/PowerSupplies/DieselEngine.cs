@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -199,7 +198,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// A power-on indicator
         /// </summary>
-        public bool PowerOn => this.Where(de => de.State is DieselEngineState.Running or DieselEngineState.Starting).Any();
+        public bool PowerOn => this.Where(engine => engine.State is DieselEngineState.Running or DieselEngineState.Starting).Any();
 
         /// <summary>
         /// A summary of maximal power of all the diesels
@@ -282,18 +281,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public bool HasGearBox
-        {
-            get
-            {
-                bool temp = false;
-                foreach (DieselEngine de in this)
-                {
-                    temp |= (de.GearBox != null);
-                }
-                return temp;
-            }
-        }
+        public bool HasGearBox => this.Where(engine => engine.GearBox != null).Any();
 
         /// <summary>
         /// Returns the tractive effort output of the gear box.
@@ -302,23 +290,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             get
             {
-                float temp = 0;
-                foreach (DieselEngine de in this)
+                float result = 0;
+                foreach (DieselEngine engine in this)
                 {
-                    if (de.GearBox != null)
+                    if (engine.GearBox != null)
                     {
                         if (locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                         {
-                            temp += (de.GearBox.TractiveForceN);
+                            result += (engine.GearBox.TractiveForceN);
 
                         }
                         else
                         {
-                            temp += (de.DemandedThrottlePercent * 0.01f * de.GearBox.TractiveForceN);
+                            result += (engine.DemandedThrottlePercent * 0.01f * engine.GearBox.TractiveForceN);
                         }
                     }
                 }
-                return temp;
+                return result;
             }
         }
 
@@ -328,17 +316,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <param name="elapsedClockSeconds">Time span within the simulation cycle</param>
         public void Update(double elapsedClockSeconds)
         {
-            foreach (DieselEngine de in this)
+            foreach (DieselEngine engine in this)
             {
-                de.Update(elapsedClockSeconds);
+                engine.Update(elapsedClockSeconds);
             }
         }
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            foreach (DieselEngine de in this)
+            foreach (DieselEngine engine in this)
             {
-                de.HandleEvent(evt);
+                engine.HandleEvent(evt);
             }
         }
 
@@ -348,20 +336,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 this[id].HandleEvent(evt);
             }
-        }
-
-        public static string SetDebugLabels()
-        {
-            StringBuilder labels = new StringBuilder();
-            string tabs = "\t";
-            labels.Append($"{Simulator.Catalog.GetString("Status")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetParticularString("HUD", "Power")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Load")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("RPM")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Flow")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Temperature")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Oil Pressure")}{tabs}");
-            return labels.ToString();
         }
 
         public string GetStatus()
@@ -420,19 +394,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return result.ToString();
         }
 
-        public int NumOfActiveEngines
-        {
-            get
-            {
-                int num = 0;
-                foreach (DieselEngine eng in this)
-                {
-                    if (eng.State == DieselEngineState.Running)
-                        num++;
-                }
-                return num;
-            }
-        }
+        public int NumOfActiveEngines => this.Where(engine => engine.State == DieselEngineState.Running).Count();
 
         // This calculates the percent of running power. If the locomotive has two prime movers, and 
         // one is shut down then power will be reduced by the size of the prime mover
@@ -442,7 +404,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 float totalpossiblepower = 0;
                 float runningPower = 0;
-                float percent = 0;
                 foreach (DieselEngine eng in this)
                 {
                     totalpossiblepower += eng.MaximumDieselPowerW;
@@ -451,7 +412,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         runningPower += eng.MaximumDieselPowerW;
                     }
                 }
-                percent = runningPower / totalpossiblepower;
+                float percent = runningPower / totalpossiblepower;
                 return percent;
             }
         }
