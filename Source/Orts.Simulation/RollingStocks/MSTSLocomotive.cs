@@ -3880,6 +3880,8 @@ namespace Orts.Simulation.RollingStocks
                 if (CruiseControl.UseThrottleAsForceSelector && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                 {
                     CruiseControl.SetMaxForcePercent((float)Math.Round(value * 100, 0));
+                    if (!CruiseControl.UseThrottleInCombinedControl)
+                        ThrottleController.SetValue(value);
                     return;
                 }
                 if (CruiseControl.UseThrottleAsSpeedSelector && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
@@ -3911,6 +3913,8 @@ namespace Orts.Simulation.RollingStocks
                 if (CruiseControl.UseThrottleAsForceSelector && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto)
                 {
                     CruiseControl.SetMaxForcePercent(percent);
+                    if (!CruiseControl.UseThrottleInCombinedControl)
+                        ThrottleController.SetPercent(percent);
                     return;
                 }
                 else
@@ -3983,6 +3987,27 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
             CommandStartTime = simulator.ClockTime;
+        }
+
+        /// <summary>
+        /// Returns the position of the throttle handle considering 
+        /// whether it is used for cruise control or not
+        /// </summary>
+        /// <param name="intermediateValue">Whather asking for intermediate (for mouse operation) or notched (for displaying) value.</param>
+        /// <returns>Combined position into 0-1 range</returns>
+        public float GetThrottleHandleValue(float data)
+        {
+            if (CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto && CruiseControl.SelectedMaxAccelerationPercent != 0
+                && CruiseControl.HasIndependentThrottleDynamicBrakeLever)
+                return ThrottleController.CurrentValue;
+            else if (CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto && CruiseControl.UseThrottleAsForceSelector)
+                return CruiseControl.SelectedMaxAccelerationPercent / 100;
+            else if (CruiseControl?.SpeedRegulatorMode == SpeedRegulatorMode.Auto && CruiseControl.UseThrottleAsSpeedSelector)
+                return CruiseControl.SelectedSpeedMpS / MaxSpeedMpS;
+            else if (CruiseControl == null || CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Manual)
+                return data;
+            else
+                return ThrottleController.CurrentValue;
         }
 
         #endregion
