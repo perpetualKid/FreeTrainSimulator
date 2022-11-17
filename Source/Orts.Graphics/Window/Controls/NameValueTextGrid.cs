@@ -23,9 +23,10 @@ namespace Orts.Graphics.Window.Controls
         private List<(Vector2, Texture2D, Vector2, Texture2D[], Color)> prepareItems = new List<(Vector2, Texture2D, Vector2, Texture2D[], Color)>();
         private bool dataPrepared;
 
-        public INameValueInformationProvider InformationProvider { get; set; }
         private readonly System.Drawing.Font font;
         private readonly TextTextureResourceHolder textureHolder;
+
+        public INameValueInformationProvider InformationProvider { get; set; }
 
         public Color TextColor { get; set; } = Color.White;
 
