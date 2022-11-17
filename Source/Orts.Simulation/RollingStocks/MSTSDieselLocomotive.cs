@@ -39,6 +39,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -47,9 +48,9 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-using System.Linq;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation;
+
+using SharpDX;
+
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
@@ -63,6 +64,9 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public class MSTSDieselLocomotive : MSTSLocomotive
     {
+
+        private readonly DistributedPowerStatus distributedPowerStatus;
+
         public ScriptedDieselPowerSupply DieselPowerSupply => PowerSupply as ScriptedDieselPowerSupply;
 
         public float IdleRPM;
@@ -130,12 +134,15 @@ namespace Orts.Simulation.RollingStocks
 
         private const float GearBoxControllerBoost = 1; // Slow boost to enable easy single gear up/down commands
 
+        public INameValueInformationProvider DistributedPowerInformation => distributedPowerStatus;
+
         public MSTSDieselLocomotive(string wagFile)
             : base(wagFile)
         {
             DieselEngines = new DieselEngines(this);
             PowerSupply = new ScriptedDieselPowerSupply(this);
             RefillImmediately();
+            distributedPowerStatus = new DistributedPowerStatus(this);
         }
 
         /// <summary>
@@ -641,7 +648,7 @@ namespace Orts.Simulation.RollingStocks
                 if (WaterController.UpdateValue > 0.0)
                     simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeatBoilerWater, CabSetting.Increase, WaterController.CurrentValue * 100);
             }
-
+            distributedPowerStatus.Update(null);
         }
 
         /// <summary>
@@ -1003,50 +1010,6 @@ namespace Orts.Simulation.RollingStocks
             return status.ToString();
         }
 
-        public string GetDistributedPowerDebugStatus()
-        {
-            string throttle;
-            if (ThrottlePercent > 0)
-            {
-                if (ThrottleController.NotchCount() > 3)
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "N") + MathHelper.Clamp(ThrottleController.GetNearestNotch(ThrottlePercent / 100f), 1, 8);
-                else
-                    throttle = $"{ThrottlePercent:F0}%";
-            }
-            else if (DynamicBrakePercent > 0 && DynamicBrake)
-            {
-                if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
-                {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex, 1, 8);
-                }
-                else
-                {
-                    // The clause here below leads to possible differences of one notch near the notch value, and therefore is commented
-                    //               if (DynamicBrakeController.NotchCount() > 3)
-                    //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
-                    //               else
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
-                }
-            }
-            else if (DynamicBrakePercent == 0 && !DynamicBrake)
-                throttle = Simulator.Catalog.GetString("Setup");
-            else
-                throttle = Simulator.Catalog.GetParticularString("Notch", "Idle");
-            if (DynamicBrakePercent >= 0)
-                throttle += "???";
-
-            StringBuilder status = new StringBuilder();
-            status.Append($"{CarID}({DistributedPowerUnitId})\t");
-            status.Append($"{throttle}\t");
-            status.Append($"{Direction.GetDescription()} {(Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}\t");
-            status.Append($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}\t");
-            status.Append($"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}\t");
-            status.Append($"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(CouplerOverloaded ? "???" : "")}");
-            status.Append(DieselEngines.GetDistributedPowerStatus());
-
-            return status.ToString();
-        }
-
         public string DistributedPowerThrottleInfo()
         {
             string throttle;
@@ -1079,7 +1042,7 @@ namespace Orts.Simulation.RollingStocks
             return throttle;
         }
 
-        public double DistributedPowerLoadInfo()
+        public double DistributedPowerForceInfo()
         {
             double data = FilteredMotiveForceN != 0 ? (double)Math.Abs(FilteredMotiveForceN) : (double)Math.Abs(LocomotiveAxle.DriveForceN);
             if (DynamicBrakePercent > 0)
@@ -1267,23 +1230,9 @@ namespace Orts.Simulation.RollingStocks
             return numberOfLocomotives > 0 ? configuration : null;
         }
 
-        private static string[] DebugLabels;
         private static int MaxNumberOfEngines;
         private static string[] DpuLabels;
         private static string[] DPULabels;
-
-        private static void SetDebugLabels()
-        {
-            StringBuilder labels = new StringBuilder();
-            labels.Append($"{Simulator.Catalog.GetString("ID")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Throttle")}\t");
-            labels.Append($"{Simulator.Catalog.GetParticularString("NonSteam", "Reverser")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Remote")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Fuel")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Tractive Effort")}\t");
-            labels.Append(DieselEngines.SetDebugLabels());
-            DebugLabels = labels.ToString().Split('\t');
-        }
 
         private static void SetDPULabels(bool dpuFull, int numberOfEngines)
         {
@@ -1306,22 +1255,6 @@ namespace Orts.Simulation.RollingStocks
                 labels.Append($"{Simulator.Catalog.GetString("MR")}");
                 DPULabels = labels.ToString().Split('\t');
             }
-        }
-
-        public static string GetDebugTableBase(int locomotivesInTrain)
-        {
-            if (DebugLabels == null)
-                SetDebugLabels();
-
-            string table = "";
-            for (var i = 0; i < DebugLabels.Length; i++)
-            {
-                table += DebugLabels[i];
-                for (var j = 0; j < locomotivesInTrain; j++)
-                    table += "\t\t";
-                table += "\n";
-            }
-            return table;
         }
 
         public static string GetDpuHeader(bool dpuVerticalFull, int locomotivesInTrain, int dpuMaxNumberOfEngines)
@@ -1548,6 +1481,48 @@ namespace Orts.Simulation.RollingStocks
             locomotiveStatus["TractionCutOffRelay"] = Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription());
             locomotiveStatus["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             locomotiveStatus["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+        }
+
+        private class DistributedPowerStatus : DetailInfoBase
+        {
+            private readonly MSTSDieselLocomotive locomotive;
+
+            public DistributedPowerStatus(MSTSDieselLocomotive locomotive) : base(true)
+            {
+                this.locomotive = locomotive;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    // ID
+                    this["Car ID (Unit)"] = $"{locomotive.CarID} ({locomotive.DistributedPowerUnitId})";
+                    this["Throttle"] = locomotive.DistributedPowerThrottleInfo();
+                    FormattingOptions["Throttle"] = locomotive.DynamicBrakePercent >= 0 ? FormatOption.RegularYellow : null;
+
+                    this["Reverser"] = $"{locomotive.Direction.GetLocalizedDescription()} {(locomotive.Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}";
+                    this["Remote"] = $"{(locomotive.IsLeadLocomotive() || locomotive.RemoteControlGroup < 0 ? "———" : locomotive.RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}";
+                    this["Fuel"] = $"{FormatStrings.FormatFuelVolume(locomotive.DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}";
+
+                    this["Motive Force"] = $"{FormatStrings.FormatForce(locomotive.MotiveForceN, simulator.MetricUnits)}";
+                    FormattingOptions["Motive Force"] = locomotive.CouplerOverloaded ? FormatOption.RegularYellow : null;
+                    double effort = locomotive.DistributedPowerForceInfo();
+                    this["Tractive Effort"] = $"{effort:F0} {(Simulator.Instance.Route.MilepostUnitsMetric ? "A" : "K")}";
+                    FormattingOptions["Tractive Effort"] = effort < 0 ? FormatOption.RegularYellow : null;
+
+                    DieselEngine engine = locomotive.DieselEngines[0];
+                    this["Engine Status"] = engine.State.GetLocalizedDescription();
+                    this["Power"] = FormatStrings.FormatPower(engine.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false);
+                    this["Load"] = $"{engine.LoadPercent:F1} %";
+                    this["RPM"] = $"{engine.RealRPM:F0} {FormatStrings.rpm}";
+                    this["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
+                    this["Temperature"] = FormatStrings.FormatTemperature(engine.DieselTemperatureDeg, Simulator.Instance.MetricUnits);
+                    this["Oil Pressure"] = FormatStrings.FormatPressure(engine.DieselOilPressurePSI, Pressure.Unit.PSI, locomotive.MainPressureUnit, true);
+
+                    base.Update(gameTime);
+                }
+            }
         }
     } // class DieselLocomotive
 }

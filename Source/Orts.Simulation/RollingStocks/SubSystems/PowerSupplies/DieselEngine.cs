@@ -420,21 +420,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return result.ToString();
         }
 
-        public string GetDistributedPowerStatus()
-        {
-            StringBuilder result = new StringBuilder();
-            var eng = this[0];
-            result.Append($"\t{eng.State.GetLocalizedDescription()}");
-            result.Append($"\t{FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false)}");
-            result.Append($"\t{eng.LoadPercent:F1}%");
-            result.Append($"\t{eng.RealRPM:F0} {FormatStrings.rpm}");
-            result.Append($"\t{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(eng.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}");
-            result.Append($"\t{FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Simulator.Instance.MetricUnits)}");
-            result.Append($"\t{FormatStrings.FormatPressure(eng.DieselOilPressurePSI, Pressure.Unit.PSI, locomotive.MainPressureUnit, true)}");
-
-            return result.ToString();
-        }
-
         public int NumOfActiveEngines
         {
             get

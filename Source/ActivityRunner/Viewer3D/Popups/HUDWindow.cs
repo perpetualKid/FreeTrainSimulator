@@ -99,7 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var textPages = new List<Action<TableData>>();
             textPages.Add(TextPageCommon);
             textPages.Add(TextPageLocomotiveInfo);
-            textPages.Add(TextPageDistributedPowerInfo);
             textPages.Add(TextPagePowerSupplyInfo);
             textPages.Add(TextPageBrakeInfo);
             textPages.Add(TextPageForceInfo);
@@ -735,41 +734,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         }
                     }
                 }
-            }
-        }
-
-        void TextPageDistributedPowerInfo(TableData table)
-        {
-            TextPageHeading(table, Viewer.Catalog.GetString("DISTRIBUTED POWER INFORMATION"));
-
-            var locomotive = Viewer.PlayerLocomotive;
-            if (!(locomotive is MSTSDieselLocomotive))
-                return;
-            var train = locomotive.Train;
-
-            int numberOfDieselLocomotives = 0;
-            for (var i = 0; i < train.Cars.Count; i++)
-            {
-                if (train.Cars[i] is MSTSDieselLocomotive)
-                {
-                    numberOfDieselLocomotives++;
-                }
-            }
-            if (numberOfDieselLocomotives > 0)
-            {
-                int row = table.CurrentRow;
-                TableAddLines(table, MSTSDieselLocomotive.GetDebugTableBase(numberOfDieselLocomotives));
-                int k = 0;
-                RemoteControlGroup dpUnitId = RemoteControlGroup.FrontGroupSync;
-                for (var i = 0; i < train.Cars.Count; i++)
-                    if (train.Cars[i] is MSTSDieselLocomotive)
-                    {
-                        k++;
-                        var status = (train.Cars[i] as MSTSDieselLocomotive).GetDistributedPowerDebugStatus().Split('\t');
-                        var fence = (dpUnitId != (dpUnitId = train.Cars[i].RemoteControlGroup)) ? "| " : "";
-                        for (var j = 0; j < status.Length; j++)
-                            table.Cells[row + j, 2 * k] = fence + status[j];
-                    }
             }
         }
 

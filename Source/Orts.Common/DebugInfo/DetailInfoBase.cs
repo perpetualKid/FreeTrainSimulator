@@ -22,7 +22,7 @@ namespace Orts.Common.DebugInfo
             }
         }
 
-        public InformationDictionary DetailInfo
+        public virtual InformationDictionary DetailInfo
         {
             get
             {
@@ -31,11 +31,10 @@ namespace Orts.Common.DebugInfo
             }
         }
 
-        public Dictionary<string, FormatOption> FormattingOptions { get; }
+        public virtual Dictionary<string, FormatOption> FormattingOptions { get; }
 
         public virtual INameValueInformationProvider Next { get; set; }
 
-        public virtual int MultiElementCount { get; protected set; }
+        public virtual int MultiElementCount { get; protected internal set; }
     }
-
 }

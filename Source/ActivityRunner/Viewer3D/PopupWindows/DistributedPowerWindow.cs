@@ -261,7 +261,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 if (groupDetails[GroupDetail.Load]?.Controls[i] is Label loadLabel)
                 {
-                    loadLabel.Text = $"{groupLead.DistributedPowerLoadInfo():F0}{(windowMode is WindowMode.Normal or WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
+                    loadLabel.Text = $"{groupLead.DistributedPowerForceInfo():F0}{(windowMode is WindowMode.Normal or WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
                 }
                 if (groupDetails[GroupDetail.Remote]?.Controls[i] is Label remoteLabel)
                 {

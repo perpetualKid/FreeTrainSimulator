@@ -23,9 +23,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private enum TabSettings
         {
             [Description("System Information")] Common,
-            [Description("Weather Information")] Weather,
-            [Description("Performance")] Performance,
+            [Description("Game Performance Details")] Performance,
             [Description("Consist Information")] Consist,
+            [Description("Distributed Power Information")] DistributedPower,
+            [Description("Weather Information")] Weather,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
@@ -43,6 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private GraphControl graphLoaderProcess;
 
         private NameValueTextGrid consistTableGrid;
+        private NameValueTextGrid distributedPowerTableGrid;
         private NameValueTextGrid scrollableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
@@ -65,35 +67,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System],
-                });
-            };
-            tabLayout.TabLayouts[TabSettings.Consist] = (layoutContainer) =>
-            {
-                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
-                {
-                    OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
-                    InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
-                });
-                int y = (int)(160 * Owner.DpiScaling);
-                layoutContainer.Add(consistTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
-                {
-                    OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 40,
-                    InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
-                    MultiValueColumnWidth = 64,
-                });
-
-            };
-            tabLayout.TabLayouts[TabSettings.Weather] = (layoutContainer) =>
-            {
-                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
-                {
-                    OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
-                    InformationProvider = viewer.DetailInfo[DetailInfoType.WeatherDetails],
                 });
             };
             tabLayout.TabLayouts[TabSettings.Performance] = (layoutContainer) =>
@@ -123,7 +96,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     NameColumnWidth = 240,
                     MultiValueColumnWidth = 80,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.GraphicDetails],
-                    Column = 0
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
@@ -133,6 +105,46 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(graphUpdateProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Update Process %"), graphWidth) { GraphColor = Color.Yellow });
                 layoutContainer.Add(graphLoaderProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Loader Process %"), graphWidth) { GraphColor = Color.Magenta });
                 layoutContainer.Add(graphSoundProcess = new GraphControl(this, 0, 15, graphWidth, 25, null, null, Catalog.GetString("Sound Process %"), graphWidth) { GraphColor = Color.Cyan });
+            };
+            tabLayout.TabLayouts[TabSettings.Consist] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
+                });
+                int y = (int)(160 * Owner.DpiScaling);
+                layoutContainer.Add(consistTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 40,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
+                    MultiValueColumnWidth = 64,
+                });
+
+            };
+            tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(distributedPowerTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 140,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.DistributedPowerDetails],
+                    MultiValueColumnWidth = 120,
+                });
+            };
+            tabLayout.TabLayouts[TabSettings.Weather] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.WeatherDetails],
+                });
             };
             layout.Add(tabLayout);
             return layout;
@@ -185,6 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             scrollableGrid = tabLayout.CurrentTab switch
             {
                 TabSettings.Consist => consistTableGrid,
+                TabSettings.DistributedPower => distributedPowerTableGrid,
                 _ => null,
             };
         }
@@ -198,6 +211,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 scrollableGrid = tabLayout.CurrentTab switch
                 {
                     TabSettings.Consist => consistTableGrid,
+                    TabSettings.DistributedPower => distributedPowerTableGrid,
                     _ => null,
                 };
             }

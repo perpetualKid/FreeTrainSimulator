@@ -68,7 +68,8 @@ namespace Orts.ActivityRunner.Viewer3D
         GraphicDetails,
         WeatherDetails,
         TrainDetails,
-        ConsistDetails
+        ConsistDetails,
+        DistributedPowerDetails,
     }
 
 
@@ -337,6 +338,7 @@ namespace Orts.ActivityRunner.Viewer3D
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.TrainDetails] = new TrainInformation(Catalog as Catalog));
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ConsistDetails] = new ConsistInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.DistributedPowerDetails] = new DistributedPowerInformation());
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
