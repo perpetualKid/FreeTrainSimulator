@@ -46,14 +46,14 @@ namespace Orts.ActivityRunner.Processes
         {
             if (UpdateNeeded)
             {
-                this["Clear Calls"] = $"{CurrentMetrics.ClearCount}";
-                this["Draw Calls"] = $"{CurrentMetrics.DrawCount}";
-                this["Primitives"] = $"{CurrentMetrics.PrimitiveCount}";
-                this["Textures"] = $"{CurrentMetrics.TextureCount}";
-                this["Sprites"] = $"{CurrentMetrics.SpriteCount}";
-                this["Targets"] = $"{CurrentMetrics.TargetCount}";
-                this["PixelShaders"] = $"{CurrentMetrics.PixelShaderCount}";
-                this["VertexShaders"] = $"{CurrentMetrics.VertexShaderCount}";
+                this["Clear Calls"] = $"{CurrentMetrics.ClearCount:N0}";
+                this["Draw Calls"] = $"{CurrentMetrics.DrawCount:N0}";
+                this["Primitives"] = $"{CurrentMetrics.PrimitiveCount:N0}";
+                this["Textures"] = $"{CurrentMetrics.TextureCount:N0}";
+                this["Sprites"] = $"{CurrentMetrics.SpriteCount:N0}";
+                this["Targets"] = $"{CurrentMetrics.TargetCount:N0}";
+                this["PixelShaders"] = $"{CurrentMetrics.PixelShaderCount:N0}";
+                this["VertexShaders"] = $"{CurrentMetrics.VertexShaderCount:N0}";
                 base.Update(gameTime);
             }
         }
