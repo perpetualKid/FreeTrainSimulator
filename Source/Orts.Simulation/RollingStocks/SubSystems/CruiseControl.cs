@@ -181,8 +181,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public bool HasProportionalSpeedSelector { get; set; }
         private bool speedSelectorIsDiscrete;
         private bool doComputeNumberOfAxles;
-        private bool disableManualSwitchToManualWhenSetForceNotAtZero;
-        private bool disableManualSwitchToAutoWhenThrottleNotAtZero;
         private bool disableManualSwitchToAutoWhenSetSpeedNotAtTop;
         private bool enableSelectedSpeedSelectionWhenManualModeSet;
         private bool modeSwitchAllowedWithThrottleNotAtZero;
@@ -296,8 +294,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             TrainBrakeCommandHasPriorityOverCruiseControl = source.TrainBrakeCommandHasPriorityOverCruiseControl;
             HasIndependentThrottleDynamicBrakeLever = source.HasIndependentThrottleDynamicBrakeLever;
             HasProportionalSpeedSelector = source.HasProportionalSpeedSelector;
-            disableManualSwitchToManualWhenSetForceNotAtZero = source.disableManualSwitchToManualWhenSetForceNotAtZero;
-            disableManualSwitchToAutoWhenThrottleNotAtZero = source.disableManualSwitchToAutoWhenThrottleNotAtZero;
             disableManualSwitchToAutoWhenSetSpeedNotAtTop = source.disableManualSwitchToAutoWhenSetSpeedNotAtTop;
             enableSelectedSpeedSelectionWhenManualModeSet = source.enableSelectedSpeedSelectionWhenManualModeSet;
             speedSelectorIsDiscrete = source.speedSelectorIsDiscrete;
@@ -400,12 +396,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         break;
                     case "disablecruisecontrolonthrottleandzeroforceandzerospeed":
                         DisableCruiseControlOnThrottleAndZeroForceAndZeroSpeed = stf.ReadBoolBlock(false);
-                        break;
-                    case "disablemanualswitchtomanualwhensetforcenotatzero":
-                        disableManualSwitchToManualWhenSetForceNotAtZero = stf.ReadBoolBlock(false);
-                        break;
-                    case "disablemanualswitchtoautowhenthrottlenotatzero":
-                        disableManualSwitchToAutoWhenThrottleNotAtZero = stf.ReadBoolBlock(false);
                         break;
                     case "disablemanualswitchtoautowhensetspeednotattop":
                         disableManualSwitchToAutoWhenSetSpeedNotAtTop = stf.ReadBoolBlock(false);
