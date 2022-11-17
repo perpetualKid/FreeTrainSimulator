@@ -106,7 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     layout.AddHorizontalSeparator(true);
                     AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, FourCharAcronym.Locomotives.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.Throttle, columnWidth, FourCharAcronym.Throttle.GetLocalizedDescription(), Owner.TextFontMonoDefault);
-                    AddDetailLine(GroupDetail.Load, columnWidth, FourCharAcronym.Load.GetLocalizedDescription(), Owner.TextFontMonoDefault);
+                    AddDetailLine(GroupDetail.Load, columnWidth, FourCharAcronym.TractiveEffort.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.BrakePipe, columnWidth, FourCharAcronym.BrakePressure.GetLocalizedDescription(), Owner.TextFontMonoDefault);
                     AddDetailLine(GroupDetail.Remote, columnWidth, FourCharAcronym.Remote.GetLocalizedDescription(), Owner.TextFontMonoDefault);
 
@@ -124,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     layout.AddHorizontalSeparator(true);
                     AddDetailLine(GroupDetail.LocomotivesNumber, columnWidth, Catalog.GetString("Locos"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.Throttle, columnWidth, Catalog.GetString("Throttle"), Owner.TextFontDefault);
-                    AddDetailLine(GroupDetail.Load, columnWidth, Catalog.GetString("Load"), Owner.TextFontDefault);
+                    AddDetailLine(GroupDetail.Load, columnWidth, Catalog.GetString("Trac Eff"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.BrakePipe, columnWidth, Catalog.GetString("Brk Pipe"), Owner.TextFontDefault);
                     AddDetailLine(GroupDetail.Remote, columnWidth, Catalog.GetString("Remote"), Owner.TextFontDefault);
 
