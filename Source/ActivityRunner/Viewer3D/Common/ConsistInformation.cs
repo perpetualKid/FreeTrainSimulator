@@ -11,8 +11,6 @@ using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-using static Orts.Common.Calc.Size;
-
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
     internal class ConsistInformation : DetailInfoBase

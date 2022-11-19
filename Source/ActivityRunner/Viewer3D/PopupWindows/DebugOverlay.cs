@@ -26,7 +26,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("Game Performance Details")] Performance,
             [Description("Consist Information")] Consist,
             [Description("Distributed Power Information")] DistributedPower,
-            [Description("Weather Information")] Weather,
+            [Description("Game Information")] GameDetails,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
@@ -136,10 +136,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     MultiValueColumnWidth = 120,
                 });
             };
-            tabLayout.TabLayouts[TabSettings.Weather] = (layoutContainer) =>
+            tabLayout.TabLayouts[TabSettings.GameDetails] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    NameColumnWidth = 240,
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.GameDetails],
+                });
+                int y = (int)(160 * Owner.DpiScaling);
+                layoutContainer.Add(new NameValueTextGrid(this, 0, y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     NameColumnWidth = 240,

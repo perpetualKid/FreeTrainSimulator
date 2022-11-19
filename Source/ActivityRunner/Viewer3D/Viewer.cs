@@ -66,6 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public enum DetailInfoType
     {
         GraphicDetails,
+        GameDetails,
         WeatherDetails,
         TrainDetails,
         ConsistDetails,
@@ -334,6 +335,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(this));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GameDetails] = new RouteInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.TrainDetails] = new TrainInformation(Catalog as Catalog));
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ConsistDetails] = new ConsistInformation(Catalog as Catalog));
