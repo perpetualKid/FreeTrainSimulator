@@ -20,6 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         private const int Columns = 8;
         private readonly Catalog catalog;
         private Train train;
+        private int numberCars;
 
         private readonly DetailInfoBase[] consistDetails = new DetailInfoBase[Columns];
 
@@ -41,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         {
             if (UpdateNeeded)
             {
-                if (train != (train = Simulator.Instance.PlayerLocomotive.Train))
+                if (train != (train = Simulator.Instance.PlayerLocomotive.Train) | numberCars != (numberCars = train.Cars.Count))
                 {
                     AddHeader(train);
                     bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
