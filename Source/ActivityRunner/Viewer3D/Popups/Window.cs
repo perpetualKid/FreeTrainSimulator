@@ -17,19 +17,16 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.Common.Input;
-
-using System;
-using System.IO;
-using System.Reflection;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    public abstract class Window : RenderPrimitive, IDisposable
+    public abstract class Window : RenderPrimitive
     {
         private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
@@ -40,11 +37,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private protected bool dragged;
         private bool visible;
         private Rectangle location;
-        private readonly PropertyInfo settingsProperty;
+
         private ControlLayout windowLayout;
-        private VertexBuffer windowVertexBuffer;
-        private IndexBuffer windowIndexBuffer;
-        private bool disposedValue;
 
         protected Window(WindowManager owner, int width, int height, string caption)
         {
@@ -59,15 +53,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             VisibilityChanged();
             LocationChanged();
-            SizeChanged();
+            Layout();
         }
 
         protected virtual void VisibilityChanged()
         {
             if (Visible)
             {
-                Owner.BringWindowToTop(this);
-
                 if (windowLayout != null)
                     PrepareFrame(ElapsedTime.Zero, true);
             }
@@ -76,12 +68,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         protected virtual void LocationChanged()
         {
             xnaWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
-        }
-
-        protected virtual void SizeChanged()
-        {
-            Layout();
-            windowVertexBuffer = null;
         }
 
         internal virtual void ScreenChanged()
@@ -149,34 +135,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public virtual void Mark()
         {
         }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    windowVertexBuffer?.Dispose();
-                    windowIndexBuffer?.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
     }
 
     internal class WindowControlLayout : ControlLayout
     {
         public readonly Window Window;
-
-        private bool capturedForDragging;
 
         public WindowControlLayout(Window window, int width, int height)
             : base(0, 0, width, height)

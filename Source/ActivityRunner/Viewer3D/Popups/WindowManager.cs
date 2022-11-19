@@ -19,7 +19,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -46,7 +45,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private readonly Material WindowManagerMaterial;
         private readonly List<Window> Windows = new List<Window>();
-        private Window[] WindowsZOrder = Array.Empty<Window>();
         private SpriteBatch SpriteBatch;
         private Matrix Identity = Matrix.Identity;
         internal Point ScreenSize = new Point(10000, 10000); // Arbitrary but necessary.
@@ -138,20 +136,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal void Add(Window window)
         {
             Windows.Add(window);
-            WindowsZOrder = Windows.Concat(new[] { window }).ToArray();
         }
 
         public IEnumerable<Window> VisibleWindows
         {
             get
             {
-                return WindowsZOrder.Where(w => w.Visible);
+                return Windows.Where(w => w.Visible);
             }
-        }
-
-        public void BringWindowToTop(Window window)
-        {
-            WindowsZOrder = WindowsZOrder.Where(w => w != window).Concat(new[] { window }).ToArray();
         }
 
         public void Mark()

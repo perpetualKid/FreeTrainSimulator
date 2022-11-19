@@ -19,15 +19,17 @@
 
 #define WINDOWTEXT_SPRITEBATCH
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
-using Orts.Common.Native;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.Common;
+using Orts.Common.Native;
+
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
 using GraphicsUnit = System.Drawing.GraphicsUnit;
@@ -134,7 +136,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     public sealed class WindowTextFont
     {
         private readonly Font Font;
-        private readonly int FontHeight;
         private readonly int OutlineSize;
 
         // THREAD SAFETY:
@@ -145,7 +146,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal WindowTextFont(string fontFamily, float sizeInPt, FontStyle style, int outlineSize)
         {
             Font = new Font(fontFamily, (int)Math.Round(sizeInPt * 96 / 72), style, GraphicsUnit.Pixel);
-            FontHeight = Font.Height;
             OutlineSize = outlineSize;
             Characters = new CharacterGroup(Font, OutlineSize);
             if (Viewer3D.Viewer.Catalog != null)
@@ -155,13 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// <summary>
         /// Gets the line height of the font.
         /// </summary>
-        public int Height
-        {
-            get
-            {
-                return FontHeight;
-            }
-        }
+        public int Height => Font.Height;
 
         /// <summary>
         /// Measures the width of a given string.
