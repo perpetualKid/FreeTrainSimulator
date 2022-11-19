@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 
 namespace Orts.Common.DebugInfo
 {
@@ -12,9 +13,9 @@ namespace Orts.Common.DebugInfo
     /// </summary>
     public class InformationDictionary : IDictionary<string, string>
     {
+        private static readonly List<string> empty = new List<string>();
         private readonly Dictionary<string, string> dictionary = new Dictionary<string, string>();
         private List<string> currentKeys = new List<string>();
-        private List<string> updatedKeys = new List<string>();
         private readonly Func<Dictionary<string, string>, int> versionGet;
         private int version;
 
@@ -43,13 +44,7 @@ namespace Orts.Common.DebugInfo
                 dictionary[key] = value;
                 if (version != (version = versionGet(dictionary)))
                 {
-                    lock (dictionary)
-                    {
-                        updatedKeys.Clear();
-                        updatedKeys.AddRange(currentKeys);
-                        updatedKeys.Add(key);
-                        (currentKeys, updatedKeys) = (updatedKeys, currentKeys);
-                    }
+                    Interlocked.Exchange(ref currentKeys, dictionary.Keys.ToList());
                 }
             }
         }
@@ -67,34 +62,18 @@ namespace Orts.Common.DebugInfo
         public void Add(string key, string value)
         {
             dictionary.Add(key, value);
-            lock (dictionary)
-            {
-                updatedKeys.Clear();
-                updatedKeys.AddRange(currentKeys);
-                updatedKeys.Add(key);
-                (currentKeys, updatedKeys) = (updatedKeys, currentKeys);
-            }
+            Interlocked.Exchange(ref currentKeys, dictionary.Keys.ToList());
         }
 
         public void Add(KeyValuePair<string, string> item)
         {
             (dictionary as IDictionary<string, string>).Add(item);
-            lock (dictionary)
-            {
-                updatedKeys.Clear();
-                updatedKeys.AddRange(currentKeys);
-                updatedKeys.Add(item.Key);
-                (currentKeys, updatedKeys) = (updatedKeys, currentKeys);
-            }
+            Interlocked.Exchange(ref currentKeys, dictionary.Keys.ToList());
         }
 
         public void Clear()
         {
-            lock (dictionary)
-            {
-                updatedKeys.Clear();
-                (currentKeys, updatedKeys) = (updatedKeys, currentKeys);
-            }
+            Interlocked.Exchange(ref currentKeys, empty);
             dictionary.Clear();
         }
 
@@ -120,12 +99,10 @@ namespace Orts.Common.DebugInfo
 
         public bool Remove(string key)
         {
-            lock (dictionary)
-            {
-                updatedKeys.Remove(key);
-                (currentKeys, updatedKeys) = (updatedKeys, currentKeys);
-            }
-            return dictionary.Remove(key);
+            bool result = dictionary.Remove(key);
+            Interlocked.Exchange(ref currentKeys, dictionary.Keys.ToList());
+            return result;
+
         }
 
         public bool Remove(KeyValuePair<string, string> item)

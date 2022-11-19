@@ -100,9 +100,10 @@ namespace Orts.Graphics.Xna
                 Region[] ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, text.Length * font.Height), measureContainer.formatHolder);
                 SizeF actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
                 int padding = (int)Math.Ceiling(font.Size * 0.2);
+                int paddingWidth = padding;
                 if (outlineOptions != null && outlineOptions.OutlineWidth > 1)
-                    padding = (int)(padding * outlineOptions.OutlineWidth);
-                size = new Size((int)Math.Ceiling(actual.Width + 2 * padding), (int)Math.Ceiling(actual.Height + padding / 2));
+                    paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
+                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + padding / 2));
             }
             measureGraphicsHolder.Enqueue(measureContainer);
             return size;

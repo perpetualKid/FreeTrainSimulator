@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
@@ -49,7 +50,6 @@ namespace Orts.Graphics.Window
         }
 
         private List<FormBase> windows = new List<FormBase>();
-        private List<FormBase> updatedWindowList = new List<FormBase>();
         private readonly Stack<WindowBase> modalWindows = new Stack<WindowBase>();
         private readonly WindowSortComparer windowSortComparer;
 
@@ -221,14 +221,12 @@ namespace Orts.Graphics.Window
             if (!WindowOpen(window))
             {
                 SuppressDrawing = false;
-                lock (updatedWindowList)
-                {
-                    updatedWindowList.Clear();
-                    updatedWindowList.AddRange(windows);
-                    updatedWindowList.Add(window);
+                    List<FormBase> updatedWindowList = new List<FormBase>(windows)
+                    {
+                        window
+                    };
                     updatedWindowList.Sort(windowSortComparer);
-                    (windows, updatedWindowList) = (updatedWindowList, windows);
-                }
+                    Interlocked.Exchange(ref windows, updatedWindowList);
                 if (window is WindowBase framedWindow)
                 {
                     framedWindow.UpdateLocation();
@@ -277,16 +275,11 @@ namespace Orts.Graphics.Window
             }
 #pragma warning restore CA2000 // Dispose objects before losing scope
             activeWindow?.FocusSet();
-            lock (updatedWindowList)
+            List<FormBase> updatedWindowList = new List<FormBase>(windows);
+            if (updatedWindowList.Remove(window))
             {
-                updatedWindowList.Clear();
-                updatedWindowList.AddRange(windows);
-                if (updatedWindowList.Remove(window))
-                {
-                    (windows, updatedWindowList) = (updatedWindowList, windows);
-                    updatedWindowList.Clear();
-                    return true;
-                }
+                Interlocked.Exchange(ref windows, updatedWindowList);
+                return true;
             }
             return false;
         }
@@ -393,7 +386,7 @@ namespace Orts.Graphics.Window
                     activeWindow?.FocusLost();
                     activeWindow = topMostTargetedWindow;
                     topMostTargetedWindow.FocusSet();
-                    lock (updatedWindowList)
+                    lock (modalWindows)
                     {
                         windows.Sort(windowSortComparer);
                     }
