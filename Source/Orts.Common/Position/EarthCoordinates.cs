@@ -76,8 +76,8 @@ namespace Orts.Common.Position
 
         // The upper left corner of the Goode projection is ul_x,ul_y
         // The bottom right corner of the Goode projection is -ul_x,-ul_y
-        private const int ul_x = -20015000; // -180 deg in Goode projection
-        private const int ul_y = 8673000; // +90 deg lat in Goode projection
+        private const int ul_x = -20013965; // -180 deg in Goode projection
+        private const int ul_y = 8674008; // +90 deg lat in Goode projection
 
         // Offsets to convert Goode raster coordinates to MSTS world tile coordinates
         private const int wt_ew_offset = -16385;
