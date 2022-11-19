@@ -66,14 +66,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Viewport = Owner.Viewer.Game.GraphicsDevice.Viewport;
         }
 
-        public override bool Interactive
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(elapsedTime, updateFull);

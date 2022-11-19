@@ -78,8 +78,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public int WebServerPageNo;
         private int TextPage;
-        private int LocomotivePage = 2;
-        private int LastTextPage;
         private TableData TextTable = new TableData() { Cells = new string[0, 0] };
         private HUDGraphSet ForceGraphs;
         private HUDGraphMesh ForceGraphMotiveForce;
@@ -94,7 +92,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             : base(owner, TextOffset, TextOffset, "HUD")
         {
             Viewer = owner.Viewer;
-            LastTextPage = LocomotivePage;
 
             var textPages = new List<Action<TableData>>();
             textPages.Add(TextPageCommon);
@@ -122,38 +119,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ForceGraphNumOfSubsteps = ForceGraphs.Add(Viewer.Catalog.GetString("Num of substeps"), "0", "300", Color.Blue, 25);
         }
 
-        internal protected override void Save(BinaryWriter outf)
-        {
-            base.Save(outf);
-            outf.Write(TextPage);
-            outf.Write(LastTextPage);
-        }
-
-        internal protected override void Restore(BinaryReader inf)
-        {
-            base.Restore(inf);
-            var page = inf.ReadInt32();
-            if (page >= 0 && page <= TextPages.Length)
-                TextPage = page;
-            page = inf.ReadInt32();
-            if (page > 0 && page <= TextPages.Length)
-                LastTextPage = page;
-            else
-                LastTextPage = LocomotivePage;
-        }
-
         public override void Mark()
         {
             base.Mark();
             HUDGraphMaterial.Mark();
-        }
-
-        public override bool Interactive
-        {
-            get
-            {
-                return false;
-            }
         }
 
         public override void TabAction()
@@ -161,7 +130,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextPage = (TextPage + 1) % TextPages.Length;
             if (TextPage != 0)
             {
-                LastTextPage = TextPage;
                 lResetHudScroll = false;
             }
         }
@@ -226,7 +194,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 var table = new TableData() { Cells = new string[TextTable.Cells.GetLength(0), TextTable.Cells.GetLength(1)] };
                 //Normal screen or full screen
-                if (!hudWindowFullScreen || (Viewer.HUDScrollWindow.Visible && TextPage == 0))
+                if (!hudWindowFullScreen)
                     TextPages[0](table);
 
                 if (TextPage > 0)
@@ -379,10 +347,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var stretched = playerTrain.Cars.Count > 1 && playerTrain.CouplersPulled == playerTrain.Cars.Count - 1;
             var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.CouplersPushed == playerTrain.Cars.Count - 1;
 
-            //Disable Hudscroll.
-            if (Viewer.HUDScrollWindow.Visible)
-                Viewer.HUDScrollWindow.Visible = TextPage != 0 || WebServerPageNo != 0;
-
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
 
@@ -483,7 +447,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
             ResetHudScroll();//Reset Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
 
             //HudScroll
             //Store status for each locomotive
@@ -1716,12 +1679,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             //Columns pages
             int statusPathLenght = ColumnCount * columnsChars;
             hudWindowColumnsPagesCount = (statusPathLenght < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(statusPathLenght / charFitPerLine) + 0.5);
-
-            //Hide - Show HUDScrollWindow
-            if (Viewer.HUDScrollWindow.Visible && WebServerPageNo == 0 && (hudWindowLinesActualPage == 1 && hudWindowLinesPagesCount == 1 && hudWindowColumnsActualPage == 0 && hudWindowColumnsPagesCount == 0) && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
-                Viewer.HUDScrollWindow.Visible = false;
-            if (!Viewer.HUDScrollWindow.Visible && WebServerPageNo > 0 && (hudWindowLinesPagesCount > 1 || hudWindowColumnsPagesCount > 0))
-                Viewer.HUDScrollWindow.Visible = true;
         }
 
         /// <summary>
@@ -1940,14 +1897,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             //Update columns pages count.
             if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)
                 hudWindowColumnsPagesCount = CurrentPathColumnsPagesCount;
-
-            //Hide - Show HUDScrollWindow
-            var locomotive = Viewer.PlayerLocomotive;
-            var train = locomotive.Train;
-            if (Viewer.HUDScrollWindow.Visible && WebServerPageNo == 0 && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
-                Viewer.HUDScrollWindow.Visible = false;
-            if (!Viewer.HUDScrollWindow.Visible && WebServerPageNo > 0 && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
-                Viewer.HUDScrollWindow.Visible = true;
         }
 
         /// <summary>

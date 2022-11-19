@@ -24,7 +24,6 @@ namespace Orts.Common.DebugInfo
             ParameterExpression instanceExpression = Expression.Parameter(dictionary.GetType(), "instance");
             MemberExpression fieldExpression = Expression.Field(instanceExpression, field);
             UnaryExpression convertExpression = Expression.Convert(fieldExpression, field.FieldType);
-            // Create a lambda expression of the latest call & compile it
             versionGet = Expression.Lambda<Func<Dictionary<string, string>, int>>(convertExpression, instanceExpression).Compile();
         }
 
@@ -39,11 +38,11 @@ namespace Orts.Common.DebugInfo
                 return result;
 
             }
-            set 
+            set
             {
                 dictionary[key] = value;
                 if (version != (version = versionGet(dictionary)))
-                    {
+                {
                     lock (dictionary)
                     {
                         updatedKeys.Clear();

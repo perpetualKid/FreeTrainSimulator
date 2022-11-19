@@ -114,7 +114,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
         public HUDWindow HUDWindow { get; private set; } // F5 hud
-        public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
@@ -369,8 +368,6 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(PlayerTrain.Cars.IndexOf(PlayerLocomotive));
             outf.Write(Simulator.Trains.IndexOf(SelectedTrain));
 
-            WindowManager.Save(outf);
-
             outf.Write(WellKnownCameras.IndexOf(Camera));
             foreach (var camera in WellKnownCameras)
                 camera.Save(outf);
@@ -413,8 +410,6 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 SelectedTrain = Simulator.Trains[0];
             }
-
-            WindowManager.Restore(inf);
 
             var cameraToRestore = inf.ReadInt32();
             foreach (var camera in WellKnownCameras)
@@ -485,7 +480,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
             WindowManager = new WindowManager(this);
             HUDWindow = new HUDWindow(WindowManager);
-            HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
@@ -663,8 +657,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 else
                 {
                     HUDWindow.Visible = !HUDWindow.Visible;
-                    if (!HUDWindow.Visible)
-                        HUDScrollWindow.Visible = false;
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
                 }
             });
@@ -1820,7 +1812,6 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (frame.IsScreenChanged)
             {
-                WindowManager.ScreenChanged();
                 AdjustCabHeight(DisplaySize.X, DisplaySize.Y);
             }
 

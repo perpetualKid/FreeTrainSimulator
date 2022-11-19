@@ -28,11 +28,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 		{
 		}
 
-		protected override ControlLayout Layout(ControlLayout layout)
-		{
-			return layout;
-		}
-
 		public override void Draw()
 		{
 			// Don't draw the normal window stuff here.

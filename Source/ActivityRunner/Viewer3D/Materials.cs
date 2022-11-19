@@ -210,7 +210,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;
         public readonly ParticleEmitterShader ParticleEmitterShader;
-        public readonly PopupWindowShader PopupWindowShader;
         public readonly PrecipitationShader PrecipitationShader;
         public readonly SceneryShader SceneryShader;
         public readonly ShadowMapShader ShadowMapShader;
@@ -229,7 +228,6 @@ namespace Orts.ActivityRunner.Viewer3D
             LightConeShader = new LightConeShader(viewer.Game.GraphicsDevice);
             LightGlowShader = new LightGlowShader(viewer.Game.GraphicsDevice);
             ParticleEmitterShader = new ParticleEmitterShader(viewer.Game.GraphicsDevice);
-            PopupWindowShader = new PopupWindowShader(viewer, viewer.Game.GraphicsDevice);
             PrecipitationShader = new PrecipitationShader(viewer.Game.GraphicsDevice);
             SceneryShader = new SceneryShader(viewer.Game.GraphicsDevice);
             var microtexPath = Path.Combine(viewer.Simulator.RouteFolder.TerrainTexturesFolder, "microtex.ace");
@@ -292,9 +290,6 @@ namespace Orts.ActivityRunner.Viewer3D
                         break;
                     case "LightGlow":
                         Materials[materialKey] = new LightGlowMaterial(Viewer);
-                        break;
-                    case "PopupWindow":
-                        Materials[materialKey] = new PopupWindowMaterial(Viewer);
                         break;
                     case "ParticleEmitter":
                         Materials[materialKey] = new ParticleEmitterMaterial(Viewer, textureName);
@@ -1124,76 +1119,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void ResetState()
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        }
-    }
-
-    public class PopupWindowMaterial : Material
-    {
-        private EffectPassCollection shaderPasses;
-        private readonly PopupWindowShader shader;
-
-        public PopupWindowMaterial(Viewer viewer)
-            : base(viewer, null)
-        {
-            shader = Viewer.MaterialManager.PopupWindowShader;
-        }
-
-        public void SetState(Texture2D screen)
-        {
-            shader.CurrentTechnique = shader.Techniques[^1];// screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
-            shaderPasses = shader.CurrentTechnique.Passes;
-
-            // FIXME: MonoGame cannot read backbuffer contents
-            //shader.Screen = screen;
-            shader.GlassColor = Color.Black;
-            shader.Opacity = 0.5f;
-
-            graphicsDevice.BlendState = BlendState.NonPremultiplied;
-            graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            graphicsDevice.DepthStencilState = DepthStencilState.None;
-        }
-
-        public void Render(RenderPrimitive renderPrimitive, in Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
-        {
-            MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
-            MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
-            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(in worldMatrix, ref wvp);
-
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                shaderPasses[j].Apply();
-                renderPrimitive.Draw();
-            }
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            MatrixExtension.Multiply(in view, in projection, out Matrix result);
-            MatrixExtension.Multiply(in result, in viewProjection, out Matrix wvp);
-            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(in view, ref wvp);
-
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    shaderPasses[j].Apply();
-                    renderItems[i].RenderPrimitive.Draw();
-                }
-            }
-        }
-
-        public override void ResetState()
-        {
-            graphicsDevice.BlendState = BlendState.Opaque;
-            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        }
-
-        public override bool GetBlending()
-        {
-            return true;
         }
     }
 

@@ -26,23 +26,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.Common.Input;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class WindowManager : RenderPrimitive
     {
         public static Texture2D WhiteTexture;
-
-        // This is all a bit of a hack, since SpriteBatch does not expose its own internal Flush() method. What we do
-        // is draw with a different texture to anything else; the change of texture triggers an internal flush. The
-        // texture is initialised to transparent black so although we draw it in a visible area, it will not actually
-        // be visible on screen.
-        private static Texture2D FlushTexture;
-        public static void Flush(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(FlushTexture, Vector2.Zero, Color.Black);
-        }
 
         public readonly Viewer Viewer;
         public readonly WindowTextManager TextManager;
@@ -56,22 +45,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public Label3DMaterial Label3DMaterial { get; private set; }
 
         private readonly Material WindowManagerMaterial;
-        private readonly PopupWindowMaterial PopupWindowMaterial;
         private readonly List<Window> Windows = new List<Window>();
         private Window[] WindowsZOrder = Array.Empty<Window>();
         private SpriteBatch SpriteBatch;
         private Matrix Identity = Matrix.Identity;
-        private Matrix XNAView = Matrix.Identity;
-        private Matrix XNAProjection = Matrix.Identity;
         internal Point ScreenSize = new Point(10000, 10000); // Arbitrary but necessary.
-        private RenderTarget2D Screen;
 
         public WindowManager(Viewer viewer)
         {
             Viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
 
             WindowManagerMaterial = new BasicBlendedMaterial(viewer, "WindowManager");
-            PopupWindowMaterial = (PopupWindowMaterial)Viewer.MaterialManager.Load("PopupWindow");
             TextManager = new WindowTextManager();
             TextFontDefault = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular);
             TextFontDefaultOutlined = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular, 1);
@@ -85,69 +69,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 WhiteTexture = new Texture2D(Viewer.Game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 WhiteTexture.SetData(new[] { Color.White });
             }
-            if (FlushTexture == null)
-            {
-                FlushTexture = new Texture2D(Viewer.Game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-                FlushTexture.SetData(new[] { Color.Transparent });
-            }
-
-            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
         }
 
-        private void MouseDraggingEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-            if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
-            {
-                if (null == mouseActiveWindow)
-                    mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(moveCommandArgs.Position));
-                mouseActiveWindow?.MouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
-            }
-        }
-
-        private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-            if (userCommandArgs is ScrollCommandArgs scrollCommandArgs)
-            {
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(scrollCommandArgs.Position));
-                if (mouseActiveWindow != null)
-                    mouseActiveWindow.MouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
-            }
-        }
-
-        private void MouseDownEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
-            {
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
-                mouseActiveWindow?.MouseDown(pointerCommandArgs.Position, keyModifiers);
-            }
-        }
-
-        private void MouseClickedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
-            {
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
-                if ((mouseActiveWindow != null) && (mouseActiveWindow != WindowsZOrder.Last()))
-                    BringWindowToTop(mouseActiveWindow);
-
-                mouseActiveWindow?.MousePressed(pointerCommandArgs.Position, keyModifiers);
-            }
-        }
-
-        private void MouseReleasedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
-            {
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
-                mouseActiveWindow?.MouseReleased(pointerCommandArgs.Position, keyModifiers);
-            }
-            mouseActiveWindow = null;
-        }
 
         public void Initialize()
         {
@@ -155,7 +78,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Label3DMaterial = (Label3DMaterial)Viewer.MaterialManager.Load("Label3D");
 
             ScreenChanged();
-            UpdateTopMost();
 
             foreach (var window in Windows)
             {
@@ -164,30 +86,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        public void Save(BinaryWriter outf)
-        {
-            foreach (var window in Windows)
-                window.Save(outf);
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            foreach (var window in Windows)
-                window.Restore(inf);
-        }
-
         public void ScreenChanged()
         {
             var oldScreenSize = ScreenSize;
             ScreenSize = Viewer.DisplaySize;
-
-            // Buffer for screen texture, also same size as viewport and using the backbuffer format.
-            if (Viewer.Settings.WindowGlass)
-            {
-                if (Screen != null)
-                    Screen.Dispose();
-                Screen = new RenderTarget2D(Viewer.Game.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.Game.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
-            }
 
             // Reposition all the windows.
             foreach (var window in Windows)
@@ -221,28 +123,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (!VisibleWindows.Any())
                 return;
 
-            // Construct a view where (0, 0) is the top-left and (width, height) is
-            // bottom-right, so that popups can act more like normal window things.
-            XNAView = Matrix.CreateTranslation(-ScreenSize.X / 2, -ScreenSize.Y / 2, 0) *
-                Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
-                Matrix.CreateScale(1, -1, 1);
-            // Project into a flat view of the same size as the viewport.
-            XNAProjection = Matrix.CreateOrthographic(ScreenSize.X, ScreenSize.Y, 0, 100);
-
             foreach (var window in VisibleWindows)
             {
-                ref readonly Matrix xnaWorld = ref window.XNAWorld;
-
-                // FIXME: MonoGame cannot read backbuffer
-                //if (Screen != null)
-                //    graphicsDevice.ResolveBackBuffer(Screen);
-
-                PopupWindowMaterial.SetState(Screen);
-                //RenderItem item = new RenderItem(null, window, Matrix.Identity, ShapeFlags.None);
-                //                PopupWindowMaterial.Render(new List<RenderItem>() { item }, ref xnaWorld, ref XNAView, ref XNAProjection);
-                PopupWindowMaterial.Render(window, in xnaWorld, ref XNAView, ref XNAProjection);
-                PopupWindowMaterial.ResetState();
-
                 SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
                 window.Draw(SpriteBatch);
                 SpriteBatch.End();
@@ -267,24 +149,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        private Window mouseActiveWindow;
-
         public void BringWindowToTop(Window window)
         {
             WindowsZOrder = WindowsZOrder.Where(w => w != window).Concat(new[] { window }).ToArray();
-            UpdateTopMost();
-        }
-
-        private void UpdateTopMost()
-        {
-            // Make sure all top-most windows sit above all normal windows.
-            WindowsZOrder = WindowsZOrder.Where(w => !w.TopMost).Concat(WindowsZOrder.Where(w => w.TopMost)).ToArray();
         }
 
         public void Mark()
         {
             WindowManagerMaterial.Mark();
-            PopupWindowMaterial.Mark();
             Label3DMaterial.Mark();
             foreach (Window window in Windows)
                 window.Mark();

@@ -347,8 +347,6 @@ namespace Orts.Settings
 #pragma warning restore CA1819 // Properties should not return arrays
         [Default(false)]
         public bool Multiplayer { get; set; }
-        [Default(new[] { 75, 0 })]
-        public int[] WindowPosition_HUDScroll { get; set; }
 
         [Default(new string[]
         {

@@ -115,14 +115,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        public override bool Interactive
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public override void TabAction()
         {
             // All -> Platforms -> Sidings -> [if activity/timetable active] Auto -> All -> ...

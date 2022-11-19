@@ -47,14 +47,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
         }
 
-        public override bool Interactive
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public override void TabAction()
         {
             if (State == DisplayState.Trains) State = DisplayState.Cars;
