@@ -5565,6 +5565,10 @@ namespace Orts.Simulation.RollingStocks
                         break;
                     }
                 case CabViewControlType.Throttle:
+                    if (CruiseControl != null && CruiseControl.SkipThrottleDisplay)
+                        break;
+                    data = GetThrottleHandleValue(Train.TrainType == TrainType.AiPlayerHosting ? ThrottlePercent / 100f : LocalThrottlePercent / 100f);
+                    break;
                 case CabViewControlType.Throttle_Display:
                 case CabViewControlType.Cph_Display:
                     {
