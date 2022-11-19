@@ -23,7 +23,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +37,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.Common.Position;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -126,6 +127,16 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             WebServices.TrainDrivingDisplay.Initialize(viewer);
         }
 
+        public string GetPosition()
+        {
+            var playerLocation = Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation;
+
+            double latitude;
+            double longitude;
+            (latitude, longitude) = EarthCoordinates.ConvertWTC(playerLocation);
+
+            return FormattableString.Invariant($"{MathHelper.ToDegrees((float)latitude):F6} {MathHelper.ToDegrees((float)longitude):F6}");
+        }
 
         #region /API/APISAMPLE
         public struct Embedded
@@ -258,6 +269,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         {
             return viewer.Simulator.ClockTime;
         }
+        #endregion
+
+        #region /API/MAP
+        [Route(HttpVerbs.Get, "/MAP")]
+        public string LatLong() => GetPosition();
         #endregion
     }
 }
