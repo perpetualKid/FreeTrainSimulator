@@ -273,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         #region /API/MAP
         [Route(HttpVerbs.Get, "/MAP")]
-        public string LatLong() => GetPosition();
+        public string LatLon() => GetPosition();
         #endregion
     }
 }
