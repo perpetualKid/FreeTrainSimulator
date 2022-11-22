@@ -33,8 +33,9 @@ namespace Orts.Common.DebugInfo
 
         public virtual Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public virtual INameValueInformationProvider Next { get; set; }
+        public virtual DetailInfoBase Next { get; set; }
 
-        public virtual int MultiElementCount { get; protected internal set; }
+        public virtual int MultiColumnCount { get; protected internal set; }
+
     }
 }

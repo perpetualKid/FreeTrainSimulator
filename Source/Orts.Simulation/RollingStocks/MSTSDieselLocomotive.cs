@@ -134,7 +134,7 @@ namespace Orts.Simulation.RollingStocks
 
         private const float GearBoxControllerBoost = 1; // Slow boost to enable easy single gear up/down commands
 
-        public INameValueInformationProvider DistributedPowerInformation => distributedPowerStatus;
+        public DetailInfoBase DistributedPowerInformation => distributedPowerStatus;
 
         public MSTSDieselLocomotive(string wagFile)
             : base(wagFile)

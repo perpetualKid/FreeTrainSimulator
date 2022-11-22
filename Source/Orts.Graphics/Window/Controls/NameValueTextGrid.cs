@@ -13,11 +13,10 @@ namespace Orts.Graphics.Window.Controls
     {
         private readonly bool boundsSet;
         private const int defaultColumnSize = 100;
-        private int columnWidth = defaultColumnSize;
-        private Rectangle? clippingRectangleNameColumn;
-        private Rectangle? clippingRectangleValueColumn;
 
-        private Vector2 multiValueOffset;
+        private Rectangle?[] columnClippingRectangles = new Rectangle?[2];
+
+        private bool multiColumn;
 
         private List<(Vector2, Texture2D, Vector2, Texture2D[], Color)> drawItems = new List<(Vector2, Texture2D, Vector2, Texture2D[], Color)>();
         private List<(Vector2, Texture2D, Vector2, Texture2D[], Color)> prepareItems = new List<(Vector2, Texture2D, Vector2, Texture2D[], Color)>();
@@ -38,27 +37,30 @@ namespace Orts.Graphics.Window.Controls
 
         public int Row { get; set; }
 
-        public int NameColumnWidth
+        public int[] ColumnWidth
         {
-            get { return columnWidth; }
-            set
+            get
             {
-                columnWidth = value;
-                if (Bounds.Width > columnWidth)
-                {
-                    clippingRectangleNameColumn = new Rectangle(0, 0, (int)(columnWidth * Window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
-                    clippingRectangleValueColumn = new Rectangle(0, 0, (int)(Bounds.Width - columnWidth * Window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
-                }
+                if (columnClippingRectangles == null)
+                    return Array.Empty<int>();
+                int[] width = new int[columnClippingRectangles.Length];
+                for (int i = 0; i < columnClippingRectangles.Length; i++)
+                    width[i] = (int)(columnClippingRectangles[i].Value.Width / Window.Owner.DpiScaling);
+                return width;
             }
-        }
-
-        public int MultiValueColumnWidth
-        {
-            get { return (int)(multiValueOffset.X / Window.Owner.DpiScaling); }
             set
             {
-                multiValueOffset.X = (int)(value * Window.Owner.DpiScaling);
-                clippingRectangleValueColumn = new Rectangle(0, 0, (int)(value * Window.Owner.DpiScaling), (int)(font.Size * LineSpacing));
+                if (value != null)
+                {
+                    multiColumn = true;
+                    int heigth = (int)(font.Size * LineSpacing);
+                    columnClippingRectangles = new Rectangle?[value.Length];
+                    for (int i = 0; i < value.Length; i++)
+                    {
+                        if (value[i] > 0)
+                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)(value[i] * Window.Owner.DpiScaling), heigth);
+                    }
+                }
             }
         }
 
@@ -73,7 +75,6 @@ namespace Orts.Graphics.Window.Controls
         {
             this.font = font ?? Window.Owner.TextFontDefault;
             textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
-            NameColumnWidth = defaultColumnSize;
             boundsSet = Bounds.Height > 0 && Bounds.Width > 0;
         }
 
@@ -87,7 +88,7 @@ namespace Orts.Graphics.Window.Controls
                 if (null == InformationProvider?.DetailInfo)
                     return;
 
-                int maxColumn = InformationProvider.MultiElementCount;
+                int maxColumn = (InformationProvider as DetailInfoBase)?.MultiColumnCount ?? 0;
 
                 foreach (string identifier in InformationProvider.DetailInfo.Keys)
                 {
@@ -103,17 +104,16 @@ namespace Orts.Graphics.Window.Controls
                         emptySpace = null;
                     Texture2D texture = textureHolder.PrepareResource(emptySpace, currentFont, OutlineRenderOptions);
                     Texture2D[] textures;
-                    if (multiValueOffset != Vector2.Zero)
+                    if (multiColumn)
                     {
-                        if (InformationProvider.Next != null)
+                        if (InformationProvider is DetailInfoBase detailInfo && detailInfo.Next != null)
                         {
-                            INameValueInformationProvider provider = InformationProvider;
-                            textures = new Texture2D[InformationProvider.MultiElementCount];
+                            textures = new Texture2D[detailInfo.MultiColumnCount];
                             int i = 0;
-                            while (provider != null)
+                            while (detailInfo != null)
                             {
-                                textures[i++] = textureHolder.PrepareResource(provider.DetailInfo[identifier], currentFont, OutlineRenderOptions);
-                                provider = provider.Next;
+                                textures[i++] = textureHolder.PrepareResource(detailInfo.DetailInfo[identifier], currentFont, OutlineRenderOptions);
+                                detailInfo = detailInfo.Next;
                             }
                         }
                         else
@@ -135,7 +135,7 @@ namespace Orts.Graphics.Window.Controls
                     {
                         textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions) };
                     }
-                    prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(NameColumnWidth * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
+                    prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(columnClippingRectangles[0]?.Width ?? defaultColumnSize * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
                     lineOffset += font.Size * LineSpacing;
                 }
                 Column = Math.Clamp(Column, 0, maxColumn);
@@ -163,21 +163,31 @@ namespace Orts.Graphics.Window.Controls
             {
                 //header
                 (Vector2 keyPosition, Texture2D texture, Vector2 valuePosition, Texture2D[] textures, Color color) = drawItems[0];
-                spriteBatch.Draw(texture, keyPosition + locationVector, clippingRectangleNameColumn, color);
+                spriteBatch.Draw(texture, keyPosition + locationVector, columnClippingRectangles[0], color);
 
+                int columnOffset = 0;
                 for (int j = column; j < textures.Length; j++)
-                    spriteBatch.Draw(textures[j], valuePosition + locationVector + (j - column) * multiValueOffset, clippingRectangleValueColumn, color);
+                {
+                    Rectangle? columnClipping = columnClippingRectangles[j + 1 >= columnClippingRectangles.Length ? ^1 : j + 1];
+                    spriteBatch.Draw(textures[j], valuePosition + locationVector + new Vector2(columnOffset, 0), columnClipping, color);
+                    columnOffset += columnClipping?.Width ?? 0;
+                }
 
                 Vector2 rowOffset = new Vector2(0, drawItems[row].Item1.Y);
 
                 for (int i = row + 1; i < drawItems.Count; i++)
                 {
+                    columnOffset = 0;
                     (keyPosition, texture, valuePosition, textures, color) = drawItems[i];
                     if (!boundsSet || (valuePosition.Y - rowOffset.Y + texture.Height) < Bounds.Height)
                     {
-                        spriteBatch.Draw(texture, keyPosition + locationVector - rowOffset, clippingRectangleNameColumn, color);
+                        spriteBatch.Draw(texture, keyPosition + locationVector - rowOffset, columnClippingRectangles[0], color);
                         for (int j = column; j < textures.Length; j++)
-                            spriteBatch.Draw(textures[j], valuePosition + locationVector - rowOffset + (j - column) * multiValueOffset, clippingRectangleValueColumn, color);
+                        {
+                            Rectangle? columnClipping = columnClippingRectangles[j + 1 >= columnClippingRectangles.Length ? ^1 : j + 1];
+                            spriteBatch.Draw(textures[j], valuePosition + locationVector - rowOffset + new Vector2(columnOffset, 0), columnClipping, color);
+                            columnOffset += columnClipping?.Width ?? 0;
+                        }
                     }
                 }
                 base.Draw(spriteBatch, offset);

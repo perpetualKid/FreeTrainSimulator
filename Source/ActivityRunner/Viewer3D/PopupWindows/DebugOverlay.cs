@@ -27,6 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("Consist Information")] Consist,
             [Description("Distributed Power Information")] DistributedPower,
             [Description("Game Information")] GameDetails,
+            [Description("Dispatcher Information")] DispatcherInformation,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
@@ -45,6 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private NameValueTextGrid consistTableGrid;
         private NameValueTextGrid distributedPowerTableGrid;
+        private NameValueTextGrid dispatcherGrid;
         private NameValueTextGrid scrollableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
@@ -65,7 +67,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.System],
                 });
             };
@@ -75,26 +77,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric]
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, layoutContainer.RemainingWidth / 2, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr]
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric],
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
-                    MultiValueColumnWidth = 80,
+                    ColumnWidth = new int[] { 240, 80 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.GraphicDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
@@ -112,16 +113,15 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.TrainDetails],
                 });
                 int y = (int)(160 * Owner.DpiScaling);
                 layoutContainer.Add(consistTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 40,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
-                    MultiValueColumnWidth = 64,
+                    ColumnWidth = new int[] { 40, 64, 64, 80, 64 },
                 });
 
             };
@@ -131,9 +131,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(distributedPowerTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 140,
+                    ColumnWidth = new int[] { 140, 120 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.DistributedPowerDetails],
-                    MultiValueColumnWidth = 120,
                 });
             };
             tabLayout.TabLayouts[TabSettings.GameDetails] = (layoutContainer) =>
@@ -142,15 +141,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.GameDetails],
                 });
                 int y = (int)(160 * Owner.DpiScaling);
                 layoutContainer.Add(new NameValueTextGrid(this, 0, y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    NameColumnWidth = 240,
+                    ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.WeatherDetails],
+                });
+            };
+            tabLayout.TabLayouts[TabSettings.DispatcherInformation] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(dispatcherGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 120 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.DispatcherDetails],
                 });
             };
             layout.Add(tabLayout);
@@ -201,12 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base.Initialize();
             if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DebugOverlay], out TabSettings tab))
                 tabLayout.TabAction(tab);
-            scrollableGrid = tabLayout.CurrentTab switch
-            {
-                TabSettings.Consist => consistTableGrid,
-                TabSettings.DistributedPower => distributedPowerTableGrid,
-                _ => null,
-            };
+            SetScrollableGridTarget();
         }
 
         private void TabAction(UserCommandArgs args)
@@ -215,13 +219,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 tabLayout.TabAction();
                 settings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
-                scrollableGrid = tabLayout.CurrentTab switch
-                {
-                    TabSettings.Consist => consistTableGrid,
-                    TabSettings.DistributedPower => distributedPowerTableGrid,
-                    _ => null,
-                };
+                SetScrollableGridTarget();
             }
+        }
+
+        private void SetScrollableGridTarget()
+        {
+            scrollableGrid = tabLayout.CurrentTab switch
+            {
+                TabSettings.Consist => consistTableGrid,
+                TabSettings.DistributedPower => distributedPowerTableGrid,
+                TabSettings.DispatcherInformation => dispatcherGrid,
+                _ => null,
+            };
         }
 
         private void ScrollUp()

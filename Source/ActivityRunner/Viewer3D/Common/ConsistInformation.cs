@@ -27,13 +27,13 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             ArgumentNullException.ThrowIfNull(catalog);
             this.catalog = catalog;
 
-            MultiElementCount = Columns;
+            MultiColumnCount = Columns;
 
             consistDetails[0] = this;
-            for (int i = 1; i< Columns; i++)
+            for (int i = 1; i < Columns; i++)
                 consistDetails[i] = new DetailInfoBase();
             for (int i = 0; i < Columns - 1; i++)
-                consistDetails[i].Next = consistDetails[i +1];
+                consistDetails[i].Next = consistDetails[i + 1];
         }
 
         public override void Update(GameTime gameTime)
@@ -43,15 +43,15 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 if (train != (train = Simulator.Instance.PlayerLocomotive.Train) | numberCars != (numberCars = train.Cars.Count))
                 {
                     AddHeader(train);
-                    bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-                    for (int i = 0; i < train.Cars.Count; i++)
-                    {
-                        TrainCar car = train.Cars[i];
-                        string key = $"{i + 1}";
-                        consistDetails[3][key] = FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, Simulator.Instance.MetricUnits);
-                        consistDetails[4][key] = FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK);
-                        consistDetails[7][key] = car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, Simulator.Instance.MetricUnits) : string.Empty;
-                    }
+                }
+                bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
+                for (int i = 0; i < train.Cars.Count; i++)
+                {
+                    TrainCar car = train.Cars[i];
+                    string key = $"{i + 1}";
+                    consistDetails[3][key] = FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, Simulator.Instance.MetricUnits);
+                    consistDetails[4][key] = FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK);
+                    consistDetails[7][key] = car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, Simulator.Instance.MetricUnits) : string.Empty;
                 }
 
                 base.Update(gameTime);
@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         private void AddHeader(Train train)
         {
-            foreach(DetailInfoBase item in consistDetails)
+            foreach (DetailInfoBase item in consistDetails)
                 item.Clear();
             consistDetails[0]["#"] = catalog.GetString("Car");
             consistDetails[1]["#"] = catalog.GetString("Flipped");

@@ -18,23 +18,23 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             {
                 if (train != (train = Simulator.Instance.PlayerLocomotive.Train) | numberCars != (numberCars = train.Cars.Count))
                 {
-                    MultiElementCount = 0;
-                    INameValueInformationProvider current = (Simulator.Instance.PlayerLocomotive as MSTSDieselLocomotive)?.DistributedPowerInformation;
-                    Source = current as DetailInfoBase;
-                    (current as DetailInfoBase).Next = null;
+                    MultiColumnCount = 0;
+                    DetailInfoBase current = (Simulator.Instance.PlayerLocomotive as MSTSDieselLocomotive)?.DistributedPowerInformation;
+                    Source = current;
+                    current.Next = null;
 
                     int count = 1;
                     foreach (TrainCar car in train.Cars)
                     {
                         if (car is MSTSDieselLocomotive dieselLocomotive && dieselLocomotive.DistributedPowerInformation != current)
                         {
-                            (current as DetailInfoBase).Next = dieselLocomotive.DistributedPowerInformation;
+                            current.Next = dieselLocomotive.DistributedPowerInformation;
                             count++;
                             current = dieselLocomotive.DistributedPowerInformation;
-                            (current as DetailInfoBase).Next = null;
+                            current.Next = null;
                         }
                     }
-                    MultiElementCount = count;
+                    MultiColumnCount = count;
                 }
                 base.Update(gameTime);
             }

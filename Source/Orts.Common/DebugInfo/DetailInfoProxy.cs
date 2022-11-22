@@ -15,7 +15,7 @@ namespace Orts.Common.DebugInfo
             }
         }
 
-        public override INameValueInformationProvider Next
+        public override DetailInfoBase Next
         {
             get => Source.Next;
             set => Source.Next = value;
@@ -26,10 +26,10 @@ namespace Orts.Common.DebugInfo
             base.Update(gameTime);
         }
 
-        public override int MultiElementCount
+        public override int MultiColumnCount
         {
-            get => Source?.MultiElementCount ?? 0;
-            protected internal set { if (Source != null) Source.MultiElementCount = value; }
+            get => Source?.MultiColumnCount ?? 0;
+            protected internal set { if (Source != null) Source.MultiColumnCount = value; }
         }
     }
 

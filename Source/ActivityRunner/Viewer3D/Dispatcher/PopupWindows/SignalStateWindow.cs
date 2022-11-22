@@ -38,7 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             NameValueTextGrid signalStates = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = signalStateInformation,
-                NameColumnWidth = 100,
+                ColumnWidth = new int[] { (int)(layout.RemainingWidth / Owner.DpiScaling) },
             };
             layout.Add(signalStates);
             return layout;
@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
-{
+        {
             if (shouldUpdate && null != signal)
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)
