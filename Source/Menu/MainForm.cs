@@ -696,7 +696,7 @@ namespace Orts.Menu
                 SelectedFolder?.Path ?? string.Empty,
                 SelectedRoute?.Path ?? string.Empty,
                 // Activity mode items / Explore mode items
-                radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
+                radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? SelectedActivity.Name ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
                 radioButtonModeActivity.Checked ?
                     SelectedActivity is ExploreActivity && (comboBoxLocomotive.SelectedItem as Locomotive)?.FilePath != null ? (comboBoxLocomotive.SelectedItem as Locomotive).FilePath : string.Empty :
                     SelectedTimetable?.Description ?? string.Empty,
