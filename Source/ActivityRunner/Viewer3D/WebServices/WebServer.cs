@@ -127,14 +127,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             WebServices.TrainDrivingDisplay.Initialize(viewer);
         }
 
-        public string GetPosition()
+        private static string GetPosition()
         {
-            var playerLocation = Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation;
-
             double latitude;
             double longitude;
-            (latitude, longitude) = EarthCoordinates.ConvertWTC(playerLocation);
-
+            (latitude, longitude) = EarthCoordinates.ConvertWTC(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             return FormattableString.Invariant($"{MathHelper.ToDegrees((float)latitude):F6} {MathHelper.ToDegrees((float)longitude):F6}");
         }
 
