@@ -50,10 +50,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -147,6 +150,9 @@ namespace Orts.Simulation.Physics
         public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
 
         public TrainBrakeSystem BrakeSystem { get; }
+
+        public INameValueInformationProvider DispatcherInfo { get; private set; }
+
 
         internal float PreviousCarCount { get; set; }                  // Keeps track of the last number of cars in the train consist (for vacuum brakes)
         internal bool TrainBPIntact { get; set; } = true;           // Flag to indicate that the train BP is not intact, ie due to disconnection or an open valve cock.
@@ -463,6 +469,7 @@ namespace Orts.Simulation.Physics
             allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.Route.SpeedLimit;
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
+            DispatcherInfo = new TrainDispatcherInfo(this);
         }
 
         // Constructor
@@ -1740,7 +1747,7 @@ namespace Orts.Simulation.Physics
             {
                 LogTrainSpeed(simulator.GameTime);
             }
-
+            (DispatcherInfo as TrainDispatcherInfo).Update(null);
         } // end Update
 
         //================================================================================================//
@@ -9978,6 +9985,184 @@ namespace Orts.Simulation.Physics
             if (location < 0)
                 return trainId;
             return trainId[..(location - 1)];
+        }
+
+        private class TrainDispatcherInfo : DetailInfoBase
+        {
+            private readonly Train train;
+            private readonly Catalog catalog;
+            private int numberCars;
+            private readonly bool metricData;
+
+            public TrainDispatcherInfo(Train train)
+            {
+                this.train = train;
+                this.catalog = Simulator.Catalog as Catalog;
+                metricData = RuntimeData.Instance.UseMetricUnits;
+            }
+
+            private void Initialize()
+            {
+                this["TrainType"] = train.IsFreight ? catalog.GetString("Freight") : catalog.GetString("Passenger");
+            }
+
+            #region summary
+            /// <remarks>
+            ///  "Train", "Travelled", "Speed", "Max", "AI mode", "AI data", "Mode", "Auth", "Distance", "Signal", "Distance", "Consist", "Path"
+            ///  0   Train: Number with trailing type (F freight, P Passenger)
+            ///  1   Travelled: travelled distance so far
+            ///  2   Speed: Current speed
+            ///  3   Max: Maximum allowed speed
+            ///  4   AIMode :
+            ///      INI     : AI is in INIT mode
+            ///      STC     : AI is static
+            ///      STP     : AI is Stopped
+            ///      BRK     : AI Brakes
+            ///      ACC     : AI do acceleration
+            ///      FOL     : AI follows
+            ///      RUN     : AI is running
+            ///      EOP     : AI approch and of path
+            ///      STA     : AI is on Station Stop
+            ///      WTP     : AI is on Waiting Point
+            ///      STE     : AI is in Stopped Existing state
+            ///  5   AI Data :
+            ///      000&000     : Throttel & Brake in %
+            ///                  : for mode INI, BRK, ACC, FOL, RUN or EOP
+            ///      HH:mm:ss    : for mode STA or WTP with actualDepart or DepartTime
+            ///                  : for mode STC with Start Time Value
+            ///      ..:..:..    : For other case
+            ///  6   Mode:
+            ///          SIGN or Sdelay: Train in AUTO_SIGNAL, with delay if train delayed
+            ///          NODE or Ndelay: Train in AUTO_NODE, with delay if train delayed
+            ///          MAN: Train in AUTO_MANUAL
+            ///          OOC: Train in OUT_OF_CONTROL
+            ///          EXP: Train in EXPLORER
+            ///  7   Auth + Distance:    For Player Train
+            ///          case OOC:   Distance set to blank
+            ///              SPAD:   Signal Passed At Danger
+            ///              RSPD:   Rear SPAD
+            ///              OOAU:   Out Of Authority
+            ///              OOPA:   Out Of Path
+            ///              SLPP:   Slipped out Path
+            ///              SLPT:   Slipped to End of Track
+            ///              OOTR:   To End Of Track
+            ///              MASW:   Misaligned Switch
+            ///              ....:   Undefined
+            ///          case Waiting Point: WAIT, Distance set to Train Number to Wait ????
+            ///          case NODE:                      Distance: Blank or
+            ///              EOT:    End Of Track
+            ///              EOP:    End Of Path
+            ///              RSW:    Reserved Switch
+            ///              LP:     Loop
+            ///              TAH:    Train Ahead
+            ///              MXD:    Max Distance        Distance: To End Of Authority
+            ///              NOP:    No Path Reserved    Distance: To End Of Authority
+            ///              ...:    Undefined
+            ///          Other:
+            ///              Blank + Blank
+            ///  7   Next Action :   For AI Train
+            ///              SPDL    :   Speed limit
+            ///              SIGL    :   Speed signal
+            ///              STOP    :   Signal STOP
+            ///              REST    :   Signal RESTRICTED
+            ///              EOA     :   End Of Authority
+            ///              STAT    :   Station Stop
+            ///              TRAH    :   Train Ahead
+            ///              EOR     :   End Of Route
+            ///              NONE    :   None
+            ///  9   Signal + Distance
+            ///          Manual or Explorer: Distance set to blank
+            ///              First:  Reverse direction
+            ///                  G:  Signal at STOP but Permission Granted
+            ///                  S:  Signal At STOP
+            ///                  P:  Signal at STOP & PROCEED
+            ///                  R:  Signal at RESTRICTING
+            ///                  A:  Signal at APPROACH 1, 2 or 3
+            ///                  C:  Signal at CLEAR 1 or 2
+            ///                  -:  Not Defined
+            ///              <>
+            ///              Second: Forward direction
+            ///                  G:  Signal at STOP but Permission Granted
+            ///                  S:  Signal At STOP
+            ///                  P:  Signal at STOP & PROCEED
+            ///                  R:  Signal at RESTRICTING
+            ///                  A:  Signal at APPROACH 1, 2 or 3
+            ///                  C:  Signal at CLEAR 1 or 2
+            ///                  -:  Not Defined
+            ///          Other:  Distance is Distance to next Signal
+            ///              STOP:   Signal at STOP
+            ///              SPRC:   Signal at STOP & PROCEED
+            ///              REST:   Signal at RESTRICTING
+            ///              APP1:   Signal at APPROACH 1
+            ///              APP2:   Signal at APPROACH 2
+            ///              APP3:   Signal at APPROACH 3
+            ///              CLR1:   Signal at CLEAR 1
+            ///              CLR2:   Signal at CLEAR 2
+            ///  11  Consist:
+            ///          PLAYER:
+            ///          REMOTE:
+            ///  12  Path:
+            ///          not Manual nor Explorer:
+            ///              number or ?     :   Id of subpath in valid TCRoute or ? if no valid TCRoute
+            ///              =[n]            :   Number of remaining station stops
+            ///              {               :   Starting String
+            ///              CircuitString   :   List of Circuit (see next)
+            ///              }               :   Ending String
+            ///              x or blank      :   x if already on TCRoute
+            ///          Manual or Explorer:
+            ///              CircuitString   :   Backward
+            ///              ={  Dir }=      :   Dir is '<' or '>'
+            ///              CircuitString   :   Forward
+            ///          For AI  :
+            ///              Train Name
+            ///  
+            ///      CircuitString analyse:
+            ///          Build string for section information
+            ///      returnString +
+            ///      CircuitType:
+            ///          >   : Junction
+            ///          +   : CrossOver
+            ///          [   : End of Track direction 1
+            ///          ]   : End of Track direction 0
+            ///          -   : Default (Track Section)
+            ///      Deadlock traps:
+            ///          Yes : Ended with *
+            ///              Await number    : ^
+            ///              Await more      : ~
+            ///      Train Occupancy:    + '&' If more than one
+            ///          N° of train     : If one train
+            ///      If train reservation :
+            ///          (
+            ///          Train Number
+            ///          )
+            ///      If signal reserved :
+            ///          (S
+            ///          Signal Number
+            ///          )
+            ///      If one or more train claim
+            ///          #
+            /// <\remarks>
+#endregion
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    if (numberCars != (numberCars = train.Cars.Count))
+                    {
+                        Initialize();
+                    }
+                    this["Delay"] = train.Delay?.TotalMinutes > 1 ? $"{FormatStrings.FormatDelayTime(train.Delay.Value)}" : string.Empty;
+                    //  "Travelled"
+                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.Route.MilepostUnitsMetric);
+                    //  "Speed"
+                    float trainSpeed = train.TrainType == TrainType.Remote && train.SpeedMpS != 0 ? train.targetSpeedMpS : train.SpeedMpS;
+                    this["Speed"] = FormatStrings.FormatSpeedDisplay(trainSpeed, metricData);
+                    //  "Allowed Speed"
+                    this["AllowedSpeed"] = FormatStrings.FormatSpeedLimit(train.AllowedMaxSpeedMpS, metricData);
+                    base.Update(gameTime);
+                }
+            }
         }
 
         /// <summary>

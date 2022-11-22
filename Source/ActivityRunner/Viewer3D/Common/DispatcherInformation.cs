@@ -45,7 +45,6 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             MultiColumnCount = EnumExtension.GetLength<DispatcherDetailColumn>();
             this.catalog = catalog;
             trainKey = catalog.GetString("Train");
-            MultiColumnCount = 13;
             foreach (DispatcherDetailColumn column in EnumExtension.GetValues<DispatcherDetailColumn>())
             {
                 dispatcherDetails[column].Next = dispatcherDetails[column.Next()];
@@ -55,10 +54,20 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public override void Update(GameTime gameTime)
         {
-            base.Update(gameTime);
-            if (trains != (trains = Simulator.Instance.Trains) | numberTrains != (numberTrains = trains.Count))
+            if (UpdateNeeded)
             {
-                AddHeader();
+                if (trains != (trains = Simulator.Instance.Trains) | numberTrains != (numberTrains = trains.Count))
+                {
+                    AddHeader();
+                }
+                foreach (Train train in trains)
+                {
+                    string trainid = $"{train.Number}";
+                    dispatcherDetails[DispatcherDetailColumn.Travelled][trainid] = train.DispatcherInfo.DetailInfo["Travelled"];
+                    dispatcherDetails[DispatcherDetailColumn.Speed][trainid] = train.DispatcherInfo.DetailInfo["Speed"];
+                    dispatcherDetails[DispatcherDetailColumn.Max][trainid] = train.DispatcherInfo.DetailInfo["AllowedSpeed"];
+                }
+                base.Update(gameTime);
             }
         }
 
