@@ -41,10 +41,11 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public DispatcherInformation(Catalog catalog)
         {
+            dispatcherDetails[0] = this;
             MultiColumnCount = EnumExtension.GetLength<DispatcherDetailColumn>();
             this.catalog = catalog;
             trainKey = catalog.GetString("Train");
-
+            MultiColumnCount = 13;
             foreach (DispatcherDetailColumn column in EnumExtension.GetValues<DispatcherDetailColumn>())
             {
                 dispatcherDetails[column].Next = dispatcherDetails[column.Next()];
@@ -55,7 +56,6 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-            dispatcherDetails[0] = this;
             if (trains != (trains = Simulator.Instance.Trains) | numberTrains != (numberTrains = trains.Count))
             {
                 AddHeader();
