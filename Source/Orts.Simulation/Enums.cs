@@ -51,8 +51,8 @@ namespace Orts.Simulation
         [Description("Misalg Sw")] MisalignedSwitch,
         [Description("Off Auth")] OutOfAuthority,
         [Description("Off Path")] OutOfPath,
-        [Description("Splipped")] SlippedIntoPath,
-        [Description("Slipped")] SlippedToEndOfTrack,
+        [Description("Slip Path")] SlippedIntoPath,
+        [Description("Slip Track")] SlippedToEndOfTrack,
         [Description("Off Track")] OutOfTrack,
         [Description("Slip Turn")] SlippedIntoTurnTable,
         [Description("Undefined")] UnDefined
