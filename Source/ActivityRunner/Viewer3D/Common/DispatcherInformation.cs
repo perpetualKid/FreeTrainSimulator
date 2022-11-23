@@ -17,19 +17,18 @@ namespace Orts.ActivityRunner.Viewer3D.Common
     {
         private enum DispatcherDetailColumn
         {
-            //            [Description("Train")] Train,
             [Description("Name")] Name,
             [Description("Travelled")] Travelled,
             [Description("Speed")] Speed,
-            [Description("Max")] Max,
+            [Description("Max")] AllowedSpeed,
+            [Description("Delay")] Delay,
             [Description("AI mode")] AiMode,
             [Description("AI data")] AiData,
-            [Description("Mode")] Mode,
+            [Description("Mode")] ControlMode,
             [Description("Authorization")] Authorization,
             [Description("Distance")] AuthDistance,
             [Description("Signal")] Signal,
             [Description("Distance")] SignalDistance,
-            [Description("Consist")] Consist,
             [Description("Path")] Path,
         }
 
@@ -63,9 +62,21 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 foreach (Train train in trains)
                 {
                     string trainid = $"{train.Number}";
+                    if (train.DispatcherInfo.DetailInfo.Count == 0)
+                        continue;
+                    dispatcherDetails[DispatcherDetailColumn.Name][trainid] = train.DispatcherInfo.DetailInfo["Name"];
                     dispatcherDetails[DispatcherDetailColumn.Travelled][trainid] = train.DispatcherInfo.DetailInfo["Travelled"];
                     dispatcherDetails[DispatcherDetailColumn.Speed][trainid] = train.DispatcherInfo.DetailInfo["Speed"];
-                    dispatcherDetails[DispatcherDetailColumn.Max][trainid] = train.DispatcherInfo.DetailInfo["AllowedSpeed"];
+                    dispatcherDetails[DispatcherDetailColumn.AllowedSpeed][trainid] = train.DispatcherInfo.DetailInfo["AllowedSpeed"];
+                    dispatcherDetails[DispatcherDetailColumn.Delay][trainid] = train.DispatcherInfo.DetailInfo["Delay"];
+                    dispatcherDetails[DispatcherDetailColumn.ControlMode][trainid] = train.DispatcherInfo.DetailInfo["ControlMode"];
+                    dispatcherDetails[DispatcherDetailColumn.Authorization][trainid] = train.DispatcherInfo.DetailInfo["Authorization"];
+                    dispatcherDetails[DispatcherDetailColumn.AuthDistance][trainid] = train.DispatcherInfo.DetailInfo["AuthDistance"];
+                    dispatcherDetails[DispatcherDetailColumn.Signal][trainid] = train.DispatcherInfo.DetailInfo["Signal"];
+                    dispatcherDetails[DispatcherDetailColumn.SignalDistance][trainid] = train.DispatcherInfo.DetailInfo["SignalDistance"];
+                    dispatcherDetails[DispatcherDetailColumn.Path][trainid] = train.DispatcherInfo.DetailInfo["Path"];
+                    dispatcherDetails[DispatcherDetailColumn.AiMode][trainid] = train.DispatcherInfo.DetailInfo["AiMode"];
+                    dispatcherDetails[DispatcherDetailColumn.AiData][trainid] = train.DispatcherInfo.DetailInfo["AiData"];
                 }
                 base.Update(gameTime);
             }
@@ -78,11 +89,6 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             foreach (DispatcherDetailColumn column in EnumExtension.GetValues<DispatcherDetailColumn>())
             {
                 dispatcherDetails[column][trainKey] = column.GetLocalizedDescription();
-            }
-            foreach (Train train in trains)
-            {
-                string trainid = $"{train.Number}";
-                dispatcherDetails[DispatcherDetailColumn.Name][trainid] = train.Name;
             }
         }
     }

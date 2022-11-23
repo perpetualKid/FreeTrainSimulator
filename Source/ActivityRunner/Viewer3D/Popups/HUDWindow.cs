@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -34,7 +33,6 @@ using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Simulation;
-using Orts.Simulation.AIs;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -99,7 +97,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             textPages.Add(TextPagePowerSupplyInfo);
             textPages.Add(TextPageBrakeInfo);
             textPages.Add(TextPageForceInfo);
-            textPages.Add(TextPageDispatcherInfo);
             TextPages = textPages.ToArray();
 
             TextFont = owner.TextFontMonoSpacedOutlined;
@@ -211,6 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public TableData PrepareTable(int PageNo)
         {
             var table = new TableData() { Cells = new string[1, 1] };
+            PageNo = MathHelper.Clamp(PageNo, 0, TextPages.Length);
             WebServerPageNo = PageNo;
             TextPages[PageNo](table);
             return (table);
@@ -1435,202 +1433,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        private void TextPageDispatcherInfo(TableData table)
-        {
-            // count active trains
-            int totalactive = 0;
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.AiIncorporated)
-                {
-                    totalactive++;
-                }
-            }
-
-            TextPageHeading(table, $"{Viewer.Catalog.GetString("DISPATCHER INFORMATION : active trains : ")}{totalactive}");
-
-            ResetHudScroll();//Reset HudScroll
-
-            if (hudWindowColumnsActualPage > 0)
-            {
-                //HudScroll
-                TableSetCells(table, 0,
-                    Viewer.Catalog.GetString("Train"),
-                    Viewer.Catalog.GetString("Consist"),
-                    Viewer.Catalog.GetString("Path"));
-
-                //Add new header data here, if adding additional column.
-
-            }
-            else
-            {
-                //Normal view
-                TableSetCells(table, 0,
-                    Viewer.Catalog.GetString("Train"),
-                    Viewer.Catalog.GetString("Travelled"),
-                    Viewer.Catalog.GetString("Speed"),
-                    Viewer.Catalog.GetString("Max"),
-                    Viewer.Catalog.GetString("AI mode"),
-                    Viewer.Catalog.GetString("AI data"),
-                    Viewer.Catalog.GetString("Mode"),
-                    Viewer.Catalog.GetString("Auth"),
-                    Viewer.Catalog.GetString("Distance"),
-                    Viewer.Catalog.GetString("Signal"),
-                    Viewer.Catalog.GetString("Distance"),
-                    Viewer.Catalog.GetString("Consist"),
-                    Viewer.Catalog.GetString("Path"));
-
-                //Add new header data here, if adding additional column.
-
-                //Find 'Path' header column
-                //Requiered to avoid conflict with human dispatcher code.
-                PathHeaderColumn = ColumnsCount(table, true);
-            }
-
-            //HudScroll. Columns
-            var columnsCount = ColumnsCount(table, false);
-
-            List<string[]> statusDispatcher = new List<string[]>();
-            statusDispatcher.Clear();
-            var TextToYellowColor = "#";
-
-            TableAddLine(table);
-
-            // first is player train
-            foreach (var thisTrain in Viewer.Simulator.Trains)
-            {
-                if (thisTrain.TrainType == TrainType.Player || (thisTrain.TrainType == TrainType.Remote && MultiPlayerManager.IsServer())
-                    || thisTrain.IsActualPlayerTrain)
-                {
-                    var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                    if (thisTrain.TrainType == TrainType.AiPlayerHosting)
-                        status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
-                    else if (thisTrain == Simulator.Instance.OriginalPlayerTrain && Simulator.Instance.ActivityFile != null)
-                        thisTrain.AddRestartTime(status);
-                    else if (thisTrain.IsActualPlayerTrain && Simulator.Instance.ActivityFile != null && thisTrain.ControlMode != TrainControlMode.Explorer && !thisTrain.IsPathless)
-                        thisTrain.AddRestartTime(status);
-
-                    //HudScroll
-                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                        TextToYellowColor = status[0];
-
-                    statusDispatcher.Add(status);
-                }
-            }
-
-            // next is active AI trains which are delayed
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
-                    && thisTrain.TrainType != TrainType.AiIncorporated)
-                {
-                    if (thisTrain.Delay.HasValue && thisTrain.Delay.Value.TotalMinutes >= 1)
-                    {
-                        var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                        status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
-                        //HudScroll
-                        if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                            TextToYellowColor = status[0];
-
-                        statusDispatcher.Add(status);
-                    }
-                }
-            }
-
-            // next is active AI trains which are not delayed
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
-                    && thisTrain.TrainType != TrainType.AiIncorporated)
-                {
-                    if (!thisTrain.Delay.HasValue || thisTrain.Delay.Value.TotalMinutes < 1)
-                    {
-                        var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                        status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
-                        //HudScroll
-                        if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                            TextToYellowColor = status[0];
-
-                        statusDispatcher.Add(status);
-                    }
-                }
-            }
-
-            // finally is static AI trains
-            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
-            {
-                if (thisTrain.MovementState == AiMovementState.Static && thisTrain.TrainType != TrainType.Player)
-                {
-                    var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                    status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
-
-                    //HudScroll
-                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                        TextToYellowColor = status[0];
-
-                    statusDispatcher.Add(status);
-                }
-            }
-
-            //HudScroll. Pages count from nLinesShow number.
-            TextLineNumber(statusDispatcher.Count, table.CurrentRow, columnsCount);
-
-            //Number of lines to show. HudScroll
-            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (Viewer.Simulator.Trains.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : Viewer.Simulator.Trains.Count); i++)
-            {
-                if (statusDispatcher.Count > i)
-                {
-                    //Calc col number and take in count 2 left columns car and consist name
-                    TextColNumber(statusDispatcher[i][PathHeaderColumn], 2, false);
-
-                    var arrow = "";
-                    //Add yellow color to string.
-                    var EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
-
-                    //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
-                    if (hudWindowColumnsActualPage > 0)
-                    {
-                        var statusIndex = stringStatus.Count >= hudWindowColumnsActualPage ? hudWindowColumnsActualPage - 1 : stringStatus.Count - 1;
-                        if (statusDispatcher[i][PathHeaderColumn].Contains(stringStatus[statusIndex]) || stringStatus[statusIndex].EndsWith("???"))
-                            EndText = "";
-
-                        if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
-                        {
-                            arrow = "◄";// \u25C0
-                            TableSetCell(table, 2, hudWindowColumnsActualPage > 1 ? stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
-                        }
-                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
-                        {
-                            arrow = "►";// \u25B6
-                            TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
-                        }
-                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage > 1 && stringStatus.Count >= hudWindowColumnsActualPage)
-                        {
-                            arrow = "↔";// \u2194
-                            TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
-                        }
-                        else if (stringStatus.Count == 1 && hudWindowColumnsActualPage == 1 && stringStatus.Count >= hudWindowColumnsActualPage)
-                        {
-                            arrow = "◄";// \u25C0
-                            TableSetCell(table, 2, statusDispatcher[i][PathHeaderColumn]);
-                        }
-                        else
-                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][PathHeaderColumn]);
-
-                        //Add yellow color to string.
-                        EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
-                        TableSetCell(table, table.CurrentRow, 0, arrow + statusDispatcher[i][0] + EndText);
-                        TableSetCell(table, table.CurrentRow, 1, statusDispatcher[i][11] + EndText);
-                    }
-                    else
-                        for (int iCell = 0; iCell < statusDispatcher[0].Length; iCell++)
-                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn && !statusDispatcher[i][PathHeaderColumn].EndsWith("???") ? "" : EndText));//Avoid yellow color for Path info
-
-                    TableAddLine(table);
-                }
-            }
-        }
-
         /// <summary>
         /// Columns count
         /// Used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
@@ -1700,10 +1502,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var lastText = StringStatus.Substring(StringStatus.LastIndexOf("\t") + 1);
             StringStatusLength = StringStatus.EndsWith("\t") ? StringStatusLength : StringStatusLength + lastText.Length;
             var CurrentPathColumnsPagesCount = (StringStatusLength < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(StringStatusLength / charFitPerLine) + 0.5);
-
-            //TO DO: Apply new code to DispacherInfo
-            if (CurrentPathColumnsPagesCount == 0 && TextPages[TextPage] == TextPageDispatcherInfo)
-                CurrentPathColumnsPagesCount = 1;
 
             //Update columns pages count.
             if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)

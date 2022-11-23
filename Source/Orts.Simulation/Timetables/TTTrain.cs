@@ -38,6 +38,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
@@ -8835,146 +8836,6 @@ namespace Orts.Simulation.Timetables
 
         //================================================================================================//
         /// <summary>
-        /// Add movement status to train status string
-        /// Used to build movement state information in dispatcher HUD info
-        /// Override from AITrain class
-        /// <\summary>
-
-        public override string[] AddMovementState(string[] stateString, bool metric)
-        {
-            string[] retString = new string[stateString.Length];
-            stateString.CopyTo(retString, 0);
-
-            string movString = "";
-            switch (MovementState)
-            {
-                case AiMovementState.Init:
-                    movString = "INI ";
-                    break;
-                case AiMovementState.Static:
-                    movString = "STC ";
-                    break;
-                case AiMovementState.Stopped:
-                    movString = "STP ";
-                    break;
-                case AiMovementState.StationStop:
-                    break;   // set below
-                case AiMovementState.Braking:
-                    movString = "BRK ";
-                    break;
-                case AiMovementState.Accelerating:
-                    movString = "ACC ";
-                    break;
-                case AiMovementState.Following:
-                    movString = "FOL ";
-                    break;
-                case AiMovementState.Running:
-                    movString = "RUN ";
-                    break;
-                case AiMovementState.ApproachingEndOfPath:
-                    movString = "EOP ";
-                    break;
-            }
-
-            string abString = $"{AITrainThrottlePercent:000}&{AITrainBrakePercent:000}";
-
-            // if station stop : show departure time
-            if (MovementState == AiMovementState.StationStop)
-            {
-                DateTime baseDT = new DateTime();
-                if (StationStops[0].DepartTime > 0)
-                {
-                    DateTime depTime = baseDT.AddSeconds(StationStops[0].DepartTime);
-                    abString = $"{depTime:HH:mm:ss}";
-                }
-                else if (StationStops[0].ActualDepart > 0)
-                {
-                    DateTime depTime = baseDT.AddSeconds(StationStops[0].ActualDepart);
-                    abString = $"{depTime:HH:mm:ss}";
-                }
-                else
-                {
-                    abString = "..:..:..";
-                }
-
-                if (StationStops[0].StopType == StationStopType.Station)
-                {
-                    movString = "STA";
-                }
-                else if (StationStops[0].StopType == StationStopType.WaitingPoint)
-                {
-                    movString = "WTP";
-                }
-            }
-            else if (MovementState == AiMovementState.Static)
-            {
-                if (TriggeredActivationRequired)
-                {
-                    abString = "TrigAct ";
-                }
-                else if (ActivateTime.HasValue)
-                {
-                    long startNSec = (long)(ActivateTime.Value * Math.Pow(10, 7));
-                    DateTime startDT = new DateTime(startNSec);
-                    abString = $"{startDT:HH:mm:ss}";
-                }
-                else
-                {
-                    abString = "--------";
-                }
-            }
-
-            string nameString = Name.Substring(0, Math.Min(Name.Length, 6));
-
-            string actString = "";
-
-            if (MovementState != AiMovementState.Static && nextActionInfo != null)
-            {
-                switch (nextActionInfo.NextAction)
-                {
-                    case AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT:
-                        actString = "SPDL";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL:
-                        actString = "SIGL";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP:
-                        actString = "STOP";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED:
-                        actString = "REST";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY:
-                        actString = "EOA ";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.STATION_STOP:
-                        actString = "STAT";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD:
-                        actString = "TRAH";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE:
-                        actString = "EOR ";
-                        break;
-                    case AIActionItem.AI_ACTION_TYPE.NONE:
-                        actString = "NONE";
-                        break;
-                }
-
-                retString[7] = actString;
-                retString[8] = FormatStrings.FormatDistance(
-                        nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled, metric);
-            }
-
-            retString[4] = movString;
-            retString[5] = abString;
-            retString[11] = nameString;
-
-            return (retString);
-        }
-
-        //================================================================================================//
-        /// <summary>
         /// Add reversal info to TrackMonitorInfo
         /// Override from Train class
         /// </summary>
@@ -11669,6 +11530,34 @@ namespace Orts.Simulation.Timetables
             StringBuilder sob = new StringBuilder();
             sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
+        }
+
+        private protected override INameValueInformationProvider GetDispatcherInfoProvider() => new TimeTableTrainDispatcherInfo(this);
+
+        private protected class TimeTableTrainDispatcherInfo : AiTrainDispatcherInfo
+        {
+            private readonly TTTrain train;
+
+            public TimeTableTrainDispatcherInfo(TTTrain train) : base(train)
+            {
+                this.train = train;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    base.Update(gameTime);
+
+                    switch (train.MovementState)
+                    {
+                        case AiMovementState.Static:
+                            this["AiData"] = train.TriggeredActivationRequired ? catalog.GetString("Triggered Activation"):
+                                train.ActivateTime.HasValue ? $"{TimeSpan.FromSeconds(train.ActivateTime.Value):c}" : "--------";
+                            break;
+                    }
+                }
+            }
         }
     }
 

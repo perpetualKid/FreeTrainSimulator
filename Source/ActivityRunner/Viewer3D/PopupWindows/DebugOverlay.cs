@@ -158,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(dispatcherGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 40, 240, 80 },
+                    ColumnWidth = new int[] { 40, 240, 64, 64, 64, 64, 80, 80, 80, 120, 64, 120, 64, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.DispatcherDetails],
                 });
             };
