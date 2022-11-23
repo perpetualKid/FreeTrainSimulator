@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 Train playerTrain = Simulator.Instance.PlayerLocomotive.Train;
                 currentTime.Text = FormatStrings.FormatTime(Simulator.Instance.ClockTime);
-                currentDelay.Text = playerTrain?.Delay != null
+                currentDelay.Text = playerTrain?.Delay != null && playerTrain.Delay.Value.TotalSeconds > 10 
                     ? Catalog.GetString($"Current Delay: {FormatStrings.FormatDelayTime(playerTrain.Delay.Value)} " + Catalog.GetPluralString("minute", "minutes", (long)playerTrain.Delay.Value.TotalMinutes))
                     : string.Empty;
 
