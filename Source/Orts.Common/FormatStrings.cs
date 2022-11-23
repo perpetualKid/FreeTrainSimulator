@@ -383,10 +383,11 @@ namespace Orts.Common
 
         /// <summary>
         /// Converts a timespan in MM:SS format also if more than one hour
+        /// Seconds are rounded to the nearest 10sec range
         /// </summary>
         public static string FormatDelayTime(TimeSpan delay)
         {
-            return $"{(int)delay.TotalMinutes}:{delay.Seconds:00}";
+            return $"{(int)delay.TotalMinutes}:{(delay.Seconds / 10) * 10:00}";
         }
 
         public static string Max(this string value, int length)
