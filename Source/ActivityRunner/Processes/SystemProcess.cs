@@ -65,12 +65,12 @@ namespace Orts.ActivityRunner.Processes
             {
                 if (UpdateNeeded)
                 {
-                    this["CPU"] = $"{MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue / processorCount:0} % total / {MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue:0} % single core";
-                    this["Render process"] = $"{Profiler.ProfilingData[ProcessType.Render].CPU.SmoothedValue:F0} %";
-                    this["Update process"] = $"{Profiler.ProfilingData[ProcessType.Updater].CPU.SmoothedValue:F0} %";
-                    this["Loader process"] = $"{Profiler.ProfilingData[ProcessType.Loader].CPU.SmoothedValue:F0} %";
-                    this["Sound process"] = $"{Profiler.ProfilingData[ProcessType.Sound].CPU.SmoothedValue:F0} %";
-                    this["Background process"] = $"{Profiler.ProfilingData[ProcessType.System].CPU.SmoothedValue:F0} %";
+                    this["CPU"] = $"{MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue / processorCount:N0} % total / {MetricCollector.Instance.Metrics[SlidingMetric.ProcessorTime].SmoothedValue:0} % single core";
+                    this["Render process"] = $"{Profiler.ProfilingData[ProcessType.Render].CPU.SmoothedValue:N0} %";
+                    this["Update process"] = $"{Profiler.ProfilingData[ProcessType.Updater].CPU.SmoothedValue:N0} %";
+                    this["Loader process"] = $"{Profiler.ProfilingData[ProcessType.Loader].CPU.SmoothedValue:N0} %";
+                    this["Sound process"] = $"{Profiler.ProfilingData[ProcessType.Sound].CPU.SmoothedValue:N0} %";
+                    this["Background process"] = $"{Profiler.ProfilingData[ProcessType.System].CPU.SmoothedValue:N0} %";
                     this["Memory use"] = $"{Environment.WorkingSet / 1024 / 1024} Mb";
                     this["Frame rate (actual/P50/P95/P99)"] = $"{(int)MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].Value} fps / {((int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP50)} fps / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP95} fps / {(int)(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate] as SmoothedDataWithPercentiles).SmoothedP99} fps";
                     this["Frame time (actual/P50/P95/P99)"] = $"{MetricCollector.Instance.Metrics[SlidingMetric.FrameTime].Value * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP50 * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP95 * 1000:F1} ms / {(MetricCollector.Instance.Metrics[SlidingMetric.FrameTime] as SmoothedDataWithPercentiles).SmoothedP99 * 1000:F1} ms";

@@ -115,7 +115,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
                                 default:
                                     if (eventPayload.TryGetValue("DisplayName", out object displayName) && displayName is string displayNameString && eventPayload.TryGetValue("DisplayUnits", out object unit) && unit is string unitString)
                                     {
-                                        debugInfo[displayNameString] = unitString == "B" ? $"{FormatBytes((long)(double)value)}" : $"{value:0} {unit}";
+                                        debugInfo[displayNameString] = unitString == "B" ? $"{FormatBytes((long)(double)value)}" : $"{value:N0} {unit}";
                                     }
                                     break;
                             }

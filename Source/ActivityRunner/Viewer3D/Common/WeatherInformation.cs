@@ -21,11 +21,11 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         {
             if (UpdateNeeded)
             {
-                this["Visibility"] = $"{simulator.Weather.FogVisibilityDistance:0} m";
-                this["Cloud cover"] = $"{simulator.Weather.OvercastFactor * 100:0} %";
-                this["Intensity"] = $"{simulator.Weather.PrecipitationIntensity:F4} p/s/m^2";
-                this["Liquidity"] = $"{simulator.Weather.PrecipitationLiquidity * 100:0} %";
-                this["Wind"] = $"{simulator.Weather.WindSpeed.X:F1},{simulator.Weather.WindSpeed.Y:F1} m/s";
+                this["Visibility"] = $"{simulator.Weather.FogVisibilityDistance:N0} m";
+                this["Cloud cover"] = $"{simulator.Weather.OvercastFactor * 100:N0} %";
+                this["Intensity"] = $"{simulator.Weather.PrecipitationIntensity:N4} p/s/m^2";
+                this["Liquidity"] = $"{simulator.Weather.PrecipitationLiquidity * 100:N0} %";
+                this["Wind"] = $"{simulator.Weather.WindSpeed.X:F1},{simulator.Weather.WindSpeed.Y:N1} m/s";
                 this["Amb Temp"] = FormatStrings.FormatTemperature(simulator.PlayerLocomotive.CarOutsideTempC, Simulator.Instance.MetricUnits);
                 base.Update(gameTime);
             }

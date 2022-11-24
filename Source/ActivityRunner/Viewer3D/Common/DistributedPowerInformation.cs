@@ -20,6 +20,8 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 {
                     MultiColumnCount = 0;
                     DetailInfoBase current = (Simulator.Instance.PlayerLocomotive as MSTSDieselLocomotive)?.DistributedPowerInformation;
+                    if (current == null)
+                        return;
                     Source = current;
                     current.Next = null;
 

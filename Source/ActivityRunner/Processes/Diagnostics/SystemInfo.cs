@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
                 this["System Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
                 this["Game Time"] = Simulator.Instance != null ? $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)}" : null;
                 this["Frame rate"] = $"{metricCollector.Metrics[SlidingMetric.FrameRate].SmoothedValue:0}";
-                this["CPU"] = $"{metricCollector.Metrics[SlidingMetric.ProcessorTime].SmoothedValue / processorCount:0}% total / {metricCollector.Metrics[SlidingMetric.ProcessorTime].SmoothedValue:0}% of single core ({processorCount} logical cores)";
+                this["CPU"] = $"{metricCollector.Metrics[SlidingMetric.ProcessorTime].SmoothedValue / processorCount:N0}% total / {metricCollector.Metrics[SlidingMetric.ProcessorTime].SmoothedValue:0}% of single core ({processorCount} logical cores)";
                 this["Memory"] = $"{Environment.WorkingSet >> 20} MB";
                 base.Update(gameTime);
             }
