@@ -208,7 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public TableData PrepareTable(int PageNo)
         {
             var table = new TableData() { Cells = new string[1, 1] };
-            PageNo = MathHelper.Clamp(PageNo, 0, TextPages.Length);
+            PageNo = MathHelper.Clamp(PageNo, 0, TextPages.Length - 1);
             WebServerPageNo = PageNo;
             TextPages[PageNo](table);
             return (table);

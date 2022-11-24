@@ -963,8 +963,11 @@ namespace Orts.Common
     public enum RemoteControlGroup
     {
         /// -1: unconnected, 0: sync/front group, 1: async/rear group
+        [Description("———")]
         Unconnected = -1,
+        [Description("Sync")]
         FrontGroupSync = 0,
+        [Description("Async")]
         RearGroupAsync = 1
     }
 

@@ -265,7 +265,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 if (groupDetails[GroupDetail.Remote]?.Controls[i] is Label remoteLabel)
                 {
-                    remoteLabel.Text = $"{(groupLead.IsLeadLocomotive() || groupLead.RemoteControlGroup < 0 ? "———" : groupLead.RemoteControlGroup == 0 ? Catalog.GetString("Sync") : Catalog.GetString("Async"))}";
+                    remoteLabel.Text = $"{(groupLead.IsLeadLocomotive()  ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : groupLead.RemoteControlGroup.GetLocalizedDescription())}";
                 }
                 if (windowMode is WindowMode.Normal or WindowMode.NormalMono)
                 {
