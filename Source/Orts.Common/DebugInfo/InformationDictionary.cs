@@ -32,12 +32,8 @@ namespace Orts.Common.DebugInfo
         {
             get
             {
-                if (!TryGetValue(key, out string result))
-                {
-                    Add(key, null);
-                }
+                _ = TryGetValue(key, out string result);
                 return result;
-
             }
             set
             {
