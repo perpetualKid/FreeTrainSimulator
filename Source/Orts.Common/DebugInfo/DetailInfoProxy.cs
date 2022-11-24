@@ -4,6 +4,7 @@ namespace Orts.Common.DebugInfo
 {
     public abstract class DetailInfoProxy : DetailInfoBase
     {
+#pragma warning disable CA2227 // Collection properties should be read only
         protected DetailInfoBase Source { get; set; }
 
         public override InformationDictionary DetailInfo
@@ -15,11 +16,12 @@ namespace Orts.Common.DebugInfo
             }
         }
 
-        public override DetailInfoBase Next
+        public override DetailInfoBase NextColumn
         {
-            get => Source.Next;
-            set => Source.Next = value;
+            get => Source.NextColumn;
+            set => Source.NextColumn = value;
         }
+#pragma warning restore CA2227 // Collection properties should be read only
 
         public override void Update(GameTime gameTime)
         {

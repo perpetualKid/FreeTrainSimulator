@@ -55,7 +55,9 @@ namespace Orts.Graphics.Window.Controls
             VertexCount = VerticiesPerSample * SampleCount;
             sample = new VertexPosition[VerticiesPerSample];
             columnWidth = 1f / SampleCount;
+#pragma warning disable CA2000 // Dispose objects before losing scope
             TextTextureRenderer textTextureRenderer = TextTextureRenderer.Instance(Window.Owner.Game);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             labelMin = textTextureRenderer.RenderText(minLabel, Window.Owner.TextFontSmall, OutlineRenderOptions.Default);
             labelMax = textTextureRenderer.RenderText(maxLabel, Window.Owner.TextFontSmall, OutlineRenderOptions.Default);
             labelName = textTextureRenderer.RenderText(name, Window.Owner.TextFontSmall, OutlineRenderOptions.Default);
@@ -137,6 +139,7 @@ namespace Orts.Graphics.Window.Controls
             vertexBufferBorder.Dispose();
             labelMax.Dispose();
             labelMin.Dispose();
+            labelName.Dispose();
             base.Dispose(disposing);
         }
     }

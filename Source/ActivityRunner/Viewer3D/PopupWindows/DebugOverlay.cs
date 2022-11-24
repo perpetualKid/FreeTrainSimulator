@@ -138,14 +138,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(locomotiveGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 180, -1 },
+                    ColumnWidth = new int[] { 180, 140 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
                 layoutContainer.Add(graphThrottle = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0", "100 %", Catalog.GetString("Throttle"), graphWidth / 2) { GraphColor = Color.Blue });
                 layoutContainer.Add(graphPowerInput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Input"), graphWidth / 2) { GraphColor = Color.Yellow });
-                layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green});
+                layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green });
 
             };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>

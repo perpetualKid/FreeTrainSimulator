@@ -33,7 +33,9 @@ namespace Orts.Common.DebugInfo
 
         public virtual Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public virtual DetailInfoBase Next { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
+        public virtual DetailInfoBase NextColumn { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
 
         public virtual int MultiColumnCount { get; protected internal set; }
 

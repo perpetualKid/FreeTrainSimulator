@@ -37,7 +37,9 @@ namespace Orts.Graphics.Window.Controls
 
         public int Row { get; set; }
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] ColumnWidth
+#pragma warning restore CA1819 // Properties should not return arrays
         {
             get
             {
@@ -106,14 +108,14 @@ namespace Orts.Graphics.Window.Controls
                     Texture2D[] textures;
                     if (multiColumn)
                     {
-                        if (InformationProvider is DetailInfoBase detailInfo && detailInfo.Next != null)
+                        if (InformationProvider is DetailInfoBase detailInfo && detailInfo.NextColumn != null)
                         {
                             textures = new Texture2D[detailInfo.MultiColumnCount];
                             int i = 0;
                             while (detailInfo != null)
                             {
                                 textures[i++] = textureHolder.PrepareResource(detailInfo.DetailInfo[identifier], currentFont, OutlineRenderOptions);
-                                detailInfo = detailInfo.Next;
+                                detailInfo = detailInfo.NextColumn;
                             }
                         }
                         else

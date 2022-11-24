@@ -23,17 +23,17 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     if (current == null)
                         return;
                     Source = current;
-                    current.Next = null;
+                    current.NextColumn = null;
 
                     int count = 1;
                     foreach (TrainCar car in train.Cars)
                     {
                         if (car is MSTSDieselLocomotive dieselLocomotive && dieselLocomotive.DistributedPowerInformation != current)
                         {
-                            current.Next = dieselLocomotive.DistributedPowerInformation;
+                            current.NextColumn = dieselLocomotive.DistributedPowerInformation;
                             count++;
                             current = dieselLocomotive.DistributedPowerInformation;
-                            current.Next = null;
+                            current.NextColumn = null;
                         }
                     }
                     MultiColumnCount = count;

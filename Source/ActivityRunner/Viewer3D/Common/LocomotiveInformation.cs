@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common.DebugInfo;
-using Orts.Models.Simplified;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -29,17 +24,17 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
                     DetailInfoBase current = playerLocomotive.DetailInfo as DetailInfoBase;
                     Source = current;
-                    current.Next = null;
+                    current.NextColumn = null;
 
                     int count = 1;
                     foreach (TrainCar car in train.Cars.OfType<MSTSLocomotive>())
                     {
                         if (car == playerLocomotive)
                             continue;
-                        current.Next = car.DetailInfo as DetailInfoBase;
+                        current.NextColumn = car.DetailInfo as DetailInfoBase;
                         count++;
                         current = car.DetailInfo as DetailInfoBase;
-                        current.Next = null;
+                        current.NextColumn = null;
                     }
                     MultiColumnCount = count;
                 }

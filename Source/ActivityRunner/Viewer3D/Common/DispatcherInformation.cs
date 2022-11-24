@@ -46,9 +46,9 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             trainKey = catalog.GetString("Train");
             foreach (DispatcherDetailColumn column in EnumExtension.GetValues<DispatcherDetailColumn>())
             {
-                dispatcherDetails[column].Next = dispatcherDetails[column.Next()];
+                dispatcherDetails[column].NextColumn = dispatcherDetails[column.Next()];
             }
-            dispatcherDetails[DispatcherDetailColumn.Path].Next = null;
+            dispatcherDetails[DispatcherDetailColumn.Path].NextColumn = null;
         }
 
         public override void Update(GameTime gameTime)

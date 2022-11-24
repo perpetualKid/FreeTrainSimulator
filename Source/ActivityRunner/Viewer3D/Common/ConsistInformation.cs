@@ -33,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             for (int i = 1; i < Columns; i++)
                 consistDetails[i] = new DetailInfoBase();
             for (int i = 0; i < Columns - 1; i++)
-                consistDetails[i].Next = consistDetails[i + 1];
+                consistDetails[i].NextColumn = consistDetails[i + 1];
         }
 
         public override void Update(GameTime gameTime)
