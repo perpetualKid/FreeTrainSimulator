@@ -88,11 +88,8 @@ namespace Orts.Simulation.RollingStocks
     /// to the basic TrainCar.
     /// Use as a base for Electric, Diesel or Steam locomotives.
     /// </summary>
-    public partial class MSTSLocomotive : MSTSWagon, INameValueInformationProvider
+    public partial class MSTSLocomotive : MSTSWagon
     {
-        private protected readonly DetailInfoBase locomotiveStatus = new DetailInfoBase(true);
-        private protected bool updateLocomotiveStatus;
-
         public enum CombinedControl
         {
             None,
@@ -447,10 +444,6 @@ namespace Orts.Simulation.RollingStocks
             get => (Train.IsActualPlayerTrain) ? Flipped ^ UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection : base.Direction;
             set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
         }
-
-        public InformationDictionary DetailInfo => GetLocomotiveStatus();
-
-        public Dictionary<string, FormatOption> FormattingOptions => locomotiveStatus.FormattingOptions;
 
         public MSTSLocomotive(string wagPath)
             : base(wagPath)
@@ -2199,11 +2192,6 @@ namespace Orts.Simulation.RollingStocks
 
             }
 #endif
-            if (updateLocomotiveStatus)
-            {
-                UpdateLocomotiveStatus();
-                updateLocomotiveStatus = false;
-            }
         } // End Method Update
 
         /// <summary>
@@ -5707,15 +5695,31 @@ namespace Orts.Simulation.RollingStocks
             return;
         }
 
-        private InformationDictionary GetLocomotiveStatus()
+        private protected override void UpdateCarStatus()
         {
-            updateLocomotiveStatus = true;
-            return locomotiveStatus;
+            base.UpdateCarStatus();
+            carInfo["Engine Type"] = EngineType.GetLocalizedDescription();
+            carInfo["Throttle"] = $"{ThrottlePercent:0}";
+            // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
+            carInfo["Power"] = FormatStrings.FormatPower(MotiveForceN * SpeedMpS, simulator.MetricUnits, false, false);
+            carInfo["Force"] = FormatStrings.FormatForce(MotiveForceN * (Flipped ? -1 : 1), simulator.MetricUnits);
+            carInfo.FormattingOptions["Force"] = WheelSlip ? FormatOption.RegularOrangeRed : WheelSlipWarning ? FormatOption.RegularYellow : null;
+
+            // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive
+            if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && IsLeadLocomotive() && Train.CarSteamHeatOn)
+            {
+                carInfo[".steamheat0"] = null;
+                carInfo["Steam Heat Pressure Front"] = FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Steam Heat Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits);
+                carInfo["Steam Heat Usage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+                carInfo["Steam Heat Water Level"] = FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK);
+                carInfo["Steam Heat Pressure Rear"] = FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Steam Heat Temperature Rear"] = FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits);
+                carInfo["Outside Temperature"] = FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits);
+                carInfo["Steam Heat Flow Rate"] = $"{Train.LastCar.carNetHeatFlowRateW:N0}";
+                carInfo[".steamheat1"] = null;
+            }
         }
-
-        private protected virtual void UpdateLocomotiveStatus()
-        { }
-
     } // End Class MSTSLocomotive
 
     public class CabView

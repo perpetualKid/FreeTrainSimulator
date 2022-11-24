@@ -338,62 +338,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public string GetStatus()
-        {
-            var result = new StringBuilder();
-            //result.AppendFormat(Simulator.Catalog.GetString("Status"));
-            foreach (var eng in this)
-                result.AppendFormat("\t{0}", eng.State.GetLocalizedDescription());
-
-            if (locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), Simulator.Catalog.GetString(" "));  // Leave maximum power out
-                foreach (var eng in this)
-                {
-                    result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-                }
-            }
-            else
-            {
-                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-                foreach (var eng in this)
-                    result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-            }
-
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Load"));
-            foreach (var eng in this)
-                result.AppendFormat("\t{0:F1}%", eng.LoadPercent);
-
-            if (locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                foreach (var eng in this)
-                {
-                    var governorEnabled = eng.GovernorEnabled ? "???" : "";
-                    result.AppendFormat("\t{0:F0} {2}{1}", eng.RealRPM, governorEnabled, FormatStrings.rpm);
-                }
-            }
-            else
-            {
-                foreach (var eng in this)
-                    result.AppendFormat("\t{0:F0} {1}", eng.RealRPM, FormatStrings.rpm);
-            }
-
-            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("00Flow"));
-            foreach (var eng in this)
-                result.AppendFormat("\t{0}/{1}", FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(eng.DieselFlowLps), Simulator.Instance.MetricUnits, isUK), FormatStrings.h);
-
-            //result.Append("\t");
-            foreach (var eng in this)
-                result.AppendFormat("\t{0}", FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Simulator.Instance.MetricUnits));
-
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
-            foreach (var eng in this)
-                result.AppendFormat("\t{0}", FormatStrings.FormatPressure(eng.DieselOilPressurePSI, Pressure.Unit.PSI, locomotive.MainPressureUnit, true));
-
-            return result.ToString();
-        }
-
         public int NumOfActiveEngines => this.Where(engine => engine.State == DieselEngineState.Running).Count();
 
         // This calculates the percent of running power. If the locomotive has two prime movers, and 

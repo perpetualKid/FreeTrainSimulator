@@ -40,10 +40,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -61,7 +64,7 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.RollingStocks
 {
 
-    public abstract class TrainCar : IWorldPosition
+    public abstract class TrainCar : IWorldPosition, INameValueInformationProvider
     {
         #region const
         // Input values to allow the temperature for different values of latitude to be calculated
@@ -301,6 +304,14 @@ namespace Orts.Simulation.RollingStocks
         // Setup for ambient temperature dependency
         private bool ambientTemperatureInitialised;
         private float prevElev = -100f;
+
+        #region INameValueInformationProvider implementation
+        private protected readonly TrainCarInformation carInfo;
+
+        public InformationDictionary DetailInfo => carInfo;
+
+        public Dictionary<string, FormatOption> FormattingOptions => carInfo.FormattingOptions;
+        #endregion
 
         /// <summary>
         /// Indicates which remote control group the car is in.
@@ -573,6 +584,7 @@ namespace Orts.Simulation.RollingStocks
 
                 prevSpeedMpS = SpeedMpS;
             }
+            carInfo.Update(null);
         }
 
 
@@ -1713,54 +1725,14 @@ namespace Orts.Simulation.RollingStocks
         public virtual void SignalEvent(PowerSupplyEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt, int id) { }
 
-        public virtual string GetStatus() { return null; }
-        public virtual string GetDebugStatus()
-        {
-            string locomotivetypetext = "";
-            if (EngineType == EngineType.Control)
-            {
-                locomotivetypetext = "Unpowered Control Trailer Car";
-            }
-            if (this is MSTSDieselLocomotive loco && loco.DieselEngines.HasGearBox && loco.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4:F0}%\t{5} - {6:F0} rpm\t\t{7}\t{8}\t{9}\t",
-                CarID,
-                Direction.GetLocalizedDescription(),
-                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                RemoteControlGroup == RemoteControlGroup.FrontGroupSync ? Simulator.Catalog.GetString("Sync") : RemoteControlGroup == RemoteControlGroup.RearGroupAsync ? Simulator.Catalog.GetString("Async") : "----",
-                ThrottlePercent,
-                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
-                loco.DieselEngines[0].GearBox.HuDShaftRPM,
-                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
-                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
-                Simulator.Catalog.GetString(locomotivetypetext)
-                );
-            }
-            else
-            {
-
-                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
-                CarID,
-                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Direction.GetLocalizedDescription(),
-                RemoteControlGroup == RemoteControlGroup.FrontGroupSync ? Simulator.Catalog.GetString("Sync") : RemoteControlGroup == RemoteControlGroup.RearGroupAsync ? Simulator.Catalog.GetString("Async") : "----",
-                ThrottlePercent,
-                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
-                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
-                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
-                Simulator.Catalog.GetString(locomotivetypetext));
-            }
-        }
-
         private bool wheelHasBeenSet; //indicating that the car shape has been loaded, thus no need to reset the wheels
 
         protected TrainCar()
         {
+            carInfo = new TrainCarInformation(this);
         }
 
-        protected TrainCar(string wagFile)
+        protected TrainCar(string wagFile): this()
         {
             WagFilePath = wagFile;
             RealWagFilePath = wagFile;
@@ -3088,5 +3060,32 @@ namespace Orts.Simulation.RollingStocks
             return builder.ToString();
         }
 
+        private protected class TrainCarInformation: DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainCarInformation(TrainCar car): base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    car.UpdateCarStatus();
+                    base.Update(gameTime);
+                }
+            }
+        }
+
+        private protected virtual void UpdateCarStatus()
+        {
+            Catalog catalog = Simulator.Catalog as Catalog;
+            carInfo["Car"] = CarID;
+            carInfo["Speed"] = FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits);
+            carInfo["Direction"] = Direction.GetLocalizedDescription();
+            carInfo["Flipped"] = Flipped ? catalog.GetString("Yes") : catalog.GetString("No");
+        }
     }
 }

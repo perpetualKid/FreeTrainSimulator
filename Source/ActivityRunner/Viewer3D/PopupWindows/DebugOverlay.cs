@@ -15,6 +15,8 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
 using Orts.Settings;
+using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -25,9 +27,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("System Information")] Common,
             [Description("Game Performance Details")] Performance,
             [Description("Consist Information")] Consist,
+            [Description("Locomotive Information")] Locomotive,
             [Description("Distributed Power Information")] DistributedPower,
             [Description("Game Information")] GameDetails,
-            [Description("Dispatcher Information")] DispatcherInformation,
+            [Description("Dispatcher Information")] Dispatcher,
         }
 
         private readonly UserCommandController<UserCommand> userCommandController;
@@ -43,10 +46,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private GraphControl graphUpdateProcess;
         private GraphControl graphSoundProcess;
         private GraphControl graphLoaderProcess;
+        private GraphControl graphThrottle;
+        private GraphControl graphPowerInput;
+        private GraphControl graphPowerOutput;
 
         private NameValueTextGrid consistTableGrid;
         private NameValueTextGrid distributedPowerTableGrid;
         private NameValueTextGrid dispatcherGrid;
+        private NameValueTextGrid locomotiveGrid;
         private NameValueTextGrid scrollableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
@@ -125,6 +132,22 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 });
 
             };
+            tabLayout.TabLayouts[TabSettings.Locomotive] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(locomotiveGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 180, -1 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveDetails],
+                });
+                int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
+                layoutContainer.Add(graphThrottle = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0", "100 %", Catalog.GetString("Throttle"), graphWidth / 2) { GraphColor = Color.Blue });
+                layoutContainer.Add(graphPowerInput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Input"), graphWidth / 2) { GraphColor = Color.Yellow });
+                layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green});
+
+            };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
@@ -152,7 +175,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     InformationProvider = viewer.DetailInfo[DetailInfoType.WeatherDetails],
                 });
             };
-            tabLayout.TabLayouts[TabSettings.DispatcherInformation] = (layoutContainer) =>
+            tabLayout.TabLayouts[TabSettings.Dispatcher] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
                 layoutContainer.Add(dispatcherGrid = new NameValueTextGrid(this, 0, 0, textFont)
@@ -179,7 +202,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         graphUpdateProcess.AddSample(Profiler.ProfilingData[ProcessType.Updater].Wall.Value / 100);
                         graphLoaderProcess.AddSample(Profiler.ProfilingData[ProcessType.Loader].Wall.Value / 100);
                         graphSoundProcess.AddSample(Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
-
+                        break;
+                    case TabSettings.Locomotive:
+                        MSTSLocomotive locomotive = Simulator.Instance.PlayerLocomotive;
+                        graphThrottle.AddSample(locomotive.ThrottlePercent * 0.01f);
+                        switch (locomotive)
+                        {
+                            case MSTSDieselLocomotive dieselLocomotive:
+                                graphPowerInput.AddSample(dieselLocomotive.DieselEngines.MaxOutputPowerW / dieselLocomotive.DieselEngines.MaxPowerW);
+                                graphPowerOutput.AddSample(dieselLocomotive.DieselEngines.PowerW / dieselLocomotive.DieselEngines.MaxPowerW);
+                                break;
+                            case MSTSSteamLocomotive steamLocomotive:
+                                graphPowerInput.AddSample(steamLocomotive.ThrottlePercent * 0.01f);
+                                graphPowerOutput.AddSample(steamLocomotive.MotiveForceN / steamLocomotive.MaxPowerW * steamLocomotive.SpeedMpS);
+                                break;
+                            case MSTSElectricLocomotive electricLocomotive:
+                                graphPowerInput.AddSample(electricLocomotive.ThrottlePercent * 0.01f);
+                                graphPowerOutput.AddSample(electricLocomotive.MotiveForceN / electricLocomotive.MaxPowerW * electricLocomotive.SpeedMpS);
+                                break;
+                        }
                         break;
                 }
                 base.Update(gameTime, true);
@@ -228,8 +269,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             scrollableGrid = tabLayout.CurrentTab switch
             {
                 TabSettings.Consist => consistTableGrid,
+                TabSettings.Locomotive => locomotiveGrid,
                 TabSettings.DistributedPower => distributedPowerTableGrid,
-                TabSettings.DispatcherInformation => dispatcherGrid,
+                TabSettings.Dispatcher => dispatcherGrid,
                 _ => null,
             };
         }

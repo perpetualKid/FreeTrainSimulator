@@ -32,6 +32,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Text;
 
@@ -48,10 +49,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using SharpDX;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -964,52 +961,6 @@ namespace Orts.Simulation.RollingStocks
             return data;
         }
 
-        public override string GetStatus()
-        {
-            StringBuilder status = new StringBuilder();
-            status.Append($"{Simulator.Catalog.GetString("Engine")} = {DieselEngines[0].State.GetLocalizedDescription()}\n");
-            if (DieselEngines.HasGearBox)
-                status.Append($"{Simulator.Catalog.GetString("Gear")} = {(DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{(DieselEngines[0].GearBox.CurrentGearIndex + 1)}")}\n");
-            status.AppendLine();
-            status.Append($"{Simulator.Catalog.GetString("Battery switch")} = {(LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.Append($"{Simulator.Catalog.GetString("Master key")} = {(LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.Append($"{Simulator.Catalog.GetString("Traction cut-off relay")} = {Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription())}\n");
-            status.Append($"{Simulator.Catalog.GetString("Electric train supply")} = {(LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.AppendLine();
-            status.Append($"{Simulator.Catalog.GetParticularString("PowerSupply", "Power")} = {Simulator.Catalog.GetParticularString("PowerSupply", LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription())}");
-            return status.ToString();
-        }
-
-        public override string GetDebugStatus()
-        {
-            StringBuilder status = new StringBuilder(base.GetDebugStatus());
-            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-
-            if (DieselEngines.HasGearBox && DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                status.AppendFormat("\t{0} {1}-{2}", Simulator.Catalog.GetString("Gear"), DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetString("N") : (DieselEngines[0].GearBox.CurrentGearIndex + 1).ToString(), DieselEngines[0].GearBox.GearBoxType);
-            }
-            status.Append($"\t{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, isUK)}\t{DieselEngines.GetStatus()}\t\n");
-
-
-            if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && IsLeadLocomotive() && Train.CarSteamHeatOn)
-            {
-                // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive
-                // Display Steam Heat info
-                status.Append(Simulator.Catalog.GetString("StHeat:"));
-                status.Append($"\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
-                status.Append($"\t{Simulator.Catalog.GetString("StTemp")}\t{FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("StUse")}\t{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}");
-                status.Append($"\t{Simulator.Catalog.GetString("WaterLvl")}\t{FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, isUK)}");
-                status.Append($"\t{Simulator.Catalog.GetString("Last:")}\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
-                status.Append($"\t{Simulator.Catalog.GetString("Temp")}\t{FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("OutTemp")}\t{FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("NetHt")}\t{Train.LastCar.carNetHeatFlowRateW:N0}");
-                status.Append('\n');
-            }
-            return status.ToString();
-        }
-
         public string DistributedPowerThrottleInfo()
         {
             string throttle;
@@ -1471,16 +1422,31 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private protected override void UpdateLocomotiveStatus()
+        private protected override void UpdateCarStatus()
         {
-            locomotiveStatus["Engine"] = DieselEngines[0].State.GetLocalizedDescription();
+            base.UpdateCarStatus();
+            carInfo["Engine Status"] = DieselEngines[0].State.GetLocalizedDescription();
+            carInfo["Remote"] = $"{(IsLeadLocomotive() ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : RemoteControlGroup.GetLocalizedDescription())}";
             if (DieselEngines.HasGearBox)
-                locomotiveStatus["Gear"] = DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{DieselEngines[0].GearBox.CurrentGearIndex + 1}";
-            locomotiveStatus["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
-            locomotiveStatus["MasterKey"] = LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
-            locomotiveStatus["TractionCutOffRelay"] = Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription());
-            locomotiveStatus["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
-            locomotiveStatus["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+            {
+                carInfo["GearBox Rpm"] = $"{DieselEngines[0].GearBox.HuDShaftRPM:N0}";
+                carInfo["Gear"] = DieselEngines[0].GearBox.CurrentGearIndex < 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : $"{DieselEngines[0].GearBox.CurrentGearIndex + 1}";
+                carInfo["Gear Type"] = $"Type \"{DieselEngines[0].GearBox.GearBoxType}\" ({DieselEngines[0].GearBox.GearBoxOperation}, {DieselEngines[0].GearBox.ClutchType} clutch)";
+            }
+            carInfo["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["MasterKey"] = LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["TractionCutOffRelay"] = Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription());
+            carInfo["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+            carInfo["Fuel"] = $"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}";
+
+            DieselEngine engine = DieselEngines[0];
+            carInfo["Power"] = FormatStrings.FormatPower(engine.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false);
+            carInfo["Load"] = $"{engine.LoadPercent:F1} %";
+            carInfo["RPM"] = $"{engine.RealRPM:F0} {FormatStrings.rpm}";
+            carInfo["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
+            carInfo["Temperature"] = FormatStrings.FormatTemperature(engine.DieselTemperatureDeg, Simulator.Instance.MetricUnits);
+            carInfo["Oil Pressure"] = FormatStrings.FormatPressure(engine.DieselOilPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
         }
 
         private class DistributedPowerStatus : DetailInfoBase
@@ -1502,7 +1468,7 @@ namespace Orts.Simulation.RollingStocks
                     FormattingOptions["Throttle"] = locomotive.DynamicBrakePercent >= 0 ? FormatOption.RegularYellow : null;
 
                     this["Reverser"] = $"{locomotive.Direction.GetLocalizedDescription()} {(locomotive.Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}";
-                    this["Remote"] = $"{(locomotive.IsLeadLocomotive() || locomotive.RemoteControlGroup < 0 ? "———" : locomotive.RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}";
+                    this["Remote"] = $"{(locomotive.IsLeadLocomotive() ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : locomotive.RemoteControlGroup.GetLocalizedDescription())}";
                     this["Fuel"] = $"{FormatStrings.FormatFuelVolume(locomotive.DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}";
 
                     this["Motive Force"] = $"{FormatStrings.FormatForce(locomotive.MotiveForceN, simulator.MetricUnits)}";
