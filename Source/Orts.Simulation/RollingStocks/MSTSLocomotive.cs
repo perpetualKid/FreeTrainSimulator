@@ -174,7 +174,7 @@ namespace Orts.Simulation.RollingStocks
         public float MaxTotalCombinedWaterVolumeUKG;
         public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
-        {          
+        {
             get { return WaterController.CurrentValue * MaxTotalCombinedWaterVolumeUKG; }
             set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
         }
@@ -696,7 +696,7 @@ namespace Orts.Simulation.RollingStocks
                 case PressureUnit.Bar:
                     foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
-                            BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
+                        BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
                     }
                     break;
 
@@ -1290,7 +1290,7 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeBlendingForceMatch = locoCopy.DynamicBrakeBlendingForceMatch;
 
             MainPressureUnit = locoCopy.MainPressureUnit;
-            foreach(BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
+            foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                 BrakeSystemPressureUnits[component] = locoCopy.BrakeSystemPressureUnits[component];
 
             ThrottleController = (MSTSNotchController)locoCopy.ThrottleController.Clone();
@@ -3100,7 +3100,7 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            BaseFrictionCoefficientFactor = MathHelper.Clamp(BaseFrictionCoefficientFactor, 0.5f, 1.0f); 
+            BaseFrictionCoefficientFactor = MathHelper.Clamp(BaseFrictionCoefficientFactor, 0.5f, 1.0f);
 
             if (simulator.WeatherType == WeatherType.Rain || simulator.WeatherType == WeatherType.Snow)
             {
@@ -3172,7 +3172,7 @@ namespace Orts.Simulation.RollingStocks
 
 
             // Test to see if loco wheel is slipping or skidding due to brake application
-            if (this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared && WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))   
+            if (this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared && WheelSlip && ((ThrottlePercent > 0.2f && !BrakeSkid) || (ThrottlePercent < 0.1f && BrakeSkid)))
             {
 
                 WheelStopSlipTimeS = 0; // Reset stop slip time if wheel slip starts
@@ -3185,7 +3185,7 @@ namespace Orts.Simulation.RollingStocks
                 WheelSlipTimeS += (float)elapsedClockSeconds;
                 WheelSlipTimeS = MathHelper.Clamp(WheelSlipTimeS, 0.0f, 5.0f); // Ensure that time to transition between the two friction cases is maintained - currently set to 3 secs
 
-                float adhesionMultiplier = (float) Math.Exp(expAdhesion * WheelSlipTimeS);
+                float adhesionMultiplier = (float)Math.Exp(expAdhesion * WheelSlipTimeS);
                 CurrentWheelSlipAdhesionMultiplier = adhesionMultiplier;
 
                 BaseFrictionCoefficientFactor *= adhesionMultiplier;  // Descrease friction to take into account dynamic (kinetic) friction, typically kinetic friction is approximately 50% of static friction.
@@ -3208,7 +3208,7 @@ namespace Orts.Simulation.RollingStocks
 
                     float adhesionMultiplier = CurrentWheelSlipAdhesionMultiplier * (float)Math.Exp(expAdhesion * WheelStopSlipTimeS);
 
-//                    Trace.TraceInformation("adhesion {0} StopTime {1} Base {2} Current {3}", adhesionMultiplier, WheelStopSlipTimeS, BaseFrictionCoefficientFactor, CurrentWheelSlipAdhesionMultiplier);
+                    //                    Trace.TraceInformation("adhesion {0} StopTime {1} Base {2} Current {3}", adhesionMultiplier, WheelStopSlipTimeS, BaseFrictionCoefficientFactor, CurrentWheelSlipAdhesionMultiplier);
 
                     BaseFrictionCoefficientFactor *= adhesionMultiplier;  // Descrease friction to take into account dynamic (kinetic) friction, typically kinetic friction is approximately 50% of static friction.
                     SlipFrictionCoefficientFactor = BaseFrictionCoefficientFactor;
@@ -4585,7 +4585,7 @@ namespace Orts.Simulation.RollingStocks
         public void GenericItem1Toggle()
         {
             GenericItem1 = !GenericItem1;
-            SignalEvent(GenericItem1? TrainEvent.GenericItem1On : TrainEvent.GenericItem1Off); // hook for sound trigger
+            SignalEvent(GenericItem1 ? TrainEvent.GenericItem1On : TrainEvent.GenericItem1Off); // hook for sound trigger
         }
 
         public void GenericItem2Toggle()
@@ -5385,11 +5385,9 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Gears_Display:
                     {
                         data = 0;
-                        if (this is MSTSDieselLocomotive)
+                        if (this is MSTSDieselLocomotive dieselLocomotive && dieselLocomotive.DieselEngines.GearBox is GearBox gearBox)
                         {
-                            var dieselLoco = this as MSTSDieselLocomotive;
-                            if (dieselLoco.DieselEngines.HasGearBox)
-                                data = dieselLoco.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                            data = gearBox.CurrentGearIndex + 1;
                         }
                         break;
                     }

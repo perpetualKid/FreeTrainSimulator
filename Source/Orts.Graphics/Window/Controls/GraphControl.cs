@@ -40,7 +40,7 @@ namespace Orts.Graphics.Window.Controls
             set
             {
                 graphColor = value;
-                graphColor.A = (byte)(value.A * Window.Owner.WindowOpacity);
+                graphColor.A = (byte)(value.A * Window.Owner.WindowOpacity * 1.25);
                     }
         }
 

@@ -21,7 +21,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using Microsoft.Xna.Framework;
 
@@ -34,6 +33,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
     public class DieselEngines : List<DieselEngine>, ISubSystem<DieselEngines>
     {
+        private GearBox gearBox;
+        private bool gearBoxSet;
+
         public DieselEngineState State
         {
             get
@@ -122,29 +124,32 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Copy(DieselEngines source)
         {
+            ArgumentNullException.ThrowIfNull(source);
             MSTSGearBoxParams.Copy(source.MSTSGearBoxParams);
-            foreach (DieselEngine de in source)
+            foreach (DieselEngine engine in source)
             {
                 DieselEngine dieselEngine = new DieselEngine(locomotive);
-                dieselEngine.Copy(de);
+                dieselEngine.Copy(engine);
 
                 Add(dieselEngine);
             }
+            gearBoxSet = false;
         }
 
         public void Initialize()
         {
-            foreach (DieselEngine de in this)
+            foreach (DieselEngine engine in this)
             {
-                de.Initialize();
+                engine.Initialize();
             }
+            gearBoxSet = false;
         }
 
         public void InitializeMoving()
         {
-            foreach (DieselEngine de in this)
+            foreach (DieselEngine engine in this)
             {
-                de.InitializeMoving();
+                engine.InitializeMoving();
             }
         }
 
@@ -281,8 +286,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public bool HasGearBox => this.Where(engine => engine.GearBox != null).Any();
-
+        public GearBox GearBox
+        {
+            get 
+            {
+                if (!gearBoxSet)
+                {
+                    gearBox = this.Where(engine => engine.GearBox != null).Select(engine => engine.GearBox).FirstOrDefault();
+                    gearBoxSet = true;
+                }
+                return gearBox;
+            }
+        }
         /// <summary>
         /// Returns the tractive effort output of the gear box.
         /// </summary>

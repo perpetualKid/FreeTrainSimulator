@@ -215,7 +215,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly ShadowMapShader ShadowMapShader;
         public readonly ShadowMapShader[] ShadowMapShaders;
         public readonly SkyShader SkyShader;
-        public readonly DebugShader DebugShader;
 
         public static Texture2D MissingTexture;
         public static Texture2D DefaultSnowTexture;
@@ -253,7 +252,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 ShadowMapShaders[i] = new ShadowMapShader(viewer.Game.GraphicsDevice);
             }
             SkyShader = new SkyShader(viewer.Game.GraphicsDevice);
-            DebugShader = new DebugShader(viewer.Game.GraphicsDevice);
 
             // TODO: This should happen on the loader thread.
             MissingTexture = SharedTextureManager.Get(viewer.Game.GraphicsDevice, Path.Combine(viewer.ContentPath, "blank.bmp"));
@@ -276,9 +274,6 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 switch (materialName)
                 {
-                    case "Debug":
-                        Materials[materialKey] = new HUDGraphMaterial(Viewer);
-                        break;
                     case "Forest":
                         Materials[materialKey] = new ForestMaterial(Viewer, textureName);
                         break;

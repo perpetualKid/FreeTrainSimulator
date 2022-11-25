@@ -3,6 +3,7 @@ using System.ComponentModel;
 
 using GetText;
 
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
@@ -17,6 +18,9 @@ using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
+
+using SharpDX.Direct2D1.Effects;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -28,6 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("Game Performance Details")] Performance,
             [Description("Consist Information")] Consist,
             [Description("Locomotive Information")] Locomotive,
+            [Description("Force Information")] Force,
             [Description("Distributed Power Information")] DistributedPower,
             [Description("Game Information")] GameDetails,
             [Description("Dispatcher Information")] Dispatcher,
@@ -49,11 +54,15 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private GraphControl graphThrottle;
         private GraphControl graphPowerInput;
         private GraphControl graphPowerOutput;
+        private GraphControl graphMotiveForce;
+        private GraphControl graphDynamicForce;
+        private GraphControl graphForceSubsteps;
 
         private NameValueTextGrid consistTableGrid;
         private NameValueTextGrid distributedPowerTableGrid;
         private NameValueTextGrid dispatcherGrid;
         private NameValueTextGrid locomotiveGrid;
+        private NameValueTextGrid forceTableGrid;
         private NameValueTextGrid scrollableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
@@ -148,6 +157,21 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green });
 
             };
+            tabLayout.TabLayouts[TabSettings.Force] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 180, 140 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveDetails],
+                });
+                int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
+                layoutContainer.Add(graphMotiveForce = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0", "100 %", Catalog.GetString("Motive Force"), graphWidth / 2) { GraphColor = Color.LimeGreen });
+                layoutContainer.Add(graphDynamicForce = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Dynamic Force"), graphWidth / 2) { GraphColor = Color.MediumVioletRed });
+                layoutContainer.Add(graphForceSubsteps = new GraphControl(this, 0, 15, graphWidth, 40, "0", "300 %", Catalog.GetString("Number of Substeps"), graphWidth / 2) { GraphColor = Color.DeepSkyBlue });
+            };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
@@ -193,6 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (shouldUpdate)
             {
+                MSTSLocomotive locomotive = Simulator.Instance.PlayerLocomotive;
                 switch (tabLayout.CurrentTab)
                 {
                     case TabSettings.Performance:
@@ -204,7 +229,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         graphSoundProcess.AddSample(Profiler.ProfilingData[ProcessType.Sound].Wall.Value / 100);
                         break;
                     case TabSettings.Locomotive:
-                        MSTSLocomotive locomotive = Simulator.Instance.PlayerLocomotive;
                         graphThrottle.AddSample(locomotive.ThrottlePercent * 0.01f);
                         switch (locomotive)
                         {
@@ -221,6 +245,18 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 graphPowerOutput.AddSample(electricLocomotive.MotiveForceN / electricLocomotive.MaxPowerW * electricLocomotive.SpeedMpS);
                                 break;
                         }
+                        break;
+                    case TabSettings.Force:
+                        if ((locomotive as MSTSDieselLocomotive)?.DieselEngines.GearBox is GearBox gearBox && (locomotive as MSTSDieselLocomotive)?.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                        {
+                            // For geared locomotives the Max Force base value changes for each gear.
+                            graphMotiveForce.AddSample(locomotive.MotiveForceN / gearBox.CurrentGear.MaxTractiveForceN);
+                        }
+                        else
+                        {
+                            graphMotiveForce.AddSample(locomotive.MotiveForceN / locomotive.MaxForceN);
+                        }
+                        graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)locomotive.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
                         break;
                 }
                 base.Update(gameTime, true);
@@ -270,6 +306,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 TabSettings.Consist => consistTableGrid,
                 TabSettings.Locomotive => locomotiveGrid,
+                TabSettings.Force => forceTableGrid,
                 TabSettings.DistributedPower => distributedPowerTableGrid,
                 TabSettings.Dispatcher => dispatcherGrid,
                 _ => null,

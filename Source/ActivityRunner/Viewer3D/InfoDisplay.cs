@@ -42,6 +42,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -260,11 +261,11 @@ namespace Orts.ActivityRunner.Viewer3D
                             dataLog.Data($"{dieselLoco.DieselEngines[0].RealRPM:F0}");
                             dataLog.Data($"{dieselLoco.DieselEngines[0].DemandedRPM:F0}");
                             dataLog.Data($"{dieselLoco.DieselEngines[0].LoadPercent:F0}");
-                            if (dieselLoco.DieselEngines.HasGearBox)
+                            if (dieselLoco.DieselEngines.GearBox is GearBox gearBox)
                             {
-                                dataLog.Data($"{dieselLoco.DieselEngines[0].GearBox.CurrentGearIndex}");
-                                dataLog.Data($"{dieselLoco.DieselEngines[0].GearBox.NextGearIndex}");
-                                dataLog.Data($"{dieselLoco.DieselEngines[0].GearBox.ClutchPercent}");
+                                dataLog.Data($"{gearBox.CurrentGearIndex}");
+                                dataLog.Data($"{gearBox.NextGearIndex}");
+                                dataLog.Data($"{gearBox.ClutchPercent}");
                             }
                             else
                             {

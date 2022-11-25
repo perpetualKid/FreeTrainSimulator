@@ -52,7 +52,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private readonly Viewer Viewer;
         private readonly Action<TableData>[] TextPages;
         private readonly WindowTextFont TextFont;
-        private readonly HUDGraphMaterial HUDGraphMaterial;
 
         //Set lines rows HUDScroll.
         public int nLinesShow;
@@ -75,10 +74,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private int TextPage;
         private TableData TextTable = new TableData() { Cells = new string[0, 0] };
-        private HUDGraphSet ForceGraphs;
-        private HUDGraphMesh ForceGraphMotiveForce;
-        private HUDGraphMesh ForceGraphDynamicForce;
-        private HUDGraphMesh ForceGraphNumOfSubsteps;
 
         public HUDWindow(WindowManager owner)
             : base(owner, TextOffset, TextOffset, "HUD")
@@ -95,19 +90,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextFont = owner.TextFontMonoSpacedOutlined;
 
             ColumnWidth *= TextFont.Height;
-
-            HUDGraphMaterial = (HUDGraphMaterial)Viewer.MaterialManager.Load("Debug");
-
-            ForceGraphs = new HUDGraphSet(Viewer, HUDGraphMaterial);
-            ForceGraphMotiveForce = ForceGraphs.Add(Viewer.Catalog.GetString("Motive force"), "0%", "100%", Color.Green, 75);
-            ForceGraphDynamicForce = ForceGraphs.AddOverlapped(Color.Red, 75);
-            ForceGraphNumOfSubsteps = ForceGraphs.Add(Viewer.Catalog.GetString("Num of substeps"), "0", "300", Color.Blue, 25);
-        }
-
-        public override void Mark()
-        {
-            base.Mark();
-            HUDGraphMaterial.Mark();
         }
 
         public override void TabAction()
@@ -117,31 +99,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 lResetHudScroll = false;
             }
-        }
-
-        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
-        {
-            base.PrepareFrame(frame, elapsedTime, updateFull);
-#if SHOW_PHYSICS_GRAPHS
-            if (Visible && TextPages[TextPage] == TextPageForceInfo)
-            {
-                var loco = Viewer.PlayerLocomotive as MSTSLocomotive;
-                var locoD = Viewer.PlayerLocomotive as MSTSDieselLocomotive;
-
-                // For geared locomotives the Max Force base value needs to change for each gear.
-                if (locoD != null && locoD.DieselEngines.HasGearBox && locoD.DieselTransmissionType == DieselTransmissionType.Mechanic)
-                {
-                    ForceGraphMotiveForce.AddSample(loco.MotiveForceN / loco.HuDGearMaximumTractiveForce);
-                }
-                else
-                {
-                    ForceGraphMotiveForce.AddSample(loco.MotiveForceN / loco.MaxForceN);
-                }
-                ForceGraphNumOfSubsteps.AddSample((float)loco.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)loco.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
-
-                ForceGraphs.PrepareFrame(frame);
-            }
-#endif
         }
 
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
@@ -210,11 +167,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     }
                 }
             }
-
-#if SHOW_PHYSICS_GRAPHS
-            if (Visible && TextPages[TextPage] == TextPageForceInfo)
-                ForceGraphs.Draw(spriteBatch);
-#endif
         }
 
         #region Table handling
@@ -1472,222 +1424,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             TableAddLine(table);
             TableAddLine(table, name);
-        }
-    }
-
-    public class HUDGraphSet
-    {
-        private readonly Viewer Viewer;
-        private readonly Material Material;
-        private readonly Vector2 Margin = new Vector2(40, 10);
-        private readonly int Spacing;
-        private readonly List<Graph> Graphs = new List<Graph>();
-
-        public HUDGraphSet(Viewer viewer, Material material)
-        {
-            Viewer = viewer;
-            Material = material;
-            Spacing = Viewer.WindowManager.TextFontSmallOutlined.Height + 2;
-        }
-
-        public HUDGraphMesh AddOverlapped(Color color, int height)
-        {
-            return Add("", "", "", color, height, true);
-        }
-
-        public HUDGraphMesh Add(string labelName, string labelMin, string labelMax, Color color, int height)
-        {
-            return Add(labelName, labelMin, labelMax, color, height, false);
-        }
-
-        private HUDGraphMesh Add(string labelName, string labelMin, string labelMax, Color color, int height, bool overlapped)
-        {
-            HUDGraphMesh mesh;
-            Graphs.Add(new Graph()
-            {
-                Mesh = mesh = new HUDGraphMesh(Viewer, color, height),
-                LabelName = labelName,
-                LabelMin = labelMin,
-                LabelMax = labelMax,
-                Overlapped = overlapped,
-            });
-            for (var i = Graphs.Count - 1; i >= 0; i--)
-            {
-                var previousGraphs = Graphs.Skip(i + 1).Where(g => !g.Overlapped);
-                Graphs[i].YOffset = (int)previousGraphs.Sum(g => g.Mesh.GraphPos.W) + Spacing * previousGraphs.Count();
-            }
-            return mesh;
-        }
-
-        public void PrepareFrame(RenderFrame frame)
-        {
-            var matrix = Matrix.Identity;
-            for (var i = 0; i < Graphs.Count; i++)
-            {
-                Graphs[i].Mesh.GraphPos.X = Viewer.DisplaySize.X - Margin.X - Graphs[i].Mesh.GraphPos.Z;
-                Graphs[i].Mesh.GraphPos.Y = Margin.Y + Graphs[i].YOffset;
-                frame.AddPrimitive(Material, Graphs[i].Mesh, RenderPrimitiveGroup.Overlay, ref matrix);
-            }
-        }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            var box = new Rectangle();
-            for (var i = 0; i < Graphs.Count; i++)
-            {
-                if (!string.IsNullOrEmpty(Graphs[i].LabelName))
-                {
-                    box.X = (int)Graphs[i].Mesh.GraphPos.X;
-                    box.Y = Viewer.DisplaySize.Y - (int)Graphs[i].Mesh.GraphPos.Y - (int)Graphs[i].Mesh.GraphPos.W - Spacing;
-                    box.Width = (int)Graphs[i].Mesh.GraphPos.Z;
-                    box.Height = Spacing;
-                    Viewer.WindowManager.TextFontSmallOutlined.Draw(spriteBatch, box, Point.Zero, Graphs[i].LabelName, LabelAlignment.Right, Color.White);
-                    box.X = box.Right + 3;
-                    box.Y += Spacing - 3;
-                    Viewer.WindowManager.TextFontSmallOutlined.Draw(spriteBatch, box.Location, Graphs[i].LabelMax, Color.White);
-                    box.Y += (int)Graphs[i].Mesh.GraphPos.W - Spacing + 7;
-                    Viewer.WindowManager.TextFontSmallOutlined.Draw(spriteBatch, box.Location, Graphs[i].LabelMin, Color.White);
-                }
-            }
-        }
-
-        private class Graph
-        {
-            public HUDGraphMesh Mesh;
-            public string LabelName;
-            public string LabelMin;
-            public string LabelMax;
-            public int YOffset;
-            public bool Overlapped;
-        }
-    }
-
-    public class HUDGraphMesh : RenderPrimitive
-    {
-        private const int SampleCount = 1024 - 10 - 40; // Widest graphs we can fit in 1024x768.
-        private const int VerticiesPerSample = 6;
-        private const int PrimitivesPerSample = 2;
-        private const int VertexCount = VerticiesPerSample * SampleCount;
-        private readonly DynamicVertexBuffer VertexBuffer;
-        private readonly VertexBuffer BorderVertexBuffer;
-        private readonly Color Color;
-        private int SampleIndex;
-        private VertexPositionColor[] Samples = new VertexPositionColor[VertexCount];
-
-        public Vector4 GraphPos; // xy = xy position, zw = width/height
-        public Vector2 Sample; // x = index, y = count
-
-        public HUDGraphMesh(Viewer viewer, Color color, int height)
-        {
-            VertexBuffer = new DynamicVertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionColor), VertexCount, BufferUsage.WriteOnly);
-            BorderVertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionColor), 10, BufferUsage.WriteOnly);
-            var borderOffset = new Vector2(1f / SampleCount, 1f / height);
-            var borderColor = new Color(1f, 1f, 1f, 0f);
-            BorderVertexBuffer.SetData(new[] {
-                // Bottom left
-                new VertexPositionColor(new Vector3(0 - borderOffset.X, 0 - borderOffset.Y, 1), borderColor),
-                new VertexPositionColor(new Vector3(0, 0, 1), borderColor),
-                // Bottom right
-                new VertexPositionColor(new Vector3(1 + borderOffset.X, 0 - borderOffset.Y, 0), borderColor),
-                new VertexPositionColor(new Vector3(1, 0, 0), borderColor),
-                // Top right
-                new VertexPositionColor(new Vector3(1 + borderOffset.X, 1 + borderOffset.Y, 0), borderColor),
-                new VertexPositionColor(new Vector3(1, 1, 0), borderColor),
-                // Top left
-                new VertexPositionColor(new Vector3(0 - borderOffset.X, 1 + borderOffset.Y, 1), borderColor),
-                new VertexPositionColor(new Vector3(0, 1, 1), borderColor),
-                // Bottom left
-                new VertexPositionColor(new Vector3(0 - borderOffset.X, 0 - borderOffset.Y, 1), borderColor),
-                new VertexPositionColor(new Vector3(0, 0, 1), borderColor),
-            });
-            Color = color;
-            Color.A = 255;
-            GraphPos.Z = SampleCount;
-            GraphPos.W = height;
-            Sample.Y = SampleCount;
-        }
-
-        private void VertexBuffer_ContentLost()
-        {
-            VertexBuffer.SetData(0, Samples, 0, Samples.Length, VertexPositionColor.VertexDeclaration.VertexStride, SetDataOptions.NoOverwrite);
-        }
-
-        public void AddSample(float value)
-        {
-            value = MathHelper.Clamp(value, 0, 1);
-            var x = Sample.X / Sample.Y;
-
-            Samples[(int)Sample.X * VerticiesPerSample + 0] = new VertexPositionColor(new Vector3(x, value, 0), Color);
-            Samples[(int)Sample.X * VerticiesPerSample + 1] = new VertexPositionColor(new Vector3(x, value, 1), Color);
-            Samples[(int)Sample.X * VerticiesPerSample + 2] = new VertexPositionColor(new Vector3(x, 0, 1), Color);
-            Samples[(int)Sample.X * VerticiesPerSample + 3] = new VertexPositionColor(new Vector3(x, 0, 1), Color);
-            Samples[(int)Sample.X * VerticiesPerSample + 4] = new VertexPositionColor(new Vector3(x, value, 0), Color);
-            Samples[(int)Sample.X * VerticiesPerSample + 5] = new VertexPositionColor(new Vector3(x, 0, 0), Color);
-            VertexBuffer.SetData((int)Sample.X * VerticiesPerSample * VertexPositionColor.VertexDeclaration.VertexStride, Samples, (int)Sample.X * VerticiesPerSample, VerticiesPerSample, VertexPositionColor.VertexDeclaration.VertexStride, SetDataOptions.NoOverwrite);
-
-            SampleIndex = (SampleIndex + 1) % SampleCount;
-            Sample.X = SampleIndex;
-        }
-
-        public override void Draw()
-        {
-            if (VertexBuffer.IsContentLost)
-                VertexBuffer_ContentLost();
-
-            // Draw border
-            graphicsDevice.SetVertexBuffer(BorderVertexBuffer);
-            graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 8);
-
-            // Draw graph area (skipping the next value to be written)
-            graphicsDevice.SetVertexBuffer(VertexBuffer);
-            if (SampleIndex > 0)
-                graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, SampleIndex * PrimitivesPerSample);
-            if (SampleIndex + 1 < SampleCount)
-                graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, (SampleIndex + 1) * VerticiesPerSample, (SampleCount - SampleIndex - 1) * PrimitivesPerSample);
-        }
-    }
-
-    public class HUDGraphMaterial : Material
-    {
-        private readonly DebugShader shader;
-
-        public HUDGraphMaterial(Viewer viewer)
-            : base(viewer, null)
-        {
-            shader = Viewer.MaterialManager.DebugShader;
-        }
-
-        public override void SetState(Material previousMaterial)
-        {
-            shader.CurrentTechnique = shader.Techniques[0]; //["Graph"];
-            shader.ScreenSize = new Vector2(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
-
-            graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            graphicsDevice.DepthStencilState = DepthStencilState.None;
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            foreach (var pass in shader.CurrentTechnique.Passes)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    RenderItem item = renderItems[i];
-                    if (item.RenderPrimitive is HUDGraphMesh graphMesh)
-                    {
-                        shader.GraphPos = graphMesh.GraphPos;
-                        shader.GraphSample = graphMesh.Sample;
-                        pass.Apply();
-                    }
-                    item.RenderPrimitive.Draw();
-                }
-            }
-        }
-
-        public override void ResetState()
-        {
-            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
     }
 }

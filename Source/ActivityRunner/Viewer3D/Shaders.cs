@@ -621,34 +621,5 @@ namespace Orts.ActivityRunner.Viewer3D
             interventionColor = Parameters["InterventionColor"];
         }
     }
-
-    public class DebugShader : BaseShader
-    {
-        private readonly EffectParameter worldViewProjection;
-        private readonly EffectParameter screenSize;
-        private readonly EffectParameter graphPos;
-        private readonly EffectParameter graphSample;
-
-        public Vector2 ScreenSize { set { screenSize.SetValue(value); } }
-
-        public Vector4 GraphPos { set { graphPos.SetValue(value); } }
-
-        public Vector2 GraphSample { set { graphSample.SetValue(value); } }
-
-        public DebugShader(GraphicsDevice graphicsDevice)
-            : base(graphicsDevice, "DebugShader")
-        {
-            worldViewProjection = Parameters["WorldViewProjection"];
-            screenSize = Parameters["ScreenSize"];
-            graphPos = Parameters["GraphPos"];
-            graphSample = Parameters["GraphSample"];
-        }
-
-        public void SetMatrix(Matrix matrix, ref Matrix viewproj)
-        {
-            MatrixExtension.Multiply(in matrix, in viewproj, out Matrix wvp);
-            worldViewProjection.SetValue(wvp);
-        }
-    }
 #pragma warning restore CA1044 // Properties should not be write only
 }
