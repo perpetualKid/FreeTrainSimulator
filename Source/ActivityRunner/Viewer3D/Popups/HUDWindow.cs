@@ -73,7 +73,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private List<string> stringStatus = new List<string>();
         public static bool BrakeInfoVisible;
 
-        public int WebServerPageNo;
         private int TextPage;
         private TableData TextTable = new TableData() { Cells = new string[0, 0] };
         private HUDGraphSet ForceGraphs;
@@ -171,7 +170,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             var table = new TableData() { Cells = new string[1, 1] };
             PageNo = MathHelper.Clamp(PageNo, 0, TextPages.Length - 1);
-            WebServerPageNo = PageNo;
             TextPages[PageNo](table);
             return (table);
         }

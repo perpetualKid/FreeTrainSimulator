@@ -34,7 +34,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override PowerSupplyType Type => PowerSupplyType.Electric;
         public bool Activated;
-        private ElectricPowerSupply Script => AbstractScript as ElectricPowerSupply;
+        private ElectricPowerSupply Script => abstractScript as ElectricPowerSupply;
 
         public float LineVoltageV => (float)Simulator.Route.MaxLineVoltage;
         public float PantographVoltageV { get; set; }
@@ -77,13 +77,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if (!Activated)
             {
-                if (ScriptName != null && ScriptName != "Default")
+                if (scriptName != null && scriptName != "Default")
                 {
-                    AbstractScript = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(ElectricLocomotive.WagFilePath), "Script"), ScriptName) as ElectricPowerSupply;
+                    abstractScript = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(ElectricLocomotive.WagFilePath), "Script"), scriptName) as ElectricPowerSupply;
                 }
                 if (Script == null)
                 {
-                    AbstractScript = new DefaultElectricPowerSupply();
+                    abstractScript = new DefaultElectricPowerSupply();
                 }
 
                 AssignScriptFunctions();
@@ -109,7 +109,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Save(BinaryWriter outf)
         {
-            outf.Write(ScriptName);
+            outf.Write(scriptName);
 
             base.Save(outf);
             CircuitBreaker.Save(outf);
@@ -117,7 +117,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Restore(BinaryReader inf)
         {
-            ScriptName = inf.ReadString();
+            scriptName = inf.ReadString();
 
             base.Restore(inf);
             CircuitBreaker.Restore(inf);

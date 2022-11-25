@@ -22,7 +22,6 @@ using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
-using Orts.Simulation.AIs;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
@@ -32,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
 
-        public bool Activated;
+        private bool activated;
         private string ScriptName = "Automatic";
         private CircuitBreaker Script;
 
@@ -102,7 +101,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Initialize()
         {
-            if (!Activated)
+            if (!activated)
             {
                 if (ScriptName != null)
                 {
@@ -179,7 +178,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 };
 
                 Script.Initialize();
-                Activated = true;
+                activated = true;
             }
         }
 
