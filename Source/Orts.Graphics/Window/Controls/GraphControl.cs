@@ -34,22 +34,22 @@ namespace Orts.Graphics.Window.Controls
 
         private Color graphColor;
 
-        public Color GraphColor 
+        public Color GraphColor
         {
             get => graphColor;
             set
             {
                 graphColor = value;
                 graphColor.A = (byte)(value.A * Window.Owner.WindowOpacity * 1.25);
-                    }
+            }
         }
 
         public int SampleCount { get; }
 
-        public GraphControl(FormBase window, int x, int y, int width, int height, string minLabel, string maxLabel, string name, int sampleCount = 1024) : 
-            base(window ?? throw new ArgumentNullException(nameof(window)), x, y, (int)(width * window.Owner.DpiScaling), (int)(height* window.Owner.DpiScaling))
+        public GraphControl(FormBase window, int x, int y, int width, int height, string minLabel, string maxLabel, string name, int sampleCount = 1024) :
+            base(window ?? throw new ArgumentNullException(nameof(window)), x, y, (int)(width * window.Owner.DpiScaling), (int)(height * window.Owner.DpiScaling))
         {
-            BorderColor= Color.White;
+            BorderColor = Color.White;
             graphShader = Window.Owner.GraphShader;
             SampleCount = sampleCount;
             VertexCount = VerticiesPerSample * SampleCount;
