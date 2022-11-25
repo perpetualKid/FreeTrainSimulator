@@ -36,7 +36,8 @@ steps:
   inputs:
     command: custom
     custom: tool
-    arguments: 'restore --tool-manifest .\source\.config\dotnet-tools.json'
+    arguments: 'restore --tool-manifest .\.config\dotnet-tools.json'
+    workingDirectory: .\source
 
 #need to run in the correct folder as version.json is not in root
 #- script: dotnet tool run nbgv cloud -a
