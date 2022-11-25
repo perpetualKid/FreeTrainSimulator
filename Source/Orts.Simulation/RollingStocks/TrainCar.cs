@@ -39,8 +39,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 using GetText;
+using GetText.Loaders;
 
 using Microsoft.Xna.Framework;
 
@@ -60,6 +62,8 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
+
+using SharpDX.Direct3D9;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -307,10 +311,13 @@ namespace Orts.Simulation.RollingStocks
 
         #region INameValueInformationProvider implementation
         private protected readonly TrainCarInformation carInfo;
+        private protected readonly TrainForceInformation forceInfo;
 
         public InformationDictionary DetailInfo => carInfo;
 
         public Dictionary<string, FormatOption> FormattingOptions => carInfo.FormattingOptions;
+
+        public DetailInfoBase TrainForceInfo => forceInfo;
         #endregion
 
         /// <summary>
@@ -585,6 +592,7 @@ namespace Orts.Simulation.RollingStocks
                 prevSpeedMpS = SpeedMpS;
             }
             carInfo.Update(null);
+            forceInfo.Update(null);
         }
 
 
@@ -1730,9 +1738,10 @@ namespace Orts.Simulation.RollingStocks
         protected TrainCar()
         {
             carInfo = new TrainCarInformation(this);
+            forceInfo = new TrainForceInformation(this);
         }
 
-        protected TrainCar(string wagFile): this()
+        protected TrainCar(string wagFile) : this()
         {
             WagFilePath = wagFile;
             RealWagFilePath = wagFile;
@@ -3060,11 +3069,11 @@ namespace Orts.Simulation.RollingStocks
             return builder.ToString();
         }
 
-        private protected class TrainCarInformation: DetailInfoBase
+        private protected class TrainCarInformation : DetailInfoBase
         {
             private readonly TrainCar car;
 
-            public TrainCarInformation(TrainCar car): base(true)
+            public TrainCarInformation(TrainCar car) : base(true)
             {
                 this.car = car;
             }
@@ -3086,6 +3095,71 @@ namespace Orts.Simulation.RollingStocks
             carInfo["Speed"] = FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits);
             carInfo["Direction"] = Direction.GetLocalizedDescription();
             carInfo["Flipped"] = Flipped ? catalog.GetString("Yes") : catalog.GetString("No");
+        }
+
+        private protected class TrainForceInformation : DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainForceInformation(TrainCar car) : base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    car.UpdateForceStatus();
+                    base.Update(gameTime);
+                }
+            }
+        }
+
+        private protected virtual void UpdateForceStatus()
+        {
+            bool metricUnits = Simulator.Instance.MetricUnits;
+            bool ukUnits = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+            forceInfo["Car"] = CarID;
+
+            forceInfo["Total"] = FormatStrings.FormatForce(TotalForceN, metricUnits);
+            forceInfo["Motive"] = FormatStrings.FormatForce(MotiveForceN, metricUnits);
+            forceInfo.FormattingOptions["Motive"] = WheelSlip ? FormatOption.RegularOrangeRed : WheelSlipWarning ? FormatOption.RegularYellow : null;
+            forceInfo["Brake"] = FormatStrings.FormatForce(BrakeForceN, metricUnits);
+            forceInfo["Friction"] = FormatStrings.FormatForce(FrictionForceN, metricUnits);
+            forceInfo["Gravity"] = FormatStrings.FormatForce(GravityForceN, metricUnits);
+            forceInfo["Curve"] = FormatStrings.FormatForce(CurveForceN, metricUnits);
+            forceInfo["Tunnel"] = FormatStrings.FormatForce(TunnelForceN, metricUnits);
+            forceInfo["Wind"] = FormatStrings.FormatForce(WindForceN, metricUnits);
+            forceInfo["Coupler"] = FormatStrings.FormatForce(CouplerForceU, metricUnits);
+            forceInfo["CouplerIndication"] = $"{(GetCouplerRigidIndication() ? "R" : "F")} : {(CouplerExceedBreakLimit ? "xxx" : CouplerOverloaded ? "O/L" : HUDCouplerForceIndication == 1 ? "Pull" : HUDCouplerForceIndication == 2 ? "Push" : "-")}";
+            forceInfo["Slack"] = FormatStrings.FormatVeryShortDistanceDisplay(CouplerSlackM, metricUnits);
+            forceInfo["Mass"] = FormatStrings.FormatLargeMass(MassKG, metricUnits, ukUnits);
+            forceInfo["Gradient"] = $"{CurrentElevationPercent:F2}%";
+            forceInfo["CurveRadius"] = FormatStrings.FormatDistance(CurrentCurveRadius, metricUnits);
+            forceInfo["BrakeFriction"] = $"{BrakeShoeCoefficientFriction * 100.0f:F0}%";
+            forceInfo["BrakeSlide"] = HUDBrakeSkid ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            forceInfo["BearingTemp"] = FormatStrings.JoinIfNotEmpty(' ',
+                $"{FormatStrings.FormatTemperature(WheelBearingTemperatureDegC, Simulator.Instance.MetricUnits)}",
+                (WheelBearingTemperatureDegC) switch
+                {
+                    > 115 => "(Fail)",
+                    > 100 => "(Hot)",
+                    > 90 => "(Warm)",
+                    < 50 => "(Cool)",
+                    _ => "(Normal)",
+                });
+            forceInfo.FormattingOptions["BearingTemp"] = (WheelBearingTemperatureDegC) switch
+            {
+                > 115 => FormatOption.RegularRed,
+                > 100 => FormatOption.RegularOrange,
+                > 90 => FormatOption.RegularYellow,
+                < 50 => FormatOption.RegularCyan,
+                _ => null,
+            };
+            forceInfo["Flipped"] = Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            forceInfo["DerailCoefficient"] = $"{DerailmentCoefficient:F2}";
+            forceInfo.FormattingOptions["DerailCoefficient"] = DerailExpected ? FormatOption.RegularOrangeRed : DerailPossible ? FormatOption.RegularYellow : null;
         }
     }
 }

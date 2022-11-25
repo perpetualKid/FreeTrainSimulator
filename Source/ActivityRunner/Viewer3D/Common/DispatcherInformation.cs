@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         private int numberTrains;
         private readonly Catalog catalog;
         private readonly string trainKey;
-        private EnumArray<DetailInfoBase, DispatcherDetailColumn> dispatcherDetails = new EnumArray<DetailInfoBase, DispatcherDetailColumn>(() => new DetailInfoBase());
+        private readonly EnumArray<DetailInfoBase, DispatcherDetailColumn> dispatcherDetails = new EnumArray<DetailInfoBase, DispatcherDetailColumn>(() => new DetailInfoBase());
 
         public DispatcherInformation(Catalog catalog)
         {

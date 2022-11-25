@@ -163,8 +163,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 180, 140 },
-                    InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveDetails],
+                    ColumnWidth = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100, },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.ForceDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;

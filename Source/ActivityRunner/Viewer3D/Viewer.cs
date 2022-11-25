@@ -71,6 +71,7 @@ namespace Orts.ActivityRunner.Viewer3D
         TrainDetails,
         ConsistDetails,
         LocomotiveDetails,
+        ForceDetails,
         DistributedPowerDetails,
         DispatcherDetails,
     }
@@ -344,6 +345,7 @@ namespace Orts.ActivityRunner.Viewer3D
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.DistributedPowerDetails] = new DistributedPowerInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.DispatcherDetails] = new DispatcherInformation(Catalog as Catalog));
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveDetails] = new LocomotiveInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ForceDetails] = new ForceInformation(Catalog as Catalog));
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
