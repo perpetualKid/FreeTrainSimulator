@@ -33,6 +33,12 @@ namespace Orts.Common.DebugInfo
             get => Source?.MultiColumnCount ?? 0;
             protected internal set { if (Source != null) Source.MultiColumnCount = value; }
         }
+
+        public virtual void Next()
+        { }
+
+        public virtual void Previous()
+        { }
     }
 
 

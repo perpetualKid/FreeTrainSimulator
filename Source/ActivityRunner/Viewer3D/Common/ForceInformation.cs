@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     string key = $"{i + 1}";
                     foreach(ForceDetailColumn detailColumn in EnumExtension.GetValues<ForceDetailColumn>())
                     {
-                        columns[detailColumn][key] = car.TrainForceInfo.DetailInfo[detailColumn.ToString()];
+                        columns[detailColumn][key] = car.ForceInfo.DetailInfo[detailColumn.ToString()];
                     }
                 }
 

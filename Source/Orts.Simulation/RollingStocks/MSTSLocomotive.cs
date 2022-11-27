@@ -49,6 +49,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -69,6 +70,8 @@ using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Orts.Simulation.RollingStocks
 {
 
@@ -88,7 +91,7 @@ namespace Orts.Simulation.RollingStocks
     /// to the basic TrainCar.
     /// Use as a base for Electric, Diesel or Steam locomotives.
     /// </summary>
-    public partial class MSTSLocomotive : MSTSWagon
+    public abstract partial class MSTSLocomotive : MSTSWagon
     {
         public enum CombinedControl
         {
@@ -424,6 +427,9 @@ namespace Orts.Simulation.RollingStocks
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem;
 
+        private protected readonly LocomotiveForceInformation locomotiveForceInfo;
+        public DetailInfoBase LocomotiveForceInfo => locomotiveForceInfo;
+
         public Axle LocomotiveAxle;
         public IIRFilter CurrentFilter;
         public IIRFilter AdhesionFilter;
@@ -445,7 +451,7 @@ namespace Orts.Simulation.RollingStocks
             set => Train.MUDirection = Flipped ^ UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
         }
 
-        public MSTSLocomotive(string wagPath)
+        protected MSTSLocomotive(string wagPath)
             : base(wagPath)
         {
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
@@ -467,6 +473,7 @@ namespace Orts.Simulation.RollingStocks
             ThrottleController = new MSTSNotchController();
             DynamicBrakeController = new MSTSNotchController();
             TrainControlSystem = new ScriptedTrainControlSystem(this);
+            locomotiveForceInfo = new LocomotiveForceInformation(this);
         }
 
         /// <summary>
@@ -1953,17 +1960,14 @@ namespace Orts.Simulation.RollingStocks
             // Train Heading - only check the lead locomotive otherwise flipped locomotives further in consist will overwrite the train direction
             if (IsLeadLocomotive())
             {
-                var heading = (float)Math.Atan2(WorldPosition.XNAMatrix.M13, WorldPosition.XNAMatrix.M11);
-                Train.PhysicsTrainLocoDirectionDeg = MathHelper.ToDegrees((float)heading);
+                float heading = (float)Math.Atan2(WorldPosition.XNAMatrix.M13, WorldPosition.XNAMatrix.M11);
+                float trainLocoDirectionDeg = MathHelper.ToDegrees(heading);
 
                 if (Flipped)
                 {
-                    Train.PhysicsTrainLocoDirectionDeg += 180.0f; // Reverse direction of train
-                    if (Train.PhysicsTrainLocoDirectionDeg > 360) // If this results in an angle greater then 360, then convert it back to an angle between 0 & 360.
-                    {
-                        Train.PhysicsTrainLocoDirectionDeg -= 360;
-                    }
+                    trainLocoDirectionDeg += 180.0f; // Reverse direction of train
                 }
+                Train.PhysicsTrainLocoDirectionDeg = (trainLocoDirectionDeg + 360) % 360;
             }
 
             if (IsSteamHeatFitted)
@@ -2101,7 +2105,6 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 default:
                     break;
-
             }
 
             // always set AntiSlip for AI trains
@@ -2136,62 +2139,7 @@ namespace Orts.Simulation.RollingStocks
             PrevMotiveForceN = MotiveForceN;
             base.Update(elapsedClockSeconds);
 
-#if DEBUG_ADHESION
-            // Timer to determine travel time - resets when locomotive stops
-            if (AbsSpeedMpS > 0)
-            {
-                DebugTimer += elapsedClockSeconds;  // Increment debug timer whilever train is moving
-            }
-            else
-            {
-                DebugTimer = 0.0f; // Reset timer if train is stopped
-            }
-
-            // Speed detector, set to print out an adhesion snapshot every 5mph increment
-            if (AbsSpeedMpS > MpS.FromMpH(DebugSpeed))
-            {
-                if (!DebugSpeedReached)
-                {
-                    DebugSpeedReached = true;                    
-                }
-                else
-                {
-                    if (DebugSpeedReached)
-                    {
-                        DebugSpeed += DebugSpeedIncrement;
-                    }
-                    DebugSpeedReached = false;
-
-                }
-
-            }
-
-            // Only prints out in speed increments of 5mph
-            if (DebugSpeedReached)
-            {
-                
-                Trace.TraceInformation("====================================== Debug Adhesion (MSTSLocomotive.cs) ===============================");
-                Trace.TraceInformation("AntiSlip - {0} ABSWheelSpeed {1}", AntiSlip, AbsWheelSpeedMpS);
-                Trace.TraceInformation("Advanced Adhesion Model - {0}", Simulator.UseAdvancedAdhesion);
-                Trace.TraceInformation("Car Id: {0} Engine type: {1} Speed: {2} Gradient: {3} Time: {4}", CarID, EngineType, FormatStrings.FormatSpeedDisplay(AbsSpeedMpS, IsMetric), -CurrentElevationPercent, DebugTimer);
-                Trace.TraceInformation("Rail TE: {0} DBTE: {1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), FormatStrings.FormatForce(CouplerForceU, IsMetric));
-
-                Trace.TraceInformation("Axle - Drive Force: {0} Axle Force: {1} Wheelspeed: {2}", FormatStrings.FormatForce(LocomotiveAxle.DriveForceN, IsMetric), FormatStrings.FormatForce(LocomotiveAxle.AxleForceN, IsMetric), FormatStrings.FormatSpeedDisplay(WheelSpeedMpS, IsMetric));
-                Trace.TraceInformation("Axle - Axle Inertia: {0} Wheel Radius: {1}", LocomotiveAxle.InertiaKgm2, DriverWheelRadiusM);
-
-                Trace.TraceInformation("Adhesion - Curtius_A: {0} Curtius_B: {1} Curtius_C: {2} Curtius_D: {3}", Curtius_KnifflerA, Curtius_KnifflerB, Curtius_KnifflerC, AdhesionK);
-                Trace.TraceInformation("Locomotive Weight: {0} Axle Weight: {1}", MassKG, DrvWheelWeightKg);
-
-                Trace.TraceInformation("Axle Speed: {0} TrainSpeed: {1} Slip Speed: {2}", LocomotiveAxle.AxleSpeedMpS, LocomotiveAxle.TrainSpeedMpS, LocomotiveAxle.SlipSpeedMpS);
-
-                Trace.TraceInformation("Adhesion Conditions: {0}", LocomotiveAxle.AdhesionConditions);
-
-                Trace.TraceInformation("Fog - Min {0} fog {1}", Math.Min((Simulator.Weather.FogDistance * 2.75e-4f + 0.45f), 1.0f), Simulator.Weather.FogDistance);
-
-                Trace.TraceInformation("Rain - Min {0} pric {1}", Math.Min((Simulator.Weather.PricipitationIntensityPPSPM2 * 0.0078f + 0.45f), 0.607f), Simulator.Weather.PricipitationIntensityPPSPM2);
-
-            }
-#endif
+            LocomotiveForceInfo.Update(null);
         } // End Method Update
 
         /// <summary>
@@ -5716,6 +5664,63 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Outside Temperature"] = FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits);
                 carInfo["Steam Heat Flow Rate"] = $"{Train.LastCar.carNetHeatFlowRateW:N0}";
                 carInfo[".steamheat1"] = null;
+            }
+        }
+
+        private protected class LocomotiveForceInformation : DetailInfoBase
+        {
+            private readonly MSTSLocomotive locomotive;
+            private static readonly bool metricUnits = Simulator.Instance.MetricUnits;
+
+            public LocomotiveForceInformation(MSTSLocomotive locomotive) : base(true)
+            {
+                this.locomotive = locomotive;
+                this["Adhesion model"] = null;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    this["Car"] = locomotive.CarID;
+                    this["Loco Adhesion"] = $"{locomotive.LocomotiveCoefficientFrictionHUD * 100:F0}%";
+                    this["Wagon Adhesion"] = $"{locomotive.WagonCoefficientFrictionHUD * 100:F0}%";
+                    if (locomotive.AdvancedAdhesionModel)
+                    {
+                        this["Adhesion model"] = "Advanced Adhesion model";
+                        if (locomotive.EngineType == EngineType.Steam && (locomotive is MSTSSteamLocomotive steamEngine &&
+                            (steamEngine.SteamEngineType == SteamEngineType.Compound || steamEngine.SteamEngineType == SteamEngineType.Simple || steamEngine.SteamEngineType == SteamEngineType.Unknown))) // For display of steam locomotive adhesion info
+                        {
+                            this["Tangential Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(locomotive.SteamTangentialWheelForce), metricUnits);
+                            this["Static Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(locomotive.SteamStaticWheelForce), metricUnits);
+                        }
+                        else  // Advanced adhesion non steam locomotives
+                        {
+                            this["Wheel slip"] = $"{locomotive.LocomotiveAxle.SlipSpeedPercent:F0}% ({locomotive.LocomotiveAxle.SlipDerivationPercentpS:F0}%/{FormatStrings.s})";
+                            this["Conditions"] = $"{locomotive.LocomotiveAxle.AdhesionConditions * 100.0f:F0}%";
+                            this["Axle drive force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.DriveForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.DriveForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
+                            this["Axle brake force"] = FormatStrings.FormatForce(locomotive.LocomotiveAxle.BrakeRetardForceN, metricUnits);
+                            this["Number of substeps"] = $"{locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS:F0} (filtered by {locomotive.LocomotiveAxle.FilterMovingAverage.Size:F0})";
+                            this["Solver"] = $"{locomotive.LocomotiveAxle.AxleRevolutionsInt.Method}";
+                            this["Stability correction"] = $"{locomotive.LocomotiveAxle.AdhesionK:F0}";
+                            this["Axle out force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.AxleForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.AxleForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
+                            this["Comp Axle out force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.CompensatedAxleForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.CompensatedAxleForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
+                            this["Wheel Speed"] = $"{FormatStrings.FormatSpeedDisplay(locomotive.AbsWheelSpeedMpS, metricUnits)} ({FormatStrings.FormatSpeedDisplay(locomotive.LocomotiveAxle.SlipSpeedMpS, metricUnits)})";
+                        }
+                    }
+                    else
+                    {
+                        this["Adhesion model"] = "Simple Adhesion model";
+                        this["Axle out force"] = $"{FormatStrings.FormatForce(locomotive.LocomotiveAxle.AxleForceN, metricUnits)} ({FormatStrings.FormatPower(locomotive.LocomotiveAxle.AxleForceN * locomotive.AbsTractionSpeedMpS, metricUnits, false, false)})";
+                    }
+                    this[".Wind"] = null;
+                    this["Wind Speed"] = FormatStrings.FormatSpeedDisplay(locomotive.Train.PhysicsWindSpeedMpS, metricUnits);
+                    this["Wind Direction"] = $"{locomotive.Train.PhysicsWindDirectionDeg:0} deg";
+                    this["Train Direction"] = $"{locomotive.Train.PhysicsTrainLocoDirectionDeg:0} deg";
+                    this["Resultant Wind:"] = $"{locomotive.Train.ResultantWindComponentDeg:0} deg";
+                    this["Resultant Speed"] = FormatStrings.FormatSpeedDisplay(locomotive.Train.WindResultantSpeedMpS, metricUnits);
+                    base.Update(gameTime);
+                }
             }
         }
     } // End Class MSTSLocomotive

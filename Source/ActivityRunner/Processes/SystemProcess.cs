@@ -45,8 +45,8 @@ namespace Orts.ActivityRunner.Processes
 
                 (gameHost.SystemInfo[DiagnosticInfo.Clr] as ClrEventListener).Update(gameTime);
 
-                foreach (DetailInfoBase item in Updateables)
-                    item.Update(gameTime);
+                for (int i=0; i < Updateables.Count; i++)
+                    Updateables[i].Update(gameTime);
                 nextUpdate = gameTime.TotalGameTime.TotalSeconds + UpdateInterval;
             }
         }

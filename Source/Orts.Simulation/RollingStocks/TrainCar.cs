@@ -311,13 +311,13 @@ namespace Orts.Simulation.RollingStocks
 
         #region INameValueInformationProvider implementation
         private protected readonly TrainCarInformation carInfo;
-        private protected readonly TrainForceInformation forceInfo;
+        private readonly TrainCarForceInformation forceInfo;
 
         public InformationDictionary DetailInfo => carInfo;
 
         public Dictionary<string, FormatOption> FormattingOptions => carInfo.FormattingOptions;
 
-        public DetailInfoBase TrainForceInfo => forceInfo;
+        public DetailInfoBase ForceInfo => forceInfo;
         #endregion
 
         /// <summary>
@@ -1738,7 +1738,7 @@ namespace Orts.Simulation.RollingStocks
         protected TrainCar()
         {
             carInfo = new TrainCarInformation(this);
-            forceInfo = new TrainForceInformation(this);
+            forceInfo = new TrainCarForceInformation(this);
         }
 
         protected TrainCar(string wagFile) : this()
@@ -3097,11 +3097,11 @@ namespace Orts.Simulation.RollingStocks
             carInfo["Flipped"] = Flipped ? catalog.GetString("Yes") : catalog.GetString("No");
         }
 
-        private protected class TrainForceInformation : DetailInfoBase
+        private protected class TrainCarForceInformation : DetailInfoBase
         {
             private readonly TrainCar car;
 
-            public TrainForceInformation(TrainCar car) : base(true)
+            public TrainCarForceInformation(TrainCar car) : base(true)
             {
                 this.car = car;
             }

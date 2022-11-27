@@ -3,12 +3,12 @@ using System.ComponentModel;
 
 using GetText;
 
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
@@ -19,8 +19,6 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using SharpDX.Direct2D1.Effects;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -64,6 +62,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private NameValueTextGrid locomotiveGrid;
         private NameValueTextGrid forceTableGrid;
         private NameValueTextGrid scrollableGrid;
+        private NameValueTextGrid locomotiveForceGrid;
+        private NameValueTextGrid changeableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
@@ -160,7 +160,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabLayout.TabLayouts[TabSettings.Force] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                layoutContainer.Add(locomotiveForceGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 240, -1 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveForce]
+                });
+                int y = (int)(360 * Owner.DpiScaling);
+                layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     ColumnWidth = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100, },
@@ -269,6 +276,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController.AddEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyPressed, ScrollDown, true);
             userCommandController.AddEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft, true);
             userCommandController.AddEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDPageUp, KeyEventType.KeyPressed, NextLocomotive, true);
+            userCommandController.AddEvent(UserCommand.DisplayHUDPageDown, KeyEventType.KeyPressed, PreviousLocomotive, true);
             return base.Open();
         }
 
@@ -279,6 +288,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollDown, KeyEventType.KeyPressed, ScrollDown);
             userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollLeft, KeyEventType.KeyPressed, ScrollLeft);
             userCommandController.RemoveEvent(UserCommand.DisplayHUDScrollRight, KeyEventType.KeyPressed, ScrollRight);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDPageUp, KeyEventType.KeyPressed, NextLocomotive);
+            userCommandController.RemoveEvent(UserCommand.DisplayHUDPageDown, KeyEventType.KeyPressed, PreviousLocomotive);
             return base.Close();
         }
 
@@ -288,6 +299,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DebugOverlay], out TabSettings tab))
                 tabLayout.TabAction(tab);
             SetScrollableGridTarget();
+            SetChangeableGridTarget();
         }
 
         private void TabAction(UserCommandArgs args)
@@ -297,6 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 tabLayout.TabAction();
                 settings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
                 SetScrollableGridTarget();
+                SetChangeableGridTarget();
             }
         }
 
@@ -309,6 +322,15 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 TabSettings.Force => forceTableGrid,
                 TabSettings.DistributedPower => distributedPowerTableGrid,
                 TabSettings.Dispatcher => dispatcherGrid,
+                _ => null,
+            };
+        }
+
+        private void SetChangeableGridTarget()
+        {
+            changeableGrid = tabLayout.CurrentTab switch
+            {
+                TabSettings.Force => locomotiveForceGrid,
                 _ => null,
             };
         }
@@ -337,5 +359,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 scrollableGrid.Column--;
         }
 
+        private void NextLocomotive()
+        {
+            (changeableGrid?.InformationProvider as DetailInfoProxy)?.Next();
+        }
+
+        private void PreviousLocomotive()
+        {
+            (changeableGrid?.InformationProvider as DetailInfoProxy)?.Previous();
+        }
     }
 }
