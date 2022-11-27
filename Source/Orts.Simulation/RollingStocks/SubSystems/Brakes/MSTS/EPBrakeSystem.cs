@@ -72,11 +72,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 BrakeLine2PressurePSI -= dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
                 autoCylPressurePSI += dp;
             }
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)

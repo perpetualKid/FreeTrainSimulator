@@ -49,7 +49,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -69,8 +68,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {

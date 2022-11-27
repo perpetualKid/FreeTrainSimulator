@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
@@ -37,11 +39,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         BrakeCylinder
     }
 
-    public abstract class BrakeSystem : INameValueInformationProvider
+    public abstract class BrakeSystem
     {
         private protected readonly TrainCar car;
-        private protected readonly DetailInfoBase brakeInfo = new DetailInfoBase();
-        private protected bool updateBrakeStatus;
+        private protected readonly BrakeInformation brakeInfo;
 
         private protected float handbrakePercent;
 
@@ -121,7 +122,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float VacBrakeCylNumber { get; }
         public bool CarBPIntact { get; set; }
 
-        public InformationDictionary DetailInfo => GetBrakeStatus();
+        public DetailInfoBase BrakeInfo => brakeInfo;
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
@@ -149,12 +150,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         protected BrakeSystem(TrainCar car)
         {
             this.car = car;
+            this.brakeInfo = new BrakeInformation(this);
         }
 
-        private InformationDictionary GetBrakeStatus()
+        private protected class BrakeInformation : DetailInfoBase
         {
-            updateBrakeStatus = true;
-            return brakeInfo;
+            private readonly BrakeSystem brakeSystem;
+
+            public BrakeInformation(BrakeSystem brakeSystem) : base(true)
+            {
+                this.brakeSystem = brakeSystem;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    brakeSystem.UpdateBrakeStatus();
+                    base.Update(gameTime);
+                }
+            }
         }
     }
 

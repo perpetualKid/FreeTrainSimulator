@@ -601,12 +601,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                     else
                     {
-                        brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DetailInfo["BC"];
+                        brakeInfo["BC"] = locomotive.BrakeSystem.BrakeInfo.DetailInfo["BC"];
                     }
                 }
                 else
                 {
-                    brakeInfo["BC"] = (locomotive.BrakeSystem as INameValueInformationProvider)?.DetailInfo["BC"];
+                    brakeInfo["BC"] = locomotive.BrakeSystem.BrakeInfo.DetailInfo["BC"];
                     brakeInfo["BailOff"] = locomotive.BailOff ? Simulator.Catalog.GetString("BailOff") : null;
                 }
                 // Fraction not found so display BC                

@@ -595,11 +595,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 prevBrakePipePressurePSI = BrakeLine1PressurePSI;
             }
             SoundTriggerCounter++;
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)

@@ -208,11 +208,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             else
                 f = Math.Max(car.MaxBrakeForceN, car.MaxHandbrakeForceN / 2);
             car.SetBrakeForce(f);
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         // Get the brake BC & BP for EOT conditions

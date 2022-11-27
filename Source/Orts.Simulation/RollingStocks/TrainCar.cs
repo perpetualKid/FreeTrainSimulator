@@ -39,10 +39,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 
 using GetText;
-using GetText.Loaders;
 
 using Microsoft.Xna.Framework;
 
@@ -63,12 +61,10 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
-using SharpDX.Direct3D9;
-
 namespace Orts.Simulation.RollingStocks
 {
 
-    public abstract class TrainCar : IWorldPosition, INameValueInformationProvider
+    public abstract class TrainCar : IWorldPosition
     {
         #region const
         // Input values to allow the temperature for different values of latitude to be calculated
@@ -313,7 +309,7 @@ namespace Orts.Simulation.RollingStocks
         private protected readonly TrainCarInformation carInfo;
         private readonly TrainCarForceInformation forceInfo;
 
-        public InformationDictionary DetailInfo => carInfo;
+        public DetailInfoBase CarInfo => carInfo;
 
         public Dictionary<string, FormatOption> FormattingOptions => carInfo.FormattingOptions;
 

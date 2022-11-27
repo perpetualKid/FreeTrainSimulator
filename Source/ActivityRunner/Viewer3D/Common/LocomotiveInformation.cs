@@ -22,7 +22,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 {
                     MultiColumnCount = 0;
                     MSTSLocomotive playerLocomotive = Simulator.Instance.PlayerLocomotive;
-                    DetailInfoBase current = playerLocomotive.DetailInfo as DetailInfoBase;
+                    DetailInfoBase current = playerLocomotive.CarInfo.DetailInfo as DetailInfoBase;
                     Source = current;
                     current.NextColumn = null;
 
@@ -31,9 +31,9 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     {
                         if (car == playerLocomotive)
                             continue;
-                        current.NextColumn = car.DetailInfo as DetailInfoBase;
+                        current.NextColumn = car.CarInfo.DetailInfo as DetailInfoBase;
                         count++;
-                        current = car.DetailInfo as DetailInfoBase;
+                        current = car.CarInfo.DetailInfo as DetailInfoBase;
                         current.NextColumn = null;
                     }
                     MultiColumnCount = count;

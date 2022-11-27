@@ -1423,7 +1423,7 @@ namespace Orts.Simulation.RollingStocks
         private protected override void UpdateCarStatus()
         {
             base.UpdateCarStatus();
-            carInfo["Engine Status"] = DieselEngines[0].State.GetLocalizedDescription();
+            carInfo["Engine"] = DieselEngines[0].State.GetLocalizedDescription();
             carInfo["Remote"] = $"{(IsLeadLocomotive() ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : RemoteControlGroup.GetLocalizedDescription())}";
             if (DieselEngines.GearBox is GearBox gearBox)
             {

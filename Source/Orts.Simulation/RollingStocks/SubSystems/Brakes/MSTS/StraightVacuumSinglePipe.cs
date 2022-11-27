@@ -349,11 +349,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     base.Update(elapsedClockSeconds);
                 }
             }
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         // This overides the information for each individual wagon in the extended HUD  

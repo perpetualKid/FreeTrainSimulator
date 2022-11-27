@@ -678,11 +678,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             }
             soundTriggerCounter = soundTriggerCounter + (float)elapsedClockSeconds;
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)

@@ -254,7 +254,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 if (groupDetails[GroupDetail.BrakePipe]?.Controls[i] is Label brakeLabel)
                 {
-                    string brakePipe = (groupLead.BrakeSystem as INameValueInformationProvider).DetailInfo["BP"];
+                    string brakePipe = groupLead.BrakeSystem.BrakeInfo.DetailInfo["BP"];
                     if (windowMode != WindowMode.Normal)
                         brakePipe = brakePipe?.Split(' ')[0];
                     brakeLabel.Text = brakePipe;
@@ -276,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     // EQ
                     if (groupDetails[GroupDetail.EqualizerReservoir]?.Controls[i] is Label eqLabel)
                     {
-                        string eqReservoir = (groupLead.BrakeSystem as INameValueInformationProvider).DetailInfo["EQ"];
+                        string eqReservoir = groupLead.BrakeSystem.BrakeInfo.DetailInfo["EQ"];
                         if (windowMode != WindowMode.Normal)
                             eqReservoir = eqReservoir?.Split(' ')[0];
                         eqLabel.Text = eqReservoir ?? "———";
@@ -285,7 +285,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     // BC
                     if (groupDetails[GroupDetail.BrakeCylinder]?.Controls[i] is Label bcLabel)
                     {
-                        string bcPressure = (groupLead.BrakeSystem as INameValueInformationProvider).DetailInfo["BC"];
+                        string bcPressure = groupLead.BrakeSystem.BrakeInfo.DetailInfo["BC"];
                         if (windowMode != WindowMode.Normal)
                             bcPressure = bcPressure?.Split(' ')[0];
                         bcLabel.Text = bcPressure;

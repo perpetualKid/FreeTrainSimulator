@@ -160,11 +160,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             BleedOffValveOpen = false;
             car.SetBrakeForce(car.MaxHandbrakeForceN * handbrakePercent / 100);
-            if (updateBrakeStatus)
-            {
-                UpdateBrakeStatus();
-                updateBrakeStatus = false;
-            }
+            brakeInfo.Update(null);
         }
 
         private protected override void UpdateBrakeStatus()
