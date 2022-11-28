@@ -10,17 +10,17 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public LocomotiveBrakeInformation()
         {
-            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.BrakeSystem.BrakeInfo;
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.LocomotiveBrakeInfo;
         }
 
         public override void Next()
         {
-            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.BrakeSystem.BrakeInfo;
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.LocomotiveBrakeInfo;
         }
 
         public override void Previous()
         {
-            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.PreviousOf(locomotive))?.BrakeSystem.BrakeInfo;
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.PreviousOf(locomotive))?.LocomotiveBrakeInfo;
         }
     }
 }

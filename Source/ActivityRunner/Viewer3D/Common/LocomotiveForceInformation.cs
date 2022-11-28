@@ -1,8 +1,4 @@
-﻿using System.Linq;
-
-using Microsoft.Xna.Framework;
-
-using Orts.Common.DebugInfo;
+﻿using Orts.Common.DebugInfo;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 

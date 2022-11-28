@@ -47,8 +47,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -424,7 +426,9 @@ namespace Orts.Simulation.RollingStocks
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem;
 
+        private protected readonly LocomotiveBrakeInformation locomotiveBrakeInfo;
         private protected readonly LocomotiveForceInformation locomotiveForceInfo;
+        public DetailInfoBase LocomotiveBrakeInfo => locomotiveBrakeInfo;
         public DetailInfoBase LocomotiveForceInfo => locomotiveForceInfo;
 
         public Axle LocomotiveAxle;
@@ -471,6 +475,7 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeController = new MSTSNotchController();
             TrainControlSystem = new ScriptedTrainControlSystem(this);
             locomotiveForceInfo = new LocomotiveForceInformation(this);
+            locomotiveBrakeInfo = new LocomotiveBrakeInformation(this);
         }
 
         /// <summary>
@@ -2136,7 +2141,8 @@ namespace Orts.Simulation.RollingStocks
             PrevMotiveForceN = MotiveForceN;
             base.Update(elapsedClockSeconds);
 
-            LocomotiveForceInfo.Update(null);
+            locomotiveBrakeInfo.Update(null);
+            locomotiveForceInfo.Update(null);
         } // End Method Update
 
         /// <summary>
@@ -5661,6 +5667,64 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Outside Temperature"] = FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits);
                 carInfo["Steam Heat Flow Rate"] = $"{Train.LastCar.carNetHeatFlowRateW:N0}";
                 carInfo[".steamheat1"] = null;
+            }
+        }
+
+        private protected class LocomotiveBrakeInformation : DetailInfoBase
+        {
+            private readonly MSTSLocomotive locomotive;
+            private static readonly bool metricUnits = Simulator.Instance.MetricUnits;
+
+            public LocomotiveBrakeInformation(MSTSLocomotive locomotive) : base(true)
+            {
+                this.locomotive = locomotive;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    this["Car"] = locomotive.CarID;
+                    if (locomotive.BrakeSystem is VacuumSinglePipe) // If vacuum brakes are used
+                    {
+                        if (locomotive.VacuumBrakeEQFitted)
+                        {
+                            this["Main reservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(locomotive.VacuumMainResVacuumPSIAorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+                            this["Exhauster"] = locomotive.VacuumExhausterIsOn ? "on" : "off";
+                        }
+                        else if (locomotive.VacuumPumpFitted)
+                        {
+                            if (locomotive.SmallEjectorControllerFitted) // Display if vacuum pump, large ejector and small ejector fitted
+                            {
+                                this["Large Ejector"] = locomotive.LargeSteamEjectorIsOn ? "on" : "off";
+                                this["Small Ejector"] = locomotive.SmallSteamEjectorIsOn ? "on" : "off";
+                                this["Pressure"] = FormatStrings.FormatPressure(locomotive.SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, locomotive.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true);
+                                this["Vacuum Pump"] = locomotive.VacuumPumpOperating ? "on" : "off";
+                            }
+                            else // Display if vacuum pump, and large ejector only fitted
+                            {
+                                this["Large Ejector"] = locomotive.LargeSteamEjectorIsOn ? "on" : "off";
+                                this["Vacuum Pump"] = locomotive.VacuumPumpOperating ? "on" : "off";
+                            }
+                        }
+                        else // Display if large ejector and small ejector only fitted
+                        {
+                            this["Large Ejector"] = locomotive.LargeSteamEjectorIsOn ? "on" : "off";
+                            this["Small Ejector"] = locomotive.SmallSteamEjectorIsOn ? "on" : "off";
+                            this["Pressure"] = FormatStrings.FormatPressure(locomotive.SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, locomotive.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true);
+                        }
+
+                        // Lines to show brake system volumes
+                        this["Train Pipe Vol"] = FormatStrings.FormatVolume(locomotive.Train.BrakeSystem.TotalTrainBrakePipeVolume, Simulator.Instance.MetricUnits);
+                        this["Brake Cylinder Vol"] = FormatStrings.FormatVolume(locomotive.Train.BrakeSystem.TotalTrainBrakeCylinderVolume, Simulator.Instance.MetricUnits);
+                        this["Air Vol"] = FormatStrings.FormatVolume(locomotive.Train.BrakeSystem.TotalCurrentTrainBrakeSystemVolume, Simulator.Instance.MetricUnits);
+                    }
+                    else
+                    {
+                        this["Main reservoir"] = locomotive.EngineType == EngineType.Control ? "None" : FormatStrings.FormatPressure(locomotive.MainResPressurePSI, Pressure.Unit.PSI, locomotive.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true);
+                        this["Compressor"] = locomotive.EngineType == EngineType.Control ? "None" : locomotive.CompressorIsOn ? "on" : "off";
+                    }
+                }
             }
         }
 

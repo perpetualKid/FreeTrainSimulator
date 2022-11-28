@@ -21,22 +21,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Common.Info;
-using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
@@ -81,7 +77,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var textPages = new List<Action<TableData>>();
             textPages.Add(TextPageCommon);
             textPages.Add(TextPagePowerSupplyInfo);
-            textPages.Add(TextPageBrakeInfo);
             TextPages = textPages.ToArray();
 
             TextFont = owner.TextFontMonoSpacedOutlined;
@@ -209,20 +204,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             TableSetCell(table, table.CurrentRow, 0, format, args);
             table.CurrentRow++;
-        }
-
-        private static void TableAddLines(TableData table, string lines)
-        {
-            if (lines == null)
-                return;
-
-            foreach (var line in lines.Split('\n'))
-            {
-                var column = 0;
-                foreach (var cell in line.Split('\t'))
-                    TableSetCell(table, column++, "{0}", cell);
-                table.CurrentRow++;
-            }
         }
 
         private static void TableSetLabelValueColumns(TableData table, int labelColumn, int valueColumn)
@@ -443,148 +424,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        private void TextPageBrakeInfo(TableData table)
-        {
-            TextPageHeading(table, Viewer.Catalog.GetString("BRAKE INFORMATION"));
-
-            ResetHudScroll(); //Reset Hudscroll.
-
-            var train = Viewer.PlayerLocomotive.Train;
-            var mstsLocomotive = Viewer.PlayerLocomotive as MSTSLocomotive;
-            var HUDEngineType = mstsLocomotive.EngineType;
-
-            if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted) // Only display the following information if a train brake is defined.
-            {
-                // If vacuum brakes are used then use this display
-                if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystem is VacuumSinglePipe)
-                {
-                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumBrakeEQFitted)
-                    {
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Main reservoir"),
-                        FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                        Viewer.Catalog.GetString("Exhauster"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                    }
-
-                    else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && (Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorControllerFitted)
-                    {
-                        // Display if vacuum pump, large ejector and small ejector fitted
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}\t\t{7}\t\t{8}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Large Ejector"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                        Viewer.Catalog.GetString("Small Ejector"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                        Viewer.Catalog.GetString("Pressure"),
-                        FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                        Viewer.Catalog.GetString("Vacuum Pump"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")
-                        ));
-                    }
-                    else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && !(Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorControllerFitted) // Change display so that small ejector is not displayed for vacuum pump operated locomotives
-                    {
-                        // Display if vacuum pump, and large ejector only fitted
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Large Ejector"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                        Viewer.Catalog.GetString("Vacuum Pump"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                    }
-                    else
-                    {
-                        // Display if large ejector and small ejector only fitted
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Large Ejector"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                        Viewer.Catalog.GetString("Small Ejector"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                        Viewer.Catalog.GetString("Pressure"),
-                        FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
-                    }
-
-                    // Lines to show brake system volumes
-                    TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
-                    Viewer.Catalog.GetString("Brake Sys Vol"),
-                    Viewer.Catalog.GetString("Train Pipe"),
-                    FormatStrings.FormatVolume(train.BrakeSystem.TotalTrainBrakePipeVolume, Simulator.Instance.MetricUnits),
-                    Viewer.Catalog.GetString("Brake Cyl"),
-                    FormatStrings.FormatVolume(train.BrakeSystem.TotalTrainBrakeCylinderVolume, Simulator.Instance.MetricUnits),
-                    Viewer.Catalog.GetString("Air Vol"),
-                    FormatStrings.FormatVolume(train.BrakeSystem.TotalCurrentTrainBrakeSystemVolume, Simulator.Instance.MetricUnits)
-                    ));
-                }
-                else  // Default to air or electronically braked, use this display
-                {
-                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineType == EngineType.Control)
-                    {
-                        // Control cars typically don't have reservoirs
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}",
-                            Viewer.Catalog.GetString("PlayerLoco"),
-                            Viewer.Catalog.GetString("No compressor or reservoir fitted")
-                            ));
-                    }
-                    else
-                    {
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Main reservoir"),
-                        FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                        Viewer.Catalog.GetString("Compressor"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                    }
-                }
-
-                // Display data for other locomotives
-                for (var i = 0; i < train.Cars.Count; i++)
-                {
-                    var car = train.Cars[i];
-                    if (car is MSTSLocomotive && car != Viewer.PlayerLocomotive)
-                    {
-                        if ((car as MSTSLocomotive).EngineType == EngineType.Control)
-                        {
-                            // Control cars typically don't have reservoirs
-                            TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}",
-                                Viewer.Catalog.GetString("Loco"),
-                                car.CarID));
-                        }
-                        else
-                        {
-                            TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}",
-                                Viewer.Catalog.GetString("Loco"),
-                                car.CarID,
-                                Viewer.Catalog.GetString("Main reservoir"),
-                                FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                                Viewer.Catalog.GetString("Compressor"),
-                                (car as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                        }
-                    }
-                }
-                TableAddLine(table);
-            }
-        }
-
         private bool lResetHudScroll;
-        /// <summary>
-        /// Reset Scroll Control window
-        /// </summary>
-        private void ResetHudScroll()
-        {
-            if (!lResetHudScroll)
-            {
-                hudWindowLinesActualPage = 1;
-                hudWindowLinesPagesCount = 1;
-                hudWindowColumnsActualPage = 0;
-                hudWindowColumnsPagesCount = 0;
-                hudWindowLocoPagesCount = 1;
-                hudWindowSteamLocoLead = false;
-                lResetHudScroll = true;
-                BrakeInfoVisible = false;//Enable PgUp & PgDown (Scroll nav window)
-            }
-        }
 
         private static void TextPageHeading(TableData table, string name)
         {
