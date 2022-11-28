@@ -27,5 +27,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             mrpAuxResCharging = true;
             debugBrakeType = "2P";
         }
+
+        private protected override void UpdateBrakeStatus()
+        {
+            base.UpdateBrakeStatus();
+            brakeInfo["BrakeType"] = "2P";
+        }
     }
 }

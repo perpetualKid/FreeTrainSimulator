@@ -141,50 +141,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return s;
         }
 
-        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
-        {
-            MSTSLocomotive lead = car.Train.LeadLocomotive;
-
-            if (lead != null && lead.BrakeSystem is SMEBrakeSystem)
-            {
-                // Set values for SME type brake
-                return new string[] {
-                debugBrakeType,
-                string.Format("{0}{1}",FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true), (car as MSTSWagon).WheelBrakeSlideProtectionActive ? "???" : ""),
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
-                FormatStrings.FormatPressure(auxResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.AuxiliaryReservoir], true),
-                (car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(emergResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
-                TwoPipes ? FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
-                (car as MSTSWagon).RetainerPositions == 0 ? string.Empty : retainerDebugState,
-                tripleValveState.GetLocalizedDescription(),
-                string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? string.Format("{0:F0}%", handbrakePercent) : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                string.Format("A{0} B{1}", AngleCockAOpen ? "+" : "-", AngleCockBOpen ? "+" : "-"),
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
-                };
-            }
-            else
-            {
-                return new string[] {
-                debugBrakeType,
-                $"{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}{((car as MSTSWagon).WheelBrakeSlideProtectionActive ? "???" : "")}",
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
-                FormatStrings.FormatPressure(auxResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.AuxiliaryReservoir], true),
-                (car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(emergResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
-                TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
-                (car as MSTSWagon).RetainerPositions == 0 ? string.Empty : retainerDebugState,
-                tripleValveState.GetLocalizedDescription(),
-                string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : " ",//HudScroll feature requires for the last value, at least one space instead of string.Empty,
-                };
-            }
-
-        }
-
         public override float GetCylPressurePSI()
         {
             return cylPressurePSI;
@@ -1019,12 +975,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
-            brakeInfo["EQ"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.EqualizingReservoir], true);
-            brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], true);
-            brakeInfo["BP"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], true);
+            EnumArray<Pressure.Unit, BrakeSystemComponent> pressureUnits = Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits;
+            brakeInfo["Car"] = car.CarID;
+            brakeInfo["BrakeType"] = "1P";
             brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+
+            if (car.Train.LeadLocomotive?.BrakeSystem is SMEBrakeSystem)
+            {
+                // Set values for SME type brake
+                brakeInfo["SrvPipe"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);                
+                brakeInfo["StrPipe"] = TwoPipes ? FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
+            }
+            else
+            {
+                brakeInfo["MainReservoirPipe"] = TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
+            }
+            brakeInfo["AuxReservoir"] = FormatStrings.FormatPressure(auxResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.AuxiliaryReservoir], true);
+            brakeInfo["EmergencyReservoir"] = (car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(emergResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EmergencyReservoir], true) : null;
+            brakeInfo["RetainerValve"] = (car as MSTSWagon).RetainerPositions == 0 ? null : retainerDebugState;
+            brakeInfo["TripleValve"] = tripleValveState.GetLocalizedDescription();
+
+            brakeInfo["EQ"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EqualizingReservoir], true);
+            brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], true);
+            brakeInfo["BP"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
             brakeInfo["Status"] = $"BC {brakeInfo["BC"]} BP {brakeInfo["BP"]}";
-            brakeInfo["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], false)} BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], false)}";
+            brakeInfo["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], false)} BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], false)}";
         }
     }
 }

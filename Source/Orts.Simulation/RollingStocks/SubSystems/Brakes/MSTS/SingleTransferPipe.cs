@@ -107,48 +107,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
-        {
-            if (null == units)
-                throw new ArgumentNullException(nameof(units));
-            // display differently depending upon whether vacuum or air braked system
-            if (car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
-            {
-
-                return new string[] {
-                debugBrakeType,
-                string.Empty,
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                string.Empty,
-                string.Empty, // Spacer because the state above needs 2 columns.
-                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
-                };
-            }
-            else  // air braked by default
-            {
-
-                return new string[] {
-                debugBrakeType,
-                string.Empty,
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
-                };
-
-            }
-        }
-
         public override float GetCylPressurePSI()
         {
             return 0;
@@ -165,6 +123,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
+            base.UpdateBrakeStatus();
+            brakeInfo["BrakeType"] = "-";
+
             // display differently depending upon whether vacuum or air braked system
             brakeInfo["BP"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
                 FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true) :

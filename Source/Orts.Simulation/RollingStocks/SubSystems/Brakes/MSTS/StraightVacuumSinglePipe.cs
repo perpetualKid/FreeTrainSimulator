@@ -352,53 +352,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             brakeInfo.Update(null);
         }
 
-        // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
-        {
-
-            if (!(car as MSTSWagon).NonAutoBrakePresent)
-            {
-                // display as a automatic vacuum brake
-
-                return new string[] {
-                "1V",
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected? "I" : "T",
-                $"A{(AngleCockAOpen? "+" : "-")} B{(AngleCockBOpen? "+" : "-")}",
-                };
-            }
-            else
-            {
-                // display as a straight vacuum brake
-
-                return new string[] {
-                "1VS",
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected? "I" : "T",
-                $"A{(AngleCockAOpen? "+" : "-")} B{(AngleCockBOpen? "+" : "-")}",
-                };
-            }
-        }
-
         private protected override void UpdateBrakeStatus()
         {
+            brakeInfo["Car"] = car.CarID;
+            brakeInfo["BrakeType"] = (car as MSTSWagon).NonAutoBrakePresent ? "1VS" : "1V";
+            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+
+            brakeInfo["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            if (!(car as MSTSWagon).NonAutoBrakePresent)
+                brakeInfo["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
         }

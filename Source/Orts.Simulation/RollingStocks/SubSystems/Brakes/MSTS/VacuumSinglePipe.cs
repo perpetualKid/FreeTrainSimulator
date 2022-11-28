@@ -61,7 +61,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         private float SteamBrakeCompensation;
         private float SteamBrakingCurrentFraction;
 
-        public VacuumSinglePipe(TrainCar car): base(car)
+        public VacuumSinglePipe(TrainCar car) : base(car)
         {
             // taking into account very short (fake) cars to prevent NaNs in brake line pressures
             base.BrakePipeVolumeM3 = (0.050f * 0.050f * (float)Math.PI / 4f) * Math.Max(5.0f, (1 + car.CarLengthM)); // Using (2") pipe
@@ -135,47 +135,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return s;
         }
 
-        public override string[] GetDebugStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
-        {
-            if (LocomotiveSteamBrakeFitted)
-            {
-                return new string[] {
-                "S",
-                $"{FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI,  Pressure.Unit.PSI, true):F0}",
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty, // Spacer because the state above needs 2 columns.
-                (car as MSTSWagon).HandBrakePresent ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
-                };
-            }
-            else
-            {
-
-                return new string[] {
-                "1V",
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                //string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : string.Empty,
-                FrontBrakeHoseConnected ? "I" : "T",
-                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
-                };
-            }
-        }
-
         public override float GetCylPressurePSI()
         {
             return LocomotiveSteamBrakeFitted && (car.WagonType == WagonType.Engine || car.WagonType == WagonType.Tender)
@@ -199,9 +158,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             switch (lowercasetoken)
             {
-                case "wagon(brakecylinderpressureformaxbrakebrakeforce": MaxForcePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultInHg, null); break;
-                case "wagon(maxreleaserate": MaxReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null); break;
-                case "wagon(maxapplicationrate": MaxApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null); break;
+                case "wagon(brakecylinderpressureformaxbrakebrakeforce":
+                    MaxForcePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultInHg, null);
+                    break;
+                case "wagon(maxreleaserate":
+                    MaxReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null);
+                    break;
+                case "wagon(maxapplicationrate":
+                    MaxApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null);
+                    break;
                 case "wagon(ortsdirectadmissionvalve":
                     DirectAdmissionValve = stf.ReadFloatBlock(STFReader.Units.None, null);
                     if (DirectAdmissionValve == 1.0f)
@@ -214,13 +179,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
                     break;
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "wagon(ortsauxilaryrescapacity": VacResVolM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume":
+                    BrakePipeVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
+                case "wagon(ortsauxilaryrescapacity":
+                    VacResVolM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
                 case "wagon(ortsbrakecylindersize":
                     float BrakeCylSizeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
                     BrakeCylVolM3 = (float)Size.Volume.FromIn3(((Size.Length.ToIn(BrakeCylSizeM) / 2) * (Size.Length.ToIn(BrakeCylSizeM) / 2) * 4.5 * Math.PI)); // Calculate brake cylinder volume based upon size of BC, 4.5" of piston travel
                     break;
-                case "wagon(ortsnumberbrakecylinders": NumBrakeCylinders = stf.ReadIntBlock(null); break;
+                case "wagon(ortsnumberbrakecylinders":
+                    NumBrakeCylinders = stf.ReadIntBlock(null);
+                    break;
             }
         }
 
@@ -549,7 +520,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 if (f < car.MaxHandbrakeForceN * handbrakePercent / 100)
                     f = car.MaxHandbrakeForceN * handbrakePercent / 100;
             }
-            else 
+            else
                 f = Math.Max(car.MaxBrakeForceN, car.MaxHandbrakeForceN / 2);
             car.SetBrakeForce(f);
             // sound trigger checking runs every 4th update, to avoid the problems caused by the jumping BrakeLine1PressurePSI value, and also saves cpu time :)
@@ -1409,8 +1380,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override void AISetPercent(float percent)
         {
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
+            if (percent < 0)
+                percent = 0;
+            if (percent > 100)
+                percent = 100;
             car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg = (float)Pressure.Vacuum.FromPressure(Const.OneAtmospherePSI - MaxForcePressurePSI * (1 - percent / 100));
         }
 
@@ -1428,6 +1401,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
+            brakeInfo["Car"] = car.CarID;
+            brakeInfo["BrakeType"] = LocomotiveSteamBrakeFitted ? "S" : "1V";
+            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+
             // display depending upon whether an EQ reservoir fitted
             if (car.Train.BrakeSystem.EQEquippedVacLoco)
             {
@@ -1444,8 +1424,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 brakeInfo["V"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             }
 
-            brakeInfo["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInfo["BC"] = LocomotiveSteamBrakeFitted ? FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI, Pressure.Unit.PSI, true) :
+                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            if (!LocomotiveSteamBrakeFitted)
+                brakeInfo["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
             brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
         }

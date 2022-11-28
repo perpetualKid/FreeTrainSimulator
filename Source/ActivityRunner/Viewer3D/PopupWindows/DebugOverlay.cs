@@ -61,6 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private NameValueTextGrid dispatcherGrid;
         private NameValueTextGrid locomotiveGrid;
         private NameValueTextGrid forceTableGrid;
+        private NameValueTextGrid brakeTableGrid;
         private NameValueTextGrid scrollableGrid;
         private NameValueTextGrid locomotiveForceGrid;
         private NameValueTextGrid locomotiveBrakeGrid;
@@ -188,13 +189,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveBrake]
                 });
-                //int y = (int)(360 * Owner.DpiScaling);
-                //layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
-                //{
-                //    OutlineRenderOptions = OutlineRenderOptions.Default,
-                //    ColumnWidth = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100, },
-                //    InformationProvider = viewer.DetailInfo[DetailInfoType.ForceDetails],
-                //});
+                int y = (int)(360 * Owner.DpiScaling);
+                layoutContainer.Add(brakeTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 40, 64, 64, 100 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.BrakeDetails],
+                });
             };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
             {
@@ -337,6 +338,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 TabSettings.Consist => consistTableGrid,
                 TabSettings.Locomotive => locomotiveGrid,
                 TabSettings.Force => forceTableGrid,
+                TabSettings.Brake => brakeTableGrid,
                 TabSettings.DistributedPower => distributedPowerTableGrid,
                 TabSettings.Dispatcher => dispatcherGrid,
                 _ => null,
