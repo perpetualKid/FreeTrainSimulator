@@ -31,6 +31,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("Consist Information")] Consist,
             [Description("Locomotive Information")] Locomotive,
             [Description("Force Information")] Force,
+            [Description("Brake Information")] Brake,
             [Description("Distributed Power Information")] DistributedPower,
             [Description("Game Information")] GameDetails,
             [Description("Dispatcher Information")] Dispatcher,
@@ -53,7 +54,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private GraphControl graphPowerInput;
         private GraphControl graphPowerOutput;
         private GraphControl graphMotiveForce;
-        private GraphControl graphDynamicForce;
         private GraphControl graphForceSubsteps;
 
         private NameValueTextGrid consistTableGrid;
@@ -63,6 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private NameValueTextGrid forceTableGrid;
         private NameValueTextGrid scrollableGrid;
         private NameValueTextGrid locomotiveForceGrid;
+        private NameValueTextGrid locomotiveBrakeGrid;
         private NameValueTextGrid changeableGrid;
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
@@ -152,9 +153,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
-                layoutContainer.Add(graphThrottle = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0", "100 %", Catalog.GetString("Throttle"), graphWidth / 2) { GraphColor = Color.Blue });
-                layoutContainer.Add(graphPowerInput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Input"), graphWidth / 2) { GraphColor = Color.Yellow });
-                layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green });
+                layoutContainer.Add(graphThrottle = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0 %", "100 %", Catalog.GetString("Throttle"), graphWidth / 2) { GraphColor = Color.Blue });
+                layoutContainer.Add(graphPowerInput = new GraphControl(this, 0, 15, graphWidth, 40, "0 %", "100 %", Catalog.GetString("Power Input"), graphWidth / 2) { GraphColor = Color.Yellow });
+                layoutContainer.Add(graphPowerOutput = new GraphControl(this, 0, 15, graphWidth, 40, "0 %", "100 %", Catalog.GetString("Power Output"), graphWidth / 2) { GraphColor = Color.Green });
 
             };
             tabLayout.TabLayouts[TabSettings.Force] = (layoutContainer) =>
@@ -175,9 +176,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
-                layoutContainer.Add(graphMotiveForce = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(160 * Owner.DpiScaling), graphWidth, 40, "0", "100 %", Catalog.GetString("Motive Force"), graphWidth / 2) { GraphColor = Color.LimeGreen });
-                layoutContainer.Add(graphDynamicForce = new GraphControl(this, 0, 15, graphWidth, 40, "0", "100 %", Catalog.GetString("Dynamic Force"), graphWidth / 2) { GraphColor = Color.MediumVioletRed });
-                layoutContainer.Add(graphForceSubsteps = new GraphControl(this, 0, 15, graphWidth, 40, "0", "300 %", Catalog.GetString("Number of Substeps"), graphWidth / 2) { GraphColor = Color.DeepSkyBlue });
+                layoutContainer.Add(graphMotiveForce = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(120 * Owner.DpiScaling), graphWidth, 40, "0 %", "100 %", Catalog.GetString("Motive Force"), graphWidth / 2) { GraphColor = Color.LimeGreen });
+                layoutContainer.Add(graphForceSubsteps = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(60 * Owner.DpiScaling), graphWidth, 40, "0", "300", Catalog.GetString("Number of Substeps"), graphWidth / 2) { GraphColor = Color.DeepSkyBlue });
+            };
+            tabLayout.TabLayouts[TabSettings.Brake] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                layoutContainer.Add(locomotiveBrakeGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 240, -1 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveBrake]
+                });
+                //int y = (int)(360 * Owner.DpiScaling);
+                //layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
+                //{
+                //    OutlineRenderOptions = OutlineRenderOptions.Default,
+                //    ColumnWidth = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100, },
+                //    InformationProvider = viewer.DetailInfo[DetailInfoType.ForceDetails],
+                //});
             };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
             {
@@ -331,6 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             changeableGrid = tabLayout.CurrentTab switch
             {
                 TabSettings.Force => locomotiveForceGrid,
+                TabSettings.Brake=> locomotiveBrakeGrid,
                 _ => null,
             };
         }

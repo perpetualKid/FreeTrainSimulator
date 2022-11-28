@@ -2,7 +2,6 @@
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
@@ -15,32 +14,17 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public LocomotiveForceInformation() 
         {
-            Next();
-            Source = locomotive.LocomotiveForceInfo;
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            if (UpdateNeeded)
-            {
-                base.Update(gameTime);
-            }
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.LocomotiveForceInfo;
         }
 
         public override void Next()
         {
-            locomotive = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSLocomotive>().SkipWhile(x => x != locomotive).Skip(1).FirstOrDefault();
-            if (locomotive == null)
-                locomotive = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
-            Source = locomotive.LocomotiveForceInfo;
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.NextOf(locomotive))?.LocomotiveForceInfo;
         }
 
         public override void Previous()
         {
-            locomotive = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSLocomotive>().TakeWhile(x => x != locomotive).LastOrDefault();
-            if (locomotive == null)
-                locomotive = Simulator.Instance.PlayerLocomotive.Train.Cars.OfType<MSTSLocomotive>().LastOrDefault();
-            Source = locomotive.LocomotiveForceInfo;
+            Source = (locomotive = Simulator.Instance.PlayerLocomotive.Train.PreviousOf(locomotive))?.LocomotiveForceInfo;
         }
     }
 }

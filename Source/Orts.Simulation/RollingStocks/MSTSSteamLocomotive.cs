@@ -7355,7 +7355,7 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Friction Coeff."] = $"{Train.LocomotiveCoefficientFriction:N2}";
                 carInfo["Sliping"] = IsLocoSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
                 carInfo["Drivewheel Mass"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), simulator.MetricUnits);
-                carInfo["Adhesion Factor"] = $"{CalculatedFactorofAdhesion:M1}";
+                carInfo["Adhesion Factor"] = $"{CalculatedFactorofAdhesion:N1}";
 
                 carInfo["Sander"] = null;
                 carInfo["Sander Consumption"] = FormatStrings.FormatVolume(TrackSanderSandConsumptionM3pS, simulator.MetricUnits);

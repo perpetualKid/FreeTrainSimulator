@@ -113,6 +113,11 @@ namespace Orts.Simulation.Physics
 
         public TrainCar FirstCar => Cars[0];
         public TrainCar LastCar => Cars[^1];
+
+        public T NextOf<T>(T current) where T : TrainCar => Cars.OfType<T>().SkipWhile(t => t != current).Skip(1).FirstOrDefault() ?? Cars.OfType<T>().FirstOrDefault();
+
+        public T PreviousOf<T>(T current) where T : TrainCar => Cars.OfType<T>().TakeWhile(t => t != current).LastOrDefault() ?? Cars.OfType<T>().LastOrDefault();
+
         public bool IsActive => TrainType == TrainType.Player || (this is AITrain aITrain && aITrain.MovementState != AiMovementState.Static && !(TrainType == TrainType.AiIncorporated && !IncorporatingTrain.IsPathless));
 
         public Traveller RearTDBTraveller { get; internal set; }               // positioned at the back of the last car in the train
