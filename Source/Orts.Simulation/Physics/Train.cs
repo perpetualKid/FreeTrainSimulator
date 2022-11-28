@@ -12255,10 +12255,10 @@ namespace Orts.Simulation.Physics
                     {
                         string SignalState(int direction)
                         {
-                            SignalAspectState nextAspect = train.NextSignalObject[direction].EnabledTrain?.Train != train ? SignalAspectState.Stop : train.GetNextSignalAspect(direction);  // aspect only valid if signal enabled for this train
+                            SignalAspectState nextAspect = train.NextSignalObject[direction]?.EnabledTrain?.Train != train ? SignalAspectState.Stop : train.GetNextSignalAspect(direction);  // aspect only valid if signal enabled for this train
 
                             string result = nextAspect.GetLocalizedDescription();
-                            if (nextAspect == SignalAspectState.Stop && train.NextSignalObject[direction].OverridePermission == SignalPermission.Granted)
+                            if (nextAspect == SignalAspectState.Stop && train.NextSignalObject[direction]?.OverridePermission == SignalPermission.Granted)
                                 result += $" ({catalog.GetString("Granted")})";
                             return result;
                         }
