@@ -580,6 +580,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new DebugOverlay(windowManager, Settings, this);
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.CarIdentifierOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            {
+                return new CarIdentifierOverlay(windowManager, Settings, this);
+            }));
 
             Game.GameComponents.Add(windowManager);
 
@@ -764,6 +768,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     OSDCars.TabAction();
                 else
                 {
+                    windowManager[ViewerWindowType.CarIdentifierOverlay].ToggleVisibility();
                     OSDCars.Visible = !OSDCars.Visible;
                     if (OSDCars.Visible)
                     {

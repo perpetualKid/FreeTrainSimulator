@@ -48,8 +48,6 @@ namespace Orts.Graphics.DrawableComponents
             {
                 return textRenderer.RenderText(message, font, OutlineRenderOptions);
             });
-            if (null != OutlineRenderOptions)
-                color = Color.White;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
             (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);

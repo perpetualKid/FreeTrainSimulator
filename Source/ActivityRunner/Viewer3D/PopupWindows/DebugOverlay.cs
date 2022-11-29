@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly UserSettings settings;
 
         private TabLayout<TabSettings> tabLayout;
-        private readonly System.Drawing.Font textFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[13];
+        private readonly System.Drawing.Font textFont = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular)[13];
 
         private GraphControl graphFrameTime;
         private GraphControl graphFrameRate;

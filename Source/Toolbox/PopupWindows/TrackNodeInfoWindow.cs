@@ -18,7 +18,7 @@ namespace Orts.Toolbox.PopupWindows
         private NameValueTextGrid trackNodeInfoGrid;
 
         public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 178), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 182), catalog)
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;

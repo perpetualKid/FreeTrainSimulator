@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using GetText;
@@ -78,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 noticeLabel.TextColor = color;
             }
             int messageNumber = 1;
-            for (int i = messages.Count - 1; i >= 0; i--)
+            for (int i = Math.Min(messages.Count, messageLines.Length) - 1; i >= 0; i--)
             {
                 if (messages[i].endTime + MessageAnimationLength < currentTime)
                 {
@@ -89,7 +90,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     if (messageLines[^messageNumber++].Controls[0] is ShadowLabel label)
                     {
-                        label.Text = messages[i].message;
+                        label.Text = $"{FormatStrings.FormatTime(messages[i].startTime)} {messages[i].message}";
                         Color color = Color.White;
                         color.A = (byte)MathHelper.Lerp(255, 0, MathHelper.Clamp((float)((currentTime - messages[i].endTime) / MessageAnimationLength), 0, 1));
                         label.TextColor = color;
@@ -113,19 +114,20 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         internal void AddMessage(string key, string message, double duration)
         {
             double gameTime = Simulator.Instance.GameTime;
-            bool keyExists;
+            bool messageExists;
             replacementList.Clear();
             replacementList.AddRange(messages);
 
             // Find an existing message if there is one.
             (string key, string message, double startTime, double endTime) existingMessage = default;
-            keyExists = (!string.IsNullOrEmpty(key) && (existingMessage = replacementList.FirstOrDefault(m => m.key == key)).key == key);
-            if (keyExists)
+            messageExists = ((!string.IsNullOrEmpty(key) && (existingMessage = replacementList.FirstOrDefault(m => m.key == key)).key == key) ||
+                ((existingMessage = replacementList.FirstOrDefault(m => m.message == message)).message == message));
+            if (messageExists)
             {
                 _ = replacementList.Remove(existingMessage);
             }
             // Add the new message.
-            replacementList.Add((key, $"{FormatStrings.FormatTime(Simulator.Instance.ClockTime)} {message}",  keyExists ? existingMessage.startTime : gameTime, gameTime + duration));
+            replacementList.Add((key, message,  messageExists ? existingMessage.startTime : Simulator.Instance.ClockTime, gameTime + duration));
             replacementList.Sort(comparer);
 
             lock (replacementList)

@@ -42,6 +42,11 @@ namespace Orts.Graphics.Window.Controls
         protected override void InitializeText(string text)
         {
             base.InitializeText(text);
+            if (texture == resourceHolder.EmptyTexture)
+            {
+                roundedShadowTexture = null;
+                return;
+            }
             topRight = new Point(texture.Width - cornerRadius, 0);
             rectangleShadow = new Rectangle(cornerRadius, 0, texture.Width - 2 * cornerRadius, texture.Height);
             PrepareShadowTexture();
@@ -82,6 +87,8 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
+            if (null == roundedShadowTexture || texture == resourceHolder.EmptyTexture)
+                return;
             spriteBatch.Draw(roundedShadowTexture, (Bounds.Location + offset + alignmentOffset).ToVector2(), TextColor);
             spriteBatch.Draw(roundedShadowTexture, (Bounds.Location + offset + alignmentOffset + topRight).ToVector2(), null, TextColor, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0);
             Rectangle target = rectangleShadow;

@@ -25,10 +25,13 @@ namespace Orts.Graphics.Xna
 
         public OutlineRenderOptions(float width, Color outlineColor, Color fillColor)
         {
+            //changing Color format from ARGB to Monogame ABGR
+            outlineColor = Color.FromArgb(outlineColor.A, outlineColor.B, outlineColor.G, outlineColor.R);
             Pen = new Pen(outlineColor, width)
             {
                 LineJoin = LineJoin.Round
             };
+            fillColor = Color.FromArgb(fillColor.A, fillColor.B, fillColor.G, fillColor.R);
             FillBrush = new SolidBrush(fillColor);
         }
 
@@ -101,8 +104,8 @@ namespace Orts.Graphics.Xna
                 SizeF actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
                 int padding = (int)Math.Ceiling(font.Size * 0.2);
                 int paddingWidth = padding;
-                if (outlineOptions != null && outlineOptions.OutlineWidth > 1)
-                    paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
+                if (outlineOptions != null)
+                    paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth);
                 size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + padding / 2));
             }
             measureGraphicsHolder.Enqueue(measureContainer);
@@ -132,7 +135,7 @@ namespace Orts.Graphics.Xna
                 throw new ArgumentNullException(nameof(font));
 
             // Create the final bitmap
-            using (Bitmap bmpSurface = new Bitmap(texture.Width, texture.Height))
+            using (Bitmap bmpSurface = new Bitmap(texture.Width, texture.Height, PixelFormat.Format32bppArgb))
             {
                 using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bmpSurface))
                 {
@@ -144,10 +147,6 @@ namespace Orts.Graphics.Xna
 
                     // Draw the text to the clean bitmap
                     graphics.Clear(Color.Transparent);
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    if (!whiteBrushHolder.TryDequeue(out Brush whiteBrush))
-                        whiteBrush = new SolidBrush(Color.White);
-#pragma warning restore CA2000 // Dispose objects before losing scope
                     if (outlineOptions != null)
                     {
                         using (GraphicsPath path = new GraphicsPath())
@@ -159,9 +158,13 @@ namespace Orts.Graphics.Xna
                     }
                     else
                     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        if (!whiteBrushHolder.TryDequeue(out Brush whiteBrush))
+                            whiteBrush = new SolidBrush(Color.White);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         graphics.DrawString(text, font, whiteBrush, Point.Empty);
+                        whiteBrushHolder.Enqueue(whiteBrush);
                     }
-                    whiteBrushHolder.Enqueue(whiteBrush);
                     BitmapData bmd = bmpSurface.LockBits(new Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
                     int bufferSize = bmd.Height * bmd.Stride;
                     //create data buffer 

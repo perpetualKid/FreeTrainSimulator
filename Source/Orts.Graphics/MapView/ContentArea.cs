@@ -83,7 +83,7 @@ namespace Orts.Graphics.MapView
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
             SpriteBatch = new SpriteBatch(GraphicsDevice);
-            fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
+            fontManager = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
