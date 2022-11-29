@@ -164,7 +164,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public int TileX { get { return cameraLocation.TileX; } }
         public int TileZ { get { return cameraLocation.TileZ; } }
         public Vector3 Location { get { return cameraLocation.Location; } }
-        public WorldLocation CameraWorldLocation { get { return cameraLocation; } }
+        public ref WorldLocation CameraWorldLocation => ref cameraLocation; 
         protected int MouseScrollValue;
         internal protected float FieldOfView;
 
