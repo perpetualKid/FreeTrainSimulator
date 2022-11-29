@@ -34,11 +34,13 @@ namespace Orts.Common.DebugInfo
             protected internal set { if (Source != null) Source.MultiColumnCount = value; }
         }
 
+#pragma warning disable CA1716 // Identifiers should not match keywords
         public virtual void Next()
         { }
 
         public virtual void Previous()
         { }
+#pragma warning restore CA1716 // Identifiers should not match keywords
     }
 
 

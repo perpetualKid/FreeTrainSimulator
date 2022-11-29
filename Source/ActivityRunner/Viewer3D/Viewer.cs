@@ -121,7 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
-        public HUDWindow HUDWindow { get; private set; } // F5 hud
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
@@ -495,7 +494,6 @@ namespace Orts.ActivityRunner.Viewer3D
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
             WindowManager = new WindowManager(this);
-            HUDWindow = new HUDWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
@@ -666,15 +664,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             UserCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                {
-                    HUDWindow.TabAction();
-                }
-                else
-                {
-                    HUDWindow.Visible = !HUDWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
-                }
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
             UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save);
