@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Forms;
 
 using GetText;
 
@@ -8,7 +7,6 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
-using Orts.Models.Simplified;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

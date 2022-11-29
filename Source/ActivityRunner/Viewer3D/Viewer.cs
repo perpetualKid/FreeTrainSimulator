@@ -75,6 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D
         ForceDetails,
         LocomotiveBrake,
         BrakeDetails,
+        PowerSupplyDetails,
         DistributedPowerDetails,
         DispatcherDetails,
     }
@@ -352,6 +353,7 @@ namespace Orts.ActivityRunner.Viewer3D
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveForce] = new LocomotiveForceInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveBrake] = new LocomotiveBrakeInformation());
             game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.BrakeDetails] = new BrakeInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.PowerSupplyDetails] = new PowerSupplyInformation());
         }
 
         private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)

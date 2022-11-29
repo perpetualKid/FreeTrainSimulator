@@ -53,7 +53,6 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                     consistDetails[4][key] = FormatStrings.FormatLargeMass(car.MassKG, Simulator.Instance.MetricUnits, isUK);
                     consistDetails[7][key] = car.WagonType == WagonType.Passenger || car.WagonSpecialType == WagonSpecialType.Heated ? FormatStrings.FormatTemperature(car.CarInsideTempC, Simulator.Instance.MetricUnits) : string.Empty;
                 }
-
                 base.Update(gameTime);
             }
         }

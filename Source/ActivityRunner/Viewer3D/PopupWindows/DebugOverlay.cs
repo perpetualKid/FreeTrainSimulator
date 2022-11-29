@@ -32,6 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             [Description("Locomotive Information")] Locomotive,
             [Description("Force Information")] Force,
             [Description("Brake Information")] Brake,
+            [Description("Power Supply Information")] PowerSupply,
             [Description("Distributed Power Information")] DistributedPower,
             [Description("Game Information")] GameDetails,
             [Description("Dispatcher Information")] Dispatcher,
@@ -62,6 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private NameValueTextGrid locomotiveGrid;
         private NameValueTextGrid forceTableGrid;
         private NameValueTextGrid brakeTableGrid;
+        private NameValueTextGrid powerTableGrid;
         private NameValueTextGrid scrollableGrid;
         private NameValueTextGrid locomotiveForceGrid;
         private NameValueTextGrid locomotiveBrakeGrid;
@@ -197,6 +199,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     InformationProvider = viewer.DetailInfo[DetailInfoType.BrakeDetails],
                 });
             };
+            tabLayout.TabLayouts[TabSettings.PowerSupply] = (layoutContainer) =>
+            {
+                layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
+                int y = (int)(360 * Owner.DpiScaling);
+                layoutContainer.Add(powerTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
+                {
+                    OutlineRenderOptions = OutlineRenderOptions.Default,
+                    ColumnWidth = new int[] { 40, 64, 80, 100 },
+                    InformationProvider = viewer.DetailInfo[DetailInfoType.PowerSupplyDetails],
+                });
+            };
             tabLayout.TabLayouts[TabSettings.DistributedPower] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
@@ -216,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     ColumnWidth = new int[] { 240, -1 },
                     InformationProvider = viewer.DetailInfo[DetailInfoType.GameDetails],
                 });
-                int y = (int)(160 * Owner.DpiScaling);
+                int y = (int)(200 * Owner.DpiScaling);
                 layoutContainer.Add(new NameValueTextGrid(this, 0, y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
@@ -227,7 +240,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             tabLayout.TabLayouts[TabSettings.Dispatcher] = (layoutContainer) =>
             {
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Left;
-                layoutContainer.Add(dispatcherGrid = new NameValueTextGrid(this, 0, 0, textFont)
+                int y = (int)(360 * Owner.DpiScaling);
+                layoutContainer.Add(dispatcherGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     ColumnWidth = new int[] { 40, 240, 64, 64, 64, 64, 80, 80, 80, 120, 64, 120, 64, -1 },
@@ -339,6 +353,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 TabSettings.Locomotive => locomotiveGrid,
                 TabSettings.Force => forceTableGrid,
                 TabSettings.Brake => brakeTableGrid,
+                TabSettings.PowerSupply => powerTableGrid,
                 TabSettings.DistributedPower => distributedPowerTableGrid,
                 TabSettings.Dispatcher => dispatcherGrid,
                 _ => null,

@@ -72,8 +72,8 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                         columns[detailColumn][key] = car.ForceInfo.DetailInfo[detailColumn.ToString()];
                     }
                 }
+                base.Update(gameTime);
             }
-            base.Update(gameTime);
         }
 
         private void AddHeader()

@@ -109,12 +109,6 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         public BrakeInformation() : base(true)
         {
             columns[0] = this;
-            MultiColumnCount = EnumExtension.GetLength<BrakeDetailColumn>();
-            foreach (BrakeDetailColumn column in EnumExtension.GetValues<BrakeDetailColumn>())
-            {
-                columns[column].NextColumn = columns[column.Next()];
-            }
-            columns[EnumExtension.GetValues<BrakeDetailColumn>().Last()].NextColumn = null;
         }
 
         public override void Update(GameTime gameTime)
@@ -134,9 +128,8 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                         columns[detailColumn][key] = car.BrakeSystem.BrakeInfo.DetailInfo[detailColumn.ToString()];
                     }
                 }
-
+                base.Update(gameTime);
             }
-            base.Update(gameTime);
         }
 
         private void AddHeader()

@@ -230,28 +230,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var dynamicBrakeStatus = Viewer.PlayerLocomotive.GetDistributedPowerDynamicBrakeStatus();
             var multipleUnitsConfiguration = (Viewer.PlayerLocomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             var stretched = playerTrain.Cars.Count > 1 && playerTrain.CouplersPulled == playerTrain.Cars.Count - 1;
-            var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.CouplersPushed == playerTrain.Cars.Count - 1;
 
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
 
-            // Client and server may have a time difference.
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().ServerTimeDifference));
-            else
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime));
 
-            if (Viewer.Simulator.IsReplaying)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Replay"), FormatStrings.FormatTime(Viewer.Log.ReplayEndsAt - Viewer.Simulator.ClockTime));
-
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Speed"), FormatStrings.FormatSpeedDisplay(Viewer.PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", Viewer.PlayerLocomotive.CurrentElevationPercent);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), Math.Abs(playerTrain.MUReverserPercent));
             TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%",
                 Viewer.PlayerLocomotive.ThrottlePercent,
                 Viewer.PlayerLocomotive is MSTSDieselLocomotive && Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Viewer.PlayerLocomotive.Train.DPThrottlePercent}%)" : "");
-            if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Train brake"), "{0}", Viewer.PlayerLocomotive.GetTrainBrakeStatus());
             if (showRetainers)
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Retainers"), "{0}% {1}", playerTrain.BrakeSystem.RetainerPercent, playerTrain.BrakeSystem.RetainerSetting.GetLocalizedDescription());
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
@@ -267,16 +253,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("FPS"), "{0:F0}", 0);
             TableAddLine(table);
 
-            if (Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
-                TableAddLine(table, Viewer.Catalog.GetString("Autopilot") + "???");
-
-            if (Viewer.PlayerTrain.IsWheelSlip)
-                TableAddLine(table, Viewer.Catalog.GetString("Wheel slip") + "!!!");
-            else if (Viewer.PlayerTrain.IsWheelSlipWarninq)
-                TableAddLine(table, Viewer.Catalog.GetString("Wheel slip warning") + "???");
-
-            if (Viewer.PlayerTrain.IsBrakeSkid)
-                TableAddLine(table, Viewer.Catalog.GetString("Wheel skid") + "!!!");
 
             if (Viewer.PlayerLocomotive.Sander)
             {

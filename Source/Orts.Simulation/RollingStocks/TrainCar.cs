@@ -39,6 +39,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 using GetText;
 
@@ -51,6 +52,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -60,6 +62,8 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
+
+using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -97,14 +101,14 @@ namespace Orts.Simulation.RollingStocks
 
         private static readonly double desiredCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(45.0); // Alarm temperature
                                                                                                                // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-        const double SteamTrapValveDischargeFactor = 70.0;
-        const double ConnectSteamHoseLengthFt = 2 * 2.0; // Assume two hoses on each car * 2 ft long
-                                                         // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-        const double SteamTrapDiaIn = 0.1875f;
+        private const double SteamTrapValveDischargeFactor = 70.0;
+        private const double ConnectSteamHoseLengthFt = 2 * 2.0; // Assume two hoses on each car * 2 ft long
+                                                                 // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+        private const double SteamTrapDiaIn = 0.1875f;
         // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-        const double ConnectingHoseDischargeFactor = 70.0f;
+        private const double ConnectingHoseDischargeFactor = 70.0f;
         // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-        const double ConnectingHoseLeakDiaIn = 0.1875f;
+        private const double ConnectingHoseLeakDiaIn = 0.1875f;
 
         public const float SkidFriction = 0.08f; // Friction if wheel starts skidding - based upon wheel dynamic friction of approx 0.08
         #endregion
@@ -308,12 +312,12 @@ namespace Orts.Simulation.RollingStocks
         #region INameValueInformationProvider implementation
         private protected readonly TrainCarInformation carInfo;
         private readonly TrainCarForceInformation forceInfo;
+        private readonly TrainCarPowerSupplyInfo powerInfo;
 
         public DetailInfoBase CarInfo => carInfo;
 
-        public Dictionary<string, FormatOption> FormattingOptions => carInfo.FormattingOptions;
-
         public DetailInfoBase ForceInfo => forceInfo;
+        public DetailInfoBase PowerSupplyInfo => powerInfo;
         #endregion
 
         /// <summary>
@@ -589,6 +593,7 @@ namespace Orts.Simulation.RollingStocks
             }
             carInfo.Update(null);
             forceInfo.Update(null);
+            powerInfo.Update(null);
         }
 
 
@@ -1735,6 +1740,7 @@ namespace Orts.Simulation.RollingStocks
         {
             carInfo = new TrainCarInformation(this);
             forceInfo = new TrainCarForceInformation(this);
+            powerInfo = new TrainCarPowerSupplyInfo(this);
         }
 
         protected TrainCar(string wagFile) : this()
@@ -3156,6 +3162,64 @@ namespace Orts.Simulation.RollingStocks
             forceInfo["Flipped"] = Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
             forceInfo["DerailCoefficient"] = $"{DerailmentCoefficient:F2}";
             forceInfo.FormattingOptions["DerailCoefficient"] = DerailExpected ? FormatOption.RegularOrangeRed : DerailPossible ? FormatOption.RegularYellow : null;
+        }
+
+        private class TrainCarPowerSupplyInfo : DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainCarPowerSupplyInfo(TrainCar car) : base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    this["Car"] = car.CarID;
+                    this["WagonType"] = car.WagonType.ToString();
+
+                    switch (car.PowerSupply)
+                    {
+                        case ScriptedElectricPowerSupply electricPowerSupply:
+                            this["Pantograph"] = (car as MSTSWagon).Pantographs.State.GetLocalizedDescription();
+                            this["CircuitBreaker"] = electricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+                            this["MainPower"] = electricPowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = electricPowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                        case ScriptedDieselPowerSupply dieselPowerSupply:
+                            this["Engine"] = (car as MSTSDieselLocomotive).DieselEngines.State.GetLocalizedDescription();
+                            this["TractionCutOffRelay"] = dieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                            this["MainPower"] = dieselPowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = dieselPowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                        case ScriptedDualModePowerSupply dualModePowerSupply:
+                            this["Pantograph"] = (car as MSTSWagon).Pantographs.State.GetLocalizedDescription();
+                            this["Engine"] = (car as MSTSDieselLocomotive)?.DieselEngines.State.GetLocalizedDescription();
+                            this["CircuitBreaker"] = dualModePowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+                            this["TractionCutOffRelay"] = dualModePowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                            this["MainPower"] = dualModePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = dualModePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                    }
+
+                    if (car.PowerSupply != null)
+                    {
+                        this["Battery"] = car.PowerSupply.BatteryState.GetLocalizedDescription();
+                        this["LowVoltagePower"] = car.PowerSupply.LowVoltagePowerSupplyState.GetLocalizedDescription();
+                        this["CabPower"] = (car.PowerSupply as ILocomotivePowerSupply)?.CabPowerSupplyState.GetLocalizedDescription();
+
+                        if (car.PowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                        {
+                            this["Ets"] = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                            this["EtsCable"] = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? "connected" : "disconnected";
+                            this["Power"] = FormatStrings.FormatPower(car.PowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                        }
+                    }
+                    base.Update(gameTime);
+                }
+            }
         }
     }
 }
