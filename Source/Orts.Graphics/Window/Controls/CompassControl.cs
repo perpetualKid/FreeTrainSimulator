@@ -39,7 +39,7 @@ namespace Orts.Graphics.Window.Controls
         {
             base.Draw(spriteBatch, offset);
 
-            BasicShapes.DrawLine(1, Color.Gold, (Bounds.Location + offset + halfPoint).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
+            Window.Owner.BasicShapes.DrawLine(1, Color.Gold, (Bounds.Location + offset + halfPoint).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
             spriteBatch.Draw(compassTexture, (Bounds.Location + offset).ToVector2(), clippingRectangle, Color.White);
         }
 

@@ -57,6 +57,8 @@ namespace Orts.Graphics.Window
         internal Texture2D ScrollbarTexture { get; }
         internal Dictionary<int, Texture2D> RoundedShadows { get; } = new Dictionary<int, Texture2D>();
 
+        internal BasicShapes BasicShapes { get; }
+
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private WindowBase activeWindow;
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -137,6 +139,7 @@ namespace Orts.Graphics.Window
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
+            BasicShapes = BasicShapes.Instance(game);
             BackgroundTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             BackgroundTexture.SetData(new[] { BackgroundColor });
 
@@ -401,13 +404,6 @@ namespace Orts.Graphics.Window
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 _ = (activeWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
             }
-        }
-
-        public override void Initialize()
-        {
-            BasicShapes.Initialize(spriteBatch);
-            BasicShapes.LoadContent(Game.GraphicsDevice);
-            base.Initialize();
         }
 
         public override void Draw(GameTime gameTime)

@@ -20,9 +20,9 @@ namespace Orts.Graphics.Window.Controls
         {
             Rectangle targetRectangle = Bounds;
             targetRectangle.Offset(offset);
-            BasicShapes.DrawTexture(BasicTextureType.BlankPixel, targetRectangle, Color.White, spriteBatch);
+            Window.Owner.BasicShapes.DrawTexture(BasicTextureType.BlankPixel, targetRectangle, Color.White, spriteBatch);
             targetRectangle.Inflate(-1, -1);
-            BasicShapes.DrawTexture(BasicTextureType.BlankPixel, targetRectangle, keyColor, spriteBatch);
+            Window.Owner.BasicShapes.DrawTexture(BasicTextureType.BlankPixel, targetRectangle, keyColor, spriteBatch);
             base.Draw(spriteBatch, offset);
         }
     }

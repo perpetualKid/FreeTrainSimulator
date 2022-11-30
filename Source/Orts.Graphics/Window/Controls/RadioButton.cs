@@ -45,7 +45,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            BasicShapes.DrawTexture(state ? BasicTextureType.Disc : BasicTextureType.Ring, (Bounds.Location + offset + centerOffset).ToVector2(), 0, size, TextColor, spriteBatch);
+            Window.Owner.BasicShapes.DrawTexture(state ? BasicTextureType.Disc : BasicTextureType.Ring, (Bounds.Location + offset + centerOffset).ToVector2(), 0, size, TextColor, spriteBatch);
             base.Draw(spriteBatch, offset);
         }
 

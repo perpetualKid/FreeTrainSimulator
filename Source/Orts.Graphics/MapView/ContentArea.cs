@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
@@ -39,6 +40,8 @@ namespace Orts.Graphics.MapView
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
         internal SpriteBatch SpriteBatch { get; }
+
+        internal BasicShapes BasicShapes { get; }
 
         private readonly FontManagerInstance fontManager;
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -89,7 +92,7 @@ namespace Orts.Graphics.MapView
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
             contentText = TextShape.Instance(Game, SpriteBatch);
-
+            BasicShapes = BasicShapes.Instance(Game);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
 

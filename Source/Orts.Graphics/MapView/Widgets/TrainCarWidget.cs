@@ -108,7 +108,7 @@ namespace Orts.Graphics.MapView.Widgets
                 double i when i < 8 => carSize * 1.1f,
                 _ => carSize,
             };
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
+            contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
                 contentArea.WorldToScreenSize(length), angle, contentArea.SpriteBatch);
         }
 

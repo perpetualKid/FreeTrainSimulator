@@ -280,8 +280,8 @@ namespace Orts.Graphics.Window.Controls
         private void DrawTrack(SpriteBatch spriteBatch, Point offset)
         {
             // overall track is 24 wide (size of the pictograms)
-            BasicShapes.DrawLine(scaling, SpeedingColor, (offset + trackLeftRail).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
-            BasicShapes.DrawLine(scaling, SpeedingColor, (offset + trackRightRail).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
+            Window.Owner.BasicShapes.DrawLine(scaling, SpeedingColor, (offset + trackLeftRail).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
+            Window.Owner.BasicShapes.DrawLine(scaling, SpeedingColor, (offset + trackRightRail).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
         }
 
         private void DrawEyeLooking(SpriteBatch spriteBatch, Point offset)
@@ -307,12 +307,12 @@ namespace Orts.Graphics.Window.Controls
             switch (PositionMode)
             {
                 case TrainPositionMode.ForwardAuto:
-                    BasicShapes.DrawLine(scaling, Color.OrangeRed, (offset + new Point(0, trainPositionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
-                    BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    Window.Owner.BasicShapes.DrawLine(scaling, Color.OrangeRed, (offset + new Point(0, trainPositionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    Window.Owner.BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
                     break;
                 case TrainPositionMode.BothWaysManual:
-                    BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
-                    BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    Window.Owner.BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset + iconSize)).ToVector2(), Bounds.Width, 0, spriteBatch);
+                    Window.Owner.BasicShapes.DrawLine(scaling, Color.DarkGray, (offset + new Point(0, trainPositionOffset)).ToVector2(), Bounds.Width, 0, spriteBatch);
                     break;
                 default:
                     break;
