@@ -81,7 +81,6 @@ namespace Orts.ActivityRunner.Processes
         internal GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
         private readonly Stack<GameState> gameStates;
-        private readonly ConcurrentQueue<GameComponent> addedComponents = new ConcurrentQueue<GameComponent>();
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
@@ -91,7 +90,6 @@ namespace Orts.ActivityRunner.Processes
         /// <param name="settings">The <see cref="UserSettings"/> for the game to use.</param>
         public GameHost(UserSettings settings)
         {
-            GameComponents.ComponentAdded += GameComponents_ComponentAdded;
             Settings = settings;
             Exiting += Game_Exiting;
             RenderProcess = new RenderProcess(this);
@@ -103,16 +101,9 @@ namespace Orts.ActivityRunner.Processes
             SystemProcess = new SystemProcess(this);
         }
 
-        private void GameComponents_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
-        {
-            addedComponents.Enqueue(e.GameComponent as GameComponent);
-        }
-
         protected override void Initialize()
         {
             base.Initialize();
-            foreach (GameComponent component in GameComponents)
-                component.Initialize();
             RenderProcess.Initialize();
         }
 
@@ -137,9 +128,9 @@ namespace Orts.ActivityRunner.Processes
         {
             // The first Update() is called before the window is displayed, with a gameTime == 0. The second is called
             // after the window is displayed.
-            if (!addedComponents.IsEmpty)
-                while (addedComponents.TryDequeue(out GameComponent component))
-                    component.Initialize();
+            //if (!addedComponents.IsEmpty)
+            //    while (addedComponents.TryDequeue(out GameComponent component))
+            //        component.Initialize();
             if (State == null)
                 Exit();
             else
@@ -147,7 +138,7 @@ namespace Orts.ActivityRunner.Processes
                 RenderProcess.Update(gameTime);
                 SystemInfo[DiagnosticInfo.System].DetailInfo["Resolution"] = Window.ClientBounds.ToString();// need to update from main/render thread otherwise results are invalid
             }
-            base.Update(gameTime);
+//            base.Update(gameTime);
         }
 
         protected override bool BeginDraw()

@@ -583,7 +583,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return new CarIdentifierOverlay(windowManager, Settings, this);
             }));
 
-            Game.GameComponents.Add(windowManager);
+            Game.Components.Add(windowManager);
 
             InfoDisplay = new InfoDisplay(this);
 
@@ -1053,9 +1053,9 @@ namespace Orts.ActivityRunner.Viewer3D
             InitReplay();
 
             //only add here at the end, so they do not fire during load process already
-            Game.GameComponents.Add(keyboardInputGameComponent);
-            Game.GameComponents.Add(mouseInputGameComponent);
-            Game.GameComponents.Add(railDriverInputGameComponent);
+            Game.Components.Add(keyboardInputGameComponent);
+            Game.Components.Add(mouseInputGameComponent);
+            Game.Components.Add(railDriverInputGameComponent);
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {

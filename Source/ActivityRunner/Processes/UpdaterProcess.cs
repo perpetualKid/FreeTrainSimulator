@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Processes
 
         internal override void Stop()
         {
-            foreach (GameComponent component in gameHost.GameComponents)
+            foreach (GameComponent component in gameHost.Components)
                 component.Enabled = false;
             base.Stop();
         }
@@ -50,9 +50,9 @@ namespace Orts.ActivityRunner.Processes
         protected override void Update(GameTime gameTime)
         {
             CurrentFrame.Clear();
-            for (int i = 0; i < gameHost.GameComponents.Count; i++)
+            for (int i = 0; i < gameHost.Components.Count; i++)
             {
-                if (gameHost.GameComponents[i] is GameComponent gameComponent && gameComponent.Enabled)
+                if (gameHost.Components[i] is GameComponent gameComponent && gameComponent.Enabled)
                     gameComponent.Update(gameTime);
             }
             if (gameHost.State != null)

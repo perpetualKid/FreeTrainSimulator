@@ -571,9 +571,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Trace.WriteLine(string.Empty);
                 logRenderFrame = false;
             }
-            for (int i = 0; i < game.GameComponents.Count; i++)
+            for (int i = 0; i < game.Components.Count; i++)
             {
-                if ((game.GameComponents[i] is DrawableGameComponent drawableGameComponent) && drawableGameComponent.Enabled)
+                if ((game.Components[i] is DrawableGameComponent drawableGameComponent) && drawableGameComponent.Enabled)
                     drawableGameComponent.Draw(gameTime);
             }
         }
