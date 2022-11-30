@@ -11,7 +11,9 @@ namespace Orts.Graphics.Window.Controls
         private protected static Brush whiteBrush = new SolidBrush(Color.White);
         private protected OutlineRenderOptions outlineRenderOptions;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private protected readonly TextTextureResourceHolder resourceHolder;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected TextControl(FormBase window, int x, int y, int width, int height) :
             base(window, x, y, width, height)
@@ -42,6 +44,12 @@ namespace Orts.Graphics.Window.Controls
         protected virtual void InitializeText(string text)
         {
             texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder.PrepareResource(text, font, outlineRenderOptions);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            resourceHolder.Refresh -= RefreshResources;
+            base.Dispose(disposing);
         }
     }
 }
