@@ -39,13 +39,13 @@ namespace Orts.Graphics.Window
             {
                 if (size.X < -100)
                     throw new ArgumentOutOfRangeException(nameof(size), "Relative window size must be defined in range between -0 to -100 (% of game window size)");
-                size.X = owner.ClientBounds.Width * -size.X / 100;
+                size.X = owner.Size.X * -size.X / 100;
             }
             if (size.Y < 0)
             {
                 if (size.X < -100)
                     throw new ArgumentOutOfRangeException(nameof(size), "Relative window size must be defined in range between -0 to -100 (% of game window size)");
-                size.Y = owner.ClientBounds.Height * -size.Y / 100;
+                size.Y = owner.Size.Y * -size.Y / 100;
             }
             borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
         }
@@ -60,7 +60,7 @@ namespace Orts.Graphics.Window
         {
             if (layout == null)
                 throw new ArgumentNullException(nameof(layout));
-            System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
+            System.Drawing.Font headerFont = FontManager.Scaled(Owner.FontName, System.Drawing.FontStyle.Bold)[(int)(Owner.FontSize * headerScaling)];
             layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling));
             if (CloseButton)
             {
@@ -95,8 +95,8 @@ namespace Orts.Graphics.Window
         protected void Relocate(Point location)
         {
             this.location = new Point(
-                (int)Math.Round(100.0 * location.X / (Owner.ClientBounds.Width - borderRect.Width)),
-                (int)Math.Round(100.0 * location.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+                (int)Math.Round(100.0 * location.X / (Owner.Size.X - borderRect.Width)),
+                (int)Math.Round(100.0 * location.Y / (Owner.Size.Y - borderRect.Height)));
             UpdateLocation();
         }
 
@@ -126,17 +126,17 @@ namespace Orts.Graphics.Window
             Point position;
             if (location != EmptyPoint)
             {
-                position.X = (int)Math.Round((float)location.X * (Owner.ClientBounds.Width - borderRect.Width) / 100);
-                position.Y = (int)Math.Round((float)location.Y * (Owner.ClientBounds.Height - borderRect.Height) / 100);
+                position.X = (int)Math.Round((float)location.X * (Owner.Size.X - borderRect.Width) / 100);
+                position.Y = (int)Math.Round((float)location.Y * (Owner.Size.Y - borderRect.Height) / 100);
             }
             else
             {
-                position.X = (int)Math.Round((Owner.ClientBounds.Width - borderRect.Width) / 2f);
-                position.Y = (int)Math.Round((Owner.ClientBounds.Height - borderRect.Height) / 2f);
+                position.X = (int)Math.Round((Owner.Size.X - borderRect.Width) / 2f);
+                position.Y = (int)Math.Round((Owner.Size.Y - borderRect.Height) / 2f);
             }
             borderRect.Location = position;
-            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
-            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
+            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Size.X - borderRect.Width);
+            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Size.Y - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
         }
 
@@ -146,10 +146,10 @@ namespace Orts.Graphics.Window
             {
                 borderRect.Offset(delta.ToPoint());
                 location = new Point(
-                    (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
-                    (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
-                borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
-                borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
+                    (int)Math.Round(100.0 * borderRect.X / (Owner.Size.X - borderRect.Width)),
+                    (int)Math.Round(100.0 * borderRect.Y / (Owner.Size.Y - borderRect.Height)));
+                borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Size.X - borderRect.Width);
+                borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Size.Y - borderRect.Height);
                 xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
                 CapturedForDragging = true;
             }

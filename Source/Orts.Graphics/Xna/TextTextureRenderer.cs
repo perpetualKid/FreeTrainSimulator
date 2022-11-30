@@ -58,7 +58,7 @@ namespace Orts.Graphics.Xna
     }
     public class TextTextureRenderer : IDisposable
     {
-        private readonly Texture2D emptyTexture;
+        internal Texture2D EmptyTexture { get; }
         private readonly Bitmap measureBitmap;
         private readonly Microsoft.Xna.Framework.Game game;
         private readonly ConcurrentQueue<(System.Drawing.Graphics, StringFormat)> measureGraphicsHolder = new ConcurrentQueue<(System.Drawing.Graphics, StringFormat)>();
@@ -68,7 +68,7 @@ namespace Orts.Graphics.Xna
         private TextTextureRenderer(Microsoft.Xna.Framework.Game game)
         {
             this.game = game;
-            emptyTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            EmptyTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             measureBitmap = new Bitmap(1, 1);
         }
 
@@ -115,7 +115,7 @@ namespace Orts.Graphics.Xna
         public Texture2D Resize(string text, Font font, OutlineRenderOptions outlineOptions = null)
         {
             Size size = Measure(text, font, outlineOptions);
-            return (size.Width == 0 || size.Height == 0) ? emptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
+            return (size.Width == 0 || size.Height == 0) ? EmptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
         }
 
         public Texture2D RenderText(string text, Font font, OutlineRenderOptions outlineOptions = null)
@@ -129,7 +129,7 @@ namespace Orts.Graphics.Xna
         {
             if (null == texture)
                 throw new ArgumentNullException(nameof(texture));
-            if (texture == emptyTexture || (texture.Width == 1 && texture.Height == 1))
+            if (texture == EmptyTexture || (texture.Width == 1 && texture.Height == 1))
                 return;
             if (null == font)
                 throw new ArgumentNullException(nameof(font));
@@ -194,7 +194,7 @@ namespace Orts.Graphics.Xna
                     while (whiteBrushHolder.TryDequeue(out Brush brush))
                         brush?.Dispose();
 
-                    emptyTexture?.Dispose();
+                    EmptyTexture?.Dispose();
                     measureBitmap?.Dispose();
                 }
                 disposedValue = true;

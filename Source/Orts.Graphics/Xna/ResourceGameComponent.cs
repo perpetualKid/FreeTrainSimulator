@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
@@ -95,4 +94,20 @@ namespace Orts.Graphics.Xna
             base.Dispose(disposing);
         }
     }
+
+#pragma warning disable CA1715 // Identifiers should have correct prefix
+    public sealed class ResourceGameComponent<T, U> : ResourceGameComponent<T>
+#pragma warning restore CA1715 // Identifiers should have correct prefix
+    {
+        public ResourceGameComponent(Game game) : base(game)
+        {
+        }
+
+        public T Get(U source, Func<T> create)
+        {
+            ArgumentNullException.ThrowIfNull(create);
+            return Get(source.GetHashCode(), create);
+        }
+    }
+
 }

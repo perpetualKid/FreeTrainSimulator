@@ -104,7 +104,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            if (null != texture)
+            if (null != texture && texture != resourceHolder.EmptyTexture)
                 spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             base.Draw(spriteBatch, offset);
         }

@@ -30,7 +30,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
-using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Graphics.Xna;

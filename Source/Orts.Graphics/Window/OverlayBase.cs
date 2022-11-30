@@ -12,7 +12,7 @@ namespace Orts.Graphics.Window
         {
             Interactive = false;
             location = Point.Zero;
-            borderRect.Size = owner.ClientBounds.Size;
+            borderRect.Size = owner.Size;
         }
 
         protected internal override void Initialize()

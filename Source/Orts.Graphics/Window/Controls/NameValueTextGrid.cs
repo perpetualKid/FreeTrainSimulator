@@ -98,7 +98,7 @@ namespace Orts.Graphics.Window.Controls
                     FormatOption formatOption = null;
                     if ((InformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
                     {
-                        currentFont = FontManager.Scaled(Window.Owner.DefaultFontName, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
+                        currentFont = FontManager.Scaled(Window.Owner.FontName, formatOption.FontStyle)[Window.Owner.FontSize];
                     }
 
                     string emptySpace = identifier;
@@ -165,13 +165,15 @@ namespace Orts.Graphics.Window.Controls
             {
                 //header
                 (Vector2 keyPosition, Texture2D texture, Vector2 valuePosition, Texture2D[] textures, Color color) = drawItems[0];
-                spriteBatch.Draw(texture, keyPosition + locationVector, columnClippingRectangles[0], color);
+                if (null != texture && texture != textureHolder.EmptyTexture)
+                    spriteBatch.Draw(texture, keyPosition + locationVector, columnClippingRectangles[0], color);
 
                 int columnOffset = 0;
                 for (int j = column; j < textures.Length; j++)
                 {
                     Rectangle? columnClipping = columnClippingRectangles[j + 1 >= columnClippingRectangles.Length ? ^1 : j + 1];
-                    spriteBatch.Draw(textures[j], valuePosition + locationVector + new Vector2(columnOffset, 0), columnClipping, color);
+                    if (null != textures[j] && textures[j] != textureHolder.EmptyTexture)
+                        spriteBatch.Draw(textures[j], valuePosition + locationVector + new Vector2(columnOffset, 0), columnClipping, color);
                     columnOffset += columnClipping?.Width ?? 0;
                 }
 
@@ -183,11 +185,13 @@ namespace Orts.Graphics.Window.Controls
                     (keyPosition, texture, valuePosition, textures, color) = drawItems[i];
                     if (!boundsSet || (valuePosition.Y - rowOffset.Y + texture.Height) < Bounds.Height)
                     {
-                        spriteBatch.Draw(texture, keyPosition + locationVector - rowOffset, columnClippingRectangles[0], color);
+                        if (null != texture && texture != textureHolder.EmptyTexture)
+                            spriteBatch.Draw(texture, keyPosition + locationVector - rowOffset, columnClippingRectangles[0], color);
                         for (int j = column; j < textures.Length; j++)
                         {
                             Rectangle? columnClipping = columnClippingRectangles[j + 1 >= columnClippingRectangles.Length ? ^1 : j + 1];
-                            spriteBatch.Draw(textures[j], valuePosition + locationVector - rowOffset + new Vector2(columnOffset, 0), columnClipping, color);
+                            if (null != textures[j] && textures[j] != textureHolder.EmptyTexture)
+                                spriteBatch.Draw(textures[j], valuePosition + locationVector - rowOffset + new Vector2(columnOffset, 0), columnClipping, color);
                             columnOffset += columnClipping?.Width ?? 0;
                         }
                     }

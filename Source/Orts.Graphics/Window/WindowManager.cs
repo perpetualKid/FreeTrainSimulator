@@ -71,8 +71,15 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
         internal readonly GraphShader GraphShader;
-        private Rectangle clientBounds;
-        public ref readonly Rectangle ClientBounds => ref clientBounds;
+        private Viewport viewport;
+        private Point size;
+
+        public ref readonly Viewport Viewport => ref viewport;
+        public ref readonly Point Size => ref size;
+
+        public const string DefaultFontName = "Arial";  //"Segoe UI"; // Arial renders a better visual experience than Segoe UI
+        public const string DefaultMonoFontName = "Courier New";
+        public const int DefaultFontSize = 13;
 
         public float DpiScaling { get; private set; }
         public System.Drawing.Font TextFontDefault { get; }
@@ -81,10 +88,10 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontMonoDefaultBold { get; }
         public System.Drawing.Font TextFontSmall { get; }
 
-        public string DefaultFontName { get; } = "Arial";//"Segoe UI"; // Arial renders a better visual experience than Segoe UI
-        public int DefaultFontSize { get; } = 13;
-        public int SmallFontSize { get; } = 10;
-        public string DefaultMonoFontName { get; } = "Courier New";
+        public string FontName { get; } = DefaultFontName;
+        public int FontSize { get; } = DefaultFontSize;
+        public int SmallFontSize { get; } = (int)(DefaultFontSize / 1.25);
+        public string MonoFontName { get; } = DefaultMonoFontName;
 
         //publish some events to allow interaction between Graphcis WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
@@ -113,7 +120,6 @@ namespace Orts.Graphics.Window
             try
             {
                 DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-                clientBounds = Game.Window.ClientBounds;
             }
             catch (InvalidOperationException) //potential cross thread operation if we are in a different thread
             {
@@ -121,10 +127,10 @@ namespace Orts.Graphics.Window
                     Application.OpenForms[0].Invoke(() =>
                 {
                     DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-                    clientBounds = Game.Window.ClientBounds;
                 });
             }
-
+            viewport = Game.GraphicsDevice.Viewport;
+            size = viewport.Bounds.Size;
             windowSortComparer = new WindowSortComparer(this);
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -149,11 +155,11 @@ namespace Orts.Graphics.Window
             GraphShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.Diagram] as GraphShader;
 
             FontManager.ScalingFactor = DpiScaling;
-            TextFontDefault = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Regular)[DefaultFontSize];
-            TextFontDefaultBold = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Bold)[DefaultFontSize];
-            TextFontMonoDefault = FontManager.Scaled(DefaultMonoFontName, System.Drawing.FontStyle.Regular)[DefaultFontSize];
-            TextFontMonoDefaultBold = FontManager.Scaled(DefaultMonoFontName, System.Drawing.FontStyle.Bold)[DefaultFontSize];
-            TextFontSmall = FontManager.Scaled(DefaultFontName, System.Drawing.FontStyle.Regular)[SmallFontSize];
+            TextFontDefault = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[FontSize];
+            TextFontDefaultBold = FontManager.Scaled(FontName, System.Drawing.FontStyle.Bold)[FontSize];
+            TextFontMonoDefault = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Regular)[FontSize];
+            TextFontMonoDefaultBold = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Bold)[FontSize];
+            TextFontSmall = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[SmallFontSize];
             UpdateSize();
         }
 
@@ -188,7 +194,8 @@ namespace Orts.Graphics.Window
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            clientBounds = Game.Window.ClientBounds;
+            viewport = Game.GraphicsDevice.Viewport;
+            size = viewport.Bounds.Size;
             UpdateSize();
         }
 

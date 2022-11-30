@@ -49,7 +49,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             ControlLayout innerFrame = layout.AddLayoutOffset(160, 150, 160, 150);
             innerFrame = innerFrame.AddLayoutVertical();
             innerFrame.HorizontalChildAlignment = HorizontalAlignment.Center;
-            System.Drawing.Font noticeFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Regular)[40];
+            System.Drawing.Font noticeFont = FontManager.Scaled(Owner.FontName, System.Drawing.FontStyle.Regular)[40];
             innerFrame.Add(noticeLabel = new ShadowLabel(this, 0, 0, innerFrame.RemainingWidth, noticeFont.Height, null, HorizontalAlignment.Center, noticeFont, Color.White));
             noticeLabel.Visible = false;
             innerFrame.HorizontalChildAlignment = HorizontalAlignment.Left;

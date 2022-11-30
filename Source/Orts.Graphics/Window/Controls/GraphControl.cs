@@ -77,7 +77,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Initialize()
         {
-            Window.Owner.GraphShader.ScreenSize = Window.Owner.ClientBounds.Size.ToVector2();
+            Window.Owner.GraphShader.ScreenSize = Window.Owner.Size.ToVector2();
 
             labelNamePosition = Bounds.Location + new Point((Bounds.Size.X - labelName.Width) / 2, 4);
             labelMaxPosition = Bounds.Location + new Point((Bounds.Size.X - labelMax.Width), 4);

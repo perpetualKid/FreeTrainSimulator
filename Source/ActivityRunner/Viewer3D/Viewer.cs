@@ -122,7 +122,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
-        public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
 
@@ -495,7 +494,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
             WindowManager = new WindowManager(this);
             OSDLocations = new OSDLocations(WindowManager);
-            OSDCars = new OSDCars(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             WindowManager.Initialize();
@@ -764,29 +762,8 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayCarLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    OSDCars.TabAction();
-                else
-                {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.CarIdentifierOverlay].ToggleVisibility();
-                    OSDCars.Visible = !OSDCars.Visible;
-                    if (OSDCars.Visible)
-                    {
-                        switch (OSDCars.CurrentDisplayState)
-                        {
-                            case OSDCars.DisplayState.Trains:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Train labels visible."), 5);
-                                break;
-                            case OSDCars.DisplayState.Cars:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Car labels visible."), 5);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Train and car labels hidden."), 5);
-                    }
-                }
             });
             UserCommandController.AddEvent(UserCommand.GameChangeCab, KeyEventType.KeyPressed, () =>
             {

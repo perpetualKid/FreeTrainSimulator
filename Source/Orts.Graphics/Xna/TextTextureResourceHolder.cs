@@ -11,12 +11,11 @@ namespace Orts.Graphics.Xna
     {
         private readonly TextTextureRenderer textRenderer;
 
-        public Texture2D EmptyTexture { get; }
+        public Texture2D EmptyTexture => textRenderer.EmptyTexture;
 
         private TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
         {
             SweepInterval = sweepInterval;
-            EmptyTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 

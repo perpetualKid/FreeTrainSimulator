@@ -98,7 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             #region Keyboard tab
             tabControl.TabLayouts[TabSettings.KeyboardShortcuts] = (layoutContainer) =>
             {
-                System.Drawing.Font keyFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Regular)[Owner.DefaultFontSize - 1];
+                System.Drawing.Font keyFont = FontManager.Scaled(Owner.FontName, System.Drawing.FontStyle.Regular)[Owner.FontSize - 1];
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Center;
 
                 int keyWidth = layoutContainer.RemainingWidth / KeyboardMap.MapWidth;

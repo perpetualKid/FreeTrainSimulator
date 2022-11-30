@@ -369,6 +369,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=100,0",
             $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=50,50",
             $"{nameof(ViewerWindowType.NotificationOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=0,0",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -393,6 +394,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=False",
             $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=False",
             $"{nameof(ViewerWindowType.NotificationOverlay)}=False",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -417,6 +419,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.TrackMonitorWindow)}=\"\"",
             $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=\"\"",
             $"{nameof(ViewerWindowType.NotificationOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

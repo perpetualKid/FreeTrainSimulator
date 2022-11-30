@@ -75,6 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             this.settings = settings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
+            ZOrder = 30;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -298,9 +299,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)locomotive.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
                         break;
                 }
-                base.Update(gameTime, true);
             }
+            base.Update(gameTime, true);
         }
+
         public override bool Open()
         {
             userCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, TabAction, true);
