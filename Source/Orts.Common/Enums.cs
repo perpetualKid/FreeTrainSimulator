@@ -1035,6 +1035,7 @@ namespace Orts.Common
         MultiPlayerMessagingWindow,
         NotificationOverlay,
         CarIdentifierOverlay,
+        LocationsOverlay,
     }
 
     public enum FourCharAcronym

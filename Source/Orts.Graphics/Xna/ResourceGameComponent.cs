@@ -12,7 +12,7 @@ namespace Orts.Graphics.Xna
     /// <typeparam name="T">The type of resource to be managed</typeparam>
     public abstract class ResourceGameComponent<T> : GameComponent
     {
-        private TimeSpan sweepInterval = TimeSpan.FromSeconds(10);
+        private TimeSpan sweepInterval = TimeSpan.FromSeconds(30);
         private TimeSpan nextSweep;
         private protected ConcurrentDictionary<int, T> currentResources = new ConcurrentDictionary<int, T>();
         private protected ConcurrentDictionary<int, T> previousResources = new ConcurrentDictionary<int, T>();

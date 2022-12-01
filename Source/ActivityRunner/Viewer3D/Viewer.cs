@@ -121,7 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
-        public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
 
@@ -493,7 +492,6 @@ namespace Orts.ActivityRunner.Viewer3D
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
             WindowManager = new WindowManager(this);
-            OSDLocations = new OSDLocations(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             WindowManager.Initialize();
@@ -581,6 +579,10 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.SetLazyWindows(ViewerWindowType.CarIdentifierOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new CarIdentifierOverlay(windowManager, Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.LocationsOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            {
+                return new LocationOverlay(windowManager, Settings, this);
             }));
 
             Game.Components.Add(windowManager);
@@ -731,34 +733,8 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DisplayStationLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    OSDLocations.TabAction();
-                else
-                {
-                    OSDLocations.Visible = !OSDLocations.Visible;
-                    if (OSDLocations.Visible)
-                    {
-                        switch (OSDLocations.CurrentDisplayState)
-                        {
-                            case OSDLocations.DisplayState.Auto:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Automatic platform and siding labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.All:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform and siding labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.Platforms:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.Sidings:
-                                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Siding labels visible."), 5);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Platform and siding labels hidden."), 5);
-                    }
-                }
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.LocationsOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayCarLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

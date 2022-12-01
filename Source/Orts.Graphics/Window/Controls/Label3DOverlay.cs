@@ -20,6 +20,8 @@ namespace Orts.Graphics.Window.Controls
     public enum LabelType
     {
         Car,
+        Platform, 
+        Sidings
     }
 
     public class Label3DOverlay : TextControl
@@ -27,7 +29,9 @@ namespace Orts.Graphics.Window.Controls
         private static readonly EnumArray<(float VerticalOffset, int MinimumDistance, int MaximumDistance, OutlineRenderOptions OutlineOptions, Color OutlineColor, Color FillColor, System.Drawing.Font TextFont), LabelType> settings =
             new EnumArray<(float, int, int, OutlineRenderOptions, Color, Color, System.Drawing.Font), LabelType>(new[]
             {
-                (8.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.White), ColorExtension.ToSystemDrawingColor(Color.Blue)), Color.White, Color.Blue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (8.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.White), ColorExtension.ToSystemDrawingColor(Color.Blue)), Color.White, Color.Blue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (12.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Yellow)), Color.Black, Color.Yellow, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (18.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Orange)), Color.Black, Color.Orange, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
             });
 
         private readonly IWorldPosition positionSource;
@@ -40,6 +44,7 @@ namespace Orts.Graphics.Window.Controls
         private Rectangle fillPointer;
         private Color outline;
         private Color fill;
+        private Color textAlpha = Color.White;
 
         private readonly LabelType labelType;
 
@@ -83,7 +88,7 @@ namespace Orts.Graphics.Window.Controls
 
             float distance = WorldLocation.GetDistance(positionSource.WorldPosition.WorldLocation, viewProjection.Location).Length();
             float distanceRatio = (MathHelper.Clamp(distance, settings[labelType].MinimumDistance, settings[labelType].MaximumDistance) - settings[labelType].MinimumDistance) / (settings[labelType].MaximumDistance - settings[labelType].MinimumDistance);
-            fill.A = outline.A = (byte)MathHelper.Lerp(255, 0, distanceRatio);
+            textAlpha.A = fill.A = outline.A = (byte)MathHelper.Lerp(255, 0, distanceRatio);
 
             outlinePointer = new Rectangle((int)lineLocation2DStart.X - 2, (int)lineLocation2DEndY, 4, (int)(lineLocation2DStart.Y - lineLocation2DEndY));
             fillPointer = new Rectangle((int)lineLocation2DStart.X - 1, (int)lineLocation2DEndY, 2, (int)(lineLocation2DStart.Y - lineLocation2DEndY));
@@ -97,7 +102,7 @@ namespace Orts.Graphics.Window.Controls
                 return;
             base.Draw(spriteBatch, offset);
 
-            spriteBatch.Draw(texture, labelLocation, outline);
+            spriteBatch.Draw(texture, labelLocation, textAlpha);
             Window.Owner.BasicShapes.DrawTexture(BasicTextureType.BlankPixel, outlinePointer, outline, spriteBatch);
             Window.Owner.BasicShapes.DrawTexture(BasicTextureType.BlankPixel, fillPointer, fill, spriteBatch);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using GetText;
 
@@ -53,14 +54,16 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly ViewProjectionHolder cameraViewProjection;
 
-        public CarIdentifierOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
+        public CarIdentifierOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : 
+            base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
             this.settings = settings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
             ZOrder = -5;
-            labelCache = new ResourceGameComponent<Label3DOverlay, int>(owner.Game);
+
+            labelCache = Owner.Game.Components.OfType<ResourceGameComponent<Label3DOverlay, int>>().FirstOrDefault() ?? new ResourceGameComponent<Label3DOverlay, int>(Owner.Game);
             cameraViewProjection = new ViewProjectionHolder(viewer);
         }
 
