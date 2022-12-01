@@ -17,7 +17,6 @@ namespace Orts.Graphics.Window.Controls
         {
             if (disposing)
             {
-                texture?.Dispose();
             }
             base.Dispose(disposing);
         }
