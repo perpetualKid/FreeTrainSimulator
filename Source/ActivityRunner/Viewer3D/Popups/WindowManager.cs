@@ -37,12 +37,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public readonly WindowTextFont TextFontDefault;
         public readonly WindowTextFont TextFontDefaultOutlined;
 
-        public readonly WindowTextFont TextFontMonoSpacedOutlined;
-
-        public readonly WindowTextFont TextFontSmallOutlined;
-
-        public Label3DMaterial Label3DMaterial { get; private set; }
-
         private readonly Material WindowManagerMaterial;
         private readonly List<Window> Windows = new List<Window>();
         private SpriteBatch SpriteBatch;
@@ -57,8 +51,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextManager = new WindowTextManager();
             TextFontDefault = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular);
             TextFontDefaultOutlined = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular, 1);
-            TextFontMonoSpacedOutlined = TextManager.GetScaled("Consolas", 10, System.Drawing.FontStyle.Regular, 1);
-            TextFontSmallOutlined = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular, 1);
 
             SpriteBatch = new SpriteBatch(Viewer.Game.GraphicsDevice);
 
@@ -72,9 +64,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public void Initialize()
         {
-            // This is needed here (rather that in constructor) because it needs the WindowManager and WindowTextManager up and running first. Sigh.
-            Label3DMaterial = (Label3DMaterial)Viewer.MaterialManager.Load("Label3D");
-
             ScreenChanged();
 
             foreach (var window in Windows)
@@ -149,7 +138,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public void Mark()
         {
             WindowManagerMaterial.Mark();
-            Label3DMaterial.Mark();
             foreach (Window window in Windows)
                 window.Mark();
         }

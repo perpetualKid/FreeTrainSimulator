@@ -17,7 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
@@ -28,7 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
     public abstract class Control
     {
-        public Rectangle Position;
+        private Rectangle Position;
 
         protected Control(int x, int y, int width, int height)
         {
@@ -60,7 +59,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public const int SeparatorSize = 5;
         public const int SeparatorPadding = 2;
 
-        protected readonly List<Control> controls = new List<Control>();
+        private readonly List<Control> controls = new List<Control>();
         public IEnumerable<Control> Controls { get { return controls; } }
         public int TextHeight { get; internal set; }
 

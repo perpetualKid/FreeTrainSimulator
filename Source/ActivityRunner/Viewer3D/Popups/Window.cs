@@ -30,11 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     {
         private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
-        private Matrix xnaWorld;
-        public ref readonly Matrix XNAWorld => ref xnaWorld;
-
         protected WindowManager Owner { get; }
-        private protected bool dragged;
         private bool visible;
         private Rectangle location;
 
@@ -52,7 +48,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal protected virtual void Initialize()
         {
             VisibilityChanged();
-            LocationChanged();
             Layout();
         }
 
@@ -63,11 +58,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (windowLayout != null)
                     PrepareFrame(ElapsedTime.Zero, true);
             }
-        }
-
-        protected virtual void LocationChanged()
-        {
-            xnaWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
         }
 
         internal virtual void ScreenChanged()
@@ -102,7 +92,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 location.X = x;
                 location.Y = y;
-                LocationChanged();
             }
         }
 

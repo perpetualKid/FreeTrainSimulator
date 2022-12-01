@@ -277,9 +277,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     case "Forest":
                         Materials[materialKey] = new ForestMaterial(Viewer, textureName);
                         break;
-                    case "Label3D":
-                        Materials[materialKey] = new Label3DMaterial(Viewer);
-                        break;
                     case "LightCone":
                         Materials[materialKey] = new LightConeMaterial(Viewer);
                         break;
@@ -1212,55 +1209,5 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-    }
-
-    public class Label3DMaterial : SpriteBatchMaterial
-    {
-        public Texture2D Texture { get; private set; }
-        public WindowTextFont Font { get; private set; }
-
-        private readonly List<Rectangle> textBoxes = new List<Rectangle>();
-
-        public Label3DMaterial(Viewer viewer)
-            : base(viewer)
-        {
-            Texture = new Texture2D(SpriteBatch.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            Texture.SetData(new[] { Color.White });
-            Font = Viewer.WindowManager.TextManager.GetScaled("Arial", 12, System.Drawing.FontStyle.Bold, 1);
-        }
-
-        public override void SetState(Material previousMaterial)
-        {
-            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
-            SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            textBoxes.Clear();
-            base.Render(renderItems, ref view, ref projection, ref viewProjection);
-        }
-
-        public override bool GetBlending()
-        {
-            return true;
-        }
-
-        public Point GetTextLocation(int x, int y, string text)
-        {
-            // Start with a box in the location specified.
-            var textBox = new Rectangle(x, y, Font.MeasureString(text), Font.Height);
-            textBox.X -= textBox.Width / 2;
-            textBox.Inflate(5, 2);
-            // Find all the existing boxes which overlap with the new box, as if its top was extended upwards to infinity.
-            var boxes = textBoxes.Where(box => box.Top <= textBox.Bottom && box.Right >= textBox.Left && box.Left <= textBox.Right).OrderBy(box => -box.Top);
-            // For each possible colliding box, if it does collide, shift the new box above it.
-            foreach (var box in boxes)
-                if (box.Top <= textBox.Bottom && box.Bottom >= textBox.Top)
-                    textBox.Y = box.Top - textBox.Height;
-            // And we're done.
-            textBoxes.Add(textBox);
-            return new Point(textBox.X + 5, textBox.Y + 2);
-        }
     }
 }
