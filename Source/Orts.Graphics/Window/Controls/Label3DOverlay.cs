@@ -21,7 +21,9 @@ namespace Orts.Graphics.Window.Controls
     {
         Car,
         Platform, 
-        Sidings
+        Sidings,
+        TrackDebug,
+        RoadTrackDebug,
     }
 
     public class Label3DOverlay : TextControl
@@ -32,6 +34,8 @@ namespace Orts.Graphics.Window.Controls
                 (8.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.White), ColorExtension.ToSystemDrawingColor(Color.Blue)), Color.White, Color.Blue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
                 (12.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Yellow)), Color.Black, Color.Yellow, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
                 (18.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Orange)), Color.Black, Color.Orange, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (6.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.LightBlue)), Color.Black, Color.LightBlue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (6.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Salmon)), Color.Black, Color.Salmon, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
             });
 
         private readonly IWorldPosition positionSource;
@@ -83,8 +87,7 @@ namespace Orts.Graphics.Window.Controls
             lineLocation3D.Y += settings[labelType].VerticalOffset;
             float lineLocation2DEndY = Window.Owner.Viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity).Y;
 
-            labelLocation = new Vector2(lineLocation2DStart.X - texture.Width / 2 - 2, lineLocation2DEndY);
-            lineLocation2DEndY = labelLocation.Y + font.Height;
+            labelLocation = new Vector2(lineLocation2DStart.X - texture.Width / 2 - 2, lineLocation2DEndY - texture.Height);
 
             float distance = WorldLocation.GetDistance(positionSource.WorldPosition.WorldLocation, viewProjection.Location).Length();
             float distanceRatio = (MathHelper.Clamp(distance, settings[labelType].MinimumDistance, settings[labelType].MaximumDistance) - settings[labelType].MinimumDistance) / (settings[labelType].MaximumDistance - settings[labelType].MinimumDistance);

@@ -1036,6 +1036,8 @@ namespace Orts.Common
         NotificationOverlay,
         CarIdentifierOverlay,
         LocationsOverlay,
+        TrackDebugOverlay,
+        SignallingDebugOverlay
     }
 
     public enum FourCharAcronym

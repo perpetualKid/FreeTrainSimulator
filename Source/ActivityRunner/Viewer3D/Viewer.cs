@@ -584,6 +584,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new LocationOverlay(windowManager, Settings, this);
             }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrackDebugOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            {
+                return new TrackDebugOverlay(windowManager, Settings, this);
+            }));
 
             Game.Components.Add(windowManager);
 
@@ -711,6 +715,8 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DebugTracks, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.TrackDebugOverlay].ToggleVisibility();
                 if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
                     TracksDebugWindow.TabAction();
                 else

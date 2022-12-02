@@ -26,23 +26,6 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class LocationOverlay : OverlayBase
     {
-        //passing Camera view/projection and location to Orts.Graphics primitives
-        private class ViewProjectionHolder : IViewProjection
-        {
-            public ref readonly Matrix Projection => ref viewer.Camera.XnaProjection;
-
-            public ref readonly Matrix View => ref viewer.Camera.XnaView;
-
-            public ref readonly WorldLocation Location => ref viewer.Camera.CameraWorldLocation;
-
-            private readonly Viewer viewer;
-
-            public ViewProjectionHolder(Viewer viewer)
-            {
-                this.viewer = viewer;
-            }
-        }
-
         private enum ViewMode
         {
             Platforms,
@@ -58,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private ControlLayout controlLayout;
         private readonly ResourceGameComponent<Label3DOverlay, int> labelCache;
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
-        private readonly ViewProjectionHolder cameraViewProjection;
+        private readonly CameraViewProjectionHolder cameraViewProjection;
 
         private readonly HashSet<string> autoPlatforms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> autoSidings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -75,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             this.viewer = viewer;
             ZOrder = -5;
             labelCache = Owner.Game.Components.OfType<ResourceGameComponent<Label3DOverlay, int>>().FirstOrDefault() ?? new ResourceGameComponent<Label3DOverlay, int>(Owner.Game);
-            cameraViewProjection = new ViewProjectionHolder(viewer);
+            cameraViewProjection = new CameraViewProjectionHolder(viewer);
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)

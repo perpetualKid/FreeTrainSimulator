@@ -48,7 +48,7 @@ namespace Orts.Graphics.MapView.Widgets
                     case RoadLevelCrossingItem roadLevelCrossingItem:
                         result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
                         break;
-                    case RoadCarSpawner carSpawner:
+                    case RoadCarSpawnerItem carSpawner:
                         result.Add(new CarSpawnerTrackItem(carSpawner));
                         break;
                     case EmptyItem emptyItem:
@@ -119,7 +119,7 @@ namespace Orts.Graphics.MapView.Widgets
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
                         break;
-                    case RoadCarSpawner carSpawner:
+                    case RoadCarSpawnerItem carSpawner:
                         result.Add(new CarSpawnerTrackItem(carSpawner));
                         break;
                     case EmptyItem emptyItem:
@@ -155,7 +155,7 @@ namespace Orts.Graphics.MapView.Widgets
     #region CarSpawnerTrackItem
     internal class CarSpawnerTrackItem : TrackItemBase
     {
-        public CarSpawnerTrackItem(RoadCarSpawner source) : base(source)
+        public CarSpawnerTrackItem(RoadCarSpawnerItem source) : base(source)
         {
             Size = 5f;
         }

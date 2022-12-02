@@ -105,7 +105,12 @@ namespace Orts.Graphics.Xna
                 int padding = (int)Math.Ceiling(font.Size * 0.2);
                 int paddingWidth = padding;
                 if (outlineOptions != null)
-                    paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth);
+                {
+                    if (actual.Height < font.Height * 1.2)
+                        paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
+                    else
+                        paddingWidth += (int)(actual.Width/font.Height * outlineOptions.OutlineWidth);
+                }
                 size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + padding / 2));
             }
             measureGraphicsHolder.Enqueue(measureContainer);

@@ -72,14 +72,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             break;
                         primitives.Add(new DispatcherLineSegment(previousLocation, currentPosition.WorldLocation, Color.LightBlue, 2));
                     }
-                    foreach (var trItemID in trackNode.TrackItemIndices)
-                    {
-                        var trItem = tdb.TrackItems[trItemID];
-                        currentPosition = new Traveller(trackNode);
-                        currentPosition.Move(trItem.SData1);
-                        primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue,
-                            $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
-                    }
                 }
                 if (rdb != null && rdb.TrackNodes != null)
                 {
@@ -96,16 +88,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if ((Math.Abs(remaining - DisplaySegmentLength) < Tolerance) && !currentPosition.NextVectorSection())
                                 break;
                             primitives.Add(new DispatcherLineSegment(previousLocation, currentPosition.WorldLocation, Color.LightSalmon, 2));
-                        }
-                        if (trackNode.TrackItemIndices != null)
-                        {
-                            foreach (var trItemID in trackNode.TrackItemIndices)
-                            {
-                                var trItem = rdb.TrackItems[trItemID];
-                                currentPosition = new Traveller(trackNode, true);
-                                currentPosition.Move(trItem.SData1);
-                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
-                            }
                         }
                     }
                 }
