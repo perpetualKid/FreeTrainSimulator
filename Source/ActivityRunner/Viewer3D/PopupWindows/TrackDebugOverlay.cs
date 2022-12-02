@@ -21,10 +21,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class TrackDebugOverlay : OverlayBase
     {
+        private const int SegmentLength = 10;
+        private const float Tolerance = 0.1f;
+
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
         private readonly UserSettings settings;
         private ControlLayout controlLayout;
+        private Track3DOverlay trackOverlay;
         private readonly ResourceGameComponent<Label3DOverlay, int> labelCache;
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly CameraViewProjectionHolder cameraViewProjection;
@@ -47,7 +51,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            return controlLayout = base.Layout(layout, headerScaling);
+            layout = base.Layout(layout, headerScaling);
+            layout.Add(trackOverlay = new Track3DOverlay(this));
+            trackOverlay.CameraView = cameraViewProjection;
+            trackOverlay.ViewDistance = settings.ViewingDistance;
+            controlLayout = layout.AddLayoutPanel(0, 0);
+            return controlLayout;
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
@@ -55,16 +64,26 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (shouldUpdate)
             {
                 labelList.Clear();
+                trackOverlay.Clear();
 
                 void AddTrackItems(TrackNodes trackNodes, List<TrackItem> trackItems, bool roadTracks)
                 {
                     ref readonly WorldLocation cameraLocation = ref viewer.Camera.CameraWorldLocation;
-
                     foreach (TrackVectorNode trackVectorNode in trackNodes.VectorNodes)
                     {
                         if (Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - cameraLocation.TileX) < 2 &&
                             Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - cameraLocation.TileZ) < 2)
                         {
+                            Traveller currentPosition = new Traveller(trackVectorNode);
+                            while (true)
+                            {
+                                WorldLocation previousLocation = currentPosition.WorldLocation;
+                                float remaining = currentPosition.MoveInSection(SegmentLength);
+                                if ((Math.Abs(remaining - SegmentLength) < Tolerance) && !currentPosition.NextVectorSection())
+                                    break;
+                                trackOverlay.Add(previousLocation, currentPosition.WorldLocation, roadTracks ? Color.LightSalmon : Color.LightBlue);
+                            }
+
                             IEnumerable<IGrouping<float, TrackItem>> grouping = trackVectorNode.TrackItemIndices.Select(i => trackItems[i]).GroupBy(item => item.SData1);
                             foreach (IGrouping<float, TrackItem> item in grouping)
                             {
@@ -83,6 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
 
                 AddTrackItems(trackDb.TrackNodes, trackDb.TrackItems, false);
+
                 if (roadTrackDb?.TrackNodes != null)
                     AddTrackItems(roadTrackDb.TrackNodes, roadTrackDb.TrackItems, true);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -56,6 +57,7 @@ namespace Orts.Graphics.Window.Controls
             IWorldPosition positionSource, IViewProjection viewProjection) :
             base(window, 0, 0, 0, 0)
         {
+            Debug.Assert(window is OverlayBase);
             this.labelType = labelType;
             this.viewProjection = viewProjection;
             this.positionSource = positionSource;
@@ -72,12 +74,13 @@ namespace Orts.Graphics.Window.Controls
         {
             base.Update(gameTime, shouldUpdate);
 
+            ref readonly Viewport viewport = ref Window.Owner.Viewport;
             Vector3 lineLocation3D = positionSource.WorldPosition.XNAMatrix.Translation;
             lineLocation3D.X += (positionSource.WorldPosition.TileX - viewProjection.Location.TileX) * 2048;
             lineLocation3D.Y += baseline + 0.2f;
             lineLocation3D.Z += (viewProjection.Location.TileZ - positionSource.WorldPosition.TileZ) * 2048;
 
-            Vector3 lineLocation2DStart = Window.Owner.Viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity);
+            Vector3 lineLocation2DStart = viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity);
             if (lineLocation2DStart.Z > 1 || lineLocation2DStart.Z < 0)
             {
                 outOfSight = true;
@@ -85,7 +88,7 @@ namespace Orts.Graphics.Window.Controls
             }
 
             lineLocation3D.Y += settings[labelType].VerticalOffset;
-            float lineLocation2DEndY = Window.Owner.Viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity).Y;
+            float lineLocation2DEndY = viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity).Y;
 
             labelLocation = new Vector2(lineLocation2DStart.X - texture.Width / 2 - 2, lineLocation2DEndY - texture.Height);
 

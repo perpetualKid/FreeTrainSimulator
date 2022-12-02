@@ -121,7 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private InfoDisplay InfoDisplay;
         public WindowManager WindowManager { get; private set; }
-        public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
         public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
 
         // Route Information
@@ -492,7 +491,6 @@ namespace Orts.ActivityRunner.Viewer3D
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
             WindowManager = new WindowManager(this);
-            TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
             WindowManager.Initialize();
 
@@ -717,10 +715,6 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ViewerWindowType.TrackDebugOverlay].ToggleVisibility();
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TracksDebugWindow.TabAction();
-                else
-                    TracksDebugWindow.Visible = !TracksDebugWindow.Visible;
             });
             UserCommandController.AddEvent(UserCommand.DebugSignalling, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
