@@ -29,6 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly UserSettings settings;
         private ControlLayout controlLayout;
         private Track3DOverlay trackOverlay;
+        private Tile cameraTile;
         private readonly ResourceGameComponent<Label3DOverlay, int> labelCache;
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly CameraViewProjectionHolder cameraViewProjection;
@@ -61,8 +62,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            if (shouldUpdate)
+            ref readonly WorldLocation cameraLocation = ref viewer.Camera.CameraWorldLocation;
+            if (shouldUpdate && cameraTile != new Tile(cameraLocation.TileX, cameraLocation.TileZ))
             {
+                cameraTile = new Tile(cameraLocation.TileX, cameraLocation.TileZ);
                 labelList.Clear();
                 trackOverlay.Clear();
 

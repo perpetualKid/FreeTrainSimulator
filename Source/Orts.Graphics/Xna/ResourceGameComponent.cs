@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Graphics.Xna
@@ -95,18 +98,24 @@ namespace Orts.Graphics.Xna
         }
     }
 
-#pragma warning disable CA1715 // Identifiers should have correct prefix
-    public sealed class ResourceGameComponent<T, U> : ResourceGameComponent<T>
-#pragma warning restore CA1715 // Identifiers should have correct prefix
+    public sealed class ResourceGameComponent<T, TIdentifier> : ResourceGameComponent<T>
     {
+        private static readonly bool intIdentifier = typeof(TIdentifier) == typeof(int);
+
         public ResourceGameComponent(Game game) : base(game)
         {
         }
 
-        public T Get(U source, Func<T> create)
+        public T Get(TIdentifier source, Func<T> create)
         {
             ArgumentNullException.ThrowIfNull(create);
             return Get(source.GetHashCode(), create);
+        }
+
+        public bool Exists(TIdentifier identifier)
+        {
+            T result = Get(intIdentifier ? Unsafe.As<TIdentifier, int>(ref identifier) : identifier.GetHashCode(), () => default(T));
+            return !EqualityComparer<T>.Default.Equals(result, default(T));
         }
     }
 
