@@ -123,4 +123,5 @@ steps:
         $feed='builds'}
       dotnet tool install --tool-manifest .\source\.config\dotnet-tools.json sleet
       cd .\source
+      dotnet tool restore
       dotnet tool run sleet push .\..\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
