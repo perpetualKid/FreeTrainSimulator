@@ -371,8 +371,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NotificationOverlay)}=0,0",
             $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=0,0",
             $"{nameof(ViewerWindowType.LocationsOverlay)}=0,0",
-            $"{nameof(ViewerWindowType.TrackDebugOverlay)}=0,0",
-            $"{nameof(ViewerWindowType.SignallingDebugOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=0,0",
         })]
         public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
 
@@ -399,8 +398,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NotificationOverlay)}=False",
             $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=False",
             $"{nameof(ViewerWindowType.LocationsOverlay)}=False",
-            $"{nameof(ViewerWindowType.TrackDebugOverlay)}=False",
-            $"{nameof(ViewerWindowType.SignallingDebugOverlay)}=False",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=False",
         })]
         public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
 
@@ -427,8 +425,7 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.NotificationOverlay)}=\"\"",
             $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=\"\"",
             $"{nameof(ViewerWindowType.LocationsOverlay)}=\"\"",
-            $"{nameof(ViewerWindowType.TrackDebugOverlay)}=\"\"",
-            $"{nameof(ViewerWindowType.SignallingDebugOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=\"\"",
         })]
 
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }

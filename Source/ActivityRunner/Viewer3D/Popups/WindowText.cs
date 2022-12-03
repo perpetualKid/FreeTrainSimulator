@@ -36,30 +36,19 @@ using GraphicsUnit = System.Drawing.GraphicsUnit;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
+    public enum LabelAlignment
+    {
+        Left,
+        Center,
+        Right,
+    }
+
     public sealed class WindowTextManager
     {
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
         private Dictionary<string, WindowTextFont> Fonts = new Dictionary<string, WindowTextFont>();
-
-        /// <summary>
-        /// Provides a <see cref="WindowTextFont"/> for the specified <paramref name="fontFamily"/>,
-        /// <paramref name="sizeInPt"/> and <paramref name="style"/>, scaled from points to pixels by
-        /// the system-wide DPI scale.
-        /// </summary>
-        /// <remarks>
-        /// All <see cref="WindowTextFont"/> instances are cached by the <see cref="WindowTextManager"/>.
-        /// </remarks>
-        /// <param name="fontFamily">Font family name (e.g. "Arial")</param>
-        /// <param name="sizeInPt">Size of the font, in DPI-aware points (e.g. 9)</param>
-        /// <param name="style">Style of the font (e.g. <c>FontStyle.Normal</c>)</param>
-        /// <returns>A <see cref="WindowTextFont"/> that can be used to draw text of the given font family,
-        /// size and style.</returns>
-        public WindowTextFont GetScaled(string fontFamily, float sizeInPt, FontStyle style)
-        {
-            return GetExact(fontFamily, sizeInPt * System.Drawing.Graphics.FromHwnd(IntPtr.Zero).DpiY / 96, style);
-        }
 
         /// <summary>
         /// Provides a <see cref="WindowTextFont"/> for the specified <paramref name="fontFamily"/>,
@@ -77,25 +66,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public WindowTextFont GetExact(string fontFamily, float sizeInPt, FontStyle style)
         {
             return GetExact(fontFamily, sizeInPt, style, 0);
-        }
-
-        /// <summary>
-        /// Provides a <see cref="WindowTextFont"/> for the specified <paramref name="fontFamily"/>,
-        /// <paramref name="sizeInPt"/> and <paramref name="style"/> with the specified <paramref name="outlineSize"/>,
-        /// scaled from points to pixels by the system-wide DPI scale.
-        /// </summary>
-        /// <remarks>
-        /// All <see cref="WindowTextFont"/> instances are cached by the <see cref="WindowTextManager"/>.
-        /// </remarks>
-        /// <param name="fontFamily">Font family name (e.g. "Arial")</param>
-        /// <param name="sizeInPt">Size of the font, in DPI-aware points (e.g. 9)</param>
-        /// <param name="style">Style of the font (e.g. <c>FontStyle.Normal</c>)</param>
-        /// <param name="outlineSize">Size of the outline, in pixels (e.g. 2)</param>
-        /// <returns>A <see cref="WindowTextFont"/> that can be used to draw text of the given font family,
-        /// size and style with the given outline size.</returns>
-        public WindowTextFont GetScaled(string fontFamily, float sizeInPt, FontStyle style, int outlineSize)
-        {
-            return GetExact(fontFamily, sizeInPt * System.Drawing.Graphics.FromHwnd(IntPtr.Zero).DpiY / 96, style, outlineSize);
         }
 
         /// <summary>
@@ -181,20 +151,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return (int)x;
         }
 
-#if WINDOWTEXT_SPRITEBATCH
         public void Draw(SpriteBatch spriteBatch, Point offset, string text, Color color)
         {
             Draw(spriteBatch, offset, 0, 0, text, LabelAlignment.Left, color, Color.Black);
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Point offset, string text, Color color, Color outline)
-        {
-            Draw(spriteBatch, offset, 0, 0, text, LabelAlignment.Left, color, outline);
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, string text, LabelAlignment align, Color color)
-        {
-            Draw(spriteBatch, position, offset, 0, text, align, color, Color.Black);
         }
 
         public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, float rotation, string text, LabelAlignment align, Color color, Color outline)
@@ -270,76 +229,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
             }
         }
-#else
-        public DrawData PrepareFrame(GraphicsDevice graphicsDevice, float width, float height, string text, LabelAlignment align)
-        {
-            // We'll crash creating 0-byte buffers below and there's nothing to be done with an empty string anyway.
-            if (String.IsNullOrEmpty(text))
-                return null;
-
-            EnsureCharacterData(text);
-
-            var chIndexes = new int[text.Length];
-            for (var i = 0; i < text.Length; i++)
-                chIndexes[i] = Characters.IndexOfCharacter(text[i]);
-
-            var x = 0f;
-            var y = 0f;
-            if (align != LabelAlignment.Left)
-            {
-                for (var i = 0; i < text.Length; i++)
-                {
-                    x += Characters.AbcWidths[chIndexes[i]].X;
-                    x += Characters.AbcWidths[chIndexes[i]].Y;
-                    x += Characters.AbcWidths[chIndexes[i]].Z;
-                }
-                if (align == LabelAlignment.Center)
-                    x = (width - x) / 2;
-                else
-                    x = width - x;
-            }
-
-            var vertexData = new VertexPositionTexture[text.Length * 4];
-            var indexData = new short[text.Length * 6];
-            for (var i = 0; i < text.Length; i++)
-            {
-                vertexData[i * 4 + 0] = new VertexPositionTexture(new Vector3(x + 0, y + 0, 0), new Vector2((float)Characters.Boxes[chIndexes[i]].Left / Characters.Texture.Width, (float)Characters.Boxes[chIndexes[i]].Top / Characters.Texture.Height));
-                vertexData[i * 4 + 1] = new VertexPositionTexture(new Vector3(x + Characters.Boxes[chIndexes[i]].Width, y + 0, 0), new Vector2((float)Characters.Boxes[chIndexes[i]].Right / Characters.Texture.Width, (float)Characters.Boxes[chIndexes[i]].Top / Characters.Texture.Height));
-                vertexData[i * 4 + 2] = new VertexPositionTexture(new Vector3(x + 0, y + Characters.Boxes[chIndexes[i]].Height, 0), new Vector2((float)Characters.Boxes[chIndexes[i]].Left / Characters.Texture.Width, (float)Characters.Boxes[chIndexes[i]].Bottom / Characters.Texture.Height));
-                vertexData[i * 4 + 3] = new VertexPositionTexture(new Vector3(x + Characters.Boxes[chIndexes[i]].Width, y + Characters.Boxes[chIndexes[i]].Height, 0), new Vector2((float)Characters.Boxes[chIndexes[i]].Right / Characters.Texture.Width, (float)Characters.Boxes[chIndexes[i]].Bottom / Characters.Texture.Height));
-                x += Characters.AbcWidths[chIndexes[i]].X;
-                x += Characters.AbcWidths[chIndexes[i]].Y;
-                x += Characters.AbcWidths[chIndexes[i]].Z;
-                indexData[i * 6 + 0] = (short)(i * 4 + 0);
-                indexData[i * 6 + 1] = (short)(i * 4 + 1);
-                indexData[i * 6 + 2] = (short)(i * 4 + 2);
-                indexData[i * 6 + 3] = (short)(i * 4 + 1);
-                indexData[i * 6 + 4] = (short)(i * 4 + 3);
-                indexData[i * 6 + 5] = (short)(i * 4 + 2);
-            }
-            var vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
-            vertexBuffer.SetData(vertexData);
-            var indexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indexData);
-            return new DrawData(Characters, vertexBuffer, vertexData.Length, indexBuffer, text.Length * 2);
-        }
-
-        public void Draw(GraphicsDevice graphicsDevice, DrawData data)
-        {
-            if (data != null)
-            {
-                graphicsDevice.VertexDeclaration = new VertexDeclaration(graphicsDevice, VertexPositionTexture.VertexElements);
-                graphicsDevice.Vertices[0].SetSource(data.VertexBuffer, 0, VertexPositionTexture.SizeInBytes);
-                graphicsDevice.Indices = data.IndexBuffer;
-                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, data.VertexCount, 0, data.PrimitiveCount);
-            }
-        }
-
-        public bool IsValid(DrawData LastDrawData)
-        {
-            return (LastDrawData != null) && (LastDrawData.Characters == Characters);
-        }
-#endif
 
         public void Load(GraphicsDevice graphicsDevice)
         {
@@ -359,25 +248,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
             }
         }
-
-#if !WINDOWTEXT_SPRITEBATCH
-        public sealed class DrawData
-        {
-            internal readonly CharacterGroup Characters;
-            internal readonly VertexBuffer VertexBuffer;
-            internal readonly int VertexCount;
-            internal readonly IndexBuffer IndexBuffer;
-            internal readonly int PrimitiveCount;
-            internal DrawData(CharacterGroup characters, VertexBuffer vertexBuffer, int vertexCount, IndexBuffer indexBuffer, int primitiveCount)
-            {
-                Characters = characters;
-                VertexBuffer = vertexBuffer;
-                VertexCount = vertexCount;
-                IndexBuffer = indexBuffer;
-                PrimitiveCount = primitiveCount;
-            }
-        }
-#endif
 
         internal sealed class CharacterGroup
         {

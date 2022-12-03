@@ -313,7 +313,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         }
         public WindowTextFont GetFont(float size, bool bold = false)
         {
-            return DPI.viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
+            return DPI.viewer.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
         }
         /// <summary>
         /// Get scaled font size, increasing it if result is small

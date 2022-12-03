@@ -110,7 +110,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 Scenery.Mark();
                 Trains.Mark();
                 RoadCars.Mark();
-                Viewer.Mark();
                 Viewer.ShapeManager.Sweep();
                 Viewer.MaterialManager.Sweep();
                 Viewer.TextureManager.Sweep();

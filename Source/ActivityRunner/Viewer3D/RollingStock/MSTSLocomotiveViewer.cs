@@ -3060,7 +3060,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Format = Format2;
             else
                 Format = Format1;
-            DrawFont = Viewer.WindowManager.TextManager.GetExact(digital.FontFamily, Viewer.CabHeightPixels * digital.FontSize / 480, digital.FontStyle == 0 ? System.Drawing.FontStyle.Regular : System.Drawing.FontStyle.Bold);
+            DrawFont = Viewer.TextManager.GetExact(digital.FontFamily, Viewer.CabHeightPixels * digital.FontSize / 480, digital.FontStyle == 0 ? System.Drawing.FontStyle.Regular : System.Drawing.FontStyle.Bold);
             var xScale = Viewer.CabWidthPixels / 640f;
             var yScale = Viewer.CabHeightPixels / 480f;
             // Cab view position adjusted to allow for letterboxing.
@@ -4227,7 +4227,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             height = h;
             CVFR = (CabViewDigitalRenderer)c;
             _Sprite2DCabView = (SpriteBatchMaterial)viewer.MaterialManager.Load("SpriteBatch");
-            _Font = viewer.WindowManager.TextManager.GetExact("Arial", height, System.Drawing.FontStyle.Regular);
+            _Font = viewer.TextManager.GetExact("Arial", height, System.Drawing.FontStyle.Regular);
         }
 
     }

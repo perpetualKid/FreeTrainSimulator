@@ -560,7 +560,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
         public WindowTextFont GetFont(float size, bool bold = false)
         {
-            return DMI.Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
+            return DMI.Viewer.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
         }
         /// <summary>
         /// Get scaled font size, increasing it if result is small

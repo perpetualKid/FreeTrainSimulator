@@ -209,11 +209,11 @@ namespace Orts.Graphics.Window
 
         private void UpdateSize()
         {
-            xnaView = Matrix.CreateTranslation(-Game.GraphicsDevice.Viewport.Width / 2, -Game.GraphicsDevice.Viewport.Height / 2, 0) *
+            xnaView = Matrix.CreateTranslation(-viewport.Width / 2, -viewport.Height / 2, 0) *
                 Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
                 Matrix.CreateScale(1.0f, -1.0f, 1.0f);
             // Project into a flat view of the same size as the viewport.
-            xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
+            xnaProjection = Matrix.CreateOrthographic(viewport.Width, viewport.Height, 0, 1);
             for (int i = 0; i < windows.Count; i++)
             {
                 if (windows[i] is WindowBase framedWindow)

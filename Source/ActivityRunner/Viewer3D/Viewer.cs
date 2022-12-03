@@ -120,9 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private Orts.Graphics.Window.WindowManager<ViewerWindowType> windowManager;
 
         private InfoDisplay InfoDisplay;
-        public WindowManager WindowManager { get; private set; }
-        public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
-
+        public WindowTextManager TextManager { get; } = new WindowTextManager();
         // Route Information
         public TileManager Tiles { get; private set; }
         public TileManager LoTiles { get; private set; }
@@ -490,10 +488,6 @@ namespace Orts.ActivityRunner.Viewer3D
             ShapeManager = new SharedShapeManager(this);
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
-            WindowManager = new WindowManager(this);
-            SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
-            WindowManager.Initialize();
-
             windowManager = Orts.Graphics.Window.WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
             windowManager.MultiLayerModalWindows = true;
             windowManager.WindowOpacity = 0.4f;
@@ -582,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return new LocationOverlay(windowManager, Settings, this);
             }));
-            windowManager.SetLazyWindows(ViewerWindowType.TrackDebugOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
+            windowManager.SetLazyWindows(ViewerWindowType.TrackItemOverlay, new Lazy<Orts.Graphics.Window.FormBase>(() =>
             {
                 return new TrackDebugOverlay(windowManager, Settings, this);
             }));
@@ -714,14 +708,11 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.DebugTracks, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ViewerWindowType.TrackDebugOverlay].ToggleVisibility();
+                    windowManager[ViewerWindowType.TrackItemOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DebugSignalling, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    SignallingDebugWindow.TabAction();
-                else
-                    SignallingDebugWindow.Visible = !SignallingDebugWindow.Visible;
+                //
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () =>
             {
@@ -1303,7 +1294,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             World.Load();
-            WindowManager.Load();
+            TextManager.Load(Game.GraphicsDevice);
         }
 
         public void Update(RenderFrame frame, double elapsedRealTime)
@@ -1424,7 +1415,6 @@ namespace Orts.ActivityRunner.Viewer3D
             World.PrepareFrame(frame, elapsedTime);
             InfoDisplay.PrepareFrame(frame, elapsedTime);
 
-            WindowManager.PrepareFrame(frame, elapsedTime);
             logRenderFrame = false;
             if (pauseWindow != (pauseWindow = Simulator.GamePaused))
             {
@@ -1625,11 +1615,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
             return activeMovingTable;
-        }
-
-        public void Mark()
-        {
-            WindowManager.Mark();
         }
 
         internal void Terminate()
