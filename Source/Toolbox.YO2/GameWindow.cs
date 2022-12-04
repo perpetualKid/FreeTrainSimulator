@@ -15,6 +15,7 @@ using Myra;
 using Myra.Graphics2D.UI;
 using System.Threading.Tasks;
 using System.Threading;
+using Orts.Graphics.MapView;
 
 
 //using static Swan.Terminal;
@@ -26,7 +27,7 @@ namespace Toolbox.YO2
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private M_MainWindow _mainWindow;
-        private Desktop _desktop;
+        
 
         private Folder selectedFolder;
         private Route selectedRoute;
@@ -37,7 +38,8 @@ namespace Toolbox.YO2
 
         private CancellationTokenSource ctsConsistLoading;
 
- //       public Folder selectedFolder;
+        //       public Folder selectedFolder;
+        public Desktop _desktop;
         public IOrderedEnumerable<Folder> folders;
         public IEnumerable<Consist> consists = Array.Empty<Consist>();
 
@@ -118,7 +120,7 @@ namespace Toolbox.YO2
             _desktop?.Render();
        
         }
-
+                
         private void QuitItemOnDown(object sender, EventArgs genericEventArgs)
         {
             Exit();

@@ -24,6 +24,10 @@ namespace Toolbox.YO2
 	{
         private GameWindow gameWindow;
 
+        private readonly M_Trains mw = new M_Trains();
+        private readonly M_Equip me = new M_Equip();
+        private readonly M_3DEquipViewer m3d = new M_3DEquipViewer();
+        private M_ProgressBar pw = new M_ProgressBar();
 
         public M_OpenWindow(GameWindow gameWindow)
         {
@@ -53,7 +57,8 @@ namespace Toolbox.YO2
 
         private async void _OpenWin_Load_button_Click(object sender, System.EventArgs e)
         {
-            
+
+            this.Close();
             var routeselected = " ";
             int count_i = 0;
             int dirlist_i = 0;
@@ -66,13 +71,10 @@ namespace Toolbox.YO2
                 {
                     if (folder.Name == _OpenWin_List.SelectedItem.Text)
                     {
+                        
                         await gameWindow.LoadConsists(folder).ConfigureAwait(true);
                         routeselected = folder.Name;
-                        var mw = new M_Trains();
-                        var me = new M_Equip();
-                        
-                        var m3d = new M_3DEquipViewer();
-                        ;
+
                         foreach (Consist consist in gameWindow.consists)
                         {
                             var listItem = new ListItem();
@@ -81,13 +83,20 @@ namespace Toolbox.YO2
                             mw._ConsistList.Items.Add(listItem);
                             count_i++;
                         }
-
+ 
                         var folderpath = folder.Path;
                         var trainsetpath = folderpath + "\\TRAINS\\TRAINSET";
                         var dirInfo = new DirectoryInfo(trainsetpath);
-
+                        var directoryCount = Directory.GetDirectories(trainsetpath, "*", SearchOption.AllDirectories).Length;
                         var dirs = dirInfo.EnumerateDirectories("*", new EnumerationOptions
                         { RecurseSubdirectories = true });
+
+                        pw.m_progressBar_tb.Text = "Processing " + dirlist_i.ToString() + " of " + directoryCount.ToString() + " Trainset Directories";
+
+                        pw.ShowModal(gameWindow._desktop);
+                        pw.BringToFront();
+
+
 
                         foreach (var name in dirs)
                         {
@@ -99,8 +108,8 @@ namespace Toolbox.YO2
 
                             foreach (var file in result)
                             {
-                                var engFile = new EngineFile(file);
-                                var wagFile = new WagonFile(file);
+                                var engFile = new CEeng(file);
+                                var wagFile = new CEwag(file);
                                 var listItem = new ListItem();
                                 if (System.IO.Path.GetExtension(file) == ".eng")
                                     listItem.Text = engFile.Name;
@@ -112,13 +121,18 @@ namespace Toolbox.YO2
                             }
                             
                             dirlist_i++;
+
+                            pw.m_progressBar_tb.Text = "Processing " + dirlist_i.ToString() + " of " + directoryCount.ToString() + " Trainset Directories";
+                            
+                            
                         }
+                        pw.Close();
 
                         me._EqpTotal.Text = equiplist_i.ToString() + "/" +dirlist_i.ToString();
                         mw._TrainCount.Text = count_i.ToString();
-                        mw.Show(Desktop, new Point(1, 21));
-                        me.Show(Desktop, new Point(252, 21));
-                        m3d.Show(Desktop, new Point(502, 21));
+                        mw.Show(gameWindow._desktop, new Point(1, 21));
+                        me.Show(gameWindow._desktop, new Point(252, 21));
+                        m3d.Show(gameWindow._desktop, new Point(502, 21));
                         break;
                     }
                 }
@@ -129,7 +143,7 @@ namespace Toolbox.YO2
 
             //          messageBox.ShowModal(Desktop);
 
-            Close();
+            
 
         }
 

@@ -1,13 +1,13 @@
 <Project>
   <Project.ExportOptions Namespace="Toolbox.YO2" Class="M_ProgressBar" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YO2\UI" />
-  <Window Title="" Left="531" Top="90" Id="m_progressBar">
+  <Window Title="" DragDirection="None" Left="531" Top="90" Id="m_progressBar">
     <VerticalStackPanel>
       <VerticalStackPanel.Proportions>
         <Proportion Type="Auto" />
         <Proportion Type="Auto" />
       </VerticalStackPanel.Proportions>
       <Label Text="                Loading Equipment" Width="300" Id="m_progressBar_Text" />
-      <HorizontalProgressBar Width="300" Id="m_progress_bar" />
+      <TextBox Width="300" Id="m_progressBar_tb" /> 
     </VerticalStackPanel>
   </Window>
 </Project>
