@@ -498,7 +498,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 derailmentCoefficientEnabled = false;
             }
-            
+
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
             if (wagonNumAxles == 0 && WagonType != WagonType.Engine)
             {
@@ -857,8 +857,19 @@ namespace Orts.Simulation.RollingStocks
                     FreightShapeFileName = null;
                 if (FreightAnimations.WagonEmptyWeight != -1)
                 {
-
-                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight;
+                    // Computes mass when it carries containers
+                    float totalContainerMassKG = 0;
+                    if (FreightAnimations.Animations != null)
+                    {
+                        foreach (FreightAnimation anim in FreightAnimations.Animations)
+                        {
+                            if (anim is FreightAnimationDiscrete discreteAnim && discreteAnim.Container != null)
+                            {
+                                totalContainerMassKG += discreteAnim.Container.MassKG;
+                            }
+                        }
+                    }
+                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight + totalContainerMassKG;
 
                     if (FreightAnimations.StaticFreightAnimationsPresent) // If it is static freight animation, set wagon physics to full wagon value
                     {
@@ -1985,8 +1996,7 @@ namespace Orts.Simulation.RollingStocks
                     FreightAnimations.LoadedOne = null;
                     FreightAnimations.FreightType = PickupType.None;
                 }
-                if (FreightAnimations.WagonEmptyWeight != -1)
-                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight;
+
                 if (WaitForAnimationReady && WeightLoadController.CommandStartTime + FreightAnimations.UnloadingStartDelay <= simulator.ClockTime)
                 {
                     WaitForAnimationReady = false;
@@ -1994,6 +2004,26 @@ namespace Orts.Simulation.RollingStocks
                     if (FreightAnimations.LoadedOne is FreightAnimationContinuous)
                         WeightLoadController.StartDecrease(WeightLoadController.MinimumValue);
                 }
+            }
+
+            if (WagonType != WagonType.Tender && AuxWagonType != AuxWagonType.AuxiliaryTender && WagonType != WagonType.Engine)
+            {
+                // Updates mass when it carries containers
+                float totalContainerMassKG = 0;
+                if (FreightAnimations?.Animations != null)
+                {
+                    foreach (FreightAnimation anim in FreightAnimations.Animations)
+                    {
+                        if (anim is FreightAnimationDiscrete discreteAnim && discreteAnim.Container != null)
+                        {
+                            totalContainerMassKG += discreteAnim.Container.MassKG;
+                        }
+                    }
+                }
+
+                // Updates the mass of the wagon considering all types of loads
+                if (FreightAnimations.WagonEmptyWeight != -1)
+                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight + totalContainerMassKG;
             }
         }
 

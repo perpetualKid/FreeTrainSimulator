@@ -290,12 +290,22 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; }
         public string Folder { get; }
         public LoadPosition LoadPosition { get; }
+        public LoadState LoadState { get; }
 
         public LoadData(string name, string folder, LoadPosition loadPosition)
         {
             Name = name;
             Folder = folder;
             LoadPosition = loadPosition;
+            LoadState = LoadState.Random;
+        }
+
+        public LoadData(string name, string folder, LoadPosition loadPosition, LoadState loadState)
+        {
+            Name = name;
+            Folder = folder;
+            LoadPosition = loadPosition;
+            LoadState = loadState;
         }
 
         public LoadData(STFReader stf)
@@ -307,6 +317,16 @@ namespace Orts.Formats.Msts.Models
             if (!EnumExtension.GetValue(positionString, out LoadPosition loadPosition))
                 Trace.TraceWarning($"Can not parse '{positionString}' string into LoadPosition");
             LoadPosition = loadPosition;
+            string stateString = stf.ReadString();
+            if (stateString != ")")
+            {
+                if (!EnumExtension.GetValue(stateString, out LoadState loadState))
+                    Trace.TraceWarning($"Can not parse '{stateString}' string into LoadState");
+                LoadState = loadState;
+                stf.MustMatch(")");
+            }
+            else
+                LoadState = LoadState.Random;
         }
 
         public override bool Equals(object obj)

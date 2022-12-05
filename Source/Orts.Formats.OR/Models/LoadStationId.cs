@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System;
 
 using Orts.Formats.OR.Parsers;
+using Orts.Common;
 
 namespace Orts.Formats.OR.Models
 {
@@ -88,6 +89,7 @@ namespace Orts.Formats.OR.Models
         public string FileName { get; private set; }
         public string FolderName { get; private set; }
         public int StackLocation { get; private set; }
+        public LoadState LoadState { get; private set; }
 
         public LoadDataEntry(JsonReader json)
         {
@@ -107,6 +109,10 @@ namespace Orts.Formats.OR.Models
                     break;
                 case "StackLocation":
                     StackLocation = item.AsInteger(0);
+                    break;
+                case "LoadState":
+                    if (EnumExtension.GetValue(item.AsString(""), out LoadState loadState))
+                        LoadState = loadState;
                     break;
                 default:
                     return false;

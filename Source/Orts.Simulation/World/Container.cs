@@ -27,6 +27,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
@@ -42,6 +43,8 @@ namespace Orts.Simulation.World
     {
         public const float Length20ftM = 6.095f;
         public const float Length40ftM = 12.19f;
+        public static EnumArray<float, ContainerType> DefaultEmptyMassKG { get; } = new EnumArray<float, ContainerType>(new float[] { 0, 2160, 3900, 4100, 4500, 4700, 4900, 5040 });
+        public static EnumArray<float, ContainerType> DefaultMaxMassWhenLoadedKG { get; } = new EnumArray<float, ContainerType>(new float[] { 0, 24000, 30500, 30500, 30500, 30500, 30500, 30500 });
 
         private static readonly char[] directorySeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         public string LoadFilePath { get; private set; }
@@ -50,7 +53,9 @@ namespace Orts.Simulation.World
         public string Name { get; private set; }
         public string ShapeFileName { get; private set; }
         public string BaseShapeFileFolderSlash { get; private set; }
-        public float MassKG { get; private set; } = 2000;
+        public float MassKG { get; internal set; } = 2000;
+        public float EmptyMassKG { get; private set; }
+        public float MaxMassWhenLoadedKG { get; private set; }
         public float WidthM { get; private set; } = 2.44f;
         public float LengthM { get; private set; } = 12.19f;
         public float HeightM { get; private set; } = 2.59f;
@@ -104,6 +109,8 @@ namespace Orts.Simulation.World
             flipped = source.flipped;
             MassKG = source.MassKG;
             LoadFilePath = source.LoadFilePath;
+            EmptyMassKG = source.EmptyMassKG;
+            MaxMassWhenLoadedKG = source.MaxMassWhenLoadedKG;
         }
 
         public Container(BinaryReader inf, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingItem containerStation, bool fromContainerStation, int stackLocationIndex = 0)
@@ -117,6 +124,8 @@ namespace Orts.Simulation.World
             ComputeDimensions();
             flipped = inf.ReadBoolean();
             MassKG = inf.ReadSingle();
+            EmptyMassKG = inf.ReadSingle();
+            MaxMassWhenLoadedKG = inf.ReadSingle();
             if (fromContainerStation)
             {
                 ArgumentNullException.ThrowIfNull(containerStation);
@@ -208,6 +217,8 @@ namespace Orts.Simulation.World
             outf.Write((int)ContainerType);
             outf.Write(flipped);
             outf.Write(MassKG);
+            outf.Write(EmptyMassKG);
+            outf.Write(MaxMassWhenLoadedKG);
             if (!fromContainerStation)
                 MatrixExtension.SaveMatrix(outf, RelativeContainerMatrix);
         }
@@ -225,6 +236,8 @@ namespace Orts.Simulation.World
             BaseShapeFileFolderSlash = Path.Combine(baseFolder, root) + Path.DirectorySeparatorChar;
             ComputeDimensions();
             IntrinsicShapeOffset = containerParameters.IntrinsicShapeOffset.XnaVector();
+            EmptyMassKG = containerParameters.EmptyMassKG != -1 ? containerParameters.EmptyMassKG : DefaultEmptyMassKG[ContainerType];
+            MaxMassWhenLoadedKG = containerParameters.MaxMassWhenLoadedKG != -1 ? containerParameters.MaxMassWhenLoadedKG : DefaultMaxMassWhenLoadedKG[ContainerType];
         }
 
         public void SetWorldPosition(in WorldPosition position)
@@ -462,14 +475,14 @@ namespace Orts.Simulation.World
                             Trace.TraceWarning($"Ignored missing load {loadFilePath}");
                             continue;
                         }
-                        Preload(loadFilePath, loadDataEntry.StackLocation);
+                        Preload(loadFilePath, loadDataEntry.StackLocation, loadDataEntry.LoadState);
                     }
                     break;
                 }
             }
         }
 
-        public void Preload(string loadFilePath, int stackLocationIndex)
+        public void Preload(string loadFilePath, int stackLocationIndex, LoadState loadState)
         {
             Container container;
             container = new Container(null, loadFilePath, this);
@@ -479,6 +492,19 @@ namespace Orts.Simulation.World
             {
                 container.LoadFromContainerFile(loadFilePath, Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder);
                 containerManager.LoadedContainers.Add(loadFilePath, container);
+            }
+            switch (loadState)
+            {
+                case LoadState.Empty:
+                    container.MassKG = container.EmptyMassKG;
+                    break;
+                case LoadState.Loaded:
+                    container.MassKG = container.MaxMassWhenLoadedKG;
+                    break;
+                case LoadState.Random:
+                    int loadPercent = StaticRandom.Next(101);
+                    container.MassKG = loadPercent < 30 ? container.EmptyMassKG : container.MaxMassWhenLoadedKG * loadPercent / 100f;
+                    break;
             }
             ContainerStackLocation stackLocation = StackLocations[stackLocationIndex];
             stackLocation.Containers ??= new ContainerStack();
