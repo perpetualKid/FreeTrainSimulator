@@ -204,7 +204,7 @@ namespace Orts.Graphics.Window
 
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
-            UserCommandController.SuppressDownLevelEventHandling |= activeWindow?.ActiveControl?.HandleTextInput(e) ?? false;
+            activeWindow?.ActiveControl?.HandleTextInput(e);
         }
 
         private void UpdateSize()

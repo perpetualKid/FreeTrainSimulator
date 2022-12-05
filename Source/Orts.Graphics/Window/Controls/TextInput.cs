@@ -35,6 +35,7 @@ namespace Orts.Graphics.Window.Controls
         {
             if (Window is WindowBase frameWindow && frameWindow.ActiveControl == this)
             {
+                frameWindow.Owner.UserCommandController.SuppressDownLevelEventHandling = true;
                 switch (e.Character)
                 {
                     case '\b':
@@ -46,10 +47,12 @@ namespace Orts.Graphics.Window.Controls
                         break;
                     case '\r':
                         frameWindow.ActiveControl = null;
+                        frameWindow.Owner.UserCommandController.SuppressDownLevelEventHandling = false;
                         OnEnterKey?.Invoke(this, EventArgs.Empty);
                         break;
                     case '\u001b':
                         frameWindow.ActiveControl = null;
+                        frameWindow.Owner.UserCommandController.SuppressDownLevelEventHandling = false;
                         OnEscapeKey?.Invoke(this, EventArgs.Empty);
                         break;
                     default:
@@ -72,7 +75,6 @@ namespace Orts.Graphics.Window.Controls
             {
                 base.Text = value;
                 TextChanged?.Invoke(this, EventArgs.Empty);
-
             }
         }
 
@@ -81,6 +83,7 @@ namespace Orts.Graphics.Window.Controls
             if (Window is WindowBase frameWindow && frameWindow.ActiveControl == this)
             {
                 frameWindow.ActiveControl = null;
+                frameWindow.Owner.UserCommandController.SuppressDownLevelEventHandling = false;
                 OnEnterKey?.Invoke(this, EventArgs.Empty);
             }
         }
