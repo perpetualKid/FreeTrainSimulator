@@ -513,7 +513,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     }
 
                     dieselLocomotivesCount = k;// only leaders loco group
-                    var nRows = Math.Min(FullTable ? NumberOfRowsFull : NumberOfRowsPartial, dieselLocoHeader.Count());
+                    var nRows = Math.Min(FullTable ? NumberOfRowsFull : NumberOfRowsPartial, dieselLocoHeader.Length);
 
                     for (i = 0; i < nRows; i++)
                     {
@@ -623,7 +623,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         //           : base(viewer, iMatrix, size, aceFile, trainCarShape, c)
         {
             Size = int.Parse(size) * 0.001f;//input size is in mm
-            if (aceFile != "")
+            if (!string.IsNullOrEmpty(aceFile))
             {
                 AceFile = aceFile.ToUpper();
                 if (!AceFile.EndsWith(".ACE")) AceFile = AceFile + ".ACE"; //need to add ace into it
@@ -760,7 +760,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             CabViewControlType controltype = CVFR.GetControlType();
             Material material = null;
 
-            if (AceFile != "")
+            if (!string.IsNullOrEmpty(AceFile))
             {
                 imageName = AceFile;
             }
@@ -824,7 +824,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             {
                 numIndices = 6 * iRow * (1 + (NumColumns - 1) * MaxDigits);
                 numVertices = 4 * iRow * (1 + (NumColumns - 1) * MaxDigits);
-                if (DPITable.TableText[iRow, 0].Text == "" || headerIndex >= DPITable.FirstColumn.Length) break;
+                if (string.IsNullOrEmpty(DPITable.TableText[iRow, 0].Text) || headerIndex >= DPITable.FirstColumn.Length) 
+                    break;
                 // manage row title here
                 while (DPITable.TableText[iRow, 0].Text != DPITable.FirstColumn[headerIndex] && headerIndex < DPITable.FirstColumn.Length - 1)
                     headerIndex++;

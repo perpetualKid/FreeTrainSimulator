@@ -27,7 +27,6 @@
  *  
  */
 
-//#define ALLOW_ORTS_SPECIFIC_ENG_PARAMETERS
 //#define DEBUG_AUXTENDER
 
 // Debug for Friction Force

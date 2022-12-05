@@ -345,11 +345,6 @@ namespace Orts.Simulation.Physics
         private protected static readonly Simulator simulator = Simulator.Instance;                 // reference to the simulator
         private protected static readonly char Separator = (char)simulator.Settings.DataLoggerSeparator;
 
-        #region steam and heating
-        private static readonly double resetCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(65.0);
-        #endregion
-
-
         // For AI control of the train
         public float AITrainBrakePercent
         {

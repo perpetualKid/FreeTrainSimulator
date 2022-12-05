@@ -63,11 +63,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public override void Copy(IPowerSupply other)
+        public override void Copy(IPowerSupply source)
         {
-            base.Copy(other);
+            base.Copy(source);
 
-            if (other is ScriptedDualModePowerSupply scriptedOther)
+            if (source is ScriptedDualModePowerSupply scriptedOther)
             {
                 CircuitBreaker.Copy(scriptedOther.CircuitBreaker);
                 TractionCutOffRelay.Copy(scriptedOther.TractionCutOffRelay);

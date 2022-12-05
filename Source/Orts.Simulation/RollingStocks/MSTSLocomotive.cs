@@ -39,11 +39,6 @@
  * 
  */
 
-//#define ALLOW_ORTS_SPECIFIC_ENG_PARAMETERS
-
-// Debug for Advanced Adhesion Model
-// #define DEBUG_ADHESION
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -207,14 +202,6 @@ namespace Orts.Simulation.RollingStocks
         public Interpolator SteamHeatPSItoBTUpLB;      // total heat in saturated steam given pressure
         public bool IsSteamHeatingBoilerFitted;   // Flag to indicate when steam heat boiler van is fitted
         public float CalculatedCarHeaterSteamUsageLBpS;
-
-#if DEBUG_ADHESION
-        // Adhesion Debug
-        bool DebugSpeedReached;
-        float DebugSpeedIncrement = 5.0f; // Speed increment for debug display - in mph
-        float DebugSpeed = 5.0f; // Initialise at 5 mph
-        float DebugTimer = 0.0f;
-#endif
 
         // Adhesion parameters
         private float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions

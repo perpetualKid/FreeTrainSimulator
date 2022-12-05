@@ -265,7 +265,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 return connectedToLocomotive;
             });
 
-            if (ElectricTrainSupplyConnectedLocomotives.Count() > 0)
+            if (ElectricTrainSupplyConnectedLocomotives.Any())
             {
                 ElectricTrainSupplyState = ElectricTrainSupplyConnectedLocomotives.Select(locomotive => locomotive.LocomotivePowerSupply.ElectricTrainSupplyState).Max();
             }

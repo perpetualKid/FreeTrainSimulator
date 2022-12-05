@@ -999,7 +999,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (string.IsNullOrEmpty(FileName))
                 return false;
 
-            if (DayTextures.Keys.Contains(FileName))
+            if (DayTextures.ContainsKey(FileName))
                 return false;
 
             DayTextures.Add(FileName, viewer.TextureManager.Get(FileName, true));
@@ -1171,7 +1171,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             isNightTexture = false;
 
-            if (string.IsNullOrEmpty(FileName) || !PDayTextures.Keys.Contains(FileName))
+            if (string.IsNullOrEmpty(FileName) || !PDayTextures.ContainsKey(FileName))
                 return SharedMaterialManager.MissingTexture;
 
             if (isLight)
@@ -1222,7 +1222,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Texture2D retval = SharedMaterialManager.MissingTexture;
             isNightTexture = false;
 
-            if (string.IsNullOrEmpty(FileName) || !DayTextures.Keys.Contains(FileName))
+            if (string.IsNullOrEmpty(FileName) || !DayTextures.ContainsKey(FileName))
                 return retval;
 
             if (isLight)
