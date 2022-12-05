@@ -156,13 +156,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Draw(spriteBatch, offset, 0, 0, text, LabelAlignment.Left, color, Color.Black);
         }
 
-        public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, float rotation, string text, LabelAlignment align, Color color, Color outline)
-        {
-            offset.X += position.Location.X;
-            offset.Y += position.Location.Y;
-            Draw(spriteBatch, offset, rotation, position.Width, text, align, color, outline);
-        }
-
         private void Draw(SpriteBatch spriteBatch, Point position, float rotation, int width, string text, LabelAlignment align, Color color, Color outline)
         {
             EnsureCharacterData(text);

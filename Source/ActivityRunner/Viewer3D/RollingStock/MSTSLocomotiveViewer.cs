@@ -4118,53 +4118,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
     } // class ThreeDimCabGauge
 
-    public class DigitalDisplay
-    {
-        private Viewer Viewer;
-        private SpriteBatchMaterial _Sprite2DCabView;
-        private WindowTextFont _Font;
-        private PoseableShape TrainCarShape;
-        private int digitPart;
-        private int height;
-        private Point coor = new Point(0, 0);
-        private CabViewDigitalRenderer CVFR;
-        //		Color color;
-        public DigitalDisplay(Viewer viewer, PoseableShape t, int d, int h, CabViewControlRenderer c)
-        {
-            TrainCarShape = t;
-            Viewer = viewer;
-            digitPart = d;
-            height = h;
-            CVFR = (CabViewDigitalRenderer)c;
-            _Sprite2DCabView = (SpriteBatchMaterial)viewer.MaterialManager.Load("SpriteBatch");
-            _Font = viewer.TextManager.GetExact("Arial", height, System.Drawing.FontStyle.Regular);
-        }
-
-    }
-
-    public class TextPrimitive : RenderPrimitive
-    {
-        public readonly SpriteBatchMaterial Material;
-        public Point Position;
-        public Color Color;
-        public readonly WindowTextFont Font;
-        public string Text;
-
-        public TextPrimitive(SpriteBatchMaterial material, Point position, Color color, WindowTextFont font)
-        {
-            Material = material;
-            Position = position;
-            Color = color;
-            Font = font;
-        }
-
-        public override void Draw()
-        {
-            Font.Draw(Material.SpriteBatch, Position, Text, Color);
-        }
-    }
-
-
     // This supports animation of Pantographs, Mirrors and Doors - any up/down on/off 2 state types
     // It is initialized with a list of indexes for the matrices related to this part
     // On Update( position ) it slowly moves the parts towards the specified position
