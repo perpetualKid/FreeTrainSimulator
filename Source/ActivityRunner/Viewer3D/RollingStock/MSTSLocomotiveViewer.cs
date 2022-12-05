@@ -28,7 +28,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs;
 using Orts.ActivityRunner.Viewer3D.Shapes;

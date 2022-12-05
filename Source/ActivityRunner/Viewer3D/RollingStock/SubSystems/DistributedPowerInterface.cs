@@ -27,11 +27,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics;
+using Orts.Graphics.DrawableComponents;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
@@ -208,13 +209,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public bool Visible;
         public class TextPrimitive
         {
+            private readonly CabTextRenderer textRenderer;
+
             public Point Position;
             public Color Color;
-            public WindowTextFont Font;
+            public System.Drawing.Font Font;
             public string Text;
 
-            public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
+            public TextPrimitive(Game game, Point position, Color color, string text, System.Drawing.Font font)
             {
+                textRenderer = CabTextRenderer.Instance(game);
                 Position = position;
                 Color = color;
                 Text = text;
@@ -223,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             public void Draw(SpriteBatch spriteBatch, Point position)
             {
-                Font.Draw(spriteBatch, position, Text, Color);
+                textRenderer.DrawString(spriteBatch, position.ToVector2(), Text, Font, Color);
             }
         }
         public struct TexturePrimitive
@@ -311,10 +315,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         {
             spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale * DPI.MipMapScale, SpriteEffects.None, 0);
         }
-        public WindowTextFont GetFont(float size, bool bold = false)
-        {
-            return DPI.viewer.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
-        }
         /// <summary>
         /// Get scaled font size, increasing it if result is small
         /// </summary>
@@ -384,8 +384,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public string[] TableRows = new string[NumberOfRowsFull];
         public TextPrimitive[,] TableText = new TextPrimitive[NumberOfRowsFull, NumberOfColumns];
         public TextPrimitive[,] TableSymbol = new TextPrimitive[NumberOfRowsFull, NumberOfColumns];
-        WindowTextFont TableTextFont;
-        WindowTextFont TableSymbolFont;
+        System.Drawing.Font TableTextFont;
+        System.Drawing.Font TableSymbolFont;
         readonly int FontHeightTableText = 16;
         readonly int FontHeightTableSymbol = 19;
         readonly int RowHeight = 34;
@@ -424,8 +424,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 for (int iCol = 0; iCol < NumberOfColumns; iCol++)
                 {
                     //                    text = iCol.ToString() + "--" + iRow.ToString();
-                    TableText[iRow, iCol] = new TextPrimitive(new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
-                    TableSymbol[iRow, iCol] = new TextPrimitive(new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
+                    TableText[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
+                    TableSymbol[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
                 }
             }
         }
@@ -437,8 +437,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         }
         void SetFont()
         {
-            TableTextFont = GetFont(FontHeightTableText);
-            TableSymbolFont = GetFont(FontHeightTableSymbol);
+            TableTextFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[(int)(FontHeightTableText * 96 / 72)];
+            TableSymbolFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[(int)(FontHeightTableSymbol * 96 / 72)];
         }
         public override void Draw(SpriteBatch spriteBatch, Point drawPosition)
         {

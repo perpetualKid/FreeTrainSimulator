@@ -33,7 +33,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
@@ -120,7 +119,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private Orts.Graphics.Window.WindowManager<ViewerWindowType> windowManager;
 
         private InfoDisplay InfoDisplay;
-        public WindowTextManager TextManager { get; } = new WindowTextManager();
         // Route Information
         public TileManager Tiles { get; private set; }
         public TileManager LoTiles { get; private set; }
@@ -1294,7 +1292,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             World.Load();
-            TextManager.Load(Game.GraphicsDevice);
         }
 
         public void Update(RenderFrame frame, double elapsedRealTime)

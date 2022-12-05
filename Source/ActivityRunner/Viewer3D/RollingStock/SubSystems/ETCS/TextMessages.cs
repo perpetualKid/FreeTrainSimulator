@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
@@ -31,9 +31,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     {
         private const float FontHeightMessage = 12;
         private const float FontHeightTimestamp = 10;
-        private WindowTextFont FontTimestamp;
-        private WindowTextFont FontMessage;
-        private WindowTextFont FontMessageBold;
+        private System.Drawing.Font FontTimestamp;
+        private System.Drawing.Font FontMessage;
+        private System.Drawing.Font FontMessageBold;
         private readonly Texture2D[] ScrollUpTexture = new Texture2D[2];
         private readonly Texture2D[] ScrollDownTexture = new Texture2D[2];
         private int CurrentPage;
@@ -121,19 +121,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             int totalseconds = (int)timestampS;
             int hour = (totalseconds / 3600) % 24;
             int minute = (totalseconds / 60) % 60;
-            DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, $"{hour:00}:{minute:00}", FontTimestamp);
+            DisplayedTimes[row] = new TextPrimitive(DMI.Viewer.Game, new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, $"{hour:00}:{minute:00}", FontTimestamp);
         }
 
         private void SetTextPrimitive(string text, int row, bool isBold)
         {
             var font = isBold ? FontMessageBold : FontMessage;
-            DisplayedTexts[row] = new TextPrimitive(new Point(48, (row + 1) * RowHeight - (int)FontHeightMessage), Color.White, text, font);
+            DisplayedTexts[row] = new TextPrimitive(DMI.Viewer.Game, new Point(48, (row + 1) * RowHeight - (int)FontHeightMessage), Color.White, text, font);
         }
 
         private string[] GetRowSeparated(string text, bool isBold)
         {
             var font = isBold ? FontMessageBold : FontMessage;
-            var size = font.MeasureString(text) / Scale;
+            var size = TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(text, font).Width / Scale;
             if (size > 234 - 48)
             {
                 int split = text.LastIndexOf(' ', (int)((234 - 48)/size*text.Length));
@@ -233,9 +233,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            FontTimestamp = GetFont(FontHeightTimestamp);
-            FontMessage = GetFont(FontHeightMessage);
-            FontMessageBold = GetFont(FontHeightMessage, true);
+            FontTimestamp = GetTextFont(FontHeightTimestamp);
+            FontMessage = GetTextFont(FontHeightMessage);
+            FontMessageBold = GetTextFont(FontHeightMessage, true);
             SetMessages();
         }
     }

@@ -17,21 +17,19 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.Common.Xna;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-using Orts.Graphics.Xna;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.Common.Xna;
+using Orts.Formats.Msts.Files;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

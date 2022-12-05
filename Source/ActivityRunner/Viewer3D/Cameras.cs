@@ -26,7 +26,6 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
