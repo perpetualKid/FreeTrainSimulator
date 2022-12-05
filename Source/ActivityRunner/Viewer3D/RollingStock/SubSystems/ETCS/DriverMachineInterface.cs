@@ -840,13 +840,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             base.PrepareFrame(frame, elapsedTime);
 
-            driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
+            driverMachineInterface.SizeTo(position.Width, position.Height);
             driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
             driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
         }
         public override void Draw()
         {
-            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(position.X, position.Y));
             ControlView.SpriteBatch.End();
             ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }

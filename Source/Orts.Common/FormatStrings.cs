@@ -353,9 +353,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss}";
         }
 
         /// <summary>
@@ -364,9 +362,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatPreciseTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}.{duration.Milliseconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss\\.FF}";
         }
 
 
@@ -376,9 +372,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatApproximateTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm}";
         }
 
         /// <summary>
@@ -387,7 +381,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatDelayTime(TimeSpan delay)
         {
-            return $"{(int)delay.TotalMinutes}:{(delay.Seconds / 10) * 10:00}";
+            return $"{(int)delay.TotalMinutes}:{delay.Seconds / 10 * 10:00}";
         }
 
         public static string Max(this string value, int length)
