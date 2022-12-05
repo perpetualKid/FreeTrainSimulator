@@ -25,6 +25,7 @@ using System.Linq;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
@@ -2173,8 +2174,10 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 nearsource = new Vector3(position.X, position.Y, 0f);
             Vector3 farsource = new Vector3(position.X, position.Y, 1f);
             Matrix world = Matrix.CreateTranslation(0, 0, 0);
-            Vector3 nearPoint = Viewer.DefaultViewport.Unproject(nearsource, XnaProjection, XnaView, world);
-            Vector3 farPoint = Viewer.DefaultViewport.Unproject(farsource, XnaProjection, XnaView, world);
+
+            ref readonly Viewport viewport = ref Viewer.RenderProcess.Viewport;
+            Vector3 nearPoint = viewport.Unproject(nearsource, XnaProjection, XnaView, world);
+            Vector3 farPoint = viewport.Unproject(farsource, XnaProjection, XnaView, world);
 
             Shapes.PoseableShape trainCarShape = mstsLocomotiveViewer.CabViewer3D.TrainCarShape;
             Dictionary<int, AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;

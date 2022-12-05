@@ -112,10 +112,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 foreach (var tile in oldWorldFiles)
                     tile.Unload();
                 WorldFiles = newWorldFiles;
-                Viewer.tryLoadingNightTextures = true; // when Tiles loaded change you can try
-                Viewer.tryLoadingDayTextures = true; // when Tiles loaded change you can try
+                Viewer.TryLoadingNightTextures = true; // when Tiles loaded change you can try
+                Viewer.TryLoadingDayTextures = true; // when Tiles loaded change you can try
             }
-            else if (Viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingNightTextures)
+            else if (Viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && Viewer.TryLoadingNightTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
@@ -130,12 +130,12 @@ namespace Orts.ActivityRunner.Viewer3D
                             Viewer.NightTexturesNotLoaded = false;
                         }
                     }
-                    Viewer.tryLoadingNightTextures = false;
+                    Viewer.TryLoadingNightTextures = false;
                 }
                 else if (sunHeight <= 0.01)
                     Viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
             }
-            else if (Viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && Viewer.tryLoadingDayTextures)
+            else if (Viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && Viewer.TryLoadingDayTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)
@@ -150,7 +150,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             Viewer.DayTexturesNotLoaded = false;
                         }
                     }
-                    Viewer.tryLoadingDayTextures = false;
+                    Viewer.TryLoadingDayTextures = false;
                 }
                 else if (sunHeight >= -0.01)
                     Viewer.DayTexturesNotLoaded = false; // too late to try, we must give up and we don't load the day textures. TODO: is this OK?

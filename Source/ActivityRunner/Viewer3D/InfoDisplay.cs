@@ -187,10 +187,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (viewer.Settings.DataLogPerformance)
                     {
-                        viewer.CurrentProcess.Refresh();
                         dataLog.Data(VersionInfo.Version);
                         dataLog.Data($"{frameNumber:F0}");
-                        dataLog.Data($"{viewer.CurrentProcess.WorkingSet64:F0}");
+                        dataLog.Data($"{Environment.WorkingSet:F0}");
                         dataLog.Data($"{GC.GetTotalMemory(false):F0}");
                         dataLog.Data($"{GC.CollectionCount(0):F0}");
                         dataLog.Data($"{GC.CollectionCount(1):F0}");
@@ -473,6 +472,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 disposedValue = true;
             }
         }
+
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

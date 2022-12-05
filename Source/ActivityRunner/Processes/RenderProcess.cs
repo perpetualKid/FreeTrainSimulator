@@ -45,6 +45,7 @@ namespace Orts.ActivityRunner.Processes
         private readonly Profiler profiler;
 
         private readonly GameHost game;
+        private Viewport viewport;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly Form windowForm;
@@ -65,6 +66,8 @@ namespace Orts.ActivityRunner.Processes
 
         public bool IsMouseVisible { get; set; }  // handles cross thread issues by signalling RenderProcess of a change
         public Cursor ActualCursor { get; set; } = Cursors.Default;
+
+        public ref readonly Viewport Viewport => ref viewport;
 
         // Diagnostic information
         public int[] PrimitiveCount { get; private set; }
@@ -252,7 +255,7 @@ namespace Orts.ActivityRunner.Processes
         internal void Initialize()
         {
             SetScreenMode(currentScreenMode);
-            Viewer.DefaultViewport = game.GraphicsDevice.Viewport;
+            viewport = game.GraphicsDevice.Viewport;
         }
 
         internal void Update(GameTime gameTime)
@@ -266,7 +269,7 @@ namespace Orts.ActivityRunner.Processes
             {
                 SetScreenMode(currentScreenMode.Next());
                 toggleScreenRequested = false;
-                Viewer.DefaultViewport = game.GraphicsDevice.Viewport;
+                viewport = game.GraphicsDevice.Viewport;
             }
 
             game.UpdaterProcess.WaitForComplection();

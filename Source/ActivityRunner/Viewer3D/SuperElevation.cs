@@ -452,7 +452,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 // First to need a track profile creates it
                 Trace.Write(" TRP");
                 // Creates profile and loads materials into SceneryMaterials
-                TRPFile.CreateTrackProfile(viewer, viewer.Simulator.RouteFolder.CurrentFolder, out viewer.TRP);
+                TRPFile.CreateTrackProfile(viewer, viewer.Simulator.RouteFolder.CurrentFolder, out TRPFile trp);
+                viewer.TRP = trp;
             }
             TrProfile = viewer.TRP.TrackProfile;
 
