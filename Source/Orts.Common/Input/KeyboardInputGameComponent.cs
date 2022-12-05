@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Reflection;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -25,10 +25,17 @@ namespace Orts.Common.Input
 
         private Action<int, GameTime, KeyEventType, KeyModifiers> inputActionHandler;
         private bool inActive;
+        private readonly Action<bool> SetKeyboardActive;
 
         public KeyboardInputGameComponent(Game game) : base(game)
         {
             inputCapture = game as IInputCapture;
+
+            //with multiple instances (such as seconday window for Dispatcher or another Toolbox instance, Keyboard is not activated despite
+            //the window is activated when either just opening new window, or switching between windows other than keyboard
+            //hence we simply brutforce set the keyboard to active when the game window is active
+            MethodInfo setActiveMethod = typeof(Keyboard).GetMethod("SetActive", BindingFlags.NonPublic | BindingFlags.Static);
+            SetKeyboardActive = (Action<bool>)Delegate.CreateDelegate(typeof(Action<bool>), setActiveMethod);
         }
 
         public ref readonly KeyboardState KeyboardState => ref currentKeyboardState;
@@ -69,6 +76,8 @@ namespace Orts.Common.Input
                 currentKeyboardState = inActiveKeyboardState;
                 inActive = false;
             }
+            SetKeyboardActive(true);
+
             KeyboardState newState = Keyboard.GetState();
 
             #region keyboard update
