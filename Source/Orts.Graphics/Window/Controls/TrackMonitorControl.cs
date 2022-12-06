@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,45 +8,63 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls
 {
-    public class TrackItemsContainer
-    {
-        public List<(TrackMonitorSignalAspect, float, float)> Signals { get; } = new List<(TrackMonitorSignalAspect, float, float)>();
-        public List<(float, float)> Mileposts { get; } = new List<(float, float)>();
-        public List<(float, bool)> Switches { get; } = new List<(float, bool)>();
-        public List<(float, double, Color)> Speedposts { get; } = new List<(float, double, Color)>();
-        public List<(float, int)> Platforms { get; } = new List<(float, int)>();
-        public List<(float, bool?)> Authorities { get; } = new List<(float, bool?)>();
-        public List<(float, bool, bool)> Reversals { get; } = new List<(float, bool, bool)>();
-        public List<(float, bool)> WaitingPoints { get; } = new List<(float, bool)>();
-
-        public TrackItemsContainer(Direction direction)
-        {
-            Direction = direction;
-        }
-
-        public Direction Direction { get; }
-
-        public void Clear()
-        {
-            Signals.Clear();
-            Mileposts.Clear();
-            Switches.Clear();
-            Speedposts.Clear();
-            Platforms.Clear();
-            Authorities.Clear();
-            Reversals.Clear();
-            WaitingPoints.Clear();
-        }
-    }
-
     public class TrackMonitorControl : WindowControl
     {
         private const double maxDistance = 5000.0;
+
+        private class ItemContainer
+        {
+            public List<(TrackMonitorSignalAspect, float, float)> Signals { get; } = new List<(TrackMonitorSignalAspect, float, float)>();
+            public List<(float, float)> Mileposts { get; } = new List<(float, float)>();
+            public List<(float, bool)> Switches { get; } = new List<(float, bool)>();
+            public List<(float, double, Color)> Speedposts { get; } = new List<(float, double, Color)>();
+            public List<(float, int)> Platforms { get; } = new List<(float, int)>();
+            public List<(float, bool?)> Authorities { get; } = new List<(float, bool?)>();
+            public List<(float, bool, bool)> Reversals { get; } = new List<(float, bool, bool)>();
+            public List<(float, bool)> WaitingPoints { get; } = new List<(float, bool)>();
+
+            public ItemContainer(Direction direction)
+            {
+                Direction = direction;
+            }
+
+            public Direction Direction { get; }
+
+            public void Clear()
+            {
+                Signals.Clear();
+                Mileposts.Clear();
+                Switches.Clear();
+                Speedposts.Clear();
+                Platforms.Clear();
+                Authorities.Clear();
+                Reversals.Clear();
+                WaitingPoints.Clear();
+            }
+        }
+
+        private bool trackItemsUpdated;
+        private bool distanceMarkersUpdated;
+
+        private EnumArray<ItemContainer, Direction> prepareItems = new EnumArray<ItemContainer, Direction>(new ItemContainer[]
+        {
+                new ItemContainer(Direction.Forward),
+                new ItemContainer(Direction.Backward),
+        });
+        private EnumArray<ItemContainer, Direction> currentItems = new EnumArray<ItemContainer, Direction>(new ItemContainer[]
+        {
+                new ItemContainer(Direction.Forward),
+                new ItemContainer(Direction.Backward),
+        });
+        private EnumArray<ItemContainer, Direction> drawItems = new EnumArray<ItemContainer, Direction>(new ItemContainer[]
+        {
+                new ItemContainer(Direction.Forward),
+                new ItemContainer(Direction.Backward),
+        });
 
         public enum Symbols
         {
@@ -77,7 +96,6 @@ namespace Orts.Graphics.Window.Controls
             NeutralMultiPlayer,
         }
 
-        private readonly TextTextureResourceHolder textureHolder;
         private Texture2D symbolTexture;
         private Texture2D signalTexture;
         private readonly float scaling;
@@ -106,7 +124,8 @@ namespace Orts.Graphics.Window.Controls
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly TextTextureResourceHolder textRenderer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private readonly List<(Texture2D, Point)> distanceMarkers = new List<(Texture2D, Point)>();
+        private List<(Texture2D, Point)> distanceMarkers = new List<(Texture2D, Point)>();
+        private List<(Texture2D, Point)> prepareDistanceMarkers = new List<(Texture2D, Point)>();
 
         private readonly EnumArray<Rectangle, Symbols> symbols = new EnumArray<Rectangle, Symbols>(new Rectangle[] {
             new Rectangle(0, 144, 24, 24),
@@ -147,9 +166,6 @@ namespace Orts.Graphics.Window.Controls
         public bool TrainOnRoute { get; set; }
         public TrainPositionMode PositionMode { get; set; }
 
-        public TrackItemsContainer ForwardItems { get; } = new TrackItemsContainer(Direction.Forward);
-        public TrackItemsContainer BackwardItems { get; } = new TrackItemsContainer(Direction.Backward);
-
         public TrackMonitorControl(FormBase window, int width, int height, bool metric) :
             base(window, 0, 0, width, height)
         {
@@ -157,7 +173,6 @@ namespace Orts.Graphics.Window.Controls
                 throw new ArgumentOutOfRangeException(nameof(width), "TrackMonitor width must be 150 or more");
             if ((height / Window.Owner.DpiScaling) < 200)
                 throw new ArgumentOutOfRangeException(nameof(height), "TrackMonitor height must be 250 or more");
-            textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             scaling = Window.Owner.DpiScaling;
             iconSize = (int)(iconSize * scaling);
             aspectSize = (int)(aspectSize * scaling);
@@ -177,6 +192,63 @@ namespace Orts.Graphics.Window.Controls
             Window.OnWindowClosed += Window_OnWindowClosed;
         }
 
+        #region adding items
+        public void BeginAddItems()
+        {
+            prepareItems[Direction.Forward].Clear();
+            prepareItems[Direction.Backward].Clear();
+        }
+
+        public void EndAddItems()
+        {
+            lock (textRenderer)
+            {
+                (prepareItems, currentItems) = (currentItems, prepareItems);
+                trackItemsUpdated = true;
+            }
+        }
+
+        public void AddSignal(Direction direction, (TrackMonitorSignalAspect, float, float) item)
+        {
+            prepareItems[direction].Signals.Add(item);
+        }
+
+        public void AddMilepost(Direction direction, (float, float) item)
+        {
+            prepareItems[direction].Mileposts.Add(item);
+        }
+
+        public void AddSwitch(Direction direction, (float, bool) item)
+        {
+            prepareItems[direction].Switches.Add(item);
+        }
+
+        public void AddSpeedpost(Direction direction, (float, double, Color) item)
+        {
+            prepareItems[direction].Speedposts.Add(item);
+        }
+
+        public void AddPlatform(Direction direction, (float, int) item)
+        {
+            prepareItems[direction].Platforms.Add(item);
+        }
+
+        public void AddAuthority(Direction direction, (float, bool?) item)
+        {
+            prepareItems[direction].Authorities.Add(item);
+        }
+
+        public void AddReversal(Direction direction, (float, bool, bool) item)
+        {
+            prepareItems[direction].Reversals.Add(item);
+        }
+
+        public void AddWaitingPoint(Direction direction, (float, bool) item)
+        {
+            prepareItems[direction].WaitingPoints.Add(item);
+        }
+
+        #endregion
         private void Window_OnWindowClosed(object sender, EventArgs e)
         {
             textRenderer.Refresh -= TextRenderer_Refresh;
@@ -217,7 +289,8 @@ namespace Orts.Graphics.Window.Controls
                 };
 
                 #region right hand side distance markers
-                distanceMarkers.Clear();
+                distanceMarkersUpdated = false;
+                prepareDistanceMarkers.Clear();
                 int numberMarkers = controlMode is TrainPositionMode.BothWaysManual or TrainPositionMode.NeutralMultiPlayer ? 3 : 5;
 
                 distanceFactor = ((PositionMode == TrainPositionMode.BackwardMultiPlayer ? (Bounds.Height - (int)(iconSize * 1.5)) : trainPositionOffset) - 18 * scaling) / maxDistance;
@@ -235,11 +308,12 @@ namespace Orts.Graphics.Window.Controls
                     int itemOffset = (int)(distance * distanceFactor);
                     Texture2D distanceTexture = textRenderer.PrepareResource(FormatStrings.FormatDistanceDisplay(distance, metric), Window.Owner.TextFontSmall);
                     if (controlMode != TrainPositionMode.BackwardMultiPlayer)
-                        distanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset - itemOffset - distanceTexture.Height)));
+                        prepareDistanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset - itemOffset - distanceTexture.Height)));
                     if (controlMode is TrainPositionMode.BothWaysManual or TrainPositionMode.BackwardMultiPlayer or TrainPositionMode.NeutralMultiPlayer)
-                        distanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset + iconSize + itemOffset)));
+                        prepareDistanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset + iconSize + itemOffset)));
                     distance += markerInterval;
                 }
+                distanceMarkersUpdated = true;
                 #endregion
 
                 trainSymbolPositionChange = false;
@@ -248,6 +322,15 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
+            if (trackItemsUpdated)
+            {
+                lock (textRenderer)
+                {
+                    (drawItems, currentItems) = (currentItems, drawItems);
+                    trackItemsUpdated = false;
+                }
+            }
+
             offset += Bounds.Location;
 
             DrawTrack(spriteBatch, offset);
@@ -256,22 +339,27 @@ namespace Orts.Graphics.Window.Controls
             DrawTrainPosition(spriteBatch, offset);
             DrawDirectionArrow(spriteBatch, offset);
 
+            if (distanceMarkersUpdated)
+            {
+                (distanceMarkers, prepareDistanceMarkers) = (prepareDistanceMarkers, distanceMarkers);
+                distanceMarkersUpdated = false;
+            }
             foreach ((Texture2D texture, Point position) in distanceMarkers)
             {
                 spriteBatch.Draw(texture, (offset + position).ToVector2(), Color.White);
             }
 
             if (PositionMode != TrainPositionMode.BackwardMultiPlayer)
-                DrawPathItems(spriteBatch, offset, ForwardItems);
+                DrawPathItems(spriteBatch, offset, drawItems[Direction.Forward]);
             if (PositionMode != TrainPositionMode.ForwardMultiPlayer)
-                DrawPathItems(spriteBatch, offset, BackwardItems);
+                DrawPathItems(spriteBatch, offset, drawItems[Direction.Backward]);
+
             DrawTrain(spriteBatch, offset);
             base.Draw(spriteBatch, offset);
         }
 
         protected override void Dispose(bool disposing)
         {
-            textureHolder?.Dispose();
             symbolTexture?.Dispose();
             signalTexture?.Dispose();
             base.Dispose(disposing);
@@ -334,7 +422,7 @@ namespace Orts.Graphics.Window.Controls
         }
 
         //TODO 20221019 this is interims code until TrainPathItems are refactored
-        private void DrawPathItems(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawPathItems(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             nearestItem = int.MaxValue;
 
@@ -351,7 +439,7 @@ namespace Orts.Graphics.Window.Controls
                 DrawNearestItemDistanceMarker(spriteBatch, offset, nearestItem, container.Direction);
         }
 
-        private void DrawSwitches(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawSwitches(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, bool rightHand) in container.Switches)
             {
@@ -365,7 +453,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawSignals(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawSignals(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             container.Signals.Sort(delegate ((TrackMonitorSignalAspect aspect, float distance, float speedLimit) x, (TrackMonitorSignalAspect aspect, float distance, float speedLimit) y)
             {
@@ -389,7 +477,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawPlatforms(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawPlatforms(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, int length) in container.Platforms)
             {
@@ -399,7 +487,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawMileposts(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawMileposts(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, float milepost) in container.Mileposts)
             {
@@ -412,7 +500,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawSpeedposts(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawSpeedposts(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, double limit, Color color) in container.Speedposts)
             {
@@ -427,7 +515,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawAuthorities(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawAuthorities(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, bool? otherTrain) in container.Authorities)
             {
@@ -450,7 +538,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawReversals(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawReversals(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, bool valid, bool enabled) in container.Reversals)
             {
@@ -473,7 +561,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        private void DrawWaitingPoints(SpriteBatch spriteBatch, Point offset, TrackItemsContainer container)
+        private void DrawWaitingPoints(SpriteBatch spriteBatch, Point offset, ItemContainer container)
         {
             foreach ((float distance, bool enabled) in container.WaitingPoints)
             {

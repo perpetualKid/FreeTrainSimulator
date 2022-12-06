@@ -118,49 +118,50 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     trackMonitor.PositionMode = TrackMonitorControl.TrainPositionMode.BothWaysManual;
                 }
 
-                AddTrainPathItems(trackMonitor.ForwardItems, current.ObjectInfoForward);
-                AddTrainPathItems(trackMonitor.BackwardItems, current.ObjectInfoBackward);
+                trackMonitor.BeginAddItems();
+                AddTrainPathItems(Direction.Forward, current.ObjectInfoForward);
+                AddTrainPathItems(Direction.Backward, current.ObjectInfoBackward);
+                trackMonitor.EndAddItems();
             }
         }
 
-        private static void AddTrainPathItems(TrackItemsContainer target, List<TrainPathItem> source)
+        private void AddTrainPathItems(Direction direction, List<TrainPathItem> source)
         {
-            target.Clear();
             foreach (TrainPathItem item in source)
             {
                 if (item.ItemType == TrainPathItemType.Signal)
                 {
-                    target.Signals.Add((item.SignalState, item.DistanceToTrainM, item.AllowedSpeedMpS));
+                    trackMonitor.AddSignal(direction, (item.SignalState, item.DistanceToTrainM, item.AllowedSpeedMpS));
                 }
                 else if (item.ItemType == TrainPathItemType.Milepost)
                 {
-                    target.Mileposts.Add((item.DistanceToTrainM, item.Miles));
+                    trackMonitor.AddMilepost(direction, (item.DistanceToTrainM, item.Miles));
                 }
                 else if (item.ItemType == TrainPathItemType.FacingSwitch)
                 {
-                    target.Switches.Add((item.DistanceToTrainM, item.SwitchDivertsRight));
+                    trackMonitor.AddSwitch(direction, (item.DistanceToTrainM, item.SwitchDivertsRight));
                 }
                 else if (item.ItemType == TrainPathItemType.Speedpost)
                 {
                     Color color = item.SpeedObjectType == SpeedItemType.Standard ? (item.IsWarning ? Color.Yellow : Color.White) :
                     (item.SpeedObjectType == SpeedItemType.TemporaryRestrictionStart ? Color.Red : Color.LightGreen);
-                    target.Speedposts.Add((item.DistanceToTrainM, item.AllowedSpeedMpS > 200 ? Simulator.Instance.Route.SpeedLimit : item.AllowedSpeedMpS, color));
+                    trackMonitor.AddSpeedpost(direction, (item.DistanceToTrainM, item.AllowedSpeedMpS > 200 ? Simulator.Instance.Route.SpeedLimit : item.AllowedSpeedMpS, color));
                 }
                 else if (item.ItemType == TrainPathItemType.Station)
                 {
-                    target.Platforms.Add((item.DistanceToTrainM, item.StationPlatformLength));
+                    trackMonitor.AddPlatform(direction, (item.DistanceToTrainM, item.StationPlatformLength));
                 }
                 else if (item.ItemType == TrainPathItemType.Authority)
                 {
-                    target.Authorities.Add((item.DistanceToTrainM, item.AuthorityType == EndAuthorityType.TrainAhead ? true : item.AuthorityType is EndAuthorityType.EndOfAuthority or EndAuthorityType.EndOfPath or EndAuthorityType.EndOfTrack or EndAuthorityType.ReservedSwitch or EndAuthorityType.Loop ? false : null));
+                    trackMonitor.AddAuthority(direction, (item.DistanceToTrainM, item.AuthorityType == EndAuthorityType.TrainAhead ? true : item.AuthorityType is EndAuthorityType.EndOfAuthority or EndAuthorityType.EndOfPath or EndAuthorityType.EndOfTrack or EndAuthorityType.ReservedSwitch or EndAuthorityType.Loop ? false : null));
                 }
                 else if (item.ItemType == TrainPathItemType.Reversal)
                 {
-                    target.Reversals.Add((item.DistanceToTrainM, item.Valid, item.Enabled));
+                    trackMonitor.AddReversal(direction, (item.DistanceToTrainM, item.Valid, item.Enabled));
                 }
                 else if (item.ItemType == TrainPathItemType.WaitingPoint)
                 {
-                    target.WaitingPoints.Add((item.DistanceToTrainM, item.Enabled));
+                    trackMonitor.AddWaitingPoint(direction, (item.DistanceToTrainM, item.Enabled));
                 }
             }
         }
