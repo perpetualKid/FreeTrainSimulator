@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {

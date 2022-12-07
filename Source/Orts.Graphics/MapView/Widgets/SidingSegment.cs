@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
