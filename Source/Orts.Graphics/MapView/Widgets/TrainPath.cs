@@ -122,7 +122,7 @@ namespace Orts.Graphics.MapView.Widgets
                             {
                                 int trackNodeIndex = TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex;
                                 PathSections.Add(new TrainPathSection(trackNodeIndex));
-                                nodeSegment = NodeSegmentByLocationAndIndex(trackNodeIndex, nodeLocation);
+                                nodeSegment = NodeSegmentByLocation(nodeLocation);
                                 reverseDirection = nodeSegment.TrackVectorSectionIndex > 0 || nodeLocation.DistanceSquared(nodeSegment.Location) > ProximityTolerance;
                             }
                             else
