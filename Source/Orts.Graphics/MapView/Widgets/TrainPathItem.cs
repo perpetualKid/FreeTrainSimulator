@@ -14,7 +14,7 @@ namespace Orts.Graphics.MapView.Widgets
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
 
-        internal TrainPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType): base(location)
+        internal TrainPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection): base(location)
         {
             textureType = nodeType switch
             {
@@ -29,7 +29,7 @@ namespace Orts.Graphics.MapView.Widgets
                 PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
-            Direction = trackSegment.DirectionAt(Location) + MathHelper.PiOver2;
+            Direction = trackSegment.DirectionAt(Location) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
         }
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

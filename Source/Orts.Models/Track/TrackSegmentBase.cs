@@ -10,11 +10,11 @@ using Orts.Formats.Msts.Models;
 namespace Orts.Models.Track
 {
     /// <summary>
-    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/>  as part of a <see cref="TrackNode"/>
-    /// Main properties are Length, Direction (Heading) at starting point, the endpoint
-    /// and if this is a curved segment, Radius and the Angle (angular size)
-    /// This is a base class for derived types like rail tracks, road tracks
-    /// Multiple segments can form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track (train paths, platforms, sidings)
+    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/>
+    /// Main properties are Length, Orientation (Heading) at starting point, the endpoint
+    /// and if this is a curved segment, Radius and the Angle (angular size).<br/>
+    /// This is a base class for derived types like rail tracks, road tracks.<br/><br/>
+    /// Multiple segments will form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track such us train paths, platforms, sidings.
     /// </summary>
     public abstract class TrackSegmentBase : VectorPrimitive
     {
@@ -24,11 +24,21 @@ namespace Orts.Models.Track
 
         public bool Curved { get; }
 
-        // Direction in Rad from -π to π from North (0) to South
+        /// <summary>
+        /// 2D-Orientation in Rad from -π to π from North (0) to South 
+        /// </summary>
         public float Direction { get; private protected set; }
+        /// <summary>
+        /// Straigth length or Segment length of the arc on a curved track section
+        /// </summary>
         public float Length { get; private protected set; }
-        // Angular Size (Length) of the Arc in Degree
+        /// <summary>
+        /// Angular Size (Length) of the Arc in Degree for curved segments
+        /// </summary>
         public float Angle { get; private protected set; }
+        /// <summary>
+        /// Radius size (length) for curved Segments
+        /// </summary>
         public float Radius { get; private protected set; }
 
         public int TrackNodeIndex { get; }

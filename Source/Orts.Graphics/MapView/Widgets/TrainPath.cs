@@ -50,7 +50,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public TrainPath(in WorldLocation start, in WorldLocation end): base(PointD.FromWorldLocation(start), 0, PointD.FromWorldLocation(end), 0)
+        public TrainPath(in WorldLocation start, in WorldLocation end) : base(PointD.FromWorldLocation(start), 0, PointD.FromWorldLocation(end), 0)
         {
         }
 
@@ -72,9 +72,21 @@ namespace Orts.Graphics.MapView.Widgets
                 throw new MissingTrackNodeException();
             }
 
+            static TrackSegmentBase NodeSegmentByLocationAndIndex(int trackNodeIndex, in PointD nodeLocation)
+            {
+                foreach (TrackSegmentBase trackSegment in TrackModel.Instance.SegmentSections[trackNodeIndex].SectionSegments)
+                {
+                    if (trackSegment.DistanceSquared(nodeLocation) <= ProximityTolerance)
+                    {
+                        return trackSegment;
+                    }
+                }
+                throw new MissingTrackNodeException();
+            }
+
             foreach (PathNode node in pathFile.PathNodes)
             {
-
+                bool reverseDirection = false;
                 PointD nodeLocation = PointD.FromWorldLocation(node.Location);
                 TrackSegmentBase nodeSegment = NodeSegmentByLocation(nodeLocation);
                 // if either one is on a junction, first get the junction
@@ -101,37 +113,58 @@ namespace Orts.Graphics.MapView.Widgets
                                 Intersect(RuntimeData.Instance.TrackDB.TrackNodes[nextJunctionNode.TrackNodeIndex].TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
                             if (trackPins.Length == 1)
                             {
-                                PathSections.Add(new TrainPathSection(TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex));//, nodeLocation, nextNodeLocation);
+                                int trackNodeIndex = TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex;
+                                PathSections.Add(new TrainPathSection(trackNodeIndex));
+                                nodeSegment = NodeSegmentByLocationAndIndex(trackNodeIndex, nodeLocation);
+                                reverseDirection = nodeSegment.TrackVectorSectionIndex > 0 || nodeLocation.DistanceSquared(nodeSegment.Location) > ProximityTolerance;
+//                                reverseDirection = trackPins[0].Direction == Common.TrackDirection.Reverse;
                             }
                             else
                             {
                                 Trace.TraceWarning($"Invalid Data.");
-//                                Debug.Assert(false);
                             }
                         }
                         else if (node.Junction)
                         {
-                            nodeSegment = NodeSegmentByLocation(nextNodeLocation);
+                            TrackSegmentBase nextNodeSegment = NodeSegmentByLocation(nextNodeLocation);
+                            nodeSegment = NodeSegmentByLocationAndIndex(nextNodeSegment.TrackNodeIndex, nodeLocation);
                             PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
+                            reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
+                                (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
+                                nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
                         }
                         else if (nextNode.Junction)
                         {
                             PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
+                            TrackSegmentBase nextNodeSegment = NodeSegmentByLocationAndIndex(nodeSegment.TrackNodeIndex, nextNodeLocation);
+                            reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
+                                (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
+                                nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
                         }
                     }
                     else
                     {
                         TrackSegmentBase nextNodeSegment = NodeSegmentByLocation(nextNodeLocation);
                         if (nodeSegment.TrackNodeIndex != nextNodeSegment.TrackNodeIndex)
-                        { 
+                        {
+                            Trace.TraceWarning($"Invalid Data.");
                         }
                         else
                         {
                             PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, PointD.FromWorldLocation(node.Location), PointD.FromWorldLocation(nextNode.Location)));
+                            reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
+                                (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
+                                nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
                         }
                     }
                 }
-                pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType));
+                else
+                {
+                    PointD previousNodeLocation = PointD.FromWorldLocation(pathFile.PathNodes[pathFile.PathNodes.IndexOf(node) -1].Location);
+                    TrackSegmentBase previousNodeSegment = NodeSegmentByLocationAndIndex(nodeSegment.TrackNodeIndex, previousNodeLocation);
+                    reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex;
+                }
+                pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, reverseDirection));
             }
         }
 
@@ -142,7 +175,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach(TrainPathSection pathSection in PathSections)
+            foreach (TrainPathSection pathSection in PathSections)
             {
                 pathSection.Draw(contentArea, colorVariation, scaleFactor);
             }
