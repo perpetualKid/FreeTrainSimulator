@@ -1091,8 +1091,10 @@ namespace Orts.Formats.Msts.Models
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
-            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
-                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
+            //if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+            //    STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
             //AX = stf.ReadFloat(STFReader.Units.None, null);
             //AY = stf.ReadFloat(STFReader.Units.None, null);
             //AZ = stf.ReadFloat(STFReader.Units.None, null);
@@ -1148,9 +1150,8 @@ namespace Orts.Formats.Msts.Models
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
             direction = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
 
-            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
-                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
-
+            //if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+            //    STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
         }
 
         /// <summary>

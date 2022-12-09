@@ -84,6 +84,7 @@ namespace Orts.Graphics.MapView.Widgets
                 throw new MissingTrackNodeException();
             }
 
+            PathNode previousNode = null;
             foreach (PathNode node in pathFile.PathNodes)
             {
                 bool reverseDirection = false;
@@ -94,6 +95,7 @@ namespace Orts.Graphics.MapView.Widgets
                 // and find the connecting track nodes
                 if (node.NextMainNode > -1)
                 {
+                    previousNode = node;
                     // valid cases
                     // both points are on a (the same) tracksegment
                     // one node is a junction
@@ -117,7 +119,6 @@ namespace Orts.Graphics.MapView.Widgets
                                 PathSections.Add(new TrainPathSection(trackNodeIndex));
                                 nodeSegment = NodeSegmentByLocationAndIndex(trackNodeIndex, nodeLocation);
                                 reverseDirection = nodeSegment.TrackVectorSectionIndex > 0 || nodeLocation.DistanceSquared(nodeSegment.Location) > ProximityTolerance;
-//                                reverseDirection = trackPins[0].Direction == Common.TrackDirection.Reverse;
                             }
                             else
                             {
@@ -160,9 +161,11 @@ namespace Orts.Graphics.MapView.Widgets
                 }
                 else
                 {
-                    PointD previousNodeLocation = PointD.FromWorldLocation(pathFile.PathNodes[pathFile.PathNodes.IndexOf(node) -1].Location);
-                    TrackSegmentBase previousNodeSegment = NodeSegmentByLocationAndIndex(nodeSegment.TrackNodeIndex, previousNodeLocation);
-                    reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex;
+                    PointD previousNodeLocation = PointD.FromWorldLocation(previousNode.Location);
+                    TrackSegmentBase previousNodeSegment = NodeSegmentByLocation(previousNodeLocation);
+                    reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex ||
+                        (nodeSegment.TrackVectorSectionIndex == previousNodeSegment.TrackVectorSectionIndex &&
+                        nodeSegment.DistanceSquared(previousNodeSegment.Location) < nodeLocation.DistanceSquared(previousNodeSegment.Location));
                 }
                 pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, reverseDirection));
             }

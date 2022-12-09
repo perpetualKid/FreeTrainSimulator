@@ -195,74 +195,65 @@ namespace Orts.ActivityRunner.Processes
                         break;
                 }
             };
-            if (Debugger.IsAttached) // Separate code path during debugging, so IDE stops at the problem and not at the message.
+            try
             {
                 doAction();
             }
-            else
+            catch (Exception error) when (!Debugger.IsAttached)
             {
-                try
+                Trace.WriteLine(new FatalException(error));
+                if (settings.ShowErrorDialogs)
                 {
-                    doAction();
-                }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch (Exception error)
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                    Trace.WriteLine(new FatalException(error));
-                    if (settings.ShowErrorDialogs)
-                    {
-                        // If we had a load error but the inner error is one we handle here specially, unwrap it and discard the extra file information.
-                        if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
-                            error = fileLoadException.InnerException;
+                    // If we had a load error but the inner error is one we handle here specially, unwrap it and discard the extra file information.
+                    if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
+                        error = fileLoadException.InnerException;
 
-                        if (error is IncompatibleSaveException incompatibleSaveException)
-                        {
-                            MessageBox.Show($"Save file is incompatible with this version of {RuntimeInfo.ProductName}.\n\n" +
-                                $"    {incompatibleSaveException.SaveFile}\n\n" +
-                                $"Saved version: {incompatibleSaveException.Version}\n" +
-                                $"Current version: {VersionInfo.Version}",
-                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else if (error is InvalidCommandLineException)
-                            MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
-                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        else if (error is MissingTrackNodeException)
-                            MessageBox.Show($"{RuntimeInfo.ProductName} detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
-                                "Most likely you don't have the XTracks or Ytracks version needed for this route.",
-                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        else if (error is FileNotFoundException fileNotFoundException)
-                        {
-                            MessageBox.Show($"An essential file is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
-                                    $"    {fileNotFoundException.FileName}",
-                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else if (error is DirectoryNotFoundException directoryNotFoundException)
-                        {
-                            // This is a hack to try and extract the actual file name from the exception message. It isn't available anywhere else.
-                            Match match = new Regex("'([^']+)'").Match(directoryNotFoundException.Message);
-                            string fileName = match.Groups[1].Success ? match.Groups[1].Value : directoryNotFoundException.Message;
-                            MessageBox.Show($"An essential folder is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
-                                    $"    {fileName}",
-                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else
-                        {
-                            string errorSummary = error.GetType().FullName + ": " + error.Message;
-                            string logFile = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
-                            DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
-                                    $"    {errorSummary}\n\n" +
-                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
-                                    ">>> Click OK to report this error on the GitHub bug tracker <<<",
-                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                            if (openTracker == DialogResult.OK)
-                                Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
-                        }
+                    if (error is IncompatibleSaveException incompatibleSaveException)
+                    {
+                        MessageBox.Show($"Save file is incompatible with this version of {RuntimeInfo.ProductName}.\n\n" +
+                            $"    {incompatibleSaveException.SaveFile}\n\n" +
+                            $"Saved version: {incompatibleSaveException.Version}\n" +
+                            $"Current version: {VersionInfo.Version}",
+                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                    // Make sure we quit after handling an error.
-                    Game.Exit();
-                    Environment.Exit(-1);
+                    else if (error is InvalidCommandLineException)
+                        MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
+                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else if (error is MissingTrackNodeException)
+                        MessageBox.Show($"{RuntimeInfo.ProductName} detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
+                            "Most likely you don't have the XTracks or Ytracks version needed for this route.",
+                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else if (error is FileNotFoundException fileNotFoundException)
+                    {
+                        MessageBox.Show($"An essential file is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                $"    {fileNotFoundException.FileName}",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else if (error is DirectoryNotFoundException directoryNotFoundException)
+                    {
+                        // This is a hack to try and extract the actual file name from the exception message. It isn't available anywhere else.
+                        Match match = new Regex("'([^']+)'").Match(directoryNotFoundException.Message);
+                        string fileName = match.Groups[1].Success ? match.Groups[1].Value : directoryNotFoundException.Message;
+                        MessageBox.Show($"An essential folder is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                $"    {fileName}",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        string errorSummary = error.GetType().FullName + ": " + error.Message;
+                        string logFile = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
+                        DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                $"    {errorSummary}\n\n" +
+                                $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
+                                ">>> Click OK to report this error on the GitHub bug tracker <<<",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                        if (openTracker == DialogResult.OK)
+                            Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
+                    }
                 }
+                // Make sure we quit after handling an error.
+                Game.Exit();
+                Environment.Exit(-1);
             }
             UninitLoading();
         }
