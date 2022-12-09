@@ -47,7 +47,7 @@ namespace Orts.Toolbox.PopupWindows
             line.Add(searchBox = new TextInput(this, -line.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
             searchBox.Visible = false;
             searchBox.TextChanged += SearchBox_TextChanged;
-            searchBox.OnEnterKey += SearchBox_OnEnterKey;
+            searchBox.OnEscapeKey += SearchBox_OnEscapeKey;
             layout.AddHorizontalSeparator();
             scrollbox = new VerticalScrollboxControlLayout(this, layout.RemainingWidth, layout.RemainingHeight);
             layout.Add(scrollbox);
@@ -72,7 +72,7 @@ namespace Orts.Toolbox.PopupWindows
             searchBox.Visible = true;
         }
 
-        private void SearchBox_OnEnterKey(object sender, EventArgs e)
+        private void SearchBox_OnEscapeKey(object sender, EventArgs e)
         {
             searchBox.Text = null;
             searchBox.Visible = false;

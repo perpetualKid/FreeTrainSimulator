@@ -127,7 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 headerLine.Add(searchBox = new TextInput(this, -headerLine.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
                 searchBox.Visible = false;
                 searchBox.TextChanged += SearchBox_TextChanged;
-                searchBox.OnEnterKey += SearchBox_OnEnterKey;
+                searchBox.OnEscapeKey += SearchBox_OnEscapeKey;
 
                 layoutContainer.AddHorizontalSeparator();
                 
@@ -638,7 +638,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             searchBox.Visible = true;
         }
 
-        private void SearchBox_OnEnterKey(object sender, EventArgs e)
+        private void SearchBox_OnEscapeKey(object sender, EventArgs e)
         {
             searchBox.Text = null;
             searchBox.Visible = false;
