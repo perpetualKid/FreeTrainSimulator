@@ -220,6 +220,20 @@ namespace Orts.Graphics.MapView
             CenterAround(PointD.FromWorldLocation(location));
         }
 
+        public void SetTrackingPosition(in PointD location)
+        {
+            CenterAround(location);
+        }
+
+        public void UpdateScaleToFit(in Point topLeft, in Point bottomRight)
+        {            
+            double xScale = (double)WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
+            double yScale = (double)(WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
+            Scale = Math.Min(xScale, yScale);
+            UpdateFontSize();
+            SetBounds();
+        }
+
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));

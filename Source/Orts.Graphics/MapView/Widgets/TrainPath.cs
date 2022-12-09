@@ -2,11 +2,15 @@
 using System.Diagnostics;
 using System.Linq;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
+
+using SharpDX.DirectWrite;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -55,7 +59,8 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         public TrainPath(PathFile pathFile)
-            : base(PointD.FromWorldLocation(pathFile.PathNodes[0].Location), PointD.FromWorldLocation(pathFile.PathNodes[^1].Location))
+            : base(PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location), 
+                  PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             static TrackSegmentBase NodeSegmentByLocation(in PointD nodeLocation)
             {

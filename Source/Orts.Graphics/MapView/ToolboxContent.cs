@@ -184,6 +184,11 @@ namespace Orts.Graphics.MapView
         public void InitializePath(PathFile path)
         {
             currentPath = path != null ? new TrainPath(path) : null;
+            if (path != null)
+            {
+                ContentArea?.UpdateScaleToFit(currentPath.Location, currentPath.Vector);
+                ContentArea?.SetTrackingPosition(currentPath.MidPoint);
+            }
         }
         #endregion
 
