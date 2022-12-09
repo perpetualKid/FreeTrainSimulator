@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -16,7 +17,7 @@ namespace Orts.Models.Track
     /// <typeparam name="T"></typeparam>
     public abstract class TrackSegmentPathBase<T> : VectorPrimitive where T : TrackSegmentBase
     {
-        private readonly PointD midPoint;
+        private PointD midPoint;
 
 #pragma warning disable CA1002 // Do not expose generic lists
         protected List<TrackSegmentSectionBase<T>> PathSections { get; } = new List<TrackSegmentSectionBase<T>>();
@@ -90,5 +91,26 @@ namespace Orts.Models.Track
         protected abstract TrackSegmentSectionBase<T> AddSection(int trackNodeIndex, in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> AddSection(int trackNodeIndex);
 #pragma warning restore CA1716 // Identifiers should not match keywords
+
+        protected void UpdateBounds()
+        {
+            double minX = Math.Min(Location.X, Vector.X);
+            double minY = Math.Min(Location.Y, Vector.Y);
+            double maxX = Math.Max(Location.X, Vector.X);
+            double maxY = Math.Max(Location.Y, Vector.Y);
+
+            foreach (TrackSegmentSectionBase<T> section in PathSections)
+            {
+                foreach (var segment in section.SectionSegments)
+                {
+                    minX = Math.Min(minX, segment.Location.X);
+                    minY = Math.Min(minY, segment.Location.Y);
+                    maxX = Math.Max(maxX, segment.Location.X);
+                    maxY = Math.Max(maxY, segment.Location.Y);
+                }
+            }
+            SetVector(new PointD(minX, maxY), new PointD(maxX, minY));
+            midPoint = Location + (Vector - Location) / 2.0;
+        }
     }
 }

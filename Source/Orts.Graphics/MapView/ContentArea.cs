@@ -229,7 +229,7 @@ namespace Orts.Graphics.MapView
         {            
             double xScale = (double)WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
             double yScale = (double)(WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
-            Scale = Math.Min(xScale, yScale);
+            Scale = Math.Min(xScale, yScale) * 0.95;
             UpdateFontSize();
             SetBounds();
         }

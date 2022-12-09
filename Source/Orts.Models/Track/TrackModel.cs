@@ -140,7 +140,7 @@ namespace Orts.Models.Track
             elements.Sort((t1, t2) => t1.TrackNodeIndex.CompareTo(t2.TrackNodeIndex));
             elements.Insert(0, null);
 
-            foreach(JunctionNodeBase junctionNode in junctionNodes)
+            foreach (JunctionNodeBase junctionNode in junctionNodes)
                 Junctions.Add(junctionNode);
             foreach (EndNodeBase endNode in endNodes)
                 EndNodes.Add(endNode);
@@ -162,6 +162,14 @@ namespace Orts.Models.Track
                 if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
                     return result;
             }
+            return null;
+        }
+
+        public TrackSegmentBase SegmentBaseAt(int nodeIndex, in PointD location)
+        {
+            TrackSegmentBase result;
+            if ((result = TrackSegmentBase.SegmentBaseAt(location, SegmentSections[nodeIndex].SectionSegments)) != null)
+                return result;
             return null;
         }
 
