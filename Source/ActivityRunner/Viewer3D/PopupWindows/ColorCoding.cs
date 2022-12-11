@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Common.Calc;
-
-using SharpDX.X3DAudio;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
