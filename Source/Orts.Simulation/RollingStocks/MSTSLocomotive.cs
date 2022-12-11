@@ -4042,7 +4042,7 @@ namespace Orts.Simulation.RollingStocks
                 else if (CombinedControlType == CombinedControl.ThrottleAir && canBrake && value > CombinedControlSplitPosition)
                     SetTrainBrakeValue((MathHelper.Clamp(value, CombinedControlSplitPosition, 1) - CombinedControlSplitPosition) / (1 - CombinedControlSplitPosition));
                 else if (DynamicBrakePercent < 0 || TrainControlSystem.FullDynamicBrakingOrder ||
-                    (!CruiseControl.DynamicBrakePriority && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto))
+                    (CruiseControl !=null && !CruiseControl.DynamicBrakePriority && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto))
                 {
                     SetThrottleValue(1 - MathHelper.Clamp(value, 0, CombinedControlSplitPosition) / CombinedControlSplitPosition);
                 }
