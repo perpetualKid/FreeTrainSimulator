@@ -4042,7 +4042,7 @@ namespace Orts.Simulation.RollingStocks
                 else if (CombinedControlType == CombinedControl.ThrottleAir && canBrake && value > CombinedControlSplitPosition)
                     SetTrainBrakeValue((MathHelper.Clamp(value, CombinedControlSplitPosition, 1) - CombinedControlSplitPosition) / (1 - CombinedControlSplitPosition));
                 else if (DynamicBrakePercent < 0 || TrainControlSystem.FullDynamicBrakingOrder ||
-                    (CruiseControl !=null && !CruiseControl.DynamicBrakePriority && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto))
+                    (CruiseControl != null && !CruiseControl.DynamicBrakePriority && CruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto))
                 {
                     SetThrottleValue(1 - MathHelper.Clamp(value, 0, CombinedControlSplitPosition) / CombinedControlSplitPosition);
                 }
@@ -6338,14 +6338,14 @@ namespace Orts.Simulation.RollingStocks
                     stf.MustMatch(token);
                     stf.MustMatch("(");
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
-                            new STFReader.TokenProcessor("light1position", () => 
+                            new STFReader.TokenProcessor("light1position", () =>
                             {
                                 Vector4 l1 = Light1Position;
                                 stf.ReadVector4Block(STFReader.Units.Any, ref l1);
                                 Light1Position = l1;
                             }),
                             new STFReader.TokenProcessor("light1colorargb", () =>
-                            {                                 
+                            {
                                 Vector4 v4 = new Vector4(-1);
                                 stf.ReadVector4Block(STFReader.Units.Any, ref v4);
                                 Color c = new Color();
@@ -6363,15 +6363,15 @@ namespace Orts.Simulation.RollingStocks
                                     c.G = v4.Z == -1 ? c.G : (byte)v4.Z;
                                     c.B = v4.W == -1 ? c.B : (byte)v4.W;
                                 }
-                                Light1Color = c; 
+                                Light1Color = c;
                             }),
-                            new STFReader.TokenProcessor("light2position", () => 
+                            new STFReader.TokenProcessor("light2position", () =>
                             {
                                 Vector4 l2 = Light1Position;
                                 stf.ReadVector4Block(STFReader.Units.Any, ref l2);
                                 Light2Position = l2;
                             }),
-                            new STFReader.TokenProcessor("light2colorargb", () => 
+                            new STFReader.TokenProcessor("light2colorargb", () =>
                             {
                                 Vector4 v4 = new Vector4(-1);
                                 stf.ReadVector4Block(STFReader.Units.Any, ref v4);
