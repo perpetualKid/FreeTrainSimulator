@@ -19,11 +19,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal class SwitchWindow : WindowBase
     {
         private const int SwitchImageSize = 32;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private ImageControl forwardEye;
         private ImageControl backwardEye;
         private ImageControl trainDirection;
         private ImageControl forwardSwitch;
         private ImageControl backwardSwitch;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private Rectangle eyeSection = new Rectangle(0, (int)(4.25 * SwitchImageSize), SwitchImageSize, SwitchImageSize / 2);
         private Rectangle directionSection = new Rectangle(0, 4 * SwitchImageSize, SwitchImageSize, SwitchImageSize);
         private Rectangle switchSection = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize);
@@ -131,6 +133,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             forwardSwitch.ClippingRectangle = switchSection;
             UpdateSwitch(false);
             backwardSwitch.ClippingRectangle = switchSection;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            switchStatesTexture?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

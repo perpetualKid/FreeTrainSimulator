@@ -11,8 +11,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class MultiPlayerMessaging : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label sendButton;
         private TextInput textInput;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public MultiPlayerMessaging(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Multiplayer Messaging Window"), relativeLocation, new Point(400, 80), catalog)

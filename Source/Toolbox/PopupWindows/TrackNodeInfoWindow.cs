@@ -15,7 +15,9 @@ namespace Orts.Toolbox.PopupWindows
     {
         private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackNodeInfoGrid;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 182), catalog)

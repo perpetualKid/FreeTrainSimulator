@@ -20,11 +20,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class MultiPlayerWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label labelTime;
         private Label labelStatus;
         private Label labelPLayersOnline;
         private Label labelTrains;
         private VerticalScrollboxControlLayout scrollboxPlayers;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly List<(string, double, Train)> onlineTrains = new List<(string, double, Train)>();
         private int columnWidth;
         private bool connectionLost;

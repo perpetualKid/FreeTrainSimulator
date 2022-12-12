@@ -20,6 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class NextStationWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label stationPlatform;
         private Label currentDelay;
         private Label currentTime;
@@ -39,6 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label nextStationArriveScheduled;
         private Label nextStationDepartScheduled;
         private Label message;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public NextStationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Next Station"), relativeLocation, new Point(520, 130), catalog)

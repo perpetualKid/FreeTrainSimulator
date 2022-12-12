@@ -27,8 +27,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
         private readonly UserSettings settings;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private ControlLayout controlLayout;
         private Track3DOverlay trackOverlay;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private Tile cameraTile;
         private readonly ResourceGameComponent<Label3DOverlay, int> labelCache;
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();

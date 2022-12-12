@@ -20,13 +20,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class TrackMonitorWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label speedCurrentLabel;
         private Label speedProjectedLabel;
         private Label speedLimitLabel;
         private Label gradientLabel;
         private Label controlModeLabel;
         private TrackMonitorControl trackMonitor;
-
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public TrackMonitorWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Monitor"), relativeLocation, new Point(160, 360), catalog)
