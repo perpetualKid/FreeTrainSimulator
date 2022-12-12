@@ -53,6 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
                 if (disposing)
                 {
                     Material?.Dispose();
+                    VertexBuffer?.Dispose();
                 }
 
                 disposedValue = true;

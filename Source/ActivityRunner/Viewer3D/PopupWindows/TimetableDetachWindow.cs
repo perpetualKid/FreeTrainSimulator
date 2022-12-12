@@ -15,9 +15,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class TimetableDetachWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label remainingTrain;
         private Label otherTrain;
         private Label buttonDetach;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private DetachInfo detachRequest;
         private TTTrain playerTrain;
 

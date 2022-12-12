@@ -32,7 +32,9 @@ namespace Orts.Toolbox.PopupWindows
             Graphics
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public SettingsWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :

@@ -21,9 +21,11 @@ namespace Orts.Toolbox.PopupWindows
             Key = 2,
         }
 
-        private VerticalScrollboxControlLayout scrollbox;
         private readonly List<WindowControl> controls = new List<WindowControl>();
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private VerticalScrollboxControlLayout scrollbox;
         private TextInput searchBox;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private SearchColumn searchMode;
 
         public HelpWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :

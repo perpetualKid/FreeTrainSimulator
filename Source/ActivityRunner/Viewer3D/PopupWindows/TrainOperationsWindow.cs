@@ -123,5 +123,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            couplerTexture?.Dispose();
+            carTexture?.Dispose();
+            base.Dispose(disposing);
+        }
     }
 }

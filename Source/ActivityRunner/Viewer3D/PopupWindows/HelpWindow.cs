@@ -62,7 +62,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Key = 2,
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
         private readonly Viewer viewer;
