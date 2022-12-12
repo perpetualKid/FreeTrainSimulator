@@ -19,8 +19,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             internal ControlLayout TabLayout;
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ControlLayout tabHeader;
         private readonly Label tabLabel;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly bool hideEmptyTabs;
 
         public EnumArray<Action<ControlLayout>, T> TabLayouts { get; } = new EnumArray<Action<ControlLayout>, T>();

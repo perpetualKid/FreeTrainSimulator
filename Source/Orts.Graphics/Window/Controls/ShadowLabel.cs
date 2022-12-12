@@ -96,5 +96,11 @@ namespace Orts.Graphics.Window.Controls
             spriteBatch.Draw(Window.Owner.BackgroundTexture, target, TextColor);
             base.Draw(spriteBatch, offset);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            roundedShadowTexture?.Dispose();
+        }
     }
 }
