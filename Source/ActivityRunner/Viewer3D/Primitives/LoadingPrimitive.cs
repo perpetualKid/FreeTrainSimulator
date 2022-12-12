@@ -42,6 +42,8 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
         public override void Draw()
         {
+            if (disposedValue) 
+                return;
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
         }
