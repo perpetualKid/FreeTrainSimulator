@@ -438,7 +438,7 @@
             // ResumeForm
             // 
             this.AcceptButton = this.buttonResume;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1099, 586);
             this.Controls.Add(this.tableLayoutPanel);
