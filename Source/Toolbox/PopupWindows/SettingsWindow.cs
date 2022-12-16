@@ -73,7 +73,8 @@ namespace Orts.Toolbox.PopupWindows
                 chkFontColorComplement.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
                     toolboxSettings.ComplementFontColor = (sender as Checkbox).State.Value;
-                    contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
+                    if (null != contentArea)
+                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
                     ((Owner as WindowManager<WindowType>)[WindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
                 chkFontColorComplement.State = toolboxSettings.ComplementFontColor;
@@ -116,5 +117,11 @@ namespace Orts.Toolbox.PopupWindows
                 tabControl?.TabAction();
             }
         }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            contentArea = e.ContentArea;
+        }
+
     }
 }

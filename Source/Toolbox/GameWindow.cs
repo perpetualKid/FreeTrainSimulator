@@ -447,6 +447,7 @@ namespace Orts.Toolbox
             windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
                 SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
+                OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
             windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<FormBase>(() =>
