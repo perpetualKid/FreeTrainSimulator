@@ -85,7 +85,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly UserSettings settings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label labelExpandMono;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly EnumArray<ControlLayout, DetailInfo> groupDetails = new EnumArray<ControlLayout, DetailInfo>();
         private readonly EnumArray<bool, DetailInfo> dataAvailable = new EnumArray<bool, DetailInfo>();
 

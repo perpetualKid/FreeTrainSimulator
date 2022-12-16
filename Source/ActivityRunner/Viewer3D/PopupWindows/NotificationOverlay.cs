@@ -28,7 +28,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private const double NoticeAnimationLength = 1.0;
         private const double MessageAnimationLength = 2.0;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private ShadowLabel noticeLabel;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool animationRunning;
         private double animationStart;
         private double animationEnd;

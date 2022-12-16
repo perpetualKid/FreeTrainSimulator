@@ -18,7 +18,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal class TrainListWindow : WindowBase
     {
         private readonly Viewer viewer;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private ControlLayout scrollbox;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private int columnWidth;
 
         public TrainListWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :

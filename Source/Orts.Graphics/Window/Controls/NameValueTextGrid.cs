@@ -23,7 +23,9 @@ namespace Orts.Graphics.Window.Controls
         private bool dataPrepared;
 
         private readonly System.Drawing.Font font;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly TextTextureResourceHolder textureHolder;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public INameValueInformationProvider InformationProvider { get; set; }
 

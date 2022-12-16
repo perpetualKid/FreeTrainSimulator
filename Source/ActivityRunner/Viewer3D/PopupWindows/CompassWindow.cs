@@ -15,9 +15,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class CompassWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label latitudeLabel;
         private Label longitudeLabel;
         private CompassControl compassControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Viewer viewer;
 
         private readonly string lat;

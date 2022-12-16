@@ -42,8 +42,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly Viewer viewer;
         private readonly UserSettings settings;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabLayout<TabSettings> tabLayout;
         private readonly System.Drawing.Font textFont = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular)[13];
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         private GraphControl graphFrameTime;
         private GraphControl graphFrameRate;

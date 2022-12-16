@@ -20,11 +20,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal class ActivityWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TextBox messageText;
         private Label eventHeader;
         private Label gameSaveLabel;
         private Label resumeGameLabel;
         private Label quitLabel;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private EventWrapper currentEvent;
         private readonly Viewer viewer;
         private long closeTimeout;

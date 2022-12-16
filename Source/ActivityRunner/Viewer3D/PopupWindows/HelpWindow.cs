@@ -62,7 +62,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Key = 2,
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
         private readonly Viewer viewer;
@@ -346,14 +348,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             AddEvaluationLine(evaluationLayoutContainer, "Timetable:", null);
                             int stationStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Count();
                             AddEvaluationLine(evaluationLayoutContainer, "Station Stops:", $"{stationStops}", 20);
-                            Func<(string text, Color textColor)> remainingStopsFunc = () =>
+                            (string text, Color textColor) remainingStopsFunc()
                             {
                                 return ($"{Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
-                            };
+                            }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Remaining Stops:", remainingStopsFunc().text, 20);
-                            activityEvaluation.Add((functionLabel, remainingStopsFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)remainingStopsFunc));
 
-                            Func<(string text, Color textColor)> delayFunc = () =>
+                            (string text, Color textColor) delayFunc()
                             {
                                 TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
                                 return ($"{delay}", delay.TotalSeconds switch
@@ -364,19 +366,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     < 0 => Color.LightSalmon,
                                     _ => Color.LightGreen,
                                 });
-                            };
+                            }
                             (string text, Color textColor) = delayFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Current Delay:", text, textColor, 20);
-                            activityEvaluation.Add((functionLabel, delayFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)delayFunc));
 
-                            Func<(string text, Color textColor)> missedStopsFunc = () =>
+                            (string text, Color textColor) missedStopsFunc()
                             {
                                 int count = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count();
                                 return ($"{count}", count > 0 ? Color.LightSalmon : Color.White);
-                            };
+                            }
                             (string text, Color textColor) missedStops = missedStopsFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Missed Stops:", missedStops.text, missedStops.textColor, 20);
-                            activityEvaluation.Add((functionLabel, missedStopsFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)missedStopsFunc));
 
                             foreach (ActivityTaskPassengerStopAt item in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null))
                             {
@@ -390,21 +392,21 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                             AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"{taskCount}", 20);
 
-                            Func<(string text, Color textColor)> taskDoneFunc = () =>
+                            (string text, Color textColor) taskDoneFunc()
                             {
                                 int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
                                     Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                                 return ($"{count}", Color.White);
-                            };
+                            }
                             (string text, Color textColor) taskDone = taskDoneFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Accomplished:", taskDone.text, 20);
-                            activityEvaluation.Add((functionLabel, taskDoneFunc));
-                            Func<(string text, Color textColor)> couplerSpeedFunc = () =>
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)taskDoneFunc));
+                            (string text, Color textColor) couplerSpeedFunc()
                             {
                                 return ($"{ActivityEvaluation.Instance.OverSpeedCoupling}", Color.White);
-                            };
+                            }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Coupling speed exceeded:", couplerSpeedFunc().text, 20);
-                            activityEvaluation.Add((functionLabel, couplerSpeedFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)couplerSpeedFunc));
                         };
                         (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Details] = (evaluationLayoutContainer) =>
                         {
@@ -445,20 +447,20 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                             if (Simulator.Instance.ActivityRun?.Tasks.OfType<ActivityTaskPassengerStopAt>().Count() > 0)
                             {
-                                Func<(string text, Color textColor)> missedStopsFunc = () =>
+                                (string text, Color textColor) missedStopsFunc()
                                 {
                                     return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count()}", Color.White);
-                                };
-                                (string text, Color textColor) missedStops = missedStopsFunc();
-                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops missed:", missedStops.text, missedStops.textColor, 20);
-                                activityEvaluation.Add((functionLabel, missedStopsFunc));
-                                Func<(string text, Color textColor)> remainingStopsFunc = () =>
+                                }
+                                (string text, Color textColor) = missedStopsFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops missed:", text, textColor, 20);
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)missedStopsFunc));
+                                (string text, Color textColor) remainingStopsFunc()
                                 {
                                     return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
-                                };
+                                }
                                 (string text, Color textColor) remainingStops = remainingStopsFunc();
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops remaining:", remainingStops.text, remainingStops.textColor, 20);
-                                activityEvaluation.Add((functionLabel, remainingStopsFunc));
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)remainingStopsFunc));
                             }
 
                             int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>()
@@ -467,15 +469,16 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"= {taskCount}", 20);
 
-                                Func<(string text, Color textColor)> taskDoneFunc = () =>
+                                (string text, Color textColor) taskDoneFunc()
                                 {
-                                    int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
-                                        Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                                    int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).
+                                    Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                                    Count((activityTask) => activityTask.Type is not EventType.AllStops and not EventType.ReachSpeed);
                                     return ($"= {count}", Color.White);
-                                };
-                                (string text, Color textColor) taskDone = taskDoneFunc();
-                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks accomplished:", taskDone.text, 20);
-                                activityEvaluation.Add((functionLabel, taskDoneFunc));
+                                }
+                                (string text, Color textColor) = taskDoneFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks accomplished:", text, 20);
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)taskDoneFunc));
                             }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TrainOverTurned}", Color.White)));

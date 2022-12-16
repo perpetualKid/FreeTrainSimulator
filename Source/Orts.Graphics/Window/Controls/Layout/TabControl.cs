@@ -24,7 +24,9 @@ namespace Orts.Graphics.Window.Controls.Layout
             internal ControlLayout TabLayout;
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ControlLayout tabHeader;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Font highlightFont;
         private readonly bool hideEmptyTabs;
 
@@ -43,9 +45,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             ControlLayout verticalLayout = AddLayoutVertical();
             tabHeader = verticalLayout.AddLayoutHorizontal(window?.Owner.TextFontDefault.Height ?? throw new ArgumentNullException(nameof(window)));
             verticalLayout.AddHorizontalSeparator(true);
-            highlightFont = new Font(window.Owner.TextFontDefaultBold, window.Owner.TextFontDefaultBold.Style | FontStyle.Underline);
+            highlightFont = FontManager.Scaled(window.Owner.FontName, FontStyle.Bold | FontStyle.Underline)[window.Owner.FontSize];
             Client = verticalLayout.AddLayoutVertical();
             this.hideEmptyTabs = hideEmptyTabs;
+            
         }
 
         public void UpdateTabLayout(T tab)

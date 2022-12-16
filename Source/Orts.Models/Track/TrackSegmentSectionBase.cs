@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {

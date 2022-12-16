@@ -18,9 +18,11 @@ namespace Orts.Toolbox.PopupWindows
 {
     public class QuitWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label quitButton;
         private Label cancelButton;
         private Label printScreenButton;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public event EventHandler OnQuitGame;
         public event EventHandler OnQuitCancel;

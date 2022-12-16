@@ -19,8 +19,10 @@ namespace Orts.Toolbox.PopupWindows
     public class LocationWindow : WindowBase
     {
         private ContentArea contentArea;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label locationLabel;
         private Label tileLabel;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private PointD previousWorldPoint;
         private bool useWorldCoordinates = true;
         private bool updateRequired;
