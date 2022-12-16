@@ -32,7 +32,9 @@ namespace Orts.Toolbox.PopupWindows
             Graphics
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public SettingsWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
@@ -71,7 +73,8 @@ namespace Orts.Toolbox.PopupWindows
                 chkFontColorComplement.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
                     toolboxSettings.ComplementFontColor = (sender as Checkbox).State.Value;
-                    contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
+                    if (null != contentArea)
+                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
                     ((Owner as WindowManager<WindowType>)[WindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
                 chkFontColorComplement.State = toolboxSettings.ComplementFontColor;
@@ -114,5 +117,11 @@ namespace Orts.Toolbox.PopupWindows
                 tabControl?.TabAction();
             }
         }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            contentArea = e.ContentArea;
+        }
+
     }
 }
