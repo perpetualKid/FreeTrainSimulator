@@ -553,7 +553,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             // SoundDebugForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(579, 999);
             this.Controls.Add(this.splitContainer2);
