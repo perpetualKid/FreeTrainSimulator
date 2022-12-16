@@ -913,7 +913,7 @@ namespace Orts.Menu
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1139, 674);
             this.Controls.Add(this.panelModeTimetable);
             this.Controls.Add(this.panelModeActivity);
