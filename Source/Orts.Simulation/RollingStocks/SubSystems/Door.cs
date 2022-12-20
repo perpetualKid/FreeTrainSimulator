@@ -24,6 +24,7 @@ using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
+        Open,
     public class Doors : ISubSystem<Doors>
     {
         public Door RightDoor { get; }

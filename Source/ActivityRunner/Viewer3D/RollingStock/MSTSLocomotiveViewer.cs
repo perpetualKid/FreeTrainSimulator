@@ -2898,7 +2898,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         bool right = (Control.ControlType == CabViewControlType.Orts_RightDoor) ^ Locomotive.Flipped ^ Locomotive.GetCabFlipped();
                         var state = Locomotive.Train.DoorState(right ? DoorSide.Right : DoorSide.Left);
-                        int open = state >= DoorState.Open ? 1 : 0;
+                        int open = state >= DoorState.Opening ? 1 : 0;
                         if (open != UpdateCommandValue(open, buttonEventType, delta))
                         {
                             if (right)
@@ -3661,7 +3661,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             {
                                 bool right = (p.Value.Type == CabViewControlType.RightDoor) ^ Locomotive.Flipped ^ Locomotive.GetCabFlipped();
                                 var state = (right ? Locomotive.RightDoor : Locomotive.LeftDoor).State;
-                                p.Value.UpdateState(state >= DoorState.Open, elapsedTime);
+                                p.Value.UpdateState(state >= DoorState.Opening, elapsedTime);
                             }
                             break;
                         case CabViewControlType.Mirrors:

@@ -5904,7 +5904,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         bool right = (cvc.ControlType == CabViewControlType.Orts_RightDoor) ^ Flipped ^ GetCabFlipped();
                         var state = Train.DoorState(right ? DoorSide.Right : DoorSide.Left);
-                        data = (state == DoorState.Opening || state == DoorState.Open) ? 1 : 0;
+                        data = state >= DoorState.Opening ? 1 : 0;
                     }
                     break;
                 case CabViewControlType.Orts_Mirros:
