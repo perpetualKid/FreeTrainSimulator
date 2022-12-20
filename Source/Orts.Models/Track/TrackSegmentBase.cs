@@ -68,6 +68,9 @@ namespace Orts.Models.Track
 
             SetLocation(location);
 
+            TrackNodeIndex = trackNodeIndex;
+            TrackVectorSectionIndex = trackVectorSectionIndex;
+
             TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
 
             if (null == trackSection)
@@ -77,8 +80,6 @@ namespace Orts.Models.Track
             Size = trackSection.Width;
             Curved = trackSection.Curved;
             Direction = MathHelper.WrapAngle(trackVectorSection.Direction.Y - MathHelper.PiOver2);
-            TrackNodeIndex = trackNodeIndex;
-            TrackVectorSectionIndex = trackVectorSectionIndex;
 
             if (trackSection.Curved)
             {
