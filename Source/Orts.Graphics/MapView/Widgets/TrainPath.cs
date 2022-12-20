@@ -55,7 +55,7 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         public TrainPath(PathFile pathFile)
-            : base(PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location), 
+            : base(PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location),
                   PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             PathNode previousNode = null;
@@ -69,7 +69,8 @@ namespace Orts.Graphics.MapView.Widgets
                 // and find the connecting track nodes
                 if (node.NextMainNode > -1)
                 {
-                    previousNode = node;
+                    if (previousNode == null || node.NextMainNode > previousNode.NextMainNode)
+                        previousNode = node;
                     // valid cases
                     // both points are on a (the same) tracksegment
                     // one node is a junction
