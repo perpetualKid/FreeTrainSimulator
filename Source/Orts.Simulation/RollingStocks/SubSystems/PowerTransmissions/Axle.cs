@@ -419,7 +419,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 }
             }
 
-            NumOfSubstepsPS = Math.Max(Math.Min(NumOfSubstepsPS, 50), 1);
+            NumOfSubstepsPS = Math.Max(Math.Min(NumOfSubstepsPS, 50), 1); 
             double dt = elapsedClockSeconds / NumOfSubstepsPS;
             double hdt = dt / 2.0f;
             double axleInForceSumN = 0;

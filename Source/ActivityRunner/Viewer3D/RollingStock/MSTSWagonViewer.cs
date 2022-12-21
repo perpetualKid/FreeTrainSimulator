@@ -746,8 +746,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (Car.BrakeSkid) // if car wheels are skidding because of brakes locking wheels up then stop wheels rotating.
             {
-                distanceTravelledM = 0.0f;
-                distanceTravelledDrivenM = 0.0f;
+                if ( ((MSTSLocomotive)MSTSWagon).DriveWheelOnlyBrakes)
+                {
+                    distanceTravelledDrivenM = 0.0f;
+                }
+                else
+                {
+                    distanceTravelledM = 0.0f;
+                    distanceTravelledDrivenM = 0.0f;
+                }
+
             }
 
             // Running gear and drive wheel rotation (animation) in steam locomotives
