@@ -569,6 +569,7 @@ namespace Orts.Simulation.RollingStocks
         private float DrvWheelDiaM;     // Diameter of driver wheel
         private float DrvWheelRevRpS;       // number of revolutions of the drive wheel per minute based upon speed.
         private float PistonSpeedFtpMin;      // Piston speed of locomotive
+        private float WheelCrankAngleDiffRad;
         public float IndicatedHorsePowerHP;   // Indicated Horse Power (IHP), theoretical power of the locomotive, it doesn't take into account the losses due to friction, etc. Typically output HP will be 70 - 90% of the IHP
         public float DrawbarHorsePowerHP;  // Drawbar Horse Power  (DHP), maximum power available at the wheels.
         public float DrawBarPullLbsF;      // Drawbar pull in lbf
@@ -744,6 +745,9 @@ namespace Orts.Simulation.RollingStocks
             {
                 case "engine(numcylinders":
                     NumCylinders = stf.ReadIntBlock(null);
+                    break;
+                case "engine(ortswheelcrankangledifference": 
+                    WheelCrankAngleDiffRad = stf.ReadFloatBlock(STFReader.Units.Angle, null); 
                     break;
                 case "engine(cylinderstroke":
                     CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
@@ -950,68 +954,71 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Copy(MSTSWagon source)
         {
+            if (source is not MSTSSteamLocomotive steamLocomotive)
+                throw new InvalidCastException($"Source is not of type {nameof(MSTSSteamLocomotive)}");
+
             base.Copy(source);  // each derived level initializes its own variables
 
-            MSTSSteamLocomotive locoCopy = (MSTSSteamLocomotive)source;
-            NumCylinders = locoCopy.NumCylinders;
-            CylinderStrokeM = locoCopy.CylinderStrokeM;
-            CylinderDiameterM = locoCopy.CylinderDiameterM;
-            LPNumCylinders = locoCopy.LPNumCylinders;
-            LPCylinderStrokeM = locoCopy.LPCylinderStrokeM;
-            LPCylinderDiameterM = locoCopy.LPCylinderDiameterM;
-            CylinderExhaustOpenFactor = locoCopy.CylinderExhaustOpenFactor;
-            CylinderPortOpeningFactor = locoCopy.CylinderPortOpeningFactor;
-            BoilerVolumeFT3 = locoCopy.BoilerVolumeFT3;
-            MaxBoilerPressurePSI = locoCopy.MaxBoilerPressurePSI;
-            MaxSuperheatRefTempF = locoCopy.MaxSuperheatRefTempF;
-            MaxIndicatedHorsePowerHP = locoCopy.MaxIndicatedHorsePowerHP;
-            SuperheatCutoffPressureFactor = locoCopy.SuperheatCutoffPressureFactor;
-            EjectorSmallSteamConsumptionLbpS = locoCopy.EjectorSmallSteamConsumptionLbpS;
-            EjectorLargeSteamConsumptionLbpS = locoCopy.EjectorLargeSteamConsumptionLbpS;
-            ShovelMassKG = locoCopy.ShovelMassKG;
-            GearedTractiveEffortFactor = locoCopy.GearedTractiveEffortFactor;
-            TractiveEffortFactor = locoCopy.TractiveEffortFactor;
-            MaxTenderCoalMassKG = locoCopy.MaxTenderCoalMassKG;
-            MaxLocoTenderWaterMassKG = locoCopy.MaxLocoTenderWaterMassKG;
-            MaxFiringRateKGpS = locoCopy.MaxFiringRateKGpS;
-            Stoker = locoCopy.Stoker;
-            ORTSMaxFiringRateKGpS = locoCopy.ORTSMaxFiringRateKGpS;
-            CutoffController = (MSTSNotchController)locoCopy.CutoffController.Clone();
-            Injector1Controller = (MSTSNotchController)locoCopy.Injector1Controller.Clone();
-            Injector2Controller = (MSTSNotchController)locoCopy.Injector2Controller.Clone();
-            BlowerController = (MSTSNotchController)locoCopy.BlowerController.Clone();
-            DamperController = (MSTSNotchController)locoCopy.DamperController.Clone();
-            FiringRateController = (MSTSNotchController)locoCopy.FiringRateController.Clone();
-            FireboxDoorController = (MSTSNotchController)locoCopy.FireboxDoorController.Clone();
-            SmallEjectorController = (MSTSNotchController)locoCopy.SmallEjectorController.Clone();
-            LargeEjectorController = (MSTSNotchController)locoCopy.LargeEjectorController.Clone();
-            GrateAreaM2 = locoCopy.GrateAreaM2;
-            SuperheaterFactor = locoCopy.SuperheaterFactor;
-            EvaporationAreaM2 = locoCopy.EvaporationAreaM2;
-            BoilerSurfaceAreaFt2 = locoCopy.BoilerSurfaceAreaFt2;
-            FractionBoilerAreaInsulated = locoCopy.FractionBoilerAreaInsulated;
-            KcInsulation = locoCopy.KcInsulation;
-            SuperheatAreaM2 = locoCopy.SuperheatAreaM2;
-            FuelCalorificKJpKG = locoCopy.FuelCalorificKJpKG;
-            BoilerEvapRateLbspFt2 = locoCopy.BoilerEvapRateLbspFt2;
-            CylinderEfficiencyRate = locoCopy.CylinderEfficiencyRate;
-            InitialPressureDropRatioRpMtoX = new Interpolator(locoCopy.InitialPressureDropRatioRpMtoX);
-            BackPressureIHPtoPSI = new Interpolator(locoCopy.BackPressureIHPtoPSI);
-            NewBurnRateSteamToCoalLbspH = new Interpolator(locoCopy.NewBurnRateSteamToCoalLbspH);
-            BoilerEfficiency = locoCopy.BoilerEfficiency;
-            SteamGearRatioLow = locoCopy.SteamGearRatioLow;
-            SteamGearRatioHigh = locoCopy.SteamGearRatioHigh;
-            MaxSteamGearPistonRateFtpM = locoCopy.MaxSteamGearPistonRateFtpM;
-            SteamEngineType = locoCopy.SteamEngineType;
-            IsSaturated = locoCopy.IsSaturated;
-            IsTenderRequired = locoCopy.IsTenderRequired;
-            HasSuperheater = locoCopy.HasSuperheater;
-            fixGeared = locoCopy.fixGeared;
-            selectGeared = locoCopy.selectGeared;
-            LargeEjectorControllerFitted = locoCopy.LargeEjectorControllerFitted;
-            CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
-            CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
-            CylinderAdmissiontoCutoff = locoCopy.CylinderAdmissiontoCutoff;
+            NumCylinders = steamLocomotive.NumCylinders;
+            WheelCrankAngleDiffRad = steamLocomotive.WheelCrankAngleDiffRad;
+            CylinderStrokeM = steamLocomotive.CylinderStrokeM;
+            CylinderDiameterM = steamLocomotive.CylinderDiameterM;
+            LPNumCylinders = steamLocomotive.LPNumCylinders;
+            LPCylinderStrokeM = steamLocomotive.LPCylinderStrokeM;
+            LPCylinderDiameterM = steamLocomotive.LPCylinderDiameterM;
+            CylinderExhaustOpenFactor = steamLocomotive.CylinderExhaustOpenFactor;
+            CylinderPortOpeningFactor = steamLocomotive.CylinderPortOpeningFactor;
+            BoilerVolumeFT3 = steamLocomotive.BoilerVolumeFT3;
+            MaxBoilerPressurePSI = steamLocomotive.MaxBoilerPressurePSI;
+            MaxSuperheatRefTempF = steamLocomotive.MaxSuperheatRefTempF;
+            MaxIndicatedHorsePowerHP = steamLocomotive.MaxIndicatedHorsePowerHP;
+            SuperheatCutoffPressureFactor = steamLocomotive.SuperheatCutoffPressureFactor;
+            EjectorSmallSteamConsumptionLbpS = steamLocomotive.EjectorSmallSteamConsumptionLbpS;
+            EjectorLargeSteamConsumptionLbpS = steamLocomotive.EjectorLargeSteamConsumptionLbpS;
+            ShovelMassKG = steamLocomotive.ShovelMassKG;
+            GearedTractiveEffortFactor = steamLocomotive.GearedTractiveEffortFactor;
+            TractiveEffortFactor = steamLocomotive.TractiveEffortFactor;
+            MaxTenderCoalMassKG = steamLocomotive.MaxTenderCoalMassKG;
+            MaxLocoTenderWaterMassKG = steamLocomotive.MaxLocoTenderWaterMassKG;
+            MaxFiringRateKGpS = steamLocomotive.MaxFiringRateKGpS;
+            Stoker = steamLocomotive.Stoker;
+            ORTSMaxFiringRateKGpS = steamLocomotive.ORTSMaxFiringRateKGpS;
+            CutoffController = (MSTSNotchController)steamLocomotive.CutoffController.Clone();
+            Injector1Controller = (MSTSNotchController)steamLocomotive.Injector1Controller.Clone();
+            Injector2Controller = (MSTSNotchController)steamLocomotive.Injector2Controller.Clone();
+            BlowerController = (MSTSNotchController)steamLocomotive.BlowerController.Clone();
+            DamperController = (MSTSNotchController)steamLocomotive.DamperController.Clone();
+            FiringRateController = (MSTSNotchController)steamLocomotive.FiringRateController.Clone();
+            FireboxDoorController = (MSTSNotchController)steamLocomotive.FireboxDoorController.Clone();
+            SmallEjectorController = (MSTSNotchController)steamLocomotive.SmallEjectorController.Clone();
+            LargeEjectorController = (MSTSNotchController)steamLocomotive.LargeEjectorController.Clone();
+            GrateAreaM2 = steamLocomotive.GrateAreaM2;
+            SuperheaterFactor = steamLocomotive.SuperheaterFactor;
+            EvaporationAreaM2 = steamLocomotive.EvaporationAreaM2;
+            BoilerSurfaceAreaFt2 = steamLocomotive.BoilerSurfaceAreaFt2;
+            FractionBoilerAreaInsulated = steamLocomotive.FractionBoilerAreaInsulated;
+            KcInsulation = steamLocomotive.KcInsulation;
+            SuperheatAreaM2 = steamLocomotive.SuperheatAreaM2;
+            FuelCalorificKJpKG = steamLocomotive.FuelCalorificKJpKG;
+            BoilerEvapRateLbspFt2 = steamLocomotive.BoilerEvapRateLbspFt2;
+            CylinderEfficiencyRate = steamLocomotive.CylinderEfficiencyRate;
+            InitialPressureDropRatioRpMtoX = new Interpolator(steamLocomotive.InitialPressureDropRatioRpMtoX);
+            BackPressureIHPtoPSI = new Interpolator(steamLocomotive.BackPressureIHPtoPSI);
+            NewBurnRateSteamToCoalLbspH = new Interpolator(steamLocomotive.NewBurnRateSteamToCoalLbspH);
+            BoilerEfficiency = steamLocomotive.BoilerEfficiency;
+            SteamGearRatioLow = steamLocomotive.SteamGearRatioLow;
+            SteamGearRatioHigh = steamLocomotive.SteamGearRatioHigh;
+            MaxSteamGearPistonRateFtpM = steamLocomotive.MaxSteamGearPistonRateFtpM;
+            SteamEngineType = steamLocomotive.SteamEngineType;
+            IsSaturated = steamLocomotive.IsSaturated;
+            IsTenderRequired = steamLocomotive.IsTenderRequired;
+            HasSuperheater = steamLocomotive.HasSuperheater;
+            fixGeared = steamLocomotive.fixGeared;
+            selectGeared = steamLocomotive.selectGeared;
+            LargeEjectorControllerFitted = steamLocomotive.LargeEjectorControllerFitted;
+            CylinderExhausttoCutoff = steamLocomotive.CylinderExhausttoCutoff;
+            CylinderCompressiontoCutoff = steamLocomotive.CylinderCompressiontoCutoff;
+            CylinderAdmissiontoCutoff = steamLocomotive.CylinderAdmissiontoCutoff;
         }
 
         /// <summary>
@@ -1316,6 +1323,12 @@ namespace Orts.Simulation.RollingStocks
             if (FractionBoilerAreaInsulated == 0)
             {
                 FractionBoilerAreaInsulated = 0.86f; // Rough approximation - based upon empirical graphing
+            }
+
+            // Set crank angle between different sides of the locomotive
+            if (WheelCrankAngleDiffRad == 0)
+            {
+                WheelCrankAngleDiffRad = NumCylinders == 3 ? MathHelper.ToRadians(120.0f) : MathHelper.ToRadians(90.0f);
             }
 
             // ******************  Test Locomotive and Gearing type *********************** 
@@ -4767,13 +4780,13 @@ namespace Orts.Simulation.RollingStocks
 
                 for (int i = 0; i < NumCylinders; i++)
                 {
-                    float crankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * (NumCylinders == 4 ? Math.PI / 2 : NumCylinders == 3 ? 2 * Math.PI / 3 : Math.PI / 2));
+                    float crankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * WheelCrankAngleDiffRad);
 
                     testCrankAngle = crankAngleRad;
 
                     crankAngleRad = (float)(MathHelper.WrapAngle(crankAngleRad));
 
-                    //       Trace.TraceInformation("Cyl {0} crankAng {1} Position {2} Diff {3}", NumCylinders, crankAngleRad, LocomotiveAxle.AxlePositionRad, i * (NumCylinders == 2 ? Math.PI / 2 : 2 * Math.PI / 3));
+//                    Trace.TraceInformation("Cyl {0} crankAng {1} Position {2} Diff {3}", NumCylinders, MathHelper.ToDegrees(crankAngleRad), MathHelper.ToDegrees(LocomotiveAxle.AxlePositionRad), MathHelper.ToDegrees(WheelCrankAngleDiffRad));
 
                     float crankCylinderPressure = (MeanEffectivePressurePSI * CylinderEfficiencyRate); // fallback default value
 
@@ -7265,6 +7278,7 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Motive Force"] = FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits);
                 carInfo["Tang. Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(DisplayTangentialWheelTreadForceLbf), simulator.MetricUnits);
                 carInfo["Static Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamStaticWheelForce), simulator.MetricUnits);
+                carInfo["Wheel Crank Angle"] = $"{MathHelper.ToDegrees(WheelCrankAngleDiffRad):N1}";
                 carInfo["Friction Coeff."] = $"{Train.LocomotiveCoefficientFriction:N2}";
                 carInfo["Sliping"] = WheelSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
                 carInfo["Drivewheel Mass"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), simulator.MetricUnits);

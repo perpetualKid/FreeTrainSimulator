@@ -1269,7 +1269,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Copy(MSTSWagon source)
         {
-            if (!(source is MSTSLocomotive sourceLocomotive))
+            if (source is not MSTSLocomotive sourceLocomotive)
                 throw new InvalidCastException($"Source is not of type {nameof(MSTSLocomotive)}");
 
             base.Copy(source);  // each derived level initializes its own variables
