@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -74,8 +75,10 @@ namespace Orts.Models.Track
             TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
 
             if (null == trackSection)
+            {
+                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}.");
                 return;
-            //                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
+            }
 
             Size = trackSection.Width;
             Curved = trackSection.Curved;
