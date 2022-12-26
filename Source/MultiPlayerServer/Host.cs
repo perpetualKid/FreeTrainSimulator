@@ -160,7 +160,7 @@ namespace Orts.MultiPlayerServer
 
         private async Task PipeReadAsync(TcpClient tcpClient, PipeReader reader)
         {
-            string playerName = Guid.NewGuid().ToString();
+            string playerName = tcpClient.Client.RemoteEndPoint.ToString();
             bool playerNameSet = false;
             string quitPlayer;
             onlinePlayers.Add(playerName, tcpClient);
