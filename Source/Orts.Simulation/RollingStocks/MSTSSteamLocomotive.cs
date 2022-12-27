@@ -569,7 +569,14 @@ namespace Orts.Simulation.RollingStocks
         private float DrvWheelDiaM;     // Diameter of driver wheel
         private float DrvWheelRevRpS;       // number of revolutions of the drive wheel per minute based upon speed.
         private float PistonSpeedFtpMin;      // Piston speed of locomotive
-        private float WheelCrankAngleDiffRad;
+        private float Cylinder1CrankAngleRad;
+        private float Cylinder2CrankAngleRad;
+        private float Cylinder3CrankAngleRad;
+        private float Cylinder4CrankAngleRad;
+        private static readonly float[] WheelCrankAngleDiffRad = new float[]
+        {
+           0.0f, MathHelper.Pi/2, 0.0f, 0.0f  // default 2 cylinder locomotive
+        };
         public float IndicatedHorsePowerHP;   // Indicated Horse Power (IHP), theoretical power of the locomotive, it doesn't take into account the losses due to friction, etc. Typically output HP will be 70 - 90% of the IHP
         public float DrawbarHorsePowerHP;  // Drawbar Horse Power  (DHP), maximum power available at the wheels.
         public float DrawBarPullLbsF;      // Drawbar pull in lbf
@@ -643,6 +650,14 @@ namespace Orts.Simulation.RollingStocks
         public float Cylinders2SteamVolumeM3pS;
         public float SafetyValvesSteamVelocityMpS;
         public float SafetyValvesSteamVolumeM3pS;
+        public float Cylinders11SteamVolumeM3pS;
+        public float Cylinders12SteamVolumeM3pS;
+        public float Cylinders21SteamVolumeM3pS;
+        public float Cylinders22SteamVolumeM3pS;
+        public float Cylinders31SteamVolumeM3pS;
+        public float Cylinders32SteamVolumeM3pS;
+        public float Cylinders41SteamVolumeM3pS;
+        public float Cylinders42SteamVolumeM3pS;
 
         public float BlowdownSteamVolumeM3pS;
         public float BlowdownSteamVelocityMpS;
@@ -673,7 +688,16 @@ namespace Orts.Simulation.RollingStocks
         private float CylinderCockOpenTimeS;
         private bool CylinderCock1On = true;
         private bool CylinderCock2On;
+        private bool CylinderCock11On = true;
+        private bool CylinderCock12On;
+        private bool CylinderCock21On = true;
+        private bool CylinderCock22On;
+        private bool CylinderCock31On = true;
+        private bool CylinderCock32On;
+        private bool CylinderCock41On = true;
+        private bool CylinderCock42On;
         public bool Cylinder2SteamEffects;
+        public bool CylinderAdvancedSteamEffects;
         public bool GeneratorSteamEffects;
         public float CompressorParticleDurationS = 3.0f;
         public float Cylinder1ParticleDurationS = 3.0f;
@@ -746,8 +770,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(numcylinders":
                     NumCylinders = stf.ReadIntBlock(null);
                     break;
-                case "engine(ortswheelcrankangledifference": 
-                    WheelCrankAngleDiffRad = stf.ReadFloatBlock(STFReader.Units.Angle, null); 
+                case "engine(ortswheelcrankangledifference":
+                    stf.MustMatch("(");
+                    Cylinder1CrankAngleRad = stf.ReadFloat(STFReader.Units.Angle, 0.0f);
+                    Cylinder2CrankAngleRad = stf.ReadFloat(STFReader.Units.Angle, 0.0f);
+                    Cylinder3CrankAngleRad = stf.ReadFloat(STFReader.Units.Angle, 0.0f);
+                    Cylinder4CrankAngleRad = stf.ReadFloat(STFReader.Units.Angle, 0.0f);
+                    Trace.TraceInformation($"Input - CrankAngle {Cylinder1CrankAngleRad} {Cylinder2CrankAngleRad} {Cylinder3CrankAngleRad} {Cylinder4CrankAngleRad}");
+                    stf.SkipRestOfBlock();
                     break;
                 case "engine(cylinderstroke":
                     CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
@@ -960,7 +990,10 @@ namespace Orts.Simulation.RollingStocks
             base.Copy(source);  // each derived level initializes its own variables
 
             NumCylinders = steamLocomotive.NumCylinders;
-            WheelCrankAngleDiffRad = steamLocomotive.WheelCrankAngleDiffRad;
+            Cylinder1CrankAngleRad = steamLocomotive.Cylinder1CrankAngleRad;
+            Cylinder2CrankAngleRad = steamLocomotive.Cylinder2CrankAngleRad;
+            Cylinder3CrankAngleRad = steamLocomotive.Cylinder3CrankAngleRad;
+            Cylinder4CrankAngleRad = steamLocomotive.Cylinder4CrankAngleRad;
             CylinderStrokeM = steamLocomotive.CylinderStrokeM;
             CylinderDiameterM = steamLocomotive.CylinderDiameterM;
             LPNumCylinders = steamLocomotive.LPNumCylinders;
@@ -1326,9 +1359,33 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Set crank angle between different sides of the locomotive
-            if (WheelCrankAngleDiffRad == 0)
+            if (Cylinder2CrankAngleRad == 0) // if not set by user set default values based upon the cylinder
             {
-                WheelCrankAngleDiffRad = NumCylinders == 3 ? MathHelper.ToRadians(120.0f) : MathHelper.ToRadians(90.0f);
+                if (NumCylinders == 4)
+                {
+                    WheelCrankAngleDiffRad[0] = MathHelper.ToRadians(0.0f);
+                    WheelCrankAngleDiffRad[1] = MathHelper.ToRadians(90.0f);
+                    WheelCrankAngleDiffRad[2] = MathHelper.ToRadians(180.0f);
+                    WheelCrankAngleDiffRad[3] = MathHelper.ToRadians(270.0f);
+                }
+                else if (NumCylinders == 3)
+                {
+                    WheelCrankAngleDiffRad[0] = MathHelper.ToRadians(0.0f);
+                    WheelCrankAngleDiffRad[1] = MathHelper.ToRadians(120.0f);
+                    WheelCrankAngleDiffRad[2] = MathHelper.ToRadians(240.0f);
+                }
+                else
+                {
+                    WheelCrankAngleDiffRad[0] = MathHelper.ToRadians(0.0f);
+                    WheelCrankAngleDiffRad[1] = MathHelper.ToRadians(90.0f);
+                }
+            }
+            else // set values set by user
+            {
+                WheelCrankAngleDiffRad[0] = Cylinder1CrankAngleRad;
+                WheelCrankAngleDiffRad[1] = Cylinder2CrankAngleRad;
+                WheelCrankAngleDiffRad[2] = Cylinder3CrankAngleRad;
+                WheelCrankAngleDiffRad[3] = Cylinder4CrankAngleRad;
             }
 
             // ******************  Test Locomotive and Gearing type *********************** 
@@ -2093,7 +2150,197 @@ namespace Orts.Simulation.RollingStocks
             // Any of the steam effects can be disabled by not defining them in the ENG file, and thus they will not be displayed in the viewer.
 
             // Cylinder steam cock effects
-            if (Cylinder2SteamEffects) // For MSTS locomotives with one cyldinder cock ignore calculation of cock opening times.
+            if (CylinderAdvancedSteamEffects) // For advanced steam effects process each cylinder individually -
+                                              // - all ENG files will need to be changed.
+            {
+                // Find 
+                for (int i = 0; i < NumCylinders; i++)
+                {
+                    float crankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * WheelCrankAngleDiffRad[i]);
+                    float normalisedCrankAngleRad = 0;
+
+                    crankAngleRad = (float)(MathHelper.WrapAngle(crankAngleRad));
+
+                    if (crankAngleRad < 0)
+                    {
+                        crankAngleRad = (float)(2.0f * Math.PI + crankAngleRad); // angle must be maintained in a +ve range, ie 0 - 360
+                    }
+
+                    // Normalise crank angle so that it is a value between 0 and 360 starting at the real crank angle difference
+                    if (crankAngleRad >= WheelCrankAngleDiffRad[i])
+                    {
+                        normalisedCrankAngleRad = crankAngleRad - WheelCrankAngleDiffRad[i];
+                    }
+                    else
+                    {
+                        float diff = WheelCrankAngleDiffRad[i] - crankAngleRad;
+                        normalisedCrankAngleRad = (float)(2.0f * Math.PI - diff);
+                    }
+
+                    if (NumCylinders == 4)
+                    {
+                        if (i == 0)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock11On = true;
+                                CylinderCock12On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock11On = false;
+                                CylinderCock12On = true;
+                            }
+                        }
+                        if (i == 1)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock21On = true;
+                                CylinderCock22On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock21On = false;
+                                CylinderCock22On = true;
+                            }
+                        }
+                        if (i == 2)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock31On = true;
+                                CylinderCock32On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock31On = false;
+                                CylinderCock32On = true;
+                            }
+                        }
+                        if (i == 3)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock41On = true;
+                                CylinderCock42On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock41On = false;
+                                CylinderCock42On = true;
+                            }
+                        }
+
+
+                    }
+                    else if (NumCylinders == 3)
+                    {
+                        if (i == 0)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock11On = true;
+                                CylinderCock12On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock11On = false;
+                                CylinderCock12On = true;
+                            }
+                        }
+                        if (i == 1)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock21On = true;
+                                CylinderCock22On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock21On = false;
+                                CylinderCock22On = true;
+                            }
+                        }
+                        if (i == 2)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock31On = true;
+                                CylinderCock32On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock31On = false;
+                                CylinderCock32On = true;
+                            }
+                        }
+
+                    }
+                    else // 2 Cylinders
+                    {
+                        if (i == 0)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock11On = true;
+                                CylinderCock12On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock11On = false;
+                                CylinderCock12On = true;
+                            }
+                        }
+                        if (i == 1)
+                        {
+                            if (normalisedCrankAngleRad <= MathHelper.Pi)
+                            {
+                                CylinderCock21On = true;
+                                CylinderCock22On = false;
+                            }
+                        }
+                        else
+                        {
+                            if (normalisedCrankAngleRad > MathHelper.Pi)
+                            {
+                                CylinderCock21On = false;
+                                CylinderCock22On = true;
+                            }
+                        }
+
+
+                    }
+                }
+
+
+            }
+            else if (Cylinder2SteamEffects) // For MSTS locomotives with one cylinder cock ignore calculation of cock opening times.
+                                            // Currently retained as a legacy issue, and eventually both this and the MSTS version should be removed
             {
                 CylinderCockOpenTimeS = 0.5f * 1.0f / DrvWheelRevRpS;  // Calculate how long cylinder cocks open  @ speed = Time (sec) / (Drv Wheel RpS ) - assume two cylinder strokes per rev, ie each cock will only be open for 1/2 rev
                 CylinderCockTimerS += (float)elapsedClockSeconds;
@@ -2123,6 +2370,14 @@ namespace Orts.Simulation.RollingStocks
             Cylinders2SteamVelocityMpS = 100.0f;
             Cylinders1SteamVolumeM3pS = (CylinderCock1On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f);
             Cylinders2SteamVolumeM3pS = (CylinderCock2On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f);
+            Cylinders11SteamVolumeM3pS = CylinderCock11On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders12SteamVolumeM3pS = CylinderCock12On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders21SteamVolumeM3pS = CylinderCock21On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders22SteamVolumeM3pS = CylinderCock22On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders31SteamVolumeM3pS = CylinderCock31On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders32SteamVolumeM3pS = CylinderCock32On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders41SteamVolumeM3pS = CylinderCock41On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
+            Cylinders42SteamVolumeM3pS = CylinderCock42On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f;
             Cylinder1ParticleDurationS = 1.0f;
             Cylinder2ParticleDurationS = 1.0f;
 
@@ -4780,7 +5035,7 @@ namespace Orts.Simulation.RollingStocks
 
                 for (int i = 0; i < NumCylinders; i++)
                 {
-                    float crankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * WheelCrankAngleDiffRad);
+                    float crankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * WheelCrankAngleDiffRad[i]);
 
                     testCrankAngle = crankAngleRad;
 
@@ -7278,7 +7533,6 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Motive Force"] = FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits);
                 carInfo["Tang. Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(DisplayTangentialWheelTreadForceLbf), simulator.MetricUnits);
                 carInfo["Static Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamStaticWheelForce), simulator.MetricUnits);
-                carInfo["Wheel Crank Angle"] = $"{MathHelper.ToDegrees(WheelCrankAngleDiffRad):N1}";
                 carInfo["Friction Coeff."] = $"{Train.LocomotiveCoefficientFriction:N2}";
                 carInfo["Sliping"] = WheelSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
                 carInfo["Drivewheel Mass"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), simulator.MetricUnits);

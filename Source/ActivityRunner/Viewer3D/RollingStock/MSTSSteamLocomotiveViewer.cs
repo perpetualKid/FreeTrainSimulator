@@ -38,6 +38,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private List<ParticleEmitterViewer> Cylinders = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Cylinders2 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders11 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders12 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders21 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders22 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders31 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders32 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders41 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> Cylinders42 = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Blowdown = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Drainpipe = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Injectors1 = new List<ParticleEmitterViewer>();
@@ -59,13 +67,32 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             foreach (KeyValuePair<string, List<ParticleEmitterViewer>> emitter in ParticleDrawers)
             {
-                if (emitter.Key.Equals("cylindersfx", StringComparison.OrdinalIgnoreCase))
+                if (emitter.Key.Equals("cylindersfx", StringComparison.OrdinalIgnoreCase)) // This parameter retained as legacy parameters only, ideally they should be removed eventually
                     Cylinders.AddRange(emitter.Value);
-                else if (emitter.Key.Equals("cylinders2fx", StringComparison.OrdinalIgnoreCase))
+                else if (emitter.Key.Equals("cylinders2fx", StringComparison.OrdinalIgnoreCase)) // This parameter retained as legacy parameters only, ideally they should be removed eventually
                 {
                     Cylinders2.AddRange(emitter.Value);
                     car.Cylinder2SteamEffects = true;
                 }
+                else if (emitter.Key.Equals("cylinders11fx", StringComparison.OrdinalIgnoreCase))
+                {
+                    Cylinders11.AddRange(emitter.Value);
+                    car.CylinderAdvancedSteamEffects = true;
+                }
+                else if (emitter.Key.Equals("cylinders12fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders12.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders21fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders21.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders22fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders22.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders31fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders31.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders32fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders32.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders41fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders41.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylinders42fx", StringComparison.OrdinalIgnoreCase))
+                    Cylinders42.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("blowdownfx", StringComparison.OrdinalIgnoreCase))
                     Blowdown.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("drainpipefx", StringComparison.OrdinalIgnoreCase))        // Drainpipe was not used in MSTS, and has no control set up for it
@@ -314,6 +341,30 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             foreach (var drawer in Cylinders2)
                 drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders2SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
+
+            foreach (var drawer in Cylinders11)
+                drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders11SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
+
+            foreach (var drawer in Cylinders12)
+                drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders12SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
+
+            foreach (var drawer in Cylinders21)
+                drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders21SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
+
+            foreach (var drawer in Cylinders22)
+                drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders22SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
+
+            foreach (var drawer in Cylinders31)
+                drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders31SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
+
+            foreach (var drawer in Cylinders32)
+                drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders32SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
+
+            foreach (var drawer in Cylinders41)
+                drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders41SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
+
+            foreach (var drawer in Cylinders42)
+                drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders42SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
 
             foreach (var drawer in Blowdown)
                 drawer.SetOutput(car.BlowdownSteamVelocityMpS, car.BlowdownSteamVolumeM3pS, car.BlowdownParticleDurationS);
