@@ -384,8 +384,10 @@ namespace Orts.Toolbox.WinForms.Controls
                 }
                 else
                 {
-                    await parent.LoadPath(path).ConfigureAwait(false);
-                    UncheckOtherMenuItems(menuItem);
+                    if (await parent.LoadPath(path).ConfigureAwait(false))
+                        UncheckOtherMenuItems(menuItem);
+                    else
+                        MessageBox.Show("Invalid Path");
                 }
             }
         }

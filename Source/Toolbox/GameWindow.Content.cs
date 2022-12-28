@@ -15,12 +15,12 @@ using Orts.Formats.Msts.Files;
 
 namespace Orts.Toolbox
 {
-    public class ContentAreaChangedEventArgs: EventArgs
+    public class ContentAreaChangedEventArgs : EventArgs
     {
         public ContentArea ContentArea { get; }
 
         public ContentAreaChangedEventArgs(ContentArea contentArea)
-        { 
+        {
             ContentArea = contentArea;
         }
     }
@@ -91,15 +91,22 @@ namespace Orts.Toolbox
             paths = await pathTask.ConfigureAwait(false);
             mainmenu.PopulatePaths(paths);
             windowManager[WindowType.StatusWindow].Close();
-            selectedRoute = route;           
+            selectedRoute = route;
         }
 
-        internal async Task LoadPath(Path path)
+        internal async Task<bool> LoadPath(Path path)
         {
-            PathFile patFile = new PathFile(path.FilePath);
-            selectedPath = path;
-            ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
-            await Task.CompletedTask.ConfigureAwait(false);
+            try
+            {
+                PathFile patFile = new PathFile(path.FilePath);
+                selectedPath = path;
+                ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
+                return await Task.FromResult(true).ConfigureAwait(false);
+            }
+            catch (NullReferenceException)
+            {
+                return await Task.FromResult(false).ConfigureAwait(false);
+            }
         }
 
         internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
@@ -122,8 +129,8 @@ namespace Orts.Toolbox
                             Path path = paths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                             if (null != path)
                             {
-                                await LoadPath(path).ConfigureAwait(false);
-                                mainmenu.PreSelectPath(path.FilePath);
+                                if (await LoadPath(path).ConfigureAwait(false))
+                                    mainmenu.PreSelectPath(path.FilePath);
                             }
                         }
                     }
