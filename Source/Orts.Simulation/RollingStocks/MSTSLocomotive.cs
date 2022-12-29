@@ -926,7 +926,13 @@ namespace Orts.Simulation.RollingStocks
                     DynamicBrakeController.Parse(stf);
                     break;
 
-
+                case "engine(ortslocomotivedrivewheelonlybraking":
+                    var wheelbraking = stf.ReadIntBlock(null);
+                    if (wheelbraking == 1)
+                    {
+                        DriveWheelOnlyBrakes = true;
+                    }
+                    break;
                 case "engine(trainbrakescontrollermaxsystempressure":
                 case "engine(ortstrainbrakescontrollermaxoverchargepressure":
                 case "engine(trainbrakescontrollermaxreleaserate":
@@ -999,14 +1005,6 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(vacuumbrakesvacuumpumpresistance":
                     VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null);
                     break;
-                case "engine(ortslocomotivedrivewheelonlybraking":
-                    var wheelbraking = stf.ReadIntBlock(null);
-                    if (wheelbraking == 1)
-                    {
-                        DriveWheelOnlyBrakes = true;
-                    }
-                    break;
-
                 case "engine(ortsvacuumbrakesmainresvolume":
                     VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
                     break;

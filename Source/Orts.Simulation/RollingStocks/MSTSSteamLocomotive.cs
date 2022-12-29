@@ -659,15 +659,15 @@ namespace Orts.Simulation.RollingStocks
         public float Cylinders41SteamVolumeM3pS;
         public float Cylinders42SteamVolumeM3pS;
 
-        public float SteamExhaustSteamVelocityMpS;
-        public float SteamExhaust1SteamVolumeM3pS;
-        public float SteamExhaust2SteamVolumeM3pS;
-        public float SteamExhaust3SteamVolumeM3pS;
-        public float SteamExhaust4SteamVolumeM3pS;
-        private bool SteamExhaust1On;
-        private bool SteamExhaust2On;
-        private bool SteamExhaust3On;
-        private bool SteamExhaust4On;
+        public float CylinderSteamExhaustSteamVelocityMpS;
+        public float CylinderSteamExhaust1SteamVolumeM3pS;
+        public float CylinderSteamExhaust2SteamVolumeM3pS;
+        public float CylinderSteamExhaust3SteamVolumeM3pS;
+        public float CylinderSteamExhaust4SteamVolumeM3pS;
+        private bool CylinderSteamExhaust1On = false;
+        private bool CylinderSteamExhaust2On = false;
+        private bool CylinderSteamExhaust3On = false;
+        private bool CylinderSteamExhaust4On = false;
 
         public float BlowdownSteamVolumeM3pS;
         public float BlowdownSteamVelocityMpS;
@@ -712,7 +712,7 @@ namespace Orts.Simulation.RollingStocks
         public float CompressorParticleDurationS = 3.0f;
         public float Cylinder1ParticleDurationS = 3.0f;
         public float Cylinder2ParticleDurationS = 3.0f;
-        public float SteamExhaustParticleDurationS = 3.0f;
+        public float CylinderSteamExhaustParticleDurationS = 3.0f;
         public float WhistleParticleDurationS = 3.0f;
         public float SafetyValvesParticleDurationS = 3.0f;
         public float DrainpipeParticleDurationS = 3.0f;
@@ -2203,20 +2203,20 @@ namespace Orts.Simulation.RollingStocks
 
                     if (i == 0 && (normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad))
                     {
-                        SteamExhaust1On = true;
+                        CylinderSteamExhaust1On = true;
                     }
                     else
                     {
-                        SteamExhaust1On = false;
+                        CylinderSteamExhaust1On = false;
                     }
 
                     if (i == 1 && (normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad))
                     {
-                        SteamExhaust2On = true;
+                        CylinderSteamExhaust2On = true;
                     }
                     else
                     {
-                        SteamExhaust2On = false;
+                        CylinderSteamExhaust2On = false;
                     }
 
                     //                    Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} ExhaustOn {4} Cylinder {5}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), SteamExhaust1On, i+1);
@@ -2224,20 +2224,20 @@ namespace Orts.Simulation.RollingStocks
 
                     if (i == 2 && (normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad))
                     {
-                        SteamExhaust3On = true;
+                        CylinderSteamExhaust3On = true;
                     }
                     else
                     {
-                        SteamExhaust3On = false;
+                        CylinderSteamExhaust3On = false;
                     }
 
                     if (i == 3 && (normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad))
                     {
-                        SteamExhaust4On = true;
+                        CylinderSteamExhaust4On = true;
                     }
                     else
                     {
-                        SteamExhaust4On = false;
+                        CylinderSteamExhaust4On = false;
                     }
 
                     if (NumCylinders == 4)
@@ -2445,12 +2445,12 @@ namespace Orts.Simulation.RollingStocks
             Cylinder1ParticleDurationS = 1.0f;
             Cylinder2ParticleDurationS = 1.0f;
 
-            SteamExhaust1SteamVolumeM3pS = throttle > 0.0 && SteamExhaust1On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
-            SteamExhaust2SteamVolumeM3pS = throttle > 0.0 && SteamExhaust2On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
-            SteamExhaust3SteamVolumeM3pS = throttle > 0.0 && SteamExhaust3On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
-            SteamExhaust4SteamVolumeM3pS = throttle > 0.0 && SteamExhaust4On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
-            SteamExhaustSteamVelocityMpS = 100.0f;
-            SteamExhaustParticleDurationS = 1.0f;
+            CylinderSteamExhaust1SteamVolumeM3pS = throttle > 0.0 && CylinderSteamExhaust1On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
+            CylinderSteamExhaust2SteamVolumeM3pS = throttle > 0.0 && CylinderSteamExhaust2On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
+            CylinderSteamExhaust3SteamVolumeM3pS = throttle > 0.0 && CylinderSteamExhaust3On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
+            CylinderSteamExhaust4SteamVolumeM3pS = throttle > 0.0 && CylinderSteamExhaust4On ? (cutoff * 10.0f * SteamEffectsFactor) : 0.0f;
+            CylinderSteamExhaustSteamVelocityMpS = 100.0f;
+            CylinderSteamExhaustParticleDurationS = 1.0f;
 
             // Blowdown Steam Effects
             BlowdownSteamVolumeM3pS = (BlowdownValveOpen && BlowdownSteamUsageLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f);

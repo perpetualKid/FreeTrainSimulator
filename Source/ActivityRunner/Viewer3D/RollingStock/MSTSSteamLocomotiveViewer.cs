@@ -46,10 +46,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private List<ParticleEmitterViewer> Cylinders32 = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Cylinders41 = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Cylinders42 = new List<ParticleEmitterViewer>();
-        private List<ParticleEmitterViewer> SteamExhaust1 = new List<ParticleEmitterViewer>();
-        private List<ParticleEmitterViewer> SteamExhaust2 = new List<ParticleEmitterViewer>();
-        private List<ParticleEmitterViewer> SteamExhaust3 = new List<ParticleEmitterViewer>();
-        private List<ParticleEmitterViewer> SteamExhaust4 = new List<ParticleEmitterViewer>(); 
+        private List<ParticleEmitterViewer> CylinderSteamExhaust1 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> CylinderSteamExhaust2 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> CylinderSteamExhaust3 = new List<ParticleEmitterViewer>();
+        private List<ParticleEmitterViewer> CylinderSteamExhaust4 = new List<ParticleEmitterViewer>(); 
         private List<ParticleEmitterViewer> Blowdown = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Drainpipe = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Injectors1 = new List<ParticleEmitterViewer>();
@@ -97,14 +97,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     Cylinders41.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("cylinders42fx", StringComparison.OrdinalIgnoreCase))
                     Cylinders42.AddRange(emitter.Value);
-                else if (emitter.Key.Equals("steamexhaust1fx", StringComparison.OrdinalIgnoreCase))
-                    SteamExhaust1.AddRange(emitter.Value);
-                else if (emitter.Key.Equals("steamexhaust2fx", StringComparison.OrdinalIgnoreCase))
-                    SteamExhaust2.AddRange(emitter.Value);
-                else if (emitter.Key.Equals("steamexhaust3fx", StringComparison.OrdinalIgnoreCase))
-                    SteamExhaust3.AddRange(emitter.Value);
-                else if (emitter.Key.Equals("steamexhaust4fx", StringComparison.OrdinalIgnoreCase))
-                    SteamExhaust4.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylindersteamexhaust1fx", StringComparison.OrdinalIgnoreCase))
+                    CylinderSteamExhaust1.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylindersteamexhaust2fx", StringComparison.OrdinalIgnoreCase))
+                    CylinderSteamExhaust2.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylindersteamexhaust3fx", StringComparison.OrdinalIgnoreCase))
+                    CylinderSteamExhaust3.AddRange(emitter.Value);
+                else if (emitter.Key.Equals("cylindersteamexhaust4fx", StringComparison.OrdinalIgnoreCase))
+                    CylinderSteamExhaust4.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("blowdownfx", StringComparison.OrdinalIgnoreCase))
                     Blowdown.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("drainpipefx", StringComparison.OrdinalIgnoreCase))        // Drainpipe was not used in MSTS, and has no control set up for it
@@ -381,17 +381,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in Blowdown)
                 drawer.SetOutput(car.BlowdownSteamVelocityMpS, car.BlowdownSteamVolumeM3pS, car.BlowdownParticleDurationS);
 
-            foreach (var drawer in SteamExhaust1)
-                drawer.SetOutput(car.SteamExhaustSteamVelocityMpS, car.SteamExhaust1SteamVolumeM3pS, car.SteamExhaustParticleDurationS);
+            foreach (var drawer in CylinderSteamExhaust1)
+                drawer.SetOutput(car.CylinderSteamExhaustSteamVelocityMpS, car.CylinderSteamExhaust1SteamVolumeM3pS, car.CylinderSteamExhaustParticleDurationS);
 
-            foreach (var drawer in SteamExhaust2)
-                drawer.SetOutput(car.SteamExhaustSteamVelocityMpS, car.SteamExhaust2SteamVolumeM3pS, car.SteamExhaustParticleDurationS);
+            foreach (var drawer in CylinderSteamExhaust2)
+                drawer.SetOutput(car.CylinderSteamExhaustSteamVelocityMpS, car.CylinderSteamExhaust2SteamVolumeM3pS, car.CylinderSteamExhaustParticleDurationS);
 
-            foreach (var drawer in SteamExhaust3)
-                drawer.SetOutput(car.SteamExhaustSteamVelocityMpS, car.SteamExhaust3SteamVolumeM3pS, car.SteamExhaustParticleDurationS);
+            foreach (var drawer in CylinderSteamExhaust3)
+                drawer.SetOutput(car.CylinderSteamExhaustSteamVelocityMpS, car.CylinderSteamExhaust3SteamVolumeM3pS, car.CylinderSteamExhaustParticleDurationS);
 
-            foreach (var drawer in SteamExhaust4)
-                drawer.SetOutput(car.SteamExhaustSteamVelocityMpS, car.SteamExhaust4SteamVolumeM3pS, car.SteamExhaustParticleDurationS);
+            foreach (var drawer in CylinderSteamExhaust4)
+                drawer.SetOutput(car.CylinderSteamExhaustSteamVelocityMpS, car.CylinderSteamExhaust4SteamVolumeM3pS, car.CylinderSteamExhaustParticleDurationS);
 
             // TODO: Drainpipe - Not used in either MSTS or OR - currently disabled by zero values set in SteamLocomotive file
             foreach (var drawer in Drainpipe)
