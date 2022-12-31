@@ -98,7 +98,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 else if (emitter.Key.Equals("cylinders42fx", StringComparison.OrdinalIgnoreCase))
                     Cylinders42.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("cylindersteamexhaust1fx", StringComparison.OrdinalIgnoreCase))
+                {
                     CylinderSteamExhaust1.AddRange(emitter.Value);
+                    car.CylinderAdvancedSteamExhaustEffects = true;
+                }
                 else if (emitter.Key.Equals("cylindersteamexhaust2fx", StringComparison.OrdinalIgnoreCase))
                     CylinderSteamExhaust2.AddRange(emitter.Value);
                 else if (emitter.Key.Equals("cylindersteamexhaust3fx", StringComparison.OrdinalIgnoreCase))
