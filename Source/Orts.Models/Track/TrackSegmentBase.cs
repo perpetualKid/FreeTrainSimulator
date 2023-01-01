@@ -239,11 +239,9 @@ namespace Orts.Models.Track
 
         #region math
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns>Returns the distance (squared) of the given point from this track segment at the closest point, 
+        /// Returns the distance (squared) of the given point from this track segment at the closest point, 
         /// or NaN if the point is not along (perpedicular) the track</returns>
+        /// </summary>
         public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;
