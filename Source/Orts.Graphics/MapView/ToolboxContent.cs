@@ -186,7 +186,7 @@ namespace Orts.Graphics.MapView
             currentPath = path != null ? new TrainPath(path) : null;
             if (path != null)
             {
-                ContentArea?.UpdateScaleToFit(currentPath.Location, currentPath.Vector);
+                ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
             }
         }
@@ -262,7 +262,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.RoadEndNodes] = new TileIndexedList<RoadEndSegment, Tile>(roadEndSegments);
             roadTrackNodeSegments = roadSegments.Cast<TrackSegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
-            // indentify all tiles by looking at tracks and roads and their respective end segments
+            // identify all tiles by looking at tracks and roads and their respective end segments
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
                 .Union(contentItems[MapViewItemSettings.EndNodes].Select(d => d.Tile as ITile).Distinct())

@@ -30,8 +30,8 @@ namespace Orts.Graphics.MapView
         private static readonly Point PointOverTwo = new Point(2, 2);
 
         private double offsetX, offsetY;
-        internal PointD TopLeftArea { get; private set; }
-        internal PointD BottomRightArea { get; private set; }
+        internal PointD TopLeftBound { get; private set; }
+        internal PointD BottomRightBound { get; private set; }
 
         private Tile bottomLeft;
         private Tile topRight;
@@ -59,8 +59,8 @@ namespace Orts.Graphics.MapView
 
         public double Scale { get; private set; }
 
-        public double CenterX => (BottomRightArea.X - TopLeftArea.X) / 2 + TopLeftArea.X;
-        public double CenterY => (TopLeftArea.Y - BottomRightArea.Y) / 2 + BottomRightArea.Y;
+        public double CenterX => (BottomRightBound.X - TopLeftBound.X) / 2 + TopLeftBound.X;
+        public double CenterY => (TopLeftBound.Y - BottomRightBound.Y) / 2 + BottomRightBound.Y;
 
         public bool SuppressDrawing { get; private set; }
 
@@ -99,7 +99,7 @@ namespace Orts.Graphics.MapView
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             WindowSize = Game.Window.ClientBounds.Size;
-            CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
+            CenterAround(new PointD((TopLeftBound.X + BottomRightBound.X) / 2, (TopLeftBound.Y + BottomRightBound.Y) / 2));
         }
 
         public void UpdateColor(ColorSetting setting, Color color)
@@ -225,10 +225,10 @@ namespace Orts.Graphics.MapView
             CenterAround(location);
         }
 
-        public void UpdateScaleToFit(in Point topLeft, in Point bottomRight)
+        public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {            
-            double xScale = (double)WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
-            double yScale = (double)(WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
+            double xScale = WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
+            double yScale = (WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
             Scale = Math.Min(xScale, yScale) * 0.95;
             UpdateFontSize();
             SetBounds();
@@ -268,40 +268,40 @@ namespace Orts.Graphics.MapView
             offsetX -= delta.X / Scale;
             offsetY += delta.Y / Scale;
 
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
-            if (TopLeftArea.X > bounds.Right)
+            if (TopLeftBound.X > bounds.Right)
             {
                 offsetX = bounds.Right;
             }
-            else if (BottomRightArea.X < bounds.Left)
+            else if (BottomRightBound.X < bounds.Left)
             {
-                offsetX = bounds.Left - (BottomRightArea.X - TopLeftArea.X);
+                offsetX = bounds.Left - (BottomRightBound.X - TopLeftBound.X);
             }
 
-            if (BottomRightArea.Y > bounds.Bottom)
+            if (BottomRightBound.Y > bounds.Bottom)
             {
                 offsetY = bounds.Bottom;
             }
-            else if (TopLeftArea.Y < bounds.Top)
+            else if (TopLeftBound.Y < bounds.Top)
             {
-                offsetY = bounds.Top - (TopLeftArea.Y - BottomRightArea.Y);
+                offsetY = bounds.Top - (TopLeftBound.Y - BottomRightBound.Y);
             }
             SetBounds();
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight)
+            if (Scale == previousScale && TopLeftBound == previousTopLeft && BottomRightBound == previousBottomRight)
             {
                 SuppressDrawing = true;
             }
             else
             {
                 previousScale = Scale;
-                previousTopLeft = TopLeftArea;
-                previousBottomRight = BottomRightArea;
+                previousTopLeft = TopLeftBound;
+                previousBottomRight = BottomRightBound;
                 SuppressDrawing = false;
             }
             base.Update(gameTime);
@@ -408,11 +408,11 @@ namespace Orts.Graphics.MapView
 
         private void SetBounds()
         {
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftBound.X), Tile.TileFromAbs(BottomRightBound.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightBound.X), Tile.TileFromAbs(TopLeftBound.Y));
         }
 
         private void CenterView()
@@ -479,7 +479,7 @@ namespace Orts.Graphics.MapView
         internal bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
             ref readonly PointD location = ref pointPrimitive.Location;
-            return location.X > TopLeftArea.X && location.X < BottomRightArea.X && location.Y < TopLeftArea.Y && location.Y > BottomRightArea.Y;
+            return location.X > TopLeftBound.X && location.X < BottomRightBound.X && location.Y < TopLeftBound.Y && location.Y > BottomRightBound.Y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -487,8 +487,8 @@ namespace Orts.Graphics.MapView
         {
             ref readonly PointD start = ref vectorPrimitive.Location;
             ref readonly PointD end = ref vectorPrimitive.Vector;
-            bool outside = (start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > BottomRightArea.X && end.X > BottomRightArea.X) ||
-                (start.Y > TopLeftArea.Y && end.Y > TopLeftArea.Y) || (start.Y < BottomRightArea.Y && end.Y < BottomRightArea.Y);
+            bool outside = (start.X < TopLeftBound.X && end.X < TopLeftBound.X) || (start.X > BottomRightBound.X && end.X > BottomRightBound.X) ||
+                (start.Y > TopLeftBound.Y && end.Y > TopLeftBound.Y) || (start.Y < BottomRightBound.Y && end.Y < BottomRightBound.Y);
             return !outside;
         }
 
