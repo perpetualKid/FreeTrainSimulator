@@ -158,6 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public const float SkyRadius = 6020;
         public const float MoonRadius = 6010;
         public const float CloudsRadius = 6000;
+        public const float CloudsFlatness = 0.1f;
 
 
         public SkyElement Element { get; set; }
@@ -206,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var vertexIndex = 0;
             var indexIndex = 0;
             vertexIndex = InitializeDomeVertexList(vertexIndex, SkyRadius);
-            vertexIndex = InitializeDomeVertexList(vertexIndex, CloudsRadius);
+            vertexIndex = InitializeDomeVertexList(vertexIndex, CloudsRadius, CloudsFlatness);
             indexIndex = InitializeDomeIndexList(indexIndex);
             (vertexIndex, indexIndex) = InitializeMoonLists(vertexIndex, indexIndex);
             Debug.Assert(vertexIndex == VertexCount, $"Did not initialize all verticies; expected {VertexCount}, got {vertexIndex}");
@@ -247,10 +248,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        private int InitializeDomeVertexList(int index, float radius)
+        private int InitializeDomeVertexList(int index, float radius, float flatness = 1)
         {
             // Single vertex at zenith
-            VertexList[index].Position = new Vector3(0, radius, 0);
+            VertexList[index].Position = new Vector3(0, radius * flatness, 0);
             VertexList[index].Normal = Vector3.Normalize(VertexList[index].Position);
             VertexList[index].TextureCoordinate = new Vector2(0.5f, 0.5f);
             index++;
@@ -260,7 +261,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var stepCos = (float)Math.Cos(MathHelper.ToRadians(90f * step / DomeStepsMain));
                 var stepSin = (float)Math.Sin(MathHelper.ToRadians(90f * step / DomeStepsMain));
 
-                var y = radius * stepCos;
+                var y = radius * stepCos * flatness;
                 var d = radius * stepSin;
 
                 for (var side = 0; side < DomeSides; side++)
