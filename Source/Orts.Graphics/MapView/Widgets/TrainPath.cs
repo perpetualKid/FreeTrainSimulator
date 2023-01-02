@@ -144,7 +144,7 @@ namespace Orts.Graphics.MapView.Widgets
                 }
                 pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, reverseDirection));
             }
-            UpdateBounds();
+            SetBounds();
         }
 
         public override double DistanceSquared(in PointD point)

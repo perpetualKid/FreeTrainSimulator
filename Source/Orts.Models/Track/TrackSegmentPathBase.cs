@@ -18,10 +18,15 @@ namespace Orts.Models.Track
     public abstract class TrackSegmentPathBase<T> : VectorPrimitive where T : TrackSegmentBase
     {
         private PointD midPoint;
+        private PointD topLeft;
+        private PointD bottomRight;
 
 #pragma warning disable CA1002 // Do not expose generic lists
         protected List<TrackSegmentSectionBase<T>> PathSections { get; } = new List<TrackSegmentSectionBase<T>>();
 #pragma warning restore CA1002 // Do not expose generic lists
+
+        public ref readonly PointD TopLeftBound => ref topLeft;
+        public ref readonly PointD BottomRightBound => ref bottomRight;
         public ref readonly PointD MidPoint => ref midPoint;
 
         protected TrackSegmentPathBase(in PointD start, in PointD end)
@@ -92,7 +97,7 @@ namespace Orts.Models.Track
         protected abstract TrackSegmentSectionBase<T> AddSection(int trackNodeIndex);
 #pragma warning restore CA1716 // Identifiers should not match keywords
 
-        protected void UpdateBounds()
+        protected void SetBounds()
         {
             double minX = Math.Min(Location.X, Vector.X);
             double minY = Math.Min(Location.Y, Vector.Y);
@@ -101,16 +106,15 @@ namespace Orts.Models.Track
 
             foreach (TrackSegmentSectionBase<T> section in PathSections)
             {
-                foreach (var segment in section.SectionSegments)
-                {
-                    minX = Math.Min(minX, segment.Location.X);
-                    minY = Math.Min(minY, segment.Location.Y);
-                    maxX = Math.Max(maxX, segment.Location.X);
-                    maxY = Math.Max(maxY, segment.Location.Y);
-                }
+                minX = Math.Min(minX, section.TopLeftBound.X);
+                minY = Math.Min(minY, section.BottomRightBound.Y);
+                maxX = Math.Max(maxX, section.BottomRightBound.X);
+                maxY = Math.Max(maxY, section.TopLeftBound.Y);
             }
-            SetVector(new PointD(minX, maxY), new PointD(maxX, minY));
-            midPoint = Location + (Vector - Location) / 2.0;
+
+            topLeft = new PointD(minX, maxY);
+            bottomRight = new PointD(maxX, minY);
+            midPoint = topLeft + (bottomRight - topLeft) / 2.0;
         }
     }
 }

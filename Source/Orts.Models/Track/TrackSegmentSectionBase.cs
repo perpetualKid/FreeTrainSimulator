@@ -14,11 +14,15 @@ namespace Orts.Models.Track
     /// <typeparam name="T"></typeparam>
     public abstract class TrackSegmentSectionBase<T> : VectorPrimitive, ITrackNode where T : TrackSegmentBase
     {
-        private readonly PointD midPoint;
+        private PointD midPoint;
+        private PointD topLeft;
+        private PointD bottomRight;
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<T> SectionSegments { get; } = new List<T>();
 #pragma warning restore CA1002 // Do not expose generic lists
+        public ref readonly PointD TopLeftBound => ref topLeft;
+        public ref readonly PointD BottomRightBound => ref bottomRight;
         public ref readonly PointD MidPoint => ref midPoint;
 
         public int TrackNodeIndex { get; }
@@ -42,13 +46,14 @@ namespace Orts.Models.Track
 
                 //end section
                 reverse = endSegment.Location.DistanceSquared(SectionSegments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(SectionSegments[endSegment.TrackVectorSectionIndex - 1].Location);
-                PointD end = reverse ? endSegment.Location: endSegment.Vector;
+                PointD end = reverse ? endSegment.Location : endSegment.Vector;
 
                 SetVector(start, end);
             }
 
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
+            SetBounds();
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
@@ -61,6 +66,7 @@ namespace Orts.Models.Track
             }
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
+            SetBounds();
         }
 
         protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end) : base(start, end)
@@ -81,6 +87,7 @@ namespace Orts.Models.Track
             {
                 Trace.TraceWarning($"Start or End point not on track for Track Vector Node {trackNodeIndex}. This will be shown as straight line in the map view.");
                 SectionSegments.Add(CreateItem(start, end));
+                SetBounds();
                 return;
             }
 
@@ -119,6 +126,7 @@ namespace Orts.Models.Track
             {
                 SectionSegments.Add(CreateItem(startSegment, start, end));
             }
+            SetBounds();
         }
 
         protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements) :
@@ -201,6 +209,7 @@ namespace Orts.Models.Track
                 SectionSegments.Add(CreateItem(startSegment, start, end));
             }
             TrackNodeIndex = SectionSegments[0].TrackNodeIndex;
+            SetBounds();
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
@@ -240,5 +249,26 @@ namespace Orts.Models.Track
             }
             return (startSegment, endSegment);
         }
+
+        protected void SetBounds()
+        {
+            double minX = Math.Min(Location.X, Vector.X);
+            double minY = Math.Min(Location.Y, Vector.Y);
+            double maxX = Math.Max(Location.X, Vector.X);
+            double maxY = Math.Max(Location.Y, Vector.Y);
+
+            foreach (TrackSegmentBase segment in SectionSegments)
+            {
+                minX = Math.Min(minX, segment.Location.X);
+                minY = Math.Min(minY, segment.Location.Y);
+                maxX = Math.Max(maxX, segment.Location.X);
+                maxY = Math.Max(maxY, segment.Location.Y);
+            }
+
+            topLeft = new PointD(minX, maxY);
+            bottomRight = new PointD(maxX, minY);
+            midPoint = topLeft + (bottomRight - topLeft) / 2.0;
+        }
+
     }
 }
