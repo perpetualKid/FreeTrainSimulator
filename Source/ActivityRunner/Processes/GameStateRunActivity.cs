@@ -102,10 +102,10 @@ namespace Orts.ActivityRunner.Processes
 
         protected override void Dispose(bool disposing)
         {
-            loading.Dispose();
-            loadingScreen.Dispose();
-            loadingBar.Dispose();
-            timetableLoadingBar.Dispose();
+            loading?.Dispose();
+            loadingScreen?.Dispose();
+            loadingBar?.Dispose();
+            timetableLoadingBar?.Dispose();
             base.Dispose(disposing);
         }
 

@@ -5,28 +5,56 @@ using System.Linq;
 
 namespace Orts.Common.Position
 {
+    /// <summary>
+    /// Generic interface for <seealso cref="TileIndexedList{TTileCoordinate, T}"/> to efficiently index and access elements by 2D tile index.
+    /// Allows to enumerate elements within a certain "bounding box" area.
+    /// Also has basic capabilities to find nearest element from a given position
+    /// </summary>
+    /// <typeparam name="TTileCoordinate"></typeparam>
+    /// <typeparam name="T"></typeparam>
     public interface ITileIndexedList<out TTileCoordinate, T> : IEnumerable<TTileCoordinate> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
     {
+        /// <summary>
+        /// Number of tiles in this list
+        /// </summary>
         int Count { get; }
 
+        /// <summary>
+        /// Sum of elements from all tiles
+        /// </summary>
         int ItemCount { get; }
 
+        IEnumerable<TTileCoordinate> BoundingBox(ITile center, int tileRadius);
         IEnumerable<TTileCoordinate> BoundingBox(ITile bottomLeft, ITile topRight);
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         IEnumerable<TTileCoordinate> this[ITile tile] { get; }
 #pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         IEnumerable<TTileCoordinate> FindNearest(PointD position);
         IEnumerable<TTileCoordinate> FindNearest(PointD position, ITile bottomLeft, ITile topRight);
-
     }
 
+    /// <summary>
+    /// Generic type to efficiently index and access elements by 2D tile index.
+    /// Allows to enumerate elements within a certain "bounding box" area.
+    /// Also has basic capabilities to find nearest element from a given position.<br/>
+    /// TTileCoordinate is the type of elements in this list. The type needs to implement <seealso cref="ITileCoordinate{T}"/><br/>
+    /// T is the tile-type, implementing <seealso cref="ITile"/>
+    /// </summary>
+    /// <typeparam name="TTileCoordinate"></typeparam>
+    /// <typeparam name="T"></typeparam>
     public class TileIndexedList<TTileCoordinate, T> : ITileIndexedList<TTileCoordinate, T> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
     {
         private readonly SortedList<ITile, List<TTileCoordinate>> tiles;
         private readonly List<ITile> sortedIndexes;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public int Count => sortedIndexes.Count;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public int ItemCount { get; }
 
         public IList<TTileCoordinate> this[int index] { get => tiles[sortedIndexes[index]]; }
@@ -80,12 +108,19 @@ namespace Orts.Common.Position
             }
         }
 
+        public IEnumerable<TTileCoordinate> BoundingBox(ITile center, int tileRadius = 0)
+        { 
+            ArgumentNullException.ThrowIfNull(center);
+
+            Tile bottomLeft = new Tile(center.X - tileRadius, center.Z - tileRadius);
+            Tile topRight = new Tile(center.X + tileRadius, center.Z + tileRadius);
+            return BoundingBox(bottomLeft, topRight);
+        }
+
         public IEnumerable<TTileCoordinate> BoundingBox(ITile bottomLeft, ITile topRight)
         {
-            if (bottomLeft == null)
-                throw new ArgumentNullException(nameof(bottomLeft));
-            if (topRight == null)
-                throw new ArgumentNullException(nameof(topRight));
+            ArgumentNullException.ThrowIfNull(bottomLeft);
+            ArgumentNullException.ThrowIfNull(topRight);
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException(nameof(bottomLeft), $"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 

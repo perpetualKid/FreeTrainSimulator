@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -14,7 +15,7 @@ namespace Orts.Models.Track
     /// Main properties are Length, Orientation (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size).<br/>
     /// This is a base class for derived types like rail tracks, road tracks.<br/><br/>
-    /// Multiple segments will form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track such us train paths, platforms, sidings.
+    /// Multiple segments will form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track such as train paths, platforms, sidings.
     /// </summary>
     public abstract class TrackSegmentBase : VectorPrimitive
     {
@@ -74,8 +75,10 @@ namespace Orts.Models.Track
             TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
 
             if (null == trackSection)
+            {
+                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}.");
                 return;
-            //                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
+            }
 
             Size = trackSection.Width;
             Curved = trackSection.Curved;
@@ -236,11 +239,9 @@ namespace Orts.Models.Track
 
         #region math
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns>Returns the distance (squared) of the given point from this track segment at the closest point, 
+        /// Returns the distance (squared) of the given point from this track segment at the closest point, 
         /// or NaN if the point is not along (perpedicular) the track</returns>
+        /// </summary>
         public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;

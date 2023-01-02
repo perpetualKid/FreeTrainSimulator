@@ -75,7 +75,7 @@ namespace Orts.Models.Track
             if ((segments = TrackModel.Instance.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
-            (startSegment, endSegment) = EvaluteSegments(start, end, segments);
+            (startSegment, endSegment) = EvaluateSegments(start, end, segments);
 
             if (startSegment == null || endSegment == null)
             {
@@ -139,7 +139,7 @@ namespace Orts.Models.Track
                 if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
-                (startSegment, endSegment) = EvaluteSegments(start, end, segments);
+                (startSegment, endSegment) = EvaluateSegments(start, end, segments);
             }
             //advanced case, most likely it's just on the junction node due to overlap
             else
@@ -147,14 +147,14 @@ namespace Orts.Models.Track
                 //check if the this was close enough on the other tracknode, maybe just a rounding error
                 if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
-                (startSegment, endSegment) = EvaluteSegments(start, end, segments);
+                (startSegment, endSegment) = EvaluateSegments(start, end, segments);
 
                 if (startSegment == null || endSegment == null)
                 {
                     if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
                         throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
-                    (startSegment, endSegment) = EvaluteSegments(start, end, segments);
+                    (startSegment, endSegment) = EvaluateSegments(start, end, segments);
                 }
             }
 
@@ -217,7 +217,7 @@ namespace Orts.Models.Track
         protected abstract T CreateItem(TrackSegmentBase source, in PointD start, in PointD end);
 #pragma warning restore CA1716 // Identifiers should not match keywords
 
-        private static (TrackSegmentBase startSegment, TrackSegmentBase endSegment) EvaluteSegments(in PointD startLocation, in PointD endLocation, List<TrackSegmentBase> segments)
+        private static (TrackSegmentBase startSegment, TrackSegmentBase endSegment) EvaluateSegments(in PointD startLocation, in PointD endLocation, List<TrackSegmentBase> segments)
         {
             TrackSegmentBase startSegment = null;
             TrackSegmentBase endSegment = null;

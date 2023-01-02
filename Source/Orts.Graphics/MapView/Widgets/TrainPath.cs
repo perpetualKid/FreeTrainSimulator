@@ -92,7 +92,7 @@ namespace Orts.Graphics.MapView.Widgets
                             {
                                 int trackNodeIndex = TrackModel.Instance.SegmentSections[trackPins[0].Link].TrackNodeIndex;
                                 PathSections.Add(new TrainPathSection(trackNodeIndex));
-                                nodeSegment = TrackModel.Instance.SegmentBaseAt(trackNodeIndex, nodeLocation);
+                                nodeSegment = TrackModel.Instance.SegmentBaseAt(nodeLocation);
                                 reverseDirection = nodeSegment.TrackVectorSectionIndex > 0 || nodeLocation.DistanceSquared(nodeSegment.Location) > ProximityTolerance;
                             }
                             else
@@ -103,7 +103,7 @@ namespace Orts.Graphics.MapView.Widgets
                         else if (node.Junction)
                         {
                             TrackSegmentBase nextNodeSegment = TrackModel.Instance.SegmentBaseAt(nextNodeLocation);
-                            nodeSegment = TrackModel.Instance.SegmentBaseAt(nextNodeSegment.TrackNodeIndex, nodeLocation);
+                            nodeSegment = TrackModel.Instance.SegmentBaseAt(nodeLocation);
                             PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
                             reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
                                 (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
@@ -112,7 +112,7 @@ namespace Orts.Graphics.MapView.Widgets
                         else if (nextNode.Junction)
                         {
                             PathSections.Add(new TrainPathSection(nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                            TrackSegmentBase nextNodeSegment = TrackModel.Instance.SegmentBaseAt(nodeSegment.TrackNodeIndex, nextNodeLocation);
+                            TrackSegmentBase nextNodeSegment = TrackModel.Instance.SegmentBaseAt(nextNodeLocation);
                             reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
                                 (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
                                 nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
@@ -137,7 +137,7 @@ namespace Orts.Graphics.MapView.Widgets
                 else
                 {
                     PointD previousNodeLocation = PointD.FromWorldLocation(previousNode.Location);
-                    TrackSegmentBase previousNodeSegment = TrackModel.Instance.SegmentBaseAt(nodeSegment.TrackNodeIndex, previousNodeLocation);
+                    TrackSegmentBase previousNodeSegment = TrackModel.Instance.SegmentBaseAt(previousNodeLocation);
                     reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex ||
                         (nodeSegment.TrackVectorSectionIndex == previousNodeSegment.TrackVectorSectionIndex &&
                         nodeSegment.DistanceSquared(previousNodeSegment.Location) < nodeLocation.DistanceSquared(previousNodeSegment.Location));
