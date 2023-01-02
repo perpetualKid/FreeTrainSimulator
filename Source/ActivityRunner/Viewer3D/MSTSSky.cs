@@ -32,6 +32,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Simulation.MultiPlayer;
+using Orts.Viewer3D;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -60,8 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private bool initialized;
         // Classes reqiring instantiation
         public MSTSSkyMesh MSTSSkyMesh;
-        private SunMoonPos MSTSSkyVectors;
-        private int mstsskyseasonType; //still need to remember it as MP now can change it.
+        private SeasonType mstsskyseasonType; //still need to remember it as MP now can change it.
         #region Class variables
         // Latitude of current route in radians. -pi/2 = south pole, 0 = equator, pi/2 = north pole.
         // Longitude of current route in radians. -pi = west of prime, 0 = prime, pi = east of prime.
@@ -69,9 +69,9 @@ namespace Orts.ActivityRunner.Viewer3D
         public bool ResetTexture => mstsskylatitude != 0;
         // Date of activity
 
-        public Orts.ActivityRunner.Viewer3D.SkyViewer.Date date;
+        private SkyDate date;
 
-        private SkySteps skySteps = new SkySteps();
+        private SkyInterpolation skySteps = new SkyInterpolation();
 
         // Phase of the moon
         public int mstsskymoonPhase;
@@ -103,16 +103,11 @@ namespace Orts.ActivityRunner.Viewer3D
             MSTSSkyMaterial = viewer.MaterialManager.Load("MSTSSky");
             // Instantiate classes
             MSTSSkyMesh = new MSTSSkyMesh(viewer);
-            MSTSSkyVectors = new SunMoonPos();
 
             //viewer.World.MSTSSky.MSTSSkyMaterial.Viewer.MaterialManager.sunDirection.Y < 0
             // Set default values
-            mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
-            date.ordinalDate = 82 + mstsskyseasonType * 91;
-            // TODO: Set the following three externally from ORTS route files (future)
-            date.month = 1 + date.ordinalDate / 30;
-            date.day = 21;
-            date.year = 2010;
+            mstsskyseasonType = MSTSSkyViewer.Simulator.Season;
+            date = new SkyDate(82 + (int)mstsskyseasonType * 91);
             // Default wind speed and direction
             mstsskywindSpeed = 5.0f; // m/s (approx 11 mph)
             mstsskywindDirection = 4.7f; // radians (approx 270 deg, i.e. westerly)
@@ -177,14 +172,10 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
+            if (mstsskyseasonType != MSTSSkyViewer.Simulator.Season)
             {
-                mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
-                date.ordinalDate = 82 + mstsskyseasonType * 91;
-                // TODO: Set the following three externally from ORTS route files (future)
-                date.month = 1 + date.ordinalDate / 30;
-                date.day = 21;
-                date.year = 2010;
+                mstsskyseasonType = MSTSSkyViewer.Simulator.Season;
+                date = new SkyDate(82 + (int)mstsskyseasonType * 91);
             }
             // Adjust dome position so the bottom edge is not visible
             Vector3 ViewerXNAPosition = new Vector3(MSTSSkyViewer.Camera.Location.X, MSTSSkyViewer.Camera.Location.Y - 100, -MSTSSkyViewer.Camera.Location.Z);
@@ -198,7 +189,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 skySteps.Step1 = skySteps.Step2 = (int)(skySteps.OldClockTime / 1200);
                 skySteps.Step2 = skySteps.Step2 < skySteps.MaxSteps - 1 ? skySteps.Step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
                                                                                                   // Get the current latitude and longitude coordinates
-                EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
+                (mstsskylatitude, mstsskylongitude) = EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.CameraWorldLocation);
+                if (mstsskyseasonType != MSTSSkyViewer.Simulator.Season)
+                {
+                    mstsskyseasonType = MSTSSkyViewer.Simulator.Season;
+                    date = new SkyDate(mstsskylatitude >= 0 ? 82 + (int)mstsskyseasonType * 91 : (82 + ((int)mstsskyseasonType + 2) * 91) % 365);
+                }
                 // Fill in the sun- and moon-position lookup tables
                 for (int i = 0; i < skySteps.MaxSteps; i++)
                 {
@@ -207,7 +203,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 // Phase of the moon is generated at random
                 mstsskymoonPhase = StaticRandom.Next(8);
-                if (mstsskymoonPhase == 6 && date.ordinalDate > 45 && date.ordinalDate < 330)
+                if (mstsskymoonPhase == 6 && date.OrdinalDate > 45 && date.OrdinalDate < 330)
                     mstsskymoonPhase = 3; // Moon dog only occurs in winter
                 // Overcast factor: 0.0=almost no clouds; 0.1=wispy clouds; 1.0=total overcast
                 //mstsskyovercastFactor = MSTSSkyViewer.World.WeatherControl.overcastFactor;
@@ -234,23 +230,18 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-
-            skySteps.SetSunAndMoonDirection(ref mstsskysolarDirection, ref mstsskylunarDirection, ref mstsskysolarPosArray, ref mstsskylunarPosArray,
-                MSTSSkyViewer.Simulator.ClockTime);
+            (mstsskysolarDirection, mstsskylunarDirection) = skySteps.SetSunAndMoonDirection(mstsskysolarPosArray, mstsskylunarPosArray, MSTSSkyViewer.Simulator.ClockTime);
 
             frame.AddPrimitive(MSTSSkyMaterial, MSTSSkyMesh, RenderPrimitiveGroup.Sky, ref XNASkyWorldLocation);
         }
 
         public void LoadPrep()
         {
-            if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
-                if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
+            if (mstsskyseasonType != MSTSSkyViewer.Simulator.Season)
+                if (mstsskyseasonType != MSTSSkyViewer.Simulator.Season)
                 {
-                    mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
-                    date.ordinalDate = 82 + mstsskyseasonType * 91;
-                    date.month = 1 + date.ordinalDate / 30;
-                    date.day = 21;
-                    date.year = 2010;
+                    mstsskyseasonType = MSTSSkyViewer.Simulator.Season;
+                    date = new SkyDate(82 + (int)mstsskyseasonType * 91);
                 }
 
             // Get the current latitude and longitude coordinates

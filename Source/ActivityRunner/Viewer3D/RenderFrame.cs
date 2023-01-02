@@ -338,7 +338,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void PrepareFrame(Viewer viewer)
         {
             if (viewer.Settings.UseMSTSEnv == false)
-                solarDirection = viewer.World.Sky.solarDirection;
+                solarDirection = viewer.World.Sky.SolarDirection;
             else
                 solarDirection = viewer.World.MSTSSky.mstsskysolarDirection;
 

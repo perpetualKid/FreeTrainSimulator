@@ -241,7 +241,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Time of day
             bool newIsDay = false;
             if (Viewer.Settings.UseMSTSEnv == false)
-                newIsDay = Viewer.World.Sky.solarDirection.Y > 0;
+                newIsDay = Viewer.World.Sky.SolarDirection.Y > 0;
             else
                 newIsDay = Viewer.World.MSTSSky.mstsskysolarDirection.Y > 0;
             // Weather

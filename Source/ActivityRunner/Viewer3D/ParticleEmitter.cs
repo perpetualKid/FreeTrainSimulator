@@ -472,7 +472,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             shader.CurrentTechnique = shader.Techniques[0];
             if (viewer.Settings.UseMSTSEnv == false)
-                shader.LightVector = viewer.World.Sky.solarDirection;
+                shader.LightVector = viewer.World.Sky.SolarDirection;
             else
                 shader.LightVector = viewer.World.MSTSSky.mstsskysolarDirection;
 

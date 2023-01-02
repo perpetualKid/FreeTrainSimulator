@@ -479,7 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Precipitation"];
 
-            shader.LightVector.SetValue(viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.solarDirection);
+            shader.LightVector.SetValue(viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.SolarDirection);
             shader.particleSize.SetValue(1f);
             if (viewer.Simulator.Weather.PrecipitationLiquidity == 0 || viewer.Simulator.Weather.PrecipitationLiquidity == 1)
             {
