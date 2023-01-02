@@ -31,7 +31,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public class MSTSSteamLocomotiveViewer : MSTSLocomotiveViewer
     {
-        private float throttlepercent;
         private float color_Value;
 
         private MSTSSteamLocomotive SteamLocomotive => (MSTSSteamLocomotive)Car;
@@ -350,6 +349,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var car = Car as MSTSSteamLocomotive;
+            car.StackCount = Stack.Count;
 
             foreach (var drawer in Cylinders)
                 drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders1SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
@@ -421,12 +421,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in SafetyValves)
                 drawer.SetOutput(car.SafetyValvesSteamVelocityMpS, car.SafetyValvesSteamVolumeM3pS, car.SafetyValvesParticleDurationS);
 
-            throttlepercent = car.ThrottlePercent > 0 ? car.ThrottlePercent / 10f : 0f;
-
             foreach (var drawer in Stack)
             {
                 color_Value = (float)car.SmokeColor.SmoothedValue;
-                drawer.SetOutput((float)car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS / Stack.Count + car.FireRatio, throttlepercent + car.FireRatio, new Color(color_Value, color_Value, color_Value));
+                drawer.SetOutput((float)car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS, car.StackParticleDurationS, new Color(color_Value, color_Value, color_Value));
             }
 
             foreach (var drawer in Whistle)
