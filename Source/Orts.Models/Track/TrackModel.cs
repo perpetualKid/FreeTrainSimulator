@@ -113,6 +113,11 @@ namespace Orts.Models.Track
         public IList<EndNodeBase> EndNodes { get; }
         public IList<TrackSegmentSection> SegmentSections { get; }
 
+        public TileIndexedList<TrackSegmentBase, Tile> TiledSegments { get; private set; }
+        public TileIndexedList<JunctionNodeBase, Tile> TiledJunctionNodes { get; private set; }
+        public TileIndexedList<EndNodeBase, Tile> TiledEndNodes { get; private set; }
+        public TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile> TiledSegmentSections { get; private set; }
+
         private TrackModel()
         {
             Junctions = new PartialTrackNodeList<JunctionNodeBase>(elements);
@@ -124,14 +129,13 @@ namespace Orts.Models.Track
 
         public void SetTrackSegments(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
         {
-            if (null == trackSegments)
-                throw new ArgumentNullException(nameof(trackSegments));
-            if (null == junctionNodes)
-                throw new ArgumentNullException(nameof(junctionNodes));
-            if (null == endNodes)
-                throw new ArgumentNullException(nameof(endNodes));
+            ArgumentNullException.ThrowIfNull(trackSegments);
+            ArgumentNullException.ThrowIfNull(junctionNodes);
+            ArgumentNullException.ThrowIfNull(endNodes);
 
-            elements.AddRange(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t)));
+            IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
+
+            elements.AddRange(trackSegmentSections);
             foreach (TrackSegmentSection trackSegment in elements)
                 SegmentSections.Add(trackSegment);
 
@@ -144,6 +148,11 @@ namespace Orts.Models.Track
                 Junctions.Add(junctionNode);
             foreach (EndNodeBase endNode in endNodes)
                 EndNodes.Add(endNode);
+
+            TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
+            TiledSegmentSections = new TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile>(trackSegmentSections);
+            TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(Junctions);
+            TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(EndNodes);
         }
 
         public static void Reset()
@@ -156,8 +165,9 @@ namespace Orts.Models.Track
 
         public TrackSegmentBase SegmentBaseAt(in PointD location)
         {
+            Tile tile = PointD.ToTile(location);
             TrackSegmentBase result;
-            foreach (TrackSegmentSection section in SegmentSections)
+            foreach (TrackSegmentSection section in TiledSegmentSections.BoundingBox(tile, 1))
             {
                 if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
                     return result;
@@ -175,7 +185,8 @@ namespace Orts.Models.Track
 
         public JunctionNodeBase JunctionBaseAt(in PointD location)
         {
-            foreach (JunctionNodeBase junctionNode in Junctions)
+            Tile tile = PointD.ToTile(location);
+            foreach (JunctionNodeBase junctionNode in TiledJunctionNodes.BoundingBox(tile, 1))
             {
                 if (junctionNode.JunctionNodeAt(location))
                     return junctionNode;
@@ -185,7 +196,8 @@ namespace Orts.Models.Track
 
         public EndNodeBase EndNodeBaseAt(in PointD location)
         {
-            foreach (EndNodeBase endNode in EndNodes)
+            Tile tile = PointD.ToTile(location);
+            foreach (EndNodeBase endNode in TiledEndNodes.BoundingBox(tile, 1))
             {
                 if (endNode.EndNodeAt(location))
                     return endNode;
