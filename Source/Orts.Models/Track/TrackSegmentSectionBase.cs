@@ -57,10 +57,12 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentSectionBase(int trackNodeIndex) : base()
+        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex) : base()
         {
-            SetVector(TrackModel.Instance.SegmentSections[trackNodeIndex].Location, TrackModel.Instance.SegmentSections[trackNodeIndex].Vector);
-            foreach (TrackSegmentBase segment in TrackModel.Instance.SegmentSections[trackNodeIndex].SectionSegments)
+            ArgumentNullException.ThrowIfNull(trackModel);
+
+            SetVector(trackModel.SegmentSections[trackNodeIndex].Location, trackModel.SegmentSections[trackNodeIndex].Vector);
+            foreach (TrackSegmentBase segment in trackModel.SegmentSections[trackNodeIndex].SectionSegments)
             {
                 SectionSegments.Add(CreateItem(segment));
             }
@@ -69,8 +71,10 @@ namespace Orts.Models.Track
             SetBounds();
         }
 
-        protected TrackSegmentSectionBase(int trackNodeIndex, PointD start, PointD end) : base(start, end)
+        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex, PointD start, PointD end) : base(start, end)
         {
+            ArgumentNullException.ThrowIfNull(trackModel);
+
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
 
@@ -78,7 +82,7 @@ namespace Orts.Models.Track
             TrackSegmentBase endSegment;
             List<TrackSegmentBase> segments;
 
-            if ((segments = TrackModel.Instance.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
+            if ((segments = trackModel.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             (startSegment, endSegment) = EvaluateSegments(start, end, segments);

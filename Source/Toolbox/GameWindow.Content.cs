@@ -79,7 +79,7 @@ namespace Orts.Toolbox
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
             Task<IEnumerable<Path>> pathTask = Path.GetPaths(route, true, CancellationToken.None);
-            await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(this, route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 

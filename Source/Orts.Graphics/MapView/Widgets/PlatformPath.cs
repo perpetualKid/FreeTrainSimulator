@@ -14,13 +14,13 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
-            public PlatformSection(int trackNodeIndex) :
-                base(trackNodeIndex)
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
+                base(trackModel, trackNodeIndex)
             {
             }
 
-            public PlatformSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackNodeIndex, startLocation, endLocation)
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -48,8 +48,8 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end) :
-            base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
+        public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
@@ -63,7 +63,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems)
+        public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
@@ -79,7 +79,7 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
                     _ = platformItemMappings.Remove(end.TrackItemId);
-                    result.Add(new PlatformPath(start, end));
+                    result.Add(new PlatformPath(trackModel, start, end));
                 }
                 else
                 {
@@ -102,14 +102,14 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new PlatformSection(trackNodeIndex, start, end);
+            return new PlatformSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
         {
-            return new PlatformSection(trackNodeIndex);
+            return new PlatformSection(trackModel, trackNodeIndex);
         }
 
     }

@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -13,9 +15,14 @@ namespace Orts.Toolbox
 {
     public class TrackData: RuntimeData
     {
-        internal static async Task LoadTrackData(string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
+        private TrackData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits) : 
+            base(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, null)
         {
-            TrackModel.Reset();
+        }
+
+        internal static async Task LoadTrackData(Game game, string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
+        {
+            TrackModel.Instance(game)?.Reset();
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
             TrackDB trackDB = null;
@@ -54,7 +61,11 @@ namespace Orts.Toolbox
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
-            Initialize(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric));
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            game.Services.RemoveService(typeof(RuntimeData));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric)));
         }
     }
 }

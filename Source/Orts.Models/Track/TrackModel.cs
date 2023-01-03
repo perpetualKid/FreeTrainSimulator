@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 
 namespace Orts.Models.Track
 {
@@ -109,6 +112,7 @@ namespace Orts.Models.Track
 
         private readonly List<ITrackNode> elements = new List<ITrackNode>();
 
+        public RuntimeData RuntimeData { get; init; }
         public IList<JunctionNodeBase> Junctions { get; }
         public IList<EndNodeBase> EndNodes { get; }
         public IList<TrackSegmentSection> SegmentSections { get; }
@@ -125,42 +129,51 @@ namespace Orts.Models.Track
             SegmentSections = new PartialTrackNodeList<TrackSegmentSection>(elements);
         }
 
-        public static TrackModel Instance { get; } = new TrackModel();
-
-        public void SetTrackSegments(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        public static TrackModel Instance(Game game) 
         {
+            return game?.Services.GetService<TrackModel>();
+        }
+
+        public ITrackNode this[int index] => index > -1 && index < elements.Count ? elements[index] : null;
+
+        public static void Initialize(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        {
+            game?.Services.RemoveService(typeof(TrackModel));
+            TrackModel instance = new TrackModel() { RuntimeData = runtimeData };
+            game.Services.AddService(typeof(TrackModel), instance);
+
             ArgumentNullException.ThrowIfNull(trackSegments);
             ArgumentNullException.ThrowIfNull(junctionNodes);
             ArgumentNullException.ThrowIfNull(endNodes);
 
             IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
 
-            elements.AddRange(trackSegmentSections);
-            foreach (TrackSegmentSection trackSegment in elements)
-                SegmentSections.Add(trackSegment);
+            instance.elements.AddRange(trackSegmentSections);
+            foreach (TrackSegmentSection trackSegment in instance.elements)
+                instance.SegmentSections.Add(trackSegment);
 
-            elements.AddRange(junctionNodes);
-            elements.AddRange(endNodes);
-            elements.Sort((t1, t2) => t1.TrackNodeIndex.CompareTo(t2.TrackNodeIndex));
-            elements.Insert(0, null);
+            instance.elements.AddRange(junctionNodes);
+            instance.elements.AddRange(endNodes);
+            instance.elements.Sort((t1, t2) => t1.TrackNodeIndex.CompareTo(t2.TrackNodeIndex));
+            instance.elements.Insert(0, null);
 
             foreach (JunctionNodeBase junctionNode in junctionNodes)
-                Junctions.Add(junctionNode);
+                instance.Junctions.Add(junctionNode);
             foreach (EndNodeBase endNode in endNodes)
-                EndNodes.Add(endNode);
+                instance.EndNodes.Add(endNode);
 
-            TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-            TiledSegmentSections = new TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile>(trackSegmentSections);
-            TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(Junctions);
-            TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(EndNodes);
+            instance.TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
+            instance.TiledSegmentSections = new TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile>(trackSegmentSections);
+            instance.TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(instance.Junctions);
+            instance.TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(instance.EndNodes);
         }
 
-        public static void Reset()
+        public void Reset()
         {
-            Instance.elements.Clear();
-            Instance.Junctions.Clear();
-            Instance.EndNodes.Clear();
-            Instance.SegmentSections.Clear();
+            elements.Clear();
+            Junctions.Clear();
+            EndNodes.Clear();
+            SegmentSections.Clear();
         }
 
         public TrackSegmentBase SegmentBaseAt(in PointD location)

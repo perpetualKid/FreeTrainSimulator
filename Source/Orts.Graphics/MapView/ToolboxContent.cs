@@ -35,7 +35,7 @@ namespace Orts.Graphics.MapView
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
-            DetailInfo["Route Name"] = RuntimeData.Instance.RouteName;
+            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
             TrackNodeInfo = trackNodeInfo;
         }
@@ -49,8 +49,8 @@ namespace Orts.Graphics.MapView
             //just put an empty list so the draw method does not skip the paths
             contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
 
-            DetailInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
-            DetailInfo["Track Nodes"] = $"{TrackModel.Instance.SegmentSections.Count}";
+            DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
+            DetailInfo["Track Nodes"] = $"{TrackModel.Instance(game).SegmentSections.Count}";
             DetailInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
             DetailInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
@@ -155,7 +155,8 @@ namespace Orts.Graphics.MapView
 
             if (null != nearestItems[MapViewItemSettings.Tracks])
             {
-                foreach (TrackSegmentBase segment in TrackModel.Instance.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                TrackModel trackModel = TrackModel.Instance(game);
+                foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                 {
                     (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
                 }
@@ -183,7 +184,7 @@ namespace Orts.Graphics.MapView
         #region additional content (Paths)
         public void InitializePath(PathFile path)
         {
-            currentPath = path != null ? new TrainPath(path) : null;
+            currentPath = path != null ? new TrainPath(path, game) : null;
             if (path != null)
             {
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
@@ -195,9 +196,10 @@ namespace Orts.Graphics.MapView
         #region build content database
         private void AddTrackSegments()
         {
-            TrackDB trackDB = RuntimeData.Instance.TrackDB;
-            RoadTrackDB roadTrackDB = RuntimeData.Instance.RoadTrackDB;
-            TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
+            RuntimeData runtimeData = RuntimeData.GameInstance(game);
+            TrackDB trackDB = runtimeData.TrackDB;
+            RoadTrackDB roadTrackDB = runtimeData.RoadTrackDB;
+            TrackSectionsFile trackSectionsFile = runtimeData.TSectionDat;
             if (null == trackSectionsFile)
                 throw new ArgumentNullException(nameof(trackSectionsFile));
 
@@ -238,7 +240,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackModel.Instance.SetTrackSegments(trackSegments, junctionSegments, endSegments);
+            TrackModel.Initialize(game, runtimeData, trackSegments, junctionSegments, endSegments);
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
@@ -275,15 +277,18 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
-                RuntimeData.Instance.TrackDB?.TrackItems, 
-                RuntimeData.Instance.SignalConfigFile, 
-                RuntimeData.Instance.TrackDB, TrackModel.Instance.SegmentSections).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+            RuntimeData runtimeData = RuntimeData.GameInstance(game);
+            TrackModel trackModel = TrackModel.Instance(game);
 
-            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>());
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
+                runtimeData.TrackDB?.TrackItems,
+                runtimeData.SignalConfigFile,
+                runtimeData.TrackDB, trackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
+
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
-            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>());
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
             contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
 
             IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();

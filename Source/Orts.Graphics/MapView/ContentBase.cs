@@ -20,9 +20,9 @@ namespace Orts.Graphics.MapView
         private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings>();
         private protected readonly EnumArray<ITileCoordinate<Tile>, MapViewItemSettings> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapViewItemSettings>();
 
-        public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
+        public bool UseMetricUnits { get; }
 
-        public string RouteName { get; } = RuntimeData.Instance.RouteName;
+        public string RouteName { get; } 
 
         public ContentArea ContentArea { get; }
 
@@ -37,9 +37,11 @@ namespace Orts.Graphics.MapView
         protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            if (null == RuntimeData.Instance)
+            if (null == RuntimeData.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
+            RouteName = RuntimeData.GameInstance(game).RouteName;
+            UseMetricUnits = RuntimeData.GameInstance(game).UseMetricUnits;
         }
 
         public abstract Task Initialize();
@@ -52,6 +54,11 @@ namespace Orts.Graphics.MapView
         public void InitializeItemVisiblity(EnumArray<bool, MapViewItemSettings> settings)
         {
             this.viewSettings = settings;
+        }
+
+        public void HighlightItem(MapViewItemSettings mapviewItem, ITileCoordinate<Tile> item)
+        {
+            nearestItems[mapviewItem] = item;
         }
 
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
