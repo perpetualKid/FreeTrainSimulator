@@ -34,17 +34,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
-            {
-                double i when i < 0.3 => 30,
-                double i when i < 0.5 => 20,
-                double i when i < 0.75 => 15,
-                double i when i < 1 => 10,
-                double i when i < 3 => 7,
-                double i when i < 5 => 5,
-                double i when i < 8 => 4,
-                _ => 3,
-            };
+            Size = Math.Max(3, (float)(4 / contentArea.Scale));
             contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), Color.White, contentArea.SpriteBatch);
         }
     }
