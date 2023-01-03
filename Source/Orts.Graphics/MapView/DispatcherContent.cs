@@ -194,8 +194,8 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackSegments()
         {
-            TrackDB trackDB = RuntimeData.Instance.TrackDB;
-            TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
+            TrackDB trackDB = RuntimeData.GameInstance(game).TrackDB;
+            TrackSectionsFile trackSectionsFile = RuntimeData.GameInstance(game).TSectionDat;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
@@ -237,7 +237,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackModel.Initialize(game, RuntimeData.Instance, trackSegments, junctionSegments, endSegments);
+            TrackModel.Initialize(game, RuntimeData.GameInstance(game), trackSegments, junctionSegments, endSegments);
 
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
@@ -256,7 +256,7 @@ namespace Orts.Graphics.MapView
                 runtimeData.TrackDB?.TrackItems,
                 runtimeData.SignalConfigFile,
                 runtimeData.TrackDB,
-                trackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+                trackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
