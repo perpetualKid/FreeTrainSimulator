@@ -12,7 +12,7 @@ namespace Orts.Models.Track
 {
     public abstract class TrackModel
     {
-        private sealed class PartialTrackNodeList<T> : IList<T> where T : class, ITrackNode
+        private sealed class PartialTrackNodeList<T> : IReadOnlyList<T> where T : class, ITrackNode
         {
             private readonly List<int> elements;
             private readonly List<ITrackNode> parent;
@@ -24,8 +24,6 @@ namespace Orts.Models.Track
             }
 
             public T this[int index] { get => parent[index] as T; set => throw new NotImplementedException(); }
-
-            public bool IsReadOnly => true;
 
             public int Count => elements.Count;
 
@@ -44,32 +42,12 @@ namespace Orts.Models.Track
                 return elements.Contains(item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item)));
             }
 
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                throw new NotImplementedException();
-            }
-
             public IEnumerator GetEnumerator()
             {
                 return new NodeEnumerator<T>(elements, parent);
             }
 
-            public int IndexOf(T item) => item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item));
-
-            public void Insert(int index, T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Remove(T item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void RemoveAt(int index)
-            {
-                throw new NotImplementedException();
-            }
+            public static int IndexOf(T item) => item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item));
 
             IEnumerator<T> IEnumerable<T>.GetEnumerator()
             {
@@ -113,9 +91,9 @@ namespace Orts.Models.Track
         private readonly List<ITrackNode> elements = new List<ITrackNode>();
 
         public RuntimeData RuntimeData { get; init; }
-        public IList<JunctionNodeBase> Junctions { get; }
-        public IList<EndNodeBase> EndNodes { get; }
-        public IList<TrackSegmentSection> SegmentSections { get; }
+        public IReadOnlyList<JunctionNodeBase> Junctions { get; }
+        public IReadOnlyList<EndNodeBase> EndNodes { get; }
+        public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
 
         public TileIndexedList<TrackSegmentBase, Tile> TiledSegments { get; private set; }
         public TileIndexedList<JunctionNodeBase, Tile> TiledJunctionNodes { get; private set; }
@@ -151,7 +129,7 @@ namespace Orts.Models.Track
 
             instance.elements.AddRange(trackSegmentSections);
             foreach (TrackSegmentSection trackSegment in instance.elements)
-                instance.SegmentSections.Add(trackSegment);
+                (instance.SegmentSections as PartialTrackNodeList<TrackSegmentSection>).Add(trackSegment);
 
             instance.elements.AddRange(junctionNodes);
             instance.elements.AddRange(endNodes);
@@ -159,9 +137,9 @@ namespace Orts.Models.Track
             instance.elements.Insert(0, null);
 
             foreach (JunctionNodeBase junctionNode in junctionNodes)
-                instance.Junctions.Add(junctionNode);
+                (instance.Junctions as PartialTrackNodeList<JunctionNodeBase>).Add(junctionNode);
             foreach (EndNodeBase endNode in endNodes)
-                instance.EndNodes.Add(endNode);
+                (instance.EndNodes as PartialTrackNodeList<EndNodeBase>).Add(endNode);
 
             instance.TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
             instance.TiledSegmentSections = new TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile>(trackSegmentSections);
@@ -172,9 +150,9 @@ namespace Orts.Models.Track
         public void Reset()
         {
             elements.Clear();
-            Junctions.Clear();
-            EndNodes.Clear();
-            SegmentSections.Clear();
+            (Junctions as PartialTrackNodeList<JunctionNodeBase>).Clear();
+            (EndNodes as PartialTrackNodeList<EndNodeBase>).Clear();
+            (SegmentSections as PartialTrackNodeList<TrackSegmentSection>).Clear();
         }
 
         public TrackSegmentBase SegmentBaseAt(in PointD location)
