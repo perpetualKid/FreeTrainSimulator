@@ -18,12 +18,12 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class TrainPathSection : TrackSegmentSectionBase<TrainPathSegment>, IDrawable<VectorPrimitive>
         {
-            public TrainPathSection(TrackModelBase trackModel, int trackNodeIndex) :
+            public TrainPathSection(TrackModel trackModel, int trackNodeIndex) :
                 base(trackModel, trackNodeIndex)
             {
             }
 
-            public TrainPathSection(TrackModelBase trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+            public TrainPathSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
@@ -57,7 +57,7 @@ namespace Orts.Graphics.MapView.Widgets
                   PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackModelBase trackModel = TrackModelBase.Instance<TrackModel>(game);
+            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
             PathNode previousNode = null;
             foreach (PathNode node in pathFile.PathNodes)
             {
@@ -164,12 +164,12 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new TrainPathSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<TrainPathSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
         {
             return new TrainPathSection(trackModel, trackNodeIndex);
         }

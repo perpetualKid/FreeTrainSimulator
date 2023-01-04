@@ -10,7 +10,7 @@ using Orts.Formats.Msts;
 
 namespace Orts.Models.Track
 {
-    public abstract class TrackModelBase
+    public abstract class TrackModel
     {
         private sealed class PartialTrackNodeList<T> : IList<T> where T : class, ITrackNode
         {
@@ -122,14 +122,14 @@ namespace Orts.Models.Track
         public TileIndexedList<EndNodeBase, Tile> TiledEndNodes { get; private set; }
         public TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile> TiledSegmentSections { get; private set; }
 
-        protected TrackModelBase()
+        protected TrackModel()
         {
             Junctions = new PartialTrackNodeList<JunctionNodeBase>(elements);
             EndNodes = new PartialTrackNodeList<EndNodeBase>(elements);
             SegmentSections = new PartialTrackNodeList<TrackSegmentSection>(elements);
         }
 
-        public static T Instance<T>(Game game) where T : TrackModelBase
+        public static T Instance<T>(Game game) where T : TrackModel
         {
             return game?.Services.GetService<T>();
         }
@@ -137,7 +137,7 @@ namespace Orts.Models.Track
         public ITrackNode this[int index] => index > -1 && index < elements.Count ? elements[index] : null;
 
         public static void Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes) 
-            where T: TrackModelBase, new()
+            where T: TrackModel, new()
         {
             game?.Services.RemoveService(typeof(T));
             T instance = new T() { RuntimeData = runtimeData };
@@ -220,10 +220,10 @@ namespace Orts.Models.Track
         }
     }
 
-    public class TrackModel : TrackModelBase
+    public class RailTrackModel : TrackModel
     { }
 
-    public class RoadTrackModel : TrackModelBase
+    public class RoadTrackModel : TrackModel
     { 
     }
 }

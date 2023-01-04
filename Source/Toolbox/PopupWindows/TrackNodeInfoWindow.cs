@@ -5,9 +5,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Input;
-using Orts.Formats.Msts;
 using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -82,7 +80,7 @@ namespace Orts.Toolbox.PopupWindows
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                         {
                         case SearchType.Track:
-                            ITrackNode node = TrackModelBase.Instance<TrackModel>(Owner.Game)[nodeIndex];
+                            ITrackNode node = TrackModel.Instance<RailTrackModel>(Owner.Game)[nodeIndex];
                             if (node is TrackSegmentSection segmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
@@ -91,7 +89,7 @@ namespace Orts.Toolbox.PopupWindows
                             }
                             break;
                         case SearchType.Road:
-                            ITrackNode roadNode = TrackModelBase.Instance<RoadTrackModel>(Owner.Game)[nodeIndex];
+                            ITrackNode roadNode = TrackModel.Instance<RoadTrackModel>(Owner.Game)[nodeIndex];
                             if (roadNode is TrackSegmentSection roadSegmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);

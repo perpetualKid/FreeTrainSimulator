@@ -57,7 +57,7 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentSectionBase(TrackModelBase trackModel, int trackNodeIndex) : base()
+        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex) : base()
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
@@ -71,7 +71,7 @@ namespace Orts.Models.Track
             SetBounds();
         }
 
-        protected TrackSegmentSectionBase(TrackModelBase trackModel, int trackNodeIndex, PointD start, PointD end) : base(start, end)
+        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex, PointD start, PointD end) : base(start, end)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 

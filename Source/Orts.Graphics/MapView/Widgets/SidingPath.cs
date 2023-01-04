@@ -13,11 +13,11 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
         {
-            public SidingSection(TrackModelBase trackModel, int trackNodeIndex) : base(trackModel, trackNodeIndex)
+            public SidingSection(TrackModel trackModel, int trackNodeIndex) : base(trackModel, trackNodeIndex)
             {
             }
 
-            public SidingSection(TrackModelBase trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+            public SidingSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
@@ -46,7 +46,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public SidingPath(TrackModelBase trackModel, SidingTrackItem start, SidingTrackItem end) :
+        public SidingPath(TrackModel trackModel, SidingTrackItem start, SidingTrackItem end) :
             base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
@@ -56,7 +56,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<SidingPath> CreateSidings(TrackModelBase trackModel, IEnumerable<SidingTrackItem> sidingItems)
+        public static List<SidingPath> CreateSidings(TrackModel trackModel, IEnumerable<SidingTrackItem> sidingItems)
         {
             List<SidingPath> result = new List<SidingPath>();
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.TrackItemId);
@@ -95,12 +95,12 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new SidingSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
         {
             return new SidingSection(trackModel, trackNodeIndex);
         }
