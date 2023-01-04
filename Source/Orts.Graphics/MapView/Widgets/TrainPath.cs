@@ -64,6 +64,15 @@ namespace Orts.Graphics.MapView.Widgets
                 bool reverseDirection = false;
                 PointD nodeLocation = PointD.FromWorldLocation(node.Location);
                 TrackSegmentBase nodeSegment = trackModel.SegmentBaseAt(nodeLocation);
+
+                if (null == nodeSegment)
+                {
+                    Trace.TraceWarning($"Path node at {node.Location} not on any track section.");
+
+                    pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, false));
+                    continue;
+                }
+
                 // if either one is on a junction, first get the junction
                 // get all the connected track nodes
                 // and find the connecting track nodes

@@ -29,12 +29,12 @@ namespace Orts.Graphics.MapView.Widgets
                 PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
-            Direction = trackSegment.DirectionAt(Location) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+            Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
         }
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = Math.Max(3, (float)(4 / contentArea.Scale));
+            Size = Math.Max(3, (float)(8 / contentArea.Scale));
             contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), Color.White, contentArea.SpriteBatch);
         }
     }

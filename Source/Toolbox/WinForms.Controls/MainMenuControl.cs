@@ -215,14 +215,17 @@ namespace Orts.Toolbox.WinForms.Controls
 
         internal void PreSelectRoute(string routeName)
         {
-            foreach (object dropdownItem in menuItemRoutes.DropDownItems)
+            Invoke((MethodInvoker)delegate
             {
-                if (dropdownItem is ToolStripMenuItem menuItem && menuItem.Text == routeName)
+                foreach (object dropdownItem in menuItemRoutes.DropDownItems)
                 {
-                    UncheckOtherMenuItems(menuItem);
-                    break;
+                    if (dropdownItem is ToolStripMenuItem menuItem && menuItem.Text == routeName)
+                    {
+                        UncheckOtherMenuItems(menuItem);
+                        break;
+                    }
                 }
-            }
+            });
         }
 
         internal void PopulateContentFolders(IEnumerable<Folder> folders)
