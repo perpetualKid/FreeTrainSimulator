@@ -14,12 +14,12 @@ namespace Orts.Graphics.MapView.Widgets
 
         private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
-            public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
+            public PlatformSection(TrackModelBase trackModel, int trackNodeIndex) :
                 base(trackModel, trackNodeIndex)
             {
             }
 
-            public PlatformSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+            public PlatformSection(TrackModelBase trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
@@ -48,7 +48,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
+        public PlatformPath(TrackModelBase trackModel, PlatformTrackItem start, PlatformTrackItem end) :
             base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
@@ -63,7 +63,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
+        public static List<PlatformPath> CreatePlatforms(TrackModelBase trackModel, IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
@@ -102,12 +102,12 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new PlatformSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModelBase trackModel, int trackNodeIndex)
         {
             return new PlatformSection(trackModel, trackNodeIndex);
         }

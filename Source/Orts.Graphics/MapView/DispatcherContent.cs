@@ -139,7 +139,7 @@ namespace Orts.Graphics.MapView
         // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
-            TrackModel trackModel = TrackModel.Instance(game);
+            TrackModelBase trackModel = TrackModelBase.Instance<TrackModel>(game);
             float remainingPathLength = 2000;
             PathSegments.Clear();
             if (trackModel == null || trackModel.SegmentSections.Count == 0)
@@ -237,7 +237,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
             contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackModel.Initialize(game, RuntimeData.GameInstance(game), trackSegments, junctionSegments, endSegments);
+            TrackModelBase.Initialize<TrackModel>(game, RuntimeData.GameInstance(game), trackSegments, junctionSegments, endSegments);
 
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
@@ -250,7 +250,7 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackModel trackModel = TrackModel.Instance(game);
+            TrackModelBase trackModel = TrackModelBase.Instance<TrackModel>(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
                 runtimeData.TrackDB?.TrackItems,

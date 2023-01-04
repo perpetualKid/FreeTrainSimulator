@@ -67,7 +67,7 @@ namespace Orts.Toolbox.PopupWindows
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = contentArea?.Content.TrackNodeInfo,
-                ColumnWidth = new int[] { 120 - 4 }, // == layout.RemainingWidth / DpiScaling
+                ColumnWidth = new int[] { 120 - 4 },
             };
             layout.Add(trackNodeInfoGrid);
             return layout;
@@ -82,7 +82,7 @@ namespace Orts.Toolbox.PopupWindows
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                         {
                         case SearchType.Track:
-                            ITrackNode node = TrackModel.Instance(Owner.Game)[nodeIndex];
+                            ITrackNode node = TrackModelBase.Instance<TrackModel>(Owner.Game)[nodeIndex];
                             if (node is TrackSegmentSection segmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
@@ -91,6 +91,13 @@ namespace Orts.Toolbox.PopupWindows
                             }
                             break;
                         case SearchType.Road:
+                            ITrackNode roadNode = TrackModelBase.Instance<RoadTrackModel>(Owner.Game)[nodeIndex];
+                            if (roadNode is TrackSegmentSection roadSegmentSection)
+                            {
+                                contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
+                                contentArea?.SetTrackingPosition(roadSegmentSection.MidPoint);
+                                contentArea.Content.HighlightItem(Common.MapViewItemSettings.Roads, roadSegmentSection.SectionSegments[0]);
+                            }
                             break;
                     }
                 }

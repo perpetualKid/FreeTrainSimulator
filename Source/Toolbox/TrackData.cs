@@ -22,7 +22,7 @@ namespace Orts.Toolbox
 
         internal static async Task LoadTrackData(Game game, string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
         {
-            TrackModel.Instance(game)?.Reset();
+            TrackModelBase.Instance<TrackModel>(game)?.Reset();
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
             TrackDB trackDB = null;

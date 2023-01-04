@@ -10,7 +10,7 @@ using Orts.Formats.Msts;
 
 namespace Orts.Models.Track
 {
-    public class TrackModel
+    public abstract class TrackModelBase
     {
         private sealed class PartialTrackNodeList<T> : IList<T> where T : class, ITrackNode
         {
@@ -122,25 +122,26 @@ namespace Orts.Models.Track
         public TileIndexedList<EndNodeBase, Tile> TiledEndNodes { get; private set; }
         public TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile> TiledSegmentSections { get; private set; }
 
-        private TrackModel()
+        protected TrackModelBase()
         {
             Junctions = new PartialTrackNodeList<JunctionNodeBase>(elements);
             EndNodes = new PartialTrackNodeList<EndNodeBase>(elements);
             SegmentSections = new PartialTrackNodeList<TrackSegmentSection>(elements);
         }
 
-        public static TrackModel Instance(Game game) 
+        public static T Instance<T>(Game game) where T : TrackModelBase
         {
-            return game?.Services.GetService<TrackModel>();
+            return game?.Services.GetService<T>();
         }
 
         public ITrackNode this[int index] => index > -1 && index < elements.Count ? elements[index] : null;
 
-        public static void Initialize(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        public static void Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes) 
+            where T: TrackModelBase, new()
         {
-            game?.Services.RemoveService(typeof(TrackModel));
-            TrackModel instance = new TrackModel() { RuntimeData = runtimeData };
-            game.Services.AddService(typeof(TrackModel), instance);
+            game?.Services.RemoveService(typeof(T));
+            T instance = new T() { RuntimeData = runtimeData };
+            game.Services.AddService(typeof(T), instance);
 
             ArgumentNullException.ThrowIfNull(trackSegments);
             ArgumentNullException.ThrowIfNull(junctionNodes);
@@ -217,6 +218,12 @@ namespace Orts.Models.Track
             }
             return null;
         }
+    }
 
+    public class TrackModel : TrackModelBase
+    { }
+
+    public class RoadTrackModel : TrackModelBase
+    { 
     }
 }
