@@ -86,7 +86,7 @@ namespace Orts.Models.Track
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             (startSegment, endSegment) = EvaluateSegments(start, end, segments);
-
+            
             if (startSegment == null || endSegment == null)
             {
                 Trace.TraceWarning($"Start or End point not on track for Track Vector Node {trackNodeIndex}. This will be shown as straight line in the map view.");
@@ -273,6 +273,5 @@ namespace Orts.Models.Track
             bottomRight = new PointD(maxX, minY);
             midPoint = topLeft + (bottomRight - topLeft) / 2.0;
         }
-
     }
 }
