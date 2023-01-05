@@ -301,6 +301,11 @@ namespace Orts.Models.Track
             return null;
         }
 
+        public bool TrackSegmentAt(in PointD location)
+        {
+            return DistanceSquared(location) <= ProximityTolerance;
+        }
+
         /// <summary>
         /// Direction (Heading from North) at an arbitrary point along the current track segment
         /// </summary>

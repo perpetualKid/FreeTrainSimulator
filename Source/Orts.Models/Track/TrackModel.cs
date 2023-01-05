@@ -99,7 +99,6 @@ namespace Orts.Models.Track
         public TileIndexedList<TrackSegmentBase, Tile> TiledSegments { get; private set; }
         public TileIndexedList<JunctionNodeBase, Tile> TiledJunctionNodes { get; private set; }
         public TileIndexedList<EndNodeBase, Tile> TiledEndNodes { get; private set; }
-        public TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile> TiledSegmentSections { get; private set; }
 
         protected TrackModel()
         {
@@ -143,7 +142,6 @@ namespace Orts.Models.Track
                 (instance.EndNodes as PartialTrackNodeList<EndNodeBase>).Add(endNode);
 
             instance.TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-            instance.TiledSegmentSections = new TileIndexedList<TrackSegmentSectionBase<TrackSegmentBase>, Tile>(trackSegmentSections);
             instance.TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(instance.Junctions);
             instance.TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(instance.EndNodes);
         }
@@ -159,7 +157,7 @@ namespace Orts.Models.Track
         public IEnumerable<TrackSegmentBase> SegmentsAt(PointD location)
         {
             Tile tile = PointD.ToTile(location);
-            TrackSegmentBase result = null;
+            TrackSegmentBase segment = null;
 
             IEnumerable<TrackSegmentBase> OtherSegments(TrackSegmentBase start)
             {
@@ -186,55 +184,37 @@ namespace Orts.Models.Track
             if (location.X % Tile.TileSize > 1000 || location.Y % Tile.TileSize > 1000)
                 tileRadius = 1;
 
-            // get the first track segment at the location (within proximity)
-            foreach (TrackSegmentSection section in TiledSegmentSections.BoundingBox(tile, tileRadius))
+            // get a first track segment at the location (within proximity)
+            if ((segment = SegmentAt(location, tileRadius)) != null)
             {
-                if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
-                {
-                    yield return result;
-                    // now we have a segment, so only need to check if we are at the start or end with a junction
-                    // and return the segments from other connected nodes
-                    foreach (TrackSegmentBase item in OtherSegments(result))
-                        yield return item;
-                    break;
-                }
-            }
-
-            // this may be the (seldom) case ie. where a segment intersects a tile but has both start and end outside
-            // and it is not covered by tile-based search above, so we broaden the search to all segments
-            if (result == null)
-            {
-                foreach (TrackSegmentSection section in SegmentSections)
-                {
-                    if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
-                    {
-                        yield return result;
-                        // now we have a segment, so only need to check if we are at the start or end with a junction
-                        // and return the segments from other connected nodes
-                        foreach (TrackSegmentBase item in OtherSegments(result))
-                            yield return item;
-                        break;
-                    }
-                }
+                yield return segment;
+                // now we have a segment, so only need to check if we are at the start or end with a junction
+                // and return the segments from other connected nodes
+                foreach (TrackSegmentBase item in OtherSegments(segment))
+                    yield return item;
             }
         }
 
-        public TrackSegmentBase SegmentAt(in PointD location)
+        public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            TrackSegmentBase result;
-            foreach (TrackSegmentSection section in TiledSegmentSections.BoundingBox(tile, 1))
+            foreach (TrackSegmentBase section in TiledSegments.BoundingBox(tile, tileRadius))
             {
-                if ((result = TrackSegmentBase.SegmentBaseAt(location, section.SectionSegments)) != null)
-                    return result;
+                if (section.TrackSegmentAt(location))
+                    return section;
+            }
+            foreach (TrackSegmentBase section in TiledSegments)
+            {
+                if (section.TrackSegmentAt(location))
+                    return section;
             }
             return null;
         }
 
-        public JunctionNodeBase JunctionAt(in PointD location)
+        public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (JunctionNodeBase junctionNode in TiledJunctionNodes.BoundingBox(tile, 1))
+            foreach (JunctionNodeBase junctionNode in TiledJunctionNodes.BoundingBox(tile, tileRadius))
             {
                 if (junctionNode.JunctionNodeAt(location))
                     return junctionNode;
@@ -242,10 +222,10 @@ namespace Orts.Models.Track
             return null;
         }
 
-        public EndNodeBase EndNodeAt(in PointD location)
+        public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (EndNodeBase endNode in TiledEndNodes.BoundingBox(tile, 1))
+            foreach (EndNodeBase endNode in TiledEndNodes.BoundingBox(tile, tileRadius))
             {
                 if (endNode.EndNodeAt(location))
                     return endNode;

@@ -68,7 +68,6 @@ namespace Orts.Graphics.MapView.Widgets
                 if (nodeSegment == null)
                 {
                     Trace.TraceWarning($"Path node at {node.Location} not on any track section.");
-
                     pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, false));
                     continue;
                 }
@@ -143,10 +142,10 @@ namespace Orts.Graphics.MapView.Widgets
                 else
                 {
                     PointD previousNodeLocation = PointD.FromWorldLocation(previousNode.Location);
-                    TrackSegmentBase previousNodeSegment = trackModel.SegmentsAt(previousNodeLocation).Where(segment => segment.TrackNodeIndex == nodeSegment.TrackNodeIndex).First();
+                    TrackSegmentBase previousNodeSegment = trackModel.SegmentAt(previousNodeLocation);
                     reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex ||
                         (nodeSegment.TrackVectorSectionIndex == previousNodeSegment.TrackVectorSectionIndex &&
-                        nodeSegment.DistanceSquared(previousNodeSegment.Location) < nodeLocation.DistanceSquared(previousNodeSegment.Location));
+                        nodeSegment.DistanceSquared(previousNodeSegment.Location) > nodeLocation.DistanceSquared(previousNodeSegment.Location));
                 }
                 pathPoints.Add(new TrainPathItem(nodeLocation, nodeSegment, node.NodeType, reverseDirection));
             }
