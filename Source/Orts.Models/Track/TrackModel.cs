@@ -219,7 +219,7 @@ namespace Orts.Models.Track
             }
         }
 
-        public TrackSegmentBase SegmentBaseAt(in PointD location)
+        public TrackSegmentBase SegmentAt(in PointD location)
         {
             Tile tile = PointD.ToTile(location);
             TrackSegmentBase result;
@@ -231,15 +231,7 @@ namespace Orts.Models.Track
             return null;
         }
 
-        public TrackSegmentBase SegmentBaseAt(int nodeIndex, in PointD location)
-        {
-            TrackSegmentBase result;
-            if ((result = TrackSegmentBase.SegmentBaseAt(location, SegmentSections[nodeIndex].SectionSegments)) != null)
-                return result;
-            return null;
-        }
-
-        public JunctionNodeBase JunctionBaseAt(in PointD location)
+        public JunctionNodeBase JunctionAt(in PointD location)
         {
             Tile tile = PointD.ToTile(location);
             foreach (JunctionNodeBase junctionNode in TiledJunctionNodes.BoundingBox(tile, 1))
@@ -250,7 +242,7 @@ namespace Orts.Models.Track
             return null;
         }
 
-        public EndNodeBase EndNodeBaseAt(in PointD location)
+        public EndNodeBase EndNodeAt(in PointD location)
         {
             Tile tile = PointD.ToTile(location);
             foreach (EndNodeBase endNode in TiledEndNodes.BoundingBox(tile, 1))

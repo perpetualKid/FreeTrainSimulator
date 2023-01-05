@@ -63,11 +63,9 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 bool reverseDirection = false;
                 PointD nodeLocation = PointD.FromWorldLocation(node.Location);
-                TrackSegmentBase nodeSegment = trackModel.SegmentBaseAt(nodeLocation);
+                TrackSegmentBase nodeSegment = trackModel.SegmentAt(nodeLocation);
 
-                IEnumerable<TrackSegmentBase> nodeSegments = trackModel.SegmentsAt(nodeLocation);
-
-                if (!nodeSegments.Any())
+                if (nodeSegment == null)
                 {
                     Trace.TraceWarning($"Path node at {node.Location} not on any track section.");
 
@@ -90,8 +88,8 @@ namespace Orts.Graphics.MapView.Widgets
                     PathNode nextNode = pathFile.PathNodes[node.NextMainNode];
                     PointD nextNodeLocation = PointD.FromWorldLocation(nextNode.Location);
 
-                    JunctionNodeBase junctionNode = node.Junction ? trackModel.JunctionBaseAt(nodeLocation) : null;
-                    JunctionNodeBase nextJunctionNode = nextNode.Junction ? trackModel.JunctionBaseAt(nextNodeLocation) : null;
+                    JunctionNodeBase junctionNode = node.Junction ? trackModel.JunctionAt(nodeLocation) : null;
+                    JunctionNodeBase nextJunctionNode = nextNode.Junction ? trackModel.JunctionAt(nextNodeLocation) : null;
 
                     if (node.Junction && nextNode.Junction)
                     {
@@ -111,7 +109,7 @@ namespace Orts.Graphics.MapView.Widgets
                     }
                     else if (node.Junction)
                     {
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentBaseAt(nextNodeLocation);
+                        TrackSegmentBase nextNodeSegment = trackModel.SegmentAt(nextNodeLocation);
                         nodeSegment = trackModel.SegmentsAt(nodeLocation).Where(segment => segment.TrackNodeIndex == nextNodeSegment.TrackNodeIndex).First();
                         PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
                         reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
@@ -128,7 +126,7 @@ namespace Orts.Graphics.MapView.Widgets
                     }
                     else
                     {
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentBaseAt(nextNodeLocation);
+                        TrackSegmentBase nextNodeSegment = trackModel.SegmentAt(nextNodeLocation);
                         if (nodeSegment.TrackNodeIndex != nextNodeSegment.TrackNodeIndex)
                         {
                             Trace.TraceWarning($"Invalid Data.");
