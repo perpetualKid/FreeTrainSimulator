@@ -103,7 +103,7 @@ namespace Orts.Toolbox
                 ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
                 return await Task.FromResult(true).ConfigureAwait(false);
             }
-            catch (NullReferenceException)
+            catch (Exception ex) when (ex is Exception)
             {
                 return await Task.FromResult(false).ConfigureAwait(false);
             }
