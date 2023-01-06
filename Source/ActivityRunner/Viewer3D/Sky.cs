@@ -24,7 +24,6 @@ using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -42,6 +41,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public const int Sides = 24;
         // <CScomment> added a belt of triangles just below 0 level to avoid empty sky below horizon
         public const short Levels = 6;
+        public const float CloudsAltitude = 1000;
+
     }
 
     public enum SkyElement
@@ -155,12 +156,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class SkyPrimitive : RenderPrimitive
     {
-        public const float SkyRadius = 6020;
-        public const float MoonRadius = 6010;
-        public const float CloudsRadius = 6000;
-        public const float CloudsFlatness = 0.1f;
-
-
         public SkyElement Element { get; set; }
 
         /*
@@ -170,9 +165,9 @@ namespace Orts.ActivityRunner.Viewer3D
          * - Clouds blended by overcast factor and animated by wind speed and direction
          *
          * Both the cloud-less sky and clouds use sky domes; the sky is
-         * perfectly spherical, while the cloud dome is squashed (see
-         * `CloudsFlatness`) to make it closer to a flat plane overhead,
-         * without losing the horizon connection.
+         * perfectly spherical, while the cloud dome is flattened and offset
+         * so that it passes closer over the camera but still extends beyond
+         * the horizon by the same amount.
          *
          * The sky dome is the top hemisphere of a globe, plus an extension
          * below the horizon to ensure we never get to see the edge. Both the
@@ -200,6 +195,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private const int VertexCount = (2 * DomeVertices) + MoonVertices;
         private const int IndexCount = DomeIndexes + MoonIndexes;
 
+        // Calculate the height of the dome from top to bottom of extra steps (below horizon)
+        private static readonly float DomeHeightM = SkyConstants.Radius * (float)(1 + Math.Sin(MathHelper.ToRadians(DomeStepsExtra * TuneDomeComponentDegrees)));
+        private static readonly float CloudsFlatness = 1 - ((SkyConstants.Radius - SkyConstants.CloudsAltitude) / DomeHeightM);
+        private static readonly float CloudsOffsetM = SkyConstants.CloudsAltitude - (SkyConstants.Radius * CloudsFlatness);
+
         private readonly VertexPositionNormalTexture[] VertexList;
         private readonly short[] IndexList;
 
@@ -217,8 +217,8 @@ namespace Orts.ActivityRunner.Viewer3D
             IndexList = new short[IndexCount];
             var vertexIndex = 0;
             var indexIndex = 0;
-            vertexIndex = InitializeDomeVertexList(vertexIndex, SkyRadius);
-            vertexIndex = InitializeDomeVertexList(vertexIndex, CloudsRadius, CloudsFlatness);
+            vertexIndex = InitializeDomeVertexList(vertexIndex, SkyConstants.Radius);
+            vertexIndex = InitializeDomeVertexList(vertexIndex, SkyConstants.Radius, CloudsFlatness, CloudsOffsetM);
             indexIndex = InitializeDomeIndexList(indexIndex);
             (vertexIndex, indexIndex) = InitializeMoonLists(vertexIndex, indexIndex);
             Debug.Assert(vertexIndex == VertexCount, $"Did not initialize all verticies; expected {VertexCount}, got {vertexIndex}");
@@ -259,10 +259,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        private int InitializeDomeVertexList(int index, float radius, float flatness = 1)
+        private int InitializeDomeVertexList(int index, float radius, float flatness = 1, float offset = 0)
         {
             // Single vertex at zenith
-            VertexList[index].Position = new Vector3(0, radius * flatness, 0);
+            VertexList[index].Position = new Vector3(0, radius * flatness + offset, 0);
             VertexList[index].Normal = Vector3.Normalize(VertexList[index].Position);
             VertexList[index].TextureCoordinate = new Vector2(0.5f, 0.5f);
             index++;
@@ -272,7 +272,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var stepCos = (float)Math.Cos(MathHelper.ToRadians(90f * step / DomeStepsMain));
                 var stepSin = (float)Math.Sin(MathHelper.ToRadians(90f * step / DomeStepsMain));
 
-                var y = radius * stepCos * flatness;
+                var y = radius * stepCos;
                 var d = radius * stepSin;
 
                 for (var side = 0; side < DomeSides; side++)
@@ -287,7 +287,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     var v = 0.5f + ((float)step / DomeStepsMain * sideSin / 2);
 
                     // Store the position, texture coordinates and normal (normalized position vector) for the current vertex
-                    VertexList[index].Position = new Vector3(x, y, z);
+                    VertexList[index].Position = new Vector3(x, (y * flatness) + offset, z);
                     VertexList[index].Normal = Vector3.Normalize(VertexList[index].Position);
                     VertexList[index].TextureCoordinate = new Vector2(u, v);
                     index++;
@@ -410,7 +410,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 graphicsDevice.SamplerStates[i] = SamplerState.LinearWrap;
 
             Matrix xnaSkyView = MatrixExtension.Multiply(view, Camera.XNASkyProjection);
-            Matrix xnaMoonMatrix = Matrix.CreateTranslation(viewer.World.Sky.LunarDirection * SkyPrimitive.MoonRadius);
+            Matrix xnaMoonMatrix = Matrix.CreateTranslation(viewer.World.Sky.LunarDirection * SkyConstants.Radius);
             Matrix xnaMoonView = MatrixExtension.Multiply(xnaMoonMatrix, xnaSkyView);
             skyShader.SetViewMatrix(ref view);
 
@@ -419,7 +419,7 @@ namespace Orts.ActivityRunner.Viewer3D
             viewer.World.Sky.Primitive.Element = SkyElement.Sky;
 
             graphicsDevice.BlendState = BlendState.Opaque;
-            graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+            graphicsDevice.DepthStencilState = DepthStencilState.None;
 
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {
