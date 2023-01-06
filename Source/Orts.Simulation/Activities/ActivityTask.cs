@@ -291,7 +291,8 @@ namespace Orts.Simulation.Activities
                             {
                                 maydepart = true;
                                 DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. You may depart now.");
-                                simulator.SoundNotify = TrainEvent.PermissionToDepart;
+                                if (playerTrain.IsActualPlayerTrain)
+                                    simulator.SoundNotify = TrainEvent.PermissionToDepart;
                             }
 
                             debriefEvalDepartBeforeBoarding = false;//reset flag. Debrief Eval
