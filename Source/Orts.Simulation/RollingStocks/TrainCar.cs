@@ -471,7 +471,7 @@ namespace Orts.Simulation.RollingStocks
         private protected float startCurveResistanceFactor = 2.0f; // Set curve friction at Start = 200%
         private protected const float gravitationalAcceleration = 9.80665f; // Acceleration due to gravity 9.80665 m/s2
         private protected int wagonNumAxles; // Number of axles on a wagon
-        private protected float wagonNumWheels; // Number of axless on a wagon - used to read MSTS value as default
+        private protected float wagonNumWheels; // Number of axles on a wagon - used to read MSTS value as default
         private protected int locoNumDrvAxles; // Number of drive axles on locomotive
         private protected float locoNumDrvWheels; // Number of drive axles on locomotive - used to read MSTS value as default
 
