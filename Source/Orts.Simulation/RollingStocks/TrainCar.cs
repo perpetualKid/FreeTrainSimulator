@@ -181,6 +181,7 @@ namespace Orts.Simulation.RollingStocks
         public float CarCouplerFaceLength { get; protected set; }
         public float DerailmentCoefficient { get; private set; }
         private float nadalDerailmentCoefficient;
+        private protected bool derailmentCoefficientEnabled = true;
         private protected float maximumWheelFlangeAngle;
         private protected float wheelFlangeLength;
         private protected float angleOfAttack;
@@ -1176,7 +1177,7 @@ namespace Orts.Simulation.RollingStocks
             // To calculate vertical force on outer wheel = (WagMass / NumWheels) * gravity + WagMass / NumAxles * ( (Speed^2 / CurveRadius) - (gravity * superelevation angle)) * (height * track width)
             // Equation 5
 
-            if (IsPlayerTrain)
+            if (IsPlayerTrain && derailmentCoefficientEnabled)
             {
                 if (CouplerForceU > 0 && CouplerSlackM < 0) // If car coupler is in compression, use the buff angle
                 {
