@@ -54,6 +54,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                 control.MoveBy(-control.Bounds.Left, -control.Bounds.Top);
             }
             Client.Clear();
+            SetScrollPosition(0);
         }
 
         public void UpdateContent()
