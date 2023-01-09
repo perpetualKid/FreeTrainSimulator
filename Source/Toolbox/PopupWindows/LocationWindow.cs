@@ -36,7 +36,7 @@ namespace Orts.Toolbox.PopupWindows
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             toolboxSettings = settings ?? throw new ArgumentNullException(nameof(settings));
-            if (!bool.TryParse(toolboxSettings.PopupSettings[WindowType.LocationWindow], out useWorldCoordinates))
+            if (!bool.TryParse(toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow], out useWorldCoordinates))
                 useWorldCoordinates = true;
             Resize();
         }
@@ -67,7 +67,7 @@ namespace Orts.Toolbox.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 useWorldCoordinates = !useWorldCoordinates;
-                toolboxSettings.PopupSettings[WindowType.LocationWindow] = useWorldCoordinates.ToString();
+                toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow] = useWorldCoordinates.ToString();
                 updateRequired = true;
                 Resize();
             }

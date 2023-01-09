@@ -62,8 +62,8 @@ namespace Orts.Toolbox
 
         internal async Task LoadRoute(Route route)
         {
-            (windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
-            windowManager[WindowType.StatusWindow].Open();
+            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
+            windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
             lock (routes)
@@ -90,7 +90,7 @@ namespace Orts.Toolbox
             ContentArea = content.ContentArea;
             paths = await pathTask.ConfigureAwait(false);
             mainmenu.PopulatePaths(paths);
-            windowManager[WindowType.StatusWindow].Close();
+            windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 

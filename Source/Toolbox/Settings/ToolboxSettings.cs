@@ -148,45 +148,48 @@ namespace Orts.Toolbox.Settings
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=50,50",
-            $"{nameof(WindowType.AboutWindow)}=50,50",
-            $"{nameof(WindowType.StatusWindow)}=50,50",
-            $"{nameof(WindowType.DebugScreen)}=0,0",
-            $"{nameof(WindowType.LocationWindow)}=100,100",
-            $"{nameof(WindowType.HelpWindow)}=10,90",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=10,70",
-            $"{nameof(WindowType.SettingsWindow)}=70,70",
-            $"{nameof(WindowType.LogWindow)}=30,70",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=0,0",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=100,100",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=10,90",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=10,70",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=70,70",
+            $"{nameof(ToolboxWindowType.LogWindow)}=30,70",
+            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=10,40",
         })]
-        public EnumArray<int[], WindowType> PopupLocations { get; set; }
+        public EnumArray<int[], ToolboxWindowType> PopupLocations { get; set; }
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=False",
-            $"{nameof(WindowType.AboutWindow)}=False",
-            $"{nameof(WindowType.StatusWindow)}=False",
-            $"{nameof(WindowType.DebugScreen)}=False",
-            $"{nameof(WindowType.LocationWindow)}=True",
-            $"{nameof(WindowType.HelpWindow)}=True",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=True",
-            $"{nameof(WindowType.SettingsWindow)}=True",
-            $"{nameof(WindowType.LogWindow)}=False",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=False",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=False",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=False",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=False",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=True",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=True",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=True",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=True",
+            $"{nameof(ToolboxWindowType.LogWindow)}=False",
+            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=False",
         })]
-        public EnumArray<bool, WindowType> PopupStatus { get; set; }
+        public EnumArray<bool, ToolboxWindowType> PopupStatus { get; set; }
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=\"\"",
-            $"{nameof(WindowType.AboutWindow)}=\"\"",
-            $"{nameof(WindowType.StatusWindow)}=\"\"",
-            $"{nameof(WindowType.DebugScreen)}=\"\"",
-            $"{nameof(WindowType.LocationWindow)}=\"\"",
-            $"{nameof(WindowType.HelpWindow)}=\"\"",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=\"\"",
-            $"{nameof(WindowType.SettingsWindow)}=\"\"",
-            $"{nameof(WindowType.LogWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=\"\"",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.LogWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=\"\"",
         })]
-        public EnumArray<string, WindowType> PopupSettings { get; set; }
+        public EnumArray<string, ToolboxWindowType> PopupSettings { get; set; }
 
 
         [Default("Segoe UI")]

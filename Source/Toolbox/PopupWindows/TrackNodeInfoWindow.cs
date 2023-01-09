@@ -80,7 +80,7 @@ namespace Orts.Toolbox.PopupWindows
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                         {
                         case SearchType.Track:
-                            ITrackNode node = TrackModel.Instance<RailTrackModel>(Owner.Game)[nodeIndex];
+                            ITrackNode node = TrackModel.Instance<RailTrackModel>(Owner.Game).NodeByIndex(nodeIndex);
                             if (node is TrackSegmentSection segmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
@@ -89,7 +89,7 @@ namespace Orts.Toolbox.PopupWindows
                             }
                             break;
                         case SearchType.Road:
-                            ITrackNode roadNode = TrackModel.Instance<RoadTrackModel>(Owner.Game)[nodeIndex];
+                            ITrackNode roadNode = TrackModel.Instance<RoadTrackModel>(Owner.Game).NodeByIndex(nodeIndex);
                             if (roadNode is TrackSegmentSection roadSegmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);

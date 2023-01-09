@@ -44,7 +44,7 @@ namespace Orts.Toolbox
 
         internal void PrepareExitApplication()
         {
-            windowManager[WindowType.QuitWindow].Open();
+            windowManager[ToolboxWindowType.QuitWindow].Open();
         }
 
         private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
@@ -155,7 +155,7 @@ namespace Orts.Toolbox
 
         internal void ShowAboutWindow()
         {
-            windowManager[WindowType.AboutWindow].Open();
+            windowManager[ToolboxWindowType.AboutWindow].Open();
         }
 
         internal void PrintScreen()

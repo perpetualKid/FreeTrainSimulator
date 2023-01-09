@@ -35,6 +35,7 @@ namespace Orts.Toolbox.Settings
             UserCommands[UserCommand.DisplayTrackNodeInfoWindow] = new UserCommandModifiableKeyInput(Keys.F4, windowTab);
             UserCommands[UserCommand.DisplaySettingsWindow] = new UserCommandModifiableKeyInput(Keys.F10, windowTab);
             UserCommands[UserCommand.DisplayLogWindow] = new UserCommandModifiableKeyInput(Keys.F11, windowTab);
+            UserCommands[UserCommand.DisplayTrainPathWindow] = new UserCommandModifiableKeyInput(Keys.F8, windowTab);
         }
     }
 }

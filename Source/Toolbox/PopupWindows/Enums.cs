@@ -1,6 +1,6 @@
 ﻿namespace Orts.Toolbox.PopupWindows
 {
-    public enum WindowType
+    public enum ToolboxWindowType
     {
         QuitWindow,
         AboutWindow,
@@ -11,5 +11,6 @@
         TrackNodeInfoWindow,
         SettingsWindow,
         LogWindow,
+        TrainPathDetailWindow,
     }
 }

@@ -57,6 +57,12 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
+        protected TrackSegmentSectionBase(in PointD start, in PointD end) : base(start, end)
+        {
+            SectionSegments.Add(CreateItem(start, end));
+            SetBounds();
+        }
+
         protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex) : base()
         {
             ArgumentNullException.ThrowIfNull(trackModel);
@@ -80,13 +86,10 @@ namespace Orts.Models.Track
 
             TrackSegmentBase startSegment;
             TrackSegmentBase endSegment;
-            List<TrackSegmentBase> segments;
 
-            if ((segments = trackModel.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
-                throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
+            startSegment = trackModel.SegmentAt(trackNodeIndex, start);
+            endSegment = trackModel.SegmentAt(trackNodeIndex, end);
 
-            (startSegment, endSegment) = EvaluateSegments(start, end, segments);
-            
             if (startSegment == null || endSegment == null)
             {
                 Trace.TraceWarning($"Start or End point not on track for Track Vector Node {trackNodeIndex}. This will be shown as straight line in the map view.");
@@ -94,6 +97,11 @@ namespace Orts.Models.Track
                 SetBounds();
                 return;
             }
+
+            List<TrackSegmentBase> segments;
+
+            if ((segments = trackModel.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
+                throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             //find all vector sections in between (understanding which direction to go)
             //build a path between the two
@@ -133,11 +141,10 @@ namespace Orts.Models.Track
             SetBounds();
         }
 
-        protected TrackSegmentSectionBase(in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, IList<TrackSegmentSection> sourceElements) :
+        protected TrackSegmentSectionBase(TrackModel trackModel, int startTrackNodeIndex, in PointD start, int endTrackNodeIndex, in PointD end) :
             base(start, end)
         {
-            if (null == sourceElements)
-                throw new ArgumentNullException(nameof(sourceElements));
+            ArgumentNullException.ThrowIfNull(trackModel);
 
             midPoint = Location + (Vector - Location) / 2.0;
 
@@ -148,7 +155,7 @@ namespace Orts.Models.Track
             // simple case, both are on the same tracknode
             if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
+                if ((segments = trackModel.SegmentSections[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
 
                 (startSegment, endSegment) = EvaluateSegments(start, end, segments);
@@ -157,14 +164,14 @@ namespace Orts.Models.Track
             else
             {
                 //check if the this was close enough on the other tracknode, maybe just a rounding error
-                if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
+                if ((segments = trackModel.SegmentSections[startTrackNodeIndex]?.SectionSegments) == null)
                     throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
                 (startSegment, endSegment) = EvaluateSegments(start, end, segments);
 
                 if (startSegment == null || endSegment == null)
                 {
-                    if ((segments = sourceElements[startTrackNodeIndex]?.SectionSegments) == null)
-                        throw new InvalidOperationException($"Track Segments for TrackNode {startTrackNodeIndex} not found");
+                    if ((segments = trackModel.SegmentSections[endTrackNodeIndex]?.SectionSegments) == null)
+                        throw new InvalidOperationException($"Track Segments for TrackNode {endTrackNodeIndex} not found");
 
                     (startSegment, endSegment) = EvaluateSegments(start, end, segments);
                 }

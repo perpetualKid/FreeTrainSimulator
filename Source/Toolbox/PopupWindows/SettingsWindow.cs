@@ -75,7 +75,7 @@ namespace Orts.Toolbox.PopupWindows
                     toolboxSettings.ComplementFontColor = (sender as Checkbox).State.Value;
                     if (null != contentArea)
                         contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
-                    ((Owner as WindowManager<WindowType>)[WindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
+                    ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
                 chkFontColorComplement.State = toolboxSettings.ComplementFontColor;
                 line.Add(chkFontColorComplement);
@@ -87,13 +87,13 @@ namespace Orts.Toolbox.PopupWindows
 
         private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
         {
-            toolboxSettings.PopupSettings[WindowType.SettingsWindow] = e.Tab.ToString();
+            toolboxSettings.PopupSettings[ToolboxWindowType.SettingsWindow] = e.Tab.ToString();
         }
 
         protected override void Initialize()
         {
             base.Initialize();
-            if (toolboxSettings.RestoreLastView && EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.SettingsWindow], out TabSettings tab))
+            if (toolboxSettings.RestoreLastView && EnumExtension.GetValue(toolboxSettings.PopupSettings[ToolboxWindowType.SettingsWindow], out TabSettings tab))
                 tabControl.TabAction(tab);
             tabControl.TabChanged += TabControl_TabChanged;
         }

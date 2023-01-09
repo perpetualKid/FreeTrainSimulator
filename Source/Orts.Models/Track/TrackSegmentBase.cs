@@ -11,7 +11,7 @@ using Orts.Formats.Msts.Models;
 namespace Orts.Models.Track
 {
     /// <summary>
-    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/>
+    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/><br/>
     /// Main properties are Length, Orientation (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size).<br/>
     /// This is a base class for derived types like rail tracks, road tracks.<br/><br/>
