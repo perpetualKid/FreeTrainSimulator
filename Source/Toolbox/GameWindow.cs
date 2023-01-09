@@ -47,7 +47,7 @@ namespace Orts.Toolbox
 
         private readonly Action onClientSizeChanged;
 
-        private WindowManager<WindowType> windowManager;
+        private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
 
@@ -194,7 +194,7 @@ namespace Orts.Toolbox
             if (setting == ColorSetting.Background)
             {
                 BackgroundColor = ColorExtension.FromName(colorName);
-                (windowManager[WindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
+                (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
             }
         }
 
@@ -235,13 +235,13 @@ namespace Orts.Toolbox
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
-            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+            foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
                     Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
                 }
-                if (windowType != WindowType.QuitWindow)
+                if (windowType != ToolboxWindowType.QuitWindow)
                     Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
@@ -373,51 +373,56 @@ namespace Orts.Toolbox
             userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.DebugScreen].ToggleVisibility();
+                    windowManager[ToolboxWindowType.DebugScreen].ToggleVisibility();
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.LocationWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.LocationWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.HelpWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.TrackNodeInfoWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.TrackNodeInfoWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.SettingsWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.SettingsWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.LogWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.LogWindow].ToggleVisibility();
             });
+            //userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            //{
+            //    if (userCommandArgs is not ModifiableKeyCommandArgs)
+            //        windowManager[ToolboxWindowType.TrainPathDetailWindow].ToggleVisibility();
+            //});
             #endregion
 
             #region popup windows
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[WindowType.AboutWindow].ToPoint());
-            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<FormBase>(() =>
+            windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
+            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.AboutWindow].ToPoint());
+            windowManager.SetLazyWindows(ToolboxWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[WindowType.QuitWindow].ToPoint());
+                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.QuitWindow].ToPoint());
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
                 quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
                 quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
                 return quitWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, Settings, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
@@ -427,34 +432,38 @@ namespace Orts.Toolbox
                 return debugWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, Settings.PopupLocations[WindowType.HelpWindow].ToPoint());
-                return helpWindow;
+                return new HelpWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[WindowType.TrackNodeInfoWindow].ToPoint());
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
             {
-                LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[WindowType.LogWindow].ToPoint());
-                return loggingWindow;
+                return new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
             }));
+            //windowManager.SetLazyWindows(ToolboxWindowType.TrainPathDetailWindow, new Lazy<FormBase>(() =>
+            //{
+            //    TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
+            //    OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
+            //    return trainPathDetailWindow;
+            //}));
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
@@ -466,7 +475,7 @@ namespace Orts.Toolbox
             ContentArea?.PresetPosition(Settings.LastLocation);
             if (Settings.RestoreLastView)
             {
-                foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+                foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                 {
                     if (Settings.PopupStatus[windowType])
                         windowManager[windowType].Open();
