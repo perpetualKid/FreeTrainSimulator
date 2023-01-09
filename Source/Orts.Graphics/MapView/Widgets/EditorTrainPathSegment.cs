@@ -6,23 +6,23 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal class EditorTrainPathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        public TrainPathSegment(TrackSegmentBase source) : base(source)
+        public EditorTrainPathSegment(TrackSegmentBase source) : base(source)
         {
         }
 
-        public TrainPathSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        public EditorTrainPathSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
         }
 
-        public TrainPathSegment(in PointD start, in PointD end): base(start, end)
+        public EditorTrainPathSegment(in PointD start, in PointD end): base(start, end)
         {
         }
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<TrainPathSegment>(colorVariation);
+            Color drawColor = this.GetColor<EditorTrainPathSegment>(colorVariation);
 
             Size = MathHelper.Max(0.5f, (float)(2 / contentArea.Scale));
             if (Curved)

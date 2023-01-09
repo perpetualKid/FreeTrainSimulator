@@ -26,7 +26,9 @@ namespace Orts.Graphics.MapView
         private readonly InsetComponent insetComponent;
         private readonly TrackNodeInfoProxy trackNodeInfo = new TrackNodeInfoProxy();
 
-        private TrainPath currentPath;
+        private EditorTrainPath currentPath;
+
+        public TrainPath TrainPath => currentPath?.TrainPathModel;
 
         public ToolboxContent(Game game) :
             base(game)
@@ -45,7 +47,7 @@ namespace Orts.Graphics.MapView
 
             ContentArea.Initialize();
             //just put an empty list so the draw method does not skip the paths
-            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<TrainPath, Tile>(new List<TrainPath>() { });
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<Widgets.EditorTrainPath, Tile>(new List<Widgets.EditorTrainPath>() { });
 
             DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
             DetailInfo["Track Nodes"] = $"{TrackModel.Instance<RailTrackModel>(game).SegmentSections.Count}";
@@ -149,33 +151,37 @@ namespace Orts.Graphics.MapView
             }
             // skip highlighting closest track items if a path is loaded
             if (currentPath != null)
-                return;
+            {
 
-            if (null != nearestItems[MapViewItemSettings.Tracks])
-            {
-                TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
-                foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
-                {
-                    (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
-                }
             }
-            if (null != nearestItems[MapViewItemSettings.Roads])
+            else
             {
-                TrackModel roadTrackModel = TrackModel.Instance<RoadTrackModel>(game);
-                foreach (TrackSegmentBase segment in roadTrackModel.SegmentSections[(nearestItems[MapViewItemSettings.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                if (null != nearestItems[MapViewItemSettings.Tracks])
                 {
-                    (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
+                    foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    {
+                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    }
                 }
-            }
+                if (null != nearestItems[MapViewItemSettings.Roads])
+                {
+                    TrackModel roadTrackModel = TrackModel.Instance<RoadTrackModel>(game);
+                    foreach (TrackSegmentBase segment in roadTrackModel.SegmentSections[(nearestItems[MapViewItemSettings.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    {
+                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    }
+                }
 
-            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
-            {
-                if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
+                foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
                 {
-                    if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
-                        (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.Complement);
-                    else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
-                        (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                    if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
+                    {
+                        if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                        else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                    }
                 }
             }
         }
@@ -183,12 +189,20 @@ namespace Orts.Graphics.MapView
         #region additional content (Paths)
         public void InitializePath(PathFile path)
         {
-            currentPath = path != null ? new TrainPath(path, game) : null;
+            currentPath = path != null ? new EditorTrainPath(path, game) : null;
             if (path != null)
             {
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
             }
+        }
+
+        public void HighlightPathItem(int index)
+        {
+            currentPath.SelectedNodeIndex = index;
+            Widgets.EditorPathItem item = currentPath.SelectedNode;
+            if (item != null)
+                ContentArea.SetTrackingPosition(item.Location);
         }
         #endregion
 

@@ -26,8 +26,6 @@ namespace Orts.Toolbox
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
 
-        private string stpath;
-
         #endregion
 
         private const int zoomAmplifier = 3;
@@ -182,38 +180,5 @@ namespace Orts.Toolbox
                 }
             }
         }
-
-        /// <summary>
-        /// Once a path has been selected, do the necessary loading.
-        /// </summary>
-        /// <param name="spath">Path name as a string</param>
-        internal void SetPath(string spath)
-        {
-            //if (!CanDiscardModifiedPath())
-            //    return;
-
-            if (spath == null)
-            {
-                MessageBox.Show("Null Path", $"{RuntimeInfo.ApplicationName}");
-            }
-            else
-            {
-                foreach (Models.Simplified.Path path in paths)
-                {
-                    if (spath == path.Name)
-                    {
-                        stpath = "P:" + spath;
-                        //(windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
-                        //windowManager[WindowType.StatusWindow].Open();
-
-                        //Patheditor = new Patheditor(path);
-
-                        //windowManager[WindowType.StatusWindow].Close();
-                    }
-                }
-                
-            }
-        }
-
     }
 }

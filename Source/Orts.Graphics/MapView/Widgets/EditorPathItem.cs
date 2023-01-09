@@ -9,12 +9,12 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class TrainPathItem : PointPrimitive, IDrawable<PointPrimitive>
+    internal class EditorPathItem : PointPrimitive, IDrawable<PointPrimitive>
     {
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
 
-        internal TrainPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection): base(location)
+        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection): base(location)
         {
             textureType = nodeType switch
             {

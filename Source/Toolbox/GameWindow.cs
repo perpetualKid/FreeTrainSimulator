@@ -402,11 +402,11 @@ namespace Orts.Toolbox
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.LogWindow].ToggleVisibility();
             });
-            //userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            //{
-            //    if (userCommandArgs is not ModifiableKeyCommandArgs)
-            //        windowManager[ToolboxWindowType.TrainPathDetailWindow].ToggleVisibility();
-            //});
+            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ToolboxWindowType.TrainPathDetailWindow].ToggleVisibility();
+            });
             #endregion
 
             #region popup windows
@@ -458,12 +458,12 @@ namespace Orts.Toolbox
             {
                 return new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
             }));
-            //windowManager.SetLazyWindows(ToolboxWindowType.TrainPathDetailWindow, new Lazy<FormBase>(() =>
-            //{
-            //    TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
-            //    OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
-            //    return trainPathDetailWindow;
-            //}));
+            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathDetailWindow, new Lazy<FormBase>(() =>
+            {
+                TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
+                OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
+                return trainPathDetailWindow;
+            }));
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
