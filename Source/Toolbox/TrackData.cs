@@ -53,7 +53,7 @@ namespace Orts.Toolbox
                 string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile.Route.FileName);
                 if (!File.Exists(rdbFile))
                 {
-                    Trace.TraceError($"Road Database File not found in {rdbFile}");
+                    Trace.TraceWarning($"Road Database File not found in {rdbFile}");
                     return;
                 }
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
