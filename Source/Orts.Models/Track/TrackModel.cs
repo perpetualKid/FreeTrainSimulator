@@ -112,8 +112,6 @@ namespace Orts.Models.Track
             return game?.Services.GetService<T>();
         }
 
-        public ITrackNode this[int index] => index > -1 && index < elements.Count ? elements[index] : null;
-
         public static void Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
             where T : TrackModel, new()
         {
@@ -154,28 +152,11 @@ namespace Orts.Models.Track
             (SegmentSections as PartialTrackNodeList<TrackSegmentSection>).Clear();
         }
 
+        public ITrackNode NodeByIndex(int index) => index > -1 && index < elements.Count ? elements[index] : null;
+
         public IEnumerable<TrackSegmentBase> SegmentsAt(PointD location)
         {
-            Tile tile = PointD.ToTile(location);
-            TrackSegmentBase segment = null;
-
-            IEnumerable<TrackSegmentBase> OtherSegments(TrackSegmentBase start)
-            {
-                TrackVectorNode vectorNode = RuntimeData.TrackDB.TrackNodes[start.TrackNodeIndex] as TrackVectorNode;
-                foreach (TrackPin pinLink in vectorNode.TrackPins)
-                {
-                    if (RuntimeData.TrackDB.TrackNodes[pinLink.Link] is TrackJunctionNode junctionNode &&
-                        Junctions[junctionNode.Index].JunctionNodeAt(location))
-                    {
-                        foreach (TrackPin pin in junctionNode.TrackPins)
-                        {
-                            if (pin.Link == vectorNode.Index)
-                                continue;
-                            yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == Common.TrackDirection.Reverse ? 0 : ^1];
-                        }
-                    }
-                }
-            }
+            TrackSegmentBase segment;
 
             int tileRadius = 0;
             // if closer to a Tile boundary we may want to check neighbour tiles as well
@@ -190,11 +171,35 @@ namespace Orts.Models.Track
                 yield return segment;
                 // now we have a segment, so only need to check if we are at the start or end with a junction
                 // and return the segments from other connected nodes
-                foreach (TrackSegmentBase item in OtherSegments(segment))
+                foreach (TrackSegmentBase item in OtherSegmentsAt(location, segment))
                     yield return item;
             }
         }
 
+        public IEnumerable<TrackSegmentBase> OtherSegmentsAt(PointD location, TrackSegmentBase source)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+
+            TrackVectorNode vectorNode = RuntimeData.TrackDB.TrackNodes[source.TrackNodeIndex] as TrackVectorNode;
+            foreach (TrackPin pinLink in vectorNode.TrackPins)
+            {
+                if (RuntimeData.TrackDB.TrackNodes[pinLink.Link] is TrackJunctionNode junctionNode &&
+                    Junctions[junctionNode.Index].JunctionNodeAt(location))
+                {
+                    foreach (TrackPin pin in junctionNode.TrackPins)
+                    {
+                        if (pin.Link == vectorNode.Index)
+                            continue;
+                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == Common.TrackDirection.Reverse ? 0 : ^1];
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// returns the <see cref="TrackSegmentBase" track segment at this location (within Proximity tolerance)
+        /// If no segment in this place, returns null.
+        /// </summary>
         public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
@@ -211,6 +216,24 @@ namespace Orts.Models.Track
             return null;
         }
 
+        /// <summary>
+        /// returns the <see cref="TrackSegmentBase" track segment at this location (within Proximity tolerance) from given track node.
+        /// If no segment in this place, returns null.
+        /// </summary>
+        public TrackSegmentBase SegmentAt(int trackNode, in PointD location)
+        {
+            foreach (TrackSegmentBase section in SegmentSections[trackNode].SectionSegments)
+            {
+                if (section.TrackSegmentAt(location))
+                    return section;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// returns the <see cref="JunctionNodeBase" junction at this location (within Proximity tolerance)
+        /// If no segment in this place, returns null.
+        /// </summary>
         public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
@@ -222,6 +245,10 @@ namespace Orts.Models.Track
             return null;
         }
 
+        /// <summary>
+        /// returns the <see cref="EndNodeBase" end node at this location (within Proximity tolerance)
+        /// If no segment in this place, returns null.
+        /// </summary>
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
