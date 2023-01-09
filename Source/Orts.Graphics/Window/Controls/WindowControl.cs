@@ -43,10 +43,10 @@ namespace Orts.Graphics.Window.Controls
         {
             if (BorderColor != Color.Transparent)
             {
-                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), spriteBatch);
+                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, 0)).ToVector2(), spriteBatch);
                 Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), (offset + Bounds.Location + new Point(Bounds.Width, Bounds.Height)).ToVector2(), spriteBatch);
-                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(0, 1)).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
-                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 1)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
+                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location).ToVector2(), (offset + Bounds.Location + new Point(0, Bounds.Height)).ToVector2(), spriteBatch);
+                Window.Owner.BasicShapes.DrawLine(1, BorderColor, (offset + Bounds.Location + new Point(Bounds.Width, 0)).ToVector2(), (offset + Bounds.Location + Bounds.Size).ToVector2(), spriteBatch);
             }
         }
 

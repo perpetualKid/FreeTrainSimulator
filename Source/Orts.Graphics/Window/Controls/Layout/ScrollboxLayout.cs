@@ -49,7 +49,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         public override void Clear()
         {
             // resetting the client control's position so they can be re-added in place
-            foreach(WindowControl control in Client.Controls)
+            foreach (WindowControl control in Client.Controls)
             {
                 control.MoveBy(-control.Bounds.Left, -control.Bounds.Top);
             }
@@ -92,7 +92,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             Rectangle scissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, scissorTestRasterizer);
-            spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset.X + Bounds.X, offset.Y + Bounds.Y, Client.Bounds.Width, usableHeight);
+            spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset.X + Bounds.X - 1, offset.Y + Bounds.Y - 1, Client.Bounds.Width + 2, usableHeight + 2);
             spriteBatch.GraphicsDevice.RasterizerState = scissorTestRasterizer;
             base.Draw(spriteBatch, offset);
             spriteBatch.End();
@@ -140,7 +140,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         protected override int ContentScrollLength => Client.CurrentTop - usableHeight;
 
-        protected override int ScrollbarScrollLength => usableHeight- 3 * scrollbarSize;
+        protected override int ScrollbarScrollLength => usableHeight - 3 * scrollbarSize;
 
         protected override bool ThumbVisible => Client.CurrentTop > usableHeight;
 
