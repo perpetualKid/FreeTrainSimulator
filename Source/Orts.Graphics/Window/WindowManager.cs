@@ -83,6 +83,8 @@ namespace Orts.Graphics.Window
         public const string DefaultMonoFontName = "Courier New";
         public const int DefaultFontSize = 13;
 
+        public static readonly int KeyRepeatDelay = 1000 / Math.Clamp(SystemInformation.KeyboardSpeed / 4, 2, 30);
+
         public float DpiScaling { get; private set; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }

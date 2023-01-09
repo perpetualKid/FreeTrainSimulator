@@ -8,7 +8,6 @@ namespace Orts.Graphics.Window.Controls.Layout
 {
     public abstract class ScrollboxControlLayout : ControlLayout
     {
-        protected const int mouseClickScrollDelay = 100;
         private protected long scrollDelayTicks;
 
         public ControlLayout Client { get; private protected set; }
@@ -61,6 +60,8 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             Initialize();
         }
+
+        public abstract void SetFocusOn(WindowControl control);
     }
 
     public class VerticalScrollboxControlLayout : ScrollboxControlLayout
@@ -155,7 +156,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             if (Environment.TickCount64 < scrollDelayTicks)
                 return true;
-            scrollDelayTicks = Environment.TickCount64 + mouseClickScrollDelay;
+            scrollDelayTicks = Environment.TickCount64 + WindowManager.KeyRepeatDelay;
             if (e.MousePosition.X > Bounds.Right - scrollbarSize && Window.CapturedControl == null)
             {
                 double mousePositionInScrollbar = (e.MousePosition.Y - Bounds.Top - scrollbarSize) / (Bounds.Height - scrollbarSize * 2.0);
@@ -176,6 +177,16 @@ namespace Orts.Graphics.Window.Controls.Layout
                 return true;
             }
             return false;
+        }
+
+        public override void SetFocusOn(WindowControl control)
+        {
+            if (control == null || control.Container != this.Client)
+                return;
+            while (control.Bounds.Top < Bounds.Top)
+                SetScrollPosition(scrollPosition - Window.Owner.TextFontDefault.Height);
+            while (control.Bounds.Bottom > Bounds.Bottom)
+                SetScrollPosition(scrollPosition + Window.Owner.TextFontDefault.Height);
         }
     }
 
@@ -272,7 +283,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             if (Environment.TickCount64 < scrollDelayTicks)
                 return true;
-            scrollDelayTicks = Environment.TickCount64 + mouseClickScrollDelay;
+            scrollDelayTicks = Environment.TickCount64 + WindowManager.KeyRepeatDelay;
             if (e.MousePosition.Y > Bounds.Bottom - scrollbarSize && Window.CapturedControl == null)
             {
                 double mousePositionInScrollbar = (e.MousePosition.X - Bounds.Left - scrollbarSize) / (Bounds.Width - scrollbarSize * 2.0);
@@ -294,5 +305,14 @@ namespace Orts.Graphics.Window.Controls.Layout
             return false;
         }
 
+        public override void SetFocusOn(WindowControl control)
+        {
+            if (control == null || control.Container != this.Client)
+                return;
+            while (control.Bounds.Left < Bounds.Left)
+                SetScrollPosition(scrollPosition - Window.Owner.TextFontDefault.Height);
+            while (control.Bounds.Right > Bounds.Right)
+                SetScrollPosition(scrollPosition + Window.Owner.TextFontDefault.Height);
+        }
     }
 }
