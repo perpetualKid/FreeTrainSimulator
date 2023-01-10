@@ -190,7 +190,7 @@ namespace Orts.Graphics.MapView
         public void InitializePath(PathFile path)
         {
             currentPath = path != null ? new EditorTrainPath(path, game) : null;
-            if (path != null)
+            if (currentPath != null && currentPath.TopLeftBound != PointD.None && currentPath.BottomRightBound != PointD.None)
             {
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
