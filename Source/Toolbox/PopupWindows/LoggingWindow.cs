@@ -16,7 +16,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly string logText;
 
         public LoggingWindow(WindowManager owner, string logFile, Point relativeLocation, Catalog catalog = null) : 
-            base(owner, "Logging", relativeLocation, new Point(-50, 300), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Logging"), relativeLocation, new Point(-50, 300), catalog)
         {
             if (File.Exists(logFile))
             {
