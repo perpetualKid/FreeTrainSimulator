@@ -1,4 +1,5 @@
-# OpenRails "Ultimate" Train Simulator  [![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# ![](./Source/FTS_64.png) Free Train Simulator  
+[![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a fork of [OpenRails](http://www.openrails.org), running on .NET Core and based on [Monogame patch](http://www.elvastower.com/forums/index.php?/topic/30924-going-beyond-the-4-gb-of-memory/page__view__findpost__p__237281) and many other improvements and performance tweaks like completely rewritten RailDriver input, Signalscript-Parser and much more, at the same time adopting most of the updates and features from [OpenRails Source Code](https://github.com/openrails/openrails) as well.
 
