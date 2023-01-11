@@ -83,15 +83,15 @@ namespace Orts.Graphics.MapView.Widgets
             for (int i = 0; i < TrainPathModel.PathItems.Count; i++)
             {
                 TrainPathItem pathItem = TrainPathModel.PathItems[i];
-                if (pathItem.NotOnTrack || (pathItem.PathNode.NodeType != PathNodeType.End && pathItem.NextMainItem.NotOnTrack))
+                if (pathItem.Invalid || (pathItem.PathNode.NodeType != PathNodeType.End && pathItem.NextMainItem.Invalid))
                 {
                     PathSections.Add(new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location));
                     pathPoints.Add(new EditorPathItem(pathItem.Location, pathItem.NextMainItem.Location, pathItem.PathNode.NodeType));
-                    if (pathItem.NotOnTrack && pathItem.Junction)
+                    if (pathItem.Invalid && pathItem.Junction)
                     {
                         Trace.TraceWarning($"Path point #{i} is marked as junction but not actually locate on junction");
                     }
-                    else if (pathItem.NotOnTrack)
+                    else if (pathItem.Invalid)
                     {
                         Trace.TraceWarning($"One of the endpoints for path item #{i} is not on track and invalid");
                     }
@@ -108,6 +108,7 @@ namespace Orts.Graphics.MapView.Widgets
                             //            Trace.TraceWarning($"Two junctions are not connected on single tracknode  for #{i}");
                             //            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
                             Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
+                            pathItem.Invalid = true;
                             section = new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location);
                             break;
                         case 1:

@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Shapes;
-
-using SharpDX.DirectWrite;
 
 namespace Orts.Graphics.Window.Controls
 {

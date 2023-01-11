@@ -24,6 +24,8 @@ namespace Orts.Graphics.Window.Controls
         private readonly CheckMarkStyle checkMarkStyle;
         private readonly bool useColors;
 
+        public bool ReadOnly { get; set; }
+
         public bool? State
         {
             get => state;
@@ -54,6 +56,8 @@ namespace Orts.Graphics.Window.Controls
 
         internal override bool RaiseMouseClick(WindowMouseEvent e)
         {
+            if (ReadOnly)
+                return false;
             State = tristate ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
             _ = base.RaiseMouseClick(e);
             return true;

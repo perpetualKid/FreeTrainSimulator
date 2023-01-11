@@ -21,6 +21,7 @@ namespace Orts.Toolbox.PopupWindows
         private VerticalScrollboxControlLayout scrollbox;
         private int selectedLine;
         private long keyRepeatTick;
+        private int columnWidth;
 
         public TrainPathDetailWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
@@ -32,7 +33,14 @@ namespace Orts.Toolbox.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling);
+            columnWidth = layout.RemainingWidth / 8;
+            ControlLayout headerLine = layout.AddLayoutHorizontalLineOfText();
+            headerLine.Add(new Label(this, columnWidth, headerLine.RemainingHeight, Catalog.GetString("Idx")));
+            headerLine.Add(new Label(this, columnWidth * 2, headerLine.RemainingHeight, Catalog.GetString("Type")));
+            headerLine.Add(new Label(this, columnWidth, headerLine.RemainingHeight, Catalog.GetString("Valid")));
+            layout.AddHorizontalSeparator();
             layout = layout.AddLayoutHorizontal();
+
             layout.AddSpace(ControlLayout.SeparatorPadding, layout.RemainingHeight / 2);
             scrollbox = layout.AddLayoutScrollboxVertical(layout.RemainingWidth).Container as VerticalScrollboxControlLayout;
 
@@ -116,15 +124,16 @@ namespace Orts.Toolbox.PopupWindows
             ControlLayout line;
             if (path != null)
             {
-                int i = 0;
-                foreach (TrainPathItem item in path.PathItems)
+                for (int i = 0; i < path.PathItems.Count; i++)
                 {
+                    TrainPathItem item = path.PathItems[i];
                     line = scrollbox.Client.AddLayoutHorizontalLineOfText();
+                    line.Add(new Label(this, columnWidth, Owner.TextFontDefault.Height, $"{i:D2}"));
                     line.Add(new TrainPathItemControl(this, item.PathNode.NodeType));
-                    line.Add(new Label(this, 100, Owner.TextFontDefault.Height, item.PathNode.NodeType.ToString()));
+                    line.Add(new Label(this, columnWidth * 2, Owner.TextFontDefault.Height, item.PathNode.NodeType.ToString()));
+                    line.Add(new Checkbox(this, false, CheckMarkStyle.Marks, true) { State = !item.Invalid, ReadOnly = true });
                     line.OnClick += Line_OnClick;
                     line.Tag = i;
-                    i++;
                 }
             }
 

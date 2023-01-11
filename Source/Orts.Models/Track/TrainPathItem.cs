@@ -11,7 +11,7 @@ namespace Orts.Models.Track
     {
         public PathNode PathNode { get; }
 
-        public bool NotOnTrack { get; set; }
+        public bool Invalid { get; set; }
 
         public bool Junction => PathNode.Junction;
 
@@ -29,10 +29,10 @@ namespace Orts.Models.Track
             PathNode = node;
 
             JunctionNode = node.Junction ? trackModel.JunctionAt(Location) : null;
-            NotOnTrack |= node.Junction && JunctionNode == null;
+            Invalid |= node.Junction && JunctionNode == null;
 
             ConnectedSegments = trackModel.SegmentsAt(Location).ToList();
-            NotOnTrack |= !ConnectedSegments.Any();
+            Invalid |= !ConnectedSegments.Any();
         }
     }
 }
