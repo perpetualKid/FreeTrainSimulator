@@ -45,10 +45,10 @@ namespace Orts.Models.Track
         public int TrackNodeIndex { get; }
         public int TrackVectorSectionIndex { get; }
 
-        protected TrackSegmentBase(): base(PointD.None, PointD.None)
+        protected TrackSegmentBase() : base(PointD.None, PointD.None)
         { }
 
-        protected TrackSegmentBase(in PointD start, in PointD end): base(start, end)
+        protected TrackSegmentBase(in PointD start, in PointD end) : base(start, end)
         {
             Length = (float)Vector.Distance(Location);
 
@@ -113,7 +113,7 @@ namespace Orts.Models.Track
             }
         }
 
-        protected TrackSegmentBase(TrackSegmentBase source): base(source?.Location ?? throw new ArgumentNullException(nameof(source)), source.Vector)
+        protected TrackSegmentBase(TrackSegmentBase source) : base(source?.Location ?? throw new ArgumentNullException(nameof(source)), source.Vector)
         {
             Size = source.Size;
             Curved = source.Curved;
@@ -204,7 +204,7 @@ namespace Orts.Models.Track
             bool reverse = false;
 
             //figure which end is closer to start vs end
-            if (start.DistanceSquared(Location) > start.DistanceSquared(Vector) && end.DistanceSquared(Location) < end.DistanceSquared(Vector))
+            if (start.DistanceSquared(Location) > end.DistanceSquared(Location) && start.DistanceSquared(Vector) < end.DistanceSquared(Vector))
                 reverse = true;
 
             //TODO 20220407 may need/want to map the start/end point onto the actual track, as they may be slightly skewed/offset from the track
@@ -280,7 +280,7 @@ namespace Orts.Models.Track
                 //    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
                 //else if (t > 1)
                 //    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
-//                return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
+                //                return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
                 return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
             }
         }

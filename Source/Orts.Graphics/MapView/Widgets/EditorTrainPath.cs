@@ -77,141 +77,64 @@ namespace Orts.Graphics.MapView.Widgets
 
             TrainPathModel = new TrainPath(pathFile, game);
 
-            PathNode previousNode = null;
+            bool reverseDirection = false;
+            TrackSegmentBase nodeSegment = null;
 
-            foreach (PathNode node in pathFile.PathNodes)
+            for (int i = 0; i < TrainPathModel.PathItems.Count; i++)
             {
-                bool reverseDirection = false;
-                PointD nodeLocation = PointD.FromWorldLocation(node.Location);
-
-
-                TrackSegmentBase nodeSegment = trackModel.SegmentAt(nodeLocation);
-
-                if (nodeSegment == null)
+                TrainPathItem pathItem = TrainPathModel.PathItems[i];
+                if (pathItem.NotOnTrack || (pathItem.PathNode.NodeType != PathNodeType.End && pathItem.NextMainItem.NotOnTrack))
                 {
-                    Trace.TraceWarning($"Path node at {node.Location} not on any track section.");
-                    pathPoints.Add(new EditorPathItem(nodeLocation, nodeSegment, node.NodeType, false));
-                    continue;
-                }
-
-                // if either one is on a junction, first get the junction
-                // get all the connected track nodes
-                // and find the connecting track nodes
-                if (node.NextMainNode > -1)
-                {
-                    if (previousNode == null || node.NextMainNode > previousNode.NextMainNode)
-                        previousNode = node;
-                    // valid cases
-                    // both points are on a (the same) tracksegment
-                    // one node is a junction
-                    // both nodes are a junction
-                    // in either variant, there could be any number of trailing junctions in between
-                    PathNode nextNode = pathFile.PathNodes[node.NextMainNode];
-                    PointD nextNodeLocation = PointD.FromWorldLocation(nextNode.Location);
-
-                    //PathSections.Add(new TrainPathSection(trackModel, nodeLocation, nextNodeLocation));
-
-                    JunctionNodeBase junctionNode = node.Junction ? trackModel.JunctionAt(nodeLocation) : null;
-                    JunctionNodeBase nextJunctionNode = nextNode.Junction ? trackModel.JunctionAt(nextNodeLocation) : null;
-
-                    //if (junctionNode != null && nextJunctionNode != null)
-                    //{
-                    //    // check if both junctions are connected on the same tracknode.
-                    //    // may be >1 (two) nodes if this is a passing path, in this case (if there's no intermediary) we use the (starting) switch's main route
-
-                    //    List<TrackSegmentBase> trackSegments = trackModel.SegmentsAt(nodeLocation).IntersectBy(trackModel.SegmentsAt(nextNodeLocation).Select(s => s.TrackNodeIndex), (s => s.TrackNodeIndex)).ToList();
-
-                    //    switch (trackSegments.Count)
-                    //    {
-                    //        case 0:
-                    //            Trace.TraceWarning($"Invalid Data.");
-                    //            PathSections.Add(new TrainPathSection(trackModel, nodeLocation, nextNodeLocation));
-                    //            break;
-                    //        case 1:
-                    //            nodeSegment = trackSegments[0];
-                    //            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                    //            break;
-                    //        default:
-                    //            nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == junctionNode.MainRoute).First();
-                    //            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                    //            break;
-                    //    }
-                    //}
-                    //else
-                    if (node.Junction && nextNode.Junction)
+                    PathSections.Add(new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location));
+                    pathPoints.Add(new EditorPathItem(pathItem.Location, pathItem.NextMainItem.Location, pathItem.PathNode.NodeType));
+                    if (pathItem.NotOnTrack && pathItem.Junction)
                     {
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentAt(nextNodeLocation);
-                        var nextNodeSegments = trackModel.SegmentsAt(nextNodeLocation).ToList();
-                        var nodeSegments = trackModel.SegmentsAt(nodeLocation).ToList();
-                        var intersects = nodeSegments.IntersectBy(nextNodeSegments.Select(s => s.TrackNodeIndex), (s => s.TrackNodeIndex));
-                        nodeSegment = intersects.Count() > 1 ? intersects.Where(s => s.TrackNodeIndex == junctionNode.MainRoute).First()
-                            : intersects.First();
-                        PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                        reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
-                            (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                            nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
-
-                        TrackPin[] trackPins = runtimeData.TrackDB.TrackNodes[junctionNode.TrackNodeIndex].TrackPins.
-                            Intersect(runtimeData.TrackDB.TrackNodes[nextJunctionNode.TrackNodeIndex].TrackPins, TrackPinComparer.LinkOnlyComparer).ToArray();
-                        if (trackPins.Length == 1)
-                        {
-                            int trackNodeIndex = trackModel.SegmentSections[trackPins[0].Link].TrackNodeIndex;
-                            PathSections.Add(new TrainPathSection(trackModel, trackNodeIndex));
-                            nodeSegment = trackModel.SegmentsAt(nodeLocation).Where(segment => segment.TrackNodeIndex == trackNodeIndex).First();
-                            reverseDirection = nodeSegment.TrackVectorSectionIndex > 0 || nodeLocation.DistanceSquared(nodeSegment.Location) > ProximityTolerance;
-                        }
-                        else
-                        {
-                            Trace.TraceWarning($"Invalid Data.");
-                        }
+                        Trace.TraceWarning($"Path point #{i} is marked as junction but not actually locate on junction");
                     }
-                    else if (node.Junction)
+                    else if (pathItem.NotOnTrack)
                     {
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentAt(nextNodeLocation);
-                        var nextNodeSegments = trackModel.SegmentsAt(nextNodeLocation).ToList();
-                        var nodeSegments = trackModel.SegmentsAt(nodeLocation).ToList();
-                        var intersects = nodeSegments.IntersectBy(nextNodeSegments.Select(s => s.TrackNodeIndex), (s => s.TrackNodeIndex));
-                        nodeSegment = intersects.Count() > 1 ? intersects.Where(s => s.TrackNodeIndex == junctionNode.MainRoute).First()
-                            : intersects.First();
-                        //                        nodeSegment = trackModel.SegmentsAt(nodeLocation).Where(segment => segment.TrackNodeIndex == nextNodeSegment.TrackNodeIndex).First();
-                        PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                        reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
-                            (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                            nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
-                    }
-                    else if (nextNode.Junction)
-                    {
-                        PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, nodeLocation, nextNodeLocation));
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentsAt(nextNodeLocation).Where(segment => segment.TrackNodeIndex == nodeSegment.TrackNodeIndex).First();
-                        reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
-                            (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                            nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
-                    }
-                    else
-                    {
-                        TrackSegmentBase nextNodeSegment = trackModel.SegmentAt(nextNodeLocation);
-                        if (nodeSegment.TrackNodeIndex != nextNodeSegment.TrackNodeIndex)
-                        {
-                            Trace.TraceWarning($"Invalid Data.");
-                        }
-                        else
-                        {
-                            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, PointD.FromWorldLocation(node.Location), PointD.FromWorldLocation(nextNode.Location)));
-                            reverseDirection = nextNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
-                                (nextNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                                nextNodeLocation.DistanceSquared(nodeSegment.Location) < nodeLocation.DistanceSquared(nodeSegment.Location));
-                        }
+                        Trace.TraceWarning($"One of the endpoints for path item #{i} is not on track and invalid");
                     }
                 }
                 else
                 {
-                    PointD previousNodeLocation = PointD.FromWorldLocation(previousNode.Location);
-                    TrackSegmentBase previousNodeSegment = trackModel.SegmentAt(previousNodeLocation);
-                    reverseDirection = nodeSegment.TrackVectorSectionIndex < previousNodeSegment.TrackVectorSectionIndex ||
-                        (nodeSegment.TrackVectorSectionIndex == previousNodeSegment.TrackVectorSectionIndex &&
-                        nodeSegment.DistanceSquared(previousNodeSegment.Location) > nodeLocation.DistanceSquared(previousNodeSegment.Location));
+                    List<TrackSegmentBase> trackSegments = pathItem.ConnectedSegments.IntersectBy(pathItem.NextMainItem.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).ToList();
+
+                    switch (trackSegments.Count)
+                    {
+                        case 0:
+                            nodeSegment = null;
+                            //            Trace.TraceWarning($"Two junctions are not connected on single tracknode  for #{i}");
+                            //            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
+                            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
+                            PathSections.Add(new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location));
+                            break;
+                        case 1:
+                            nodeSegment = trackSegments[0];
+                            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location));
+                            break;
+                        default:
+                            nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (pathItem.JunctionNode ?? pathItem.NextMainItem.JunctionNode).MainRoute).First();
+                            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location));
+                            break;
+                    }
+                    if (nodeSegment != null)
+                    {
+                        TrackSegmentBase otherNodeSegment = pathItem.NextMainItem.ConnectedSegments.Where(s => s.TrackNodeIndex == nodeSegment.TrackNodeIndex).FirstOrDefault();
+                        reverseDirection = otherNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
+                            (otherNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
+                            pathItem.Location.DistanceSquared(nodeSegment.Vector) < pathItem.Location.DistanceSquared(nodeSegment.Location));
+
+                        if (pathItem.PathNode.NodeType == PathNodeType.End)
+                            reverseDirection = !reverseDirection;
+
+                    }
+
+                    if (nodeSegment == null)
+                        pathPoints.Add(new EditorPathItem(pathItem.Location, pathItem.NextMainItem.Location, pathItem.PathNode.NodeType));
+                    else
+                        pathPoints.Add(new EditorPathItem(pathItem.Location, nodeSegment, pathItem.PathNode.NodeType, reverseDirection));
                 }
-                pathPoints.Add(new EditorPathItem(nodeLocation, nodeSegment, node.NodeType, reverseDirection));
             }
             SetBounds();
         }

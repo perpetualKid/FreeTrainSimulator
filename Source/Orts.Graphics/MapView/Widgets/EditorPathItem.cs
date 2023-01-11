@@ -32,6 +32,25 @@ namespace Orts.Graphics.MapView.Widgets
             Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
         }
 
+        internal EditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType) : base(location)
+        {
+            textureType = nodeType switch
+            {
+                PathNodeType.Start => BasicTextureType.PathStart,
+                PathNodeType.End => BasicTextureType.PathEnd,
+                PathNodeType.Normal => BasicTextureType.PathNormal,
+                PathNodeType.Intermediate => BasicTextureType.PathNormal,
+                PathNodeType.Wait => BasicTextureType.PathWait,
+                PathNodeType.SidingStart => BasicTextureType.PathNormal,
+                PathNodeType.SidingEnd => BasicTextureType.PathNormal,
+                PathNodeType.Reversal => BasicTextureType.PathReverse,
+                PathNodeType.Temporary => BasicTextureType.RingCrossed,
+                _ => throw new NotImplementedException(),
+            };
+            PointD origin = vector - location;
+            Direction = (float)Math.Atan2(origin.X, origin.Y);
+        }
+
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = Math.Max(3, (float)(8 / contentArea.Scale));
