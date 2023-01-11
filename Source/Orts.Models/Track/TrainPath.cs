@@ -28,26 +28,16 @@ namespace Orts.Models.Track
 
             TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
-            TrainPathItem previousNode = null;
-            TrainPathItem endNode = null;
-
             foreach (PathNode node in pathFile.PathNodes)
             {
                 PathItems.Add(new TrainPathItem(node, trackModel));
                 //finding the node which connects to the end node, primarily used to get the inbound direction on end node
                 //end node is not necessarily the last node in the list, hence we rather look which one is inbound 
-                if (node.NextMainNode > -1 && (previousNode == null || node.NextMainNode > previousNode.PathNode.NextMainNode))
-                    previousNode = PathItems[^1];
                 if (node.NodeType == PathNodeType.End)
-                    endNode = PathItems[^1];
+                {
+                    PathItems[^1].NextMainItem = PathItems[^2];
+                }
             }
-            if (endNode == null)
-            {
-                Trace.TraceWarning("Path has no explicit end node. May indicate a loop.");
-                Invalid = true;
-            }
-            else
-                endNode.NextMainItem = previousNode;
 
             //set the previous node on the end node, required for TrainPathItem direction/alignment
             foreach (TrainPathItem node in PathItems)

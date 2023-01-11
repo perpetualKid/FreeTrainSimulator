@@ -100,6 +100,7 @@ namespace Orts.Graphics.MapView.Widgets
                 {
                     List<TrackSegmentBase> trackSegments = pathItem.ConnectedSegments.IntersectBy(pathItem.NextMainItem.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).ToList();
 
+                    TrainPathSection section = null;
                     switch (trackSegments.Count)
                     {
                         case 0:
@@ -107,17 +108,20 @@ namespace Orts.Graphics.MapView.Widgets
                             //            Trace.TraceWarning($"Two junctions are not connected on single tracknode  for #{i}");
                             //            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
                             Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
-                            PathSections.Add(new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location));
+                            section = new TrainPathSection(trackModel, pathItem.Location, pathItem.NextMainItem.Location);
                             break;
                         case 1:
                             nodeSegment = trackSegments[0];
-                            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location));
+                            section = new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location);
                             break;
                         default:
                             nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (pathItem.JunctionNode ?? pathItem.NextMainItem.JunctionNode).MainRoute).First();
-                            PathSections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location));
+                            section = new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, pathItem.Location, pathItem.NextMainItem.Location);
                             break;
                     }
+                    if (pathItem.PathNode.NodeType != PathNodeType.End)
+                        PathSections.Add(section);
+
                     if (nodeSegment != null)
                     {
                         TrackSegmentBase otherNodeSegment = pathItem.NextMainItem.ConnectedSegments.Where(s => s.TrackNodeIndex == nodeSegment.TrackNodeIndex).FirstOrDefault();
