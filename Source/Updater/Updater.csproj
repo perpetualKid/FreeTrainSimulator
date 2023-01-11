@@ -7,7 +7,7 @@
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>Orts.Updater</RootNamespace>
-    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
+    <ApplicationIcon>..\FTS.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="1.7.14" />

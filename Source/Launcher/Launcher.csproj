@@ -6,7 +6,7 @@
 		<OutputPath>..\..\Program</OutputPath>
 		<RootNamespace>Orts.Launcher</RootNamespace>
 		<AssemblyName>OpenRails</AssemblyName>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 	</PropertyGroup>
 	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

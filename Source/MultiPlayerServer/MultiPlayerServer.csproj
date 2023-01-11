@@ -4,7 +4,7 @@
 		<Description>Open Rails Multiplayer Server</Description>
 		<AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.MultiPlayerServer</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>

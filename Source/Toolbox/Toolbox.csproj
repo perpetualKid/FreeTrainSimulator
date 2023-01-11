@@ -5,7 +5,7 @@
     <AssemblyTitle>Open Rails Toolbox</AssemblyTitle>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputPath>..\..\Program</OutputPath>
-    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
+    <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>Orts.Toolbox</RootNamespace>
     <Description>Open Rails Toolbox</Description>
   </PropertyGroup>

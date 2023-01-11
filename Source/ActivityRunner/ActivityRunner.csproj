@@ -6,7 +6,7 @@
 		<AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.ActivityRunner</RootNamespace>
 	</PropertyGroup>
 	<PropertyGroup>
