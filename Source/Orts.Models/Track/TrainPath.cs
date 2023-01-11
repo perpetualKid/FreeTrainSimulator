@@ -44,6 +44,8 @@ namespace Orts.Models.Track
             {
                 if (node.PathNode.NextMainNode != -1)
                     node.NextMainItem = PathItems[node.PathNode.NextMainNode];
+                if (node.PathNode.NextSidingNode != -1)
+                    node.NextSidingItem = PathItems[node.PathNode.NextSidingNode];
             }
         }
     }

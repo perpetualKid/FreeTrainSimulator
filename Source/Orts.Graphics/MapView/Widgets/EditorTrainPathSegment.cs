@@ -16,15 +16,24 @@ namespace Orts.Graphics.MapView.Widgets
         {
         }
 
-        public EditorTrainPathSegment(in PointD start, in PointD end): base(start, end)
+        public EditorTrainPathSegment(in PointD start, in PointD end) : base(start, end)
         {
         }
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = this.GetColor<EditorTrainPathSegment>(colorVariation);
-
             Size = MathHelper.Max(0.5f, (float)(2 / contentArea.Scale));
+
+            // this is bit of a hack to visualize invalid path segments
+            // since those are straight line only, we can just use DrawDashedLine and don't need to care for curved segments
+            if (scaleFactor < 0)
+            {
+                scaleFactor = -scaleFactor;
+                contentArea.BasicShapes.DrawDashedLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenCoordinates(in Vector), contentArea.SpriteBatch);
+                return;
+            }
+
             if (Curved)
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
