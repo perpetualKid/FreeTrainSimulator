@@ -1671,8 +1671,8 @@ namespace Orts.Simulation.RollingStocks
             if (BrakePipeQuickChargingRatePSIpS == 0)
                 BrakePipeQuickChargingRatePSIpS = BrakePipeChargingRatePSIorInHgpS;
 
-            // Initialise Exhauster Charging rate in diesel and electric locomotives. The equivalent ejector charging rates are set in the steam locomotive.
-            if (this is MSTSDieselLocomotive || this is MSTSElectricLocomotive)
+            // Initialise Exhauster Charging rate in diesel, control cars and electric locomotives. The equivalent ejector charging rates are set in the steam locomotive.
+            if (this is MSTSDieselLocomotive || this is MSTSElectricLocomotive || this is MSTSControlTrailerCar)
             {
                 ExhausterHighSBPChargingRatePSIorInHgpS = BrakePipeChargingRatePSIorInHgpS;
                 ExhausterLowSBPChargingRatePSIorInHgpS = BrakePipeChargingRatePSIorInHgpS / 5.0f; // Low speed exhauster setting is 1/5 of high speed

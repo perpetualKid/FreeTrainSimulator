@@ -29,9 +29,11 @@
  */
 
 using System.Diagnostics;
+using System.IO;
 
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks
@@ -39,8 +41,11 @@ namespace Orts.Simulation.RollingStocks
     public class MSTSControlTrailerCar : MSTSLocomotive
     {
 
-        public MSTSControlTrailerCar(string wagFile): 
+        public int ControlGearBoxNumberOfGears { get; private set; } = 1;
+
+        public MSTSControlTrailerCar(string wagFile) :
             base(wagFile)
+
         {
 
             PowerSupply = new ScriptedControlCarPowerSupply(this);
@@ -52,12 +57,10 @@ namespace Orts.Simulation.RollingStocks
             base.LoadFromWagFile(wagFilePath);
 
             Trace.TraceInformation("Control Trailer");
-
         }
 
         public override void Initialize()
         {
-
             base.Initialize();
         }
 
@@ -85,11 +88,54 @@ namespace Orts.Simulation.RollingStocks
                     LocomotivePowerSupply.Parse(lowercasetoken, stf);
                     break;
 
-                default:
-                    base.Parse(lowercasetoken, stf); break;
-            }
+                // to setup gearbox controller
+                case "engine(gearboxnumberofgears":
+                    ControlGearBoxNumberOfGears = stf.ReadIntBlock(1);
+                    break;
 
+
+                default:
+                    base.Parse(lowercasetoken, stf);
+                    break;
+            }
         }
+
+        /// <summary>
+        /// This initializer is called when we are making a new copy of a locomotive already
+        /// loaded in memory.  We use this one to speed up loading by eliminating the
+        /// need to parse the wag file multiple times.
+        /// NOTE:  you must initialize all the same variables as you parsed above
+        /// </summary>
+        public override void Copy(MSTSWagon source)
+        {
+            base.Copy(source);  // each derived level initializes its own variables
+
+            if (source is not MSTSControlTrailerCar controlTrailerCar)
+                throw new System.InvalidCastException();
+
+            ControlGearBoxNumberOfGears = controlTrailerCar.ControlGearBoxNumberOfGears;
+        }
+
+        /// <summary>
+        /// We are saving the game.  Save anything that we'll need to restore the 
+        /// status later.
+        /// </summary>
+        public override void Save(BinaryWriter outf)
+        {
+            base.Save(outf);
+            ControllerFactory.Save(GearBoxController, outf);
+        }
+
+        /// <summary>
+        /// We are restoring a saved game.  The TrainCar class has already
+        /// been initialized.   Restore the game state.
+        /// </summary>
+        public override void Restore(BinaryReader inf)
+        {
+            base.Restore(inf);
+            ControllerFactory.Restore(GearBoxController, inf);
+        }
+
 
         /// <summary>
         /// Set starting conditions  when initial speed > 0 
@@ -100,6 +146,12 @@ namespace Orts.Simulation.RollingStocks
             WheelSpeedMpS = SpeedMpS;
 
             ThrottleController.SetValue(Train.MUThrottlePercent / 100);
+
+            // Initialise gearbox controller
+            if (ControlGearBoxNumberOfGears > 0)
+            {
+                GearBoxController = new MSTSNotchController(ControlGearBoxNumberOfGears + 1);
+            }
         }
 
         /// <summary>
@@ -118,9 +170,6 @@ namespace Orts.Simulation.RollingStocks
         protected override void UpdateTractiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
 
-
-
-
         }
 
 
@@ -130,15 +179,6 @@ namespace Orts.Simulation.RollingStocks
         protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
 
-
-
         }
-
-
-
-
-
-
-
     }
 }
