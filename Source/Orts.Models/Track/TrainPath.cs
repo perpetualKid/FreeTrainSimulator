@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -28,22 +29,26 @@ namespace Orts.Models.Track
 
             TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
-            foreach (PathNode node in pathFile.PathNodes)
-            {
-                PathItems.Add(new TrainPathItem(node, trackModel));
-                //finding the node which connects to the end node, primarily used to get the inbound direction on end node
-                //end node is not necessarily the last node in the list, hence we rather look which one is inbound 
-                if (node.NodeType == PathNodeType.End)
-                {
-                    PathItems[^1].NextMainItem = PathItems[^2];
-                }
-            }
+            TrainPathItem beforeEndNode = null;
 
-            //set the previous node on the end node, required for TrainPathItem direction/alignment
+            PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathItem(node, trackModel)));
+
+            //linking path item nodes to their next path item node
+            //on the end node, set to the previous (inbound) node instead, required for TrainPathItem direction/alignment
+            //nb: inbound to the end node may not need to be the node just before in the list, so as we iterate the list, 
+            //we keep a reference to the one which has the end node as successor
+            //it's assumed that passing paths will reconnct to main node, and not ending on it's own
             foreach (TrainPathItem node in PathItems)
             {
                 if (node.PathNode.NextMainNode != -1)
+                {
                     node.NextMainItem = PathItems[node.PathNode.NextMainNode];
+                    if (node.NextMainItem.PathNode.NodeType == PathNodeType.End)
+                        beforeEndNode = node;
+                }
+                else if (node.PathNode.NodeType == PathNodeType.End)
+                    node.NextMainItem = beforeEndNode;
+
                 if (node.PathNode.NextSidingNode != -1)
                     node.NextSidingItem = PathItems[node.PathNode.NextSidingNode];
             }
