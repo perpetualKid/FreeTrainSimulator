@@ -1,22 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Toolbox</Description>
     <AssemblyTitle>Open Rails Toolbox</AssemblyTitle>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputPath>..\..\Program</OutputPath>
-    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
+    <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>Orts.Toolbox</RootNamespace>
     <Description>Open Rails Toolbox</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="1.1.4" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
+    <PackageReference Include="GetText.NET" Version="1.7.14" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="1.7.14" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
-    <ProjectReference Include="..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Graphics\Orts.Graphics.csproj" />
   </ItemGroup>

@@ -65,6 +65,31 @@ namespace Orts.Common.Input
             }
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
             currentMouseState = Mouse.GetState(Game.Window);
+            MouseState otherMouseState = Mouse.GetState();
+
+            if (!Game.GraphicsDevice.PresentationParameters.Bounds.Contains(currentMouseState.Position))
+            {
+                return;
+            }
+
+            void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
+            {
+                if (currentButton == ButtonState.Pressed)
+                {
+                    if (previousButton == ButtonState.Pressed)
+                        mouseButtonEvents[down]?.Invoke(currentMouseState.Position, gameTime);
+                    else
+                        mouseButtonEvents[pressed]?.Invoke(currentMouseState.Position, gameTime);
+                }
+                else if (previousButton == ButtonState.Pressed)
+                    mouseButtonEvents[released]?.Invoke(currentMouseState.Position, gameTime);
+            }
+
+            MouseButtonEvent(currentMouseState.LeftButton, previousMouseState.LeftButton, MouseButtonEventType.LeftButtonDown, MouseButtonEventType.LeftButtonPressed, MouseButtonEventType.LeftButtonReleased);
+            MouseButtonEvent(currentMouseState.RightButton, previousMouseState.RightButton, MouseButtonEventType.RightButtonDown, MouseButtonEventType.RightButtonPressed, MouseButtonEventType.RightButtonReleased);
+            MouseButtonEvent(currentMouseState.MiddleButton, previousMouseState.MiddleButton, MouseButtonEventType.MiddleButtonDown, MouseButtonEventType.MiddleButtonPressed, MouseButtonEventType.MiddleButtonReleased);
+            MouseButtonEvent(currentMouseState.XButton1, previousMouseState.XButton1, MouseButtonEventType.XButton1Down, MouseButtonEventType.XButton1Pressed, MouseButtonEventType.XButton1Released);
+            MouseButtonEvent(currentMouseState.XButton2, previousMouseState.XButton2, MouseButtonEventType.XButton2Down, MouseButtonEventType.XButton2Pressed, MouseButtonEventType.XButton2Released);
 
             if (currentMouseState != previousMouseState && previousMouseState != default)
             {
@@ -97,38 +122,6 @@ namespace Orts.Common.Input
                     mouseWheelEvents[MouseWheelEventType.MouseWheelChanged]?.Invoke(currentMouseState.Position, mouseWheelDelta, gameTime);
                 if ((mouseWheelDelta = currentMouseState.HorizontalScrollWheelValue - previousMouseState.HorizontalScrollWheelValue) != 0)
                     mouseWheelEvents[MouseWheelEventType.MouseHorizontalWheelChanged]?.Invoke(currentMouseState.Position, mouseWheelDelta, gameTime);
-
-                void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
-                {
-                    if (currentButton == ButtonState.Pressed)
-                    {
-                        if (previousButton == ButtonState.Pressed)
-                            mouseButtonEvents[down]?.Invoke(currentMouseState.Position, gameTime);
-                        else
-                            mouseButtonEvents[pressed]?.Invoke(currentMouseState.Position, gameTime);
-                    }
-                    else if (previousButton == ButtonState.Pressed)
-                        mouseButtonEvents[released]?.Invoke(currentMouseState.Position, gameTime);
-                }
-
-                MouseButtonEvent(currentMouseState.LeftButton, previousMouseState.LeftButton, MouseButtonEventType.LeftButtonDown, MouseButtonEventType.LeftButtonPressed, MouseButtonEventType.LeftButtonReleased);
-                MouseButtonEvent(currentMouseState.RightButton, previousMouseState.RightButton, MouseButtonEventType.RightButtonDown, MouseButtonEventType.RightButtonPressed, MouseButtonEventType.RightButtonReleased);
-                MouseButtonEvent(currentMouseState.MiddleButton, previousMouseState.MiddleButton, MouseButtonEventType.MiddleButtonDown, MouseButtonEventType.MiddleButtonPressed, MouseButtonEventType.MiddleButtonReleased);
-                MouseButtonEvent(currentMouseState.XButton1, previousMouseState.XButton1, MouseButtonEventType.XButton1Down, MouseButtonEventType.XButton1Pressed, MouseButtonEventType.XButton1Released);
-                MouseButtonEvent(currentMouseState.XButton2, previousMouseState.XButton2, MouseButtonEventType.XButton2Down, MouseButtonEventType.XButton2Pressed, MouseButtonEventType.XButton2Released);
-            }
-            else
-            {
-                if (currentMouseState.LeftButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.LeftButtonDown]?.Invoke(currentMouseState.Position, gameTime);
-                if (currentMouseState.RightButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.RightButtonDown]?.Invoke(currentMouseState.Position, gameTime);
-                if (currentMouseState.MiddleButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.MiddleButtonDown]?.Invoke(currentMouseState.Position, gameTime);
-                if (currentMouseState.XButton1 == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.XButton1Down]?.Invoke(currentMouseState.Position, gameTime);
-                if (currentMouseState.XButton2 == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.XButton2Down]?.Invoke(currentMouseState.Position, gameTime);
             }
 
             base.Update(gameTime);

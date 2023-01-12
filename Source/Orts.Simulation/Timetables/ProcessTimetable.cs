@@ -884,28 +884,7 @@ namespace Orts.Simulation.Timetables
 
             // set player locomotive
             // first test first and last cars - if either is drivable, use it as player locomotive
-            int lastIndex = playerTrain.Cars.Count - 1;
-
-            if (playerTrain.Cars[0].IsDriveable)
-            {
-                simulator.PlayerLocomotive = playerTrain.LeadLocomotive = playerTrain.Cars[0];
-            }
-            else if (playerTrain.Cars[lastIndex].IsDriveable)
-            {
-                simulator.PlayerLocomotive = playerTrain.LeadLocomotive = playerTrain.Cars[lastIndex];
-            }
-            else
-            {
-                foreach (TrainCar car in playerTrain.Cars)
-                {
-                    if (car.IsDriveable)  // first loco is the one the player drives
-                    {
-                        simulator.PlayerLocomotive = playerTrain.LeadLocomotive = car;
-                        playerTrain.leadLocoAntiSlip = ((MSTSLocomotive)car).AntiSlip;
-                        break;
-                    }
-                }
-            }
+            simulator.PlayerLocomotive = playerTrain.LeadLocomotive = playerTrain.Cars[0] as MSTSLocomotive ?? playerTrain.Cars[^1] as MSTSLocomotive ?? playerTrain.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
             // initialize brakes
             playerTrain.AITrainBrakePercent = 100;
@@ -2460,7 +2439,7 @@ namespace Orts.Simulation.Timetables
                     car.Flipped = consistDetails.Reversed ? !wagon.Flip : wagon.Flip;
                     car.CarID = $"{TTTrain.Number:0###}_{carId:0##}";
                     carId++;
-                    car.OrgiginalConsist = consistDetails.ConsistFile.ToLowerInvariant();
+                    car.OriginalConsist = consistDetails.ConsistFile.ToLowerInvariant();
 
                     car.SignalEvent(TrainEvent.Pantograph1Up);
 

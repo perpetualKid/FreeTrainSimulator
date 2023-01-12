@@ -18,6 +18,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 using GetText;
@@ -32,6 +33,34 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
+#pragma warning disable CA1034 // Nested types should not be visible
+        public static class Markers
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            public const string ArrowUp = "▲"; // \u25B2
+            public const string ArrowDown = "▼"; // \u25BC
+            public const string ArrowRight = "►"; // \u25BA
+            public const string ArrowLeft = "◄"; // \u25C4
+
+            public const string ArrowUpSmall = "˄"; // \u02C4 //"△"; // \u25B3
+            public const string ArrowDownSmall = "˅"; // \u02C4 //"▽"; // \u25BD
+            public const string ArrowLeftSmall = "˂"; // \u02C2
+            public const string ArrowRigthSmall = "˃"; // \u02C3
+
+            public const string Block = "█"; // \u2588
+            public const string BlockUpperHalf = "▀"; // \u2580
+            public const string BlockLowerHalf = "▄"; // \u2584
+            public const string Fence = "│"; // \u2016 //"▐"; // \u2590
+            public const string Dash = "―"; // \u2015
+            public const string BlockHorizontal = "▬"; // \u25ac
+            public const string BlockVertical = "▮"; // \u25ae
+
+            public const string Descent = "↘"; // \u2198
+            public const string Ascent = "↗"; // \u2197
+
+            public const string Diamond = "◆"; // \u25C6
+        }
+
         private static readonly ICatalog catalog = CatalogManager.Catalog;
 
 #pragma warning disable IDE1006 // Naming Styles
@@ -122,20 +151,16 @@ namespace Orts.Common
             if (isMetric)
             {
                 // <0.1 kilometres, show metres.
-                if (Math.Abs(distance) < 100)
-                {
-                    return string.Format(CultureInfo.CurrentCulture,
-                        "{0:N0}m", distance);
-                }
-                return string.Format(CultureInfo.CurrentCulture,
+                return Math.Abs(distance) < 100
+                    ? string.Format(CultureInfo.CurrentCulture,
+                        "{0:N0}m", distance)
+                    : string.Format(CultureInfo.CurrentCulture,
                     "{0:F1}km", Size.Length.ToKM(distance));
             }
             // <0.1 miles, show yards.
-            if (Math.Abs(distance) < Size.Length.FromMi(0.1))
-            {
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance));
-            }
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1}mi", Size.Length.ToMi(distance));
+            return Math.Abs(distance) < Size.Length.FromMi(0.1)
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance))
+                : string.Format(CultureInfo.CurrentCulture, "{0:F1}mi", Size.Length.ToMi(distance));
         }
 
         /// <summary>
@@ -146,32 +171,28 @@ namespace Orts.Common
             if (isMetric)
             {
                 // <0.1 kilometres, show metres.
-                if (Math.Abs(distance) < 100)
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m);
-                }
-                return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
+                return Math.Abs(distance) < 100
+                    ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m)
+                    : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
             }
             // <0.1 miles, show yards.
-            if (Math.Abs(distance) < Size.Length.FromMi(0.1))
-            {
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd);
-            }
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
+            return Math.Abs(distance) < Size.Length.FromMi(0.1)
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd)
+                : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
         }
 
         public static string FormatShortDistanceDisplay(double distanceM, bool isMetric)
         {
-            if (isMetric)
-                return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distanceM, m);
-            return string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToFt(distanceM), ft);
+            return isMetric
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distanceM, m)
+                : string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToFt(distanceM), ft);
         }
 
         public static string FormatVeryShortDistanceDisplay(double distanceM, bool isMetric)
         {
-            if (isMetric)
-                return string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", distanceM, m);
-            return string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", Size.Length.ToFt(distanceM), ft);
+            return isMetric
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", distanceM, m)
+                : string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", Size.Length.ToFt(distanceM), ft);
         }
 
         /// <summary>
@@ -185,14 +206,9 @@ namespace Orts.Common
             {
                 // < 1 tons, show kilograms.
                 double tonnes = Mass.Kilogram.ToTonnes(mass);
-                if (Math.Abs(tonnes) > 1)
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", tonnes, t);
-                }
-                else
-                {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", mass, kg);
-                }
+                return Math.Abs(tonnes) > 1
+                    ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", tonnes, t)
+                    : string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", mass, kg);
             }
             else
             {
@@ -209,10 +225,7 @@ namespace Orts.Common
                 return FormatMass(mass, isMetric);
 
             double massT = isUK ? Mass.Kilogram.ToTonsUK(mass) : Mass.Kilogram.ToTonsUS(mass);
-            if (massT > 1)
-                return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS);
-            else
-                return FormatMass(mass, isMetric);
+            return massT > 1 ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS) : FormatMass(mass, isMetric);
         }
 
         /// <summary>
@@ -340,9 +353,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss}";
         }
 
         /// <summary>
@@ -351,9 +362,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatPreciseTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}.{duration.Milliseconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss\\.FF}";
         }
 
 
@@ -363,14 +372,26 @@ namespace Orts.Common
         /// </summary>
         public static string FormatApproximateTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm}";
+        }
 
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}";
+        /// <summary>
+        /// Converts a timespan in MM:SS format also if more than one hour
+        /// Seconds are rounded to the nearest 10sec range
+        /// </summary>
+        public static string FormatDelayTime(TimeSpan delay)
+        {
+            return $"{(int)delay.TotalMinutes}:{delay.Seconds / 10 * 10:00}";
         }
 
         public static string Max(this string value, int length)
         {
             return value?[..Math.Min(value.Length, length)];
+        }
+
+        public static string JoinIfNotEmpty(char separator, params string[] values)
+        {
+            return string.Join(separator, values.Where(s => !string.IsNullOrEmpty(s)));
         }
     }
 }

@@ -1,21 +1,20 @@
-﻿using System.Collections.Specialized;
-
+﻿
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.Graphics.MapView.Shapes;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
 
-    internal class PlatformSegment : SegmentBase
+    internal class PlatformSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        public PlatformSegment(SegmentBase source) : base(source)
+        public PlatformSegment(TrackSegmentBase source) : base(source)
         {
             Size = 3;
         }
 
-        public PlatformSegment(SegmentBase source, in PointD start, in PointD end) : base(source, start, end)
+        public PlatformSegment(TrackSegmentBase source, in PointD start, in PointD end) : base(source, start, end)
         {
             Size = 3;
         }
@@ -26,15 +25,13 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = GetColor<PlatformSegment>(colorVariation);
+            Color drawColor = this.GetColor<PlatformSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
-                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
-
-        public override NameValueCollection DebugInfo => null;
     }
 }

@@ -60,6 +60,8 @@ namespace Orts.Simulation.Physics
         //      Signal
 
 
+        public static TrainPathItem Undefined { get; } = new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f);
+
         //================================================================================================//
         /// <summary>
         /// Constructors
@@ -170,23 +172,13 @@ namespace Orts.Simulation.Physics
             Signal = signal;
         }
 
-
-
-        /// no need for Restore or Save items as info is not kept in permanent variables
-
         //================================================================================================//
         //
         // Compare To (to allow sort)
         //
         public int CompareTo(TrainPathItem other)
         {
-            if (other == null)
-                return 1;
-            if (DistanceToTrainM < other.DistanceToTrainM)
-                return (-1);
-            if (DistanceToTrainM == other.DistanceToTrainM)
-                return (0);
-            return 1;
+            return other == null ? 1 : DistanceToTrainM < other.DistanceToTrainM ? -1 : DistanceToTrainM == other.DistanceToTrainM ? 0 : 1;
         }
     }
 }

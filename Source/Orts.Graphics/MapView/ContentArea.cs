@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
 
@@ -29,8 +30,8 @@ namespace Orts.Graphics.MapView
         private static readonly Point PointOverTwo = new Point(2, 2);
 
         private double offsetX, offsetY;
-        internal PointD TopLeftArea { get; private set; }
-        internal PointD BottomRightArea { get; private set; }
+        internal PointD TopLeftBound { get; private set; }
+        internal PointD BottomRightBound { get; private set; }
 
         private Tile bottomLeft;
         private Tile topRight;
@@ -38,11 +39,14 @@ namespace Orts.Graphics.MapView
 
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
-        private readonly SpriteBatch spriteBatch;
-        internal SpriteBatch SpriteBatch => spriteBatch;
+        internal SpriteBatch SpriteBatch { get; }
+
+        internal BasicShapes BasicShapes { get; }
 
         private readonly FontManagerInstance fontManager;
-
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly TextShape contentText;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
 
@@ -55,8 +59,8 @@ namespace Orts.Graphics.MapView
 
         public double Scale { get; private set; }
 
-        public double CenterX => (BottomRightArea.X - TopLeftArea.X) / 2 + TopLeftArea.X;
-        public double CenterY => (TopLeftArea.Y - BottomRightArea.Y) / 2 + BottomRightArea.Y;
+        public double CenterX => (BottomRightBound.X - TopLeftBound.X) / 2 + TopLeftBound.X;
+        public double CenterY => (TopLeftBound.Y - BottomRightBound.Y) / 2 + BottomRightBound.Y;
 
         public bool SuppressDrawing { get; private set; }
 
@@ -67,6 +71,12 @@ namespace Orts.Graphics.MapView
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
 
+        public OutlineRenderOptions FontOutlineOptions 
+        {
+            get => contentText.OutlineRenderOptions;
+            set => contentText.OutlineRenderOptions = value; 
+        }
+
         internal ContentArea(Game game, ContentBase content) :
             base(game)
         {
@@ -75,20 +85,21 @@ namespace Orts.Graphics.MapView
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+            fontManager = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
-
+            contentText = TextShape.Instance(Game, SpriteBatch);
+            BasicShapes = BasicShapes.Instance(Game);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             WindowSize = Game.Window.ClientBounds.Size;
-            CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
+            CenterAround(new PointD((TopLeftBound.X + BottomRightBound.X) / 2, (TopLeftBound.Y + BottomRightBound.Y) / 2));
         }
 
         public void UpdateColor(ColorSetting setting, Color color)
@@ -99,55 +110,57 @@ namespace Orts.Graphics.MapView
                     insetComponent?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
-                    PointWidget.UpdateColor<TrackSegment>(color);
+                    WidgetColorCache.UpdateColor<TrackSegment>(color);
                     break;
                 case ColorSetting.RailTrackEnd:
-                    PointWidget.UpdateColor<TrackEndSegment>(color);
+                    WidgetColorCache.UpdateColor<EndNode>(color);
                     break;
                 case ColorSetting.RailTrackJunction:
-                    PointWidget.UpdateColor<JunctionSegment>(color);
+                    WidgetColorCache.UpdateColor<JunctionNode>(color);
                     break;
                 case ColorSetting.RailTrackCrossing:
-                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
+                    WidgetColorCache.UpdateColor<CrossOverTrackItem>(color);
                     break;
                 case ColorSetting.RailLevelCrossing:
-                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                    WidgetColorCache.UpdateColor<LevelCrossingTrackItem>(color);
                     break;
                 case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadSegment>(color);
+                    WidgetColorCache.UpdateColor<RoadSegment>(color);
                     break;
                 case ColorSetting.RoadTrackEnd:
-                    PointWidget.UpdateColor<RoadEndSegment>(color);
+                    WidgetColorCache.UpdateColor<RoadEndSegment>(color);
                     break;
                 case ColorSetting.PathTrack:
-                    PointWidget.UpdateColor<PathSegment>(color);
+                    WidgetColorCache.UpdateColor<PathSegment>(color);
+                    WidgetColorCache.UpdateColor<EditorTrainPathSegment>(color);
+                    WidgetColorCache.UpdateColor<EditorTrainPath>(color);
                     break;
                 case ColorSetting.PathTrackEnd:
-                    PointWidget.UpdateColor<PathEndTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathEndTrackItem>(color);
                     break;
                 case ColorSetting.PathTrackIntermediate:
-                    PointWidget.UpdateColor<PathIntermediateTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathIntermediateTrackItem>(color);
                     break;
                 case ColorSetting.PathJunction:
-                    PointWidget.UpdateColor<PathJunctionTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathJunctionTrackItem>(color);
                     break;
                 case ColorSetting.PathReversal:
-                    PointWidget.UpdateColor<PathReversalTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PathReversalTrackItem>(color);
                     break;
                 case ColorSetting.PlatformItem:
-                    PointWidget.UpdateColor<PlatformTrackItem>(color);
-                    PointWidget.UpdateColor<PlatformPath>(color);
+                    WidgetColorCache.UpdateColor<PlatformTrackItem>(color);
+                    WidgetColorCache.UpdateColor<PlatformPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<PlatformSegment>(color);
+                    WidgetColorCache.UpdateColor<PlatformSegment>(color);
                     break;
                 case ColorSetting.SidingItem:
-                    PointWidget.UpdateColor<SidingTrackItem>(color);
-                    PointWidget.UpdateColor<SidingPath>(color);
+                    WidgetColorCache.UpdateColor<SidingTrackItem>(color);
+                    WidgetColorCache.UpdateColor<SidingPath>(color);
                     color.A = 160;
-                    PointWidget.UpdateColor<SidingSegment>(color);
+                    WidgetColorCache.UpdateColor<SidingSegment>(color);
                     break;
                 case ColorSetting.SpeedPostItem:
-                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
+                    WidgetColorCache.UpdateColor<SpeedPostTrackItem>(color);
                     break;
             }
         }
@@ -207,6 +220,20 @@ namespace Orts.Graphics.MapView
             CenterAround(PointD.FromWorldLocation(location));
         }
 
+        public void SetTrackingPosition(in PointD location)
+        {
+            CenterAround(location);
+        }
+
+        public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
+        {            
+            double xScale = WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
+            double yScale = (WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
+            Scale = Math.Min(xScale, yScale) * 0.95;
+            UpdateFontSize();
+            SetBounds();
+        }
+
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
@@ -241,40 +268,40 @@ namespace Orts.Graphics.MapView
             offsetX -= delta.X / Scale;
             offsetY += delta.Y / Scale;
 
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
-            if (TopLeftArea.X > bounds.Right)
+            if (TopLeftBound.X > bounds.Right)
             {
                 offsetX = bounds.Right;
             }
-            else if (BottomRightArea.X < bounds.Left)
+            else if (BottomRightBound.X < bounds.Left)
             {
-                offsetX = bounds.Left - (BottomRightArea.X - TopLeftArea.X);
+                offsetX = bounds.Left - (BottomRightBound.X - TopLeftBound.X);
             }
 
-            if (BottomRightArea.Y > bounds.Bottom)
+            if (BottomRightBound.Y > bounds.Bottom)
             {
                 offsetY = bounds.Bottom;
             }
-            else if (TopLeftArea.Y < bounds.Top)
+            else if (TopLeftBound.Y < bounds.Top)
             {
-                offsetY = bounds.Top - (TopLeftArea.Y - BottomRightArea.Y);
+                offsetY = bounds.Top - (TopLeftBound.Y - BottomRightBound.Y);
             }
             SetBounds();
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight)
+            if (Scale == previousScale && TopLeftBound == previousTopLeft && BottomRightBound == previousBottomRight)
             {
                 SuppressDrawing = true;
             }
             else
             {
                 previousScale = Scale;
-                previousTopLeft = TopLeftArea;
-                previousBottomRight = BottomRightArea;
+                previousTopLeft = TopLeftBound;
+                previousBottomRight = BottomRightBound;
                 SuppressDrawing = false;
             }
             base.Update(gameTime);
@@ -363,13 +390,13 @@ namespace Orts.Graphics.MapView
             Zoom(-ZoomAmplifier(commandArgs));
         }
 
-        private DateTime nextUpdate;
+        private long nextUpdate;
         private void Zoom(int steps)
         {
-            if (DateTime.UtcNow > nextUpdate)
+            if (Environment.TickCount64 > nextUpdate)
             {
                 UpdateScale(steps);
-                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+                nextUpdate = Environment.TickCount64 + 30;
             }
         }
 
@@ -381,11 +408,11 @@ namespace Orts.Graphics.MapView
 
         private void SetBounds()
         {
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftBound.X), Tile.TileFromAbs(BottomRightBound.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightBound.X), Tile.TileFromAbs(TopLeftBound.Y));
         }
 
         private void CenterView()
@@ -413,9 +440,9 @@ namespace Orts.Graphics.MapView
 
         public override void Draw(GameTime gameTime)
         {
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
             Content.Draw(bottomLeft, topRight);
-            spriteBatch.End();
+            SpriteBatch.End();
             base.Draw(gameTime);
             SuppressDrawing = true;
         }
@@ -449,19 +476,19 @@ namespace Orts.Graphics.MapView
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(PointWidget pointWidget)
+        internal bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
-            ref readonly PointD location = ref pointWidget.Location;
-            return location.X > TopLeftArea.X && location.X < BottomRightArea.X && location.Y < TopLeftArea.Y && location.Y > BottomRightArea.Y;
+            ref readonly PointD location = ref pointPrimitive.Location;
+            return location.X > TopLeftBound.X && location.X < BottomRightBound.X && location.Y < TopLeftBound.Y && location.Y > BottomRightBound.Y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(VectorWidget vectorWidget)
+        internal bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
-            ref readonly PointD start = ref vectorWidget.Location;
-            ref readonly PointD end = ref vectorWidget.Vector;
-            bool outside = (start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > BottomRightArea.X && end.X > BottomRightArea.X) ||
-                (start.Y > TopLeftArea.Y && end.Y > TopLeftArea.Y) || (start.Y < BottomRightArea.Y && end.Y < BottomRightArea.Y);
+            ref readonly PointD start = ref vectorPrimitive.Location;
+            ref readonly PointD end = ref vectorPrimitive.Vector;
+            bool outside = (start.X < TopLeftBound.X && end.X < TopLeftBound.X) || (start.X > BottomRightBound.X && end.X > BottomRightBound.X) ||
+                (start.Y > TopLeftBound.Y && end.Y > TopLeftBound.Y) || (start.Y < BottomRightBound.Y && end.Y < BottomRightBound.Y);
             return !outside;
         }
 
@@ -473,14 +500,18 @@ namespace Orts.Graphics.MapView
             TrackItemBase.SetFont(CurrentFont);
         }
 
+        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)
+        {
+            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                spriteBatch?.Dispose();
+                SpriteBatch?.Dispose();
                 inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
-
             }
             base.Dispose(disposing);
         }

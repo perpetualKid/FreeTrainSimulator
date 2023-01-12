@@ -4,21 +4,23 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Toolbox
 {
-    public class ContentAreaChangedEventArgs: EventArgs
+    public class ContentAreaChangedEventArgs : EventArgs
     {
         public ContentArea ContentArea { get; }
 
         public ContentAreaChangedEventArgs(ContentArea contentArea)
-        { 
+        {
             ContentArea = contentArea;
         }
     }
@@ -27,7 +29,9 @@ namespace Orts.Toolbox
     {
         private Folder selectedFolder;
         private Route selectedRoute;
+        private Path selectedPath; // going forward, there may be multiple paths selected at once
         private IEnumerable<Route> routes;
+        private IEnumerable<Path> paths;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
 
@@ -58,8 +62,8 @@ namespace Orts.Toolbox
 
         internal async Task LoadRoute(Route route)
         {
-            (windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
-            windowManager[WindowType.StatusWindow].Open();
+            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
+            windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
             lock (routes)
@@ -74,8 +78,8 @@ namespace Orts.Toolbox
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
-
-            await TrackData.LoadTrackData(route.Path, useMetricUnits, token).ConfigureAwait(false);
+            Task<IEnumerable<Path>> pathTask = Path.GetPaths(route, true, CancellationToken.None);
+            await TrackData.LoadTrackData(this, route.Path, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
@@ -84,22 +88,52 @@ namespace Orts.Toolbox
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             ContentArea = content.ContentArea;
-            windowManager[WindowType.StatusWindow].Close();
+            paths = await pathTask.ConfigureAwait(false);
+            mainmenu.PopulatePaths(paths);
+            windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 
-        internal async Task PreSelectRoute(string[] selection)
+        internal async Task<bool> LoadPath(Path path)
         {
-            if (selection?.Length > 0)
+            try
             {
-                Folder folder = mainmenu.SelectContentFolder(selection[0]);
+                PathFile patFile = new PathFile(path.FilePath);
+                selectedPath = path;
+                ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
+                return await Task.FromResult(true).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is Exception)
+            {
+                return await Task.FromResult(false).ConfigureAwait(false);
+            }
+        }
+
+        internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
+        {
+            if (routeSelection?.Length > 0)
+            {
+                Folder folder = mainmenu.SelectContentFolder(routeSelection[0]);
                 await FindRoutes(folder).ConfigureAwait(false);
 
-                if (selection.Length > 1 && Settings.RestoreLastView)
+                if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
-                    Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    Route route = routes?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
+                    {
                         await LoadRoute(route).ConfigureAwait(false);
+                        mainmenu.PreSelectRoute(route.Name);
+                        if (pathSelection.Length > 0)
+                        {
+                            // only restore first path for now
+                            Path path = paths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            if (null != path)
+                            {
+                                if (await LoadPath(path).ConfigureAwait(false))
+                                    mainmenu.PreSelectPath(path.FilePath);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -108,6 +142,15 @@ namespace Orts.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
+            paths = null;
+            selectedPath = null;
+            mainmenu.ClearPathMenu();
+        }
+
+        internal void UnloadPath()
+        {
+            selectedPath = null;
+            ((ToolboxContent)contentArea?.Content).InitializePath(null);
         }
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)

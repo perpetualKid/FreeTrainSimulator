@@ -120,10 +120,10 @@ namespace Orts.ContentManager
                             line.Append(' ');
                             for (int i = 0; i < tracks.Count; i++)
                                 line.Append(i == activeTrack ? " |" : " .");
-                            if ((node.Flags & PathFlags.WaitPoint) != 0)
-                                line.AppendLine($"\t{node.Location}\t{node.Flags} (wait for {node.WaitTime} seconds)");
+                            if (node.NodeType == PathNodeType.Wait)
+                                line.AppendLine($"\t{node.Location}\t{node.NodeType} (wait for {node.WaitTime} seconds)");
                             else
-                                line.AppendLine($"\t{node.Location}\t{node.Flags}");
+                                line.AppendLine($"\t{node.Location}\t{node.NodeType}");
                             if (!node.Next.Any())
                             {
                                 line.Append(' ');

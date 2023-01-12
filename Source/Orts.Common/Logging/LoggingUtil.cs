@@ -33,7 +33,7 @@ namespace Orts.Common.Logging
 
             Dictionary<string, string> replacementValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "application", FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription},
+                { "application", FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileDescription},
                 { "product", RuntimeInfo.ProductName},
                 { "version", VersionInfo.Version},
                 { "date", DateTime.Now.Date.ToString("d", CultureInfo.CurrentCulture) },

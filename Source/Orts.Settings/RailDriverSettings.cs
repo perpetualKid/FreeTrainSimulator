@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using GetText;
-
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings.Store;

@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,17 +33,34 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 
+using ActivityEvent = Orts.Formats.Msts.Models.ActivityEvent;
+
 namespace Orts.Simulation.Activities
 {
+    public class ActivityEventArgs : EventArgs
+    {
+        public EventWrapper TriggeredEvent { get; }
+
+        internal ActivityEventArgs(EventWrapper triggeredEvent)
+        {
+            TriggeredEvent = triggeredEvent;
+        }
+    }
 
     public class Activity
     {
         private readonly Simulator simulator;
+        private bool reloadedActivityEvent;
+        private EventWrapper triggeredEvent;
+        private EventHandler<ActivityEventArgs> onActivityEventTriggered;
+
+        // station stop logging flags - these are saved to resume correct logging after save
+        private string stationStopLogFile;   // logfile name
+        private bool stationStopLogActive;   // logging is active
 
         // Passenger tasks
-        private DateTime startTime;
-        private double prevTrainSpeed = -1;
-        internal int? startTimeS;    // Clock time in seconds when activity was launched.
+        private double prevTrainSpeed = 1;  // set a start value above stop-limit (0.2) so if the train speed at activity start is below, this will trigger a Station-Stop
+        internal int StartTime { get; private set; }    // Clock time in seconds when activity was launched.
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<ActivityTask> Tasks { get; } = new List<ActivityTask>();
@@ -57,29 +73,30 @@ namespace Orts.Simulation.Activities
 #pragma warning restore CA1002 // Do not expose generic lists
         public bool Completed { get; private set; }          // true once activity is completed.
         public bool Succeeded { get; internal set; }        // status of completed activity
-        public EventWrapper TriggeredEvent { get; set; } // Indicates the currently triggered event whose data the ActivityWindow will pop up to display.
 
-        // The ActivityWindow may be open when the simulation is saved with F2.
-        // If so, we need to remember the event and the state of the window (is the activity resumed or still paused, so we can restore it.
-        public bool IsActivityWindowOpen { get; set; }       // Remembers the status of the ActivityWindow [closed|opened]
-        public EventWrapper LastTriggeredActivityEvent { get; private set; } // Remembers the TriggeredEvent after it has been cancelled.
-        public bool IsActivityResumed { get; set; }            // Remembers the status of the ActivityWindow [paused|resumed]
-        public bool ReopenActivityWindow { get; set; }       // Set on Restore() and tested by ActivityWindow
-        // Note: The variables above belong to the Activity, not the ActivityWindow because they run on different threads.
-        // The Simulator must not monitor variables in the Window thread, but it's OK for the Window thread to monitor the Simulator.
-
-        // station stop logging flags - these are saved to resume correct logging after save
-        private string stationStopLogFile;   // logfile name
-        private bool stationStopLogActive;   // logging is active
         public EventWrapper TriggeredActivityEvent { get; set; }        // used for exchange with Sound.cs to trigger activity sounds;
-        public bool NewMessageFromNewPlayer { get; set; } // flag to indicate to ActivityWindow that there is a new message to be shown;
-        public string MessageFromNewPlayer { get; internal set; } // string to be displayed in ActivityWindow
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
 #pragma warning restore CA1002 // Do not expose generic lists
 
         public bool WeatherChangesPresent { get; private set; } // tested in case of randomized activities to state wheter weather should be randomized
+
+        public event EventHandler<ActivityEventArgs> OnEventTriggered
+        {
+#pragma warning disable CA1030 // Use events where appropriate
+            add
+            {
+                onActivityEventTriggered += value;
+                if (null != triggeredEvent)
+                    value?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+            }
+            remove
+            {
+                onActivityEventTriggered -= value;
+            }
+#pragma warning restore CA1030 // Use events where appropriate
+        }
 
         private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
         {
@@ -94,6 +111,7 @@ namespace Orts.Simulation.Activities
                 throw new ArgumentNullException(nameof(activityFile));
 
             this.simulator = simulator;  // Save for future use.
+            StartTime = (int)activityFile.Activity.Header.StartTime.TotalSeconds;
             PlayerServices sd;
             sd = activityFile.Activity.PlayerServices;
             if (sd != null)
@@ -151,55 +169,51 @@ namespace Orts.Simulation.Activities
 
         public void Update()
         {
-            // Update freight events
-            // Set the clock first time through. Can't set in the Activity constructor as Simulator.ClockTime is still 0 then.
-            if (!startTimeS.HasValue)
+            if (!Completed && triggeredEvent == null)
             {
-                startTimeS = (int)simulator.ClockTime;
-                //// Initialise passenger actual arrival time
-                //if (ActivityTask != null)
-                //    if (ActivityTask is ActivityTaskPassengerStopAt)
-                //    {
-                //        ActivityTaskPassengerStopAt task = ActivityTask as ActivityTaskPassengerStopAt;
-                //    }
-            }
-            if (!Completed)
-            {
-                foreach (EventWrapper i in EventList)
+                foreach (EventWrapper item in EventList)
                 {
-                    // Once an event has fired, we don't respond to any more events until that has been acknowledged.
-                    // so this line needs to be inside the EventList loop.
-                    if (TriggeredEvent != null)
-                        break;
-                    if (i != null && i.ActivityEvent.ActivationLevel > 0)
+                    if (item?.ActivityEvent.ActivationLevel > 0 && (item.TimesTriggered < 1 || item.ActivityEvent.Reversible))
                     {
-                        if (i.TimesTriggered < 1 || i.ActivityEvent.Reversible)
+                        if (item.Triggered(this))
                         {
-                            if (i.Triggered(this))
+                            if (!item.Disabled)
                             {
-                                if (!i.Disabled)
-                                {
-                                    i.TimesTriggered += 1;
-                                    if (i.IsActivityEnded(this))
-                                        Completed = true;
-                                    TriggeredEvent = i;    // Note this for Viewer and ActivityWindow to use.
-                                    // Do this after IsActivityEnded() so values are ready for ActivityWindow
-                                    LastTriggeredActivityEvent = TriggeredEvent;
-                                }
+                                item.TimesTriggered += 1;
+                                if (item.CompletesActivity(this))
+                                    Completed = true;
+                                triggeredEvent = item;
+                                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                                simulator.GamePaused = true;
+                                break;
                             }
-                            else
-                            {
-                                if (i.ActivityEvent.Reversible)
-                                    // Reversible event is no longer triggered, so can re-enable it.
-                                    i.Disabled = false;
-                            }
+                        }
+                        else
+                        {
+                            if (item.ActivityEvent.Reversible)
+                                // Reversible event is no longer triggered, so can re-enable it.
+                                item.Disabled = false;
                         }
                     }
                 }
             }
+            else if (reloadedActivityEvent && triggeredEvent != null) //should happen first time only
+            {
+                reloadedActivityEvent = false;
+                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                simulator.GamePaused = true;
+            }
+            else if (Completed && triggeredEvent == null)
+            {
+                triggeredEvent = new EventCategorySystemWrapper(triggeredEvent.ActivityEvent.Name, Simulator.Catalog.GetString($"This activity has ended {(Succeeded ? Simulator.Catalog.GetString("successfully") : Simulator.Catalog.GetString("without success"))}.\nFor a detailed evaluation, see the Help Window (F1)."));
+                EventList.Add(triggeredEvent);
+                onActivityEventTriggered?.Invoke(this, new ActivityEventArgs(triggeredEvent));
+                simulator.GamePaused = true;
+            }
 
             // Update passenger tasks
-            if (ActivityTask == null) return;
+            if (ActivityTask == null)
+                return;
 
             ActivityTask.NotifyEvent(ActivityEventType.Timer);
             if (ActivityTask.IsCompleted != null)    // Surely this doesn't test for: 
@@ -209,7 +223,7 @@ namespace Orts.Simulation.Activities
             {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
                 {
-                    if (Math.Abs(prevTrainSpeed) >= 0.2f)
+                    if (prevTrainSpeed >= 0.2f)
                     {
                         prevTrainSpeed = 0;
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
@@ -219,9 +233,9 @@ namespace Orts.Simulation.Activities
                 }
                 else
                 {
-                    if (Math.Abs(prevTrainSpeed) < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
+                    if (prevTrainSpeed < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
                     {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                        prevTrainSpeed = Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS);
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
@@ -242,16 +256,36 @@ namespace Orts.Simulation.Activities
                 }
                 else
                 {
-                    //if (prevTrainSpeed == 0 && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
                     if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
                     {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                        prevTrainSpeed = Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS);
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
                     }
                 }
             }
+        }
+
+        public void AcknowledgeEvent(EventWrapper activityEvent)
+        {
+            simulator.GamePaused = false;
+
+            if (activityEvent == null)
+                return;
+
+            if (triggeredEvent != activityEvent)
+            {
+                Trace.TraceError($"Failed to acknowledge Activity Event {activityEvent.ActivityEvent.Name}{activityEvent.ActivityEvent.ID}. Excepted {triggeredEvent?.ActivityEvent.Name}{triggeredEvent?.ActivityEvent.ID}");
+                return;
+            }
+
+            triggeredEvent = null;
+        }
+
+        public void SendActivityMessage(string header, string text)
+        {
+            EventList.Add(new EventCategorySystemWrapper(header, text));
         }
 
         public static void Save(BinaryWriter outf, Activity act)
@@ -288,43 +322,30 @@ namespace Orts.Simulation.Activities
             int noval = -1;
 
             // Save passenger activity
-            outf.Write(startTime.Ticks);
             outf.Write(Tasks.Count);
             foreach (ActivityTask task in Tasks)
                 task.Save(outf);
-            if (ActivityTask == null) outf.Write(noval); else outf.Write(Tasks.IndexOf(ActivityTask));
+            if (ActivityTask == null)
+                outf.Write(noval);
+            else
+                outf.Write(Tasks.IndexOf(ActivityTask));
             outf.Write(prevTrainSpeed);
 
             // Save freight activity
             outf.Write(Completed);
             outf.Write(Succeeded);
-            outf.Write((int)startTimeS);
+            outf.Write((int)StartTime);
             foreach (EventWrapper e in EventList)
                 e.Save(outf);
-            if (TriggeredEvent == null)
+            if (triggeredEvent == null)
                 outf.Write(false);
             else
             {
                 outf.Write(true);
-                outf.Write(EventList.IndexOf(TriggeredEvent));
+                outf.Write(EventList.IndexOf(triggeredEvent));
             }
-            outf.Write(IsActivityWindowOpen);
-            if (LastTriggeredActivityEvent == null)
-                outf.Write(false);
-            else
-            {
-                outf.Write(true);
-                outf.Write(EventList.IndexOf(LastTriggeredActivityEvent));
-            }
-
-            // Save info for ActivityWindow coming from new player train
-            outf.Write(NewMessageFromNewPlayer);
-            if (NewMessageFromNewPlayer) outf.Write(MessageFromNewPlayer);
-
-            outf.Write(IsActivityResumed);
 
             // write log details
-
             outf.Write(stationStopLogActive);
             if (stationStopLogActive)
                 outf.Write(stationStopLogFile);
@@ -336,11 +357,10 @@ namespace Orts.Simulation.Activities
 
             // Restore passenger activity
             ActivityTask task;
-            startTime = new DateTime(inf.ReadInt64());
             rdval = inf.ReadInt32();
             for (int i = 0; i < rdval; i++)
             {
-                task = GetTask(inf, simulator);
+                task = inf.ReadInt32() == 1 ? new ActivityTaskPassengerStopAt(simulator) : (ActivityTask)null;
                 task.Restore(inf);
                 Tasks.Add(task);
             }
@@ -352,14 +372,15 @@ namespace Orts.Simulation.Activities
             for (int i = 0; i < Tasks.Count; i++)
             {
                 Tasks[i].PrevTask = task;
-                if (task != null) task.NextTask = Tasks[i];
+                if (task != null)
+                    task.NextTask = Tasks[i];
                 task = Tasks[i];
             }
 
             // Restore freight activity
             Completed = inf.ReadBoolean();
             Succeeded = inf.ReadBoolean();
-            startTimeS = inf.ReadInt32();
+            StartTime = inf.ReadInt32();
 
             EventList.Clear();
             foreach (EventWrapper item in oldEventList)
@@ -367,20 +388,8 @@ namespace Orts.Simulation.Activities
             foreach (EventWrapper e in EventList)
                 e.Restore(inf);
 
-            if (inf.ReadBoolean()) 
-                TriggeredEvent = EventList[inf.ReadInt32()];
-
-            IsActivityWindowOpen = inf.ReadBoolean();
-            if (inf.ReadBoolean()) 
-                LastTriggeredActivityEvent = EventList[inf.ReadInt32()];
-
-            // Restore info for ActivityWindow coming from new player train
-            NewMessageFromNewPlayer = inf.ReadBoolean();
-            if (NewMessageFromNewPlayer) 
-                MessageFromNewPlayer = inf.ReadString();
-
-            IsActivityResumed = inf.ReadBoolean();
-            ReopenActivityWindow = IsActivityWindowOpen;
+            if (reloadedActivityEvent = inf.ReadBoolean())
+                triggeredEvent = EventList[inf.ReadInt32()];
 
             // restore logging info
             stationStopLogActive = inf.ReadBoolean();
@@ -393,14 +402,6 @@ namespace Orts.Simulation.Activities
             }
             else
                 stationStopLogFile = null;
-        }
-
-        private static ActivityTask GetTask(BinaryReader inf, Simulator simulator)
-        {
-            if (inf.ReadInt32() == 1)
-                return new ActivityTaskPassengerStopAt(simulator);
-            else
-                return null;
         }
 
         public void StartStationLogging(string stationLogFile)
@@ -442,7 +443,7 @@ namespace Orts.Simulation.Activities
             if (zones == null)
                 throw new ArgumentNullException(nameof(zones));
 
-            if (zones.Count < 1) 
+            if (zones.Count < 1)
                 return;
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
@@ -548,11 +549,6 @@ namespace Orts.Simulation.Activities
                     eventWrapper.ActivityEvent.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
                     if (eventWrapper.ActivityEvent.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ActivityEvent.TrainStartingTime)
                         eventWrapper.Train = train;
-        }
-
-        public void CompleteActivity()
-        {
-            Completed = true;
         }
     }
 }

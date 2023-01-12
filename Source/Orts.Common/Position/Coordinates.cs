@@ -60,14 +60,12 @@ namespace Orts.Common.Position
     {
         public const double TileSize = 2048.0;
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
         public readonly int TileZ;
         /// <summary>The position within a tile (relative to the center of tile)</summary>
         public readonly Matrix XNAMatrix;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
         {
@@ -194,14 +192,12 @@ namespace Orts.Common.Position
         /// </summary>
         public static ref readonly WorldLocation None => ref none;
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
         public readonly int TileZ;
         /// <summary>The vector to the location within a tile, relative to center of tile in MSTS coordinates</summary>
         public readonly Vector3 Location;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         /// <summary>
         /// Constructor using values for tileX, tileZ, x, y, and z.

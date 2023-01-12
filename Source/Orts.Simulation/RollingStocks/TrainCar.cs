@@ -38,15 +38,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Scripting.Api.PowerSupply;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -55,6 +62,8 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
+
+using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -92,14 +101,14 @@ namespace Orts.Simulation.RollingStocks
 
         private static readonly double desiredCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(45.0); // Alarm temperature
                                                                                                                // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-        const double SteamTrapValveDischargeFactor = 70.0;
-        const double ConnectSteamHoseLengthFt = 2 * 2.0; // Assume two hoses on each car * 2 ft long
-                                                         // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-        const double SteamTrapDiaIn = 0.1875f;
+        private const double SteamTrapValveDischargeFactor = 70.0;
+        private const double ConnectSteamHoseLengthFt = 2 * 2.0; // Assume two hoses on each car * 2 ft long
+                                                                 // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+        private const double SteamTrapDiaIn = 0.1875f;
         // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-        const double ConnectingHoseDischargeFactor = 70.0f;
+        private const double ConnectingHoseDischargeFactor = 70.0f;
         // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-        const double ConnectingHoseLeakDiaIn = 0.1875f;
+        private const double ConnectingHoseLeakDiaIn = 0.1875f;
 
         public const float SkidFriction = 0.08f; // Friction if wheel starts skidding - based upon wheel dynamic friction of approx 0.08
         #endregion
@@ -109,16 +118,12 @@ namespace Orts.Simulation.RollingStocks
         public string WagFilePath { get; }
         public string RealWagFilePath { get; internal set; } //we are substituting missing remote cars in MP, so need to remember this
         // original consist of which car was part (used in timetable for couple/uncouple options)
-        public string OrgiginalConsist { get; internal set; } = string.Empty;
+        public string OriginalConsist { get; internal set; } = string.Empty;
         #endregion
 
-        public static int DbfEvalTravellingTooFast;//Debrief eval
-        public static int DbfEvalTravellingTooFastSnappedBrakeHose;//Debrief eval
-        public bool dbfEvalsnappedbrakehose;//Debrief eval
-        public bool ldbfevalcurvespeed;//Debrief eval
+        private bool dbfEvalsnappedbrakehose;//Debrief eval
         private static float dbfmaxsafecurvespeedmps;//Debrief eval
-        public static int DbfEvalTrainOverturned;//Debrief eval
-        public bool ldbfevaltrainoverturned;
+        private bool ldbfevaltrainoverturned;
 
         // sound related variables
         public bool IsPartOfActiveTrain { get; internal set; } = true;
@@ -168,7 +173,6 @@ namespace Orts.Simulation.RollingStocks
         public float CarHeightM { get; protected set; } = 4;        // derived classes must overwrite these defaults
         public float MassKG { get; internal protected set; } = 10000;        // Mass in KG at runtime; coincides with InitialMassKG if there is no load and no ORTS freight anim
         public float InitialMassKG { get; protected set; } = 10000;
-        public bool IsDriveable { get; protected set; }
         public int PassengerCapacity { get; protected set; }
         public bool HasInsideView { get; protected set; }
         public float CarHeightAboveSeaLevel { get; set; }
@@ -258,6 +262,9 @@ namespace Orts.Simulation.RollingStocks
         public int UiD { get; internal set; }
         public string CarID { get; internal set; } = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
 
+        private string wheelAxleInformation;
+        public string WheelAxleInformation => wheelAxleInformation ??= GetWheelAxleInformation();
+
         // status of the traincar - set by the train physics after it calls TrainCar.Update()
         private WorldPosition worldPosition = WorldPosition.None;
         public ref readonly WorldPosition WorldPosition => ref worldPosition;  // current position of the car
@@ -301,6 +308,17 @@ namespace Orts.Simulation.RollingStocks
         // Setup for ambient temperature dependency
         private bool ambientTemperatureInitialised;
         private float prevElev = -100f;
+
+        #region INameValueInformationProvider implementation
+        private protected readonly TrainCarInformation carInfo;
+        private readonly TrainCarForceInformation forceInfo;
+        private readonly TrainCarPowerSupplyInfo powerInfo;
+
+        public DetailInfoBase CarInfo => carInfo;
+
+        public DetailInfoBase ForceInfo => forceInfo;
+        public DetailInfoBase PowerSupplyInfo => powerInfo;
+        #endregion
 
         /// <summary>
         /// Indicates which remote control group the car is in.
@@ -370,7 +388,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && ((MSTSLocomotive)Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
+                    if (Train.LeadLocomotive != null && (Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
                     {
                         return 100;
                     }
@@ -545,13 +563,13 @@ namespace Orts.Simulation.RollingStocks
 
             // gravity force, M32 is up component of forward vector
             GravityForceN = MassKG * gravitationalAcceleration * WorldPosition.XNAMatrix.M32;
-            CurrentElevationPercent = 100f * WorldPosition.XNAMatrix.M32;
+            CurrentElevationPercent = -100f * WorldPosition.XNAMatrix.M32;
             AbsSpeedMpS = Math.Abs(SpeedMpS);
 
             //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
             //      
-            if (IsDriveable && Train != null & Train.IsPlayerDriven && (this as MSTSLocomotive).UsingRearCab)
+            if ((Train?.IsPlayerDriven ?? false) && ((this as MSTSLocomotive)?.UsingRearCab ?? false))
             {
                 GravityForceN = -GravityForceN;
                 CurrentElevationPercent = -CurrentElevationPercent;
@@ -573,6 +591,9 @@ namespace Orts.Simulation.RollingStocks
 
                 prevSpeedMpS = SpeedMpS;
             }
+            carInfo.Update(null);
+            forceInfo.Update(null);
+            powerInfo.Update(null);
         }
 
 
@@ -1358,7 +1379,6 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateCurveSpeedLimit()
         {
             float s = AbsSpeedMpS; // speed of train
-            Train train = simulator.PlayerLocomotive.Train;//Debrief Eval
 
             // get curve radius
 
@@ -1497,9 +1517,7 @@ namespace Orts.Simulation.RollingStocks
                                 if (dbfmaxsafecurvespeedmps != MaxSafeCurveSpeedMps)//Debrief eval
                                 {
                                     dbfmaxsafecurvespeedmps = MaxSafeCurveSpeedMps;
-                                    //ldbfevalcurvespeed = true;
-                                    DbfEvalTravellingTooFast++;
-                                    train.DbfEvalValueChanged = true;//Debrief eval
+                                    ActivityEvaluation.Instance.TravellingTooFast++;
                                 }
                             }
 
@@ -1532,8 +1550,7 @@ namespace Orts.Simulation.RollingStocks
                                 if (!ldbfevaltrainoverturned)
                                 {
                                     ldbfevaltrainoverturned = true;
-                                    DbfEvalTrainOverturned++;
-                                    train.DbfEvalValueChanged = true;//Debrief eval
+                                    ActivityEvaluation.Instance.TrainOverTurned++;
                                 }
                             }
                         }
@@ -1548,9 +1565,8 @@ namespace Orts.Simulation.RollingStocks
 
                             if (dbfEvalsnappedbrakehose)
                             {
-                                DbfEvalTravellingTooFastSnappedBrakeHose++;//Debrief eval
+                                ActivityEvaluation.Instance.SnappedBrakeHose++;
                                 dbfEvalsnappedbrakehose = false;
-                                train.DbfEvalValueChanged = true;//Debrief eval
                             }
 
                         }
@@ -1718,62 +1734,16 @@ namespace Orts.Simulation.RollingStocks
         public virtual void SignalEvent(PowerSupplyEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt, int id) { }
 
-        public virtual string GetStatus() { return null; }
-        public virtual string GetDebugStatus()
-        {
-            string locomotivetypetext = "";
-            if (EngineType == EngineType.Control)
-            {
-                locomotivetypetext = "Unpowered Control Trailer Car";
-            }
-            if (this is MSTSDieselLocomotive loco && loco.DieselEngines.HasGearBox && loco.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4:F0}%\t{5} - {6:F0} rpm\t\t{7}\t{8}\t{9}\t",
-                CarID,
-                Direction.GetLocalizedDescription(),
-                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                RemoteControlGroup == RemoteControlGroup.FrontGroupSync ? Simulator.Catalog.GetString("Sync") : RemoteControlGroup == RemoteControlGroup.RearGroupAsync ? Simulator.Catalog.GetString("Async") : "----",
-                ThrottlePercent,
-                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
-                loco.DieselEngines[0].GearBox.HuDShaftRPM,
-                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
-                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
-                Simulator.Catalog.GetString(locomotivetypetext)
-                );
-            }
-            else
-            {
-
-                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
-                CarID,
-                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Direction.GetLocalizedDescription(),
-                RemoteControlGroup == RemoteControlGroup.FrontGroupSync ? Simulator.Catalog.GetString("Sync") : RemoteControlGroup == RemoteControlGroup.RearGroupAsync ? Simulator.Catalog.GetString("Async") : "----",
-                ThrottlePercent,
-                $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits)}",
-                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
-                FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, simulator.MetricUnits, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
-                Simulator.Catalog.GetString(locomotivetypetext));
-            }
-        }
-
-        public virtual string GetTrainBrakeStatus() { return null; }
-        public virtual string GetEngineBrakeStatus() { return null; }
-        public virtual string GetBrakemanBrakeStatus() { return null; }
-        public virtual string GetDynamicBrakeStatus() { return null; }
-        public virtual string GetDistributedPowerDynamicBrakeStatus() { return null; }
-        public virtual string GetMultipleUnitsConfiguration() { return null; }
-
-        public virtual bool GetSanderOn() { return false; }
         private bool wheelHasBeenSet; //indicating that the car shape has been loaded, thus no need to reset the wheels
 
         protected TrainCar()
         {
+            carInfo = new TrainCarInformation(this);
+            forceInfo = new TrainCarForceInformation(this);
+            powerInfo = new TrainCarPowerSupplyInfo(this);
         }
 
-        protected TrainCar(string wagFile)
+        protected TrainCar(string wagFile) : this()
         {
             WagFilePath = wagFile;
             RealWagFilePath = wagFile;
@@ -1794,7 +1764,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(SpeedMpS);
             outf.Write(CouplerSlackM);
             outf.Write(Headlight);
-            outf.Write(OrgiginalConsist);
+            outf.Write(OriginalConsist);
             outf.Write(PrevTiltingZRot);
             outf.Write(BrakesStuck);
             outf.Write(carHeatingInitialized);
@@ -1820,13 +1790,13 @@ namespace Orts.Simulation.RollingStocks
             prevSpeedMpS = SpeedMpS;
             CouplerSlackM = inf.ReadSingle();
             Headlight = inf.ReadInt32();
-            OrgiginalConsist = inf.ReadString();
+            OriginalConsist = inf.ReadString();
             PrevTiltingZRot = inf.ReadSingle();
             BrakesStuck = inf.ReadBoolean();
             carHeatingInitialized = inf.ReadBoolean();
-            steamHoseLeakRateRandom = inf.ReadSingle();
-            carHeatCurrentCompartmentHeatJ = inf.ReadSingle();
-            carSteamHeatMainPipeSteamPressurePSI = inf.ReadSingle();
+            steamHoseLeakRateRandom = inf.ReadDouble();
+            carHeatCurrentCompartmentHeatJ = inf.ReadDouble();
+            carSteamHeatMainPipeSteamPressurePSI = inf.ReadDouble();
             carHeatCompartmentHeaterOn = inf.ReadBoolean();
         }
 
@@ -1841,14 +1811,9 @@ namespace Orts.Simulation.RollingStocks
             //TODO: next if/else block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the if/else block should be deleted and replaced by following instruction:
             //            SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
-            if (IsDriveable && Train.TrainType == TrainType.Player)
-            {
-                var loco = this as MSTSLocomotive;
-                SpeedMpS = Flipped ^ loco.UsingRearCab ? -Train.InitialSpeed : Train.InitialSpeed;
-            }
-
-            else
-                SpeedMpS = Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
+            SpeedMpS = this is MSTSLocomotive locomotive && Train.TrainType == TrainType.Player
+                ? Flipped ^ locomotive.UsingRearCab ? -Train.InitialSpeed : Train.InitialSpeed
+                : Flipped ? -Train.InitialSpeed : Train.InitialSpeed;
             prevSpeedMpS = SpeedMpS;
         }
 
@@ -3072,6 +3037,189 @@ namespace Orts.Simulation.RollingStocks
         internal void UpdateWorldPosition(in WorldPosition worldPosition)
         {
             this.worldPosition = worldPosition;
+        }
+
+        private string GetWheelAxleInformation()
+        {
+            if (WheelAxles.Count == 0)
+                return string.Empty;
+
+            StringBuilder builder = new StringBuilder();
+
+            int currentBogie = WheelAxles[0].BogieIndex;
+            int count = 0;
+            foreach (WheelAxle axle in WheelAxles)
+            {
+                if (currentBogie != (currentBogie = axle.BogieIndex))
+                {
+                    if (count > 0)
+                    {
+                        if (builder.Length > 0)
+                            builder.Append('-');
+                        builder.Append($"{count}");
+                    }
+                    count = 0;
+                }
+                count += 2;
+            }
+            if (count > 0)
+            {
+                if (builder.Length > 0)
+                    builder.Append('-');
+                builder.Append($"{count}");
+            }
+            return builder.ToString();
+        }
+
+        private protected class TrainCarInformation : DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainCarInformation(TrainCar car) : base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    car.UpdateCarStatus();
+                    base.Update(gameTime);
+                }
+            }
+        }
+
+        private protected virtual void UpdateCarStatus()
+        {
+            Catalog catalog = Simulator.Catalog as Catalog;
+            carInfo["Car"] = CarID;
+            carInfo["Speed"] = FormatStrings.FormatSpeedDisplay(SpeedMpS, simulator.MetricUnits);
+            carInfo["Direction"] = Direction.GetLocalizedDescription();
+            carInfo["Flipped"] = Flipped ? catalog.GetString("Yes") : catalog.GetString("No");
+        }
+
+        private protected class TrainCarForceInformation : DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainCarForceInformation(TrainCar car) : base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    car.UpdateForceStatus();
+                    base.Update(gameTime);
+                }
+            }
+        }
+
+        private protected virtual void UpdateForceStatus()
+        {
+            bool metricUnits = Simulator.Instance.MetricUnits;
+            bool ukUnits = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+            forceInfo["Car"] = CarID;
+
+            forceInfo["Total"] = FormatStrings.FormatForce(TotalForceN, metricUnits);
+            forceInfo["Motive"] = FormatStrings.FormatForce(MotiveForceN, metricUnits);
+            forceInfo.FormattingOptions["Motive"] = WheelSlip ? FormatOption.RegularOrangeRed : WheelSlipWarning ? FormatOption.RegularYellow : null;
+            forceInfo["Brake"] = FormatStrings.FormatForce(BrakeForceN, metricUnits);
+            forceInfo["Friction"] = FormatStrings.FormatForce(FrictionForceN, metricUnits);
+            forceInfo["Gravity"] = FormatStrings.FormatForce(GravityForceN, metricUnits);
+            forceInfo["Curve"] = FormatStrings.FormatForce(CurveForceN, metricUnits);
+            forceInfo["Tunnel"] = FormatStrings.FormatForce(TunnelForceN, metricUnits);
+            forceInfo["Wind"] = FormatStrings.FormatForce(WindForceN, metricUnits);
+            forceInfo["Coupler"] = FormatStrings.FormatForce(CouplerForceU, metricUnits);
+            forceInfo["CouplerIndication"] = $"{(GetCouplerRigidIndication() ? "R" : "F")} : {(CouplerExceedBreakLimit ? "xxx" : CouplerOverloaded ? "O/L" : HUDCouplerForceIndication == 1 ? "Pull" : HUDCouplerForceIndication == 2 ? "Push" : "-")}";
+            forceInfo["Slack"] = FormatStrings.FormatVeryShortDistanceDisplay(CouplerSlackM, metricUnits);
+            forceInfo["Mass"] = FormatStrings.FormatLargeMass(MassKG, metricUnits, ukUnits);
+            forceInfo["Gradient"] = $"{CurrentElevationPercent:F2}%";
+            forceInfo["CurveRadius"] = FormatStrings.FormatDistance(CurrentCurveRadius, metricUnits);
+            forceInfo["BrakeFriction"] = $"{BrakeShoeCoefficientFriction * 100.0f:F0}%";
+            forceInfo["BrakeSlide"] = HUDBrakeSkid ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            forceInfo["BearingTemp"] = FormatStrings.JoinIfNotEmpty(' ',
+                $"{FormatStrings.FormatTemperature(WheelBearingTemperatureDegC, Simulator.Instance.MetricUnits)}",
+                (WheelBearingTemperatureDegC) switch
+                {
+                    > 115 => "(Fail)",
+                    > 100 => "(Hot)",
+                    > 90 => "(Warm)",
+                    < 50 => "(Cool)",
+                    _ => "(Normal)",
+                });
+            forceInfo.FormattingOptions["BearingTemp"] = (WheelBearingTemperatureDegC) switch
+            {
+                > 115 => FormatOption.RegularRed,
+                > 100 => FormatOption.RegularOrange,
+                > 90 => FormatOption.RegularYellow,
+                < 50 => FormatOption.RegularCyan,
+                _ => null,
+            };
+            forceInfo["Flipped"] = Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            forceInfo["DerailCoefficient"] = $"{DerailmentCoefficient:F2}";
+            forceInfo.FormattingOptions["DerailCoefficient"] = DerailExpected ? FormatOption.RegularOrangeRed : DerailPossible ? FormatOption.RegularYellow : null;
+        }
+
+        private class TrainCarPowerSupplyInfo : DetailInfoBase
+        {
+            private readonly TrainCar car;
+
+            public TrainCarPowerSupplyInfo(TrainCar car) : base(true)
+            {
+                this.car = car;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    this["Car"] = car.CarID;
+                    this["WagonType"] = car.WagonType.ToString();
+
+                    switch (car.PowerSupply)
+                    {
+                        case ScriptedElectricPowerSupply electricPowerSupply:
+                            this["Pantograph"] = (car as MSTSWagon).Pantographs.State.GetLocalizedDescription();
+                            this["CircuitBreaker"] = electricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+                            this["MainPower"] = electricPowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = electricPowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                        case ScriptedDieselPowerSupply dieselPowerSupply:
+                            this["Engine"] = (car as MSTSDieselLocomotive).DieselEngines.State.GetLocalizedDescription();
+                            this["TractionCutOffRelay"] = dieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                            this["MainPower"] = dieselPowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = dieselPowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                        case ScriptedDualModePowerSupply dualModePowerSupply:
+                            this["Pantograph"] = (car as MSTSWagon).Pantographs.State.GetLocalizedDescription();
+                            this["Engine"] = (car as MSTSDieselLocomotive)?.DieselEngines.State.GetLocalizedDescription();
+                            this["CircuitBreaker"] = dualModePowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+                            this["TractionCutOffRelay"] = dualModePowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                            this["MainPower"] = dualModePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                            this["AuxPower"] = dualModePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                            break;
+                    }
+
+                    if (car.PowerSupply != null)
+                    {
+                        this["Battery"] = car.PowerSupply.BatteryState.GetLocalizedDescription();
+                        this["LowVoltagePower"] = car.PowerSupply.LowVoltagePowerSupplyState.GetLocalizedDescription();
+                        this["CabPower"] = (car.PowerSupply as ILocomotivePowerSupply)?.CabPowerSupplyState.GetLocalizedDescription();
+
+                        if (car.PowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                        {
+                            this["Ets"] = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                            this["EtsCable"] = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? "connected" : "disconnected";
+                            this["Power"] = FormatStrings.FormatPower(car.PowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                        }
+                    }
+                    base.Update(gameTime);
+                }
+            }
         }
     }
 }

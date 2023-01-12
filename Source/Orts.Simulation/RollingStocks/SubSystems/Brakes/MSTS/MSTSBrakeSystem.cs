@@ -22,6 +22,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public abstract class MSTSBrakeSystem : BrakeSystem
     {
+        protected MSTSBrakeSystem(TrainCar car) : base(car)
+        {
+        }
+
         public static BrakeSystem Create(BrakeSystemType brakeSystem, TrainCar car)
         {
             return brakeSystem switch
@@ -45,6 +49,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public abstract void Update(double elapsedClockSeconds);
 
-        public abstract void InitializeFromCopy(BrakeSystem source);
+        public abstract void InitializeFrom(BrakeSystem source);
     }
 }

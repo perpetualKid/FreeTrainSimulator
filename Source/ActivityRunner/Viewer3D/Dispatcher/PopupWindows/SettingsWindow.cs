@@ -14,13 +14,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
     internal class SettingsWindow : WindowBase
     {
         private readonly DispatcherSettings settings;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Checkbox chkShowPlatforms;
         private Checkbox chkShowStations;
         private Checkbox chkShowSidings;
         private Checkbox chkShowTrainNames;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public SettingsWindow(WindowManager owner, DispatcherSettings settings, 
-            Point relativeLocation, Catalog catalog = null) : base(owner, "Settings", relativeLocation, new Point(200, 100), catalog)
+            Point relativeLocation, Catalog catalog = null) : base(owner, (catalog??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(200, 100), catalog)
         {
             this.settings = settings;
         }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Orts.Common;
 
 namespace Orts.Scripting.Api
@@ -105,7 +103,7 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Gives the list of notches
         /// </summary>
-        public Func<List<INotchController>> Notches { get; set; }
+        public Func<List<IControllerNotch>> Notches { get; set; }
 
         /// <summary>
         /// Sets the current value of the brake controller lever
@@ -160,12 +158,17 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Called in order to get a state for the debug overlay
         /// </summary>
-        public abstract ControllerState GetState();
+        public abstract ControllerState State { get; }
         /// <summary>
         /// Called in order to get a state fraction for the debug overlay
         /// </summary>
         /// <returns>The nullable state fraction</returns>
-        public abstract float? GetStateFraction();
+        public abstract float StateFraction { get; }
+
+        public static bool IsEmergencyState(ControllerState state)
+        {
+            return state is ControllerState.Emergency or ControllerState.StraightEmergency or ControllerState.TCSEmergency or ControllerState.EBPB;
+        }
     }
 
 }

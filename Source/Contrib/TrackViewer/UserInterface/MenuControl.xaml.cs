@@ -29,6 +29,7 @@ using System.Windows.Controls;
 
 using System.Windows.Forms.Integration;
 
+using Orts.Common.Info;
 using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing; // for colors
@@ -632,7 +633,7 @@ namespace ORTS.TrackViewer.UserInterface
                 MessageBoxButton.YesNoCancel);
             if (result.ToString() == "Yes")
             {
-                System.Diagnostics.Process.Start(website);
+                SystemInfo.OpenBrowser(website);
             }
         }
 

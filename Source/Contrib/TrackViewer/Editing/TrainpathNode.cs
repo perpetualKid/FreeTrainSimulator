@@ -142,14 +142,14 @@ namespace ORTS.TrackViewer.Editing
         /// Sort of constructor. But it creates the right sub-class
         /// </summary>
         /// <returns>A sub-class object properly initialized</returns>
-        public static TrainpathNode CreatePathNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public static TrainpathNode CreatePathNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
         {
-            if (pdp.IsJunction) {
+            if (tpn.Junction) {
                 // we do not use tpn: this means we do not interpret the flags
-                return new TrainpathJunctionNode(pdp, trackDB, tsectionDat);
+                return new TrainpathJunctionNode(tpn, trackDB, tsectionDat);
             }
             else {
-                return new TrainpathVectorNode(tpn, pdp, trackDB, tsectionDat);
+                return new TrainpathVectorNode(tpn, trackDB, tsectionDat);
             }
             
         }
@@ -180,11 +180,11 @@ namespace ORTS.TrackViewer.Editing
         /// Creates a single trainpathNode and initializes everything that do not depend on other nodes.
         /// The trainpath constructor will initialize the rest.
         /// </summary>
-        protected TrainpathNode(PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        protected TrainpathNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
             :this(trackDB, tsectionDat)
         {
-            Location = pdp.Location;
-            if (pdp.IsInvalid) // not a valid point
+            Location = tpn.Location;
+            if (tpn.Invalid) // not a valid point
             {
                 SetBroken(NodeStatus.SetAsInvalid);
             }
@@ -332,8 +332,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">Corresponding PDP in the .patfile</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathJunctionNode(PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat) 
-            : base(pdp, trackDB, tsectionDat)
+        public TrainpathJunctionNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat) 
+            : base(tpn, trackDB, tsectionDat)
         {
             JunctionIndex = FindJunctionOrEndIndex(true);
         }
@@ -395,7 +395,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetFacingPoint()
         {
-            TrackJunctionNode tn = TrackDB.TrackNodes[JunctionIndex] as TrackJunctionNode;
+            TrackJunctionNode tn = TrackDB.TrackNodes.JunctionNodes[JunctionIndex];
             if (tn == null) return;  // Leave IsFacingPoint to what it is.
                 
             //First try using the next main index
@@ -436,14 +436,12 @@ namespace ORTS.TrackViewer.Editing
             //Probably this can be faster, by just finding the TrPins from this and next junction and find the common one.
             int nextJunctionIndex = (nextNode as TrainpathJunctionNode).JunctionIndex;
 
-            for (int i = 0; i < TrackDB.TrackNodes.Count; i++)
+            foreach (TrackVectorNode tn in TrackDB.TrackNodes.VectorNodes)
             {
-                if (!(TrackDB.TrackNodes[i] is TrackVectorNode tn))
-                    continue;
                 if ((tn.JunctionIndexAtStart() == JunctionIndex && tn.JunctionIndexAtEnd() == nextJunctionIndex)
                    || (tn.JunctionIndexAtEnd() == JunctionIndex && tn.JunctionIndexAtStart() == nextJunctionIndex))
                 {
-                    return i;
+                    return tn.Index;
                 }
             }
             return -1;
@@ -510,7 +508,7 @@ namespace ORTS.TrackViewer.Editing
             // it is a junction. Place a traveller onto the tracknode and find the orientation from it.
             try
             {   //for broken paths the tracknode doesn't exit or the traveller cannot be placed.
-                TrackVectorNode linkingTN = TrackDB.TrackNodes[linkingTvnIndex] as TrackVectorNode;
+                TrackVectorNode linkingTN = TrackDB.TrackNodes.VectorNodes[linkingTvnIndex];
                 Traveller traveller = new Traveller(linkingTN, Location, Direction.Forward);
                 if (linkingTN.JunctionIndexAtStart() != JunctionIndex)
                 {   // the tracknode is oriented in the other direction.
@@ -535,8 +533,9 @@ namespace ORTS.TrackViewer.Editing
         {
             if (IsBroken) return false;
 
-            TrackNode tn = TrackDB.TrackNodes[JunctionIndex];
-            if (tn == null) return false;
+            TrackJunctionNode tn = TrackDB.TrackNodes.JunctionNodes[JunctionIndex];
+            if (tn == null) 
+                return false;
 
             foreach (TrackPin pin in tn.TrackPins)
             {
@@ -598,7 +597,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetLocationFromTrackNode()
         {
-            Location = TrackDB.TrackNodes[JunctionIndex].UiD.Location;
+            Location = TrackDB.TrackNodes.JunctionNodes[JunctionIndex].UiD.Location;
         }
 
         /// <summary>
@@ -701,7 +700,7 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
-            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            TrackVectorNode tn = TrackDB.TrackNodes.VectorNodes[TvnIndex];
             Traveller traveller = new Traveller(tn, Location, Direction.Forward);
             CopyDataFromTraveller(traveller);
             trackAngleForward = traveller.RotY; // traveller also has TvnIndex, tvs, offset, etc, but we are not using that (should be consistent though)
@@ -714,8 +713,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">TrackPDP from .pat file</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathVectorNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
-            : base(pdp, trackDB, tsectionDat)
+        public TrainpathVectorNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
+            : base(tpn, trackDB, tsectionDat)
         {
             try
             {
@@ -731,7 +730,19 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
-            InterpretPathNodeFlags(tpn);
+            NodeType = tpn.NodeType switch
+            {
+                PathNodeType.Normal => TrainpathNodeType.Other,
+                PathNodeType.Intermediate => TrainpathNodeType.Other,
+                PathNodeType.Start => TrainpathNodeType.Other,
+                PathNodeType.End => TrainpathNodeType.Other,
+                PathNodeType.Wait => TrainpathNodeType.Stop,
+                PathNodeType.SidingStart => TrainpathNodeType.Other,
+                PathNodeType.SidingEnd => TrainpathNodeType.Other,
+                PathNodeType.Reversal => TrainpathNodeType.Reverse,
+                PathNodeType.Temporary => TrainpathNodeType.Other,
+                _ => throw new NotImplementedException(),
+            };
         }
 
         /// <summary>
@@ -766,7 +777,7 @@ namespace ORTS.TrackViewer.Editing
         private float GetSectionStartDistance()
         {
             float distanceFromStart = 0;
-            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            TrackVectorNode tn = TrackDB.TrackNodes.VectorNodes[TvnIndex];
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
                 TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
@@ -863,41 +874,6 @@ namespace ORTS.TrackViewer.Editing
         public bool IsBetween(TrainpathNode node1, TrainpathNode node2)
         {
             return (IsEarlierOnTrackThan(node1) != IsEarlierOnTrackThan(node2));
-        }
-
-        // Flag Intepretation
-        // (No flag interpretation for junction nodes)
-
-        // Possible interpretation (as found on internet, by krausyao)
-        // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
-        // AAAA wait time seconds in hexidecimal
-        // BBBB (Also hexidecimal, so 16 bits)
-        // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
-        // Bit 1 - waiting point (2/x2)
-        // Bit 2 - intermediate point between switches (4/x4)
-        // Bit 3 - 'other exit' is used (8/x8)
-        // Bit 4 - 'optional Route' active (16/x10)
-        //
-        // But the interpretation below is a bit more complicated.
-        // Since this interpretation belongs to the PATfile itself, 
-        // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(PathNode tpn)
-        {
-            if ((tpn.PathFlags & (PathFlags.ReversalPoint & PathFlags.WaitPoint)) == 0) return;
-            // bit 0 and/or bit 1 is set.
-
-            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
-            {
-                // if bit 0 is set: reversal
-                NodeType = TrainpathNodeType.Reverse;
-            }
-            else
-            {
-                // bit 0 is not set, but bit 1 is set:waiting point
-                NodeType = TrainpathNodeType.Stop;
-            }
-
-            WaitTimeS = tpn.WaitTime; // get the AAAA part.
         }
 
         /// <summary>

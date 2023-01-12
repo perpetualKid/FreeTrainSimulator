@@ -199,11 +199,11 @@ namespace Orts.ActivityRunner.Viewer3D
         private bool carOnCurve;
         private readonly MSTSWagonViewer wagonViewer;
 
-        public TrackSoundSource(MSTSWagon car, MSTSWagonViewer carViewer) :
+        public TrackSoundSource(MSTSWagonViewer carViewer) :
             base(carViewer)
         {
             wagonViewer = TrainCar as MSTSWagonViewer ?? throw new InvalidCastException(nameof(carViewer));
-            Car = car;
+            Car = TrainCar.Car as MSTSWagon ?? throw new InvalidCastException(nameof(carViewer));
             inSources = new List<SoundSource>();
             outSources = new List<SoundSource>();
 
@@ -231,9 +231,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
             }
             if (insideSound)
-                inSources.Add(new SoundSource(Car, fullPath));
+                inSources.Add(new SoundSource(Car, TrainCar, fullPath));
             else
-                outSources.Add(new SoundSource(Car, fullPath));
+                outSources.Add(new SoundSource(Car, TrainCar, fullPath));
         }
 
         public override void Uninitialize()
@@ -582,7 +582,8 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="viewer"></param>
         /// <param name="car"></param>
         /// <param name="smsFilePath"></param>
-        public SoundSource(MSTSWagon car, string smsFilePath)
+        public SoundSource(MSTSWagon car, TrainCarViewer carViewer, string smsFilePath): 
+            base(carViewer)
         {
             Car = car;
             Initialize(car.WorldPosition.WorldLocation, SoundEventSource.Car, smsFilePath);
@@ -859,13 +860,12 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="eventID">Occured event</param>
         public void HandleEvent(TrainEvent eventID)
         {
-            foreach (var ss in SoundStreams)
+            foreach (SoundStream ss in SoundStreams)
             {
-                foreach (var trg in ss.Triggers)
+                foreach (ORTSTrigger trg in ss.Triggers)
                 {
-                    var dt = trg as ORTSDiscreteTrigger;
-                    if (dt != null)
-                        dt.HandleEvent(eventID);
+                    if (trg is ORTSDiscreteTrigger discreteTrigger)
+                        discreteTrigger.OnCarSoundEvent(null, new SoundSourceEventArgs(eventID, null));
                 }
             }
         }
@@ -1205,7 +1205,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// List of owned variable triggers. Used at determining if initial trigger is to be audible
         /// </summary>
-        public List<ORTSTrigger> VariableTriggers = new List<ORTSTrigger>();
+        public List<ORTSVariableTrigger> VariableTriggers = new List<ORTSVariableTrigger>();
 
         /// <summary>
         /// Helper object for determining if initial trigger is to be audible
@@ -1239,40 +1239,29 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         Triggers.Add(new ORTSTrigger()); // null trigger
                     }
-                    else if (trigger is DistanceTravelledTrigger && soundSource.Car != null)
+                    else if (trigger is DistanceTravelledTrigger distanceTrigger && soundSource.Car != null)
                     {
-                        Triggers.Add(new ORTSDistanceTravelledTrigger(this, (DistanceTravelledTrigger)trigger));
+                        Triggers.Add(new ORTSDistanceTravelledTrigger(this, distanceTrigger));
                     }
-                    else if (trigger is InitialTrigger)
+                    else if (trigger is InitialTrigger initialTrigger)
                     {
-                        _InitialTrigger = new ORTSInitialTrigger(this, (InitialTrigger)trigger);
+                        _InitialTrigger = new ORTSInitialTrigger(this, initialTrigger);
                         Triggers.Add(_InitialTrigger);
                     }
-                    else if (trigger is RandomTrigger)
+                    else if (trigger is RandomTrigger randomTrigger)
                     {
-                        Triggers.Add(new ORTSRandomTrigger(this, (RandomTrigger)trigger));
+                        Triggers.Add(new ORTSRandomTrigger(this, randomTrigger));
                     }
-                    else if (trigger is VariableTrigger && (soundSource.Car != null || soundSource.IsEnvSound))
+                    else if (trigger is VariableTrigger variableTrigger && (soundSource.Car != null || soundSource.IsEnvSound))
                     {
-                        Triggers.Add(new ORTSVariableTrigger(this, (VariableTrigger)trigger));
+                        Triggers.Add(new ORTSVariableTrigger(this, variableTrigger));
                     }
-                    else if (trigger is DiscreteTrigger && soundSource.Car != null)
+                    else if (trigger is DiscreteTrigger discreteTrigger)
                     {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger);
+                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, discreteTrigger);
                         Triggers.Add(ortsTrigger);  // list them here so we can enable and disable
-                        try
-                        {
-                            SoundSource.Car.EventHandlers.Add(ortsTrigger);  // tell the simulator to call us when the event occurs
-                        }
-                        catch (Exception error)
-                        {
-                            Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
-                        }
-                    }
-                    else if (trigger is DiscreteTrigger)
-                    {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger);
-                        Triggers.Add(ortsTrigger);  // list them here so we can enable and disable 
+                        if (SoundSource.Car != null)
+                            SoundSource.Car.OnCarSound += ortsTrigger.OnCarSoundEvent; // tell the simulator to call us when the event occurs
                     }
                     // unapplicable trigger type
                     else
@@ -1285,9 +1274,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     IsReleasedWithJump |= (Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump);
                 }  // for each mstsStream.Trigger
 
-            VariableTriggers = (from t in Triggers
-                                where t is ORTSVariableTrigger
-                                select t).ToList();
+            VariableTriggers = Triggers.OfType<ORTSVariableTrigger>().ToList();
         }
 
         public SoundStream(string wavFileName, SoundEventSource eventSource, SoundSource soundSource)
@@ -1614,7 +1601,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
     /// <summary>
     /// Play this sound when a discrete TrainCar event occurs in the simulator
     /// </summary>
-    public class ORTSDiscreteTrigger : ORTSTrigger, IEventHandler
+    public class ORTSDiscreteTrigger : ORTSTrigger
     {
         /// <summary>
         /// Event this trigger listens to
@@ -1650,37 +1637,15 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         }
 
         /// <summary>
-        /// Check if this trigger listens to an event
-        /// </summary>
-        /// <param name="trainEvent">Occured event</param>
-        public void HandleEvent(TrainEvent trainEvent)
-        {
-            if (trainEvent == TriggerID)
-            {
-                Triggered = true;
-            }
-        }
-
-        /// <summary>
         /// Check if this trigger listens to an event, and if also belongs to the object
         /// </summary>
         /// <param name="trainEvent">Occured event</param>
         /// <param name="viewer">Object the event belongs to</param>
-        public void HandleEvent(TrainEvent trainEvent, object viewer)
+        internal void OnCarSoundEvent(object sender, SoundSourceEventArgs e)
         {
-            if (trainEvent == TriggerID)
+            if (e.SoundEvent == TriggerID)
             {
-                try
-                {
-                    if (Program.Viewer.SoundProcess.IsSoundSourceOwnedBy(viewer, SoundStream.SoundSource))
-                    {
-                        Triggered = true;
-                    }
-                }
-                catch
-                {
-                    return;
-                }
+                Triggered = e.Owner == null || Program.Viewer.SoundProcess.IsSoundSourceOwnedBy(e.Owner, SoundStream.SoundSource);
             }
         }
 
@@ -2579,14 +2544,14 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             break;
                         case OrtsActivitySoundFileType.Cab:
                             var playerLoco = (MSTSWagon)Program.Viewer.Simulator.PlayerLocomotive;
-                            ActivitySounds = new SoundSource(playerLoco, ORTSActSoundFile);
+                            ActivitySounds = new SoundSource(playerLoco, Program.Viewer.World.Trains.GetViewer(playerLoco), ORTSActSoundFile);
                             Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             break;
                         case OrtsActivitySoundFileType.Pass:
                             if (Program.Viewer.Camera.Style == Camera.Styles.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
-                                ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile);
+                                ActivitySounds = new SoundSource(selectedWagon, Program.Viewer.World.Trains.GetViewer(selectedWagon), ORTSActSoundFile);
                                 Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             }
                             break;

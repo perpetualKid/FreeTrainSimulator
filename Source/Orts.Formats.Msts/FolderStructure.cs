@@ -185,9 +185,13 @@ namespace Orts.Formats.Msts
 
             public string SoundFolder => Path.Combine(Folder, "Sound");
 
-            public string ConsistsFolder => Path.Combine(Folder, "Trains", "Consists");
+            public string TrainsFolder => Path.Combine(Folder, "Trains");
 
-            public string TrainSetsFolder => Path.Combine(Folder, "Trains", "TrainSet");
+            public string ConsistsFolder => Path.Combine(TrainsFolder, "Consists");
+
+            public string TrainSetsFolder => Path.Combine(TrainsFolder, "TrainSet");
+
+            public string EndOfTrainDevicesFolder => Path.Combine(TrainsFolder, "Orts_Eot");
 
             public string TexturesFolder => Path.Combine(Folder, Global, "Textures");
 

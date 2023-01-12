@@ -31,6 +31,7 @@ using System.Windows.Forms;
 using GetText;
 using GetText.WindowsForms;
 
+using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Settings;
 
@@ -45,8 +46,8 @@ namespace Orts.Menu
         private bool clearedLogs;
         private readonly string runActivity;
         private readonly UserSettings settings;
-        private readonly string summaryFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
-        private readonly string logFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingLog.txt");
+        private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
+        private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
         public TestingForm(UserSettings settings, string runActivity)
         {

@@ -8,8 +8,8 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
-using Orts.Models.Simplified;
 using Orts.Graphics;
+using Orts.Models.Simplified;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -66,7 +66,7 @@ namespace Orts.Toolbox.WinForms.Controls
             SetupVisibilityMenuItem(pickupsVisibleToolStripMenuItem, MapViewItemSettings.Pickups);
             SetupVisibilityMenuItem(soundRegionsVisibleToolStripMenuItem, MapViewItemSettings.SoundRegions);
 
-            SetupVisibilityMenuItem(tileGidVisibleToolStripMenuItem, MapViewItemSettings.Grid);
+            SetupVisibilityMenuItem(tileGridVisibleToolStripMenuItem, MapViewItemSettings.Grid);
 
             LoadLanguage(languageSelectionComboBoxMenuItem.ComboBox);
             languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
@@ -179,7 +179,8 @@ namespace Orts.Toolbox.WinForms.Controls
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
         {
-            Invoke((MethodInvoker)delegate {
+            Invoke((MethodInvoker)delegate
+            {
                 SuspendLayout();
                 menuItemRoutes.DropDownItems.Clear();
                 foreach (Route route in routes)
@@ -197,10 +198,34 @@ namespace Orts.Toolbox.WinForms.Controls
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Route route)
             {
-                await parent.LoadRoute(route).ConfigureAwait(false);
+                if (menuItem.Checked)
+                {
+                    menuItem.Checked = false;
+                    parent.UnloadRoute();
+                }
+                else
+                {
+                    UncheckOtherMenuItems(menuItem);
+                    await parent.LoadRoute(route).ConfigureAwait(false);
+                }
             }
+        }
+
+        internal void PreSelectRoute(string routeName)
+        {
+            Invoke((MethodInvoker)delegate
+            {
+                foreach (object dropdownItem in menuItemRoutes.DropDownItems)
+                {
+                    if (dropdownItem is ToolStripMenuItem menuItem && menuItem.Text == routeName)
+                    {
+                        UncheckOtherMenuItems(menuItem);
+                        break;
+                    }
+                }
+            });
         }
 
         internal void PopulateContentFolders(IEnumerable<Folder> folders)
@@ -234,7 +259,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             if (sender is ToolStripMenuItem folderItem)
             {
-                UncheckOtherFolderMenuItems(folderItem);
+                UncheckOtherMenuItems(folderItem);
                 if (folderItem.Tag is Folder folder)
                 {
                     parent.UnloadRoute();
@@ -256,7 +281,7 @@ namespace Orts.Toolbox.WinForms.Controls
             return null;
         }
 
-        private static void UncheckOtherFolderMenuItems(ToolStripMenuItem selectedMenuItem)
+        private static void UncheckOtherMenuItems(ToolStripMenuItem selectedMenuItem)
         {
             selectedMenuItem.Checked = true;
 
@@ -295,7 +320,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             StringBuilder documentation = new StringBuilder();
             documentation.AppendLine(parent.Catalog.GetString($"Documentation for {RuntimeInfo.ApplicationName} is available online at:"));
-            documentation.AppendLine(RuntimeInfo.WikiUri.ToString());
+            documentation.AppendLine(RuntimeInfo.WikiLink.ToString());
             documentation.AppendLine();
             documentation.AppendLine(parent.Catalog.GetString("Do you want to visit the website now?"));
             documentation.AppendLine(parent.Catalog.GetString("This will open the page in standard web browser."));
@@ -303,9 +328,8 @@ namespace Orts.Toolbox.WinForms.Controls
             DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
-                SystemInfo.OpenBrowser(RuntimeInfo.WikiUri);
+                SystemInfo.OpenBrowser(RuntimeInfo.WikiLink);
             }
-
         }
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -323,5 +347,71 @@ namespace Orts.Toolbox.WinForms.Controls
             if (e.KeyCode == Keys.Menu)
                 MainMenuStrip.Enabled = true;
         }
+
+        #region Path Methods
+
+        internal void PopulatePaths(IEnumerable<Models.Simplified.Path> paths)
+        {
+            Invoke((MethodInvoker)delegate
+            {
+                List<ToolStripMenuItem> menuItems = new List<ToolStripMenuItem>();
+                foreach (Models.Simplified.Path path in paths)
+                {
+                    ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
+                    {
+                        Tag = path,
+                    };
+                    pathItem.Click += LoadPathToolStripMenuItem_Click;
+                    menuItems.Add(pathItem);
+                }
+                SuspendLayout();
+                loadPathToolStripMenuItem.DropDownItems.Clear();
+                loadPathToolStripMenuItem.DropDownItems.AddRange(menuItems.ToArray());
+                ResumeLayout();
+            });
+        }
+
+        internal void ClearPathMenu()
+        {
+            loadPathToolStripMenuItem.DropDownItems.Clear();
+        }
+
+        private async void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Models.Simplified.Path path)
+            {
+                if (menuItem.Checked)
+                {
+                    parent.UnloadPath();
+                    menuItem.Checked = false;
+                }
+                else
+                {
+                    if (await parent.LoadPath(path).ConfigureAwait(false))
+                        UncheckOtherMenuItems(menuItem);
+                    else
+                        MessageBox.Show("Invalid Path");
+                }
+            }
+        }
+
+        internal void PreSelectPath(string pathFile)
+        {
+            foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
+            {
+                if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as Models.Simplified.Path)?.FilePath == pathFile)
+                {
+                    UncheckOtherMenuItems(menuItem);
+                    break;
+                }
+            }
+        }
+
+        private void EnableEditToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        #endregion
     }
 }

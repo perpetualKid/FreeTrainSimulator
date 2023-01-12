@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
@@ -21,15 +20,15 @@ namespace Orts.Graphics.MapView
         private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings>();
         private protected readonly EnumArray<ITileCoordinate<Tile>, MapViewItemSettings> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapViewItemSettings>();
 
-        public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
+        public bool UseMetricUnits { get; }
 
-        public string RouteName { get; } = RuntimeData.Instance.RouteName;
+        public string RouteName { get; } 
 
         public ContentArea ContentArea { get; }
 
         public Rectangle Bounds { get; protected set; }
 
-        public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+        public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
@@ -38,9 +37,11 @@ namespace Orts.Graphics.MapView
         protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            if (null == RuntimeData.Instance)
+            if (null == RuntimeData.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
+            RouteName = RuntimeData.GameInstance(game).RouteName;
+            UseMetricUnits = RuntimeData.GameInstance(game).UseMetricUnits;
         }
 
         public abstract Task Initialize();
@@ -55,6 +56,11 @@ namespace Orts.Graphics.MapView
             this.viewSettings = settings;
         }
 
+        public void HighlightItem(MapViewItemSettings mapviewItem, ITileCoordinate<Tile> item)
+        {
+            nearestItems[mapviewItem] = item;
+        }
+
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
 
         internal abstract void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight);
@@ -66,12 +72,26 @@ namespace Orts.Graphics.MapView
             // if there is only one tile, limit the dimensions to the extend of the track within that tile
             if (contentItems[MapViewItemSettings.Grid].Count == 1)
             {
-                foreach (TrackEndSegment trackEndSegment in contentItems[MapViewItemSettings.EndNodes])
+                if (contentItems[MapViewItemSettings.EndNodes].ItemCount > 0)
                 {
-                    minX = Math.Min(minX, trackEndSegment.Location.X);
-                    minY = Math.Min(minY, trackEndSegment.Location.Y);
-                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
-                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
+                    foreach (EndNode endNode in contentItems[MapViewItemSettings.EndNodes])
+                    {
+                        minX = Math.Min(minX, endNode.Location.X);
+                        minY = Math.Min(minY, endNode.Location.Y);
+                        maxX = Math.Max(maxX, endNode.Location.X);
+                        maxY = Math.Max(maxY, endNode.Location.Y);
+                    }
+                }
+                else
+                {
+                    foreach (TrackSegment trackSegment in contentItems[MapViewItemSettings.Tracks])
+                    {
+                        minX = Math.Min(minX, trackSegment.Location.X);
+                        minY = Math.Min(minY, trackSegment.Location.Y);
+                        maxX = Math.Max(maxX, trackSegment.Location.X);
+                        maxY = Math.Max(maxY, trackSegment.Location.Y);
+                    }
+
                 }
             }
             else
@@ -93,7 +113,7 @@ namespace Orts.Graphics.MapView
 
         private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
         {
-            public abstract NameValueCollection DebugInfo { get; }
+            public abstract InformationDictionary DetailInfo { get; }
 
             public abstract Dictionary<string, FormatOption> FormattingOptions { get; }
         }

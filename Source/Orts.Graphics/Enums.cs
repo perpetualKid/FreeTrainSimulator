@@ -59,5 +59,6 @@
     public enum ShaderEffect
     {
         PopupWindow,
+        Diagram,
     }
 }

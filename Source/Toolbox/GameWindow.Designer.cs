@@ -44,7 +44,6 @@ namespace Orts.Toolbox
             this.mainmenu.SuspendLayout();
             windowForm.MainMenuStrip = mainmenu.Controls[0] as MenuStrip;
             this.mainmenu.Dock = DockStyle.Top;
-            //windowForm.Controls.Add(mainmenu.Controls[0]);
             windowForm.Controls.Add(mainmenu);
 
             this.mainmenu.ResumeLayout();

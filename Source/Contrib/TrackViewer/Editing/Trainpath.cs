@@ -215,7 +215,6 @@ namespace ORTS.TrackViewer.Editing
             if (patFile.PathID == null) { return true; }
             if (patFile.Start == null) { return true; }
             if (patFile.End == null) { return true; }
-            if (patFile.DataPoints.Count == 0) { return true; }
             if (patFile.PathNodes.Count == 0) { return true; }
 
             return false;
@@ -229,7 +228,7 @@ namespace ORTS.TrackViewer.Editing
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], trackDB, tsectionDat));
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDB, tsectionDat));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }
@@ -610,7 +609,7 @@ namespace ORTS.TrackViewer.Editing
             if (tvnIndex < 0)
                 return stationNames;
 
-            TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
+            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[tvnIndex];
             if (tvn == null)
                 return stationNames;
             if (tvn.TrackItemIndices == null)

@@ -2,41 +2,37 @@
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class GridTile: VectorWidget, ITileCoordinate<Tile>
+    internal class GridTile: VectorPrimitive, IDrawable<VectorPrimitive>
     {
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;
 
         static GridTile()
         {
-            SetColors<GridTile>(Color.Black);
+            WidgetColorCache.SetColors<GridTile>(Color.Black);
         }
 
-        public GridTile(ITile tile)
+        public GridTile(ITile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
         {
-            if (tile is Tile t)
-                this.tile = t;
-            else
-                this.tile = new Tile(tile);
-
-            location = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, -1024));
-            upperLeft = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, 1024));
-            lowerRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, -1024));
-            vectorEnd = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, 1024));
-
+            upperLeft = PointD.FromWorldLocation(WorldLocationFromTile(tile, -1024, 1024));
+            lowerRight = PointD.FromWorldLocation(WorldLocationFromTile(tile, 1024, -1024));
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        private static WorldLocation WorldLocationFromTile(ITile tile, int x, int z)
         {
-            Color color = GetColor<GridTile>(colorVariation);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(vectorEnd), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
-            BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(vectorEnd), contentArea.SpriteBatch);
+            return new WorldLocation(tile.X, tile.Z, x, 0, z);
+        }
+
+        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        {
+            Color color = this.GetColor<GridTile>(colorVariation);
+            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
         }
 
         public override double DistanceSquared(in PointD point)

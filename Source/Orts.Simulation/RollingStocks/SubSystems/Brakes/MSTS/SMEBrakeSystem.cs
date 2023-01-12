@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -33,60 +32,70 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public SMEBrakeSystem(TrainCar car)
             : base(car)
         {
-            DebugType = "SME";
+            debugBrakeType = "SME";
         }
 
         public override void Update(double elapsedClockSeconds)
         {
-            MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
+            MSTSLocomotive lead = (MSTSLocomotive)car.Train.LeadLocomotive;
             float demandedAutoCylPressurePSI = 0;
 
             // Only allow SME brake tokens to operate if car is connected to an SME system
-            if (lead == null || !(lead.BrakeSystem is SMEBrakeSystem))
+            if (lead == null || lead.BrakeSystem is not SMEBrakeSystem)
             {
-                HoldingValve = ValveState.Release;
+                holdingValve = ValveState.Release;
                 base.Update(elapsedClockSeconds);
                 return;
             }
 
             // process valid SME brake tokens
 
-            if (BrakeLine3PressurePSI >= 1000f || Car.Train.BrakeLine4 < 0)
+            if (BrakeLine3PressurePSI >= 1000f || car.Train.BrakeSystem.BrakeLine4Pressure < 0)
             {
-                HoldingValve = ValveState.Release;
+                holdingValve = ValveState.Release;
             }
-            else if (Car.Train.BrakeLine4 == 0)
+            else if (car.Train.BrakeSystem.BrakeLine4Pressure == 0)
             {
-                HoldingValve = ValveState.Lap;
+                holdingValve = ValveState.Lap;
             }
             else
             {
-                demandedAutoCylPressurePSI = Math.Min(Math.Max(Car.Train.BrakeLine4, 0), 1) * MaxCylPressurePSI;
-                HoldingValve = AutoCylPressurePSI <= demandedAutoCylPressurePSI ? ValveState.Lap : ValveState.Release;
+                demandedAutoCylPressurePSI = Math.Min(Math.Max(car.Train.BrakeSystem.BrakeLine4Pressure, 0), 1) * maxCylPressurePSI;
+                holdingValve = autoCylPressurePSI <= demandedAutoCylPressurePSI ? ValveState.Lap : ValveState.Release;
             }
-            
-                base.Update(elapsedClockSeconds); // Allow processing of other valid tokens
 
+            base.Update(elapsedClockSeconds); // Allow processing of other valid tokens
 
-            if (AutoCylPressurePSI < demandedAutoCylPressurePSI && !Car.WheelBrakeSlideProtectionActive)
+            if (autoCylPressurePSI < demandedAutoCylPressurePSI && !car.WheelBrakeSlideProtectionActive)
             {
-                float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
-                if (BrakeLine2PressurePSI - dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio < AutoCylPressurePSI + dp)
-                    dp = (BrakeLine2PressurePSI - AutoCylPressurePSI) / (1 + AuxBrakeLineVolumeRatio / AuxCylVolumeRatio);
-                if (dp > demandedAutoCylPressurePSI - AutoCylPressurePSI)
-                    dp = demandedAutoCylPressurePSI - AutoCylPressurePSI;
-                BrakeLine2PressurePSI -= dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio;
-                AutoCylPressurePSI += dp;
+                float dp = (float)elapsedClockSeconds * maxApplicationRatePSIpS;
+                if (BrakeLine2PressurePSI - dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio < autoCylPressurePSI + dp)
+                    dp = (BrakeLine2PressurePSI - autoCylPressurePSI) / (1 + auxBrakeLineVolumeRatio / auxCylVolumeRatio);
+                if (dp > demandedAutoCylPressurePSI - autoCylPressurePSI)
+                    dp = demandedAutoCylPressurePSI - autoCylPressurePSI;
+                BrakeLine2PressurePSI -= dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
+                autoCylPressurePSI += dp;
             }
-            
+            brakeInfo.Update(null);
         }
 
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
-            var s = $" {Simulator.Catalog.GetString("BC")} {FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}";
-            if (HandbrakePercent > 0)
-                s += $" {Simulator.Catalog.GetString("Handbrake")} {HandbrakePercent:F0}%";
+            var s = $" {Simulator.Catalog.GetString("BC")} {FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}";
+            if (handbrakePercent > 0)
+                s += $" {Simulator.Catalog.GetString("Handbrake")} {handbrakePercent:F0}%";
             return s;
+        }
+
+        private protected override void UpdateBrakeStatus()
+        {
+            base.UpdateBrakeStatus();
+            brakeInfo["BrakeType"] = "SME";
+
+            brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakeCylinder], true);
+            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInfo["Status"] = $"BC {brakeInfo["BC"]}";
+            brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], false)}";
         }
     }
 }

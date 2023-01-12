@@ -232,12 +232,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile("microtex.ace"));
 
             if (SharedPatchIndexBuffer == null)
-                SetupSharedData(Viewer.RenderProcess.GraphicsDevice);
+                SetupSharedData(Viewer.Game.GraphicsDevice);
 
             Tile = null;
             Patch = null;
 
-            VertexBufferBindings = new[] { new VertexBufferBinding(PatchVertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.RenderProcess.GraphicsDevice)) };
+            VertexBufferBindings = new[] { new VertexBufferBinding(PatchVertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.Game.GraphicsDevice)) };
         }
 
         public void PrepareFrame(RenderFrame frame)
@@ -403,7 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (i == bufferSize) //16 * 16 * 6
                 return null;
 
-            IndexBuffer result = new IndexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            IndexBuffer result = new IndexBuffer(Viewer.Game.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
             result.SetData(indexBuffer, 0, i);
             return result;
         }
@@ -439,7 +439,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             averageElevation = totalElevation / bufferSize;
-            VertexBuffer result = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionNormalTexture), bufferSize, BufferUsage.WriteOnly);
+            VertexBuffer result = new VertexBuffer(Viewer.Game.GraphicsDevice, typeof(VertexPositionNormalTexture), bufferSize, BufferUsage.WriteOnly);
             result.SetData(vertexbuffer);
             return result;
         }

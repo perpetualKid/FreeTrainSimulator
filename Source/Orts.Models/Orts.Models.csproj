@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Open Rails Entity Models Library</Description>
+    <AssemblyTitle>Open Rails Entity Models Library</AssemblyTitle>
+    <OutputPath>..\..\Program</OutputPath>
+    <AssemblyName>Orts.Models</AssemblyName>
+    <RootNamespace>Orts.Models</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
+    <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+    <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
+    <PackageReference Include="GetText.NET" Version="1.7.14" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+  </ItemGroup>
+</Project>

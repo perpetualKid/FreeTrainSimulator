@@ -159,10 +159,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 FirstCol = "Sprtr",
             });
 
-            TrainCar trainCar = viewer.PlayerLocomotive;
-            Train train = trainCar.Train;
-            MSTSLocomotive locomotive = (MSTSLocomotive)trainCar;
-            var multipleUnitsConfiguration = locomotive.GetMultipleUnitsConfiguration();
+            MSTSLocomotive locomotive = viewer.PlayerLocomotive;
+            Train train = locomotive.Train;
+            var multipleUnitsConfiguration = (locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             List<string> lastCol;
             List<string> symbolCol;
             var notDpuTrain = false;

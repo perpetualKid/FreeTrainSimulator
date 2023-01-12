@@ -14,7 +14,7 @@ namespace Orts.Formats.Msts.Models
         /// Warning, the first TrackNode is always null.
         /// </summary>
 #pragma warning disable CA1002 // Do not expose generic lists
-        public List<TrackNode> TrackNodes { get; private set; }
+        public TrackNodes TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the road database
@@ -33,7 +33,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tracknodes", ()=>{
                     stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
-                    TrackNodes = new List<TrackNode>(count + 1) { null };
+                    TrackNodes = new TrackNodes(count + 1) { null };
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tracknode", ()=>{ TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, count)); }),
                     });
@@ -45,7 +45,7 @@ namespace Orts.Formats.Msts.Models
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems.Add(new RoadLevelCrossingItem(stf, TrackItems.Count)); }),
                         new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems.Add(new EmptyItem(stf, TrackItems.Count)); }),
-                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrackItems.Add(new RoadCarSpawner(stf, TrackItems.Count)); })
+                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrackItems.Add(new RoadCarSpawnerItem(stf, TrackItems.Count)); })
                     });
                 }),
             });
@@ -81,14 +81,14 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Represent a Car Spawner: the place where cars start to appear or disappear again
     /// </summary>
-	public class RoadCarSpawner : TrackItem
+	public class RoadCarSpawnerItem : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
-		internal RoadCarSpawner(STFReader stf, int idx)
+		internal RoadCarSpawnerItem(STFReader stf, int idx)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {

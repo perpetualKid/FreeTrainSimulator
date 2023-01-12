@@ -17,20 +17,19 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.Common.Xna;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.Common.Xna;
+using Orts.Formats.Msts.Files;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -209,13 +208,11 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;
         public readonly ParticleEmitterShader ParticleEmitterShader;
-        public readonly PopupWindowShader PopupWindowShader;
         public readonly PrecipitationShader PrecipitationShader;
         public readonly SceneryShader SceneryShader;
         public readonly ShadowMapShader ShadowMapShader;
         public readonly ShadowMapShader[] ShadowMapShaders;
         public readonly SkyShader SkyShader;
-        public readonly DebugShader DebugShader;
 
         public static Texture2D MissingTexture;
         public static Texture2D DefaultSnowTexture;
@@ -225,18 +222,17 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             // TODO: Move to Loader process.
-            LightConeShader = new LightConeShader(viewer.RenderProcess.GraphicsDevice);
-            LightGlowShader = new LightGlowShader(viewer.RenderProcess.GraphicsDevice);
-            ParticleEmitterShader = new ParticleEmitterShader(viewer.RenderProcess.GraphicsDevice);
-            PopupWindowShader = new PopupWindowShader(viewer, viewer.RenderProcess.GraphicsDevice);
-            PrecipitationShader = new PrecipitationShader(viewer.RenderProcess.GraphicsDevice);
-            SceneryShader = new SceneryShader(viewer.RenderProcess.GraphicsDevice);
+            LightConeShader = new LightConeShader(viewer.Game.GraphicsDevice);
+            LightGlowShader = new LightGlowShader(viewer.Game.GraphicsDevice);
+            ParticleEmitterShader = new ParticleEmitterShader(viewer.Game.GraphicsDevice);
+            PrecipitationShader = new PrecipitationShader(viewer.Game.GraphicsDevice);
+            SceneryShader = new SceneryShader(viewer.Game.GraphicsDevice);
             var microtexPath = Path.Combine(viewer.Simulator.RouteFolder.TerrainTexturesFolder, "microtex.ace");
             if (File.Exists(microtexPath))
             {
                 try
                 {
-                    SceneryShader.OverlayTexture = AceFile.Texture2DFromFile(viewer.RenderProcess.GraphicsDevice, microtexPath);
+                    SceneryShader.OverlayTexture = AceFile.Texture2DFromFile(viewer.Game.GraphicsDevice, microtexPath);
                 }
                 catch (InvalidDataException error)
                 {
@@ -247,17 +243,16 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.WriteLine(new FileLoadException(microtexPath, error));
                 }
             }
-            ShadowMapShader = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+            ShadowMapShader = new ShadowMapShader(viewer.Game.GraphicsDevice);
             ShadowMapShaders = new ShadowMapShader[4];
             for (int i = 0; i < ShadowMapShaders.Length; i++)
             {
-                ShadowMapShaders[i] = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+                ShadowMapShaders[i] = new ShadowMapShader(viewer.Game.GraphicsDevice);
             }
-            SkyShader = new SkyShader(viewer.RenderProcess.GraphicsDevice);
-            DebugShader = new DebugShader(viewer.RenderProcess.GraphicsDevice);
+            SkyShader = new SkyShader(viewer.Game.GraphicsDevice);
 
             // TODO: This should happen on the loader thread.
-            MissingTexture = SharedTextureManager.Get(viewer.RenderProcess.GraphicsDevice, Path.Combine(viewer.ContentPath, "blank.bmp"));
+            MissingTexture = SharedTextureManager.Get(viewer.Game.GraphicsDevice, Path.Combine(viewer.ContentPath, "blank.bmp"));
 
             // Managing default snow textures
             var defaultSnowTexturePath = Path.Combine(viewer.Simulator.RouteFolder.TerrainTexturesFolder, "Snow", "ORTSDefaultSnow.ace");
@@ -277,26 +272,14 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 switch (materialName)
                 {
-                    case "Debug":
-                        Materials[materialKey] = new HUDGraphMaterial(Viewer);
-                        break;
-                    case "DebugNormals":
-                        Materials[materialKey] = new DebugNormalMaterial(Viewer);
-                        break;
                     case "Forest":
                         Materials[materialKey] = new ForestMaterial(Viewer, textureName);
-                        break;
-                    case "Label3D":
-                        Materials[materialKey] = new Label3DMaterial(Viewer);
                         break;
                     case "LightCone":
                         Materials[materialKey] = new LightConeMaterial(Viewer);
                         break;
                     case "LightGlow":
                         Materials[materialKey] = new LightGlowMaterial(Viewer);
-                        break;
-                    case "PopupWindow":
-                        Materials[materialKey] = new PopupWindowMaterial(Viewer);
                         break;
                     case "ParticleEmitter":
                         Materials[materialKey] = new ParticleEmitterMaterial(Viewer, textureName);
@@ -365,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count = 0;
                     // retest if there is enough free memory left;
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace < 0)
                     {
                         return false; // too bad, no more space, other night textures won't be loaded
@@ -388,7 +371,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     count = 0;
                     // retest if there is enough free memory left;
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace < 0)
                     {
                         return false; // too bad, no more space, other night textures won't be loaded
@@ -1129,76 +1112,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class PopupWindowMaterial : Material
-    {
-        private EffectPassCollection shaderPasses;
-        private readonly PopupWindowShader shader;
-
-        public PopupWindowMaterial(Viewer viewer)
-            : base(viewer, null)
-        {
-            shader = Viewer.MaterialManager.PopupWindowShader;
-        }
-
-        public void SetState(Texture2D screen)
-        {
-            shader.CurrentTechnique = shader.Techniques[^1];// screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
-            shaderPasses = shader.CurrentTechnique.Passes;
-
-            // FIXME: MonoGame cannot read backbuffer contents
-            //shader.Screen = screen;
-            shader.GlassColor = Color.Black;
-            shader.Opacity = 0.5f;
-
-            graphicsDevice.BlendState = BlendState.NonPremultiplied;
-            graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            graphicsDevice.DepthStencilState = DepthStencilState.None;
-        }
-
-        public void Render(RenderPrimitive renderPrimitive, in Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
-        {
-            MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
-            MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
-            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(in worldMatrix, ref wvp);
-
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                shaderPasses[j].Apply();
-                renderPrimitive.Draw();
-            }
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            MatrixExtension.Multiply(in view, in projection, out Matrix result);
-            MatrixExtension.Multiply(in result, in viewProjection, out Matrix wvp);
-            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(in view, ref wvp);
-
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    shaderPasses[j].Apply();
-                    renderItems[i].RenderPrimitive.Draw();
-                }
-            }
-        }
-
-        public override void ResetState()
-        {
-            graphicsDevice.BlendState = BlendState.Opaque;
-            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        }
-
-        public override bool GetBlending()
-        {
-            return true;
-        }
-    }
-
     public class YellowMaterial : Material
     {
         private static BasicEffect basicEffect;
@@ -1294,87 +1207,5 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-    }
-
-    public class Label3DMaterial : SpriteBatchMaterial
-    {
-        public Texture2D Texture { get; private set; }
-        public WindowTextFont Font { get; private set; }
-
-        private readonly List<Rectangle> textBoxes = new List<Rectangle>();
-
-        public Label3DMaterial(Viewer viewer)
-            : base(viewer)
-        {
-            Texture = new Texture2D(SpriteBatch.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            Texture.SetData(new[] { Color.White });
-            Font = Viewer.WindowManager.TextManager.GetScaled("Arial", 12, System.Drawing.FontStyle.Bold, 1);
-        }
-
-        public override void SetState(Material previousMaterial)
-        {
-            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
-            SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            textBoxes.Clear();
-            base.Render(renderItems, ref view, ref projection, ref viewProjection);
-        }
-
-        public override bool GetBlending()
-        {
-            return true;
-        }
-
-        public Point GetTextLocation(int x, int y, string text)
-        {
-            // Start with a box in the location specified.
-            var textBox = new Rectangle(x, y, Font.MeasureString(text), Font.Height);
-            textBox.X -= textBox.Width / 2;
-            textBox.Inflate(5, 2);
-            // Find all the existing boxes which overlap with the new box, as if its top was extended upwards to infinity.
-            var boxes = textBoxes.Where(box => box.Top <= textBox.Bottom && box.Right >= textBox.Left && box.Left <= textBox.Right).OrderBy(box => -box.Top);
-            // For each possible colliding box, if it does collide, shift the new box above it.
-            foreach (var box in boxes)
-                if (box.Top <= textBox.Bottom && box.Bottom >= textBox.Top)
-                    textBox.Y = box.Top - textBox.Height;
-            // And we're done.
-            textBoxes.Add(textBox);
-            return new Point(textBox.X + 5, textBox.Y + 2);
-        }
-    }
-
-    public class DebugNormalMaterial : Material
-    {
-        private readonly EffectPassCollection shaderPasses;
-        private readonly DebugShader shader;
-
-        public DebugNormalMaterial(Viewer viewer)
-            : base(viewer, null)
-        {
-            shader = viewer.MaterialManager.DebugShader;
-            shaderPasses = shader.Techniques[0].Passes;
-        }
-
-        public override void SetState(Material previousMaterial)
-        {
-            shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
-        }
-
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-        {
-            for (int j = 0; j < shaderPasses.Count; j++)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProjection);
-                    shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw();
-                }
-            }
-        }
     }
 }

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-mgfxc": {
+      "version": "3.8.1.303",
+      "commands": [
+        "mgfxc"
+      ]
+    },
+    "nbgv": {
+      "version": "3.5.119",
+      "commands": [
+        "nbgv"
+      ]
+    },
+    "gettext.net.extractor": {
+      "version": "1.7.14",
+      "commands": [
+        "gettext.extractor"
+      ]
+    }
+  }
+}

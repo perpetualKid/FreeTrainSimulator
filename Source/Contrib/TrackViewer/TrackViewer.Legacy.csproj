@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Track Viewer (Contributed)</Description>
@@ -86,15 +86,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="1.1.4" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+    <PackageReference Include="GetText.NET" Version="1.7.14" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="1.7.14" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Graphics\Orts.Graphics.csproj" />
-    <ProjectReference Include="..\..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">

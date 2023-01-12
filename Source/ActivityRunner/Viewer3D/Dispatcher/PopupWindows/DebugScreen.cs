@@ -1,4 +1,6 @@
 ﻿
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -15,12 +17,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         Common,
     }
 
-    public class DebugScreen : OverlayWindowBase
+    public class DebugScreen : OverlayBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
 
-        public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
-            base(owner, caption, Point.Zero, Point.Zero)
+        public DebugScreen(WindowManager owner, Color backgroundColor, Catalog catalog = null) :
+            base(owner, catalog ?? CatalogManager.Catalog)
         {
             ZOrder = 0;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));

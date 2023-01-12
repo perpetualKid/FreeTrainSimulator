@@ -4,9 +4,8 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Materials;
-
-using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
@@ -17,7 +16,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
         private bool disposedValue;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public LoadingPrimitive(Game game)
+        public LoadingPrimitive(GameHost game)
         {
             Material = GetMaterial(game);
             var verticies = GetVertices(game);
@@ -25,12 +24,12 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
             VertexBuffer.SetData(verticies);
         }
 
-        protected virtual LoadingMaterial GetMaterial(Game game)
+        protected virtual LoadingMaterial GetMaterial(GameHost game)
         {
             return new LoadingMaterial(game);
         }
 
-        protected virtual VertexPositionTexture[] GetVertices(Game game)
+        protected virtual VertexPositionTexture[] GetVertices(GameHost game)
         {
             var dd = (float)Material.TextureWidth / 2;
             return new[] {
@@ -43,6 +42,8 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
         public override void Draw()
         {
+            if (disposedValue) 
+                return;
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
         }
@@ -54,6 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
                 if (disposing)
                 {
                     Material?.Dispose();
+                    VertexBuffer?.Dispose();
                 }
 
                 disposedValue = true;

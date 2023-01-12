@@ -88,11 +88,9 @@ namespace Orts.Common
         /// </summary>
         public static string GetDescription<T>(this T item) where T : Enum
         {
-            if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
-            {
-                return description;
-            }
-            throw new ArgumentOutOfRangeException(nameof(item));
+            return EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description)
+                ? description
+                : throw new ArgumentOutOfRangeException(nameof(item));
         }
 
         /// <summary>
@@ -114,10 +112,9 @@ namespace Orts.Common
             if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
             {
                 string context;
-                if (string.IsNullOrEmpty(context = EnumCache<T>.EnumDescription))
-                    return EnumCache<T>.Catalog.GetString(description);
-                else
-                    return EnumCache<T>.Catalog.GetParticularString(context, description);
+                return string.IsNullOrEmpty(context = EnumCache<T>.EnumDescription)
+                    ? EnumCache<T>.Catalog.GetString(description)
+                    : EnumCache<T>.Catalog.GetParticularString(context, description);
             }
             throw new ArgumentOutOfRangeException(nameof(item));
         }
@@ -164,6 +161,11 @@ namespace Orts.Common
         /// </summary>
         public static bool GetValue<T>(string name, out T result) where T : Enum
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                result = default(T);
+                return false;
+            }
             return EnumCache<T>.NameValuePairs.TryGetValue(name, out result);
         }
 
@@ -226,14 +228,7 @@ namespace Orts.Common
         /// </summary>
         public static T Min<T>() where T : Enum
         {
-            if (EnumCache<T>.Offset < 0)
-            {
-                return EnumCache<T>.Values.Min(); 
-            }
-            else
-            {
-                return EnumCache<T>.Values[0];
-            }
+            return EnumCache<T>.Offset < 0 ? EnumCache<T>.Values.Min() : EnumCache<T>.Values[0];
         }
 
         /// <summary>
@@ -241,14 +236,7 @@ namespace Orts.Common
         /// </summary>
         public static T Max<T>() where T : Enum
         {
-            if (EnumCache<T>.Offset < 0)
-            {
-                return EnumCache<T>.Values.Max();
-            }
-            else
-            {
-                return EnumCache<T>.Values[EnumCache<T>.Length - 1];
-            }
+            return EnumCache<T>.Offset < 0 ? EnumCache<T>.Values.Max() : EnumCache<T>.Values[EnumCache<T>.Length - 1];
         }
 
     }

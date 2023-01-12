@@ -206,20 +206,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         private HudApiTable ApiHUD_ProcessTable(int pageNo)
         {
-            Popups.HUDWindow.TableData hudTable = viewer.HUDWindow.PrepareTable(pageNo);
-            int nRows = hudTable.Cells.GetLength(0);
-            int nCols = hudTable.Cells.GetLength(1);
-            IEnumerable<string> GetValues()
-            {
-                foreach (int r in Enumerable.Range(0, nRows))
-                    foreach (int c in Enumerable.Range(0, nCols))
-                        yield return hudTable.Cells[r, c];
-            }
             return new HudApiTable()
             {
-                nRows = nRows,
-                nCols = nCols,
-                values = GetValues().ToArray()
+                nRows = 0,
+                nCols = 0,
+                values = null,
             };
         }
         #endregion

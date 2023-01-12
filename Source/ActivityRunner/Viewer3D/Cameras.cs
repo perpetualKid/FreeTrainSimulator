@@ -25,8 +25,8 @@ using System.Linq;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -164,12 +164,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public int TileX { get { return cameraLocation.TileX; } }
         public int TileZ { get { return cameraLocation.TileZ; } }
         public Vector3 Location { get { return cameraLocation.Location; } }
-        public WorldLocation CameraWorldLocation { get { return cameraLocation; } }
+        public ref WorldLocation CameraWorldLocation => ref cameraLocation; 
         protected int MouseScrollValue;
         internal protected float FieldOfView;
 
         private Matrix xnaView;
         public ref Matrix XnaView => ref xnaView;
+
+        public bool ViewChanged { get; private set; }
 
         private Matrix projection;
         private static Matrix skyProjection;
@@ -253,7 +255,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer.Camera = this;
             Viewer.Simulator.PlayerIsInCab = Style == Styles.Cab || Style == Styles.ThreeDimCab;
             Update(ElapsedTime.Zero);
+            Matrix currentView = xnaView;
             xnaView = GetCameraView();
+            ViewChanged = currentView != xnaView; 
             SoundBaseTile = new Point(cameraLocation.TileX, cameraLocation.TileZ);
         }
 
@@ -301,7 +305,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="elapsedTime"></param>
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
+            Matrix currentView = xnaView;
             xnaView = GetCameraView();
+            ViewChanged = currentView != xnaView;
             frame.SetCamera(this);
             frustumLeft.X = -xnaView.M11 * frustumRightProjected.X + xnaView.M13 * frustumRightProjected.Z;
             frustumLeft.Y = -xnaView.M21 * frustumRightProjected.X + xnaView.M23 * frustumRightProjected.Z;
@@ -394,10 +400,6 @@ namespace Orts.ActivityRunner.Viewer3D
         // TODO: Add a way to record this zoom operation for Replay.
         private protected void ZoomByMouse(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers, float speedAdjustmentFactor = 1)
         {
-            // Will not zoom-in-out when help windows is up.
-            if (Viewer.HelpWindow.Visible)
-                return;
-
             float fieldOfView = MathHelper.Clamp(FieldOfView - GetSpeed(gameTime, commandArgs, modifiers, Viewer) * speedAdjustmentFactor / 10, 1, 135);
             _ = new FieldOfViewCommand(Viewer.Log, fieldOfView);
         }
@@ -2172,8 +2174,10 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 nearsource = new Vector3(position.X, position.Y, 0f);
             Vector3 farsource = new Vector3(position.X, position.Y, 1f);
             Matrix world = Matrix.CreateTranslation(0, 0, 0);
-            Vector3 nearPoint = Viewer.DefaultViewport.Unproject(nearsource, XnaProjection, XnaView, world);
-            Vector3 farPoint = Viewer.DefaultViewport.Unproject(farsource, XnaProjection, XnaView, world);
+
+            ref readonly Viewport viewport = ref Viewer.RenderProcess.Viewport;
+            Vector3 nearPoint = viewport.Unproject(nearsource, XnaProjection, XnaView, world);
+            Vector3 farPoint = viewport.Unproject(farsource, XnaProjection, XnaView, world);
 
             Shapes.PoseableShape trainCarShape = mstsLocomotiveViewer.CabViewer3D.TrainCarShape;
             Dictionary<int, AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;

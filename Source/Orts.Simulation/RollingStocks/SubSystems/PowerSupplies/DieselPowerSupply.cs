@@ -33,7 +33,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override PowerSupplyType Type => PowerSupplyType.DieselElectric;
         public bool Activated;
-        private DieselPowerSupply Script => AbstractScript as DieselPowerSupply;
+        private DieselPowerSupply Script => abstractScript as DieselPowerSupply;
 
         public float DieselEngineMinRpmForElectricTrainSupply { get; protected set; }
         public float DieselEngineMinRpm => ElectricTrainSupplyOn ? DieselEngineMinRpmForElectricTrainSupply : 0f;
@@ -63,11 +63,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public override void Copy(IPowerSupply other)
+        public override void Copy(IPowerSupply source)
         {
-            base.Copy(other);
+            base.Copy(source);
 
-            if (other is ScriptedDieselPowerSupply scriptedOther)
+            if (source is ScriptedDieselPowerSupply scriptedOther)
             {
                 TractionCutOffRelay.Copy(scriptedOther.TractionCutOffRelay);
             }
@@ -79,13 +79,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if (!Activated)
             {
-                if (ScriptName != null && ScriptName != "Default")
+                if (scriptName != null && scriptName != "Default")
                 {
-                    AbstractScript = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as DieselPowerSupply;
+                    abstractScript = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as DieselPowerSupply;
                 }
                 if (Script == null)
                 {
-                    AbstractScript = new DefaultDieselPowerSupply();
+                    abstractScript = new DefaultDieselPowerSupply();
                 }
 
                 AssignScriptFunctions();
@@ -111,7 +111,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Save(BinaryWriter outf)
         {
-            outf.Write(ScriptName);
+            outf.Write(scriptName);
 
             base.Save(outf);
             TractionCutOffRelay.Save(outf);
@@ -119,7 +119,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Restore(BinaryReader inf)
         {
-            ScriptName = inf.ReadString();
+            scriptName = inf.ReadString();
 
             base.Restore(inf);
             TractionCutOffRelay.Restore(inf);

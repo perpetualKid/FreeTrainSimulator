@@ -67,7 +67,7 @@ namespace ORTS.TrackViewer.Drawing
             if (originalTrItem is Orts.Formats.Msts.Models.LevelCrossingItem)    { return new DrawableLevelCrItem(originalTrItem); }
             if (originalTrItem is SoundRegionItem){ return new DrawableSoundRegionItem(originalTrItem); }
             if (originalTrItem is RoadLevelCrossingItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
-            if (originalTrItem is RoadCarSpawner) { return new DrawableCarSpawnerItem(originalTrItem); }
+            if (originalTrItem is RoadCarSpawnerItem) { return new DrawableCarSpawnerItem(originalTrItem); }
             if (originalTrItem is CrossoverItem)  { return new DrawableCrossoverItem(originalTrItem); }
             return new DrawableEmptyItem(originalTrItem);
         }

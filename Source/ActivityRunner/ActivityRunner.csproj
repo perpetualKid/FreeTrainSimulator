@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<Description>Open Rails Activity Runner</Description>
@@ -6,7 +6,7 @@
 		<AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.ActivityRunner</RootNamespace>
 	</PropertyGroup>
 	<PropertyGroup>
@@ -42,14 +42,14 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="EmbedIO" Version="3.4.3" />
-		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-		<PackageReference Include="GetText.NET" Version="1.1.4" />
-		<PackageReference Include="GetText.NET.WindowsForms" Version="1.1.4" />
+		<PackageReference Include="EmbedIO" Version="3.5.2" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="GetText.NET" Version="1.7.14" />
+		<PackageReference Include="GetText.NET.WindowsForms" Version="1.7.14" />
 		<PackageReference Include="OpenAL-Soft" Version="1.16.0">
 			<GeneratePathProperty>True</GeneratePathProperty>
 		</PackageReference>
-		<PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+		<PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -78,6 +78,6 @@
 		</None>
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="if Defined Agent.TempDirectory (cd %25Agent.TempDirectory%25) else (cd %25temp%25)&#xD;&#xA;echo %25cd%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc)&#xD;&#xA;if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Content\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
+		<Exec Command="if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Content\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
 	</Target>
 </Project>

@@ -1,6 +1,7 @@
 ﻿
+using GetText;
+
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
@@ -9,6 +10,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
+using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -19,31 +21,35 @@ namespace Orts.Toolbox.PopupWindows
         Route,
     }
 
-    public class DebugScreen : OverlayWindowBase
+    public class DebugScreen : OverlayBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
         private readonly UserCommandController<UserCommand> userCommandController;
-
+        private readonly ToolboxSettings toolboxSettings;
         private DebugScreenInformation currentDebugScreen;
 
-        public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
-            base(owner, caption, Point.Zero, Point.Zero)
+        public DebugScreen(WindowManager owner, ToolboxSettings settings, Color backgroundColor) :
+            base(owner, CatalogManager.Catalog)
         {
             ZOrder = 0;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            toolboxSettings = settings;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling));
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
-            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
+            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = new int[] { 150, -1 } };
             UpdateBackgroundColor(backgroundColor);
+            _ = EnumExtension.GetValue(toolboxSettings.PopupSettings[ToolboxWindowType.DebugScreen], out currentDebugScreen);
+            currentProvider[currentDebugScreen].Visible = true;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
+            layout = base.Layout(layout, headerScaling);
             foreach (NameValueTextGrid item in currentProvider)
             {
                 layout?.Add(item);
             }
-            return base.Layout(layout, headerScaling);
+            return layout;
         }
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
@@ -58,8 +64,12 @@ namespace Orts.Toolbox.PopupWindows
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
-            foreach(NameValueTextGrid item in currentProvider)
-                item.TextColor = backgroundColor.ComplementColor();
+            bool complementColor = toolboxSettings.ComplementFontColor;
+            foreach (NameValueTextGrid item in currentProvider)
+            {
+                item.OutlineRenderOptions = !complementColor ? OutlineRenderOptions.Default : null;
+                item.TextColor = complementColor ? backgroundColor.ComplementColor() : Color.White;
+            }
         }
 
         public override bool Open()
@@ -74,7 +84,7 @@ namespace Orts.Toolbox.PopupWindows
             return base.Close();
         }
 
-        public override void TabAction(UserCommandArgs args)
+        private void TabAction(UserCommandArgs args)
         {
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
@@ -82,6 +92,7 @@ namespace Orts.Toolbox.PopupWindows
                     currentProvider[currentDebugScreen].Visible = false;
                 currentDebugScreen = currentDebugScreen.Next();
                 currentProvider[currentDebugScreen].Visible = true;
+                toolboxSettings.PopupSettings[ToolboxWindowType.DebugScreen] = currentDebugScreen.ToString();
             }
         }
     }

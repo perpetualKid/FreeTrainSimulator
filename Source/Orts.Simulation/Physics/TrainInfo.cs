@@ -2,8 +2,6 @@
 
 using Orts.Common;
 
-using static Orts.Simulation.Physics.Train;
-
 namespace Orts.Simulation.Physics
 {
     //================================================================================================//

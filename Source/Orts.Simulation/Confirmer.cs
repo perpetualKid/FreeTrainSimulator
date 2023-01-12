@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Windows.Forms;
 
 using Orts.Common;
 
@@ -25,9 +26,9 @@ namespace Orts.Simulation
 {
     public class DisplayMessageEventArgs : EventArgs
     {
-        public readonly string Key;
-        public readonly string Text;
-        public readonly double Duration;
+        public string Key { get; }
+        public string Text { get; }
+        public double Duration { get; }
 
         public DisplayMessageEventArgs(string key, string text, double duration)
         {
@@ -50,17 +51,17 @@ namespace Orts.Simulation
         //                      control, off/reset/initialize, neutral, on/apply/switch, decrease, increase, warn
         private readonly string[][] ConfirmText;
         private readonly Simulator Simulator;
-        private readonly double DefaultDurationS;
+        private readonly double defaultDuration;
 
-        public event System.EventHandler PlayErrorSound;
+        public event EventHandler PlayErrorSound;
         public event EventHandler<DisplayMessageEventArgs> DisplayMessage;
 
-        public Confirmer(Simulator simulator, double defaultDurationS)
+        public Confirmer(Simulator simulator)
         {
-            //TODO 2020-01-14 this needs to be synced and moved up to Orts.Common.Enums.CabControl
             Simulator = simulator;
-            DefaultDurationS = defaultDurationS;
+            defaultDuration = simulator?.Settings.NotificationsTimeout / 1000f ?? throw new ArgumentNullException(nameof(simulator));
 
+            //TODO 2020-01-14 this needs to be synced and moved up to Orts.Common.Enums.CabControl
             Func<string, string> GetString = (value) => Simulator.Catalog.GetString(value);
             Func<string, string, string> GetParticularString = (context, value) => Simulator.Catalog.GetParticularString(context, value);
 
@@ -221,7 +222,7 @@ namespace Orts.Simulation
 
         public void Warning(CabControl control, CabSetting setting)
         {
-            if (PlayErrorSound != null) PlayErrorSound(this, EventArgs.Empty);
+            PlayErrorSound?.Invoke(this, EventArgs.Empty);
             Message(control, ConfirmLevel.Warning, ConfirmText[(int)control][(int)setting]);
         }
 
@@ -233,7 +234,7 @@ namespace Orts.Simulation
             Message(CabControl.None, ConfirmLevel.Information, message);
         }
 
-		public void MSG(string message)
+		public void Message(string message)
 		{
 			Message(CabControl.None, ConfirmLevel.Message, message);
 		}
@@ -253,9 +254,14 @@ namespace Orts.Simulation
             Message(CabControl.None, level, message);
         }
 
+        public void PlainTextMessage(ConfirmLevel level, string message, double duration)
+        {
+            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs(null, message, duration));
+        }
+
         #endregion
 
-        private void Message(CabControl control, ConfirmLevel level, string message)
+        private void Message(CabControl control, ConfirmLevel level, string message, double duration = double.NaN)
         {
             // User can suppress levels None and Information but not Warning, Error and MSGs.
             // Cab control confirmations have level None.
@@ -268,9 +274,14 @@ namespace Orts.Simulation
                 format = "{0}: " + format;
             if (level >= ConfirmLevel.Information)
                 format = "{1} - " + format;
-			var duration = DefaultDurationS;
-			if (level >= ConfirmLevel.Warning) duration *= 2;
-			if (level >= ConfirmLevel.Message) duration *= 5;
+            if (double.IsNaN(duration))
+            duration = level switch
+            {
+                >= ConfirmLevel.Message => defaultDuration * 10,
+                >= ConfirmLevel.Error => defaultDuration * 5,
+                >= ConfirmLevel.Warning => defaultDuration * 2,
+                _ => defaultDuration,
+            };
             DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(CultureInfo.CurrentCulture, format, ConfirmText[(int)control][0], level.GetLocalizedDescription(), message), duration));
         }
     }

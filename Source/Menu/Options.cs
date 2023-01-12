@@ -133,7 +133,7 @@ namespace Orts.Menu
             numericDistantMountainsViewingDistance.Value = this.settings.DistantMountainsViewingDistance / 1000;
             numericViewingFOV.Value = this.settings.ViewingFOV;
             numericWorldObjectDensity.Value = this.settings.WorldObjectDensity;
-            comboWindowSize.Text = this.settings.WindowSize;
+            comboWindowSize.Text = $"{this.settings.WindowSettings[WindowSetting.Size][0]}x{this.settings.WindowSettings[WindowSetting.Size][1]}";
             trackDayAmbientLight.Value = this.settings.DayAmbientLight;
             TrackDayAmbientLight_ValueChanged(null, null);
             checkDoubleWire.Checked = this.settings.DoubleWire;
@@ -309,7 +309,7 @@ namespace Orts.Menu
             settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
             settings.ViewingFOV = (int)numericViewingFOV.Value;
             settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
-            settings.WindowSize = GetValidWindowSize(comboWindowSize.Text);
+            settings.WindowSettings[WindowSetting.Size] = GetValidWindowSize(comboWindowSize.Text);
 
             settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
             settings.DoubleWire = checkDoubleWire.Checked;
@@ -390,14 +390,14 @@ namespace Orts.Menu
         /// <summary>
         /// Returns user's [width]x[height] if expression is valid and values are sane, else returns previous value of setting.
         /// </summary>
-        private string GetValidWindowSize(string text)
+        private int[] GetValidWindowSize(string text)
         {
             Match match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
-                return $"{match.Groups[1]}x{match.Groups[2]}";
+                return new int[2] {int.Parse(match.Groups[1].ValueSpan), int.Parse(match.Groups[2].ValueSpan) };
             }
-            return settings.WindowSize; // i.e. no change or message. Just ignore non-numeric entries
+            return settings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
         }
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)

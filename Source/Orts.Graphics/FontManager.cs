@@ -18,7 +18,7 @@ namespace Orts.Graphics
 
         public static FontManagerInstance Exact(string fontName, FontStyle style)
         {
-            int hash = HashCode.Combine(fontName, style);
+            int hash = HashCode.Combine(fontName, style, false);
             if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
             {
                 result = new FontManagerInstance(fontName, style);
@@ -29,7 +29,7 @@ namespace Orts.Graphics
 
         public static FontManagerInstance Exact(FontFamily fontFamily, FontStyle style)
         {
-            int hash = HashCode.Combine(fontFamily, style);
+            int hash = HashCode.Combine(fontFamily, style, false);
             if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
             {
                 result = new FontManagerInstance(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style);
@@ -40,7 +40,7 @@ namespace Orts.Graphics
 
         public static FontManagerInstance Scaled(string fontName, FontStyle style)
         {
-            int hash = HashCode.Combine(fontName, style);
+            int hash = HashCode.Combine(fontName, style, true);
             if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
             {
                 result = new FontManagerInstance(fontName, style, ScalingFactor);
@@ -51,7 +51,7 @@ namespace Orts.Graphics
 
         public static FontManagerInstance Scaled(FontFamily fontFamily, FontStyle style)
         {
-            int hash = HashCode.Combine(fontFamily, style);
+            int hash = HashCode.Combine(fontFamily, style, true);
             if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
             {
                 result = new FontManagerInstance(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style, ScalingFactor);

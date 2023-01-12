@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Windows.Forms;
 
+using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 
@@ -16,47 +17,33 @@ namespace Orts.Toolbox
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.SetCompatibleTextRenderingDefault(false);
-            using (GameWindow game = new GameWindow())
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+            try
             {
-                if (Debugger.IsAttached)
+                using (GameWindow game = new GameWindow())
                 {
                     game.Run();
                 }
-                else
-                {
-                    try
-                    {
-                        game.Run();
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types
-                    catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
-                        string errorSummary = ex.GetType().FullName + ": " + ex.Message;
-                        string logFile = game.LogFileName;
-                        if (string.IsNullOrEmpty(logFile))
-                        {
-                            MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ApplicationFolder} cannot continue.\n\n" +
-                                    $"    {errorSummary}\n\n" +
-                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl}. Since Logging is currently disable, please enable Logging in the Option Menu, run {RuntimeInfo.ApplicationFolder} again and watch for the log file produced.\n\n",
-                                    $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else
-                        {
-                            DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ApplicationFolder} cannot continue.\n\n" +
-                                    $"    {errorSummary}\n\n" +
-                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl} and attaching the log file {logFile}.\n\n" +
-                                    ">>> Click OK to report this error on the GitHub bug tracker <<<",
-                                    $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                            if (openTracker == DialogResult.OK)
-#pragma warning disable CA2234 // Pass system uri objects instead of strings
-                                SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
-#pragma warning restore CA2234 // Pass system uri objects instead of strings
-                        }
+            }
+            catch (Exception ex) when (!Debugger.IsAttached)
+            {
+                // Log the error first in case we're burning.
+                Trace.WriteLine(new FatalException(ex));
+                string errorSummary = ex.GetType().FullName + ": " + ex.Message;
+                DialogResult openTracker = MessageBox.Show(
+@$"A fatal error has occured and {RuntimeInfo.ApplicationName} cannot continue.
 
-                    }
-                }
+    {errorSummary}
+
+This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationName} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl}. 
+If Logging is enabled, please also attach or post the log file.
+
+>>> Click OK to report this error on the GitHub bug tracker <<<",
+                        $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                if (openTracker == DialogResult.OK)
+                    SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
             }
         }
     }
 }
+

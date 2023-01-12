@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +15,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Xna;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView
 {
@@ -26,16 +26,16 @@ namespace Orts.Graphics.MapView
         private readonly InsetComponent insetComponent;
         private readonly TrackNodeInfoProxy trackNodeInfo = new TrackNodeInfoProxy();
 
-        //backreferences to draw whole TrackNode segment (all track vector sections) out of the current track vector section
-        internal Dictionary<int, List<SegmentBase>> TrackNodeSegments { get; private set; }
-        internal Dictionary<int, List<SegmentBase>> RoadTrackNodeSegments { get; private set; }
+        private EditorTrainPath currentPath;
+
+        public TrainPath TrainPath => currentPath?.TrainPathModel;
 
         public ToolboxContent(Game game) :
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
-            DebugInfo.Add("Route Information", null);
-            DebugInfo["Route Name"] = RuntimeData.Instance.RouteName;
+            DetailInfo.Add("Route Information", null);
+            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
             TrackNodeInfo = trackNodeInfo;
         }
@@ -46,16 +46,18 @@ namespace Orts.Graphics.MapView
             await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
 
             ContentArea.Initialize();
+            //just put an empty list so the draw method does not skip the paths
+            contentItems[MapViewItemSettings.Paths] = new TileIndexedList<Widgets.EditorTrainPath, Tile>(new List<Widgets.EditorTrainPath>() { });
 
-            DebugInfo["Metric Scale"] = RuntimeData.Instance.UseMetricUnits.ToString();
-            DebugInfo["Track Nodes"] = $"{TrackNodeSegments.Count}";
-            DebugInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
-            DebugInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
-            DebugInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
-            DebugInfo["Road Nodes"] = $"{RoadTrackNodeSegments.Count}";
-            DebugInfo["Road Segments"] = $"{contentItems[MapViewItemSettings.Roads].ItemCount}";
-            DebugInfo["Road End Segments"] = $"{contentItems[MapViewItemSettings.RoadEndNodes].ItemCount}";
-            DebugInfo["Tiles"] = $"{contentItems[MapViewItemSettings.Grid].Count}";
+            DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
+            DetailInfo["Track Nodes"] = $"{TrackModel.Instance<RailTrackModel>(game).SegmentSections.Count}";
+            DetailInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
+            DetailInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
+            DetailInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
+            DetailInfo["Road Nodes"] = $"{TrackModel.Instance<RoadTrackModel>(game).SegmentSections.Count}";
+            DetailInfo["Road Segments"] = $"{contentItems[MapViewItemSettings.Roads].ItemCount}";
+            DetailInfo["Road End Segments"] = $"{contentItems[MapViewItemSettings.RoadEndNodes].ItemCount}";
+            DetailInfo["Tiles"] = $"{contentItems[MapViewItemSettings.Grid].Count}";
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
@@ -71,7 +73,7 @@ namespace Orts.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
-            nearestSegmentForStatus = (float.NaN, null);
+            nearestSegmentForStatus = (float.MaxValue, null);
             GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
             {
@@ -88,21 +90,21 @@ namespace Orts.Graphics.MapView
                 {
                     foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
-                        if (item is VectorWidget vectorWidget)
+                        if (item is VectorPrimitive vectorPrimitive)
                         {
-                            double itemDistance = vectorWidget.DistanceSquared(position);
+                            double itemDistance = vectorPrimitive.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[viewItemSettings] = vectorWidget;
+                                nearestItems[viewItemSettings] = vectorPrimitive;
                                 distance = itemDistance;
                             }
                         }
-                        else if (item is PointWidget pointWidget)
+                        else if (item is PointPrimitive pointPrimitive)
                         {
-                            double itemDistance = pointWidget.Location.DistanceSquared(position);
+                            double itemDistance = pointPrimitive.Location.DistanceSquared(position);
                             if (itemDistance < distance)
                             {
-                                nearestItems[viewItemSettings] = pointWidget;
+                                nearestItems[viewItemSettings] = pointPrimitive;
                                 distance = itemDistance;
                             }
                         }
@@ -121,60 +123,102 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItemSetting in EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
+                if (viewSettings[viewItemSetting] && contentItems[viewItemSetting] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
+                    if (viewItemSetting == MapViewItemSettings.Paths)
                     {
-                        // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
-                        // but the performance impact/overhead seems invariant
-                        if (item is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                            (vectorwidget).Draw(ContentArea);
-                        else if (item is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                            (pointWidget).Draw(ContentArea);
+                        currentPath?.Draw(ContentArea);
+                    }
+                    else
+                    {
+                        foreach (ITileCoordinate<Tile> item in contentItems[viewItemSetting].BoundingBox(bottomLeft, topRight))
+                        {
+                            // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
+                            // but the performance impact/overhead seems invariant
+                            if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            {
+                                (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
+                            }
+                            else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            {
+                                (item as IDrawable<PointPrimitive>).Draw(ContentArea);
+                            }
+                        }
                     }
                 }
             }
-            if (null != nearestItems[MapViewItemSettings.Tracks])
+            // skip highlighting closest track items if a path is loaded
+            if (currentPath != null)
             {
-                foreach (SegmentBase segment in TrackNodeSegments[(nearestItems[MapViewItemSettings.Tracks] as SegmentBase).TrackNodeIndex])
-                {
-                    segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
-                }
-            }
-            if (null != nearestItems[MapViewItemSettings.Roads])
-            {
-                foreach (SegmentBase segment in RoadTrackNodeSegments[(nearestItems[MapViewItemSettings.Roads] as SegmentBase).TrackNodeIndex])
-                {
-                    segment.Draw(ContentArea, ColorVariation.ComplementHighlight);
-                }
-            }
 
-            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            }
+            else
             {
-                if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
+                if (null != nearestItems[MapViewItemSettings.Tracks])
                 {
-                    if (nearestItems[viewItemSettings] is VectorWidget vectorwidget && ContentArea.InsideScreenArea(vectorwidget))
-                        (vectorwidget).Draw(ContentArea, ColorVariation.Complement);
-                    else if (nearestItems[viewItemSettings] is PointWidget pointWidget && ContentArea.InsideScreenArea(pointWidget))
-                        (pointWidget).Draw(ContentArea, ColorVariation.Complement);
+                    TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
+                    foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    {
+                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    }
+                }
+                if (null != nearestItems[MapViewItemSettings.Roads])
+                {
+                    TrackModel roadTrackModel = TrackModel.Instance<RoadTrackModel>(game);
+                    foreach (TrackSegmentBase segment in roadTrackModel.SegmentSections[(nearestItems[MapViewItemSettings.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    {
+                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                    }
+                }
+
+                foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+                {
+                    if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
+                    {
+                        if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                        else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                    }
                 }
             }
         }
 
+        #region additional content (Paths)
+        public void InitializePath(PathFile path)
+        {
+            currentPath = path != null ? new EditorTrainPath(path, game) : null;
+            if (currentPath != null && currentPath.TopLeftBound != PointD.None && currentPath.BottomRightBound != PointD.None)
+            {
+                ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
+                ContentArea?.SetTrackingPosition(currentPath.MidPoint);
+            }
+        }
+
+        public void HighlightPathItem(int index)
+        {
+            currentPath.SelectedNodeIndex = index;
+            Widgets.EditorPathItem item = currentPath.SelectedNode;
+            if (item != null)
+                ContentArea.SetTrackingPosition(item.Location);
+        }
+        #endregion
+
         #region build content database
         private void AddTrackSegments()
         {
-            TrackDB trackDB = RuntimeData.Instance.TrackDB;
-            RoadTrackDB roadTrackDB = RuntimeData.Instance.RoadTrackDB;
-            TrackSectionsFile trackSectionsFile = RuntimeData.Instance.TSectionDat;
+            RuntimeData runtimeData = RuntimeData.GameInstance(game);
+            TrackDB trackDB = runtimeData.TrackDB;
+            RoadTrackDB roadTrackDB = runtimeData.RoadTrackDB;
+            TrackSectionsFile trackSectionsFile = runtimeData.TSectionDat;
             if (null == trackSectionsFile)
                 throw new ArgumentNullException(nameof(trackSectionsFile));
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<TrackEndSegment> endSegments = new ConcurrentBag<TrackEndSegment>();
-            ConcurrentBag<JunctionSegment> junctionSegments = new ConcurrentBag<JunctionSegment>();
+            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
+            ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<JunctionNode>();
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
@@ -183,8 +227,8 @@ namespace Orts.Graphics.MapView
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
+                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
@@ -194,7 +238,12 @@ namespace Orts.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
+                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
+                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
+                        {
+                            vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
+                        }
+                        junctionSegments.Add(new JunctionNode(trackJunctionNode, trackSectionsFile.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes, trackSectionsFile.TrackSections));
                         break;
                 }
             });
@@ -202,9 +251,9 @@ namespace Orts.Graphics.MapView
             insetComponent?.SetTrackSegments(trackSegments);
 
             contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
-            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            TrackNodeSegments = trackSegments.Cast<SegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.OrderBy(t => t.TrackVectorSectionIndex).ToList());
+            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
+            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
+            TrackModel.Initialize<RailTrackModel>(game, runtimeData, trackSegments, junctionSegments, endSegments);
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
@@ -226,9 +275,9 @@ namespace Orts.Graphics.MapView
 
             contentItems[MapViewItemSettings.Roads] = new TileIndexedList<RoadSegment, Tile>(roadSegments);
             contentItems[MapViewItemSettings.RoadEndNodes] = new TileIndexedList<RoadEndSegment, Tile>(roadEndSegments);
-            RoadTrackNodeSegments = roadSegments.Cast<SegmentBase>().GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
+            TrackModel.Initialize<RoadTrackModel>(game, runtimeData, roadSegments, Enumerable.Empty<JunctionNodeBase>(), roadEndSegments);
 
-            // indentify all tiles by looking at tracks and roads and their respective end segments
+            // identify all tiles by looking at tracks and roads and their respective end segments
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
                 contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
                 .Union(contentItems[MapViewItemSettings.EndNodes].Select(d => d.Tile as ITile).Distinct())
@@ -241,13 +290,21 @@ namespace Orts.Graphics.MapView
 
         private void AddTrackItems()
         {
-            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(RuntimeData.Instance.TrackDB?.TrackItems, RuntimeData.Instance.SignalConfigFile, RuntimeData.Instance.TrackDB).Concat(TrackItemBase.CreateRoadItems(RuntimeData.Instance.RoadTrackDB?.TrackItems));
+            RuntimeData runtimeData = RuntimeData.GameInstance(game);
+            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
-            List<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackItems.OfType<PlatformTrackItem>(), TrackNodeSegments);
+            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
+                runtimeData.TrackDB?.TrackItems,
+                runtimeData.SignalConfigFile,
+                runtimeData.TrackDB, trackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
+
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
-            List<SidingPath> sidings = SidingPath.CreateSidings(trackItems.OfType<SidingTrackItem>(), TrackNodeSegments);
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
             contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+
+            IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();
 
             contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
             contentItems[MapViewItemSettings.OtherSignals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));
@@ -273,7 +330,7 @@ namespace Orts.Graphics.MapView
         {
             internal INameValueInformationProvider Source;
 
-            public override NameValueCollection DebugInfo => Source?.DebugInfo;
+            public override InformationDictionary DetailInfo => Source?.DetailInfo;
 
             public override Dictionary<string, FormatOption> FormattingOptions => Source?.FormattingOptions;
         }

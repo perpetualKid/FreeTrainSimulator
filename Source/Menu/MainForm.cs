@@ -497,7 +497,7 @@ namespace Orts.Menu
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
                 Path path = Path.GetPath(SelectedRoute, selectedTrain.Path);
-                SelectedTimetablePath = path.IsPlayerPath ? path : null;
+                SelectedTimetablePath = path.PlayerPath ? path : null;
 
                 if (updater == 0)
                 {
@@ -684,7 +684,7 @@ namespace Orts.Menu
         {
             checkBoxWarnings.Checked = settings.Logging;
             //Debrief activity evaluation
-            checkDebriefActivityEval.Checked = settings.DebriefActivityEval;
+            checkDebriefActivityEval.Checked = settings.ActivityEvalulation;
             //TO DO: Debrief TTactivity evaluation
             //checkDebriefTTActivityEval.Checked = Settings.DebriefTTActivityEval;
 
@@ -697,7 +697,7 @@ namespace Orts.Menu
             settings.Logging = checkBoxWarnings.Checked;
             settings.Multiplayer_User = textBoxMPUser.Text;
             //Debrief activity evaluation
-            settings.DebriefActivityEval = checkDebriefActivityEval.Checked;
+            settings.ActivityEvalulation = checkDebriefActivityEval.Checked;
             //TO DO: Debrief TTactivity evaluation
             //Settings.DebriefTTActivityEval = checkDebriefTTActivityEval.Checked;
 

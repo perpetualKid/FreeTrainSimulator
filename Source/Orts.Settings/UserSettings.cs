@@ -18,13 +18,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -34,7 +34,6 @@ namespace Orts.Settings
     {
         private static readonly string[] subSettings = new string[] { "FolderSettings", "Input", "RailDriver", "Dispatcher" };
 
-    public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
@@ -63,11 +62,9 @@ namespace Orts.Settings
                 Location = EnumExtension.GetDescription(StoreType.Registry);
             }
 
-            UserDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.ProductName);
-
-            Directory.CreateDirectory(UserDataFolder);
-            DeletedSaveFolder = Path.Combine(UserDataFolder, "Deleted Saves");
-            SavePackFolder = Path.Combine(UserDataFolder, "Save Packs");
+            Directory.CreateDirectory(RuntimeInfo.UserDataFolder);
+            DeletedSaveFolder = Path.Combine(RuntimeInfo.UserDataFolder, "Deleted Saves");
+            SavePackFolder = Path.Combine(RuntimeInfo.UserDataFolder, "Save Packs");
         }
 
         #region User Settings
@@ -81,9 +78,9 @@ namespace Orts.Settings
         [Default(false)]
         public bool LogErrorsOnly { get; set; }
         [Default(false)]
-        public bool DebriefActivityEval { get; set; }
+        public bool LogSaveData { get; set; }
         [Default(false)]
-        public bool DebriefTTActivityEval { get; set; }
+        public bool ActivityEvalulation { get; set; }
         [Default("")]
         public string Multiplayer_User { get; set; }
         [Default("127.0.0.1")]
@@ -110,6 +107,8 @@ namespace Orts.Settings
         public bool RetainersOnAllCars { get; set; }
         [Default(false)]
         public bool SuppressConfirmations { get; set; }
+        [Default(1500)]
+        public int NotificationsTimeout { get; set; }
         [Default(21)]
         public int BrakePipeChargingRate { get; set; }
         [Default("")]
@@ -164,15 +163,13 @@ namespace Orts.Settings
         public int ViewingFOV { get; set; }
         [Default(49)]
         public int WorldObjectDensity { get; set; }
-        [Default("1024x768")]
-        public string WindowSize { get; set; }
         [Default(20)]
         public int DayAmbientLight { get; set; }
         #region Game Window Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen, centered
-            nameof(WindowSetting.Size) + "=1024, 768"    // absolute pixels
+            nameof(WindowSetting.Size) + "=1024,768"    // absolute pixels
         })]
         public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
 
@@ -322,6 +319,11 @@ namespace Orts.Settings
         [Default(false)]
         public bool ShowAvatar { get; set; }
 
+        #region in-game settings
+        [Default(true)]
+        public bool OdometerShortDistanceMode { get; set; }
+        #endregion
+
         // Internal settings:
         [Default(false)]
         public bool DataLogger { get; set; }
@@ -340,42 +342,93 @@ namespace Orts.Settings
         [Default(true)]
         public bool ShowErrorDialogs { get; set; }
         [Default(new string[0])]
+#pragma warning disable CA1819 // Properties should not return arrays
         public string[] Menu_Selection { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         [Default(false)]
         public bool Multiplayer { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_Activity { get; set; }
-        [Default(new[] { 50, 0 })]
-        public int[] WindowPosition_Compass { get; set; }
-        [Default(new[] { 100, 100 })]
-        public int[] WindowPosition_DriverAid { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_Help { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_MultiPlayer { get; set; }
-        [Default(new[] { 75, 0 })]
-        public int[] WindowPosition_HUDScroll { get; set; }
-        [Default(new[] { 0, 100 })]
-        public int[] WindowPosition_NextStation { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_Quit { get; set; }
-        [Default(new[] { 0, 50 })]
-        public int[] WindowPosition_Switch { get; set; }
-        [Default(new[] { 100, 0 })]
-        public int[] WindowPosition_TrackMonitor { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_TrainDriving { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_TrainOperations { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_TrainDpu { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_CarOperations { get; set; }
-        [Default(new[] { 50, 50 })]
-        public int[] WindowPosition_ComposeMessage { get; set; }
-        [Default(new[] { 100, 0 })]
-        public int[] WindowPosition_TrainList { get; set; }
 
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=50,50",
+            $"{nameof(ViewerWindowType.HelpWindow)}=20,70",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=50,30",
+            $"{nameof(ViewerWindowType.CompassWindow)}=50,0",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=0,50",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=20,50",
+            $"{nameof(ViewerWindowType.NextStationWindow)}=0,100",
+            $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=0,60",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=80,40",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=20,60",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=100,40",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=10,20",
+            $"{nameof(ViewerWindowType.PauseOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.TrainOperationsWindow)}=50,50",
+            $"{nameof(ViewerWindowType.CarOperationsWindow)}=50,50",
+            $"{nameof(ViewerWindowType.TrackMonitorWindow)}=100,0",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=50,50",
+            $"{nameof(ViewerWindowType.NotificationOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.LocationsOverlay)}=0,0",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=0,0",
+        })]
+        public EnumArray<int[], ViewerWindowType> PopupLocations { get; set; }
+
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=False",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=False",
+            $"{nameof(ViewerWindowType.HelpWindow)}=True",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=False",
+            $"{nameof(ViewerWindowType.CompassWindow)}=False",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=False",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=False",
+            $"{nameof(ViewerWindowType.NextStationWindow)}=False",
+            $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=False",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=False",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=False",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=False",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=False",
+            $"{nameof(ViewerWindowType.PauseOverlay)}=False",
+            $"{nameof(ViewerWindowType.TrainOperationsWindow)}=False",
+            $"{nameof(ViewerWindowType.CarOperationsWindow)}=False",
+            $"{nameof(ViewerWindowType.TrackMonitorWindow)}=False",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=False",
+            $"{nameof(ViewerWindowType.NotificationOverlay)}=False",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=False",
+            $"{nameof(ViewerWindowType.LocationsOverlay)}=False",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=False",
+        })]
+        public EnumArray<bool, ViewerWindowType> PopupStatus { get; set; }
+
+        [Default(new string[]
+        {
+            $"{nameof(ViewerWindowType.QuitWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DebugOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.HelpWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.ActivityWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.CompassWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.SwitchWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.EndOfTrainDeviceWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.NextStationWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DetachTimetableTrainWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.TrainListWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.MultiPlayerWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DrivingTrainWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.DistributedPowerWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.PauseOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.TrainOperationsWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.CarOperationsWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.TrackMonitorWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.MultiPlayerMessagingWindow)}=\"\"",
+            $"{nameof(ViewerWindowType.NotificationOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.CarIdentifierOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.LocationsOverlay)}=\"\"",
+            $"{nameof(ViewerWindowType.TrackItemOverlay)}=\"\"",
+        })]
+
+        public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }
         // Menu-game communication settings:
         [Default(false)]
         [DoNotSave]
@@ -430,8 +483,7 @@ namespace Orts.Settings
 
         protected override PropertyInfo[] GetProperties()
         {
-            if (properties == null)
-                properties = base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
+            properties ??= base.GetProperties().Where(pi => !subSettings.Contains(pi.Name)).ToArray();
             return properties;
         }
 

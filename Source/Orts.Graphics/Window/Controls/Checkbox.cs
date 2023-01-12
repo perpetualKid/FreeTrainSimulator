@@ -24,6 +24,8 @@ namespace Orts.Graphics.Window.Controls
         private readonly CheckMarkStyle checkMarkStyle;
         private readonly bool useColors;
 
+        public bool ReadOnly { get; set; }
+
         public bool? State
         {
             get => state;
@@ -43,7 +45,7 @@ namespace Orts.Graphics.Window.Controls
             }
         }
 
-        public Checkbox(WindowBase window, bool threeStates = false, CheckMarkStyle checkMarkStyle = CheckMarkStyle.Check, bool useColors = true) :
+        public Checkbox(FormBase window, bool threeStates = false, CheckMarkStyle checkMarkStyle = CheckMarkStyle.Check, bool useColors = true) :
             base(window ?? throw new ArgumentNullException(nameof(window)), window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height, "", HorizontalAlignment.Center)
         {
             tristate = threeStates;
@@ -52,10 +54,13 @@ namespace Orts.Graphics.Window.Controls
             this.useColors = useColors;
         }
 
-        internal override void MouseClick(WindowMouseEvent e)
+        internal override bool RaiseMouseClick(WindowMouseEvent e)
         {
+            if (ReadOnly)
+                return false;
             State = tristate ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
-            base.MouseClick(e);
+            _ = base.RaiseMouseClick(e);
+            return true;
         }
     }
 }

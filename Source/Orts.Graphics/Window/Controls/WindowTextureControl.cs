@@ -8,7 +8,7 @@ namespace Orts.Graphics.Window.Controls
         private protected Texture2D texture;
         public Color TextColor { get; set; }
 
-        protected WindowTextureControl(WindowBase window, int x, int y, int width, int height) :
+        protected WindowTextureControl(FormBase window, int x, int y, int width, int height) :
             base(window, x, y, width, height)
         {
         }
@@ -17,7 +17,6 @@ namespace Orts.Graphics.Window.Controls
         {
             if (disposing)
             {
-                texture?.Dispose();
             }
             base.Dispose(disposing);
         }

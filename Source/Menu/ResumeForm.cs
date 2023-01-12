@@ -185,7 +185,7 @@ namespace Orts.Menu
                 prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
-            savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
+            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder,
                 prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
                 OrderByDescending(s => s.Valid).ThenByDescending(s => s.RealTime).ToList();
 
@@ -202,7 +202,7 @@ namespace Orts.Menu
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
-                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}. Please do not report any problems that may result.\n\nContinue?"), 
+                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"), 
                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
@@ -222,7 +222,7 @@ namespace Orts.Menu
             if (null != save)
             {
                 //Debrief Eval
-                if (save.DebriefEvaluation && !settings.DebriefActivityEval)
+                if (save.DebriefEvaluation && !settings.ActivityEvalulation)
                 {
                     if (!AcceptOfNonvalidDbfSetup())
                         return;
@@ -349,7 +349,7 @@ namespace Orts.Menu
                 {
                     try
                     {
-                        File.Move(filePath, Path.Combine(UserSettings.UserDataFolder, Path.GetFileName(filePath)));
+                        File.Move(filePath, Path.Combine(RuntimeInfo.UserDataFolder, Path.GetFileName(filePath)));
                     }
                     catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
                     { }

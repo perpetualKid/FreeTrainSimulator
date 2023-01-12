@@ -21,9 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common.Info;
 using Orts.Common.Native;
 using Orts.Settings;
@@ -44,6 +44,7 @@ namespace Orts.ActivityRunner
         private static void Main(string[] args)
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
             IEnumerable<string> options = args.Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             UserSettings settings = new UserSettings(options);
@@ -52,7 +53,7 @@ namespace Orts.ActivityRunner
             string path = Path.Combine(RuntimeInfo.ApplicationFolder, "Native", (Environment.Is64BitProcess) ? "x64" : "x86");
             NativeMethods.SetDllDirectory(path);
 
-            using (Game game = new Game(settings))
+            using (GameHost game = new GameHost(settings))
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 game.PushState(new GameStateRunActivity(args));

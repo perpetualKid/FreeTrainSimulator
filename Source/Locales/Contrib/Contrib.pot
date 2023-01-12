@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Contrib\n"
-"POT-Creation-Date: 2021-04-14 22:55:09+0200\n"
-"PO-Revision-Date: 2021-04-14 22:55:10+0200\n"
+"POT-Creation-Date: 2022-08-18 08:51:54+0200\n"
+"PO-Revision-Date: 2022-08-18 08:51:55+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,678 +10,683 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:478
-msgid "Edit wait point"
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:91
+msgid "* The path does not have a well-defined end-point"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1102
-msgid "Potentially it will therefore change all .pat files on disc."
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:93
+msgid "* The path has a stored and not-yet reconnected tail"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:584
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:567
 msgid ""
-"F8\tShow platforms\n"
+"-\tZoom-out (and keep zooming)\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:272
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:407
+msgid "<Select path>"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:436
+msgid "<Select platform>"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:449
+msgid "<Select siding>"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:423
+msgid "<Select station>"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:565
+msgid ""
+"=\tZoom-in (and keep zooming)\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:52
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:53
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:54
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:55
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:56
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:57
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:58
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:143
+msgid "1"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:148
+msgid "11"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:265
+msgid "99"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:755
+msgid "Add passing path"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:605
+msgid ""
+"alt-?\t\tVarious keys to open submenus\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1010
+msgid "Auto-fix broken points"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:595
+msgid ""
+"C\t\tShift to center of current path node\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:268
+msgid "Change start direction"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:244
+msgid "Clear path (keep tail)"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:270
 msgid "Closest junction is too far away"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:169
-msgid "Select text color"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:583
+msgid ""
+"ctrl-F6\tShow DM terrain\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:264
-msgid "The .json file could not be read properly."
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:562
+msgid ""
+"ctrl-R\tReload the route\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:610
-msgid "This is ORTS TrackViewer, version "
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:603
+msgid ""
+"ctrl-Y\t\tRedo in path editor\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:817
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:602
+msgid ""
+"ctrl-Z\t\tUndo in path editor\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:953
+msgid "Cut path here and store its tail"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:272
+msgid "Dangling siding node"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:924
+msgid "Delete rest of path"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:841
 msgid ""
 "Directory is not a valid install directory.\n"
 "The install directory needs to contain ROUTES, GLOBAL, ..."
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:921
-msgid "Delete rest of path"
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:636
+msgid "Do you really want to Quit?"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:991
-msgid "Loading .pat file ..."
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1046
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1127
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:99
+msgid "Do you want to continue?"
 msgstr ""
 
-#: ..\..\Contrib\ContentManager\ContentManagerGUI.Designer.cs:126
-msgid "Open Rails Content Manager"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:630
+msgid "Do you want to go to the website?"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:581
-msgid ""
-"ctrl-F6\tShow DM terrain\n"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:632
+msgid "Documentation"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:186
-msgid "Select junction color"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:624
+msgid "Documentation is available"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:596
-msgid ""
-"shift-PgUp\tShow the full path\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\StatusBarControl.xaml.cs:322
-msgid "signal shape = "
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:276
-msgid "Dangling siding node"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:582
-msgid ""
-"shift-F6\tShow terrain patch lines\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1977
-msgid "Draw path until next broken point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:61
-msgid "Loading trackfile .trk ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:583
-msgid ""
-"F7\tshow signals\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:290
-msgid "Select other-paths color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:502
-msgid "Remove wait point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:600
-msgid ""
-"ctrl-Z\t\tUndo in path editor\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:632
-msgid ""
-"The path you are working on has un-saved changes.\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:405
-msgid "<Select path>"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:110
-msgid "Saving broken paths might not always work correctly."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:287
-msgid "There were no labels read"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:97
-msgid "The current path is not finished:"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:806
-msgid ""
-"The selected path has been added as tail. It was not possible to reconnect "
-"automatically."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:574
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:576
 msgid ""
 "down arrow\tShift down\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:567
-msgid ""
-"Z\tZoom to tile\n"
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1954
+msgid "Draw path until here"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:857
-msgid "Remove passing path"
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1985
+msgid "Draw path until next broken point"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:590
-msgid ""
-"F11\tShow path\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:434
-msgid "<Select platform>"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:614
-msgid "not an integral part of ORTS."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:634
-msgid "Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:598
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:600
 msgid ""
 "E\t\tPlace end-point\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:599
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:481
+msgid "Edit wait point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:590
 msgid ""
-"W\t\tPlace a wait-point\n"
+"F10\tHighlight tracks\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:269
-msgid "Finding the angles to draw signals, endnodes, ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:359
-msgid "Place reversal point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:145
-msgid "Select color for mono-colored roads"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:450
-msgid "Place wait point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:69
-msgid "Loading tsection.dat ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:112
-msgid "Reopening it in TrackViewer, however, is likely to work."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:854
-msgid "Reversing a path without start node is not supported"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:139
-msgid "Select color for multi-colored curved tracks"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:265
-msgid "Change start direction"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1112
-msgid "Reconnect to tail"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:601
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:592
 msgid ""
-"ctrl-Y\t\tRedo in path editor\n"
+"F11\tShow path\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:630
-msgid "Documentation"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:206
-msgid "Select road crossing color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:564
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:580
 msgid ""
-"shift-=\tZoom-in\n"
+"F5\tShow speed-limits\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1173
-msgid "Reconnect passing path"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:201
-msgid "Select crossing color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:802
-msgid "The selected path has been added as tail and then reconnected."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:141
-msgid "Select color for tracks on terrain"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:705
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1275
-msgid "Take other exit"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1022
-msgid "Path has been modified. Loading a new path will discard changes."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:146
-msgid "Select color for roads on terrain"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:593
-msgid ""
-"C\t\tShift to center of current path node\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:144
-msgid "Select color for multi-colored curved roads"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:98
-msgid "Select path color (siding)"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:762
-msgid ""
-"The selected path contains no or only 1 node. The current path was not "
-"extended."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:83
-msgid "Loading road track database .rdb ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:576
-msgid ""
-"up arrow\t\tShift up\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:140
-msgid "Select color for mono-colored tracks"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:580
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:582
 msgid ""
 "F6\tShow terrain\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\StatusBarControl.xaml.cs:266
-msgid "Invalid path"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:86
-msgid "Select path color (main)"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1004
-msgid "Auto-fix broken points"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:563
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:585
 msgid ""
-"=\tZoom-in (and keep zooming)\n"
+"F7\tshow signals\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:893
-msgid "Loading route..."
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:586
+msgid ""
+"F8\tShow platforms\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:586
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:588
 msgid ""
 "F9\tShow sidings\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:585
-msgid ""
-"shift-F8\tShow platform-names\n"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:260
+msgid "Finding the angles to draw signals, endnodes, ..."
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:143
-msgid "Select color for multi-colored straight roads"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:994
-msgid "Processing .pat file ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:111
-msgid "The MSTS format for defining broken paths is not understood very well."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1024
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1105
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:85
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:102
-msgid "Trackviewer Path Editor"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:897
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:900
 msgid "Fix invalid point"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:274
-msgid "Not able to place node on track"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\StatusBarControl.xaml.cs:270
+msgid "Invalid path"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1103
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:615
 msgid ""
-"This can be useful when a route has been changed and you want all paths to be "
-"corrected."
+"It is a 'Contribution' to ORTS, and as such\n"
 msgstr ""
 
-#: ..\..\Contrib\ContentManager\ContentManagerGUI.cs:106
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:606
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:572
+msgid ""
+"L\tAdd label\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:575
+msgid ""
+"left arrow\tShift left\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1014
+msgid "Loading .pat file ..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:75
+msgid "Loading road track database .rdb ..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:910
+msgid "Loading route..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:651
+#, csharp-format
+msgid "Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:58
+msgid "Loading track database .tdb ..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:55
+msgid "Loading trackfile .trk ..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:61
+msgid "Loading tsection.dat ..."
+msgstr ""
+
+#: ..\..\..\Contrib\ContentManager\ContentManagerGUI.cs:99
 msgid "Loading..."
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:93
-msgid "* The path has a stored and not-yet reconnected tail"
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:570
+msgid ""
+"M\tToggle zoom center\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:738
+#: ..\..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:287
+msgid "None of the labels could be read properly"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:271
+msgid "Not able to place node on track"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:616
+msgid "not an integral part of ORTS."
+msgstr ""
+
+#: ..\..\..\Contrib\ContentManager\ContentManagerGUI.Designer.cs:129
+msgid "Open Rails Content Manager"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:84
+msgid ""
+"Path does not even have a start node.\n"
+"Saving is not possible."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1045
+msgid "Path has been modified. Loading a new path will discard changes."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:597
+msgid ""
+"PgDn\t\tShow less of the path\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:596
+msgid ""
+"PgUp\t\tShow more of the path\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:297
+msgid "Place end point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:362
+msgid "Place reversal point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:182
+msgid "Place start point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:453
+msgid "Place wait point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\Languages.cs:91
+msgid "Please restart TrackViewer in order to load the new language."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1125
+msgid "Potentially it will therefore change all .pat files on disc."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\AutoFixAllPaths.xaml.cs:76
+msgid "Processing .pat file "
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1017
+msgid "Processing .pat file ..."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:563
+msgid ""
+"Q\tQuit\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:571
+msgid ""
+"R\tZoom reset\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1180
+msgid "Reconnect passing path"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1118
+msgid "Reconnect to tail"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:336
+msgid "Remove end point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:860
+msgid "Remove passing path"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:399
+msgid "Remove reversal point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:217
+msgid "Remove start point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:505
+msgid "Remove wait point"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:112
+msgid "Reopening it in TrackViewer, however, is likely to work."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:677
+msgid "Rescaling previously loaded ace-files"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:868
+msgid "Reversing a path without end node is not supported"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:863
+msgid "Reversing a path without start node is not supported"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:858
+msgid "Reversing broken paths is not supported"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:577
+msgid ""
+"right arrow\tShift right\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:628
+msgid "Right column → Open Rails Trackviewer"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:937
+msgid "Route cannot be loaded. Sorry"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:766
+#, csharp-format
+msgid ""
+"Route cannot be loaded.\n"
+"{0} does not exist"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:798
+#, csharp-format
+msgid ""
+"Route cannot be loaded.\n"
+"{0} somehow could not be translated into a loadable route"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:759
+#, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "Extension {0} is not supported"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:597
-msgid ""
-"shift-PgDn\tShow only start point of path\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:575
-msgid ""
-"right arrow\tShift right\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:572
-msgid ""
-"shift-C\t\tShift center to current mouse location\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:52
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:53
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:54
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:55
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:56
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:57
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:58
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:143
-msgid "1"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:950
-msgid "Cut path here and store its tail"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:80
-msgid "Select broken path color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:594
-msgid ""
-"PgUp\t\tShow more of the path\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:138
-msgid "Select color for multi-colored straight tracks"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:628
-msgid "Do you want to go to the website?"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:626
-msgid "Right column → Open Rails Trackviewer"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:622
-msgid "Documentation is available"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:447
-msgid "<Select siding>"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:276
-msgid "Some labels could not be read properly."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:918
-msgid "Route cannot be loaded. Sorry"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:569
-msgid ""
-"R\tZoom reset\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:588
-msgid ""
-"F10\tHighlight tracks\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:751
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:773
+#, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "While trying to open {0} the folder {1} was inferred as (MSTS or similar) "
 "install folder but does not contain expected files"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:595
-msgid ""
-"PgDn\t\tShow less of the path\n"
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:110
+msgid "Saving broken paths might not always work correctly."
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:561
-msgid ""
-"Q\tQuit\n"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:152
+msgid "Select background color"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:613
-msgid ""
-"It is a 'Contribution' to ORTS, and as such\n"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:78
+msgid "Select broken path color"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:745
-msgid ""
-"Route cannot be loaded.\n"
-"{0} does not exist"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:143
+msgid "Select color for mono-colored roads"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:859
-msgid "Reversing a path without end node is not supported"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:138
+msgid "Select color for mono-colored tracks"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:196
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:142
+msgid "Select color for multi-colored curved roads"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:137
+msgid "Select color for multi-colored curved tracks"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:141
+msgid "Select color for multi-colored straight roads"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:136
+msgid "Select color for multi-colored straight tracks"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:144
+msgid "Select color for roads on terrain"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:139
+msgid "Select color for tracks on terrain"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:199
+msgid "Select crossing color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:189
+msgid "Select endnode color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:179
+msgid "Select item text color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:184
+msgid "Select junction color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:288
+msgid "Select other-paths color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:84
+msgid "Select path color (main)"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:96
+msgid "Select path color (siding)"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:204
+msgid "Select road crossing color"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:194
 msgid "Select siding color"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:91
-msgid "* The path does not have a well-defined end-point"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:209
+msgid "Select speedpost color"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:604
-msgid "Keyboard shortcuts"
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:167
+msgid "Select text color"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1101
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:269
+msgid "Set as invalid in .pat file"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:568
+msgid ""
+"shift--\tZoom-out\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:566
+msgid ""
+"shift-=\tZoom-in\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:574
+msgid ""
+"shift-C\t\tShift center to current mouse location\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:591
+msgid ""
+"shift-F10\tHighlight items\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:593
+msgid ""
+"shift-F11\tShow raw path\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:581
+msgid ""
+"shift-F5\tShow mileposts\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:584
+msgid ""
+"shift-F6\tShow terrain patch lines\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:587
+msgid ""
+"shift-F8\tShow platform-names\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:589
+msgid ""
+"shift-F9\tShow siding-names\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:599
+msgid ""
+"shift-PgDn\tShow only start point of path\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:598
+msgid ""
+"shift-PgUp\tShow the full path\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\StatusBarControl.xaml.cs:327
+msgid "signal shape = "
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:280
+msgid "Some labels could not be read properly."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:795
+msgid "Start passing path"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:708
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1283
+msgid "Take other exit"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:268
+msgid "The .json file could not be read properly."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:97
+msgid "The current path is not finished:"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:111
+msgid "The MSTS format for defining broken paths is not understood very well."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:634
+msgid ""
+"The path you are working on has un-saved changes.\n"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:769
+msgid ""
+"The selected path contains no or only 1 node. The current path was not "
+"extended."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:812
+msgid "The selected path has been added as tail and then reconnected."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:816
+msgid ""
+"The selected path has been added as tail. It was not possible to reconnect "
+"automatically."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:291
+msgid "There were no labels read"
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1126
+msgid ""
+"This can be useful when a route has been changed and you want all paths to be "
+"corrected."
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:612
+msgid "This is ORTS TrackViewer, version "
+msgstr ""
+
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1124
 msgid ""
 "This will open every single .pat file for this route, (try to) fix all broken "
 "nodes, and save the modified path. "
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:573
-msgid ""
-"left arrow\tShift left\n"
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1047
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1128
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:85
+#: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:102
+msgid "Trackviewer Path Editor"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:776
-msgid ""
-"Route cannot be loaded.\n"
-"{0} somehow could not be translated into a loadable route"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:333
-msgid "Remove end point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:241
-msgid "Clear path (keep tail)"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1023
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:1104
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:99
-msgid "Do you want to continue?"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:181
-msgid "Select item text color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:565
-msgid ""
-"-\tZoom-out (and keep zooming)\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\PathEditor.cs:849
-msgid "Reversing broken paths is not supported"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:578
-msgid ""
-"F5\tShow speed-limits\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:269
-msgid "99"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:579
-msgid ""
-"shift-F5\tShow mileposts\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:211
-msgid "Select speedpost color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:560
-msgid ""
-"ctrl-R\tReload the route\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:568
-msgid ""
-"M\tToggle zoom center\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\AutoFixAllPaths.xaml.cs:76
-msgid "Processing .pat file "
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:191
-msgid "Select endnode color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:214
-msgid "Remove start point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:591
-msgid ""
-"shift-F11\tShow raw path\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:603
-msgid ""
-"alt-?\t\tVarious keys to open submenus\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:294
-msgid "Place end point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:65
-msgid "Loading track database .tdb ..."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:270
-msgid "Set as invalid in .pat file"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:589
-msgid ""
-"shift-F10\tHighlight items\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:278
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:273
 msgid "Unknown"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\WaitPointDialog.xaml.cs:148
-msgid "10"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1946
-msgid "Draw path until here"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\TrackViewer.cs:634
-msgid "Do you really want to Quit?"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:752
-msgid "Add passing path"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:421
-msgid "<Select station>"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawColors.cs:154
-msgid "Select background color"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:396
-msgid "Remove reversal point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:84
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:578
 msgid ""
-"Path does not even have a start node.\n"
-"Saving is not possible."
+"up arrow\t\tShift up\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:587
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:601
 msgid ""
-"shift-F9\tShow siding-names\n"
+"W\t\tPlace a wait-point\n"
 msgstr ""
 
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:179
-msgid "Place start point"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\Labels\DrawLabels.cs:283
-msgid "None of the labels could be read properly"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\Languages.cs:91
-msgid "Please restart TrackViewer in order to load the new language."
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Editing\EditorActions.cs:792
-msgid "Start passing path"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:566
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:569
 msgid ""
-"shift--\tZoom-out\n"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:660
-msgid "Rescaling previously loaded ace-files"
-msgstr ""
-
-#: ..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:570
-msgid ""
-"L\tAdd label\n"
+"Z\tZoom to tile\n"
 msgstr ""
 

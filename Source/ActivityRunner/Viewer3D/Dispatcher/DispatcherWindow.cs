@@ -26,6 +26,7 @@ using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
+using Orts.Models.Track;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
@@ -101,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 currentScreen = System.Windows.Forms.Screen.AllScreens[settings.Dispatcher.WindowScreen];
             else
                 currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
-            FontManager.ScalingFactor = (float)SystemInfo.DisplayScalingFactor(currentScreen);
+            FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
             LoadSettings();
 
             TargetElapsedTime = TimeSpan.FromMilliseconds(1000 / targetFps);
@@ -150,8 +151,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         protected override void Initialize()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextShape.Initialize(this, spriteBatch);
-            BasicShapes.Initialize(spriteBatch);
             InputSettings.Initialize();
             userCommandController = new UserCommandController<UserCommand>();
 
@@ -166,35 +165,34 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            EnumArray<Type, DispatcherWindowType> windowTypes = new EnumArray<Type, DispatcherWindowType>();
             windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
             {
                 return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
             {
                 return new SwitchChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
             {
                 return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
                 return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<FormBase>(() =>
             {
                 return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
             {
                 return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));
@@ -213,14 +211,14 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
-            BasicShapes.LoadContent(GraphicsDevice);
+            TrackModel.Instance<RailTrackModel>(this)?.Reset();
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
@@ -282,15 +280,15 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         protected override void Update(GameTime gameTime)
         {
             IEnumerable<int> trackedTrains = new List<int>();
-            foreach (Simulation.Physics.Train train in Simulator.Instance.Trains)
+            foreach (Train train in Simulator.Instance.Trains)
             {
                 ((List<int>)trackedTrains).Add(train.Number);
                 if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.TrainWidget trainWidget))
                 {
-                    trainWidget = new Graphics.MapView.Widgets.TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
-                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    trainWidget = new TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
+                    foreach (TrainCar car in train.Cars)
                     {
-                        trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                        trainWidget.Cars.Add(car.UiD, new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                     }
                     content.Trains.Add(train.Number, trainWidget);
                 }
@@ -298,16 +296,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 {
                     trainWidget.UpdatePosition(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation);
                     IEnumerable<int> trackedCars = new List<int>();
-                    foreach (Simulation.RollingStocks.TrainCar car in train.Cars)
+                    foreach (TrainCar car in train.Cars)
                     {
                         ((List<int>)trackedCars).Add(car.UiD);
-                        if (trainWidget.Cars.TryGetValue(car.UiD, out Graphics.MapView.Widgets.TrainCarWidget trainCar))
+                        if (trainWidget.Cars.TryGetValue(car.UiD, out TrainCarWidget trainCar))
                         {
                             trainCar.UpdatePosition(car.WorldPosition);
                         }
                         else
                         {
-                            trainWidget.Cars.Add(car.UiD, new Graphics.MapView.Widgets.TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
+                            trainWidget.Cars.Add(car.UiD, new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
                         }
                     }
                     trackedCars = trainWidget.Cars.Keys.Except(trackedCars);
@@ -540,17 +538,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         }
         #endregion
 
-        private class CommonDebugInfo : DebugInfoBase
+        private class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private readonly ContentArea contentArea;
 
             private const double fpsLow = targetFps - targetFps / 5.0;
-            public CommonDebugInfo(ContentArea contentArea)
+            public CommonDebugInfo(ContentArea contentArea): base(true)
             {
                 this.contentArea = contentArea;
                 frameRate.Preset(targetFps);
-                FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
             }
 

@@ -39,12 +39,12 @@ namespace Orts.Simulation.Physics
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                 car1.SpeedMpS = car1.Flipped ? -SpeedMpS : SpeedMpS;
-                car1.SpeedMpS = car1.Flipped ^ (car1.IsDriveable && car1.Train.IsActualPlayerTrain && ((MSTSLocomotive)car1).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                car1.SpeedMpS = car1.Flipped ^ (car1 is MSTSLocomotive && car1.Train.IsActualPlayerTrain && (car1 as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
             foreach (TrainCar car2 in otherTrain.Cars)
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                 car2.SpeedMpS = car2.Flipped ? -SpeedMpS : SpeedMpS;
-                car2.SpeedMpS = car2.Flipped ^ (car2.IsDriveable && car2.Train.IsActualPlayerTrain && ((MSTSLocomotive)car2).UsingRearCab) ? -SpeedMpS : SpeedMpS;
+                car2.SpeedMpS = car2.Flipped ^ (car2 is MSTSLocomotive && car2.Train.IsActualPlayerTrain && (car2 as MSTSLocomotive).UsingRearCab) ? -SpeedMpS : SpeedMpS;
         }
 
         /// setups of the left hand side of the coupler force solving equations

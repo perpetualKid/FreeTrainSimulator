@@ -410,7 +410,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
+        private void BuildSignalList(List<TrackItem> trackItems, TrackNodes trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
             //  Determine the number of signals in the track Objects list
@@ -454,7 +454,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split backfacing signals
         /// </summary>
-        private void SplitBackfacing(List<TrackItem> trackItems, List<TrackNode> trackNodes)
+        private void SplitBackfacing(List<TrackItem> trackItems, TrackNodes trackNodes)
         {
             List<Signal> backfacingSignals = new List<Signal>();
             // Loop through all signals to check on Backfacing heads
@@ -525,7 +525,7 @@ namespace Orts.Simulation.Signalling
                         }
 
                         // set correct trRefIndex for this signal, and set cross-reference for all backfacing trRef items
-                        TrackVectorNode tvn = trackNodes[newSignal.TrackNode] as TrackVectorNode;
+                        TrackVectorNode tvn = trackNodes.VectorNodes[newSignal.TrackNode];
                         for (int i = 0; i < tvn.TrackItemIndices.Length; i++)
                         {
                             int tdbRef = tvn.TrackItemIndices[i];
@@ -547,7 +547,7 @@ namespace Orts.Simulation.Signalling
                         }
 
                         // reset cross-references for original signal (it may have been set for a backfacing head)
-                        tvn = trackNodes[newSignal.TrackNode] as TrackVectorNode;
+                        tvn = trackNodes.VectorNodes[newSignal.TrackNode];
                         for (int i = 0; i < tvn.TrackItemIndices.Length; i++)
                         {
                             int tdbRef = tvn.TrackItemIndices[i];
@@ -582,7 +582,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
-        private void ScanSection(List<TrackItem> trackItems, List<TrackNode> trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
+        private void ScanSection(List<TrackItem> trackItems, TrackNodes trackNodes, int index, Dictionary<int, int> platformList, Dictionary<int, Signal> signalHeadList)
         {
             if (trackNodes[index] is TrackEndNode)
                 return;
@@ -704,7 +704,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<int, Signal> signalHeadList)
         {
-            if (!(trackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
+            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[trackNode];
+            if (tvn == null)
             {
                 Trace.TraceInformation("Reference to invalid track node {0} for Signal {1}\n", trackNode, tdbRef);
                 return false;
@@ -743,7 +744,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            Traveller traveller = new Traveller(trackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Direction.Backward);
+            Traveller traveller = new Traveller(trackDB.TrackNodes.VectorNodes[trackNode], speedItem.Location, Direction.Backward);
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
@@ -1191,7 +1192,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Create Track Circuits
         /// <summary>
-        private void CreateTrackCircuits(List<TrackItem> trackItems, List<TrackNode> trackNodes)
+        private void CreateTrackCircuits(List<TrackItem> trackItems, TrackNodes trackNodes)
         {
 
             // Create dummy element as first to keep indexes equal
@@ -1286,7 +1287,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// ProcessNodes
         /// </summary>
-        private void ProcessNodes(int nodeIndex, List<TrackItem> trackItems, List<TrackNode> trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
+        private void ProcessNodes(int nodeIndex, List<TrackItem> trackItems, TrackNodes trackNodes, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             // Check if original tracknode had trackitems
@@ -1750,7 +1751,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes
         /// </summary>
-        private static void SetCrossReference(int node, List<TrackNode> trackNodes)
+        private static void SetCrossReference(int node, TrackNodes trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType != TrackCircuitType.Crossover)
@@ -1790,7 +1791,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set cross-reference to tracknodes for CrossOver items
         /// </summary>
-        private static void SetCrossReferenceCrossOver(int node, List<TrackNode> trackNodes)
+        private static void SetCrossReferenceCrossOver(int node, TrackNodes trackNodes)
         {
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[node];
             if (section.OriginalIndex > 0 && section.CircuitType == TrackCircuitType.Crossover)
@@ -2748,7 +2749,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Process Platforms
         /// </summary>
-        private void ProcessPlatforms(Dictionary<int, int> platformList, List<TrackItem> trackItems, List<TrackNode> trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
+        private void ProcessPlatforms(Dictionary<int, int> platformList, List<TrackItem> trackItems, TrackNodes trackNodes, ConcurrentDictionary<int, uint> platformSidesList)
         {
             foreach (KeyValuePair<int, int> platformIndex in platformList)
             {
@@ -3054,7 +3055,7 @@ namespace Orts.Simulation.Signalling
         /// Resolve split platforms
         /// </summary>
         private static void ResolveSplitPlatform(PlatformDetails platformDetails, int secondSectionIndex, PlatformItem secondPlatform, TrackVectorNode secondNode,
-                    List<TrackItem> trackItems, List<TrackNode> trackNodes)
+                    List<TrackItem> trackItems, TrackNodes trackNodes)
         {
             // get all positions related to tile of first platform item
 
@@ -3480,138 +3481,135 @@ namespace Orts.Simulation.Signalling
         {
             TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
-            foreach (TrackNode node in trackDB.TrackNodes)
+            foreach (TrackVectorNode tvn in trackDB.TrackNodes.VectorNodes)
             {
-                if (node is TrackVectorNode tvn)
+                bool overTrough = false;
+                List<float[]> troughInfo = new List<float[]>();
+                List<int> troughPaths = new List<int>();
+                float[] lastTrough = null;
+                float totalLength = 0f;
+                int numPaths = -1;
+
+                // loop through all sections in node
+                foreach (TrackVectorSection section in tvn.TrackVectorSections)
                 {
-                    bool overTrough = false;
-                    List<float[]> troughInfo = new List<float[]>();
-                    List<int> troughPaths = new List<int>();
-                    float[] lastTrough = null;
-                    float totalLength = 0f;
-                    int numPaths = -1;
-
-                    // loop through all sections in node
-                    foreach (TrackVectorSection section in tvn.TrackVectorSections)
+                    if (!tsectiondat.TrackSections.ContainsKey(section.SectionIndex))
                     {
-                        if (!tsectiondat.TrackSections.ContainsKey(section.SectionIndex))
-                        {
-                            continue;  // missing track section
-                        }
-
-                        TrackSection trackSection = tsectiondat.TrackSections[section.SectionIndex];
-
-                        // check trough shape
-
-                        bool troughShape = false;
-                        int shapePaths = 0;
-
-                        if (tsectiondat.TrackShapes.ContainsKey(section.ShapeIndex))
-                        {
-                            TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
-                            if (shape.FileName != null)
-                            {
-                                troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                                shapePaths = shape.PathsNumber;
-                            }
-                        }
-
-                        if (troughShape)
-                        {
-                            numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
-                            if (overTrough)
-                            {
-                                lastTrough[1] += trackSection.Length;
-                            }
-                            else
-                            {
-                                lastTrough = new float[2];
-                                lastTrough[0] = totalLength;
-                                lastTrough[1] = trackSection.Length;
-                                overTrough = true;
-                            }
-                        }
-                        else if (overTrough)
-                        {
-                            troughInfo.Add(lastTrough);
-                            troughPaths.Add(numPaths);
-                            overTrough = false;
-                            numPaths = -1;
-                        }
-                        totalLength += trackSection.Length;
+                        continue;  // missing track section
                     }
 
-                    // add last tunnel item
-                    if (overTrough)
+                    TrackSection trackSection = tsectiondat.TrackSections[section.SectionIndex];
+
+                    // check trough shape
+
+                    bool troughShape = false;
+                    int shapePaths = 0;
+
+                    if (tsectiondat.TrackShapes.ContainsKey(section.ShapeIndex))
+                    {
+                        TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
+                        if (shape.FileName != null)
+                        {
+                            troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
+                            shapePaths = shape.PathsNumber;
+                        }
+                    }
+
+                    if (troughShape)
+                    {
+                        numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
+                        if (overTrough)
+                        {
+                            lastTrough[1] += trackSection.Length;
+                        }
+                        else
+                        {
+                            lastTrough = new float[2];
+                            lastTrough[0] = totalLength;
+                            lastTrough[1] = trackSection.Length;
+                            overTrough = true;
+                        }
+                    }
+                    else if (overTrough)
                     {
                         troughInfo.Add(lastTrough);
                         troughPaths.Add(numPaths);
+                        overTrough = false;
+                        numPaths = -1;
                     }
+                    totalLength += trackSection.Length;
+                }
 
-                    // add tunnel info to TrackCircuitSections
+                // add last tunnel item
+                if (overTrough)
+                {
+                    troughInfo.Add(lastTrough);
+                    troughPaths.Add(numPaths);
+                }
 
-                    if (troughInfo.Count > 0)
+                // add tunnel info to TrackCircuitSections
+
+                if (troughInfo.Count > 0)
+                {
+                    bool sectionOverTrough = false;
+                    float[] troughData = troughInfo[0];
+                    float processedLength = 0;
+
+                    for (int i = tvn.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
                     {
-                        bool sectionOverTrough = false;
-                        float[] troughData = troughInfo[0];
-                        float processedLength = 0;
+                        TrackCircuitSectionCrossReference crossRefSection = tvn.TrackCircuitCrossReferences[i];
+                        // forward direction
+                        float tcsStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
+                        float tcsLength = crossRefSection.Length;
+                        TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
 
-                        for (int i = node.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
+                        // if trough starts in TCS
+                        while (troughData != null && troughData[0] <= (tcsStartOffset + tcsLength))
                         {
-                            TrackCircuitSectionCrossReference crossRefSection = node.TrackCircuitCrossReferences[i];
-                            // forward direction
-                            float tcsStartOffset = crossRefSection.OffsetLength[TrackDirection.Reverse];
-                            float tcsLength = crossRefSection.Length;
-                            TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRefSection.Index];
+                            float troughStart = 0;
+                            float sectionTroughStart;
+                            float startOffset;
 
-                            // if trough starts in TCS
-                            while (troughData != null && troughData[0] <= (tcsStartOffset + tcsLength))
+                            // if in trough, set start in trough and check end
+                            if (sectionOverTrough)
                             {
-                                float troughStart = 0;
-                                float sectionTroughStart;
-                                float startOffset;
+                                sectionTroughStart = -1;
+                                startOffset = processedLength;
+                            }
+                            else
+                            // else start new trough
+                            {
+                                sectionTroughStart = troughData[0] - tcsStartOffset;
+                                troughStart = sectionTroughStart;
+                                startOffset = -1;
+                            }
 
-                                // if in trough, set start in trough and check end
-                                if (sectionOverTrough)
+                            if ((tcsStartOffset + tcsLength) >= (troughData[0] + troughData[1]))  // trough end is in this section
+                            {
+                                sectionOverTrough = false;
+                                processedLength = 0;
+
+                                section.AddTroughData(new TroughInfoData(sectionTroughStart, troughStart + troughData[1] - processedLength, troughData[1] - processedLength, troughData[1], section.Length, startOffset));
+
+                                if (troughInfo.Count >= 2)
                                 {
-                                    sectionTroughStart = -1;
-                                    startOffset = processedLength;
-                                }
-                                else
-                                // else start new trough
-                                {
-                                    sectionTroughStart = troughData[0] - tcsStartOffset;
-                                    troughStart = sectionTroughStart;
-                                    startOffset = -1;
-                                }
-
-                                if ((tcsStartOffset + tcsLength) >= (troughData[0] + troughData[1]))  // trough end is in this section
-                                {
-                                    sectionOverTrough = false;
-                                    processedLength = 0;
-
-                                    section.AddTroughData(new TroughInfoData(sectionTroughStart, troughStart + troughData[1] - processedLength, troughData[1] - processedLength, troughData[1], section.Length, startOffset));
-
-                                    if (troughInfo.Count >= 2)
-                                    {
-                                        troughInfo.RemoveAt(0);
-                                        troughData = troughInfo[0];
-                                        troughPaths.RemoveAt(0);
-                                    }
-                                    else
-                                    {
-                                        troughData = null;
-                                        break;  // no more troughs to process
-                                    }
+                                    troughInfo.RemoveAt(0);
+                                    troughData = troughInfo[0];
+                                    troughPaths.RemoveAt(0);
                                 }
                                 else
                                 {
-                                    sectionOverTrough = true;
-                                    processedLength += (tcsLength - troughStart);
-
-                                    section.AddTroughData(new TroughInfoData(sectionTroughStart, -1, tcsLength - troughStart, troughData[1], section.Length, startOffset));
-                                    break;  // cannot add more troughs to section
+                                    troughData = null;
+                                    break;  // no more troughs to process
                                 }
+                            }
+                            else
+                            {
+                                sectionOverTrough = true;
+                                processedLength += (tcsLength - troughStart);
+
+                                section.AddTroughData(new TroughInfoData(sectionTroughStart, -1, tcsLength - troughStart, troughData[1], section.Length, startOffset));
+                                break;  // cannot add more troughs to section
                             }
                         }
                     }

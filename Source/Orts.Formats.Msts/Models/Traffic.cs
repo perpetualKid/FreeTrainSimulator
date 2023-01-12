@@ -6,8 +6,6 @@ using System.IO;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-
 namespace Orts.Formats.Msts.Models
 {
     /// <summary>

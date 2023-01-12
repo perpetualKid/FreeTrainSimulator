@@ -14,6 +14,7 @@ namespace Orts.Graphics.Shaders
 
         public float Opacity
         {
+            get => Parameters["Opacity"].GetValueSingle();
             set => Parameters["Opacity"].SetValue(value);
         }
 
@@ -35,12 +36,12 @@ namespace Orts.Graphics.Shaders
             CurrentTechnique = Techniques["PopupWindow"];
         }
 
-        public override void SetState(EffectShader previousShader)
+        public override void SetState()
         {
             GraphicsDevice.BlendState = BlendState.NonPremultiplied;
             GraphicsDevice.RasterizerState = RasterizerState.CullNone;
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
-            base.SetState(previousShader);
+            base.SetState();
         }
 
         public override void ResetState()

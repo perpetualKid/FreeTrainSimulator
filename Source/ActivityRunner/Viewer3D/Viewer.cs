@@ -31,22 +31,28 @@ using GetText;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Common.Native;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics.Window;
+using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.Settings.Util;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
@@ -57,19 +63,40 @@ using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class Viewer
+    public enum DetailInfoType
     {
+        GraphicDetails,
+        GameDetails,
+        WeatherDetails,
+        TrainDetails,
+        ConsistDetails,
+        LocomotiveDetails,
+        LocomotiveForce,
+        ForceDetails,
+        LocomotiveBrake,
+        BrakeDetails,
+        PowerSupplyDetails,
+        DistributedPowerDetails,
+        DispatcherDetails,
+    }
+
+    public class Viewer : IDisposable
+    {
+        private bool pauseWindow;
+
         public static ICatalog Catalog { get; private set; }
         // User setups.
         public UserSettings Settings { get; private set; }
 
         public UserCommandController<UserCommand> UserCommandController { get; }
 
+        public EnumArray<DetailInfoBase, DetailInfoType> DetailInfo { get; } = new EnumArray<DetailInfoBase, DetailInfoType>();
+
         // Multi-threaded processes
-        public LoaderProcess LoaderProcess { get; private set; }
-        public UpdaterProcess UpdaterProcess { get; private set; }
-        public RenderProcess RenderProcess { get; private set; }
-        public SoundProcess SoundProcess { get; private set; }
+        internal LoaderProcess LoaderProcess { get; private set; }
+        internal UpdaterProcess UpdaterProcess { get; private set; }
+        internal RenderProcess RenderProcess { get; private set; }
+        internal SoundProcess SoundProcess { get; private set; }
         public string ContentPath { get; private set; }
         public SharedTextureManager TextureManager { get; private set; }
         public SharedMaterialManager MaterialManager { get; private set; }
@@ -77,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignalTypeDataManager SignalTypeDataManager { get; private set; }
         public Point DisplaySize { get { return RenderProcess.DisplaySize; } }
         // Components
-        public Orts.ActivityRunner.Viewer3D.Processes.Game Game { get; private set; }
+        public GameHost Game { get; private set; }
         public Simulator Simulator { get; private set; }
         public World World { get; private set; }
         private SoundSource ViewerSounds { get; set; }
@@ -89,40 +116,17 @@ namespace Orts.ActivityRunner.Viewer3D
         private Thread dispatcherThread;
         private Dispatcher.DispatcherWindow dispatcherWindow;
 
-        private InfoDisplay InfoDisplay;
-        public WindowManager WindowManager { get; private set; }
-        public MessagesWindow MessagesWindow { get; private set; } // Game message window (special, always visible)
-        public NoticeWindow NoticeWindow { get; private set; } // Game notices window (special)
-        public PauseWindow PauseWindow { get; private set; } // Game paused window (special)
-        public ActivityWindow ActivityWindow { get; private set; } // Activity notices window
-        public QuitWindow QuitWindow { get; private set; } // Escape window
-        public HelpWindow HelpWindow { get; private set; } // F1 window
-        public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
-        public HUDWindow HUDWindow { get; private set; } // F5 hud
-        public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
-        public MultiPlayerWindow MultiPlayerWindow { get; private set; } // Shift+9 MultiPlayer data windowed
-        public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
-        public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
-        public OSDCars OSDCars { get; private set; } // F7 cars OSD
-        public SwitchWindow SwitchWindow { get; private set; } // F8 window
-        public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
-        public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
-        public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
-        public NextStationWindow NextStationWindow { get; private set; } // F10 window
-        public CompassWindow CompassWindow { get; private set; } // 0 window
-        public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
-        public SignallingDebugWindow SignallingDebugWindow { get; private set; } // Control-Alt-F11 window
-        public ComposeMessage ComposeMessageWindow { get; private set; } // ??? window
-        public TrainListWindow TrainListWindow { get; private set; } // for switching driven train
-        public TTDetachWindow TTDetachWindow { get; private set; } // for detaching player train in timetable mode
-        public EOTListWindow EOTListWindow { get; private set; } // to select EOT
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private WindowManager<ViewerWindowType> windowManager;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
+        private InfoDisplay dataDump;
         // Route Information
         public TileManager Tiles { get; private set; }
         public TileManager LoTiles { get; private set; }
         public EnvironmentFile ENVFile { get; private set; }
         public TrackTypesFile TrackTypes { get; private set; }
-        public SpeedpostDatFile SpeedpostDatFile;
+        public SpeedpostDatFile SpeedpostDatFile { get; }
         public bool MilepostUnitsMetric { get; private set; }
         // Cameras
         public Camera Camera { get; set; } // Current camera
@@ -136,13 +140,16 @@ namespace Orts.ActivityRunner.Viewer3D
         public SpecialTracksideCamera SpecialTracksideCamera { get; private set; } // Camera 4 for special points (platforms and level crossings)
         public PassengerCamera PassengerCamera { get; private set; } // Camera 5
         public BrakemanCamera BrakemanCamera { get; private set; } // Camera 6
-        public List<FreeRoamCamera> FreeRoamCameraList = new List<FreeRoamCamera>();
+        public List<FreeRoamCamera> FreeRoamCameraList { get; } = new List<FreeRoamCamera>();
         public FreeRoamCamera FreeRoamCamera { get { return FreeRoamCameraList[0]; } } // Camera 8
-        public CabCamera3D ThreeDimCabCamera; //Camera 0
+        public CabCamera3D ThreeDimCabCamera { get; } //Camera 0
 
         private List<Camera> WellKnownCameras; // Providing Camera save functionality by GeorgeS
 
         private TrainCarViewer playerLocomotiveViewer;
+
+        private Camera currentCamera;
+        private float fieldOfView;
 
         public TrainCarViewer PlayerLocomotiveViewer
         {
@@ -156,10 +163,8 @@ namespace Orts.ActivityRunner.Viewer3D
         }  // we are controlling this loco, or null if we aren't controlling any
 
         // This is the train we are controlling
-        public TrainCar PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
-        public Train PlayerTrain { get { if (PlayerLocomotive == null) return null; else return PlayerLocomotive.Train; } }
-
-        public Process CurrentProcess { get; } = Process.GetCurrentProcess();
+        public MSTSLocomotive PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
+        public Train PlayerTrain => PlayerLocomotive?.Train;
 
         // This is the train we are viewing
         public Train SelectedTrain { get; private set; }
@@ -175,7 +180,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private bool forceMouseVisible;
         private double mouseVisibleTillRealTime;
         private Cursor actualCursor = Cursors.Default;
-        public static Viewport DefaultViewport;
         public bool SaveScreenshot { get; set; }
         public bool SaveActivityThumbnail { get; private set; }
         public string SaveActivityFileStem { get; private set; }
@@ -183,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public bool DebugViewerEnabled { get; set; }
         public bool SoundDebugFormEnabled { get; set; }
 
-        public TRPFile TRP; // Track profile file
+        public TRPFile TRP { get; set; } // Track profile file
 
         private enum VisibilityState
         {
@@ -207,36 +211,28 @@ namespace Orts.ActivityRunner.Viewer3D
         public int CabWidthPixels { get; private set; }
         public int CabYOffsetPixels { get; set; } // Note: Always -ve. Without it, the cab view is fixed to the top of the screen. -ve values pull it up the screen.
         public int CabXOffsetPixels { get; set; }
-        public int CabExceedsDisplay; // difference between cabview texture vertical resolution and display vertical resolution
-        public int CabExceedsDisplayHorizontally; // difference between cabview texture horizontal resolution and display vertical resolution
+        public int CabExceedsDisplay { get; private set; } // difference between cabview texture vertical resolution and display vertical resolution
+        public int CabExceedsDisplayHorizontally { get; private set; } // difference between cabview texture horizontal resolution and display vertical resolution
         public int CabYLetterboxPixels { get; set; } // offset the cab when drawing it if it is smaller than the display; both coordinates should always be >= 0
         public int CabXLetterboxPixels { get; set; }
-        public float CabTextureInverseRatio = 0.75f; // default of inverse of cab texture ratio 
+        public float CabTextureInverseRatio { get; private set; } = 0.75f; // default of inverse of cab texture ratio 
 
         public CommandLog Log { get { return Simulator.Log; } }
         public static bool ClockTimeBeforeNoon => Simulator.Instance.ClockTime % 86400 < 43200;
-        
+
         // After dawn and before dusk, so definitely daytime
         public bool Daytime => (MaterialManager.sunDirection.Y > 0.05f && ClockTimeBeforeNoon) || (MaterialManager.sunDirection.Y > 0.15f && !ClockTimeBeforeNoon);
 
         // Before dawn and after dusk, so definitely nighttime
         public bool Nighttime => (MaterialManager.sunDirection.Y < -0.05f && !ClockTimeBeforeNoon) || (MaterialManager.sunDirection.Y < -0.15f && ClockTimeBeforeNoon);
 
-        public bool NightTexturesNotLoaded; // At least one night texture hasn't been loaded
-        public bool DayTexturesNotLoaded; // At least one day texture hasn't been loaded
-        public long LoadMemoryThreshold; // Above this threshold loader doesn't bulk load day or night textures
-        public bool tryLoadingNightTextures;
-        public bool tryLoadingDayTextures;
-
-        public int poscounter = 1; // counter for print position info
+        public bool NightTexturesNotLoaded { get; set; } // At least one night texture hasn't been loaded
+        public bool DayTexturesNotLoaded { get; set; } // At least one day texture hasn't been loaded
+        public long LoadMemoryThreshold { get; set; } // Above this threshold loader doesn't bulk load day or night textures
+        public bool TryLoadingNightTextures { get; set; }
+        public bool TryLoadingDayTextures { get; set; }
 
         public Camera SuspendedCamera { get; private set; }
-
-        //        UserInputRailDriver RailDriver;
-
-        public static double DbfEvalAutoPilotTimeS;//Debrief eval
-        public static double DbfEvalIniAutoPilotTimeS;//Debrief eval  
-        public bool DbfEvalAutoPilot;//DebriefEval
 
         private bool lockShadows;
         private bool logRenderFrame;
@@ -256,7 +252,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     double lastTime = Simulator.ReplayCommandList[lastEntry].Time;
                     Log.ReplayEndsAt = lastTime;
                     double duration = lastTime - Simulator.ClockTime;
-                    MessagesWindow.AddMessage($"Replay started: ending at {FormatStrings.FormatApproximateTime(lastTime)} after {FormatStrings.FormatTime(duration)}", 3.0);
+                    Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, $"Replay started: ending at {FormatStrings.FormatApproximateTime(lastTime)} after {FormatStrings.FormatTime(duration)}", 3.0);
                 }
             }
         }
@@ -266,13 +262,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="simulator">The <see cref="Simulator"/> with which the viewer runs.</param>
         /// <param name="game">The <see cref="Game"/> with which the viewer runs.</param>
-        public Viewer(Simulator simulator, Processes.Game game)
+        public Viewer(Simulator simulator, GameHost game)
         {
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;
 
             Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
-            Game = game;
+            Game = game ?? throw new ArgumentNullException(nameof(game));
             Settings = simulator.Settings;
 
             RenderProcess = game.RenderProcess;
@@ -295,7 +291,7 @@ namespace Orts.ActivityRunner.Viewer3D
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
             WellKnownCameras.Add(ThreeDimCabCamera = new CabCamera3D(this));
 
-            ContentPath = Game.ContentPath;
+            ContentPath = RuntimeInfo.ContentFolder;
             Trace.Write(" ENV");
             ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
 
@@ -309,7 +305,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
                 var train = sender as Train;
-                if (!TrackMonitorWindow.Visible && Simulator.Confirmer != null && train != null)
+                if (Simulator.Confirmer != null && train != null)
                 {
                     var message = Catalog.GetString("Allowed speed raised to {0}", FormatStrings.FormatSpeedDisplay(train.AllowedMaxSpeedMpS, MilepostUnitsMetric));
                     Simulator.Confirmer.Message(ConfirmLevel.Information, message);
@@ -318,28 +314,65 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Simulator.PlayerLocomotiveChanged += PlayerLocomotiveChanged;
             Simulator.PlayerTrainChanged += PlayerTrainChanged;
-            Simulator.RequestTTDetachWindow += RequestTTDetachWindow;
+            Simulator.RequestTTDetachWindow += RequestTimetableDetachWindow;
 
-            // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
-            // so it is opened only in activity mode
-            if (Simulator.ActivityRun != null && Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
+            if (Simulator.ActivityRun != null)
             {
-                string speedpostDatFile = Path.Combine(Simulator.RouteFolder.CurrentFolder, "speedpost.dat");
-                if (File.Exists(speedpostDatFile))
+                // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
+                // so it is opened only in activity mode
+                if (Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
                 {
-                    Trace.Write(" SPEEDPOST");
-                    SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
+                    string speedpostDatFile = Path.Combine(Simulator.RouteFolder.CurrentFolder, "speedpost.dat");
+                    if (File.Exists(speedpostDatFile))
+                    {
+                        Trace.Write(" SPEEDPOST");
+                        SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
+                    }
                 }
             }
+
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GraphicDetails] = new GraphicInformation(this));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.GameDetails] = new RouteInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.WeatherDetails] = new WeatherInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.TrainDetails] = new TrainInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ConsistDetails] = new ConsistInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.DistributedPowerDetails] = new DistributedPowerInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.DispatcherDetails] = new DispatcherInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveDetails] = new LocomotiveInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.ForceDetails] = new ForceInformation(Catalog as Catalog));
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveForce] = new LocomotiveForceInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.LocomotiveBrake] = new LocomotiveBrakeInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.BrakeDetails] = new BrakeInformation());
+            game.SystemProcess.Updateables.Add(DetailInfo[DetailInfoType.PowerSupplyDetails] = new PowerSupplyInformation());
         }
 
-        public void Save(BinaryWriter outf, string fileStem)
+        private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
+        {
+            (windowManager[ViewerWindowType.ActivityWindow] as PopupWindows.ActivityWindow).OpenFromEvent(e.TriggeredEvent);
+        }
+
+        private void SaveSettings()
+        {
+            foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
+            {
+                if (windowManager.WindowInitialized(windowType))
+                {
+                    Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                }
+                Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+            }
+
+            Settings.Save(nameof(Settings.PopupLocations));
+            Settings.Save(nameof(Settings.PopupStatus));
+            Settings.Save(nameof(Settings.PopupSettings));
+            Settings.Save(nameof(Settings.OdometerShortDistanceMode));
+        }
+
+        internal void Save(BinaryWriter outf, string fileStem)
         {
             outf.Write(Simulator.Trains.IndexOf(PlayerTrain));
             outf.Write(PlayerTrain.Cars.IndexOf(PlayerLocomotive));
             outf.Write(Simulator.Trains.IndexOf(SelectedTrain));
-
-            WindowManager.Save(outf);
 
             outf.Write(WellKnownCameras.IndexOf(Camera));
             foreach (var camera in WellKnownCameras)
@@ -370,10 +403,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 outf.Write(-1);
         }
 
-        public void Restore(BinaryReader inf)
+        internal void Restore(BinaryReader inf)
         {
             Train playerTrain = Simulator.Trains[inf.ReadInt32()];
-            PlayerLocomotive = playerTrain.Cars[inf.ReadInt32()];
+            PlayerLocomotive = playerTrain.Cars[inf.ReadInt32()] as MSTSLocomotive;
             var selected = inf.ReadInt32();
             if (selected >= 0 && selected < Simulator.Trains.Count)
             {
@@ -383,8 +416,6 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 SelectedTrain = Simulator.Trains[0];
             }
-
-            WindowManager.Restore(inf);
 
             var cameraToRestore = inf.ReadInt32();
             foreach (var camera in WellKnownCameras)
@@ -398,9 +429,9 @@ namespace Orts.ActivityRunner.Viewer3D
             CabXOffsetPixels = inf.ReadInt32();
             NightTexturesNotLoaded = inf.ReadBoolean();
             DayTexturesNotLoaded = inf.ReadBoolean();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
-            tryLoadingNightTextures = true;
-            tryLoadingDayTextures = true;
+            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            TryLoadingNightTextures = true;
+            TryLoadingDayTextures = true;
 
             World.WeatherControl.RestoreWeatherParameters(inf);
             var cabRendererPresent = inf.ReadInt32();
@@ -432,8 +463,6 @@ namespace Orts.ActivityRunner.Viewer3D
             railDriverInput.Initialize(Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
             #endregion
 
-            DefaultViewport = Game.GraphicsDevice.Viewport;
-
             if (PlayerLocomotive == null)
                 PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
@@ -453,35 +482,102 @@ namespace Orts.ActivityRunner.Viewer3D
             ShapeManager = new SharedShapeManager(this);
             SignalTypeDataManager = new SignalTypeDataManager(this);
 
-            WindowManager = new WindowManager(this);
-            MessagesWindow = new MessagesWindow(WindowManager);
-            NoticeWindow = new NoticeWindow(WindowManager);
-            PauseWindow = new PauseWindow(WindowManager);
-            ActivityWindow = new ActivityWindow(WindowManager);
-            QuitWindow = new QuitWindow(WindowManager);
-            HelpWindow = new HelpWindow(WindowManager);
-            TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
-            HUDWindow = new HUDWindow(WindowManager);
-            HUDScrollWindow = new HUDScrollWindow(WindowManager);
-            TrainDrivingWindow = new TrainDrivingWindow(WindowManager);
-            OSDLocations = new OSDLocations(WindowManager);
-            OSDCars = new OSDCars(WindowManager);
-            SwitchWindow = new SwitchWindow(WindowManager);
-            TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
-            MultiPlayerWindow = new MultiPlayerWindow(WindowManager);
-            CarOperationsWindow = new CarOperationsWindow(WindowManager);
-            TrainDpuWindow = new TrainDpuWindow(WindowManager);
-            NextStationWindow = new NextStationWindow(WindowManager);
-            CompassWindow = new CompassWindow(WindowManager);
-            TracksDebugWindow = new TracksDebugWindow(WindowManager);
-            SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
-            ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
-            TrainListWindow = new TrainListWindow(WindowManager);
-            TTDetachWindow = new TTDetachWindow(WindowManager);
-            EOTListWindow = new EOTListWindow(WindowManager);
-            WindowManager.Initialize();
+            windowManager = WindowManager.Initialize<UserCommand, ViewerWindowType>(Game, UserCommandController.AddTopLayerController());
+            windowManager.MultiLayerModalWindows = true;
+            windowManager.WindowOpacity = 0.4f;
+            windowManager.OnModalWindow += WindowManager_OnModalWindow;
+            windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<FormBase>(() =>
+            {
+                return new QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<FormBase>(() =>
+            {
+                return new HelpWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint(), Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<FormBase>(() =>
+            {
+                return new ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.ActivityWindow].ToPoint(), this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<FormBase>(() =>
+            {
+                return new CompassWindow(windowManager, Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<FormBase>(() =>
+            {
+                return new SwitchWindow(windowManager, Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<FormBase>(() =>
+            {
+                return new EndOfTrainDeviceWindow(windowManager, Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<FormBase>(() =>
+            {
+                return new NextStationWindow(windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<FormBase>(() =>
+            {
+                return new TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrainListWindow, new Lazy<FormBase>(() =>
+            {
+                return new TrainListWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerWindow, new Lazy<FormBase>(() =>
+            {
+                return new MultiPlayerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.DistributedPowerWindow, new Lazy<FormBase>(() =>
+            {
+                return new DistributedPowerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.DrivingTrainWindow, new Lazy<FormBase>(() =>
+            {
+                return new DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.PauseOverlay, new Lazy<FormBase>(() =>
+            {
+                return new PauseOverlay(windowManager, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<FormBase>(() =>
+            {
+                return new TrainOperationsWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainOperationsWindow].ToPoint(), this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.CarOperationsWindow, new Lazy<FormBase>(() =>
+            {
+                return new CarOperationsWindow(windowManager, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<FormBase>(() =>
+            {
+                return new TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<FormBase>(() =>
+            {
+                return new MultiPlayerMessaging(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.NotificationOverlay, new Lazy<FormBase>(() =>
+            {
+                return new NotificationOverlay(windowManager);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.DebugOverlay, new Lazy<FormBase>(() =>
+            {
+                return new DebugOverlay(windowManager, Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.CarIdentifierOverlay, new Lazy<FormBase>(() =>
+            {
+                return new CarIdentifierOverlay(windowManager, Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.LocationsOverlay, new Lazy<FormBase>(() =>
+            {
+                return new LocationOverlay(windowManager, Settings, this);
+            }));
+            windowManager.SetLazyWindows(ViewerWindowType.TrackItemOverlay, new Lazy<FormBase>(() =>
+            {
+                return new TrackDebugOverlay(windowManager, Settings, this);
+            }));
 
-            InfoDisplay = new InfoDisplay(this);
+            Game.Components.Add(windowManager);
+
+            dataDump = new InfoDisplay(this);
 
             World = new World(this, Simulator.ClockTime);
 
@@ -498,7 +594,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (World.GameSounds != null)
                     World.GameSounds.HandleEvent(TrainEvent.ControlError);
             };
-            Simulator.Confirmer.DisplayMessage += (s, e) => MessagesWindow.AddMessage(e.Key, e.Text, e.Duration);
+            Simulator.Confirmer.DisplayMessage += (s, e) => (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddMessage(e.Key, e.Text, e.Duration);
 
             if (Simulator.PlayerLocomotive.HasFront3DCab || Simulator.PlayerLocomotive.HasRear3DCab)
             {
@@ -514,8 +610,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // This ensures that a) we have all the required objects loaded when the 3D view first appears and b) that
             // all loading is performed on a single thread that we can handle in debugging and tracing.
             World.LoadPrep();
-                MaterialManager.LoadPrep();
-                LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            MaterialManager.LoadPrep();
+            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             Load();
 
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
@@ -527,12 +623,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => Simulator.Confirmer?.Information(Catalog.GetString("In multiplayer mode, use Alt-F4 to quit directly")));
                 UserCommandController.AddEvent(UserCommand.GameMultiPlayerTexting, KeyEventType.KeyPressed, () =>
                 {
-                    ComposeMessageWindow.InitMessage();
+                    windowManager[ViewerWindowType.MultiPlayerMessagingWindow].ToggleVisibility();
                 });
             }
             else
             {
-                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible);
+                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () =>
+                {
+                    Pause(!Simulator.GamePaused);
+                });
                 UserCommandController.AddEvent(UserCommand.GamePause, KeyEventType.KeyPressed, () => Simulator.GamePaused = !Simulator.GamePaused);
                 UserCommandController.AddEvent(UserCommand.DebugSpeedUp, KeyEventType.KeyPressed, () =>
                 {
@@ -552,155 +651,84 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (MultiPlayerManager.IsMultiPlayer() || (Settings.MultiplayerClient && Simulator.Confirmer != null))
             {
-                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () => MultiPlayerWindow.Visible = !MultiPlayerWindow.Visible);
+                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () =>
+                {
+                    windowManager[ViewerWindowType.MultiPlayerWindow].ToggleVisibility();
+                });
             }
             UserCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                {
-                    HUDWindow.TabAction();
-                }
-                else
-                {
-                    HUDWindow.Visible = !HUDWindow.Visible;
-                    if (!HUDWindow.Visible)
-                        HUDScrollWindow.Visible = false;
-                }
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
             UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save);
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    HelpWindow.TabAction();
-                else
-                    HelpWindow.Visible = !HelpWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.HelpWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrackMonitorWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrackMonitorWindow.TabAction();
-                else
-                    TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.TrackMonitorWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainDrivingWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainDrivingWindow.TabAction();
-                else
-                    TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.DrivingTrainWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplaySwitchWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    SwitchWindow.TabAction();
-                else
-                    SwitchWindow.Visible = !SwitchWindow.Visible;
+                windowManager[ViewerWindowType.SwitchWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayTrainOperationsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainOperationsWindow.TabAction();
-                else
-                    TrainOperationsWindow.Visible = !TrainOperationsWindow.Visible;
+                windowManager[ViewerWindowType.TrainOperationsWindow].ToggleVisibility();
             });
-            UserCommandController.AddEvent(UserCommand.DisplayTrainDpuWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            UserCommandController.AddEvent(UserCommand.DisplayDistributedPowerWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TrainDpuWindow.TabAction();
-                else
-                    TrainDpuWindow.Visible = !TrainDpuWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.DistributedPowerWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayNextStationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    NextStationWindow.TabAction();
-                else
-                    NextStationWindow.Visible = !NextStationWindow.Visible;
+                windowManager[ViewerWindowType.NextStationWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayCompassWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    CompassWindow.TabAction();
-                else
-                    CompassWindow.Visible = !CompassWindow.Visible;
+                windowManager[ViewerWindowType.CompassWindow].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DebugTracks, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    TracksDebugWindow.TabAction();
-                else
-                    TracksDebugWindow.Visible = !TracksDebugWindow.Visible;
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.TrackItemOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DebugSignalling, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    SignallingDebugWindow.TabAction();
-                else
-                    SignallingDebugWindow.Visible = !SignallingDebugWindow.Visible;
+                //
             });
-            UserCommandController.AddEvent(UserCommand.DisplayBasicHUDToggle, KeyEventType.KeyPressed, HUDWindow.ToggleBasicHUD);
-            UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () => TrainListWindow.Visible = !TrainListWindow.Visible);
-            UserCommandController.AddEvent(UserCommand.DisplayEOTListWindow, KeyEventType.KeyPressed, () => EOTListWindow.Visible = !EOTListWindow.Visible);
+            UserCommandController.AddEvent(UserCommand.DisplayTrainListWindow, KeyEventType.KeyPressed, () =>
+            {
+                windowManager[ViewerWindowType.TrainListWindow].ToggleVisibility();
+            });
+            UserCommandController.AddEvent(UserCommand.DisplayEOTListWindow, KeyEventType.KeyPressed, () =>
+            {
+                windowManager[ViewerWindowType.EndOfTrainDeviceWindow].ToggleVisibility();
+            });
             UserCommandController.AddEvent(UserCommand.DisplayStationLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    OSDLocations.TabAction();
-                else
-                {
-                    OSDLocations.Visible = !OSDLocations.Visible;
-                    if (OSDLocations.Visible)
-                    {
-                        switch (OSDLocations.CurrentDisplayState)
-                        {
-                            case OSDLocations.DisplayState.Auto:
-                                MessagesWindow.AddMessage(Catalog.GetString("Automatic platform and siding labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.All:
-                                MessagesWindow.AddMessage(Catalog.GetString("Platform and siding labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.Platforms:
-                                MessagesWindow.AddMessage(Catalog.GetString("Platform labels visible."), 5);
-                                break;
-                            case OSDLocations.DisplayState.Sidings:
-                                MessagesWindow.AddMessage(Catalog.GetString("Siding labels visible."), 5);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        MessagesWindow.AddMessage(Catalog.GetString("Platform and siding labels hidden."), 5);
-                    }
-                }
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.LocationsOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.DisplayCarLabels, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
-                    OSDCars.TabAction();
-                else
-                {
-                    OSDCars.Visible = !OSDCars.Visible;
-                    if (OSDCars.Visible)
-                    {
-                        switch (OSDCars.CurrentDisplayState)
-                        {
-                            case OSDCars.DisplayState.Trains:
-                                MessagesWindow.AddMessage(Catalog.GetString("Train labels visible."), 5);
-                                break;
-                            case OSDCars.DisplayState.Cars:
-                                MessagesWindow.AddMessage(Catalog.GetString("Car labels visible."), 5);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        MessagesWindow.AddMessage(Catalog.GetString("Train and car labels hidden."), 5);
-                    }
-                }
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ViewerWindowType.CarIdentifierOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameChangeCab, KeyEventType.KeyPressed, () =>
             {
-                if (PlayerLocomotive.ThrottlePercent >= 1 || Math.Abs(PlayerLocomotive.SpeedMpS) > 1 || !IsReverserInNeutral(PlayerLocomotive))
+                if (PlayerLocomotive.ThrottlePercent >= 1 || PlayerLocomotive.AbsSpeedMpS > 1 || !IsReverserInNeutral(PlayerLocomotive))
                 {
                     Simulator.Confirmer.Warning(CabControl.ChangeCab, CabSetting.Warn2);
                 }
@@ -750,7 +778,7 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.CameraVibrate, KeyEventType.KeyPressed, () =>
             {
                 Settings.CarVibratingLevel = (Settings.CarVibratingLevel + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel }"));
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel}"));
                 Settings.Save("CarVibratingLevel");
             });
             UserCommandController.AddEvent(UserCommand.DebugToggleConfirmations, KeyEventType.KeyPressed, () =>
@@ -860,11 +888,17 @@ namespace Orts.ActivityRunner.Viewer3D
                 //TODO 20210320 move path settings to RuntimeInfo
                 string textPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.txt");
                 Settings.Input.DumpToText(textPath);
-                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
                 string graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
                 KeyboardMap.DumpToGraphic(Settings.Input, graphicPath);
-                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
+            });
+
+            UserCommandController.AddEvent(UserCommand.ControlOdoMeterDisplayMode, KeyEventType.KeyPressed, () =>
+            {
+                Settings.OdometerShortDistanceMode = !Settings.OdometerShortDistanceMode;
+                Simulator.Confirmer.Confirm(CabControl.Odometer, Settings.OdometerShortDistanceMode ? "Short distance Measure mode" : "Long distance mode");
             });
 
             // Turntable commands
@@ -913,7 +947,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl())
                         {
                             Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to player control"));
-                            DbfEvalAutoPilot = false;//Debrief eval
+                            ActivityEvaluation.Instance.StopAutoPilotTime();
                         }
                         break;
                     case TrainType.AiPlayerDriven:
@@ -924,8 +958,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (((AITrain)PlayerLocomotive.Train).SwitchToAutopilotControl())
                             {
                                 Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to autopilot"));
-                                DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
-                                DbfEvalAutoPilot = true;//Debrief eval
+                                ActivityEvaluation.Instance.StartAutoPilotTime();
                             }
                         }
                         break;
@@ -954,8 +987,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 nearsource = new Vector3(pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, 0f);
                 Vector3 farsource = new Vector3(pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, 1f);
                 Matrix world = Matrix.CreateTranslation(0, 0, 0);
-                Vector3 nearPoint = DefaultViewport.Unproject(nearsource, Camera.XnaProjection, Camera.XnaView, world);
-                Vector3 farPoint = DefaultViewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
+                ref readonly Viewport viewport = ref RenderProcess.Viewport;
+                Vector3 nearPoint = viewport.Unproject(nearsource, Camera.XnaProjection, Camera.XnaView, world);
+                Vector3 farPoint = viewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
                 forceMouseVisible = true;
                 if (!Simulator.GamePaused)
                 {
@@ -981,9 +1015,28 @@ namespace Orts.ActivityRunner.Viewer3D
             InitReplay();
 
             //only add here at the end, so they do not fire during load process already
-            UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
-            UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
-            UpdaterProcess.GameComponents.Add(railDriverInputGameComponent);
+            Game.Components.Add(keyboardInputGameComponent);
+            Game.Components.Add(mouseInputGameComponent);
+            Game.Components.Add(railDriverInputGameComponent);
+
+            foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
+            {
+                if (Settings.PopupStatus[windowType] &&
+                    (windowType is not ViewerWindowType.QuitWindow
+                    and not ViewerWindowType.ActivityWindow
+                    and not ViewerWindowType.PauseOverlay
+                    and not ViewerWindowType.CarOperationsWindow
+                    and not ViewerWindowType.MultiPlayerMessagingWindow))
+                    windowManager[windowType].Open();
+            }
+            windowManager[ViewerWindowType.NotificationOverlay].Open();
+            if (Simulator.ActivityRun != null)
+                Simulator.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
+        }
+
+        private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)
+        {
+            forceMouseVisible = e.ModalWindowOpen;
         }
 
         private void ToggleDispatcherView()
@@ -995,7 +1048,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 dispatcherThread.Start();
             }
             else
-            { 
+            {
                 dispatcherWindow?.BringToFront();
             }
         }
@@ -1078,7 +1131,6 @@ namespace Orts.ActivityRunner.Viewer3D
             ImmediateRefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
             RefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
             SelectScreenCommand.Receiver = this;
-            ToggleOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ResetOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ToggleOdometerDirectionCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             SanderCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
@@ -1098,7 +1150,7 @@ namespace Orts.ActivityRunner.Viewer3D
             ToggleAnySwitchCommand.Receiver = this;
             UncoupleCommand.Receiver = this;
             SaveScreenshotCommand.Receiver = this;
-            ActivityCommand.Receiver = ActivityWindow;  // and therefore shared by all sub-classes
+            ActivityCommand.Receiver = windowManager[ViewerWindowType.ActivityWindow] as PopupWindows.ActivityWindow;
             UseCameraCommand.Receiver = this;
             MoveCameraCommand.Receiver = this;
             ToggleHelpersEngineCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
@@ -1219,11 +1271,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 CabCamera.Initialize();
         }
 
-        public float ComputeCabTextureInverseRatio(string cabTextureFileName)
+        private static float ComputeCabTextureInverseRatio(string cabTextureFileName)
         {
             float cabTextureInverseRatio = -1;
-            bool _isNightTexture;
-            var cabTexture = CABTextureManager.GetTexture(cabTextureFileName, false, false, out _isNightTexture, false);
+
+            var cabTexture = CABTextureManager.GetTexture(cabTextureFileName, false, false, out _, false);
             if (cabTexture != SharedMaterialManager.MissingTexture)
             {
                 cabTextureInverseRatio = (float)cabTexture.Height / cabTexture.Width;
@@ -1237,7 +1289,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             World.Load();
-            WindowManager.Load();
         }
 
         public void Update(RenderFrame frame, double elapsedRealTime)
@@ -1281,7 +1332,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (Simulator.Settings.ReplayPauseBeforeEnd)
                     {
                         // Reveal Quit Menu
-                        QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
+                        //QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
+                        Pause(true);
                         Log.PauseState = ReplayPauseState.During;
                     }
                     else
@@ -1292,7 +1344,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (Log.ReplayComplete)
             {
-                MessagesWindow.AddMessage("Replay complete", 2);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, "Replay complete", 2);
                 Log.ReplayComplete = false;
             }
 
@@ -1329,7 +1381,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 else
                 {
-                    Simulator.Confirmer.Warning(Viewer.Catalog.GetString("Cab view not available"));
+                    Simulator.Confirmer.Warning(Catalog.GetString("Cab view not available"));
                 }
             }
             else if (AbovegroundCamera != null
@@ -1355,13 +1407,22 @@ namespace Orts.ActivityRunner.Viewer3D
             Camera.PrepareFrame(frame, elapsedTime);
             frame.PrepareFrame(elapsedTime, lockShadows, logRenderFrame);
             World.PrepareFrame(frame, elapsedTime);
-            InfoDisplay.PrepareFrame(frame, elapsedTime);
-            // TODO: This is not correct. The ActivityWindow's PrepareFrame is already called by the WindowManager!
-            if (Simulator.ActivityRun != null)
-                ActivityWindow.PrepareFrame(elapsedTime, true);
+            dataDump.PrepareFrame(frame, elapsedTime);
 
-            WindowManager.PrepareFrame(frame, elapsedTime);
             logRenderFrame = false;
+            if (pauseWindow != (pauseWindow = Simulator.GamePaused))
+            {
+                windowManager[ViewerWindowType.PauseOverlay].Open();
+            }
+
+            // Camera notices
+            if (currentCamera == (currentCamera = Camera) && currentCamera != null)
+            {
+                if (fieldOfView != (fieldOfView = Camera.FieldOfView))
+                    (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddNotice(Catalog.GetString($"FOV: {fieldOfView:F0}°"));
+            }
+            else
+                fieldOfView = Camera?.FieldOfView ?? 0;
         }
 
         private void LoadDefectCarSound(TrainCar car, string filename)
@@ -1375,7 +1436,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, smsFilePath));
+                SoundProcess.AddSoundSource(this, new SoundSource(car as MSTSWagon, World.Trains.GetViewer(car), smsFilePath));
             }
             catch (Exception error)
             {
@@ -1385,17 +1446,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            var train = Program.Viewer.PlayerLocomotive.Train;//DebriefEval
-
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
-
-            if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000)
-            {
-                DbfEvalAutoPilotTimeS = DbfEvalAutoPilotTimeS + (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS);//Debrief eval
-                train.DbfEvalValueChanged = true;
-                DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
-            }
 
             //in the dispatcher window, when one clicks a train and "See in Game", will jump to see that train
             if (Program.DebugViewer != null && Program.DebugViewer.ClickedTrain == true)
@@ -1404,7 +1456,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (SelectedTrain != Program.DebugViewer.PickedTrain)
                 {
                     SelectedTrain = Program.DebugViewer.PickedTrain;
-                    Simulator.AI.aiListChanged = true;
+                    Simulator.AI.TrainListChanged = true;
 
                     if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
                         SelectedTrain = PlayerTrain;
@@ -1420,7 +1472,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (SelectedTrain != Simulator.TrainSwitcher.PickedTrainFromList && SelectedTrain.Cars != null || SelectedTrain.Cars.Count != 0)
                 {
                     SelectedTrain = Simulator.TrainSwitcher.PickedTrainFromList;
-                    Simulator.AI.aiListChanged = true;
+                    Simulator.AI.TrainListChanged = true;
 
                     CameraActivate();
                 }
@@ -1441,6 +1493,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Steam locos never have direction == N, so check for setting close to zero.
             || Math.Abs(car.Train.MUReverserPercent) <= 1;
         }
+
         /// <summary>
         /// If the player changes the camera during replay, then further replay of the camera is suspended.
         /// The player's camera commands will be recorded instead of the replay camera commands.
@@ -1464,9 +1517,27 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void ResumeReplaying()
         {
+            Simulator.GamePaused = false;
+            if (Log.PauseState == ReplayPauseState.During)
+                Log.PauseState = ReplayPauseState.Done;
+
             Log.CameraReplaySuspended = false;
             if (SuspendedCamera != null)
                 SuspendedCamera.Activate();
+        }
+
+        public void Pause(bool pause)
+        {
+            if (pause)
+            {
+                Simulator.GamePaused = true;
+                _ = windowManager[ViewerWindowType.QuitWindow].Open();
+            }
+            else
+            {
+                Simulator.GamePaused = false;
+                _ = windowManager[ViewerWindowType.QuitWindow].Close();
+            }
         }
 
         public void ChangeCab()
@@ -1516,9 +1587,9 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // display window for Timetable Player train detach actions
-        private void RequestTTDetachWindow(object sender, EventArgs e)
+        private void RequestTimetableDetachWindow(object sender, EventArgs e)
         {
-            TTDetachWindow.Visible = true;
+            windowManager[ViewerWindowType.DetachTimetableTrainWindow].Open();
         }
 
         // Finds the Turntable or Transfertable nearest to the viewing point
@@ -1541,18 +1612,15 @@ namespace Orts.ActivityRunner.Viewer3D
             return activeMovingTable;
         }
 
-        public void Mark()
-        {
-            WindowManager.Mark();
-        }
-
         internal void Terminate()
         {
+            SaveSettings();
             dispatcherWindow?.Close();
-            InfoDisplay.Terminate();
+            dataDump.Terminate();
         }
 
         private int trainCount;
+        private bool disposedValue;
 
         private void RandomSelectTrain()
         {
@@ -1582,7 +1650,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 SelectedTrain = PlayerTrain;
             }
-            Simulator.AI.aiListChanged = true;
+            Simulator.AI.TrainListChanged = true;
             CameraActivate();
         }
 
@@ -1629,20 +1697,15 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Count; j++)
+            foreach (TrackNode junctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
             {
-                TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
-                if (tn is TrackJunctionNode)
+                Vector3 xnaCenter = Camera.XnaLocation(junctionNode.UiD.Location);
+                float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
+
+                if (bestD > d)
                 {
-
-                    Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);
-                    float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
-
-                    if (bestD > d)
-                    {
-                        bestTn = tn;
-                        bestD = d;
-                    }
+                    bestTn = junctionNode;
+                    bestD = d;
                 }
             }
             if (bestTn != null)
@@ -1695,7 +1758,6 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (frame.IsScreenChanged)
             {
-                WindowManager.ScreenChanged();
                 AdjustCabHeight(DisplaySize.X, DisplaySize.Y);
             }
 
@@ -1719,7 +1781,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 Visibility = VisibilityState.Hidden;
                 // Hide MessageWindow
-                MessagesWindow.Visible = false;
+                windowManager[ViewerWindowType.NotificationOverlay].Close();
                 // Audible confirmation that screenshot taken
                 ViewerSounds.HandleEvent(TrainEvent.TakeScreenshot);
             }
@@ -1736,8 +1798,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SaveActivityThumbnail)
             {
                 SaveActivityThumbnail = false;
-                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
-                MessagesWindow.AddMessage(Catalog.GetString("Game saved"), 5);
+                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(RuntimeInfo.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Game saved"), 5);
             }
         }
 
@@ -1777,10 +1839,45 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             });
             if (!silent)
-                MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
+                Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, $"Saving screenshot to '{fileName}'.", 10);
             Visibility = VisibilityState.Visible;
             // Reveal MessageWindow
-            MessagesWindow.Visible = true;
+            windowManager[ViewerWindowType.NotificationOverlay].Open();
+        }
+
+        private static ulong GetVirtualAddressLimit()
+        {
+            var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
+            NativeMethods.GlobalMemoryStatusEx(buffer);
+            return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    dataDump?.Dispose();
+                    dispatcherWindow?.Dispose();
+                    actualCursor?.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~Viewer()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

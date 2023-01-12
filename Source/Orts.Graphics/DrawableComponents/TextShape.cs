@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,53 +11,46 @@ namespace Orts.Graphics.DrawableComponents
 {
     public class TextShape : ResourceGameComponent<Texture2D>
     {
-        [ThreadStatic]
-        private static TextShape instance;
         private readonly SpriteBatch spriteBatch;
+        private readonly TextTextureRenderer textRenderer; 
 
-        private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
-        private readonly System.Drawing.Graphics measureGraphics;
+        public OutlineRenderOptions OutlineRenderOptions { get; set; }
 
         private TextShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
             this.spriteBatch = spriteBatch;
-            measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
+            textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 
-        public static void Initialize(Game game, SpriteBatch spriteBatch)
+        public static TextShape Instance(Game game, SpriteBatch spriteBatch)
         {
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
-            if (null == instance)
+
+            TextShape instance;
+            if ((instance = game.Components.OfType<TextShape>().FirstOrDefault()) == null)
+            {
                 instance = new TextShape(game, spriteBatch);
+            }
+            return instance;
         }
 
         /// <summary>
         /// Draw a text message (string) with transparent background
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
         /// </summary>
-        public static void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, 
+        public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, 
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
-            int identifier = HashCode.Combine(font, message);
-            if (!instance.currentResources.TryGetValue(identifier, out Texture2D texture))
+            int identifier = HashCode.Combine(font, message, OutlineRenderOptions);
+            Texture2D texture = Get(identifier, () =>
             {
-                if (!instance.previousResources.TryGetValue(identifier, out texture))
-                {
-                    texture = TextTextureRenderer.Resize(message, font, instance.Game.GraphicsDevice, instance.measureGraphics);
-                    TextTextureRenderer.RenderText(message, font, texture);
-                    instance.currentResources.Add(identifier, texture);
-                }
-                else
-                {
-                    instance.currentResources.Add(identifier, texture);
-                    instance.previousResources.Remove(identifier);
-                }
-            }
+                return textRenderer.RenderText(message, font, OutlineRenderOptions);
+            });
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
-            (spriteBatch ?? instance.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
+            (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
         }
     }
 }

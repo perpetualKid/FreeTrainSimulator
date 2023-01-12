@@ -75,7 +75,7 @@ namespace Orts.Simulation.Track
                     AIPathNode pNode = aiPath.Nodes[i];
                     if (pNode.JunctionIndex > 0)
                     {
-                        TrackNode jn = RuntimeData.Instance.TrackDB.TrackNodes[pNode.JunctionIndex];
+                        TrackJunctionNode jn = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pNode.JunctionIndex];
                         firstSwitch = true;
                         for (int iPin = 0; iPin < jn.TrackPins.Length; iPin++)
                         {
@@ -280,7 +280,7 @@ namespace Orts.Simulation.Track
 
                     if (nextPathNode.Type == AIPathNodeType.Reverse)
                     {
-                        TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
+                        TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[nextPathNode.NextMainTVNIndex];
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
                         Traveller TDBTrav = new Traveller(reversalNode, firstSection.Location, Direction.Forward);
                         offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
@@ -1053,7 +1053,7 @@ namespace Orts.Simulation.Track
 
                     // process junction node
 
-                    TrackNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                    TrackJunctionNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[currentPathNode.JunctionIndex];
                     TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
@@ -1113,7 +1113,7 @@ namespace Orts.Simulation.Track
 
                             if (currentPathNode.JunctionIndex > 0)
                             {
-                                TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[currentPathNode.JunctionIndex];
                                 TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
                                 alternativePathRoute.Add(element);
 
@@ -1226,7 +1226,7 @@ namespace Orts.Simulation.Track
                     AIPathNode pathNode = aiPath.Nodes[pathDetails[1]];
 
                     // process junction node
-                    TrackNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes[pathNode.JunctionIndex];
+                    TrackJunctionNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pathNode.JunctionIndex];
                     TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
@@ -1285,7 +1285,7 @@ namespace Orts.Simulation.Track
                             // process junction section
                             if (pathNode.JunctionIndex > 0)
                             {
-                                TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[pathNode.JunctionIndex];
+                                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pathNode.JunctionIndex];
                                 TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
                                 alternativePathRoute.Add(element);
 
@@ -1640,7 +1640,7 @@ namespace Orts.Simulation.Track
         // Convert waiting point to section no.
         private static int ConvertWaitingPoint(AIPathNode stopPathNode)
         {
-            TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
+            TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[stopPathNode.NextMainTVNIndex];
             TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
             Traveller tdbTraveller = new Traveller(waitingNode, firstSection.Location, Direction.Forward);
             float offset = tdbTraveller.DistanceTo(waitingNode, stopPathNode.Location);

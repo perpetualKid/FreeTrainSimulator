@@ -30,18 +30,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
     public abstract class ScriptedLocomotivePowerSupply : ILocomotivePowerSupply
     {
-        public readonly MSTSLocomotive Locomotive;
+        public MSTSLocomotive Locomotive { get; }
         protected static readonly Simulator Simulator = Simulator.Instance;
         protected Train Train => Locomotive.Train;
-        protected int CarId;
+        private int carId;
 
         public BatterySwitch BatterySwitch { get; protected set; }
         public MasterKey MasterKey { get; protected set; }
         public ElectricTrainSupplySwitch ElectricTrainSupplySwitch { get; protected set; }
 
         public abstract PowerSupplyType Type { get; }
-        protected string ScriptName = "Default";
-        protected LocomotivePowerSupply AbstractScript;
+        private protected string scriptName = "Default";
+        private protected LocomotivePowerSupply abstractScript;
 
         public PowerSupplyState MainPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool MainPowerSupplyOn => MainPowerSupplyState == PowerSupplyState.PowerOn;
@@ -101,7 +101,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             switch (lowercasetoken)
             {
                 case "engine(ortspowersupply":
-                    ScriptName = stf.ReadStringBlock(null);
+                    scriptName = stf.ReadStringBlock(null);
                     break;
 
                 case "engine(ortspowerondelay":
@@ -128,15 +128,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public virtual void Copy(IPowerSupply other)
+        public virtual void Copy(IPowerSupply source)
         {
-            if (other is ScriptedLocomotivePowerSupply scriptedOther)
+            if (source is ScriptedLocomotivePowerSupply scriptedOther)
             {
                 BatterySwitch.Copy(scriptedOther.BatterySwitch);
                 MasterKey.Copy(scriptedOther.MasterKey);
                 ElectricTrainSupplySwitch.Copy(scriptedOther.ElectricTrainSupplySwitch);
 
-                ScriptName = scriptedOther.ScriptName;
+                scriptName = scriptedOther.scriptName;
 
                 PowerOnDelayS = scriptedOther.PowerOnDelayS;
                 AuxPowerOnDelayS = scriptedOther.AuxPowerOnDelayS;
@@ -169,7 +169,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 CabPowerSupplyState = PowerSupplyState.PowerOn;
             }
 
-            AbstractScript?.InitializeMoving();
+            abstractScript?.InitializeMoving();
         }
 
         public virtual void Save(BinaryWriter outf)
@@ -208,13 +208,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public virtual void Update(double elapsedClockSeconds)
         {
-            CarId = Train?.Cars.IndexOf(Locomotive) ?? 0;
+            carId = Train?.Cars.IndexOf(Locomotive) ?? 0;
 
             if (firstUpdate)
             {
                 firstUpdate = false;
 
-                TrainCar previousCar = CarId > 0 ? Train.Cars[CarId - 1] : null;
+                TrainCar previousCar = carId > 0 ? Train.Cars[carId - 1] : null;
 
                 // Connect the power supply cable if the previous car is a locomotive or another passenger car
                 if (previousCar != null
@@ -233,36 +233,36 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            AbstractScript?.HandleEvent(evt);
+            abstractScript?.HandleEvent(evt);
         }
 
         public void HandleEvent(PowerSupplyEvent evt, int id)
         {
-            AbstractScript?.HandleEvent(evt, id);
+            abstractScript?.HandleEvent(evt, id);
         }
 
         public void HandleEventFromLeadLocomotive(PowerSupplyEvent evt)
         {
-            AbstractScript?.HandleEventFromLeadLocomotive(evt);
+            abstractScript?.HandleEventFromLeadLocomotive(evt);
         }
 
         public void HandleEventFromLeadLocomotive(PowerSupplyEvent evt, int id)
         {
-            AbstractScript?.HandleEventFromLeadLocomotive(evt, id);
+            abstractScript?.HandleEventFromLeadLocomotive(evt, id);
         }
 
         protected virtual void AssignScriptFunctions()
         {
             // AbstractScriptClass
-            AbstractScript.ClockTime = () => (float)Simulator.ClockTime;
-            AbstractScript.GameTime = () => (float)Simulator.GameTime;
-            AbstractScript.PreUpdate = () => Simulator.PreUpdate;
-            AbstractScript.DistanceM = () => Locomotive.DistanceTravelled;
-            AbstractScript.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-            AbstractScript.Confirm = Simulator.Confirmer.Confirm;
-            AbstractScript.Message = Simulator.Confirmer.Message;
-            AbstractScript.SignalEvent = Locomotive.SignalEvent;
-            AbstractScript.SignalEventToTrain = (evt) =>
+            abstractScript.ClockTime = () => (float)Simulator.ClockTime;
+            abstractScript.GameTime = () => (float)Simulator.GameTime;
+            abstractScript.PreUpdate = () => Simulator.PreUpdate;
+            abstractScript.DistanceM = () => Locomotive.DistanceTravelled;
+            abstractScript.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
+            abstractScript.Confirm = Simulator.Confirmer.Confirm;
+            abstractScript.Message = Simulator.Confirmer.Message;
+            abstractScript.SignalEvent = Locomotive.SignalEvent;
+            abstractScript.SignalEventToTrain = (evt) =>
             {
                 if (Locomotive.Train != null)
                 {
@@ -271,13 +271,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             };
 
             // AbstractPowerSupply getters
-            AbstractScript.CurrentMainPowerSupplyState = () => MainPowerSupplyState;
-            AbstractScript.CurrentAuxiliaryPowerSupplyState = () => AuxiliaryPowerSupplyState;
-            AbstractScript.CurrentElectricTrainSupplyState = () => ElectricTrainSupplyState;
-            AbstractScript.CurrentLowVoltagePowerSupplyState = () => LowVoltagePowerSupplyState;
-            AbstractScript.CurrentBatteryState = () => BatteryState;
-            AbstractScript.CurrentCabPowerSupplyState = () => CabPowerSupplyState;
-            AbstractScript.CurrentHelperEnginesState = () =>
+            abstractScript.CurrentMainPowerSupplyState = () => MainPowerSupplyState;
+            abstractScript.CurrentAuxiliaryPowerSupplyState = () => AuxiliaryPowerSupplyState;
+            abstractScript.CurrentElectricTrainSupplyState = () => ElectricTrainSupplyState;
+            abstractScript.CurrentLowVoltagePowerSupplyState = () => LowVoltagePowerSupplyState;
+            abstractScript.CurrentBatteryState = () => BatteryState;
+            abstractScript.CurrentCabPowerSupplyState = () => CabPowerSupplyState;
+            abstractScript.CurrentHelperEnginesState = () =>
             {
                 DieselEngineState state = DieselEngineState.Unavailable;
 
@@ -285,7 +285,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {
-                        foreach (DieselEngine dieselEngine in locomotive.DieselEngines.DEList.Where(de => de != locomotive.DieselEngines[0]))
+                        foreach (DieselEngine dieselEngine in locomotive.DieselEngines.Skip(1))
                         {
                             if (dieselEngine.State > state)
                                 state = dieselEngine.State;
@@ -303,31 +303,31 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                 return state;
             };
-            AbstractScript.CurrentDynamicBrakeAvailability = () => DynamicBrakeAvailable;
-            AbstractScript.ThrottlePercent = () => Locomotive.ThrottlePercent;
-            AbstractScript.PowerOnDelayS = () => PowerOnDelayS;
-            AbstractScript.AuxPowerOnDelayS = () => AuxPowerOnDelayS;
-            AbstractScript.BatterySwitchOn = () => BatterySwitch.On;
-            AbstractScript.MasterKeyOn = () => MasterKey.On;
-            AbstractScript.ElectricTrainSupplySwitchOn = () => ElectricTrainSupplySwitch.On;
-            AbstractScript.ElectricTrainSupplyUnfitted = () => ElectricTrainSupplySwitch.Mode == ElectricTrainSupplySwitch.ModeType.Unfitted;
+            abstractScript.CurrentDynamicBrakeAvailability = () => DynamicBrakeAvailable;
+            abstractScript.ThrottlePercent = () => Locomotive.ThrottlePercent;
+            abstractScript.PowerOnDelayS = () => PowerOnDelayS;
+            abstractScript.AuxPowerOnDelayS = () => AuxPowerOnDelayS;
+            abstractScript.BatterySwitchOn = () => BatterySwitch.On;
+            abstractScript.MasterKeyOn = () => MasterKey.On;
+            abstractScript.ElectricTrainSupplySwitchOn = () => ElectricTrainSupplySwitch.On;
+            abstractScript.ElectricTrainSupplyUnfitted = () => ElectricTrainSupplySwitch.Mode == ElectricTrainSupplySwitch.ModeType.Unfitted;
 
             // AbstractPowerSupply setters
-            AbstractScript.SetCurrentMainPowerSupplyState = (value) => MainPowerSupplyState = value;
-            AbstractScript.SetCurrentAuxiliaryPowerSupplyState = (value) => AuxiliaryPowerSupplyState = value;
-            AbstractScript.SetCurrentElectricTrainSupplyState = (value) => ElectricTrainSupplyState = value;
-            AbstractScript.SetCurrentLowVoltagePowerSupplyState = (value) => LowVoltagePowerSupplyState = value;
-            AbstractScript.SetCurrentBatteryState = (value) => BatteryState = value;
-            AbstractScript.SetCurrentCabPowerSupplyState = (value) => CabPowerSupplyState = value;
-            AbstractScript.SetCurrentDynamicBrakeAvailability = (value) => DynamicBrakeAvailable = value;
-            AbstractScript.SignalEventToBatterySwitch = (evt) => BatterySwitch.HandleEvent(evt);
-            AbstractScript.SignalEventToMasterKey = (evt) => MasterKey.HandleEvent(evt);
-            AbstractScript.SignalEventToElectricTrainSupplySwitch = (evt) => ElectricTrainSupplySwitch.HandleEvent(evt);
-            AbstractScript.SignalEventToPantographs = (evt) => Locomotive.Pantographs.HandleEvent(evt);
-            AbstractScript.SignalEventToPantograph = (evt, id) => Locomotive.Pantographs.HandleEvent(evt, id);
-            AbstractScript.SignalEventToTcs = (evt) => Locomotive.TrainControlSystem.HandleEvent(evt);
-            AbstractScript.SignalEventToTcsWithMessage = (evt, message) => Locomotive.TrainControlSystem.HandleEvent(evt, message);
-            AbstractScript.SignalEventToOtherLocomotives = (evt) =>
+            abstractScript.SetCurrentMainPowerSupplyState = (value) => MainPowerSupplyState = value;
+            abstractScript.SetCurrentAuxiliaryPowerSupplyState = (value) => AuxiliaryPowerSupplyState = value;
+            abstractScript.SetCurrentElectricTrainSupplyState = (value) => ElectricTrainSupplyState = value;
+            abstractScript.SetCurrentLowVoltagePowerSupplyState = (value) => LowVoltagePowerSupplyState = value;
+            abstractScript.SetCurrentBatteryState = (value) => BatteryState = value;
+            abstractScript.SetCurrentCabPowerSupplyState = (value) => CabPowerSupplyState = value;
+            abstractScript.SetCurrentDynamicBrakeAvailability = (value) => DynamicBrakeAvailable = value;
+            abstractScript.SignalEventToBatterySwitch = (evt) => BatterySwitch.HandleEvent(evt);
+            abstractScript.SignalEventToMasterKey = (evt) => MasterKey.HandleEvent(evt);
+            abstractScript.SignalEventToElectricTrainSupplySwitch = (evt) => ElectricTrainSupplySwitch.HandleEvent(evt);
+            abstractScript.SignalEventToPantographs = (evt) => Locomotive.Pantographs.HandleEvent(evt);
+            abstractScript.SignalEventToPantograph = (evt, id) => Locomotive.Pantographs.HandleEvent(evt, id);
+            abstractScript.SignalEventToTcs = (evt) => Locomotive.TrainControlSystem.HandleEvent(evt);
+            abstractScript.SignalEventToTcsWithMessage = (evt, message) => Locomotive.TrainControlSystem.HandleEvent(evt, message);
+            abstractScript.SignalEventToOtherLocomotives = (evt) =>
             {
                 if (Locomotive == Simulator.PlayerLocomotive)
                 {
@@ -340,7 +340,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     }
                 }
             };
-            AbstractScript.SignalEventToOtherLocomotivesWithId = (evt, id) =>
+            abstractScript.SignalEventToOtherLocomotivesWithId = (evt, id) =>
             {
                 if (Locomotive == Simulator.PlayerLocomotive)
                 {
@@ -353,7 +353,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     }
                 }
             };
-            AbstractScript.SignalEventToOtherTrainVehicles = (evt) =>
+            abstractScript.SignalEventToOtherTrainVehicles = (evt) =>
             {
                 if (Locomotive == Simulator.PlayerLocomotive)
                 {
@@ -366,7 +366,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     }
                 }
             };
-            AbstractScript.SignalEventToOtherTrainVehiclesWithId = (evt, id) =>
+            abstractScript.SignalEventToOtherTrainVehiclesWithId = (evt, id) =>
             {
                 if (Locomotive == Simulator.PlayerLocomotive)
                 {
@@ -379,7 +379,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     }
                 }
             };
-            AbstractScript.SignalEventToHelperEngines = (evt) =>
+            abstractScript.SignalEventToHelperEngines = (evt) =>
             {
                 bool helperFound = false; //this avoids that locomotive engines toggle in opposite directions
 

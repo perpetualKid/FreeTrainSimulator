@@ -148,7 +148,7 @@ namespace Orts.MultiPlayerServer
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            if (reader.TryReadTo(out _, quitSeparator))
+            if (reader.TryReadTo(out ReadOnlySequence<byte> _, quitSeparator))
             {
                 if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                 {
@@ -160,7 +160,7 @@ namespace Orts.MultiPlayerServer
 
         private async Task PipeReadAsync(TcpClient tcpClient, PipeReader reader)
         {
-            string playerName = Guid.NewGuid().ToString();
+            string playerName = tcpClient.Client.RemoteEndPoint.ToString();
             bool playerNameSet = false;
             string quitPlayer;
             onlinePlayers.Add(playerName, tcpClient);

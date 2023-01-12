@@ -573,7 +573,7 @@ namespace Orts.Simulation.Timetables
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
             TrackCircuitSection thisSection = thisPath[0].TrackCircuitSection;
-            TrackVectorNode thisTDBsection = RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode thisTDBsection = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex];
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
@@ -628,7 +628,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.AccessPath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[trackNodeIndex].TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -700,7 +700,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.StoragePath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[trackNodeIndex].TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -818,7 +818,7 @@ namespace Orts.Simulation.Timetables
         }
 
         public bool TestPoolAccess(TTTrain train, out int accessIndex)
-            { 
+        {
             bool validPool = false;
             int reqPath = -1;
             int reqPathIndex = -1;
@@ -918,7 +918,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 DateTime baseDTA = new DateTime();
-                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.clockTime);
+                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.ClockTime);
 
                 if (ForceCreation)
                 {
@@ -1063,25 +1063,7 @@ namespace Orts.Simulation.Timetables
 
                     // set player locomotive
                     // first test first and last cars - if either is drivable, use it as player locomotive
-                    if (train.Cars.First().IsDriveable)
-                    {
-                        Simulatorref.PlayerLocomotive = train.LeadLocomotive = train.Cars.First();
-                    }
-                    else if (train.Cars.Last().IsDriveable)
-                    {
-                        Simulatorref.PlayerLocomotive = train.LeadLocomotive = train.Cars.Last();
-                    }
-                    else
-                    {
-                        foreach (TrainCar car in train.Cars)
-                        {
-                            if (car.IsDriveable)  // first loco is the one the player drives
-                            {
-                                Simulatorref.PlayerLocomotive = train.LeadLocomotive = car;
-                                break;
-                            }
-                        }
-                    }
+                    Simulatorref.PlayerLocomotive = train.LeadLocomotive = train.Cars.First() as MSTSLocomotive ?? train.Cars.Last() as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                     train.InitializeBrakes();
 
@@ -1125,7 +1107,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgiginalConsist = train.ForcedConsistName;
+                        car.OriginalConsist = train.ForcedConsistName;
                     }
                 }
 
@@ -1443,7 +1425,7 @@ namespace Orts.Simulation.Timetables
 
         public bool CheckTurntableAvailable()
         {
-            if (parentTurntable == null) 
+            if (parentTurntable == null)
                 parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             bool available = true;
@@ -1464,7 +1446,8 @@ namespace Orts.Simulation.Timetables
                 {
                     if (parentTurntable.WaitingTrains.Count < 1 || parentTurntable.WaitingTrains.Peek() == parentTrain.Number)
                     {
-                        if (parentTurntable.WaitingTrains.Count >= 1) parentTurntable.WaitingTrains.Dequeue();
+                        if (parentTurntable.WaitingTrains.Count >= 1)
+                            parentTurntable.WaitingTrains.Dequeue();
                         available = true;
                         parentTurntable.InUse = true;
                         switch (MovingTableAction)
@@ -1498,7 +1481,7 @@ namespace Orts.Simulation.Timetables
 
         public void UpdateTurntableStateAI(double elapsedClockSeconds, int presentTime)
         {
-            if (parentTurntable == null) 
+            if (parentTurntable == null)
                 parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             int reqTurntableExit = -1;
@@ -1638,7 +1621,7 @@ namespace Orts.Simulation.Timetables
 
         public bool UpdateTurntableStatePlayer(double elapsedClockSeconds)
         {
-            if (parentTurntable == null) 
+            if (parentTurntable == null)
                 parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             bool terminated = false;
@@ -1665,7 +1648,8 @@ namespace Orts.Simulation.Timetables
                     {
                         if (parentTurntable.WaitingTrains.Count < 1 || parentTurntable.WaitingTrains.Peek() == parentTrain.Number)
                         {
-                            if (parentTurntable.WaitingTrains.Count >= 1) parentTurntable.WaitingTrains.Dequeue();
+                            if (parentTurntable.WaitingTrains.Count >= 1)
+                                parentTurntable.WaitingTrains.Dequeue();
                             parentTurntable.InUse = true;
 
                             if (MovingTableAction == MovingTableActionEnum.FromAccess)
@@ -1928,7 +1912,7 @@ namespace Orts.Simulation.Timetables
             // search if section in access path
             // direction must be reverse as access path is defined outbound
             int reqPath = -1;
-            for (int iPath=0; iPath <= parentPool.AdditionalTurntableDetails.AccessPaths.Count - 1 && reqPath < 0; iPath++)
+            for (int iPath = 0; iPath <= parentPool.AdditionalTurntableDetails.AccessPaths.Count - 1 && reqPath < 0; iPath++)
             {
                 int routeIndex = parentPool.AdditionalTurntableDetails.AccessPaths[iPath].AccessPath.GetRouteIndex(presentSection, 0);
                 if (routeIndex >= 0 && parentPool.AdditionalTurntableDetails.AccessPaths[iPath].AccessPath[routeIndex].Direction != presentDirection)
@@ -1983,7 +1967,7 @@ namespace Orts.Simulation.Timetables
                 if (parentTurntable.TrainsOnMovingTable.Count > 0)
                 {
                     PrepareMoveOffTable();
-                }                
+                }
                 return (true);
             }
 
@@ -2103,7 +2087,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // rotate clockwise or counterclockwise depending on angle
-            if ( angleToMove < 0)
+            if (angleToMove < 0)
             {
                 parentTurntable.AutoRotationDirection = Rotation.CounterClockwise;
 #if DEBUG_TURNTABLEINFO
@@ -2341,11 +2325,12 @@ namespace Orts.Simulation.Timetables
             }
 
             // reverse formation if required
-            if (reverseFormation) parentTrain.ReverseCars();
+            if (reverseFormation)
+                parentTrain.ReverseCars();
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoute[0][0].TrackCircuitSection;
-            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
+            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex]);
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",
@@ -2478,7 +2463,7 @@ namespace Orts.Simulation.Timetables
 
         //================================================================================================//
 
-        public bool TestTrainFormation (TTTrain parentTrain)
+        public bool TestTrainFormation(TTTrain parentTrain)
         {
             bool reqReverse = true;
 

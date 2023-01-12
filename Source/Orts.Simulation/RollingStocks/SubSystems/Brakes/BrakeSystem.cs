@@ -15,11 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Common.Calc;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 {
@@ -36,29 +41,68 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
     public abstract class BrakeSystem
     {
-        public float BrakeLine1PressurePSI = 90;    // main trainline pressure at this car
-        public float BrakeLine2PressurePSI;         // main reservoir equalization pipe pressure
-        public float BrakeLine3PressurePSI;         // engine brake cylinder equalization pipe pressure
-        public float BrakePipeVolumeM3 = 1.4e-2f;      // volume of a single brake line
-        public bool ControllerRunningLock;  // Stops Running controller from becoming active until BP = EQ Res, used in EQ vacuum brakes
-        public float BrakeCylFraction;
+        private protected readonly TrainCar car;
+        private protected readonly BrakeInformation brakeInfo;
+
+        private protected float handbrakePercent;
+
+        private protected abstract void UpdateBrakeStatus();
+
+        public float HandbrakePercent 
+        {
+            get => handbrakePercent;
+            set
+            {
+                if ((car as MSTSWagon)?.HandBrakePresent ?? false)
+                {
+                    handbrakePercent = Math.Clamp(value, 0, 100);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Main trainline pressure at this car in PSI
+        /// </summary>
+        public float BrakeLine1PressurePSI { get; set; } = 90;
+
+        /// <summary>
+        /// Main reservoir equalization pipe pressure in PSI
+        /// </summary>
+        public float BrakeLine2PressurePSI { get; set; }
+
+        /// <summary>
+        /// Engine brake cylinder equalization pipe pressure
+        /// </summary>
+        public float BrakeLine3PressurePSI { get; set; }
+
+        /// <summary>
+        /// Volume of a single brake line
+        /// </summary>
+        public float BrakePipeVolumeM3 { get; set; } = 1.4e-2f;
+
+        /// <summary>
+        /// Stops Running controller from becoming active until BP = EQ Res, used in EQ vacuum brakes
+        /// </summary>
+        public bool ControllerRunningLock { get; set; }
+
+        public float BrakeCylFraction { get; set; }
 
         /// <summary>
         /// Front brake hoses connection status
         /// </summary>
-        public bool FrontBrakeHoseConnected;
+        public bool FrontBrakeHoseConnected { get; set; }
         /// <summary>
         /// Front angle cock opened/closed status
         /// </summary>
-        public bool AngleCockAOpen = true;
+        public bool AngleCockAOpen { get; set; } = true;
         /// <summary>
         /// Rear angle cock opened/closed status
         /// </summary>
-        public bool AngleCockBOpen = true;
+        public bool AngleCockBOpen { get; set; } = true;
         /// <summary>
         /// Auxiliary brake reservoir vent valve open/closed status
         /// </summary>
-        public bool BleedOffValveOpen;
+        public bool BleedOffValveOpen { get; set; }
         /// <summary>
         /// Indicates whether the main reservoir pipe is available
         /// </summary>
@@ -66,15 +110,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
         public abstract void AISetPercent(float percent);
 
-        public abstract string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
-        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units);
-        public abstract string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
+        public abstract string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units);
+        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units);
+
         public abstract float GetCylPressurePSI();
         public abstract float GetCylVolumeM3();
-        public abstract float GetVacResPressurePSI();
-        public abstract float GetVacResVolume();
-        public abstract float GetVacBrakeCylNumber();
-        public bool CarBPIntact;
+        public abstract float VacResPressurePSI { get; }
+
+        public abstract float VacResVolume { get; }
+
+        public abstract float VacBrakeCylNumber { get; }
+        public bool CarBPIntact { get; set; }
+
+        public DetailInfoBase BrakeInfo => brakeInfo;
+
+        public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
         public abstract void Save(BinaryWriter outf);
 
@@ -90,13 +140,37 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float InternalPressure(float realPressure);
 
         public abstract void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease);
-        public abstract void SetHandbrakePercent(float percent);
-        public abstract bool GetHandbrakeStatus();
+
         public abstract void SetRetainer(RetainerSetting setting);
         public abstract void InitializeMoving(); // starting conditions when starting speed > 0
         public abstract void LocoInitializeMoving(); // starting conditions when starting speed > 0
         public abstract bool IsBraking(); // return true if the wagon is braking above a certain threshold
         public abstract void CorrectMaxCylPressurePSI(MSTSLocomotive loco); // corrects max cyl pressure when too high
+
+        protected BrakeSystem(TrainCar car)
+        {
+            this.car = car;
+            this.brakeInfo = new BrakeInformation(this);
+        }
+
+        private protected class BrakeInformation : DetailInfoBase
+        {
+            private readonly BrakeSystem brakeSystem;
+
+            public BrakeInformation(BrakeSystem brakeSystem) : base(true)
+            {
+                this.brakeSystem = brakeSystem;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    brakeSystem.UpdateBrakeStatus();
+                    base.Update(gameTime);
+                }
+            }
+        }
     }
 
     public enum RetainerSetting

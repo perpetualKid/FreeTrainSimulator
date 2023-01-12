@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (trees.Count > 0)
             {
-                VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
+                VertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
                 VertexBuffer.SetData(trees.ToArray());
             }
 
@@ -242,10 +242,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 SectionMap = new Dictionary<string, List<TrackVectorSection>>();
                 if (MaximumCenterlineOffset > 0)
                 {
-                    foreach (var node in RuntimeData.Instance.TrackDB.TrackNodes)
+                    foreach (TrackVectorNode trackVectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
                     {
-                        if (!(node is TrackVectorNode trackVectorNode))
-                            continue;
                         foreach (var section in trackVectorNode.TrackVectorSections)
                         {
                             var key = "" + section.Location.TileX + "." + section.Location.TileZ;

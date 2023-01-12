@@ -21,6 +21,8 @@ using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Simulation;
@@ -108,7 +110,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 Scenery.Mark();
                 Trains.Mark();
                 RoadCars.Mark();
-                Viewer.Mark();
                 Viewer.ShapeManager.Sweep();
                 Viewer.MaterialManager.Sweep();
                 Viewer.TextureManager.Sweep();
@@ -118,12 +119,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Update(in ElapsedTime elapsedTime)
         {
-            if (PerformanceTune && Viewer.RenderProcess.IsActive)
+            if (PerformanceTune && Viewer.Game.IsActive)
             {
                 // Work out how far we need to change the actual FPS to get to the target.
                 //   +ve = under-performing/too much detail
                 //   -ve = over-performing/not enough detail
-                var fpsTarget = Viewer.Settings.PerformanceTunerTarget - Viewer.RenderProcess.FrameRate.SmoothedValue;
+                var fpsTarget = Viewer.Settings.PerformanceTunerTarget - MetricCollector.Instance.Metrics[Processes.SlidingMetric.FrameRate].SmoothedValue;
 
                 // If vertical sync is on, we're capped to 60 FPS. This means we need to shift a target of 60FPS down to 57FPS.
                 if (Viewer.Settings.VerticalSync && Viewer.Settings.PerformanceTunerTarget > 55)
@@ -140,8 +141,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Work out how much spare CPU we have; the target is 90%.
                     //   +ve = under-performing/too much detail
                     //   -ve = over-performing/not enough detail
-                    var cpuTargetRender = Viewer.RenderProcess.Profiler.Wall.SmoothedValue - 90;
-                    var cpuTargetUpdater = Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue - 90;
+                    var cpuTargetRender = Profiler.ProfilingData[ProcessType.Render].Wall.SmoothedValue - 90;
+                    var cpuTargetUpdater = Profiler.ProfilingData[ProcessType.Updater].Wall.SmoothedValue - 90;
                     cpuTarget = cpuTargetRender > cpuTargetUpdater ? cpuTargetRender : cpuTargetUpdater;
 
                     // Summarise the CPS adjustment to: +1 (add detail), 0 (keep), -1 (remove detail).

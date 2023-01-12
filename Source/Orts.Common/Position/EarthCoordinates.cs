@@ -29,14 +29,15 @@
 //    Rick Grout
 //   
 
-using Microsoft.Xna.Framework;
-
 using System;
+
+using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Position
 {
     public static class EarthCoordinates
     {
+        private const double piRad = 180 / Math.PI;
         private const int earthRadius = 6370997; // Average radius of the earth, meters
         private const double epsilon = 0.0000000001; // Error factor (arbitrary)
         private static readonly double[] centralMeridians = new double[12]
@@ -425,6 +426,32 @@ namespace Orts.Common.Position
             return (xp, zp);
         }
 
+        public static (string latitude, string longitude) ToString(double latitude, double longitude)
+        {
+            longitude *= piRad; // E/W
+            latitude *= piRad;  // N/S
+            char hemisphere = latitude >= 0 ? 'N' : 'S';
+            char direction = longitude >= 0 ? 'E' : 'W';
+            longitude = Math.Abs(longitude);
+            latitude = Math.Abs(latitude);
+            int longitudeDegree = (int)Math.Truncate(longitude);
+            int latitudeDegree = (int)Math.Truncate(latitude);
+
+            longitude -= longitudeDegree;
+            latitude -= latitudeDegree;
+            longitude *= 60;
+            latitude *= 60;
+            int longitudeMinute = (int)Math.Truncate(longitude);
+            int latitudeMinute = (int)Math.Truncate(latitude);
+            longitude -= longitudeMinute;
+            latitude -= latitudeMinute;
+            longitude *= 60;
+            latitude *= 60;
+            //int longitudeSecond = (int)Math.Truncate(longitude);
+            //int latitudeSecond = (int)Math.Truncate(latitude);
+
+            return ($"{latitudeDegree}°{latitudeMinute,2:00}'{latitude,4:00.00}\"{hemisphere}", $"{longitudeDegree}°{longitudeMinute,2:00}'{longitude,4:00.00}\"{direction}");
+        }
 
     }
 }

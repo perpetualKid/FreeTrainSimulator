@@ -270,7 +270,7 @@ namespace ORTS.TrackViewer.Editing
                 DrawPathBrokenNode(drawArea, colors, currentNode, nextNode);
                 return;
             }
-            TrackVectorNode tvn = trackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[TvnIndex];
 
             TrainpathJunctionNode nextJunctionNode = nextNode as TrainpathJunctionNode;
             TrainpathVectorNode nextVectorNode = nextNode as TrainpathVectorNode;

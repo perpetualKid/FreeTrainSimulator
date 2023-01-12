@@ -1,11 +1,11 @@
 ﻿
-using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {
     internal class LoadingBarMaterial : LoadingMaterial
     {
-        public LoadingBarMaterial(Game game)
+        public LoadingBarMaterial(GameHost game)
             : base(game)
         {
         }
@@ -13,7 +13,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
         public override void SetState(Material previousMaterial)
         {
             base.SetState(previousMaterial);
-            shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
+            Shader.CurrentTechnique = Shader.Techniques[1]; //["LoadingBar"];
         }
     }
 }

@@ -1,0 +1,72 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Orts.Models\n"
+"POT-Creation-Date: 2022-08-18 08:52:00+0200\n"
+"PO-Revision-Date: 2022-08-18 08:52:00+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: GetText.NET Extractor\n"
+
+#: ..\..\..\Orts.Models\Simplified\Locomotives.cs:11
+msgid "- Any Locomotive -"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Activities.cs:52
+msgid "- Explore Route -"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Activities.cs:56
+msgid "+ Explore in Activity Mode +"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:180
+#, csharp-format
+msgid "Heading to: {0}"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Activities.cs:114
+#: ..\..\..\Orts.Models\Simplified\Consists.cs:83
+#: ..\..\..\Orts.Models\Simplified\Locomotives.cs:33
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:84
+#: ..\..\..\Orts.Models\Simplified\Routes.cs:54
+#: ..\..\..\Orts.Models\Simplified\Timetables.cs:73
+msgid "load error:"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Consists.cs:33
+#: ..\..\..\Orts.Models\Simplified\Consists.cs:64
+#: ..\..\..\Orts.Models\Simplified\Locomotives.cs:38
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:95
+msgid "missing:"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Activities.cs:105
+msgid "Not same route:"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:180
+#, csharp-format
+msgid "Start at: {0}"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\Activities.cs:79
+#: ..\..\..\Orts.Models\Simplified\Consists.cs:48
+#: ..\..\..\Orts.Models\Simplified\Locomotives.cs:48
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:87
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:89
+#: ..\..\..\Orts.Models\Simplified\Paths.cs:91
+#: ..\..\..\Orts.Models\Simplified\Routes.cs:57
+msgid "unnamed:"
+msgstr ""
+
+#: ..\..\..\Orts.Models\Simplified\SavePoints.cs:56
+#, csharp-format
+msgid ""
+"Warning: Save {0} found from a route with an unexpected name:\n"
+"{1}.\n"
+"\n"
+msgstr ""
+

@@ -57,7 +57,7 @@ namespace Orts.Simulation.Physics
                             else
                                 throw new InvalidDataException("Unknown brake type");
 
-                            car.MSTSBrakeSystem.InitializeFromCopy(lead.BrakeSystem);
+                            car.MSTSBrakeSystem.InitializeFrom(lead.BrakeSystem);
                             Trace.TraceInformation($"Car and Locomotive Brake System Types Incompatible on Car {car.CarID} - Car brakesystem type changed to {car.BrakeSystemType}");
                         }
                     }
@@ -81,30 +81,30 @@ namespace Orts.Simulation.Physics
                 {
                     maxPressurePSI = lead.TrainBrakeController.MaxPressurePSI;
                     fullServPressurePSI = lead.BrakeSystem is VacuumSinglePipe ? 16 : maxPressurePSI - lead.TrainBrakeController.FullServReductionPSI;
-                    EqualReservoirPressurePSIorInHg = Math.Min(maxPressurePSI, EqualReservoirPressurePSIorInHg);
-                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, 1000);
-                    BrakeLine4 = (float)epControllerState;
-                    EqualReservoirPressurePSIorInHg = (float)Math.Max(pressurePSI, fullServPressurePSI);
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = Math.Min(maxPressurePSI, BrakeSystem.EqualReservoirPressurePSIorInHg);
+                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(BrakeSystem.EqualReservoirPressurePSIorInHg, BrakeSystem.BrakeLine4Pressure, 1000);
+                    BrakeSystem.BrakeLine4Pressure = (float)epControllerState;
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = (float)Math.Max(pressurePSI, fullServPressurePSI);
                 }
                 if (lead.EngineBrakeController != null)
-                    BrakeLine3PressurePSI = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeLine3PressurePSI, 1000);
+                    BrakeSystem.BrakeLine3Pressure = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeSystem.BrakeLine3Pressure, 1000);
                 if (lead.DynamicBrakeController != null)
                 {
                     MUDynamicBrakePercent = lead.DynamicBrakeController.Update(1000) * 100;
                     if (MUDynamicBrakePercent == 0)
                         MUDynamicBrakePercent = -1;
                 }
-                BrakeLine2PressurePSI = lead.MaximumMainReservoirPipePressurePSI;
+                BrakeSystem.BrakeLine2Pressure = lead.MaximumMainReservoirPipePressurePSI;
                 ConnectBrakeHoses();
             }
             else
             {
-                EqualReservoirPressurePSIorInHg = BrakeLine2PressurePSI = BrakeLine3PressurePSI = 0;
+                BrakeSystem.EqualReservoirPressurePSIorInHg = BrakeSystem.BrakeLine2Pressure = BrakeSystem.BrakeLine3Pressure = 0;
                 // Initialize static consists airless for allowing proper shunting operations,
                 // but set AI trains pumped up with air.
                 if (TrainType == TrainType.Static)
                     maxPressurePSI = 0;
-                BrakeLine4 = -1;
+                BrakeSystem.BrakeLine4Pressure = -1;
             }
             foreach (TrainCar car in Cars)
                 car.BrakeSystem.Initialize(LeadLocomotiveIndex < 0, maxPressurePSI, fullServPressurePSI, false);
@@ -116,7 +116,7 @@ namespace Orts.Simulation.Physics
             if (Math.Abs(SpeedMpS) > 0.1)
                 return;
             foreach (TrainCar car in Cars)
-                car.BrakeSystem.SetHandbrakePercent(percent);
+                car.BrakeSystem.HandbrakePercent = percent;
         }
 
         /// Connect brake hoses when train is initialised
@@ -161,12 +161,12 @@ namespace Orts.Simulation.Physics
             {
                 if (lead.TrainBrakeController != null)
                 {
-                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, elapsedClockSeconds);
-                    EqualReservoirPressurePSIorInHg = (float)pressurePSI;
-                    BrakeLine4 = (float)epControllerState;
+                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(BrakeSystem.EqualReservoirPressurePSIorInHg, BrakeSystem.BrakeLine4Pressure, elapsedClockSeconds);
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = (float)pressurePSI;
+                    BrakeSystem.BrakeLine4Pressure = (float)epControllerState;
                 }
                 if (lead.EngineBrakeController != null)
-                    BrakeLine3PressurePSI = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeLine3PressurePSI, elapsedClockSeconds);
+                    BrakeSystem.BrakeLine3Pressure = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeSystem.BrakeLine3Pressure, elapsedClockSeconds);
                 lead.BrakeSystem.PropagateBrakePressure(elapsedClockSeconds);
             }
             else if (TrainType == TrainType.Static)
@@ -182,8 +182,8 @@ namespace Orts.Simulation.Physics
                 /// that is propagated promptly to each car directly.
                 foreach (TrainCar car in Cars)
                 {
-                    car.BrakeSystem.BrakeLine1PressurePSI = car.BrakeSystem.InternalPressure(EqualReservoirPressurePSIorInHg);
-                    car.BrakeSystem.BrakeLine2PressurePSI = BrakeLine2PressurePSI;
+                    car.BrakeSystem.BrakeLine1PressurePSI = car.BrakeSystem.InternalPressure(BrakeSystem.EqualReservoirPressurePSIorInHg);
+                    car.BrakeSystem.BrakeLine2PressurePSI = BrakeSystem.BrakeLine2Pressure;
                     car.BrakeSystem.BrakeLine3PressurePSI = 0;
                 }
             }

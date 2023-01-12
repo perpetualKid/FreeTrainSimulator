@@ -1653,10 +1653,8 @@ namespace Orts.Formats.Msts.Parsers
                 Processor = processor;
             }
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
             public readonly string Token;
             public readonly Processor Processor;
-#pragma warning restore CA1051 // Do not declare visible instance fields
         }
 
         private class TokenProcessorComparer: IComparer<TokenProcessor>, System.Collections.IComparer

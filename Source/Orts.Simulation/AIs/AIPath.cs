@@ -60,7 +60,7 @@ namespace Orts.Simulation.AIs
                 return;
             }
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(new AIPathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], isTimetableMode));
+                Nodes.Add(new AIPathNode(tpn, isTimetableMode));
             FirstNode = Nodes[0];
             //LastVisitedNode = FirstNode;            
 
@@ -230,7 +230,7 @@ namespace Orts.Simulation.AIs
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
-            TrackJunctionNode tn = RuntimeData.Instance.TrackDB.TrackNodes[junctionIndex] as TrackJunctionNode;
+            TrackJunctionNode tn = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionIndex];
             if (tn == null || tn.TrackPins[0].Link == vectorIndex)
                 return false;
             return true;
@@ -239,7 +239,6 @@ namespace Orts.Simulation.AIs
 
     public class AIPathNode
     {
-        public int ID;
         public int Index;
         public AIPathNodeType Type = AIPathNodeType.Other;
         public int WaitTimeS;               // number of seconds to wait after stopping at this node
@@ -259,13 +258,21 @@ namespace Orts.Simulation.AIs
         /// Creates a single AIPathNode and initializes everything that do not depend on other nodes.
         /// The AIPath constructor will initialize the rest.
         /// </summary>
-        public AIPathNode(PathNode tpn, PathDataPoint pdp, bool isTimetableMode)
+        public AIPathNode(PathNode tpn, bool isTimetableMode)
         {
-            ID = (int)tpn.PathDataPoint;
-            InterpretPathNodeFlags(tpn, pdp, isTimetableMode);
+            if (tpn.NodeType == PathNodeType.Reversal)
+                Type = AIPathNodeType.Reverse;
+            else if (tpn.NodeType == PathNodeType.Wait)
+                Type = AIPathNodeType.Stop;
 
-            Location = pdp.Location;
-            if (pdp.IsJunction)
+            if (tpn.Invalid && isTimetableMode) // not a valid point
+            {
+                Type = AIPathNodeType.Invalid;
+            }
+
+            WaitTimeS = tpn.WaitTime;
+            Location = tpn.Location;
+            if (tpn.Junction)
             {
                 JunctionIndex = FindJunctionOrEndIndex(Location, true);
             }
@@ -278,7 +285,6 @@ namespace Orts.Simulation.AIs
         
         public AIPathNode(AIPathNode otherNode)
         {
-            ID = otherNode.ID;
             Index = otherNode.Index;
             Type = otherNode.Type;
             WaitTimeS = otherNode.WaitTimeS;
@@ -294,79 +300,9 @@ namespace Orts.Simulation.AIs
             IsVisited = otherNode.IsVisited;
         }
 
-        // Possible interpretation (as found on internet, by krausyao)
-        // TrPathNode ( AAAABBBB mainIdx passingIdx pdpIdx )
-        // AAAA wait time seconds in hexidecimal
-        // BBBB (Also hexidecimal, so 16 bits)
-        // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
-        // Bit 1 - waiting point (2/x2)
-        // Bit 2 - intermediate point between switches (4/x4)
-        // Bit 3 - 'other exit' is used (8/x8)
-        // Bit 4 - 'optional Route' active (16/x10)
-        //
-        // But the interpretation below is a bit more complicated.
-        // TODO. Since this interpretation belongs to the PATfile itself, 
-        // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(PathNode tpn, PathDataPoint pdp, bool isTimetableMode)
-        {
-            if ((tpn.PathFlags & (PathFlags.WaitPoint | PathFlags.ReversalPoint)) == 0) return;
-            // bit 0 and/or bit 1 is set.
-
-            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
-            {
-                // if bit 0 is set: reversal
-                Type = AIPathNodeType.Reverse;
-            }
-            else
-            {
-                // bit 0 is not set, but bit 1 is set:waiting point
-                Type = AIPathNodeType.Stop;
-                //<CSComment> tests showed me that value 9 in pdp is generated  when the waiting point (or also 
-                //a path start or end point) are dragged within the path editor of the MSTS activity editor; the points are still valid;
-                // however, as a contradictory case of the past has been reported, the check is skipped only when the enhanced compatibility flag is on;
-                if (pdp.IsInvalid && isTimetableMode) // not a valid point
-                {
-                    Type = AIPathNodeType.Invalid;
-                }
-            }
-
-            WaitTimeS = tpn.WaitTime; // get the AAAA part.
-            // computations for absolute wait times are made within AITrain.cs
-/*            if (WaitTimeS >= 30000 && WaitTimeS < 40000)
-            {
-                // real wait time. 
-                // waitTimeS (in decimal notation) = 3HHMM  (hours and minuts)
-                int hour = (WaitTimeS / 100) % 100;
-                int minute = WaitTimeS % 100;
-                WaitUntil = 60 * (minute + 60 * hour);
-                WaitTimeS = 0;
-            }*/
-            // computations are made within AITrain.cs
-/*            else if (WaitTimeS >= 40000 && WaitTimeS < 60000)
-            {
-                // Uncouple if a wait=stop point
-                // waitTimeS (in decimal notation) = 4NNSS (uncouple NN cars, wait SS seconds)
-                //                                or 5NNSS (uncouple NN cars, keep rear, wait SS seconds)
-                NCars = (WaitTimeS / 100) % 100;
-                if (WaitTimeS >= 50000)
-                    NCars = -NCars;
-                WaitTimeS %= 100;
-                if (Type == AIPathNodeType.Stop)
-                    Type = AIPathNodeType.Uncouple;
-            }
-            else if (WaitTimeS >= 60000)  // this is old and should be removed/reused
-            {
-                // waitTimes = 6xSSS  with waitTime SSS seconds.
-                WaitTimeS %= 1000;
-            } */
-
-        }
-
-
         // restore game state
         public AIPathNode(BinaryReader inf)
         {
-            ID = inf.ReadInt32();
             Index = inf.ReadInt32();
             Type = (AIPathNodeType)inf.ReadInt32();
             WaitTimeS = inf.ReadInt32();
@@ -382,7 +318,6 @@ namespace Orts.Simulation.AIs
         // save game state
         public void Save(BinaryWriter outf)
         {
-            outf.Write(ID);
             outf.Write(Index);
             outf.Write((int)Type);
             outf.Write(WaitTimeS);
@@ -435,20 +370,18 @@ namespace Orts.Simulation.AIs
 
             //both this node and the next node are junctions: find the vector node connecting them.
             var iCand = -1;
-            for (int i = 0; i < RuntimeData.Instance.TrackDB.TrackNodes.Count; i++)
+            foreach (TrackVectorNode vectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
             {
-                if (!(RuntimeData.Instance.TrackDB.TrackNodes[i] is TrackVectorNode tn))
-                    continue;
-                if (tn.TrackPins[0].Link == junctionIndexThis && tn.TrackPins[1].Link == junctionIndexNext)
+                if (vectorNode.TrackPins[0].Link == junctionIndexThis && vectorNode.TrackPins[1].Link == junctionIndexNext)
                 {
-                    iCand = i;
-                    if (i != previousNextMainTVNIndex) break;
+                    iCand = vectorNode.Index;
+                    if (iCand != previousNextMainTVNIndex) break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
-                else if (tn.TrackPins[1].Link == junctionIndexThis && tn.TrackPins[0].Link == junctionIndexNext)
+                else if (vectorNode.TrackPins[1].Link == junctionIndexThis && vectorNode.TrackPins[0].Link == junctionIndexNext)
                 {
-                    iCand = i;
-                    if (i != previousNextMainTVNIndex) break;
+                    iCand = vectorNode.Index;
+                    if (iCand != previousNextMainTVNIndex) break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
             }

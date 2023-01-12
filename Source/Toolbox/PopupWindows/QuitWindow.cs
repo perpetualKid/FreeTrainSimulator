@@ -18,9 +18,11 @@ namespace Orts.Toolbox.PopupWindows
 {
     public class QuitWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label quitButton;
         private Label cancelButton;
         private Label printScreenButton;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public event EventHandler OnQuitGame;
         public event EventHandler OnQuitCancel;
@@ -28,19 +30,16 @@ namespace Orts.Toolbox.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), $"Exit {RuntimeInfo.ApplicationName}", relativeLocation, new Point(430, 85))
+        public QuitWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(340, 82), catalog)
         {
             Modal = true;
             ZOrder = 100;
-            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
-            if (null == layout)
-                throw new ArgumentNullException(nameof(layout));
-
             layout = base.Layout(layout, 1.5f);
             quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;

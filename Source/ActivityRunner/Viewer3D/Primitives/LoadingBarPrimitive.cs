@@ -2,25 +2,24 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Materials;
-
-using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
     internal class LoadingBarPrimitive : LoadingPrimitive
     {
-        public LoadingBarPrimitive(Game game)
+        public LoadingBarPrimitive(GameHost game)
             : base(game)
         {
         }
 
-        protected override LoadingMaterial GetMaterial(Game game)
+        protected override LoadingMaterial GetMaterial(GameHost game)
         {
             return new LoadingBarMaterial(game);
         }
 
-        protected override VertexPositionTexture[] GetVertices(Game game)
+        protected override VertexPositionTexture[] GetVertices(GameHost game)
         {
             GetLoadingBarSize(game, out int w, out int h, out float x, out float y);
             return GetLoadingBarCoords(w, h, x, y);
@@ -36,7 +35,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
                 };
         }
 
-        protected static void GetLoadingBarSize(Game game, out int w, out int h, out float x, out float y)
+        protected static void GetLoadingBarSize(GameHost game, out int w, out int h, out float x, out float y)
         {
             w = game.RenderProcess.DisplaySize.X;
             h = game.RenderProcess.DisplaySize.Y / 60;//10;
@@ -48,12 +47,12 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
     class TimetableLoadingBarPrimitive : LoadingBarPrimitive
     {
-        public TimetableLoadingBarPrimitive(Game game)
+        public TimetableLoadingBarPrimitive(GameHost game)
             : base(game)
         {
         }
 
-        protected override VertexPositionTexture[] GetVertices(Game game)
+        protected override VertexPositionTexture[] GetVertices(GameHost game)
         {
             GetLoadingBarSize(game, out int w, out int h, out float x, out float y);
             y -= h + 1; // Allow for second bar and 1 pixel gap between

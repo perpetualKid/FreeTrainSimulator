@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common.Calc;
+using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 
 using static Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs.DriverMachineInterface;
@@ -77,9 +77,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         private List<TextPrimitive> DistanceScaleText = new List<TextPrimitive>();
         private List<TextPrimitive> SpeedTargetText = new List<TextPrimitive>();
         private List<TextPrimitive> GradientText = new List<TextPrimitive>();
-        private WindowTextFont FontDistance;
-        private WindowTextFont FontTargetSpeed;
-        private WindowTextFont FontGradient;
+        private System.Drawing.Font FontDistance;
+        private System.Drawing.Font FontTargetSpeed;
+        private System.Drawing.Font FontGradient;
         private const float FontHeightDistance = 10;
         private const float FontHeightTargetSpeed = 10;
         private const float FontHeightGradient = 10;
@@ -203,18 +203,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 gradientRectangles[new Point(minp, maxp)] = e.GradientPerMille >= 0;
                 Color textColor = e.GradientPerMille >= 0 ? Color.Black : Color.White;
                 string sign = e.GradientPerMille >= 0 ? "+" : "-";
-                var signWidth = FontGradient.MeasureString(sign) / Scale;
+                var signWidth = TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(sign, FontGradient).Width / Scale;
                 if (size > 44)
                 {
                     string text = $"{Math.Abs(e.GradientPerMille)}";
-                    var fontWidth = FontGradient.MeasureString(text) / Scale;
-                    gradientText.Add(new TextPrimitive(new Point((int)(9 - fontWidth / 2), (int)((minp + maxp - 1) / 2 - FontHeightGradient / 2)), textColor, text, FontGradient));
-                    gradientText.Add(new TextPrimitive(new Point((int)(9 - signWidth / 2), minp + 3), textColor, sign, FontGradient));
-                    gradientText.Add(new TextPrimitive(new Point((int)(9 - signWidth / 2), maxp - 8 - (int)FontHeightGradient), textColor, sign, FontGradient));
+                    var fontWidth = TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(text, FontGradient).Width / Scale;
+                    gradientText.Add(new TextPrimitive(DMI.Viewer.Game, new Point((int)(9 - fontWidth / 2), (int)((minp + maxp - 1) / 2 - FontHeightGradient / 2)), textColor, text, FontGradient));
+                    gradientText.Add(new TextPrimitive(DMI.Viewer.Game, new Point((int)(9 - signWidth / 2), minp + 3), textColor, sign, FontGradient));
+                    gradientText.Add(new TextPrimitive(DMI.Viewer.Game, new Point((int)(9 - signWidth / 2), maxp - 8 - (int)FontHeightGradient), textColor, sign, FontGradient));
                 }
                 else if (size > 14)
                 {
-                    gradientText.Add(new TextPrimitive(new Point((int)(9 - signWidth / 2), (int)((minp + maxp - 1) / 2 - FontHeightGradient / 2)), textColor, sign, FontGradient));
+                    gradientText.Add(new TextPrimitive(DMI.Viewer.Game, new Point((int)(9 - signWidth / 2), (int)((minp + maxp - 1) / 2 - FontHeightGradient / 2)), textColor, sign, FontGradient));
                 }
             }
             GradientText = gradientText;
@@ -297,12 +297,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 string text = $"{(int)Speed.MeterPerSecond.ToKpH(cur.TargetSpeedMpS)}";
                 if (im || prev.TargetSpeedMpS > cur.TargetSpeedMpS || cur.TargetSpeedMpS == 0)
                 {
-                    speedTargetText.Add(new TextPrimitive(new Point(25, a - 2), im ? ColorYellow : ColorGrey, text, FontTargetSpeed));
+                    speedTargetText.Add(new TextPrimitive(DMI.Viewer.Game, new Point(25, a - 2), im ? ColorYellow : ColorGrey, text, FontTargetSpeed));
                     speedTargetTextures.Add(new LocatedTexture(im ? YellowSpeedReductionTexture : SpeedReductionTexture, 4, a + 7 - 10));
                 }
                 else
                 {
-                    speedTargetText.Add(new TextPrimitive(new Point(25, a - 2 - (int)FontHeightTargetSpeed), ColorGrey, text, FontTargetSpeed));
+                    speedTargetText.Add(new TextPrimitive(DMI.Viewer.Game, new Point(25, a - 2 - (int)FontHeightTargetSpeed), ColorGrey, text, FontTargetSpeed));
                     speedTargetTextures.Add(new LocatedTexture(SpeedIncreaseTexture, 4, a - 7 - 10));
                 }
                 if (cur.TargetSpeedMpS == 0) break;
@@ -457,9 +457,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            FontDistance = GetFont(FontHeightDistance);
-            FontTargetSpeed = GetFont(FontHeightTargetSpeed);
-            FontGradient = GetFont(FontHeightGradient);
+            FontDistance = GetTextFont(FontHeightDistance);
+            FontTargetSpeed = GetTextFont(FontHeightTargetSpeed);
+            FontGradient = GetTextFont(FontHeightGradient);
 
             SetDistanceText();
         }
@@ -475,8 +475,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 if (i == 0 || i > 4)
                 {
                     string distance = $"{(LineDistances[i] * MaxViewingDistanceM / 1000)}";
-                    Point unitPosition = new Point((int)(40 - 3 - FontDistance.MeasureString(distance) / Scale), (int)(LinePositions[i] - FontHeightDistance));
-                    distanceScaleText.Add(new TextPrimitive(unitPosition, ColorMediumGrey, distance, FontDistance));
+                    Point unitPosition = new Point((int)(40 - 3 - TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(distance, FontDistance).Width / Scale), (int)(LinePositions[i] - FontHeightDistance));
+                    distanceScaleText.Add(new TextPrimitive(DMI.Viewer.Game, unitPosition, ColorMediumGrey, distance, FontDistance));
                 }
             }
             DistanceScaleText = distanceScaleText;

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Orts.Settings\n"
-"POT-Creation-Date: 2021-04-14 22:55:20+0200\n"
-"PO-Revision-Date: 2021-04-14 22:55:20+0200\n"
+"POT-Creation-Date: 2022-08-18 08:52:02+0200\n"
+"PO-Revision-Date: 2022-08-18 08:52:02+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,42 +10,47 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:11
-msgid "OpenRails.ini"
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:183
+#, csharp-format
+msgid "\"{0}\" and "
 msgstr ""
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:178
+#: ..\..\..\Orts.Settings\InputSettings.cs:406
+#, csharp-format
+msgid "{0} and {1} both match {2}"
+msgstr ""
+
+#: ..\..\..\Orts.Settings\InputSettings.cs:374
+#, csharp-format
+msgid "{0} requires and is modified by Alt"
+msgstr ""
+
+#: ..\..\..\Orts.Settings\InputSettings.cs:372
+#, csharp-format
+msgid "{0} requires and is modified by Control"
+msgstr ""
+
+#: ..\..\..\Orts.Settings\InputSettings.cs:370
+#, csharp-format
+msgid "{0} requires and is modified by Shift"
+msgstr ""
+
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:180
 #, csharp-format
 msgid ""
 "Button {0} is assigned to \r\n"
 "\t"
 msgstr ""
 
-#: ..\..\Orts.Settings\InputSettings.cs:345
-#, csharp-format
-msgid "{0} requires and is modified by Control"
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:12
+msgid "OpenRails.ini"
 msgstr ""
 
-#: ..\..\Orts.Settings\InputSettings.cs:347
-#, csharp-format
-msgid "{0} requires and is modified by Alt"
-msgstr ""
-
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:13
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:14
 msgid "OpenRails.json"
 msgstr ""
 
-#: ..\..\Orts.Settings\InputSettings.cs:343
-#, csharp-format
-msgid "{0} requires and is modified by Shift"
-msgstr ""
-
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:15
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:16
 msgid "SOFTWARE\\OpenRails"
-msgstr ""
-
-#: ..\..\Orts.Settings\InputSettings.cs:379
-#, csharp-format
-msgid "{0} and {1} both match {2}"
 msgstr ""
 

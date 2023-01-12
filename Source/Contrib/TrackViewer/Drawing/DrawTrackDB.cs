@@ -281,10 +281,8 @@ namespace ORTS.TrackViewer.Drawing
             MinTileZ = +1000000;
             MaxTileX = -1000000;
             MaxTileZ = -1000000;
-            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
+            foreach (TrackVectorNode tn in trackDB.TrackNodes.VectorNodes)
             {
-                if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
-
                 for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
                 {
                     TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
@@ -301,10 +299,8 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         private void FindSignalDetails()
         {
-            foreach (TrackNode tn in trackDB.TrackNodes)
+            foreach (TrackVectorNode trackVectorNode in trackDB.TrackNodes.VectorNodes)
             {
-                if (!(tn is TrackVectorNode trackVectorNode))
-                    continue;
                 if (trackVectorNode.TrackItemIndices == null) continue;
 
                 foreach (int trackItemIndex in trackVectorNode.TrackItemIndices)
@@ -324,41 +320,37 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         private void FindEndnodeOrientations()
         {
-            for (int tni = 0; tni < trackDB.TrackNodes.Count; tni++)
+            foreach (TrackEndNode endNode in trackDB.TrackNodes.EndNodes)
             {
-                TrackNode tn = trackDB.TrackNodes[tni];
-                if (tn == null) continue;
-                endnodeAngles[tn.Index] = 0;//default value in case we cannot find a better one
+                endnodeAngles[endNode.Index] = 0;//default value in case we cannot find a better one
 
-                if (tn is TrackEndNode)
-                {
-                    int connectedVectorNodeIndex = tn.TrackPins[0].Link;
-                    if (!(trackDB.TrackNodes[connectedVectorNodeIndex] is TrackVectorNode connectedVectorNode)) continue;
+                TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[endNode.TrackPins[0].Link];
+                if (connectedVectorNode == null)
+                    continue;
 
-                    if (connectedVectorNode.TrackPins[0].Link == tni)
+                    if (connectedVectorNode.TrackPins[0].Link == endNode.Index)
                     {
                         //find angle at beginning of vector node
                         TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
-                        endnodeAngles[tn.Index] = tvs.Direction.Y;
+                        endnodeAngles[endNode.Index] = tvs.Direction.Y;
                     }
                     else
                     {
                         //find angle at end of vector node
                         TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
-                        endnodeAngles[tn.Index] = tvs.Direction.Y;
+                        endnodeAngles[endNode.Index] = tvs.Direction.Y;
                         try
                         { // try to get even better in case the last section is curved
                             TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
                             if (trackSection.Curved)
                             {
-                                endnodeAngles[tn.Index] += MathHelper.ToRadians(trackSection.Angle);
+                                endnodeAngles[endNode.Index] += MathHelper.ToRadians(trackSection.Angle);
                             }
                         }
 #pragma warning disable CA1031 // Do not catch general exception types
                         catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
                     }
-                }
             }
         }
 
@@ -1170,7 +1162,7 @@ namespace ORTS.TrackViewer.Drawing
             try
             {
                 TrackVectorNode tn = (useRailTracks ?              
-                    trackDB.TrackNodes[trackNodeIndex]: roadTrackDB.TrackNodes[trackNodeIndex]) as TrackVectorNode;
+                    trackDB.TrackNodes.VectorNodes[trackNodeIndex]: roadTrackDB.TrackNodes.VectorNodes[trackNodeIndex]);
                 
                 TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
 

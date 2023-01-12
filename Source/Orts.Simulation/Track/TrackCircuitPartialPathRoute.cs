@@ -189,7 +189,7 @@ namespace Orts.Simulation.Track
 
         public int GetRouteIndexBackward(int sectionIndex, int startIndex)
         {
-            if (Count == 1 && startIndex == 0 && this[0].TrackCircuitSection.Index == sectionIndex)
+            if (Count == 1 && startIndex == 1 && this[0].TrackCircuitSection.Index == sectionIndex)
             {
                 return 0;
             }

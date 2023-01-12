@@ -37,7 +37,7 @@ namespace Orts.Formats.Msts
     /// </summary>
     public class Traveller
     {
-        private readonly List<TrackNode> trackNodes;
+        private readonly TrackNodes trackNodes;
         private Direction direction = Direction.Forward;
         private float trackVectorSectionOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
@@ -54,7 +54,7 @@ namespace Orts.Formats.Msts
         private float trackNodeLength;
         private float trackNodeOffset;
 
-        public ref WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
+        public ref readonly WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
         public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
         public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
         public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }
@@ -121,9 +121,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller on the starting point of a path, in the direction of the path
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="aiPath">The path used to determine travellers location and direction</param>
         public Traveller(in WorldLocation firstNodeLocation, in WorldLocation nextMainLocation, bool roadTraveller = false)
             : this(firstNodeLocation, roadTraveller)
         {
@@ -144,9 +141,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location, facing with the track node.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="loc">Starting world location</param>
         public Traveller(WorldLocation location, bool roadTraveller = false)
             : this(roadTraveller)
         {
@@ -175,13 +169,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location, facing in the specified direction.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        /// <param name="direction">Starting direction.</param>
         public Traveller(in WorldLocation location, Direction direction, bool roadTraveller = false)
             : this(location, roadTraveller)
         {
@@ -191,9 +178,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at the beginning of the specified track node, facing with the track node.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
         public Traveller(TrackVectorNode startTrackNode, bool roadTraveller = false)
             : this(roadTraveller)
         {
@@ -218,10 +202,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location within a specified track node, facing with the track node.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="location">Starting coordinate.</param>
         private Traveller(TrackVectorNode startTrackNode, in WorldLocation location, bool roadTraveller = false)
             : this(roadTraveller)
         {
@@ -261,14 +241,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location within a specified track node, facing in the specified direction.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        /// <param name="direction">Starting direction.</param>
         public Traveller(TrackNode startTrackNode, int tileX, int tileZ, float x, float z, Direction direction, bool roadTraveller = false)
             : this(startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z), roadTraveller)
         {
@@ -278,14 +250,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location within a specified track node, facing in the specified direction.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        /// <param name="direction">Starting direction.</param>
         public Traveller(TrackVectorNode startTrackNode, in WorldLocation location, Direction direction, bool roadTraveller = false)
             : this(startTrackNode, location, roadTraveller)
         {
@@ -320,9 +284,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller from persisted data.
         /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="inf">Reader to read persisted data from.</param>
         public Traveller(BinaryReader inf, bool roadTraveller = false)
             : this(roadTraveller)
         {
@@ -345,7 +306,6 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Saves a traveller to persisted data.
         /// </summary>
-        /// <param name="outf">Writer to write persisted data to.</param>
         public void Save(BinaryWriter outf)
         {
             if (null == outf)
@@ -475,10 +435,7 @@ namespace Orts.Formats.Msts
 
         public TrackVectorSection CurrentSection()
         {
-            if (trackNodes[TrackNode.Index] is TrackVectorNode trackVectorNode)
-                return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
-            else
-                return null;
+            return trackNodes.VectorNodes[TrackNode.Index]?.TrackVectorSections[TrackVectorSectionIndex];
         }
 
         /// <summary>

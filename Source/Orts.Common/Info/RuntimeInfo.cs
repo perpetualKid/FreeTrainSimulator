@@ -3,17 +3,19 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
+using Orts.Common.Logging;
+
 namespace Orts.Common.Info
 {
     public static class RuntimeInfo
     {
-        public const string LauncherExecutable = "openrails.exe";
+        public const string LauncherExecutable = "OpenRails.exe";
 
-        public const string ActivityRunnerExecutable = "activityrunner.exe";
+        public const string ActivityRunnerExecutable = "ActivityRunner.exe";
 
         public static readonly string ProductName = VersionInfo.ProductName();
 
-        public static readonly Uri WikiUri = new Uri("https://github.com/perpetualKid/ORTS-MG/wiki");
+        public const string WikiLink = "https://github.com/perpetualKid/ORTS-MG/wiki";
 
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
@@ -44,6 +46,8 @@ namespace Orts.Common.Info
         public static string LocalesFolder { get; } = Path.Combine(ProgramRoot, "Locales");
 
         public static string DocumentationFolder { get; } = Path.Combine(ProgramRoot, "Documentation");
+
+        public static string LogFile(string path, string fileNamePattern) => Path.Combine(path, LoggingUtil.CustomizeLogFileName(fileNamePattern));
 
         static RuntimeInfo()
         {

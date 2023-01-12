@@ -37,8 +37,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// Setting to workaround MSTS bug of not abling to set this function correctly in .eng file
         /// </summary>
         public bool ForceControllerReleaseGraduated { get; set; }
-        private bool brakeControllerInitialised; // flag to allow PreviousNotchPosition to be initially set.
-        private INotchController previousNotchPosition;
+
+        private IControllerNotch previousNotch;
 
         private bool EnforceMinimalReduction;
 
@@ -49,19 +49,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public override void Initialize()
         {
             NotchController = new MSTSNotchController(Notches());
-            NotchController.SetValue(CurrentValue());
-            NotchController.IntermediateValue = CurrentValue();
-            NotchController.MinimumValue = MinimumValue();
-            NotchController.MaximumValue = MaximumValue();
-            NotchController.StepSize = StepSize();
-            brakeControllerInitialised = false;       // set to false so that the PreviousNotchPosition value can be initialised around the first update loop     
+            NotchController.Initialize(CurrentValue(), MinimumValue(), MaximumValue(), StepSize());
+            previousNotch = NotchController.CurrentNotch;
         }
 
         public override void InitializeMoving()
         {
             NotchController.SetValue(0);
-            if (NotchController.NotchCount() > 0) NotchController.CurrentNotch = 0;
-            else NotchController.CurrentNotch = -1;
+            if (NotchController.NotchCount() > 0)
+                NotchController.NotchIndex = 0;
+            else
+                NotchController.NotchIndex = -1;
         }
 
         public override float Update(double elapsedSeconds)
@@ -90,13 +88,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
             else
             {
-                INotchController notch = NotchController.GetCurrentNotch();
+                IControllerNotch notch = NotchController.CurrentNotch;
 
-                if (!brakeControllerInitialised) // The first time around loop, PreviousNotchPosition will be set up front with current value, this will stop crashes due to vsalue not being initialised. 
-                {
-                    previousNotchPosition = NotchController.GetCurrentNotch();
-                    brakeControllerInitialised = true;
-                }
                 if (notch == null)
                 {
                     pressureBar = MaxPressureBar() - FullServReductionBar() * CurrentValue();
@@ -167,7 +160,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                         case ControllerState.Lap:
                             // Lap position applies min service reduction when first selected, and previous contoller position was Running, then no change in pressure occurs 
-                            if (previousNotchPosition.NotchStateType == ControllerState.Running)
+                            if (previousNotch.NotchStateType == ControllerState.Running)
                             {
                                 EnforceMinimalReduction = true;
                                 epState = -1;
@@ -175,7 +168,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                         case ControllerState.MinimalReduction:
                             // Lap position applies min service reduction when first selected, and previous contoller position was Running or Release, then no change in pressure occurs                             
-                            if (previousNotchPosition.NotchStateType == ControllerState.Running || previousNotchPosition.NotchStateType == ControllerState.Release || previousNotchPosition.NotchStateType == ControllerState.FullQuickRelease)
+                            if (previousNotch.NotchStateType == ControllerState.Running || previousNotch.NotchStateType == ControllerState.Release || previousNotch.NotchStateType == ControllerState.FullQuickRelease)
                             {
                                 EnforceMinimalReduction = true;
                                 epState = -1;
@@ -226,7 +219,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                     }
 
-                    previousNotchPosition = NotchController.GetCurrentNotch();
+                    previousNotch = NotchController.CurrentNotch;
                 }
             }
 
@@ -238,7 +231,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         // Engine Brake Controllers
         public override double UpdateEngineBrakePressure(double pressureBar, double elapsedClockSeconds)
         {
-            INotchController notch = NotchController.GetCurrentNotch();
+            IControllerNotch notch = NotchController.CurrentNotch;
             if (notch == null)
             {
                 pressureBar = (MaxPressureBar() - FullServReductionBar()) * CurrentValue();
@@ -352,54 +345,52 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return NotchController.IsValid();
         }
 
-        public override ControllerState GetState()
+        public override ControllerState State
         {
-            if (EmergencyBrakingPushButton())
-                return ControllerState.EBPB;
-            else if (TCSEmergencyBraking())
-                return ControllerState.TCSEmergency;
-            else if (TCSFullServiceBraking())
-                return ControllerState.TCSFullServ;
-            else if (OverchargeButtonPressed())
-                return ControllerState.Overcharge;
-            else if (QuickReleaseButtonPressed())
-                return ControllerState.FullQuickRelease;
-            else if (NotchController != null && NotchController.NotchCount() > 0)
-                return NotchController.GetCurrentNotch().NotchStateType;
-            else
-                return ControllerState.Dummy;
+            get
+            {
+                if (EmergencyBrakingPushButton())
+                    return ControllerState.EBPB;
+                else if (TCSEmergencyBraking())
+                    return ControllerState.TCSEmergency;
+                else if (TCSFullServiceBraking())
+                    return ControllerState.TCSFullServ;
+                else if (OverchargeButtonPressed())
+                    return ControllerState.Overcharge;
+                else if (QuickReleaseButtonPressed())
+                    return ControllerState.FullQuickRelease;
+                else if (NotchController != null && NotchController.NotchCount() > 0)
+                    return NotchController.CurrentNotch?.NotchStateType ?? ControllerState.Dummy;
+                else
+                    return ControllerState.Dummy;
+            }
         }
 
-        public override float? GetStateFraction()
+        public override float StateFraction
         {
-            if (EmergencyBrakingPushButton() || TCSEmergencyBraking() || TCSFullServiceBraking() || QuickReleaseButtonPressed() || OverchargeButtonPressed())
+            get
             {
-                return null;
-            }
-            else if (NotchController != null)
-            {
-                if (NotchController.NotchCount() == 0)
-                    return NotchController.CurrentValue;
-                else
+                if (EmergencyBrakingPushButton() || TCSEmergencyBraking() || TCSFullServiceBraking() || QuickReleaseButtonPressed() || OverchargeButtonPressed())
                 {
-                    INotchController notch = NotchController.GetCurrentNotch();
-
-                    if (!notch.Smooth)
-                    {
-                        if (notch.NotchStateType == ControllerState.Dummy)
-                            return NotchController.CurrentValue;
-                        else
-                            return null;
-                    }
+                    return float.NaN;
+                }
+                else if (NotchController != null)
+                {
+                    if (NotchController.NotchCount() == 0)
+                        return NotchController.CurrentValue;
                     else
                     {
-                        return NotchController.GetNotchFraction();
+                        IControllerNotch notch = NotchController.CurrentNotch;
+
+                        return !notch.Smooth
+                            ? notch.NotchStateType == ControllerState.Dummy ? NotchController.CurrentValue : float.NaN
+                            : NotchController.GetNotchFraction();
                     }
                 }
-            }
-            else
-            {
-                return null;
+                else
+                {
+                    return float.NaN;
+                }
             }
         }
 

@@ -164,7 +164,8 @@ namespace ORTS.TrackViewer.Editing
         /// Constructor. This will create a new empty path.
         /// </summary>
         /// <param name="routeData">The route information that contains track data base and track section data</param>
-        /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>/// <param name="pathsDirectory">The directory where paths will be stored</param>
+        /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
+        /// <param name="pathsDirectory">The directory where paths will be stored</param>
         public PathEditor(DrawTrackDB drawTrackDB, string pathsDirectory)
             :this(drawTrackDB)
         {

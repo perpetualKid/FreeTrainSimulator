@@ -70,6 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<int> SoundSourceIDs { get; } = new List<int>();
 #pragma warning restore CA1002 // Do not expose generic lists
+        private readonly List<int> soundSources = new List<int>();
 
         public void UpdateSoundPosition()
         {
@@ -99,14 +100,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // make a copy of SoundSourceIDs, but check that it didn't change during the copy; if it changed, try again up to 5 times.
             var sSIDsFinalCount = -1;
             var sSIDsInitCount = -2;
-            List<int> soundSourceIDs = new List<int>(){ 0 };
             int trialCount = 0;
             try
             {
                 while (sSIDsInitCount != sSIDsFinalCount && trialCount < 5)
                 {
+                    soundSources.Clear();
                     sSIDsInitCount = SoundSourceIDs.Count;
-                    soundSourceIDs = SoundSourceIDs;
+                    soundSources.AddRange(SoundSourceIDs);
                     sSIDsFinalCount = SoundSourceIDs.Count;
                     trialCount++;
                 }
@@ -118,7 +119,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             if (trialCount >= 5)
                 return;
-            foreach (var soundSourceID in soundSourceIDs)
+            foreach (var soundSourceID in soundSources)
             {
                 Simulator.Instance.UpdaterWorking = true;
                 if (OpenAL.IsSource(soundSourceID))

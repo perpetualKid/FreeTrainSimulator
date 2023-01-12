@@ -62,7 +62,7 @@ namespace Orts.Common
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
-            if (!(source is ValueType))
+            if (source is not ValueType)
                 throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
             for (int i = 0; i < array.Length; i++) 
@@ -119,7 +119,7 @@ namespace Orts.Common
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
-            if (!(source is ValueType))
+            if (source is not ValueType)
                 throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
             for (int col = 0; col < array.GetLength(0); col++)

@@ -44,11 +44,8 @@ namespace Orts.Simulation
             MaximumAllowedM = 0.07f + simulator.Settings.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
 
             List<TrackVectorSection> SectionList = new List<TrackVectorSection>();
-            foreach (TrackNode node in RuntimeData.Instance.TrackDB.TrackNodes)
+            foreach (TrackVectorNode trackVectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
             {
-                TrackVectorNode trackVectorNode = node as TrackVectorNode;
-                if (trackVectorNode == null)
-                    continue;
                 bool StartCurve = false;
                 int CurveDir = 0;
                 float Len = 0.0f;

@@ -2,55 +2,85 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Graphics.Xna;
+
 namespace Orts.Graphics.Window.Controls
 {
     public class Label : TextControl
     {
-        private string text;
-        public string Text 
-        { 
-            get => text;
-            set { text = value; Initialize(); } 
-        }
-
-        public HorizontalAlignment Alignment { get; }
+        private HorizontalAlignment alignment;
         private Point alignmentOffset;
         private Rectangle? clippingRectangle;
 
-        public Label(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color)
+        public virtual string Text
+        {
+            get => text;
+            set
+            {
+                if (value != text)
+                { 
+                    text = value; 
+                    Initialize(); 
+                }
+            }
+        }
+
+        public HorizontalAlignment Alignment
+        {
+            get => alignment;
+            set { alignment = value; Initialize(); }
+        }
+
+
+        public Label(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, System.Drawing.Font font, Color color, OutlineRenderOptions outlineRenderOptions = null)
             : base(window, x, y, width, height)
         {
             this.text = text;
-            Alignment = alignment;
+            this.alignment = alignment;
             TextColor = color;
             this.font = font ?? window?.Owner.TextFontDefault;
+            this.outlineRenderOptions = outlineRenderOptions;
         }
 
-        public Label(WindowBase window, int x, int y, int width, int height, string text)
+        public Label(FormBase window, int width, int height, string text, System.Drawing.Font font)
+            : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, font, Color.White)
+        {
+        }
+
+        public Label(FormBase window, int x, int y, int width, int height, string text)
             : this(window, x, y, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align)
+        public Label(FormBase window, int width, int height, string text, HorizontalAlignment align)
             : this(window, 0, 0, width, height, text, align, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text)
+        public Label(FormBase window, int width, int height, string text)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, null, Color.White)
         {
         }
 
-        public Label(WindowBase window, int width, int height, string text, HorizontalAlignment align, Color color)
+        public Label(FormBase window, int width, int height, string text, HorizontalAlignment align, Color color)
             : this(window, 0, 0, width, height, text, align, null, color)
         {
+        }
+
+        internal System.Drawing.Font Font
+        {
+            get => font;
+            set
+            {
+                this.font = value ?? Window?.Owner.TextFontDefault;
+                Initialize();
+            }
         }
 
         internal override void Initialize()
         {
             base.Initialize();
             InitializeText(Text);
-            RenderText(Text);
             clippingRectangle = null;
             switch (Alignment)
             {
@@ -74,16 +104,9 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            if (null != texture && texture != resourceHolder.EmptyTexture)
+                spriteBatch.Draw(texture, (Bounds.Location + offset + alignmentOffset).ToVector2(), clippingRectangle, TextColor, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             base.Draw(spriteBatch, offset);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-            }
-            base.Dispose(disposing);
         }
     }
 }

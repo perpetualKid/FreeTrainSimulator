@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
@@ -17,21 +18,27 @@ namespace Orts.Graphics.Xna
         private protected Font font;
 
         private protected readonly Brush whiteBrush = new SolidBrush(System.Drawing.Color.White);
+        private readonly TextTextureRenderer textRenderer;
 
         protected ScreenTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, color, position)
         {
             this.font = font;
+            textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 
         protected virtual void Resize(string text)
         {
-            TextTextureRenderer.Resize(text, font, ref texture, Game.GraphicsDevice);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            Texture2D updatedTexture = textRenderer.Resize(text, font);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            (updatedTexture, texture) = (texture, updatedTexture);
+            updatedTexture?.Dispose();
         }
 
         protected virtual void RenderText(string text)
         {
-            TextTextureRenderer.RenderText(text, font, texture);
+            textRenderer.RenderText(text, font, texture, OutlineRenderOptions.Default);
         }
 
         protected override void Dispose(bool disposing)

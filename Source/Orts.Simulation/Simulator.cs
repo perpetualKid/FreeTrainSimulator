@@ -37,13 +37,13 @@ using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Scripting.Api;
 using Orts.Settings;
+using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -126,7 +126,6 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
-        public string EOTPath;      // ie c:\program files\microsoft games\train simulator\trains\ORTS_EOT
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -150,8 +149,6 @@ namespace Orts.Simulation
         public Weather Weather { get; } = new Weather();
 
         public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
-
-        public int DebriefEvalOverSpeedCoupling { get; set; }//Debrief eval
 
         public SignalEnvironment SignalEnvironment { get; private set; }
         public AI AI { get; private set; }
@@ -182,7 +179,7 @@ namespace Orts.Simulation
         public Poolholder PoolHolder { get; private set; }
 
         // player locomotive
-        public TrainCar PlayerLocomotive { get; set; }    // Set by the Viewer - TODO there could be more than one player so eliminate this.
+        public MSTSLocomotive PlayerLocomotive { get; set; }    // Set by the Viewer - TODO there could be more than one player so eliminate this.
 
         // <CJComment> Works but not entirely happy about this arrangement. 
         // Confirmer should be part of the Viewer, rather than the Simulator, as it is part of the user interface.
@@ -201,7 +198,6 @@ namespace Orts.Simulation
 
         public MovingTable ActiveMovingTable { get; set; }
 
-        public FullEOTPaths FullEOTPaths { get; }
         // Replay functionality!
         public CommandLog Log { get; set; }
         public List<ICommand> ReplayCommandList { get; set; }
@@ -294,16 +290,7 @@ namespace Orts.Simulation
                 Clocks = cf.Clocks;
             }
 
-            EOTPath = RouteFolder.ContentFolder.TrainSetsFolder + @"\TRAINS\ORTS_EOT\";
-
-            // Generate a list of EOTs that may be used to attach at end of train
-            if (Directory.Exists(EOTPath))
-            {
-                Trace.Write(" EOT");
-                FullEOTPaths = new FullEOTPaths(EOTPath);
-            }
-
-            Confirmer = new Confirmer(this, 1.5);
+            Confirmer = new Confirmer(this);
             HazardManager = new HazardManager();
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
@@ -405,13 +392,14 @@ namespace Orts.Simulation
             TTTrain playerTTTrain = allTrains[0];
 
             AI = new AI(this, allTrains, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellationToken);
-            ClockTime = AI.clockTime;
+            ClockTime = AI.ClockTime;
 
             if (playerTTTrain != null)
             {
                 playerTTTrain.CalculatePositionOfCars(); // calculate position of player train cars
                 playerTTTrain.PostInit();               // place player train after pre-running of AI trains
-                if (!TrainDictionary.ContainsKey(playerTTTrain.Number)) TrainDictionary.Add(playerTTTrain.Number, playerTTTrain);
+                if (!TrainDictionary.ContainsKey(playerTTTrain.Number))
+                    TrainDictionary.Add(playerTTTrain.Number, playerTTTrain);
                 if (!NameDictionary.ContainsKey(playerTTTrain.Name))
                     NameDictionary.Add(playerTTTrain.Name, playerTTTrain);
             }
@@ -419,7 +407,7 @@ namespace Orts.Simulation
 
         public void Stop()
         {
-            if (MultiPlayerManager.IsMultiPlayer()) 
+            if (MultiPlayerManager.IsMultiPlayer())
                 MultiPlayerManager.Stop();
         }
 
@@ -446,7 +434,8 @@ namespace Orts.Simulation
             AI = new AI(this, inf);
             // Find original player train
             OriginalPlayerTrain = Trains.Find(item => item.Number == 0);
-            if (OriginalPlayerTrain == null) OriginalPlayerTrain = AI.AITrains.Find(item => item.Number == 0);
+            if (OriginalPlayerTrain == null)
+                OriginalPlayerTrain = AI.AITrains.Find(item => item.Number == 0);
 
             // initialization of turntables
             int movingTableIndex = inf.ReadInt32();
@@ -530,28 +519,26 @@ namespace Orts.Simulation
         /// <summary>
         /// Which locomotive does the activity specified for the player.
         /// </summary>
-        public TrainCar InitialPlayerLocomotive()
+        public MSTSLocomotive InitialPlayerLocomotive()
         {
             Train playerTrain = Trains[0];    // we install the player train first
             PlayerLocomotive = SetPlayerLocomotive(playerTrain);
             return PlayerLocomotive;
         }
 
-        public TrainCar SetPlayerLocomotive(Train playerTrain)
+        internal static MSTSLocomotive SetPlayerLocomotive(Train playerTrain)
         {
-            TrainCar PlayerLocomotive = null;
+            MSTSLocomotive playerLocomotive = null;
             foreach (TrainCar car in playerTrain.Cars)
-                if (car.IsDriveable)  // first loco is the one the player drives
+                if (car is MSTSLocomotive locomotive)  // first loco is the one the player drives
                 {
-                    PlayerLocomotive = car;
-                    playerTrain.LeadLocomotive = car;
+                    playerLocomotive = locomotive;
+                    playerTrain.LeadLocomotive = locomotive;
                     playerTrain.InitializeBrakes();
-                    PlayerLocomotive.LocalThrottlePercent = playerTrain.AITrainThrottlePercent;
+                    playerLocomotive.LocalThrottlePercent = playerTrain.AITrainThrottlePercent;
                     break;
                 }
-            if (PlayerLocomotive == null)
-                throw new InvalidDataException("Can't find player locomotive in activity");
-            return PlayerLocomotive;
+            return playerLocomotive ?? throw new InvalidDataException("Can't find player locomotive in activity");
         }
 
         /// <summary>
@@ -598,7 +585,8 @@ namespace Orts.Simulation
             }
 
             // Must be done before trains so that during turntable rotation train follows it
-            if (ActiveMovingTable != null) ActiveMovingTable.Update();
+            if (ActiveMovingTable != null)
+                ActiveMovingTable.Update();
 
             // Represent conditions at the specified clock time.
             List<Train> movingTrains = new List<Train>();
@@ -633,7 +621,8 @@ namespace Orts.Simulation
                     {
                         if (train.TrainType != TrainType.AiPlayerHosting)
                             train.Update(elapsedClockSeconds, false);
-                        else ((AITrain)train).AIUpdate(elapsedClockSeconds, ClockTime, false);
+                        else
+                            ((AITrain)train).AIUpdate(elapsedClockSeconds, ClockTime, false);
                     }
                     catch (Exception e) { Trace.TraceWarning(e.Message); }
                 }
@@ -680,6 +669,8 @@ namespace Orts.Simulation
             LevelCrossings?.Update(elapsedClockSeconds);
             ActivityRun?.Update();
             HazardManager?.Update(elapsedClockSeconds);
+            if (Settings.ActivityEvalulation)
+                ActivityEvaluation.Instance.Update();
         }
 
         internal void SetWeather(WeatherType weather, SeasonType season)
@@ -690,7 +681,7 @@ namespace Orts.Simulation
             WeatherChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void FinishFrontCoupling(Train drivenTrain, Train train, TrainCar lead, bool sameDirection)
+        private void FinishFrontCoupling(Train drivenTrain, Train train, MSTSLocomotive lead, bool sameDirection)
         {
             drivenTrain.LeadLocomotive = lead;
             drivenTrain.CalculatePositionOfCars();
@@ -747,7 +738,8 @@ namespace Orts.Simulation
                             car.Train = train;
                             car.Flipped = !car.Flipped;
                         }
-                        if (drivenTrain.LeadLocomotiveIndex != -1) train.LeadLocomotiveIndex = train.Cars.Count - drivenTrain.LeadLocomotiveIndex - 1;
+                        if (drivenTrain.LeadLocomotiveIndex != -1)
+                            train.LeadLocomotiveIndex = train.Cars.Count - drivenTrain.LeadLocomotiveIndex - 1;
                     }
                     drivenTrain.Cars.Clear();
                     AI.TrainsToRemoveFromAI.Add((AITrain)train);
@@ -811,7 +803,7 @@ namespace Orts.Simulation
             }
 
             drivenTrain.UpdateTrackActionsCoupling(coupleToFront);
-            AI.aiListChanged = true;
+            AI.TrainListChanged = true;
         }
 
         private static void UpdateUncoupled(Train drivenTrain, Train train, float d1, float d2, bool rear)
@@ -834,14 +826,16 @@ namespace Orts.Simulation
         /// </summary>
         private void CheckForCoupling(Train drivenTrain, double elapsedClockSeconds)
         {
-            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer()) return; //in MultiPlayer mode, server will check coupling, client will get message and do things
+            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
+                return; //in MultiPlayer mode, server will check coupling, client will get message and do things
             if (drivenTrain.SpeedMpS < 0)
             {
                 foreach (Train train in Trains)
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train)) continue;
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                            continue;
 
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
                         // Give another try if multiplayer
@@ -861,7 +855,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, 1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                             foreach (TrainCar car in train.Cars)
                             {
@@ -889,7 +883,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                             for (int i = train.Cars.Count - 1; i >= 0; --i)
                             {
@@ -910,7 +904,8 @@ namespace Orts.Simulation
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train if it is too short alived (e.g, when a train is just spawned, it may overlap with another train)
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train)) continue;
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                            continue;
                         //	{
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && drivenTrain == PlayerLocomotive.Train) || (MPManager.Instance().FindPlayerTrain(drivenTrain) && train == PlayerLocomotive.Train)) continue;
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && MPManager.Instance().FindPlayerTrain(drivenTrain))) continue; //if both are player-controlled trains
@@ -932,13 +927,13 @@ namespace Orts.Simulation
                             // couple my front to rear of train
                             //drivenTrain.SetCoupleSpeed(train, 1);
 
-                            TrainCar lead = drivenTrain.LeadLocomotive;
+                            MSTSLocomotive lead = drivenTrain.LeadLocomotive;
                             if (lead == null)
                             {//Like Rear coupling with changed data  
                                 _ = train.LeadLocomotive;
                                 train.LastCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DebriefEvalOverSpeedCoupling += 1;
+                                    ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                                 for (int i = 0; i < drivenTrain.Cars.Count; ++i)
                                 {
@@ -953,7 +948,7 @@ namespace Orts.Simulation
                             {
                                 drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DebriefEvalOverSpeedCoupling += 1;
+                                    ActivityEvaluation.Instance.OverSpeedCoupling++;
 
                                 lead = drivenTrain.LeadLocomotive;
                                 for (int i = 0; i < train.Cars.Count; ++i)
@@ -962,7 +957,8 @@ namespace Orts.Simulation
                                     drivenTrain.Cars.Insert(i, car);
                                     car.Train = drivenTrain;
                                 }
-                                if (drivenTrain.LeadLocomotiveIndex >= 0) drivenTrain.LeadLocomotiveIndex += train.Cars.Count;
+                                if (drivenTrain.LeadLocomotiveIndex >= 0)
+                                    drivenTrain.LeadLocomotiveIndex += train.Cars.Count;
                                 FinishFrontCoupling(drivenTrain, train, lead, true);
                             }
                             return;
@@ -985,9 +981,9 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DebriefEvalOverSpeedCoupling += 1;
+                                ActivityEvaluation.Instance.OverSpeedCoupling++;
 
-                            TrainCar lead = drivenTrain.LeadLocomotive;
+                            MSTSLocomotive lead = drivenTrain.LeadLocomotive;
                             for (int i = 0; i < train.Cars.Count; ++i)
                             {
                                 TrainCar car = train.Cars[i];
@@ -995,7 +991,8 @@ namespace Orts.Simulation
                                 car.Train = drivenTrain;
                                 car.Flipped = !car.Flipped;
                             }
-                            if (drivenTrain.LeadLocomotiveIndex >= 0) drivenTrain.LeadLocomotiveIndex += train.Cars.Count;
+                            if (drivenTrain.LeadLocomotiveIndex >= 0)
+                                drivenTrain.LeadLocomotiveIndex += train.Cars.Count;
                             FinishFrontCoupling(drivenTrain, train, lead, false);
                             return;
                         }
@@ -1053,7 +1050,7 @@ namespace Orts.Simulation
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
                 else if (wagon.IsEOT)
                 {
-                    string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot",wagon.Folder);
+                    string wagonFolder = Path.Combine(RouteFolder.ContentFolder.Folder, "trains\\orts_eot", wagon.Folder);
                     wagonFilePath = wagonFolder + @"\" + wagon.Name + ".eot";
                 }
 
@@ -1075,7 +1072,7 @@ namespace Orts.Simulation
                         car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
-                    if (car is EndOfTrainDevice endOfTrain) 
+                    if (car is EndOfTrainDevice endOfTrain)
                         train.EndOfTrainDevice = endOfTrain;
 
                     train.Length += car.CarLengthM;
@@ -1128,12 +1125,12 @@ namespace Orts.Simulation
             else
                 train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
 
-            float prevEQres = train.EqualReservoirPressurePSIorInHg;
+            float prevEQres = train.BrakeSystem.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
-            train.EqualReservoirPressurePSIorInHg = prevEQres; // The previous command modifies EQ reservoir pressure, causing issues with EP brake systems, so restore to prev value
+            train.BrakeSystem.EqualReservoirPressurePSIorInHg = prevEQres; // The previous command modifies EQ reservoir pressure, causing issues with EP brake systems, so restore to prev value
 
-//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
-//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
+            //            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+            //                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
 
             return (train);
         }
@@ -1203,8 +1200,8 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-//            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
-//                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
+            //            if ((PlayerLocomotive as MSTSLocomotive).EOTEnabled != MSTSLocomotive.EOTenabled.no)
+            //                train.EOT = new EOT((PlayerLocomotive as MSTSLocomotive).EOTEnabled, false, train);
 
             return train;
         }
@@ -1214,7 +1211,8 @@ namespace Orts.Simulation
         /// </summary>
         private void InitializeStaticConsists()
         {
-            if (ActivityFile?.Activity?.ActivityObjects == null) return;
+            if (ActivityFile?.Activity?.ActivityObjects == null)
+                return;
             // for each static consist
             foreach (ActivityObject activityObject in ActivityFile.Activity.ActivityObjects)
             {
@@ -1229,10 +1227,18 @@ namespace Orts.Simulation
                     int consistDirection;
                     switch (activityObject.Direction)  // TODO, we don't really understand this
                     {
-                        case 0: consistDirection = 0; break;  // reversed ( confirmed on L&PS route )
-                        case 18: consistDirection = 1; break;  // forward ( confirmed on ON route )
-                        case 131: consistDirection = 1; break; // forward ( confirmed on L&PS route )
-                        default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
+                        case 0:
+                            consistDirection = 0;
+                            break;  // reversed ( confirmed on L&PS route )
+                        case 18:
+                            consistDirection = 1;
+                            break;  // forward ( confirmed on ON route )
+                        case 131:
+                            consistDirection = 1;
+                            break; // forward ( confirmed on L&PS route )
+                        default:
+                            consistDirection = 1;
+                            break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
                     train.RearTDBTraveller = new Traveller(activityObject.Location);
@@ -1274,7 +1280,8 @@ namespace Orts.Simulation
                         }
                     }// for each rail car
 
-                    if (train.Cars.Count == 0) return;
+                    if (train.Cars.Count == 0)
+                        return;
 
                     // in static consists, the specified location represents the middle of the last car, 
                     // our TDB traveller is always at the back of the last car so it needs to be repositioned
@@ -1325,7 +1332,8 @@ namespace Orts.Simulation
                     outf.Write(0);
                     if (train is AITrain aiTrain && train.TrainType == TrainType.Static)
                         aiTrain.SaveBase(outf);
-                    else train.Save(outf);
+                    else
+                        train.Save(outf);
                 }
                 else if (train.TrainType == TrainType.AiPlayerDriven || train.TrainType == TrainType.AiPlayerHosting)
                 {
@@ -1350,11 +1358,11 @@ namespace Orts.Simulation
             int trainType = inf.ReadInt32();
             while (trainType != -1)
             {
-                if (trainType >= 0) Trains.Add(new Train(inf));
+                if (trainType >= 0)
+                    Trains.Add(new Train(inf));
                 else if (trainType == -2)                   // Autopilot mode
                 {
-                    AI = new AI(this, inf, true);
-                    AI = null;
+                    _ = new AI(this, inf, true);
                 }
                 trainType = inf.ReadInt32();
             }
@@ -1455,17 +1463,21 @@ namespace Orts.Simulation
         public void UncoupleBehind(int carPosition)
         {
             // check on car position in case of mouse jitter
-            if (carPosition <= PlayerLocomotive.Train.Cars.Count - 1) UncoupleBehind(PlayerLocomotive.Train.Cars[carPosition], true);
+            if (carPosition <= PlayerLocomotive.Train.Cars.Count - 1)
+                UncoupleBehind(PlayerLocomotive.Train.Cars[carPosition], true);
         }
 
         public void UncoupleBehind(TrainCar car, bool keepFront)
         {
             Train train = car.Train;
 
-            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Decouple(Confirmer, train)) return;
+            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Decouple(Confirmer, train))
+                return;
             int i = 0;
-            while (train.Cars[i] != car) ++i;  // it can't happen that car isn't in car.Train
-            if (i == train.Cars.Count - 1) return;  // can't uncouple behind last car
+            while (train.Cars[i] != car)
+                ++i;  // it can't happen that car isn't in car.Train
+            if (i == train.Cars.Count - 1)
+                return;  // can't uncouple behind last car
             ++i;
 
             TrainCar lead = train.LeadLocomotive;
@@ -1480,10 +1492,12 @@ namespace Orts.Simulation
                 train2 = TrainDictionary[train.IncorporatedTrainNo];
             }
 
-            if (MultiPlayerManager.IsMultiPlayer() && !(train2 is AITrain)) train2.ControlMode = TrainControlMode.Explorer;
+            if (MultiPlayerManager.IsMultiPlayer() && !(train2 is AITrain))
+                train2.ControlMode = TrainControlMode.Explorer;
             // Player locomotive is in first or in second part of train?
             int j = 0;
-            while (train.Cars[j] != PlayerLocomotive && j < i) j++;
+            while (train.Cars[j] != PlayerLocomotive && j < i)
+                j++;
 
             // This is necessary, because else we had to create an AI train and not a train when in autopilot mode
             if ((train.IsActualPlayerTrain && j >= i) || !keepFront)
@@ -1503,7 +1517,8 @@ namespace Orts.Simulation
                 }
 
                 train.FirstCar.CouplerSlackM = 0;
-                if (train.LeadLocomotiveIndex >= 0) train.LeadLocomotiveIndex -= i;
+                if (train.LeadLocomotiveIndex >= 0)
+                    train.LeadLocomotiveIndex -= i;
             }
             else
             {
@@ -1563,7 +1578,8 @@ namespace Orts.Simulation
                 train.IncorporatedTrainNo = -1;
                 train2.MUDirection = MidpointDirection.Forward;
             }
-            else train2.TrainType = TrainType.Static;
+            else
+                train2.TrainType = TrainType.Static;
             train2.LeadLocomotive = null;
             if ((train.TrainType == TrainType.Ai || train.TrainType == TrainType.AiPlayerHosting) && train2.TrainType == TrainType.Static)
                 train2.InitializeBrakes();
@@ -1610,14 +1626,17 @@ namespace Orts.Simulation
             }
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                if (!(train is AITrain)) train.ControlMode = TrainControlMode.Explorer;
-                if (!(train2 is AITrain)) train2.ControlMode = TrainControlMode.Explorer;
+                if (!(train is AITrain))
+                    train.ControlMode = TrainControlMode.Explorer;
+                if (!(train2 is AITrain))
+                    train2.ControlMode = TrainControlMode.Explorer;
             }
 
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
             {
                 //add the new train to a list of uncoupled trains, handled specially
-                if (PlayerLocomotive != null && PlayerLocomotive.Train == train) MultiPlayerManager.Instance().AddUncoupledTrains(train2);
+                if (PlayerLocomotive != null && PlayerLocomotive.Train == train)
+                    MultiPlayerManager.Instance().AddUncoupledTrains(train2);
             }
 
 
@@ -1642,11 +1661,12 @@ namespace Orts.Simulation
             if (Confirmer != null && IsReplaying)
                 Confirmer.Confirm(CabControl.Uncouple, train.LastCar.CarID);
             if (AI != null)
-                AI.aiListChanged = true;
+                AI.TrainListChanged = true;
             if (train2.TrainType == TrainType.Static && (train.TrainType == TrainType.Player || train.TrainType == TrainType.AiPlayerDriven))
             {
                 // check if detached on turntable or transfertable
-                if (ActiveMovingTable != null) ActiveMovingTable.CheckTrainOnMovingTable(train2);
+                if (ActiveMovingTable != null)
+                    ActiveMovingTable.CheckTrainOnMovingTable(train2);
             }
         }
 
@@ -1747,7 +1767,7 @@ namespace Orts.Simulation
                     }
                     if (selectedAsPlayer.TrainType == TrainType.Ai)
                     {
-                        ((AITrain)selectedAsPlayer).AI.aiListChanged = true;
+                        ((AITrain)selectedAsPlayer).AI.TrainListChanged = true;
                         // Move reversal point under train if there is one in the section where the train is
                         if (selectedAsPlayer.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                             selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath][^1].TrackCircuitSection.Index &&
@@ -1762,7 +1782,7 @@ namespace Orts.Simulation
                     {
                         selectedAsPlayer.ControlMode = TrainControlMode.Explorer;
                         //add the new train to a list of uncoupled trains, handled specially
-                        if (PlayerLocomotive != null) 
+                        if (PlayerLocomotive != null)
                             MultiPlayerManager.Instance().AddUncoupledTrains(selectedAsPlayer);
                     }
 
@@ -1798,7 +1818,8 @@ namespace Orts.Simulation
                         playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = TrainType.Static;
                         playerTrain.SpeedMpS = 0;
-                        foreach (TrainCar car in playerTrain.Cars) car.SpeedMpS = 0;
+                        foreach (TrainCar car in playerTrain.Cars)
+                            car.SpeedMpS = 0;
                         playerTrain.CheckFreight();
                         playerTrain.SetDistributedPowerUnitIds();
                         playerTrain.InitializeBrakes();
@@ -1811,7 +1832,7 @@ namespace Orts.Simulation
                     if (!(playerTrain.TrainType == TrainType.AiIncorporated && playerTrain.IncorporatingTrain == PlayerLocomotive.Train))
                     {
                         PlayerLocomotive = SetPlayerLocomotive(playerTrain);
-                        if (oldPlayerTrain != null) 
+                        if (oldPlayerTrain != null)
                             oldPlayerTrain.LeadLocomotiveIndex = -1;
                     }
                 }
@@ -1820,7 +1841,7 @@ namespace Orts.Simulation
                     Train pathlessPlayerTrain = selectedAsPlayer;
                     pathlessPlayerTrain.IsPathless = true;
                     PlayerLocomotive = SetPlayerLocomotive(pathlessPlayerTrain);
-                    if (oldPlayerTrain != null) 
+                    if (oldPlayerTrain != null)
                         oldPlayerTrain.LeadLocomotiveIndex = -1;
                 }
                 playerSwitchOngoing = true;
@@ -1832,7 +1853,7 @@ namespace Orts.Simulation
             else
             {
                 TrainSwitcher.ClickedSelectedAsPlayer = false;
-                AI.aiListChanged = true;
+                AI.TrainListChanged = true;
             }
         }
 
@@ -1856,7 +1877,7 @@ namespace Orts.Simulation
             OnPlayerLocomotiveChanged();
             playerSwitchOngoing = false;
             TrainSwitcher.ClickedSelectedAsPlayer = false;
-            AI.aiListChanged = true;
+            AI.TrainListChanged = true;
         }
 
         /// <summary>
@@ -1881,8 +1902,6 @@ namespace Orts.Simulation
                 Trace.TraceWarning("Train {0} to restart not found", restartWaitingTrain.WaitingTrainToRestart);
         }
 
-
-
         /// <summary>
         /// Derive log-file name from route path and activity name
         /// </summary>
@@ -1897,13 +1916,13 @@ namespace Orts.Simulation
 
             logfile.Append(appendix);
 
-            string logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension(logfile.ToString(), "csv"));
+            string logfileName = Path.Combine(RuntimeInfo.UserDataFolder, Path.ChangeExtension(logfile.ToString(), "csv"));
 
             int logCount = 0;
 
             while (File.Exists(logfileName) && logCount < maxLogFiles)
             {
-                logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension($"{logfile}{logCount:00}", "csv"));
+                logfileName = Path.Combine(RuntimeInfo.UserDataFolder, Path.ChangeExtension($"{logfile}{logCount:00}", "csv"));
                 logCount++;
             }
 
@@ -1913,6 +1932,12 @@ namespace Orts.Simulation
             }
             return logfileName;
         }
+
+        // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
+        // that are likely to match the previously chosen route and activity.
+        // Append the current date and time, so that each file is unique.
+        // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
+        public string SaveFileName => $"{(ActivityFile != null ? ActivityFileName : (!string.IsNullOrEmpty(TimetableFileName) ? $"{RouteFolder.RouteName} {TimetableFileName}" : RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : string.Empty)}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
 
         internal void OnAllowedSpeedRaised(Train train)
         {

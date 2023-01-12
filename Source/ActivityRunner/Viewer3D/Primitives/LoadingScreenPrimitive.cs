@@ -2,25 +2,24 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Materials;
-
-using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
     internal class LoadingScreenPrimitive : LoadingPrimitive
     {
-        public LoadingScreenPrimitive(Game game)
+        public LoadingScreenPrimitive(GameHost game)
             : base(game)
         {
         }
 
-        protected override LoadingMaterial GetMaterial(Game game)
+        protected override LoadingMaterial GetMaterial(GameHost game)
         {
             return new LoadingScreenMaterial(game);
         }
 
-        protected override VertexPositionTexture[] GetVertices(Game game)
+        protected override VertexPositionTexture[] GetVertices(GameHost game)
         {
             float w, h;
 

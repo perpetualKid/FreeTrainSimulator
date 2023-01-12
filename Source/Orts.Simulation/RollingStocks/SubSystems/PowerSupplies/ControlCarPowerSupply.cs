@@ -28,7 +28,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public override PowerSupplyType Type => PowerSupplyType.ControlCar;
 
         public bool Activated;
-        private ControlCarPowerSupply Script => AbstractScript as ControlCarPowerSupply;
+        private ControlCarPowerSupply Script => abstractScript as ControlCarPowerSupply;
 
         //        public ScriptedTractionCutOffRelay TractionCutOffRelay { get; protected set; }
 
@@ -40,9 +40,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
 
 
-        public void Copy(ScriptedControlCarPowerSupply other)
+        public void Copy(ScriptedControlCarPowerSupply source)
         {
-            base.Copy(other);
+            base.Copy(source);
         }
 
         public override void Initialize()

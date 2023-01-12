@@ -5,38 +5,39 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
+using Orts.Common.Info;
 using Orts.Common.Xna;
-
-using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {
     internal class LoadingMaterial : Material, IDisposable
     {
-        internal readonly LoadingShader shader;
-        public readonly Texture2D texture;
+        internal LoadingShader Shader { get; }
+        private readonly Texture2D texture;
         private bool disposedValue;
 
-        public LoadingMaterial(Game game)
+        public LoadingMaterial(GameHost game)
+            : this(game, Path.Combine(RuntimeInfo.ContentFolder, "Loading.png"))
+        {
+        }
+
+        public LoadingMaterial(GameHost game, string texturePath)
             : base(game.GraphicsDevice)
         {
-            shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
-            texture = GetTexture(game);
+            Shader = new LoadingShader(game.GraphicsDevice);
+            texture = TextureManager.GetTextureStatic(texturePath, game);
         }
 
         public int TextureWidth { get { return texture?.Width ?? 0; } }
         public int TextureHeight { get { return texture?.Height ?? 0; } }
 
-        protected virtual Texture2D GetTexture(Game game)
-        {
-            return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(game.ContentPath, "Loading.png"));
-        }
-
         public override void SetState(Material previousMaterial)
         {
-            shader.CurrentTechnique = shader.Techniques[0]; //["Loading"];
-            shader.LoadingTexture = texture;
+            Shader.CurrentTechnique = Shader.Techniques[0]; //["Loading"];
+            Shader.LoadingTexture = texture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
@@ -47,9 +48,9 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
             {
                 RenderItem item = renderItems[i];
                 MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
-                shader.WorldViewProjection = wvp;
+                Shader.WorldViewProjection = wvp;
                 //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
-                shader.CurrentTechnique.Passes[0].Apply();
+                Shader.CurrentTechnique.Passes[0].Apply();
                 item.RenderPrimitive.Draw();
             }
         }

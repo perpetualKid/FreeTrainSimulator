@@ -180,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 new VertexElement(16 + 16 + 16 + 16, VertexElementFormat.Color, VertexElementUsage.Position, 4)
             };
 
-            public static readonly int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
+            public const int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
         }
 
         internal ParticleEmitterData EmitterData;

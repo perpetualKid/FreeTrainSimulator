@@ -1275,14 +1275,14 @@ namespace Orts.Menu
             this.tabPageSimulation.Text = "Simulation";
             this.tabPageSimulation.UseVisualStyleBackColor = true;
             // 
-            // checkConnectPower
+            // checkElectricPowerConnected
             // 
             this.checkElectricPowerConnected.AutoSize = true;
             this.checkElectricPowerConnected.Checked = true;
             this.checkElectricPowerConnected.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkElectricPowerConnected.Enabled = false;
             this.checkElectricPowerConnected.Location = new System.Drawing.Point(6, 263);
-            this.checkElectricPowerConnected.Name = "checkConnectPower";
+            this.checkElectricPowerConnected.Name = "checkElectricPowerConnected";
             this.checkElectricPowerConnected.Size = new System.Drawing.Size(154, 19);
             this.checkElectricPowerConnected.TabIndex = 10;
             this.checkElectricPowerConnected.Text = "Electric - connect power";
@@ -1297,11 +1297,11 @@ namespace Orts.Menu
             this.label40.TabIndex = 10;
             this.label40.Text = "At game start,";
             // 
-            // checkBoxDieselEngineStart
+            // checkDieselEnginesStarted
             // 
             this.checkDieselEnginesStarted.AutoSize = true;
             this.checkDieselEnginesStarted.Location = new System.Drawing.Point(6, 238);
-            this.checkDieselEnginesStarted.Name = "checkBoxDieselEngineStart";
+            this.checkDieselEnginesStarted.Name = "checkDieselEnginesStarted";
             this.checkDieselEnginesStarted.Size = new System.Drawing.Size(130, 19);
             this.checkDieselEnginesStarted.TabIndex = 9;
             this.checkDieselEnginesStarted.Text = "Diesel - run engines";
@@ -1353,11 +1353,11 @@ namespace Orts.Menu
             this.checkForcedRedAtStationStops.Text = "Forced red at station stops";
             this.checkForcedRedAtStationStops.UseVisualStyleBackColor = true;
             // 
-            // checkHotStart
+            // checkBoilerPreheated
             // 
             this.checkBoilerPreheated.AutoSize = true;
             this.checkBoilerPreheated.Location = new System.Drawing.Point(6, 189);
-            this.checkBoilerPreheated.Name = "checkHotStart";
+            this.checkBoilerPreheated.Name = "checkBoilerPreheated";
             this.checkBoilerPreheated.Size = new System.Drawing.Size(148, 19);
             this.checkBoilerPreheated.TabIndex = 8;
             this.checkBoilerPreheated.Text = "Steam - pre-heat boiler";
@@ -2852,8 +2852,8 @@ namespace Orts.Menu
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(676, 474);
             this.Controls.Add(this.tabOptions);

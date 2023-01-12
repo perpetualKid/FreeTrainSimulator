@@ -17,11 +17,13 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
     {
         private readonly Point offset;
         private IJunction junction;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private RadioButton rbtnMain;
         private RadioButton rbtnSiding;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public SwitchChangeWindow(WindowManager owner, Point relativeLocation) :
-            base(owner ?? throw new ArgumentNullException(nameof(owner)), "Change Switch", relativeLocation, new Point(120, 65))
+        public SwitchChangeWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), (catalog ??= CatalogManager.Catalog).GetString("Change Switch"), relativeLocation, new Point(120, 65), catalog)
         {
             Modal = true;
             offset = new Point((int)((Borders.Width / -3) * owner.DpiScaling), (int)(10 * owner.DpiScaling));

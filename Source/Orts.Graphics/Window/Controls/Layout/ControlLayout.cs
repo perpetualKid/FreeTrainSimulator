@@ -17,7 +17,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
 
-        protected ControlLayout(WindowBase window, int x, int y, int width, int height)
+        protected ControlLayout(FormBase window, int x, int y, int width, int height)
             : base(window, x, y, width, height)
         {
         }
@@ -30,9 +30,9 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public virtual int CurrentTop => 0;
 
-        public HorizontalAlignment HorizontalChildAlignment { get; protected set; } = HorizontalAlignment.Left;
+        public HorizontalAlignment HorizontalChildAlignment { get; set; } = HorizontalAlignment.Left;
 
-        public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
+        public VerticalAlignment VerticalChildAlignment { get; set; } = VerticalAlignment.Top;
 
         public int Count => ((ICollection<WindowControl>)Controls).Count;
 
@@ -46,13 +46,23 @@ namespace Orts.Graphics.Window.Controls.Layout
             // Offset control by our position and current values. Don't touch its size, also consider alignment
             control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
+            switch (Container)
+            {
+                // extend the virtual size for scrollbox content (affecting the .Client property of the scrollboxes)
+                case VerticalScrollboxControlLayout:
+                    Resize(new Point(Bounds.Width, CurrentTop));
+                    break;
+                case HorizontalScrollboxControlLayout:
+                    Resize(new Point(CurrentLeft, Bounds.Height));
+                    break;
+            }
             control.Container = this;
             return control;
         }
 
         public void Add(WindowControl item)
         {
-            InternalAdd(item);
+            _ = InternalAdd(item);
         }
 
         public void AddSpace(int width, int height)
@@ -68,6 +78,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         public void AddVerticalSeparator(bool padding = true)
         {
             Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
+        }
+
+        public ControlLayoutPanel AddLayoutPanel(int width, int height)
+        {
+            return InternalAdd(new ControlLayoutPanel(Window, width, height));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)
@@ -86,7 +101,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontalLineOfText()
-{
+        {
             return AddLayoutHorizontal(Window.Owner.TextFontDefault.Height);
         }
 
@@ -105,12 +120,10 @@ namespace Orts.Graphics.Window.Controls.Layout
             return InternalAdd(new ControlLayoutVertical(Window, width, RemainingHeight));
         }
 
-        //public ControlLayout AddLayoutScrollboxHorizontal(int height)
-        //{
-        //    var sb = InternalAdd(new ControlLayoutScrollboxHorizontal(RemainingWidth, height));
-        //    sb.Initialize();
-        //    return sb.Client;
-        //}
+        public ControlLayout AddLayoutScrollboxHorizontal(int height)
+        {
+            return InternalAdd(new HorizontalScrollboxControlLayout(Window, RemainingWidth, height)).Client;
+        }
 
         public ControlLayout AddLayoutScrollboxVertical(int width)
         {
@@ -120,27 +133,28 @@ namespace Orts.Graphics.Window.Controls.Layout
         internal override void Initialize()
         {
             base.Initialize();
-            foreach (WindowControl control in Controls)
-                control.Initialize();
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].Initialize();
         }
 
-        internal override void Update(GameTime gameTime)
+        internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            foreach (WindowControl control in Controls)
+            for (int i = 0; i < Controls.Count; i++)
             {
-                if (control.Visible)
-                    control.Update(gameTime);
+                if (Controls[i].Visible)
+                    Controls[i].Update(gameTime, shouldUpdate);
             }
-            base.Update(gameTime);
+            base.Update(gameTime, shouldUpdate);
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            foreach (WindowControl control in Controls)
+            for (int i = 0; i < Controls.Count; i++)
             {
-                if (control.Visible)
-                    control.Draw(spriteBatch, offset);
+                if (Controls[i].Visible)
+                    Controls[i].Draw(spriteBatch, offset);
             }
+            base.Draw(spriteBatch, offset);
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
@@ -186,7 +200,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDrag(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || c is ControlLayout controlLayout && TestForDragging(controlLayout)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition) || TestForDragging(c)))
                 if (control.HandleMouseDrag(e))
                     return true;
             return base.HandleMouseDrag(e);
@@ -195,6 +209,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         private bool TestForDragging(ControlLayout controlLayout)
         {
             return controlLayout == Window.CapturedControl || controlLayout.Controls.Where((c) => c is ControlLayout controlLayout && TestForDragging(controlLayout)).Any();
+        }
+
+        private bool TestForDragging(WindowControl control)
+        {
+            return control == Window.CapturedControl || control is ControlLayout controlLayout && controlLayout.Controls.Where((c) => TestForDragging(c)).Any();
         }
 
         internal override void MoveBy(int x, int y)
@@ -211,7 +230,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             base.Dispose(disposing);
         }
 
-        private int VerticalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int VerticalChildAlignmentOffset(in Rectangle childBounds)
         {
             return VerticalChildAlignment switch
             {
@@ -222,7 +241,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
-        private int HorizontalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int HorizontalChildAlignmentOffset(in Rectangle childBounds)
         {
             return HorizontalChildAlignment switch
             {
@@ -233,7 +252,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             ((ICollection<WindowControl>)Controls).Clear();
         }

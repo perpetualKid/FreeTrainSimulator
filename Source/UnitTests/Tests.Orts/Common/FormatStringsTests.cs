@@ -56,7 +56,7 @@ namespace Tests.Orts.Common
         {
             TimeSpan duration = new TimeSpan(1, 13, 37, 45, 20); //1d 13:37:45.020
             Assert.AreEqual("13:37:45", FormatStrings.FormatTime(duration.TotalSeconds));
-            Assert.AreEqual("13:37:45.20", FormatStrings.FormatPreciseTime(duration.TotalSeconds));
+            Assert.AreEqual("13:37:45.02", FormatStrings.FormatPreciseTime(duration.TotalSeconds));
             Assert.AreEqual("13:37", FormatStrings.FormatApproximateTime(duration.TotalSeconds));
         }
     }

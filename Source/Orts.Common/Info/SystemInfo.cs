@@ -17,30 +17,24 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Native;
 
-using static Orts.Common.Native.NativeMethods;
-
 namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
-        private static string gpuInformation;
-
-        public static string GraphicAdapterMemoryInformation => gpuInformation;
+        public static string GraphicAdapterMemoryInformation { get; private set; }
+        public static string CpuInformation { get; private set; }
 
         public static string SetGraphicAdapterInformation(string adapterName)
         {
-            if (gpuInformation == null)
+            if (GraphicAdapterMemoryInformation == null)
             {
                 try
                 {
@@ -48,17 +42,17 @@ namespace Orts.Common.Info
                     {
                         foreach (ManagementBaseObject display in objectSearcher.Get())
                         {
-                            gpuInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
+                            GraphicAdapterMemoryInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
                             break;
                         }
                     }
                 }
                 catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
                 {
-                    gpuInformation = "n/a";
+                    GraphicAdapterMemoryInformation = "n/a";
                 }
             }
-            return gpuInformation;
+            return GraphicAdapterMemoryInformation;
         }
 
         public static void WriteSystemDetails()
@@ -101,7 +95,8 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementBaseObject processor in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)");
+                        CpuInformation = $"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)";
+                        output.AppendLine(CpuInformation);
                     }
                 }
             }
@@ -125,9 +120,10 @@ namespace Orts.Common.Info
                 Trace.WriteLine(error);
             }
 
-            foreach (Screen screen in Screen.AllScreens)
+            foreach (GraphicsAdapter adapter in GraphicsAdapter.Adapters)
             {
-                output.AppendLine($"{"Display",-12}= {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X}::{screen.Bounds.Y}, scaling factor {DisplayScalingFactor(screen):F2}, using {GraphicsAdapter.Adapters.Where(adapter => adapter.DeviceName == screen.DeviceName).Single().Description})");
+                output.AppendLine($"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}, {(adapter.IsDefaultAdapter? ", primary" : "")} on {adapter.Description})");
+                GraphicsAdapter.UseDebugLayers = true;
             }
 
             try
@@ -190,12 +186,26 @@ namespace Orts.Common.Info
             return output.ToString();
         }
 
-        public static void OpenBrowser(Uri url)
+        public static void OpenFile(string fileName)
         {
-            OpenBrowser(url?.ToString());
+            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { FileName = fileName, UseShellExecute = true });
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", fileName);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", fileName);
+            }
         }
 
+#pragma warning disable CA1054 // URI-like parameters should not be strings
         public static void OpenBrowser(string url)
+#pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -211,41 +221,5 @@ namespace Orts.Common.Info
                 Process.Start("open", url);
             }
         }
-
-        public static float DisplayScalingFactor(Screen screen)
-        {
-             if (screen == null)
-                return 1;
-            try
-            {
-                using (Form testForm = new Form
-                {
-                    WindowState = FormWindowState.Normal,
-                    StartPosition = FormStartPosition.Manual,
-                    Left = screen.Bounds.Left,
-                    Top = screen.Bounds.Top
-                })
-                {
-                    return (float)Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
-                }
-            }
-            catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
-            {
-                using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-                {
-                    try
-                    {
-                        IntPtr desktop = g.GetHdc();
-                        int dpi = GetDeviceCaps(desktop, (int)DeviceCap.LOGPIXELSX);
-                        return (float)Math.Round(dpi / 96.0, 2);
-                    }
-                    finally
-                    {
-                        g.ReleaseHdc();
-                    }
-                }
-            }
-        }
-
     }
 }

@@ -15,10 +15,18 @@ namespace Orts.Toolbox
 {
     public partial class GameWindow : Game
     {
+        #region public declarations
+
+       
+        #endregion
+
+        #region private declarations
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
+
+        #endregion
 
         private const int zoomAmplifier = 3;
 
@@ -34,7 +42,7 @@ namespace Orts.Toolbox
 
         internal void PrepareExitApplication()
         {
-            windowManager[WindowType.QuitWindow].Open();
+            windowManager[ToolboxWindowType.QuitWindow].Open();
         }
 
         private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
@@ -128,13 +136,13 @@ namespace Orts.Toolbox
             Zoom(-ZoomAmplifier(commandArgs));
         }
 
-        private DateTime nextUpdate;
+        private long nextUpdate;
         private void Zoom(int steps)
         {
-            if (DateTime.UtcNow > nextUpdate)
+            if (Environment.TickCount64 > nextUpdate)
             {
                 contentArea?.UpdateScale(steps);
-                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+                nextUpdate = Environment.TickCount64 + 30;
             }
         }
 
@@ -145,7 +153,7 @@ namespace Orts.Toolbox
 
         internal void ShowAboutWindow()
         {
-            windowManager[WindowType.AboutWindow].Open();
+            windowManager[ToolboxWindowType.AboutWindow].Open();
         }
 
         internal void PrintScreen()
@@ -172,6 +180,5 @@ namespace Orts.Toolbox
                 }
             }
         }
-
     }
 }

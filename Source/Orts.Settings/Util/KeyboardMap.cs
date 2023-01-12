@@ -16,6 +16,8 @@ namespace Orts.Settings.Util
     /// </summary>
     public static class KeyboardMap
     {
+        private static readonly int[] excludedFunctionKeys = new[] { 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x57, 0x58 };
+
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
         // but generally this layout is right. Numeric keypad omitted as most keys are just duplicates of the main
@@ -55,25 +57,24 @@ namespace Orts.Settings.Util
             new KeyValuePair<string, Color>("", Color.Gray),
         };
 
-        public static void DrawKeyboardMap(Action<Rectangle> drawRow, Action<Rectangle, int, string> drawKey)
+        public static void DrawKeyboardMap(Action<Rectangle, int, string> drawKey)
         {
             for (int y = 0; y < KeyboardLayout.Length; y++)
             {
                 string keyboardLine = KeyboardLayout[y];
-                drawRow?.Invoke(new Rectangle(0, y, keyboardLine.Length, 1));
 
                 int x = keyboardLine.IndexOf('[', StringComparison.Ordinal);
                 while (x != -1)
                 {
                     int x2 = keyboardLine.IndexOf("]", x, StringComparison.Ordinal);
 
-                    string scanCodeString = keyboardLine.Substring(x + 1, 3).Trim();
+                    ReadOnlySpan<char> scanCodeString = keyboardLine.AsSpan()[(x + 1)..(x + 4)].Trim();
                     if (!int.TryParse(scanCodeString, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int keyScanCode))
                         keyScanCode = 0;
 
                     string keyName = ScanCodeKeyUtils.GetScanCodeKeyName(keyScanCode);
                     // Only allow F-keys to show >1 character names. The rest we'll remove for now.
-                    if ((keyName.Length > 1) && !new[] { 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x57, 0x58 }.Contains(keyScanCode))
+                    if ((keyName.Length > 1) && !excludedFunctionKeys.Contains(keyScanCode))
                         keyName = "";
 
                     drawKey?.Invoke(new Rectangle(x, y, x2 - x + 1, 1), keyScanCode, keyName);
@@ -89,7 +90,7 @@ namespace Orts.Settings.Util
             foreach (KeyValuePair<string, Color> prefixToColor in prefixesToColors)
                 foreach (string commandName in commandNames)
                     if (commandName.StartsWith(prefixToColor.Key, StringComparison.OrdinalIgnoreCase))
-                    return prefixToColor.Value;
+                        return prefixToColor.Value;
 
             return Color.Transparent;
         }
@@ -121,7 +122,7 @@ namespace Orts.Settings.Util
             System.Drawing.Bitmap keyboardLayoutBitmap = new System.Drawing.Bitmap(KeyboardLayout[0].Length * keyWidth, KeyboardLayout.Length * keyHeight);
             using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(keyboardLayoutBitmap))
             {
-                DrawKeyboardMap(null, (keyBox, keyScanCode, keyName) =>
+                DrawKeyboardMap((keyBox, keyScanCode, keyName) =>
                 {
                     IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.UserCommands);
                     string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetLocalizedDescription().Split(' ').Skip(1))));

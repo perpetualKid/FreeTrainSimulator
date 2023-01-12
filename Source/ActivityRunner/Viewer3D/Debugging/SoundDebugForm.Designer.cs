@@ -17,6 +17,8 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
+
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
     partial class SoundDebugForm
@@ -32,11 +34,16 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            try
             {
-                components.Dispose();
+                if (disposing && (components != null))
+                {
+                    components.Dispose();
+                }
+                base.Dispose(disposing);
             }
-            base.Dispose(disposing);
+            catch (InvalidOperationException)
+            { }
         }
 
         #region Windows Form Designer generated code
@@ -102,10 +109,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // inactiveSoundList
             // 
             this.inactiveSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inactiveSoundList.Location = new System.Drawing.Point(4, 24);
+            this.inactiveSoundList.Location = new System.Drawing.Point(4, 20);
             this.inactiveSoundList.Margin = new System.Windows.Forms.Padding(4);
             this.inactiveSoundList.Name = "inactiveSoundList";
-            this.inactiveSoundList.Size = new System.Drawing.Size(416, 320);
+            this.inactiveSoundList.Size = new System.Drawing.Size(416, 324);
             this.inactiveSoundList.TabIndex = 0;
             this.inactiveSoundList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.InactiveSoundList_KeyDown);
             this.inactiveSoundList.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.InactiveSoundList_KeyPress);
@@ -113,10 +120,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // activeSoundList
             // 
             this.activeSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.activeSoundList.Location = new System.Drawing.Point(4, 24);
+            this.activeSoundList.Location = new System.Drawing.Point(4, 20);
             this.activeSoundList.Margin = new System.Windows.Forms.Padding(4);
             this.activeSoundList.Name = "activeSoundList";
-            this.activeSoundList.Size = new System.Drawing.Size(416, 602);
+            this.activeSoundList.Size = new System.Drawing.Size(416, 606);
             this.activeSoundList.TabIndex = 0;
             this.activeSoundList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ActiveSoundList_KeyDown);
             this.activeSoundList.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ActiveSoundList_KeyPress);
@@ -223,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel1.Controls.Add(this.label11, 0, 4);
             this.tableLayoutPanel1.Controls.Add(this.label12, 0, 5);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(4, 24);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(4, 20);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 6;
@@ -244,7 +251,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.textBox1.Margin = new System.Windows.Forms.Padding(4);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(25, 27);
+            this.textBox1.Size = new System.Drawing.Size(25, 23);
             this.textBox1.TabIndex = 5;
             // 
             // textBox2
@@ -254,7 +261,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.textBox2.Margin = new System.Windows.Forms.Padding(4);
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
-            this.textBox2.Size = new System.Drawing.Size(25, 27);
+            this.textBox2.Size = new System.Drawing.Size(25, 23);
             this.textBox2.TabIndex = 4;
             // 
             // textBox3
@@ -264,17 +271,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.textBox3.Margin = new System.Windows.Forms.Padding(4);
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
-            this.textBox3.Size = new System.Drawing.Size(25, 27);
+            this.textBox3.Size = new System.Drawing.Size(25, 23);
             this.textBox3.TabIndex = 3;
             // 
             // label7
             // 
             this.label7.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(4, 5);
+            this.label7.Location = new System.Drawing.Point(4, 7);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(77, 20);
+            this.label7.Size = new System.Drawing.Size(63, 15);
             this.label7.TabIndex = 1;
             this.label7.Text = "WavCache";
             // 
@@ -285,7 +292,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.textBox4.Margin = new System.Windows.Forms.Padding(4);
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
-            this.textBox4.Size = new System.Drawing.Size(25, 27);
+            this.textBox4.Size = new System.Drawing.Size(25, 23);
             this.textBox4.TabIndex = 2;
             // 
             // alSources
@@ -295,17 +302,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.alSources.Margin = new System.Windows.Forms.Padding(4);
             this.alSources.Name = "alSources";
             this.alSources.ReadOnly = true;
-            this.alSources.Size = new System.Drawing.Size(25, 27);
+            this.alSources.Size = new System.Drawing.Size(25, 23);
             this.alSources.TabIndex = 1;
             // 
             // label8
             // 
             this.label8.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(4, 65);
+            this.label8.Location = new System.Drawing.Point(4, 67);
             this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(0, 20);
+            this.label8.Size = new System.Drawing.Size(0, 15);
             this.label8.TabIndex = 3;
             // 
             // waves
@@ -315,27 +322,27 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.waves.Margin = new System.Windows.Forms.Padding(4);
             this.waves.Name = "waves";
             this.waves.ReadOnly = true;
-            this.waves.Size = new System.Drawing.Size(25, 27);
+            this.waves.Size = new System.Drawing.Size(25, 23);
             this.waves.TabIndex = 0;
             // 
             // label9
             // 
             this.label9.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(4, 95);
+            this.label9.Location = new System.Drawing.Point(4, 97);
             this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(0, 20);
+            this.label9.Size = new System.Drawing.Size(0, 15);
             this.label9.TabIndex = 4;
             // 
             // label10
             // 
             this.label10.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(4, 35);
+            this.label10.Location = new System.Drawing.Point(4, 37);
             this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(81, 20);
+            this.label10.Size = new System.Drawing.Size(65, 15);
             this.label10.TabIndex = 2;
             this.label10.Text = "AL Sources";
             // 
@@ -343,20 +350,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.label11.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(4, 125);
+            this.label11.Location = new System.Drawing.Point(4, 127);
             this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(0, 20);
+            this.label11.Size = new System.Drawing.Size(0, 15);
             this.label11.TabIndex = 4;
             // 
             // label12
             // 
             this.label12.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(4, 158);
+            this.label12.Location = new System.Drawing.Point(4, 160);
             this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(0, 20);
+            this.label12.Size = new System.Drawing.Size(0, 15);
             this.label12.TabIndex = 4;
             // 
             // groupBoxSelectedSound
@@ -378,11 +385,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.sound3D.AutoSize = true;
             this.sound3D.Dock = System.Windows.Forms.DockStyle.Top;
             this.sound3D.Enabled = false;
-            this.sound3D.Location = new System.Drawing.Point(4, 210);
+            this.sound3D.Location = new System.Drawing.Point(4, 206);
             this.sound3D.Margin = new System.Windows.Forms.Padding(4);
             this.sound3D.Name = "sound3D";
             this.sound3D.Padding = new System.Windows.Forms.Padding(4);
-            this.sound3D.Size = new System.Drawing.Size(126, 32);
+            this.sound3D.Size = new System.Drawing.Size(126, 27);
             this.sound3D.TabIndex = 0;
             this.sound3D.Text = "3D";
             // 
@@ -404,7 +411,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel2.Controls.Add(this.label5, 0, 4);
             this.tableLayoutPanel2.Controls.Add(this.label6, 0, 5);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(4, 24);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(4, 20);
             this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 6;
@@ -425,7 +432,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.smsVolume.Margin = new System.Windows.Forms.Padding(4);
             this.smsVolume.Name = "smsVolume";
             this.smsVolume.ReadOnly = true;
-            this.smsVolume.Size = new System.Drawing.Size(25, 27);
+            this.smsVolume.Size = new System.Drawing.Size(25, 23);
             this.smsVolume.TabIndex = 5;
             // 
             // distance
@@ -435,7 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.distance.Margin = new System.Windows.Forms.Padding(4);
             this.distance.Name = "distance";
             this.distance.ReadOnly = true;
-            this.distance.Size = new System.Drawing.Size(25, 27);
+            this.distance.Size = new System.Drawing.Size(25, 23);
             this.distance.TabIndex = 4;
             // 
             // variable3
@@ -445,17 +452,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.variable3.Margin = new System.Windows.Forms.Padding(4);
             this.variable3.Name = "variable3";
             this.variable3.ReadOnly = true;
-            this.variable3.Size = new System.Drawing.Size(25, 27);
+            this.variable3.Size = new System.Drawing.Size(25, 23);
             this.variable3.TabIndex = 3;
             // 
             // label1
             // 
             this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(4, 5);
+            this.label1.Location = new System.Drawing.Point(4, 7);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 20);
+            this.label1.Size = new System.Drawing.Size(39, 15);
             this.label1.TabIndex = 1;
             this.label1.Text = "Speed";
             // 
@@ -466,7 +473,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.variable2.Margin = new System.Windows.Forms.Padding(4);
             this.variable2.Name = "variable2";
             this.variable2.ReadOnly = true;
-            this.variable2.Size = new System.Drawing.Size(25, 27);
+            this.variable2.Size = new System.Drawing.Size(25, 23);
             this.variable2.TabIndex = 2;
             // 
             // variable1
@@ -476,17 +483,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.variable1.Margin = new System.Windows.Forms.Padding(4);
             this.variable1.Name = "variable1";
             this.variable1.ReadOnly = true;
-            this.variable1.Size = new System.Drawing.Size(25, 27);
+            this.variable1.Size = new System.Drawing.Size(25, 23);
             this.variable1.TabIndex = 1;
             // 
             // label3
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 65);
+            this.label3.Location = new System.Drawing.Point(4, 67);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(75, 20);
+            this.label3.Size = new System.Drawing.Size(57, 15);
             this.label3.TabIndex = 3;
             this.label3.Text = "Variable 2";
             // 
@@ -497,17 +504,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.speed.Margin = new System.Windows.Forms.Padding(4);
             this.speed.Name = "speed";
             this.speed.ReadOnly = true;
-            this.speed.Size = new System.Drawing.Size(25, 27);
+            this.speed.Size = new System.Drawing.Size(25, 23);
             this.speed.TabIndex = 0;
             // 
             // label4
             // 
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 95);
+            this.label4.Location = new System.Drawing.Point(4, 97);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(75, 20);
+            this.label4.Size = new System.Drawing.Size(57, 15);
             this.label4.TabIndex = 4;
             this.label4.Text = "Variable 3";
             // 
@@ -515,10 +522,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 35);
+            this.label2.Location = new System.Drawing.Point(4, 37);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(75, 20);
+            this.label2.Size = new System.Drawing.Size(57, 15);
             this.label2.TabIndex = 2;
             this.label2.Text = "Variable 1";
             // 
@@ -526,10 +533,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 125);
+            this.label5.Location = new System.Drawing.Point(4, 127);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(66, 20);
+            this.label5.Size = new System.Drawing.Size(52, 15);
             this.label5.TabIndex = 4;
             this.label5.Text = "Distance";
             // 
@@ -537,20 +544,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.label6.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(4, 158);
+            this.label6.Location = new System.Drawing.Point(4, 160);
             this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(59, 20);
+            this.label6.Size = new System.Drawing.Size(47, 15);
             this.label6.TabIndex = 4;
             this.label6.Text = "Volume";
             // 
             // SoundDebugForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(579, 999);
             this.Controls.Add(this.splitContainer2);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "SoundDebugForm";

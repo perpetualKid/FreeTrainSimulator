@@ -1133,7 +1133,7 @@ namespace Orts.Simulation.Timetables
 
                 // pool underflow : create engine from scratch
                 DateTime baseDTA = new DateTime();
-                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.clockTime);
+                DateTime moveTimeA = baseDTA.AddSeconds(train.AI.ClockTime);
 
                 if (ForceCreation)
                 {
@@ -1282,9 +1282,9 @@ namespace Orts.Simulation.Timetables
                 train.InitializeSignals(true);
 
                 // start new train
-                if (train.AI.Simulator.StartReference.Contains(train.Number))
+                if (Simulator.Instance.StartReference.Contains(train.Number))
                 {
-                    train.AI.Simulator.StartReference.Remove(train.Number);
+                    Simulator.Instance.StartReference.Remove(train.Number);
                 }
 
                 // existing train is player, so continue as player
@@ -1335,31 +1335,11 @@ namespace Orts.Simulation.Timetables
 
                     // set player locomotive
                     // first test first and last cars - if either is drivable, use it as player locomotive
-                    int lastIndex = train.Cars.Count - 1;
-
-                    if (train.Cars[0].IsDriveable)
-                    {
-                        train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[0];
-                    }
-                    else if (train.Cars[lastIndex].IsDriveable)
-                    {
-                        train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = train.Cars[lastIndex];
-                    }
-                    else
-                    {
-                        foreach (TrainCar car in train.Cars)
-                        {
-                            if (car.IsDriveable)  // first loco is the one the player drives
-                            {
-                                train.AI.Simulator.PlayerLocomotive = train.LeadLocomotive = car;
-                                break;
-                            }
-                        }
-                    }
+                    Simulator.Instance.PlayerLocomotive = train.LeadLocomotive = train.Cars[0] as MSTSLocomotive ?? train.Cars[^1] as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                     train.InitializeBrakes();
 
-                    if (train.AI.Simulator.PlayerLocomotive == null)
+                    if (Simulator.Instance.PlayerLocomotive == null)
                     {
                         throw new InvalidDataException("Can't find player locomotive in " + train.Name);
                     }
@@ -1400,7 +1380,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgiginalConsist = train.ForcedConsistName;
+                        car.OriginalConsist = train.ForcedConsistName;
                     }
                 }
             }

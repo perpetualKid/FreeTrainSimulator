@@ -27,11 +27,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics;
+using Orts.Graphics.DrawableComponents;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
@@ -68,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public static readonly Color ColorWhite = new Color(255, 255, 255);
 
         // Some DPIs use black for the background and white for borders, instead of blue scale
-        public readonly bool BlackWhiteTheme = false;
+        public readonly bool BlackWhiteTheme;
 
         public Texture2D ColorTexture { get; private set; }
 
@@ -95,7 +96,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             else
                 MipMapScale = 1;
 
-            Shader = new DriverMachineInterfaceShader(this.viewer.RenderProcess.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(this.viewer.Game.GraphicsDevice);
             DPDefaultWindow = new DPDefaultWindow(this, control);
             DPDefaultWindow.Visible = true;
 
@@ -208,13 +209,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public bool Visible;
         public class TextPrimitive
         {
+            private readonly CabTextRenderer textRenderer;
+
             public Point Position;
             public Color Color;
-            public WindowTextFont Font;
+            public System.Drawing.Font Font;
             public string Text;
 
-            public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
+            public TextPrimitive(Game game, Point position, Color color, string text, System.Drawing.Font font)
             {
+                textRenderer = CabTextRenderer.Instance(game);
                 Position = position;
                 Color = color;
                 Text = text;
@@ -223,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             public void Draw(SpriteBatch spriteBatch, Point position)
             {
-                Font.Draw(spriteBatch, position, Text, Color);
+                textRenderer.DrawString(spriteBatch, position.ToVector2(), Text, Font, Color);
             }
         }
         public struct TexturePrimitive
@@ -311,10 +315,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         {
             spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale * DPI.MipMapScale, SpriteEffects.None, 0);
         }
-        public WindowTextFont GetFont(float size, bool bold = false)
-        {
-            return DPI.viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
-        }
         /// <summary>
         /// Get scaled font size, increasing it if result is small
         /// </summary>
@@ -384,8 +384,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public string[] TableRows = new string[NumberOfRowsFull];
         public TextPrimitive[,] TableText = new TextPrimitive[NumberOfRowsFull, NumberOfColumns];
         public TextPrimitive[,] TableSymbol = new TextPrimitive[NumberOfRowsFull, NumberOfColumns];
-        WindowTextFont TableTextFont;
-        WindowTextFont TableSymbolFont;
+        System.Drawing.Font TableTextFont;
+        System.Drawing.Font TableSymbolFont;
         readonly int FontHeightTableText = 16;
         readonly int FontHeightTableSymbol = 19;
         readonly int RowHeight = 34;
@@ -424,8 +424,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 for (int iCol = 0; iCol < NumberOfColumns; iCol++)
                 {
                     //                    text = iCol.ToString() + "--" + iRow.ToString();
-                    TableText[iRow, iCol] = new TextPrimitive(new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
-                    TableSymbol[iRow, iCol] = new TextPrimitive(new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
+                    TableText[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
+                    TableSymbol[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
                 }
             }
         }
@@ -437,8 +437,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         }
         void SetFont()
         {
-            TableTextFont = GetFont(FontHeightTableText);
-            TableSymbolFont = GetFont(FontHeightTableSymbol);
+            TableTextFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[(int)(FontHeightTableText * 96 / 72)];
+            TableSymbolFont = FontManager.Exact("Arial", System.Drawing.FontStyle.Regular)[(int)(FontHeightTableSymbol * 96 / 72)];
         }
         public override void Draw(SpriteBatch spriteBatch, Point drawPosition)
         {
@@ -459,12 +459,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 }
         }
 
-        public override void PrepareFrame(DPIStatus dpiStatus)
+        public override void PrepareFrame(DPIStatus status)
         {
             string[,] tempStatus;
             var locomotive = DPI.Locomotive;
             var train = locomotive.Train;
-            var multipleUnitsConfiguration = locomotive.GetMultipleUnitsConfiguration();
+            var multipleUnitsConfiguration = (locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
             int dieselLocomotivesCount = 0;
 
             if (locomotive != null)
@@ -494,16 +494,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                         {
                             if (dpUId != (train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId)
                             {
-                                var status = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true, LoadUnits).Split('\t');
+                                var dpuStatus = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true, LoadUnits).Split('\t');
                                 var fence = ((dpUnitId != (dpUnitId = train.Cars[i].RemoteControlGroup)) ? "| " : "  ");
-                                tempStatus[k, 0] = fence + status[0].Split('(').First();
-                                for (var j = 1; j < status.Length; j++)
+                                tempStatus[k, 0] = fence + dpuStatus[0].Split('(').First();
+                                for (var j = 1; j < dpuStatus.Length; j++)
                                 {
-                                    tempStatus[k, j] = fence + status[j].Split(' ').First();
+                                    tempStatus[k, j] = fence + dpuStatus[j].Split(' ').First();
                                     // move color code from after the Units to after the value
-                                    if (ColorCodeCtrl.Keys.Any(status[j].EndsWith) && !ColorCodeCtrl.Keys.Any(tempStatus[k, j].EndsWith))
+                                    if (ColorCodeCtrl.Keys.Any(dpuStatus[j].EndsWith) && !ColorCodeCtrl.Keys.Any(tempStatus[k, j].EndsWith))
                                     {
-                                        tempStatus[k, j] += status[j].Substring(status[j].Length - 3);
+                                        tempStatus[k, j] += dpuStatus[j].Substring(dpuStatus[j].Length - 3);
                                     }
                                 }
                                 dpUId = (train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId;
@@ -513,7 +513,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     }
 
                     dieselLocomotivesCount = k;// only leaders loco group
-                    var nRows = Math.Min(FullTable ? NumberOfRowsFull : NumberOfRowsPartial, dieselLocoHeader.Count());
+                    var nRows = Math.Min(FullTable ? NumberOfRowsFull : NumberOfRowsPartial, dieselLocoHeader.Length);
 
                     for (i = 0; i < nRows; i++)
                     {
@@ -623,7 +623,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         //           : base(viewer, iMatrix, size, aceFile, trainCarShape, c)
         {
             Size = int.Parse(size) * 0.001f;//input size is in mm
-            if (aceFile != "")
+            if (!string.IsNullOrEmpty(aceFile))
             {
                 AceFile = aceFile.ToUpper();
                 if (!AceFile.EndsWith(".ACE")) AceFile = AceFile + ".ACE"; //need to add ace into it
@@ -760,7 +760,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             CabViewControlType controltype = CVFR.GetControlType();
             Material material = null;
 
-            if (AceFile != "")
+            if (!string.IsNullOrEmpty(AceFile))
             {
                 imageName = AceFile;
             }
@@ -824,7 +824,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             {
                 numIndices = 6 * iRow * (1 + (NumColumns - 1) * MaxDigits);
                 numVertices = 4 * iRow * (1 + (NumColumns - 1) * MaxDigits);
-                if (DPITable.TableText[iRow, 0].Text == "" || headerIndex >= DPITable.FirstColumn.Length) break;
+                if (string.IsNullOrEmpty(DPITable.TableText[iRow, 0].Text) || headerIndex >= DPITable.FirstColumn.Length) 
+                    break;
                 // manage row title here
                 while (DPITable.TableText[iRow, 0].Text != DPITable.FirstColumn[headerIndex] && headerIndex < DPITable.FirstColumn.Length - 1)
                     headerIndex++;

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Reflection;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -25,10 +25,17 @@ namespace Orts.Common.Input
 
         private Action<int, GameTime, KeyEventType, KeyModifiers> inputActionHandler;
         private bool inActive;
+        private readonly Action<bool> SetKeyboardActive;
 
         public KeyboardInputGameComponent(Game game) : base(game)
         {
             inputCapture = game as IInputCapture;
+
+            //with multiple instances (such as seconday window for Dispatcher or another Toolbox instance, Keyboard is not activated despite
+            //the window is activated when either just opening new window, or switching between windows other than keyboard
+            //hence we simply brutforce set the keyboard to active when the game window is active
+            MethodInfo setActiveMethod = typeof(Keyboard).GetMethod("SetActive", BindingFlags.NonPublic | BindingFlags.Static);
+            SetKeyboardActive = (Action<bool>)Delegate.CreateDelegate(typeof(Action<bool>), setActiveMethod);
         }
 
         public ref readonly KeyboardState KeyboardState => ref currentKeyboardState;
@@ -37,17 +44,13 @@ namespace Orts.Common.Input
 
         public static int KeyEventCode(Keys key, KeyModifiers modifiers, KeyEventType keyEventType)
         {
-            switch (keyEventType)
+            return keyEventType switch
             {
-                case KeyEventType.KeyDown:
-                    return (int)key << KeyDownShift ^ (int)modifiers;
-                case KeyEventType.KeyPressed:
-                    return (int)key << KeyPressShift ^ (int)modifiers;
-                case KeyEventType.KeyReleased:
-                    return (int)key << KeyUpShift ^ (int)modifiers;
-                default:
-                    throw new NotSupportedException();
-            }
+                KeyEventType.KeyDown => (int)key << KeyDownShift ^ (int)modifiers,
+                KeyEventType.KeyPressed => (int)key << KeyPressShift ^ (int)modifiers,
+                KeyEventType.KeyReleased => (int)key << KeyUpShift ^ (int)modifiers,
+                _ => throw new NotSupportedException(),
+            };
         }
 
         public void AddInputHandler(Action<int, GameTime, KeyEventType, KeyModifiers> inputAction)
@@ -73,6 +76,8 @@ namespace Orts.Common.Input
                 currentKeyboardState = inActiveKeyboardState;
                 inActive = false;
             }
+            SetKeyboardActive(true);
+
             KeyboardState newState = Keyboard.GetState();
 
             #region keyboard update

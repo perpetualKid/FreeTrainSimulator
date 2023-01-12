@@ -32,23 +32,25 @@ steps:
     restoreSolution: '$(solution)'
 
 - task: DotNetCoreCLI@2
-  displayName: Prepare DotNet tool install
-  inputs:
-    command: 'custom'
-    custom: 'new'
-    arguments: 'tool-manifest'
-
-- task: DotNetCoreCLI@2  
-  displayName: Install NBGV tool
+  displayName: Restore dotnet tools
   inputs:
     command: custom
     custom: tool
-    arguments: install --tool-path . nbgv
+    arguments: 'restore --tool-manifest .\.config\dotnet-tools.json'
+    workingDirectory: .\source
 
 #need to run in the correct folder as version.json is not in root
-- script: .\..\nbgv cloud -a
-  workingDirectory: .\source
+#- script: dotnet tool run nbgv cloud -a
+#  workingDirectory: .\source
+#  displayName: Set NBGV Variables
+
+- task: DotNetCoreCLI@2
   displayName: Set NBGV Variables
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'run nbgv cloud -a'
+    workingDirectory: '.\source'
 
 - task: Bash@3
   displayName: List all Environment Variables
@@ -100,13 +102,6 @@ steps:
     targetPath: './Program/'
     publishLocation: 'pipeline'
 
-- task: DotNetCoreCLI@2
-  displayName: Installing GetText Extractor
-  inputs:
-    command: 'custom'
-    custom: 'tool'
-    arguments: 'install gettext.net.extractor'
-
 - task: NuGetCommand@2
   displayName: Packaging to Nuget Package
   inputs:
@@ -126,5 +121,7 @@ steps:
       $feed = 'releases'
       if ($env:Build.Reason -eq 'PullRequest' -or $env:Build.Reason -eq 'Manual' -or $env:NBGV_PUBLICRELEASE -eq $false) {
         $feed='builds'}
-      dotnet tool install sleet --version 4.1.6
-      dotnet sleet push .\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
+      dotnet tool install --tool-manifest .\source\.config\dotnet-tools.json sleet
+      cd .\source
+      dotnet tool restore
+      dotnet tool run sleet push .\..\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}

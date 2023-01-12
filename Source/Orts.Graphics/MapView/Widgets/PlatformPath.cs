@@ -3,55 +3,97 @@ using System.Diagnostics;
 using System.Linq;
 
 using Orts.Common.Position;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : SegmentPathBase<PlatformSegment>
+    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>
     {
         internal string PlatformName { get; }
         internal string StationName { get; }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end, Dictionary<int, List<SegmentBase>> trackNodeSegments) : base(start, start.TrackVectorNode.Index, end, end.TrackVectorNode.Index, trackNodeSegments)
+        private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
+        {
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
+                base(trackModel, trackNodeIndex)
+            {
+            }
+
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackModel, trackNodeIndex, startLocation, endLocation)
+            {
+            }
+
+            public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+            {
+                foreach (PlatformSegment segment in SectionSegments)
+                {
+                    segment.Draw(contentArea, colorVariation, scaleFactor);
+                }
+            }
+
+            protected override PlatformSegment CreateItem(in PointD start, in PointD end)
+            {
+                return new PlatformSegment(start, end);
+            }
+
+            protected override PlatformSegment CreateItem(TrackSegmentBase source)
+            {
+                return new PlatformSegment(source);
+            }
+
+            protected override PlatformSegment CreateItem(TrackSegmentBase source, in PointD start, in PointD end)
+            {
+                return new PlatformSegment(source, start, end);
+            }
+        }
+
+        public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
-            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName: start.StationName;
+            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
             //Strip the station name out of platform name (only if they are not equal)
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[StationName.Length..];
+
+            if (PathSections.Count == 0)
+            {
+                Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
+            }
         }
 
-        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems, Dictionary<int, List<SegmentBase>> trackNodeSegments)
+        public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
         {
-            List<PlatformPath> platforms = new List<PlatformPath>();
-
-            Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.Id);
+            List<PlatformPath> result = new List<PlatformPath>();
+            Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
             while (platformItemMappings.Count > 0)
             {
                 int sourceId = platformItemMappings.Keys.First();
                 PlatformTrackItem start = platformItemMappings[sourceId];
-                platformItemMappings.Remove(sourceId);
+                _ = platformItemMappings.Remove(sourceId);
                 if (platformItemMappings.TryGetValue(start.LinkedId, out PlatformTrackItem end))
                 {
-                    if (end.LinkedId != start.Id)
+                    if (end.LinkedId != start.TrackItemId)
                     {
-                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.Id} to target {start.LinkedId} vs Target id {end.Id} to source {end.LinkedId}.");
+                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
-                    platformItemMappings.Remove(end.Id);
-                    platforms.Add(new PlatformPath(start, end, trackNodeSegments));
+                    _ = platformItemMappings.Remove(end.TrackItemId);
+                    result.Add(new PlatformPath(trackModel, start, end));
                 }
                 else
                 {
-                    Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.Id} not found.");
+                    Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.TrackItemId} not found.");
                 }
             }
-            return platforms;
+            return result;
         }
 
-        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (PlatformSegment segment in pathSegments)
+            foreach (PlatformSection segmentSection in PathSections)
             {
-                segment.Draw(contentArea, colorVariation, scaleFactor);
+                segmentSection.Draw(contentArea, colorVariation, scaleFactor);
             }
         }
 
@@ -60,19 +102,14 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        protected override PlatformSegment CreateItem(in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new PlatformSegment(start, end);
+            return new PlatformSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override PlatformSegment CreateItem(SegmentBase source)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
         {
-            return new PlatformSegment(source);
-        }
-
-        protected override PlatformSegment CreateItem(SegmentBase source, in PointD start, in PointD end)
-        {
-            return new PlatformSegment(source, start, end);
+            return new PlatformSection(trackModel, trackNodeIndex);
         }
 
     }

@@ -6,7 +6,7 @@
 		<OutputPath>..\..\Program</OutputPath>
 		<RootNamespace>Orts.Launcher</RootNamespace>
 		<AssemblyName>OpenRails</AssemblyName>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 	</PropertyGroup>
 	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -14,6 +14,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Remove="Microsoft.NETCore.Targets" Version="5.0.0" PrivateAssets="all" />
-		<PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" PrivateAssets="all" />
+		<PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
 	</ItemGroup>
 </Project>

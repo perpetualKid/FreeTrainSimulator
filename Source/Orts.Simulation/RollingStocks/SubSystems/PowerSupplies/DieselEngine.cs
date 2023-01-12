@@ -16,12 +16,11 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -32,17 +31,10 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class DieselEngines : IEnumerable, ISubSystem<DieselEngines>
+    public class DieselEngines : List<DieselEngine>, ISubSystem<DieselEngines>
     {
-        /// <summary>
-        /// A list of auxiliaries
-        /// </summary>
-        public List<DieselEngine> DEList = new List<DieselEngine>();
-
-        /// <summary>
-        /// Number of Auxiliaries on the list
-        /// </summary>
-        public int Count { get { return DEList.Count; } }
+        private GearBox gearBox;
+        private bool gearBoxSet;
 
         public DieselEngineState State
         {
@@ -50,7 +42,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 DieselEngineState state = DieselEngineState.Stopped;
 
-                foreach (DieselEngine dieselEngine in DEList)
+                foreach (DieselEngine dieselEngine in this)
                 {
                     if (dieselEngine.State > state)
                         state = dieselEngine.State;
@@ -63,35 +55,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Reference to the locomotive carrying the auxiliaries
         /// </summary>
-        protected readonly MSTSDieselLocomotive Locomotive;
+        private readonly MSTSDieselLocomotive locomotive;
 
-        public MSTSGearBoxParams MSTSGearBoxParams = new MSTSGearBoxParams();
+        public MSTSGearBoxParams MSTSGearBoxParams { get; } = new MSTSGearBoxParams();
 
         /// <summary>
         /// Creates a set of auxiliaries connected to the locomotive
         /// </summary>
-        /// <param name="loco">Host locomotive</param>
-        public DieselEngines(MSTSDieselLocomotive loco)
+        /// <param name="locomotive">Host locomotive</param>
+        public DieselEngines(MSTSDieselLocomotive locomotive)
         {
-            Locomotive = loco;
+            this.locomotive = locomotive;
         }
-
-        public DieselEngine this[int i]
-        {
-            get { return DEList[i]; }
-            set { DEList[i] = value; }
-        }
-
-        public void Add()
-        {
-            DEList.Add(new DieselEngine(Locomotive));
-        }
-
-        public void Add(DieselEngine de)
-        {
-            DEList.Add(de);
-        }
-
 
         /// <summary>
         /// Parses all the parameters within the ENG file
@@ -109,20 +84,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         string setting = stf.ReadString().ToLower();
                         if (setting == "diesel")
                         {
-                            DEList.Add(new DieselEngine(Locomotive));
+                            
+                            Add(new DieselEngine(locomotive));
 
-                            DEList[i].Parse(stf);
-                            DEList[i].Initialize();
+                            this[i].Parse(stf);
+                            this[i].Initialize();
 
                             // sets flag to indicate that a diesel eng prime mover code block has been defined by user, otherwise OR will define one through the next code section using "MSTS" values
-                            DEList[i].DieselEngineConfigured = true;
+                            this[i].DieselEngineConfigured = true;
                         }
 
-                        if ((!DEList[i].IsInitialized))
+                        if ((!this[i].IsInitialized))
                         {
                             STFException.TraceWarning(stf, "Diesel engine model has some errors - loading MSTS format");
-                            DEList[i].InitFromMSTS();
-                            DEList[i].Initialize();
+                            this[i].InitFromMSTS();
+                            this[i].Initialize();
                         }
                     }
                     break;
@@ -146,32 +122,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(DieselEngines other)
+        public void Copy(DieselEngines source)
         {
-            DEList = new List<DieselEngine>();
-            MSTSGearBoxParams.Copy(other.MSTSGearBoxParams);
-            foreach (DieselEngine de in other.DEList)
+            ArgumentNullException.ThrowIfNull(source);
+            MSTSGearBoxParams.Copy(source.MSTSGearBoxParams);
+            foreach (DieselEngine engine in source)
             {
-                DieselEngine dieselEngine = new DieselEngine(Locomotive);
-                dieselEngine.Copy(de);
+                DieselEngine dieselEngine = new DieselEngine(locomotive);
+                dieselEngine.Copy(engine);
 
-                DEList.Add(dieselEngine);
+                Add(dieselEngine);
             }
+            gearBoxSet = false;
         }
 
         public void Initialize()
         {
-            foreach (DieselEngine de in DEList)
+            foreach (DieselEngine engine in this)
             {
-                de.Initialize();
+                engine.Initialize();
             }
+            gearBoxSet = false;
         }
 
         public void InitializeMoving()
         {
-            foreach (DieselEngine de in DEList)
+            foreach (DieselEngine engine in this)
             {
-                de.InitializeMoving();
+                engine.InitializeMoving();
             }
         }
 
@@ -181,8 +159,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <param name="outf"></param>
         public void Save(BinaryWriter outf)
         {
-            outf.Write(DEList.Count);
-            foreach (DieselEngine de in DEList)
+            outf.Write(Count);
+            foreach (DieselEngine de in this)
                 de.Save(outf);
         }
 
@@ -193,17 +171,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public void Restore(BinaryReader inf)
         {
             int count = inf.ReadInt32();
-            if (DEList.Count == 0)
+            if (Count == 0)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    DEList.Add(new DieselEngine(Locomotive));
-                    DEList[i].InitFromMSTS();
-                    DEList[i].Initialize();
+                    Add(new DieselEngine(locomotive));
+                    this[i].InitFromMSTS();
+                    this[i].Initialize();
                 }
-
             }
-            foreach (DieselEngine de in DEList)
+            foreach (DieselEngine de in this)
                 de.Restore(inf);
         }
 
@@ -215,7 +192,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.OutputPowerW;
                 }
@@ -226,18 +203,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// A power-on indicator
         /// </summary>
-        public bool PowerOn
-        {
-            get
-            {
-                bool temp = false;
-                foreach (DieselEngine de in DEList)
-                {
-                    temp |= (de.State == DieselEngineState.Running) || (de.State == DieselEngineState.Starting);
-                }
-                return temp;
-            }
-        }
+        public bool PowerOn => this.Where(engine => engine.State is DieselEngineState.Running or DieselEngineState.Starting).Any();
 
         /// <summary>
         /// A summary of maximal power of all the diesels
@@ -247,7 +213,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.MaximumDieselPowerW;
                 }
@@ -263,7 +229,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.CurrentDieselOutputPowerW;
                 }
@@ -280,7 +246,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.MaximumRailOutputPowerW;
                 }
@@ -296,7 +262,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.DieselFlowLps;
                 }
@@ -312,7 +278,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             get
             {
                 float temp = 0f;
-                foreach (DieselEngine de in DEList)
+                foreach (DieselEngine de in this)
                 {
                     temp += de.ApparentThrottleSetting;
                 }
@@ -320,19 +286,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public bool HasGearBox
+        public GearBox GearBox
         {
-            get
+            get 
             {
-                bool temp = false;
-                foreach (DieselEngine de in DEList)
+                if (!gearBoxSet)
                 {
-                    temp |= (de.GearBox != null);
+                    gearBox = this.Where(engine => engine.GearBox != null).Select(engine => engine.GearBox).FirstOrDefault();
+                    gearBoxSet = true;
                 }
-                return temp;
+                return gearBox;
             }
         }
-
         /// <summary>
         /// Returns the tractive effort output of the gear box.
         /// </summary>
@@ -340,23 +305,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             get
             {
-                float temp = 0;
-                foreach (DieselEngine de in DEList)
+                float result = 0;
+                foreach (DieselEngine engine in this)
                 {
-                    if (de.GearBox != null)
+                    if (engine.GearBox != null)
                     {
-                        if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                        if (locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                         {
-                            temp += (de.GearBox.TractiveForceN);
-                            
+                            result += (engine.GearBox.TractiveForceN);
+
                         }
                         else
                         {
-                            temp += (de.DemandedThrottlePercent * 0.01f * de.GearBox.TractiveForceN);
+                            result += (engine.DemandedThrottlePercent * 0.01f * engine.GearBox.TractiveForceN);
                         }
                     }
                 }
-                return temp;
+                return result;
             }
         }
 
@@ -366,136 +331,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <param name="elapsedClockSeconds">Time span within the simulation cycle</param>
         public void Update(double elapsedClockSeconds)
         {
-            foreach (DieselEngine de in DEList)
+            foreach (DieselEngine engine in this)
             {
-                de.Update(elapsedClockSeconds);
+                engine.Update(elapsedClockSeconds);
             }
         }
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            foreach (DieselEngine de in DEList)
+            foreach (DieselEngine engine in this)
             {
-                de.HandleEvent(evt);
+                engine.HandleEvent(evt);
             }
         }
 
         public void HandleEvent(PowerSupplyEvent evt, int id)
         {
-            if (id >= 0 && id < DEList.Count)
+            if (id >= 0 && id < Count)
             {
-                DEList[id].HandleEvent(evt);
+                this[id].HandleEvent(evt);
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public DieselEnum GetEnumerator()
-        {
-            return new DieselEnum(DEList.ToArray());
-        }
-
-        public static string SetDebugLabels()
-        {
-            StringBuilder labels = new StringBuilder();
-            string tabs = "\t";
-            labels.Append($"{Simulator.Catalog.GetString("Status")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetParticularString("HUD", "Power")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Load")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("RPM")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Flow")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Temperature")}{tabs}");
-            labels.Append($"{Simulator.Catalog.GetString("Oil Pressure")}{tabs}");
-            return labels.ToString();
-        }
-
-        public string GetStatus()
-        {
-            var result = new StringBuilder();
-            //result.AppendFormat(Simulator.Catalog.GetString("Status"));
-            foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", eng.State.GetLocalizedDescription());
-
-            if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), Simulator.Catalog.GetString(" "));  // Leave maximum power out
-                foreach (var eng in DEList)
-                {
-                    result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-                }
-            }
-            else
-            {
-                result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-                foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false));
-            }
-
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Load"));
-            foreach (var eng in DEList)
-                result.AppendFormat("\t{0:F1}%", eng.LoadPercent);
-
-            if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
-            {
-                foreach (var eng in DEList)
-                {
-                    var governorEnabled = eng.GovernorEnabled ? "???" : "";
-                    result.AppendFormat("\t{0:F0} {2}{1}", eng.RealRPM, governorEnabled, FormatStrings.rpm);
-                }
-            }
-            else
-            {
-                foreach (var eng in DEList)
-                    result.AppendFormat("\t{0:F0} {1}", eng.RealRPM, FormatStrings.rpm);
-            }
-
-            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("00Flow"));
-            foreach (var eng in DEList)
-                result.AppendFormat("\t{0}/{1}", FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(eng.DieselFlowLps), Simulator.Instance.MetricUnits, isUK), FormatStrings.h);
-
-            //result.Append("\t");
-            foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Simulator.Instance.MetricUnits));
-
-            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
-            foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", FormatStrings.FormatPressure(eng.DieselOilPressurePSI, Pressure.Unit.PSI, Locomotive.MainPressureUnit, true));
-
-            return result.ToString();
-        }
-
-        public string GetDistributedPowerStatus()
-        {
-            StringBuilder result = new StringBuilder();
-            var eng = DEList[0];
-            result.Append($"\t{eng.State.GetLocalizedDescription()}");
-            result.Append($"\t{FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false)}");
-            result.Append($"\t{eng.LoadPercent:F1}%");
-            result.Append($"\t{eng.RealRPM:F0} {FormatStrings.rpm}");
-            result.Append($"\t{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(eng.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}");
-            result.Append($"\t{FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Simulator.Instance.MetricUnits)}");
-            result.Append($"\t{FormatStrings.FormatPressure(eng.DieselOilPressurePSI, Pressure.Unit.PSI, Locomotive.MainPressureUnit, true)}");
-
-            return result.ToString();
-        }
-
-        public int NumOfActiveEngines
-        {
-            get
-            {
-                int num = 0;
-                foreach (DieselEngine eng in DEList)
-                {
-                    if (eng.State == DieselEngineState.Running)
-                        num++;
-                }
-                return num;
-            }
-        }
+        public int NumOfActiveEngines => this.Where(engine => engine.State == DieselEngineState.Running).Count();
 
         // This calculates the percent of running power. If the locomotive has two prime movers, and 
         // one is shut down then power will be reduced by the size of the prime mover
@@ -505,8 +363,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 float totalpossiblepower = 0;
                 float runningPower = 0;
-                float percent = 0;
-                foreach (DieselEngine eng in DEList)
+                foreach (DieselEngine eng in this)
                 {
                     totalpossiblepower += eng.MaximumDieselPowerW;
                     if (eng.State == DieselEngineState.Running)
@@ -514,56 +371,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         runningPower += eng.MaximumDieselPowerW;
                     }
                 }
-                percent = runningPower / totalpossiblepower;
+                float percent = runningPower / totalpossiblepower;
                 return percent;
-            }
-        }
-    }
-
-    public class DieselEnum : IEnumerator
-    {
-        public DieselEngine[] deList;
-
-        // Enumerators are positioned before the first element
-        // until the first MoveNext() call.
-        private int position = -1;
-
-        public DieselEnum(DieselEngine[] list)
-        {
-            deList = list;
-        }
-
-        public bool MoveNext()
-        {
-            position++;
-            return (position < deList.Length);
-        }
-
-        public void Reset()
-        {
-            position = -1;
-        }
-
-        object IEnumerator.Current
-        {
-            get
-            {
-                return Current;
-            }
-        }
-
-        public DieselEngine Current
-        {
-            get
-            {
-                try
-                {
-                    return deList[position];
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    throw new InvalidOperationException();
-                }
             }
         }
     }
@@ -608,13 +417,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             IdleTemperature = 0x1000000
         }
 
-        public int Id
-        {
-            get
-            {
-                return Locomotive.DieselEngines.DEList.IndexOf(this) + 1;
-            }
-        }
+        //public int Id
+        //{
+        //    get
+        //    {
+        //        return Locomotive.DieselEngines.DEList.IndexOf(this) + 1;
+        //    }
+        //}
 
         #region Parameters and variables
         private float dRPM;
@@ -696,7 +505,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Holds in engine braking mode
         /// </summary>
-        public bool engineBrakingLockout = false;
+        public bool engineBrakingLockout;
 
         /// <summary>
         /// The RPM controller tries to reach this value
@@ -718,7 +527,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public float MaxRPM;
 
-         /// <summary>
+        /// <summary>
         /// Govenor RPM - maximum speed that engine is held to
         /// </summary>
         public float GovernorRPM;
@@ -780,7 +589,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public Interpolator DieselPowerTab;
 
-         /// <summary>
+        /// <summary>
         /// Rail power table - Max rail output power vs. RPM
         /// </summary>
         public Interpolator RailPowerTab;
@@ -860,17 +669,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Governor has activiated
         /// </summary>
-        public bool GovernorEnabled = false;
+        public bool GovernorEnabled;
 
         /// <summary>
         /// Geared Overspeed shutdown has activiated
         /// </summary>
-        public bool GearOverspeedShutdownEnabled = false;
+        public bool GearOverspeedShutdownEnabled;
 
         /// <summary>
         /// Geared Underspeed shutdown has activiated
         /// </summary>
-        public bool GearUnderspeedShutdownEnabled = false;
+        public bool GearUnderspeedShutdownEnabled;
 
         /// <summary>
         /// Minimal oil pressure at IdleRPM
@@ -948,24 +757,77 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 string lowercasetoken = stf.ReadItem().ToLower();
                 switch (lowercasetoken)
                 {
-                    case "idlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.IdleRPM; break;
-                    case "maxrpm": MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.MaxRPM; break;
-                    case "governorrpm": GovernorRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); break;
-                    case "startingrpm": StartingRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.StartingRPM; break;
-                    case "startingconfirmrpm": StartingConfirmationRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.StartingConfirmRPM; break;
-                    case "changeuprpmps": ChangeUpRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ChangeUpRPMpS; break;
-                    case "changedownrpmps": ChangeDownRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ChangeDownRPMpS; break;
-                    case "rateofchangeuprpmpss": RateOfChangeUpRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.RateOfChangeUpRPMpSS; break;
-                    case "rateofchangedownrpmpss": RateOfChangeDownRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.RateOfChangeDownRPMpSS; break;
-                    case "maximalpower": MaximumDieselPowerW = stf.ReadFloatBlock(STFReader.Units.Power, 0); initLevel |= SettingsFlags.MaximalDieselPowerW; break;
-                    case "idleexhaust": InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.IdleExhaust; break;
-                    case "maxexhaust": MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.MaxExhaust; break;
-                    case "exhaustdynamics": ExhaustAccelIncrease = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ExhaustDynamics; break;
-                    case "exhaustdynamicsdown": ExhaustDecelReduction = stf.ReadFloatBlock(STFReader.Units.None, null); initLevel |= SettingsFlags.ExhaustDynamics; break;
-                    case "exhaustcolor":    ExhaustSteadyColor = stf.ReadColorBlock(Color.Gray); initLevel |= SettingsFlags.ExhaustColor; break;
-                    case "exhausttransientcolor": ExhaustTransientColor = stf.ReadColorBlock(Color.Black);initLevel |= SettingsFlags.ExhaustTransientColor; break;
-                    case "dieselpowertab": DieselPowerTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselPowerTab; break;
-                    case "dieselconsumptiontab": DieselConsumptionTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselConsumptionTab; break;
+                    case "idlerpm":
+                        IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.IdleRPM;
+                        break;
+                    case "maxrpm":
+                        MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.MaxRPM;
+                        break;
+                    case "governorrpm":
+                        GovernorRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        break;
+                    case "startingrpm":
+                        StartingRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.StartingRPM;
+                        break;
+                    case "startingconfirmrpm":
+                        StartingConfirmationRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.StartingConfirmRPM;
+                        break;
+                    case "changeuprpmps":
+                        ChangeUpRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.ChangeUpRPMpS;
+                        break;
+                    case "changedownrpmps":
+                        ChangeDownRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.ChangeDownRPMpS;
+                        break;
+                    case "rateofchangeuprpmpss":
+                        RateOfChangeUpRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.RateOfChangeUpRPMpSS;
+                        break;
+                    case "rateofchangedownrpmpss":
+                        RateOfChangeDownRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.RateOfChangeDownRPMpSS;
+                        break;
+                    case "maximalpower":
+                        MaximumDieselPowerW = stf.ReadFloatBlock(STFReader.Units.Power, 0);
+                        initLevel |= SettingsFlags.MaximalDieselPowerW;
+                        break;
+                    case "idleexhaust":
+                        InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.IdleExhaust;
+                        break;
+                    case "maxexhaust":
+                        MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.MaxExhaust;
+                        break;
+                    case "exhaustdynamics":
+                        ExhaustAccelIncrease = stf.ReadFloatBlock(STFReader.Units.None, 0);
+                        initLevel |= SettingsFlags.ExhaustDynamics;
+                        break;
+                    case "exhaustdynamicsdown":
+                        ExhaustDecelReduction = stf.ReadFloatBlock(STFReader.Units.None, null);
+                        initLevel |= SettingsFlags.ExhaustDynamics;
+                        break;
+                    case "exhaustcolor":
+                        ExhaustSteadyColor = stf.ReadColorBlock(Color.Gray);
+                        initLevel |= SettingsFlags.ExhaustColor;
+                        break;
+                    case "exhausttransientcolor":
+                        ExhaustTransientColor = stf.ReadColorBlock(Color.Black);
+                        initLevel |= SettingsFlags.ExhaustTransientColor;
+                        break;
+                    case "dieselpowertab":
+                        DieselPowerTab = stf.CreateInterpolator();
+                        initLevel |= SettingsFlags.DieselPowerTab;
+                        break;
+                    case "dieselconsumptiontab":
+                        DieselConsumptionTab = stf.CreateInterpolator();
+                        initLevel |= SettingsFlags.DieselConsumptionTab;
+                        break;
                     case "throttlerpmtab":
                         ThrottleRPMTab = ThrottleRPMTab = stf.CreateInterpolator();
                         initLevel |= SettingsFlags.ThrottleRPMTab;
@@ -973,14 +835,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         // TO DO - would be good to be able to handle rpm values the same, and -ve if possible.
                         ThrottleRPMTab.CheckForConsistentIncrease(1.0);
                         break;
-                    case "dieseltorquetab": DieselTorqueTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselTorqueTab; break;
-                    case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MinOilPressure; break;
-                    case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MaxOilPressure; break;
-                    case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.Temperature, 0); initLevel |= SettingsFlags.MaxTemperature; break;
-                    case "cooling": EngineCooling = (Cooling)stf.ReadIntBlock((int)Cooling.Proportional); initLevel |= SettingsFlags.Cooling; break; //ReadInt changed to ReadIntBlock
-                    case "temptimeconstant": DieselTempTimeConstantSec = stf.ReadFloatBlock(STFReader.Units.Time, 0f); initLevel |= SettingsFlags.TempTimeConstant; break;
-                    case "opttemperature": DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 95f); initLevel |= SettingsFlags.OptTemperature; break;
-                    case "idletemperature": DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 75f); initLevel |= SettingsFlags.IdleTemperature; break;
+                    case "dieseltorquetab":
+                        DieselTorqueTab = stf.CreateInterpolator();
+                        initLevel |= SettingsFlags.DieselTorqueTab;
+                        break;
+                    case "minoilpressure":
+                        DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f);
+                        initLevel |= SettingsFlags.MinOilPressure;
+                        break;
+                    case "maxoilpressure":
+                        DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f);
+                        initLevel |= SettingsFlags.MaxOilPressure;
+                        break;
+                    case "maxtemperature":
+                        DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.Temperature, 0);
+                        initLevel |= SettingsFlags.MaxTemperature;
+                        break;
+                    case "cooling":
+                        EngineCooling = (Cooling)stf.ReadIntBlock((int)Cooling.Proportional);
+                        initLevel |= SettingsFlags.Cooling;
+                        break; //ReadInt changed to ReadIntBlock
+                    case "temptimeconstant":
+                        DieselTempTimeConstantSec = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
+                        initLevel |= SettingsFlags.TempTimeConstant;
+                        break;
+                    case "opttemperature":
+                        DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 95f);
+                        initLevel |= SettingsFlags.OptTemperature;
+                        break;
+                    case "idletemperature":
+                        DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 75f);
+                        initLevel |= SettingsFlags.IdleTemperature;
+                        break;
                     default:
                         end = true;
                         break;
@@ -988,40 +874,41 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(DieselEngine other)
+        public void Copy(DieselEngine source)
         {
-            IdleRPM = other.IdleRPM;
-            MaxRPM = other.MaxRPM;
-            GovernorRPM = other.GovernorRPM;
-            StartingRPM = other.StartingRPM;
-            StartingConfirmationRPM = other.StartingConfirmationRPM;
-            ChangeUpRPMpS = other.ChangeUpRPMpS;
-            ChangeDownRPMpS = other.ChangeDownRPMpS;
-            RateOfChangeUpRPMpSS = other.RateOfChangeUpRPMpSS;
-            RateOfChangeDownRPMpSS = other.RateOfChangeDownRPMpSS;
-            MaximumDieselPowerW = other.MaximumDieselPowerW;
-            MaximumRailOutputPowerW = other.MaximumRailOutputPowerW;
-            initLevel = other.initLevel;
-            RailPowerTab = new Interpolator(other.RailPowerTab);
-            DieselPowerTab = new Interpolator(other.DieselPowerTab);
-            DieselConsumptionTab = new Interpolator(other.DieselConsumptionTab);
-            ThrottleRPMTab = new Interpolator(other.ThrottleRPMTab);
-            ReverseThrottleRPMTab = new Interpolator(other.ReverseThrottleRPMTab);
-            if (other.DieselTorqueTab != null) DieselTorqueTab = new Interpolator(other.DieselTorqueTab);
-            DieselUsedPerHourAtMaxPowerL = other.DieselUsedPerHourAtMaxPowerL;
-            DieselUsedPerHourAtIdleL = other.DieselUsedPerHourAtIdleL;
-            InitialExhaust = other.InitialExhaust;
-            InitialMagnitude = other.InitialMagnitude;
-            MaxExhaust = other.MaxExhaust;
-            MaxMagnitude = other.MaxMagnitude;
-            ExhaustParticles = other.ExhaustParticles;
-            ExhaustColor = other.ExhaustColor;
-            ExhaustSteadyColor = other.ExhaustSteadyColor;
-            ExhaustTransientColor = other.ExhaustTransientColor;
-            ExhaustDecelColor = other.ExhaustDecelColor;
-            DieselMaxOilPressurePSI = other.DieselMaxOilPressurePSI;
-            DieselMinOilPressurePSI = other.DieselMinOilPressurePSI;
-            DieselMaxTemperatureDeg = other.DieselMaxTemperatureDeg;
+            IdleRPM = source.IdleRPM;
+            MaxRPM = source.MaxRPM;
+            GovernorRPM = source.GovernorRPM;
+            StartingRPM = source.StartingRPM;
+            StartingConfirmationRPM = source.StartingConfirmationRPM;
+            ChangeUpRPMpS = source.ChangeUpRPMpS;
+            ChangeDownRPMpS = source.ChangeDownRPMpS;
+            RateOfChangeUpRPMpSS = source.RateOfChangeUpRPMpSS;
+            RateOfChangeDownRPMpSS = source.RateOfChangeDownRPMpSS;
+            MaximumDieselPowerW = source.MaximumDieselPowerW;
+            MaximumRailOutputPowerW = source.MaximumRailOutputPowerW;
+            initLevel = source.initLevel;
+            RailPowerTab = new Interpolator(source.RailPowerTab);
+            DieselPowerTab = new Interpolator(source.DieselPowerTab);
+            DieselConsumptionTab = new Interpolator(source.DieselConsumptionTab);
+            ThrottleRPMTab = new Interpolator(source.ThrottleRPMTab);
+            ReverseThrottleRPMTab = new Interpolator(source.ReverseThrottleRPMTab);
+            if (source.DieselTorqueTab != null)
+                DieselTorqueTab = new Interpolator(source.DieselTorqueTab);
+            DieselUsedPerHourAtMaxPowerL = source.DieselUsedPerHourAtMaxPowerL;
+            DieselUsedPerHourAtIdleL = source.DieselUsedPerHourAtIdleL;
+            InitialExhaust = source.InitialExhaust;
+            InitialMagnitude = source.InitialMagnitude;
+            MaxExhaust = source.MaxExhaust;
+            MaxMagnitude = source.MaxMagnitude;
+            ExhaustParticles = source.ExhaustParticles;
+            ExhaustColor = source.ExhaustColor;
+            ExhaustSteadyColor = source.ExhaustSteadyColor;
+            ExhaustTransientColor = source.ExhaustTransientColor;
+            ExhaustDecelColor = source.ExhaustDecelColor;
+            DieselMaxOilPressurePSI = source.DieselMaxOilPressurePSI;
+            DieselMinOilPressurePSI = source.DieselMinOilPressurePSI;
+            DieselMaxTemperatureDeg = source.DieselMaxTemperatureDeg;
         }
 
         public void Initialize()
@@ -1531,8 +1418,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     if (GearBox.GearBoxOperation == GearBoxOperation.Manual)
                     {
-                        if (Locomotive.GearBoxController.CurrentNotch > 0)
-                            GearBox.NextGear = GearBox.Gears[Locomotive.GearBoxController.CurrentNotch - 1];
+                        if (Locomotive.GearBoxController.NotchIndex > 0)
+                            GearBox.NextGear = GearBox.Gears[Locomotive.GearBoxController.NotchIndex - 1];
                         else
                             GearBox.NextGear = null;
                     }

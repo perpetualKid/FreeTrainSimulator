@@ -22,16 +22,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
 
 using GetText;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Settings.Store;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Settings
 {
@@ -172,10 +168,10 @@ namespace Orts.Settings
                     }
                     else
                         builder.Append($"{item}={value[item]?.ToString()}");
+                    builder.Append(';');
                 }
-                builder.Append(';');
             }
-            if (builder[^1] == ';')
+            if (builder.Length > 0 && builder[^1] == ';')
                 builder.Length--;
             return builder.ToString();
 
