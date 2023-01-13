@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
@@ -8,6 +9,8 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.Track;
+
+using static System.Collections.Specialized.BitVector32;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -22,6 +25,8 @@ namespace Orts.Graphics.MapView.Widgets
 
         private readonly List<EditorPathItem> pathPoints = new List<EditorPathItem>();
 
+        private ILookup<EditorPathItem, TrainPathSection> pathSections;
+
         public int SelectedNodeIndex { get; set; } = -1;
 
         public EditorPathItem SelectedNode => (SelectedNodeIndex >= 0 && SelectedNodeIndex < pathPoints.Count) ? pathPoints[SelectedNodeIndex] : null;
@@ -31,6 +36,8 @@ namespace Orts.Graphics.MapView.Widgets
         private class TrainPathSection : TrackSegmentSectionBase<EditorTrainPathSegment>, IDrawable<VectorPrimitive>
         {
             public PathType PathType { get; private set; }
+
+            public EditorPathItem PathItem { get; set; }
 
             public TrainPathSection(in PointD startLocation, in PointD endLocation, PathType pathType) :
                 base(startLocation, endLocation)
@@ -114,16 +121,16 @@ namespace Orts.Graphics.MapView.Widgets
 
             void AddSection(PathType pathType, TrainPathItem start, TrainPathItem end, int index)
             {
+                TrainPathSection section = null;
                 if (!CheckPathItem(start, index) || !CheckPathItem(end, index))
                 {
                     nodeSegment = null;
-                    PathSections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
+                    PathSections.Add(section = new TrainPathSection(start.Location, end.Location, PathType.Invalid));
                 }
                 else
                 {
                     List<TrackSegmentBase> trackSegments = start.ConnectedSegments.IntersectBy(end.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).ToList();
 
-                    TrainPathSection section = null;
                     switch (trackSegments.Count)
                     {
                         case 0:
@@ -157,13 +164,15 @@ namespace Orts.Graphics.MapView.Widgets
                             reverseDirection = !reverseDirection;
                     }
                 }
+                EditorPathItem pathItem = null;
                 if (start.NextMainItem == null || start.NextMainItem == end)
                 {
                     if (nodeSegment == null)
-                        pathPoints.Add(new EditorPathItem(start.Location, end.Location, start.PathNode.NodeType));
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, end.Location, start.PathNode.NodeType));
                     else
-                        pathPoints.Add(new EditorPathItem(start.Location, nodeSegment, start.PathNode.NodeType, reverseDirection));
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, nodeSegment, start.PathNode.NodeType, reverseDirection));
                 }
+                section.PathItem = pathItem ?? pathPoints[^1];
             }
 
             for (int i = 0; i < TrainPathModel.PathItems.Count; i++)
@@ -179,6 +188,7 @@ namespace Orts.Graphics.MapView.Widgets
                     AddSection(PathType.PassingPath, pathItem, pathItem.NextSidingItem, i);
                 }
             }
+            pathSections = PathSections.Select(section => section as TrainPathSection).ToLookup(section => section.PathItem, section => section);
             SetBounds();
         }
 
@@ -200,20 +210,23 @@ namespace Orts.Graphics.MapView.Widgets
 
             if (SelectedNodeIndex >= 0 && SelectedNodeIndex < pathPoints.Count)
             {
-                pathPoints[SelectedNodeIndex].Draw(contentArea, ColorVariation.Highlight, 5);
+                pathPoints[SelectedNodeIndex].Draw(contentArea, ColorVariation.ComplementHighlight, 5);
+
+                foreach (TrainPathSection pathSection in pathSections[pathPoints[SelectedNodeIndex]])
+                {
+                    pathSection.Draw(contentArea, colorVariation, 3);
+                }
             }
         }
 
         protected override TrackSegmentSectionBase<EditorTrainPathSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             throw new System.NotImplementedException();
-            //return new TrainPathSection(trackModel, trackNodeIndex, start, end, PathType.Invalid);
         }
 
         protected override TrackSegmentSectionBase<EditorTrainPathSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
         {
             throw new System.NotImplementedException();
-            //return new TrainPathSection(trackModel, trackNodeIndex, PathType.Invalid);
         }
     }
 }
