@@ -90,10 +90,6 @@ namespace Orts.Graphics.MapView
                     continue;
                 if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
                 {
-                    if (viewItemSettings == MapViewItemSettings.Tracks)
-                    {
-                        var temp = trackModel.SegmentAt(position, 0, true);
-                    }
                     foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         if (item is VectorPrimitive vectorPrimitive)
