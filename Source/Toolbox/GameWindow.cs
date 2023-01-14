@@ -460,7 +460,7 @@ namespace Orts.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathDetailWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
+                TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));

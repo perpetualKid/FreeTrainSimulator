@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
@@ -22,13 +20,15 @@ namespace Orts.Models.Track
         public List<TrainPathItem> PathItems { get; } = new List<TrainPathItem>();
 #pragma warning restore CA1002 // Do not expose generic lists
 
+        public PathFile PathFile { get; }
+
         public TrainPath(PathFile pathFile, Game game)
         {
             ArgumentNullException.ThrowIfNull(pathFile);
             ArgumentNullException.ThrowIfNull(game);
 
             TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
-
+            PathFile = pathFile;
             TrainPathItem beforeEndNode = null;
 
             PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathItem(node, trackModel)));
