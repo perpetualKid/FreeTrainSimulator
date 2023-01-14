@@ -32,7 +32,7 @@ Anyone is welcome to contribute, and this is not limited to programmers writing 
 
 ## Installation Requirements
 
-Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). If not installed already, trying to start the program will guide through necessary downloads.  
+Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). If not installed already, trying to start the program will guide through necessary downloads. Please also see [this article](https://github.com/perpetualKid/ORTS-MG/wiki/.NET-Framework) in our [wiki](https://github.com/perpetualKid/ORTS-MG/Wiki).  
 
 You will need to have an DirectX 11.0 compatible graphics adapter (GPU).
 
