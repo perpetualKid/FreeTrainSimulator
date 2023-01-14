@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -112,7 +113,7 @@ namespace Orts.Models.Track
             return game?.Services.GetService<T>();
         }
 
-        public static void Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        public static T Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
             where T : TrackModel, new()
         {
             game?.Services.RemoveService(typeof(T));
@@ -142,6 +143,8 @@ namespace Orts.Models.Track
             instance.TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
             instance.TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(instance.Junctions);
             instance.TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(instance.EndNodes);
+
+            return instance;
         }
 
         public void Reset()
@@ -200,18 +203,23 @@ namespace Orts.Models.Track
         /// returns the <see cref="TrackSegmentBase" track segment at this location (within Proximity tolerance)
         /// If no segment in this place, returns null.
         /// </summary>
-        public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0)
+        public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0, bool limit = false)
         {
             Tile tile = PointD.ToTile(location);
             foreach (TrackSegmentBase section in TiledSegments.BoundingBox(tile, tileRadius))
             {
                 if (section.TrackSegmentAt(location))
+                {
                     return section;
+                }
             }
-            foreach (TrackSegmentBase section in TiledSegments)
+            if (!limit)
             {
-                if (section.TrackSegmentAt(location))
-                    return section;
+                foreach (TrackSegmentBase section in TiledSegments)
+                {
+                    if (section.TrackSegmentAt(location))
+                        return section;
+                }
             }
             return null;
         }

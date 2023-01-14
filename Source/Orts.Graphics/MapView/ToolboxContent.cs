@@ -29,6 +29,8 @@ namespace Orts.Graphics.MapView
         private EditorTrainPath currentPath;
 
         public TrainPath TrainPath => currentPath?.TrainPathModel;
+        private TrackModel trackModel;
+        private TrackModel roadTrackModel;
 
         public ToolboxContent(Game game) :
             base(game)
@@ -50,7 +52,7 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.Paths] = new TileIndexedList<Widgets.EditorTrainPath, Tile>(new List<Widgets.EditorTrainPath>() { });
 
             DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
-            DetailInfo["Track Nodes"] = $"{TrackModel.Instance<RailTrackModel>(game).SegmentSections.Count}";
+            DetailInfo["Track Nodes"] = $"{trackModel.SegmentSections.Count}";
             DetailInfo["Track Segments"] = $"{contentItems[MapViewItemSettings.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{contentItems[MapViewItemSettings.EndNodes].ItemCount}";
             DetailInfo["Junction Segments"] = $"{contentItems[MapViewItemSettings.JunctionNodes].ItemCount}";
@@ -88,6 +90,10 @@ namespace Orts.Graphics.MapView
                     continue;
                 if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
                 {
+                    if (viewItemSettings == MapViewItemSettings.Tracks)
+                    {
+                        var temp = trackModel.SegmentAt(position, 0, true);
+                    }
                     foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         if (item is VectorPrimitive vectorPrimitive)
@@ -158,7 +164,6 @@ namespace Orts.Graphics.MapView
             {
                 if (null != nearestItems[MapViewItemSettings.Tracks])
                 {
-                    TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
                     foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapViewItemSettings.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
                         (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
@@ -250,10 +255,10 @@ namespace Orts.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
-            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackModel.Initialize<RailTrackModel>(game, runtimeData, trackSegments, junctionSegments, endSegments);
+            trackModel = TrackModel.Initialize<RailTrackModel>(game, runtimeData, trackSegments, junctionSegments, endSegments);
+            contentItems[MapViewItemSettings.Tracks] = trackModel.TiledSegments;
+            contentItems[MapViewItemSettings.JunctionNodes] = trackModel.TiledJunctionNodes;
+            contentItems[MapViewItemSettings.EndNodes] = trackModel.TiledEndNodes;
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
@@ -273,9 +278,9 @@ namespace Orts.Graphics.MapView
                 }
             });
 
-            contentItems[MapViewItemSettings.Roads] = new TileIndexedList<RoadSegment, Tile>(roadSegments);
-            contentItems[MapViewItemSettings.RoadEndNodes] = new TileIndexedList<RoadEndSegment, Tile>(roadEndSegments);
-            TrackModel.Initialize<RoadTrackModel>(game, runtimeData, roadSegments, Enumerable.Empty<JunctionNodeBase>(), roadEndSegments);
+            roadTrackModel = TrackModel.Initialize<RoadTrackModel>(game, runtimeData, roadSegments, Enumerable.Empty<JunctionNodeBase>(), roadEndSegments);
+            contentItems[MapViewItemSettings.Roads] = roadTrackModel.TiledSegments;
+            contentItems[MapViewItemSettings.RoadEndNodes] = roadTrackModel.TiledEndNodes;
 
             // identify all tiles by looking at tracks and roads and their respective end segments
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
@@ -291,7 +296,6 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
                 runtimeData.TrackDB?.TrackItems,
