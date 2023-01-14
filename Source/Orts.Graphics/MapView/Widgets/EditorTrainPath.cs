@@ -25,7 +25,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         private readonly List<EditorPathItem> pathPoints = new List<EditorPathItem>();
 
-        private ILookup<EditorPathItem, TrainPathSection> pathSections;
+        private readonly ILookup<EditorPathItem, TrainPathSection> pathSections;
 
         public int SelectedNodeIndex { get; set; } = -1;
 
