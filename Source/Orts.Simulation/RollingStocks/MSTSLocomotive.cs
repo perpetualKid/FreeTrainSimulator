@@ -2029,7 +2029,7 @@ namespace Orts.Simulation.RollingStocks
                 // Pass Gearbox commands
                 // Note - at the moment there is only one GearBox Controller created, but a gearbox for each diesel engine is created. 
                 // This code keeps all gearboxes in the locomotive aligned with the first engine and gearbox.
-                if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch)
+                if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch && IsLeadLocomotive())
                 {
                     // don't change the first engine as this is the reference for all the others
                     for (int i = 1; i < dieselLocomotive.DieselEngines.Count; i++)
@@ -4112,6 +4112,7 @@ namespace Orts.Simulation.RollingStocks
         #region GearBoxController
         public virtual void ChangeGearUp()
         {
+
         }
 
         public virtual void StartGearBoxIncrease()
@@ -4171,6 +4172,7 @@ namespace Orts.Simulation.RollingStocks
 
         public virtual void ChangeGearDown()
         {
+            
         }
 
         public virtual void StartGearBoxDecrease()
@@ -4196,7 +4198,6 @@ namespace Orts.Simulation.RollingStocks
                             if (ThrottlePercent == 0)
                             {
                                 GearBoxController.StartDecrease();
-                                Trace.TraceInformation("Controller Decrease - Current Notch {0} Indication {1} GearIndex {2}", GearBoxController.CurrentNotch, dieselloco.DieselEngines[0].GearBox.GearIndication, dieselloco.DieselEngines[0].GearBox.CurrentGearIndex);
                                 simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, dieselloco.DieselEngines[0].GearBox.GearIndication);
                                 AlerterReset(TCSEvent.GearBoxChanged);
                                 SignalGearBoxChangeEvents();
@@ -4218,7 +4219,6 @@ namespace Orts.Simulation.RollingStocks
                     }
                 }
             }
-
             ChangeGearDown();
         }
 

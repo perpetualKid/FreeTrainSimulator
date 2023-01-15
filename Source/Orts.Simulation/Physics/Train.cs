@@ -193,6 +193,8 @@ namespace Orts.Simulation.Physics
         public float MaxAuxTenderWaterMassKG { get; set; }
         public bool IsAuxTenderCoupled { get; set; }
 
+        public bool HasControlCarWithGear { get; set; }
+
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
 
