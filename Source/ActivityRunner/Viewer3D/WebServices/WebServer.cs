@@ -37,8 +37,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -94,6 +97,14 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
         }
 
+        public static async Task<T> DeserializationCallback<T>(IHttpContext context)
+        {
+            using (TextReader text = context.OpenRequestText())
+            {
+                return JsonConvert.DeserializeObject<T>(await text.ReadToEndAsync().ConfigureAwait(false));
+            }
+        }
+
         /// <summary>
         /// This contract resolver fixes JSON serialization for certain XNA classes.
         /// </summary>
@@ -133,6 +144,44 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             double longitude;
             (latitude, longitude) = EarthCoordinates.ConvertWTC(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             return FormattableString.Invariant($"{MathHelper.ToDegrees((float)latitude):F6} {MathHelper.ToDegrees((float)longitude):F6}");
+        }
+
+        /// <summary>
+        /// Determine latitude/longitude position of the current TrainCar
+        /// </summary>
+        private static LatLonDirection GetLocomotiveLatLonDirection()
+        {
+            ref readonly WorldPosition worldPosition = ref Simulator.Instance.PlayerLocomotive.WorldPosition;
+
+            double lat;
+            double lon;
+            (lat, lon) = EarthCoordinates.ConvertWTC(worldPosition.WorldLocation);
+
+            LatLon latLon = new LatLon(
+                MathHelper.ToDegrees((float)lat),
+                MathHelper.ToDegrees((float)lon));
+
+            float direction = (float)Math.Atan2(worldPosition.XNAMatrix.M13, worldPosition.XNAMatrix.M11);
+            float directionDeg = MathHelper.ToDegrees((float)direction);
+
+            if (Simulator.Instance.PlayerLocomotive.Direction == MidpointDirection.Reverse)
+            {
+                directionDeg += 180.0f;
+            }
+            if (Simulator.Instance.PlayerLocomotive.Flipped)
+            {
+                directionDeg += 180.0f;
+            }
+            if (Simulator.Instance.PlayerLocomotive.UsingRearCab)
+            {
+                directionDeg += 180.0f;
+            }
+            while (directionDeg > 360)
+            {
+                directionDeg -= 360;
+            }
+
+            return new LatLonDirection(latLon, directionDeg);
         }
 
         #region /API/APISAMPLE
@@ -268,9 +317,25 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
         #endregion
 
+        #region /API/MAP/INIT
+        [Route(HttpVerbs.Get, "/MAP/INIT")]
+        public InfoApiMap apiMapInfo()
+        {
+            return getApiMapInfo(viewer);
+        }
+        #endregion
+
+        public static InfoApiMap getApiMapInfo(Viewer viewer)
+        {
+            InfoApiMap infoApiMap = new InfoApiMap(viewer.PlayerLocomotive.PowerSupply.GetType().Name);
+            infoApiMap.addTrNodesToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackNodes);
+            infoApiMap.addTrItemsToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackItems);
+            return infoApiMap;
+        }
+
         #region /API/MAP
         [Route(HttpVerbs.Get, "/MAP")]
-        public string LatLon() => GetPosition();
+        public LatLonDirection LatLonDirection() => GetLocomotiveLatLonDirection();
         #endregion
     }
 }
