@@ -868,76 +868,75 @@ namespace Orts.Simulation.RollingStocks
                                 totalContainerMassKG += discreteAnim.Container.MassKG;
                             }
                         }
-                    }
-                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight + totalContainerMassKG;
+                        CalculateTotalMass(totalContainerMassKG);
 
-                    if (FreightAnimations.StaticFreightAnimationsPresent) // If it is static freight animation, set wagon physics to full wagon value
+                        if (FreightAnimations.StaticFreightAnimationsPresent) // If it is static freight animation, set wagon physics to full wagon value
+                        {
+                            // Update brake parameters   
+                            MaxBrakeForceN = LoadFullMaxBrakeForceN;
+                            MaxHandbrakeForceN = LoadFullMaxHandbrakeForceN;
+
+                            // Update friction related parameters
+                            DavisAN = LoadFullORTSDavis_A;
+                            DavisBNSpM = LoadFullORTSDavis_B;
+                            DavisCNSSpMM = LoadFullORTSDavis_C;
+                            DavisDragConstant = LoadFullDavisDragConstant;
+                            WagonFrontalAreaM2 = LoadFullWagonFrontalAreaM2;
+
+                            // Update CoG related parameters
+                            centreOfGravityM.Y = LoadFullCentreOfGravityM_Y;
+
+                        }
+
+                    }
+                    if (FreightAnimations.LoadedOne != null) // If it is a Continuouos freight animation, set freight wagon parameters to FullatStart
                     {
-                        // Update brake parameters   
-                        MaxBrakeForceN = LoadFullMaxBrakeForceN;
-                        MaxHandbrakeForceN = LoadFullMaxHandbrakeForceN;
+                        WeightLoadController.CurrentValue = FreightAnimations.LoadedOne.LoadPerCent / 100;
+
+                        // Update wagon parameters sensitive to wagon mass change
+                        // Calculate the difference ratio, ie how full the wagon is. This value allows the relevant value to be scaled from the empty mass to the full mass of the wagon
+                        TempMassDiffRatio = WeightLoadController.CurrentValue;
+                        // Update brake parameters
+                        MaxBrakeForceN = ((LoadFullMaxBrakeForceN - LoadEmptyMaxBrakeForceN) * TempMassDiffRatio) + LoadEmptyMaxBrakeForceN;
+                        MaxHandbrakeForceN = ((LoadFullMaxHandbrakeForceN - LoadEmptyMaxHandbrakeForceN) * TempMassDiffRatio) + LoadEmptyMaxHandbrakeForceN;
 
                         // Update friction related parameters
-                        DavisAN = LoadFullORTSDavis_A;
-                        DavisBNSpM = LoadFullORTSDavis_B;
-                        DavisCNSSpMM = LoadFullORTSDavis_C;
-                        DavisDragConstant = LoadFullDavisDragConstant;
-                        WagonFrontalAreaM2 = LoadFullWagonFrontalAreaM2;
+                        DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
+                        DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
+                        DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                        if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                        {
+                            DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                        }
+                        else
+                        {
+                            DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                        }
+
+                        WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                         // Update CoG related parameters
-                        centreOfGravityM.Y = LoadFullCentreOfGravityM_Y;
-
+                        centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                     }
-
-                }
-                if (FreightAnimations.LoadedOne != null) // If it is a Continuouos freight animation, set freight wagon parameters to FullatStart
-                {
-                    WeightLoadController.CurrentValue = FreightAnimations.LoadedOne.LoadPerCent / 100;
-
-                    // Update wagon parameters sensitive to wagon mass change
-                    // Calculate the difference ratio, ie how full the wagon is. This value allows the relevant value to be scaled from the empty mass to the full mass of the wagon
-                    TempMassDiffRatio = WeightLoadController.CurrentValue;
-                    // Update brake parameters
-                    MaxBrakeForceN = ((LoadFullMaxBrakeForceN - LoadEmptyMaxBrakeForceN) * TempMassDiffRatio) + LoadEmptyMaxBrakeForceN;
-                    MaxHandbrakeForceN = ((LoadFullMaxHandbrakeForceN - LoadEmptyMaxHandbrakeForceN) * TempMassDiffRatio) + LoadEmptyMaxHandbrakeForceN;
-
-                    // Update friction related parameters
-                    DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
-                    DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
-                    DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
-
-                    if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                    else  // If Freight animation is Continuous and freight is not loaded then set initial values to the empty wagon values
                     {
-                        DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                        if (FreightAnimations.ContinuousFreightAnimationsPresent)
+                        {
+                            // If it is an empty continuous freight animation, set wagon physics to empty wagon value
+                            // Update brake physics
+                            MaxBrakeForceN = LoadEmptyMaxBrakeForceN;
+                            MaxHandbrakeForceN = LoadEmptyMaxHandbrakeForceN;
+
+                            // Update friction related parameters
+                            DavisAN = LoadEmptyORTSDavis_A;
+                            DavisBNSpM = LoadEmptyORTSDavis_B;
+                            DavisCNSSpMM = LoadEmptyORTSDavis_C;
+
+                            // Update CoG related parameters
+                            centreOfGravityM.Y = LoadEmptyCentreOfGravityM_Y;
+                        }
                     }
-                    else
-                    {
-                        DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
-                    }
-
-                    WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
-
-                    // Update CoG related parameters
-                    centreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
-                }
-                else  // If Freight animation is Continuous and freight is not loaded then set initial values to the empty wagon values
-                {
-                    if (FreightAnimations.ContinuousFreightAnimationsPresent)
-                    {
-                        // If it is an empty continuous freight animation, set wagon physics to empty wagon value
-                        // Update brake physics
-                        MaxBrakeForceN = LoadEmptyMaxBrakeForceN;
-                        MaxHandbrakeForceN = LoadEmptyMaxHandbrakeForceN;
-
-                        // Update friction related parameters
-                        DavisAN = LoadEmptyORTSDavis_A;
-                        DavisBNSpM = LoadEmptyORTSDavis_B;
-                        DavisCNSSpMM = LoadEmptyORTSDavis_C;
-
-                        // Update CoG related parameters
-                        centreOfGravityM.Y = LoadEmptyCentreOfGravityM_Y;
-                    }
-                }
 
 #if DEBUG_VARIABLE_MASS
 
@@ -949,13 +948,20 @@ namespace Orts.Simulation.RollingStocks
                 Trace.TraceInformation("Full Values = Brake {0} Handbrake {1} DavisA {2} DavisB {3} DavisC {4} CoGY {5}", LoadFullMaxBrakeForceN, LoadFullMaxHandbrakeForceN, LoadFullORTSDavis_A, LoadFullORTSDavis_B, LoadFullORTSDavis_C, LoadFullCentreOfGravityM_Y);
 #endif
 
+                }
+
+                // Determine whether or not to use the Davis friction model. Must come after freight animations are initialized.
+                IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0;
+
+                if (BrakeSystem == null)
+                    BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
             }
+        }
 
-            // Determine whether or not to use the Davis friction model. Must come after freight animations are initialized.
-            IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0;
-
-            if (BrakeSystem == null)
-                BrakeSystem = MSTSBrakeSystem.Create(BrakeSystemType, this);
+        // Compute total mass of wagon including freight animations and variable loads like containers
+        public void CalculateTotalMass(float totalContainerMassKG)
+        {
+            MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight + totalContainerMassKG;
         }
 
         public override void Initialize()
@@ -2024,7 +2030,7 @@ namespace Orts.Simulation.RollingStocks
                 // Updates the mass of the wagon considering all types of loads
                 if (FreightAnimations != null && FreightAnimations.WagonEmptyWeight != -1)
                 {
-                    MassKG = FreightAnimations.WagonEmptyWeight + FreightAnimations.FreightWeight + FreightAnimations.StaticFreightWeight + totalContainerMassKG;
+                    CalculateTotalMass(totalContainerMassKG);
                 }
             }
         }

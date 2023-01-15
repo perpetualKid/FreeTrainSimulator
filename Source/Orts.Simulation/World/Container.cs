@@ -53,7 +53,7 @@ namespace Orts.Simulation.World
         public string Name { get; private set; }
         public string ShapeFileName { get; private set; }
         public string BaseShapeFileFolderSlash { get; private set; }
-        public float MassKG { get; internal set; } = 2000;
+        public float MassKG { get; private set; } = 2000;
         public float EmptyMassKG { get; private set; }
         public float MaxMassWhenLoadedKG { get; private set; }
         public float WidthM { get; private set; } = 2.44f;
@@ -254,6 +254,23 @@ namespace Orts.Simulation.World
                 MatrixExtension.Multiply(translation, freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix));
             Matrix invWagonMatrix = Matrix.Invert(freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix);
             RelativeContainerMatrix = Matrix.Multiply(WorldPosition.XNAMatrix, invWagonMatrix);
+        }
+
+        public void ComputeLoadWeight(LoadState loadState)
+        {
+            switch (loadState)
+            {
+                case LoadState.Empty:
+                    MassKG = EmptyMassKG;
+                    break;
+                case LoadState.Loaded:
+                    MassKG = MaxMassWhenLoadedKG;
+                    break;
+                case LoadState.Random:
+                    int loadPercent = StaticRandom.Next(101);
+                    MassKG = loadPercent < 30 ? EmptyMassKG : MaxMassWhenLoadedKG * loadPercent / 100f;
+                    break;
+            }
         }
     }
 
@@ -493,19 +510,8 @@ namespace Orts.Simulation.World
                 container.LoadFromContainerFile(loadFilePath, Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder);
                 containerManager.LoadedContainers.Add(loadFilePath, container);
             }
-            switch (loadState)
-            {
-                case LoadState.Empty:
-                    container.MassKG = container.EmptyMassKG;
-                    break;
-                case LoadState.Loaded:
-                    container.MassKG = container.MaxMassWhenLoadedKG;
-                    break;
-                case LoadState.Random:
-                    int loadPercent = StaticRandom.Next(101);
-                    container.MassKG = loadPercent < 30 ? container.EmptyMassKG : container.MaxMassWhenLoadedKG * loadPercent / 100f;
-                    break;
-            }
+            container.ComputeLoadWeight(loadState);
+
             ContainerStackLocation stackLocation = StackLocations[stackLocationIndex];
             stackLocation.Containers ??= new ContainerStack();
             if (stackLocation.Containers?.Count >= stackLocation.MaxStackedContainers)
