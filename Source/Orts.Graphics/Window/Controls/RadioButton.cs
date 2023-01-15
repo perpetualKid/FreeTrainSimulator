@@ -41,6 +41,7 @@ namespace Orts.Graphics.Window.Controls
             centerOffset = new Point(window.Owner.TextFontDefault.Height / 2);
             this.group = group ?? throw new ArgumentNullException(nameof(group));
             group.Group.Add(this);
+            TextColor = Color.White;
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
