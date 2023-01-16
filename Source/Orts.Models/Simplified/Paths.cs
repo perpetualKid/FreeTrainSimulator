@@ -148,7 +148,7 @@ namespace Orts.Models.Simplified
 
                     foreach (string pathFile in Directory.EnumerateFiles(pathsDirectory, "*.pat").
                         Where(f => !brokenPaths.Any(brokenPath => f.EndsWith(brokenPath, StringComparison.OrdinalIgnoreCase))))
-                        await inputBlock.SendAsync(pathFile).ConfigureAwait(false);
+                        await inputBlock.SendAsync(pathFile, token).ConfigureAwait(false);
 
                     inputBlock.Complete();
                     await actionBlock.Completion.ConfigureAwait(false);

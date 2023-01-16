@@ -405,7 +405,7 @@ namespace Orts.Toolbox
             userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.TrainPathDetailWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.TrainPathWindow].ToggleVisibility();
             });
             #endregion
 
@@ -458,9 +458,9 @@ namespace Orts.Toolbox
             {
                 return new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathDetailWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathDetailWindow trainPathDetailWindow = new TrainPathDetailWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathDetailWindow].ToPoint());
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));

@@ -157,7 +157,7 @@ namespace Orts.Toolbox.Settings
             $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=10,70",
             $"{nameof(ToolboxWindowType.SettingsWindow)}=70,70",
             $"{nameof(ToolboxWindowType.LogWindow)}=30,70",
-            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=10,40",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=10,40",
         })]
         public EnumArray<int[], ToolboxWindowType> PopupLocations { get; set; }
 
@@ -172,7 +172,7 @@ namespace Orts.Toolbox.Settings
             $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=True",
             $"{nameof(ToolboxWindowType.SettingsWindow)}=True",
             $"{nameof(ToolboxWindowType.LogWindow)}=False",
-            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=False",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=False",
         })]
         public EnumArray<bool, ToolboxWindowType> PopupStatus { get; set; }
 
@@ -187,7 +187,7 @@ namespace Orts.Toolbox.Settings
             $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=\"\"",
             $"{nameof(ToolboxWindowType.SettingsWindow)}=\"\"",
             $"{nameof(ToolboxWindowType.LogWindow)}=\"\"",
-            $"{nameof(ToolboxWindowType.TrainPathDetailWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=\"\"",
         })]
         public EnumArray<string, ToolboxWindowType> PopupSettings { get; set; }
 

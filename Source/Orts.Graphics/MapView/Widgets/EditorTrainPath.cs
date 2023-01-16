@@ -92,14 +92,14 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public EditorTrainPath(PathFile pathFile, Game game)
+        public EditorTrainPath(PathFile pathFile, string filePath, Game game)
             : base(PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location),
                   PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
-            TrainPathModel = new TrainPath(pathFile, game);
+            TrainPathModel = new TrainPath(pathFile, filePath, game);
 
             bool reverseDirection = false;
             TrackSegmentBase nodeSegment = null;

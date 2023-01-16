@@ -15,6 +15,7 @@ namespace Orts.Models.Track
     /// </summary>
     public class TrainPath
     {
+        public string FilePath { get; }
         public bool Invalid { get; set; }
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TrainPathItem> PathItems { get; } = new List<TrainPathItem>();
@@ -22,13 +23,14 @@ namespace Orts.Models.Track
 
         public PathFile PathFile { get; }
 
-        public TrainPath(PathFile pathFile, Game game)
+        public TrainPath(PathFile pathFile, string filePath, Game game)
         {
             ArgumentNullException.ThrowIfNull(pathFile);
             ArgumentNullException.ThrowIfNull(game);
 
             TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
             PathFile = pathFile;
+            FilePath = filePath;
             TrainPathItem beforeEndNode = null;
 
             PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathItem(node, trackModel)));

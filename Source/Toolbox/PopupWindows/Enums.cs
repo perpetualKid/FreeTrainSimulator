@@ -11,6 +11,6 @@
         TrackNodeInfoWindow,
         SettingsWindow,
         LogWindow,
-        TrainPathDetailWindow,
+        TrainPathWindow,
     }
 }

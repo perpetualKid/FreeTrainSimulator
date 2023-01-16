@@ -52,9 +52,9 @@ namespace Orts.Toolbox.PopupWindows
             searchBox.OnEscapeKey += SearchBox_OnEscapeKey;
             searchBox.OnEnterKey += SearchBox_OnEnterKey;
             searchTypeButtons = new RadioButtonGroup();
-            searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { TextColor = Color.White, State = true, Tag = SearchType.Track });
+            searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { State = true, Tag = SearchType.Track });
             searchBoxLine.Add(new Label(this, columnWidth, searchBoxLine.RemainingHeight, Catalog.GetString("Tracks")));
-            searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { TextColor = Color.White, State = false, Tag = SearchType.Road });
+            searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { State = false, Tag = SearchType.Road });
             searchBoxLine.Add(new Label(this, columnWidth, searchBoxLine.RemainingHeight, Catalog.GetString("Roads")));
 
             line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find TrackNode by Index"), Graphics.HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));

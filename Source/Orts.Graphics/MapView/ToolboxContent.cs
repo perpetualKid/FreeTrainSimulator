@@ -188,9 +188,9 @@ namespace Orts.Graphics.MapView
         }
 
         #region additional content (Paths)
-        public void InitializePath(PathFile path)
+        public void InitializePath(PathFile path, string filePath)
         {
-            currentPath = path != null ? new EditorTrainPath(path, game) : null;
+            currentPath = path != null ? new EditorTrainPath(path, filePath, game) : null;
             if (currentPath != null && currentPath.TopLeftBound != PointD.None && currentPath.BottomRightBound != PointD.None)
             {
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);

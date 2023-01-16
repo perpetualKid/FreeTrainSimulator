@@ -376,7 +376,7 @@ namespace Orts.Toolbox.WinForms.Controls
             loadPathToolStripMenuItem.DropDownItems.Clear();
         }
 
-        private async void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Models.Simplified.Path path)
             {
@@ -387,7 +387,7 @@ namespace Orts.Toolbox.WinForms.Controls
                 }
                 else
                 {
-                    if (await parent.LoadPath(path).ConfigureAwait(false))
+                    if (parent.LoadPath(path))
                         UncheckOtherMenuItems(menuItem);
                     else
                         MessageBox.Show("Invalid Path");

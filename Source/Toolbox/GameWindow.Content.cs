@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -31,7 +30,6 @@ namespace Orts.Toolbox
         private Route selectedRoute;
         private Path selectedPath; // going forward, there may be multiple paths selected at once
         private IEnumerable<Route> routes;
-        private IEnumerable<Path> paths;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
 
@@ -78,8 +76,7 @@ namespace Orts.Toolbox
             bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
-            Task<IEnumerable<Path>> pathTask = Path.GetPaths(route, true, CancellationToken.None);
-            await TrackData.LoadTrackData(this, route.Path, useMetricUnits, token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(this, route, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
@@ -88,24 +85,23 @@ namespace Orts.Toolbox
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             ContentArea = content.ContentArea;
-            paths = await pathTask.ConfigureAwait(false);
-            mainmenu.PopulatePaths(paths);
+            mainmenu.PopulatePaths((TrackData.GameInstance(this) as TrackData).TrainPaths);
             windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 
-        internal async Task<bool> LoadPath(Path path)
+        internal bool LoadPath(Path path)
         {
             try
             {
                 PathFile patFile = new PathFile(path.FilePath);
                 selectedPath = path;
-                ((ToolboxContent)contentArea?.Content).InitializePath(patFile);
-                return await Task.FromResult(true).ConfigureAwait(false);
+                ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
+                return true;
             }
             catch (Exception ex) when (ex is Exception)
             {
-                return await Task.FromResult(false).ConfigureAwait(false);
+                return false;
             }
         }
 
@@ -126,10 +122,10 @@ namespace Orts.Toolbox
                         if (pathSelection.Length > 0)
                         {
                             // only restore first path for now
-                            Path path = paths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            Path path = (TrackData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                             if (null != path)
                             {
-                                if (await LoadPath(path).ConfigureAwait(false))
+                                if (LoadPath(path))
                                     mainmenu.PreSelectPath(path.FilePath);
                             }
                         }
@@ -142,7 +138,6 @@ namespace Orts.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
-            paths = null;
             selectedPath = null;
             mainmenu.ClearPathMenu();
         }
@@ -150,7 +145,7 @@ namespace Orts.Toolbox
         internal void UnloadPath()
         {
             selectedPath = null;
-            ((ToolboxContent)contentArea?.Content).InitializePath(null);
+            ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
         }
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
