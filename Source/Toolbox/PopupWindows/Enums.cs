@@ -9,6 +9,7 @@
         LocationWindow,
         HelpWindow,
         TrackNodeInfoWindow,
+        TrackItemInfoWindow,
         SettingsWindow,
         LogWindow,
         TrainPathWindow,

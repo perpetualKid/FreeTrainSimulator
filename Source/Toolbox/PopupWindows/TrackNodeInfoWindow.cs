@@ -23,7 +23,6 @@ namespace Orts.Toolbox.PopupWindows
         }
 
         private ContentArea contentArea;
-        private readonly UserCommandController<UserCommand> userCommandController;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackNodeInfoGrid;
         private ControlLayout searchBoxLine;
@@ -36,7 +35,6 @@ namespace Orts.Toolbox.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 202), catalog)
         {
             this.contentArea = contentArea;
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -127,25 +125,6 @@ namespace Orts.Toolbox.PopupWindows
         {
             contentArea = e.ContentArea;
             trackNodeInfoGrid.InformationProvider = contentArea?.Content?.TrackNodeInfo;
-        }
-
-        private void TabAction(UserCommandArgs args)
-        {
-            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
-            {
-            }
-        }
-
-        public override bool Open()
-        {
-            userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction, true);
-            return base.Open();
-        }
-
-        public override bool Close()
-        {
-            userCommandController.RemoveEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction);
-            return base.Close();
         }
     }
 }

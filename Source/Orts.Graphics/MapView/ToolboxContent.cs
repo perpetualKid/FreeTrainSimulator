@@ -24,7 +24,7 @@ namespace Orts.Graphics.MapView
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
 
         private readonly InsetComponent insetComponent;
-        private readonly TrackNodeInfoProxy trackNodeInfo = new TrackNodeInfoProxy();
+        private readonly DetailnfoProxy trackNodeInfo = new DetailnfoProxy();
 
         private EditorTrainPath currentPath;
 
@@ -326,7 +326,7 @@ namespace Orts.Graphics.MapView
         }
         #endregion
 
-        private protected class TrackNodeInfoProxy : TrackNodeInfoProxyBase
+        private protected class DetailnfoProxy : DetailInfoProxyBase
         {
             internal INameValueInformationProvider Source;
 

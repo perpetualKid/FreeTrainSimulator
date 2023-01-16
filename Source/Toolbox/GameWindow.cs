@@ -392,6 +392,11 @@ namespace Orts.Toolbox
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.TrackNodeInfoWindow].ToggleVisibility();
             });
+            userCommandController.AddEvent(UserCommand.DisplayTrackItemInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ToolboxWindowType.TrackItemInfoWindow].ToggleVisibility();
+            });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -445,6 +450,12 @@ namespace Orts.Toolbox
             windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
                 TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
+                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                return trackInfoWindow;
+            }));
+            windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
+            {
+                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));

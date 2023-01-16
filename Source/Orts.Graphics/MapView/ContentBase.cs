@@ -34,6 +34,8 @@ namespace Orts.Graphics.MapView
 
         public INameValueInformationProvider TrackNodeInfo { get; private protected set; }
 
+        public INameValueInformationProvider TrackItemInfo { get; private protected set; }
+
         protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
@@ -111,7 +113,7 @@ namespace Orts.Graphics.MapView
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
         }
 
-        private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
+        private protected abstract class DetailInfoProxyBase : INameValueInformationProvider
         {
             public abstract InformationDictionary DetailInfo { get; }
 

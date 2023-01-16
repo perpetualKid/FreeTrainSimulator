@@ -20,6 +20,7 @@ namespace Orts.Toolbox
         [Description("Location Window (Tab)")] DisplayLocationWindow,
         [Description("Help Window (Tab)")] DisplayHelpWindow,
         [Description("Track Node Info Window (Tab)")] DisplayTrackNodeInfoWindow,
+        [Description("Track Item Info Window (Tab)")] DisplayTrackItemInfoWindow,
         [Description("Settings Window (Tab)")] DisplaySettingsWindow,
         [Description("Log Window (Tab)")] DisplayLogWindow,
         [Description("Train Path Window (Tab)")] DisplayTrainPathWindow,
