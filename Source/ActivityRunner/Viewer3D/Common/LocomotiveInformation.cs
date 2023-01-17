@@ -9,7 +9,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class LocomotiveInformation : DetailInfoProxy
+    internal class LocomotiveInformation : DetailInfoProxyBase
     {
         private Train train;
         private int numberCars;

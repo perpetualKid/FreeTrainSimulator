@@ -2,7 +2,7 @@
 
 namespace Orts.Common.DebugInfo
 {
-    public abstract class DetailInfoProxy : DetailInfoBase
+    public abstract class DetailInfoProxyBase : DetailInfoBase
     {
 #pragma warning disable CA2227 // Collection properties should be read only
         protected DetailInfoBase Source { get; set; }

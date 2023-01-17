@@ -7,7 +7,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class DistributedPowerInformation : DetailInfoProxy
+    internal class DistributedPowerInformation : DetailInfoProxyBase
     {
         private Train train;
         private int numberCars;

@@ -400,12 +400,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void NextLocomotive()
         {
-            (changeableGrid?.InformationProvider as DetailInfoProxy)?.Next();
+            (changeableGrid?.InformationProvider as DetailInfoProxyBase)?.Next();
         }
 
         private void PreviousLocomotive()
         {
-            (changeableGrid?.InformationProvider as DetailInfoProxy)?.Previous();
+            (changeableGrid?.InformationProvider as DetailInfoProxyBase)?.Previous();
         }
     }
 }

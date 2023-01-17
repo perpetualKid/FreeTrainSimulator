@@ -4,7 +4,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class LocomotiveForceInformation: DetailInfoProxy
+    internal class LocomotiveForceInformation: DetailInfoProxyBase
     {
         private MSTSLocomotive locomotive;
 
