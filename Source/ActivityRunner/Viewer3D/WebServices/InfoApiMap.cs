@@ -17,11 +17,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -50,12 +52,12 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public readonly LatLon LatLon;
-        public readonly float directionDeg;
+        public readonly float DirectionDeg;
 
         public LatLonDirection(LatLon latLon, float directionDeg)
         {
             this.LatLon = latLon;
-            this.directionDeg = directionDeg;
+            this.DirectionDeg = directionDeg;
         }
     }
 
@@ -68,55 +70,55 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
     public class PointOnApiMap
     {
-        public LatLon latLon;
-        public string color;
-        public TypeOfPointOnApiMap typeOfPointOnApiMap;
-        public string name;
+        public LatLon LatLon { get; set; }
+        public string Color { get; set; }
+        public TypeOfPointOnApiMap TypeOfPointOnApiMap { get; set; }
+        public string Name { get; set; }
     }
 
     public class LineOnApiMap
     {
-        public LatLon latLonFrom;
-        public LatLon latLonTo;
+        public LatLon LatLonFrom { get; set; }
+        public LatLon LatLonTo { get; set; }
     }
 
     public class InfoApiMap
     {
-        public string typeOfLocomotive;
+        public string TypeOfLocomotive { get; private set; }
 
-        public LinkedList<PointOnApiMap> pointOnApiMapList;
-        public LinkedList<LineOnApiMap> lineOnApiMapList;
+        public Collection<PointOnApiMap> PointOnApiMapList { get;  }
+        public Collection<LineOnApiMap> LineOnApiMapList { get; }
 
-        public double latMin;
-        public double latMax;
-        public double lonMin;
-        public double lonMax;
+        public double LatMin { get; private set; }
+        public double LatMax { get; private set; }
+        public double LonMin { get; private set; }
+        public double LonMax { get; private set; }
 
-        public InfoApiMap(string powerSupplyName)
+        public InfoApiMap(ILocomotivePowerSupply powerSupply)
         {
-            InitLocomotiveType(powerSupplyName);
+            InitLocomotiveType(powerSupply);
 
-            pointOnApiMapList = new LinkedList<PointOnApiMap>();
-            lineOnApiMapList = new LinkedList<LineOnApiMap>();
-
-            latMax = -999999f;
-            latMin = +999999f;
-            lonMax = -999999f;
-            lonMin = +999999f;
+            PointOnApiMapList = new Collection<PointOnApiMap>();
+            LineOnApiMapList = new Collection<LineOnApiMap>();
+            LatMax = -999999f;
+            LatMin = +999999f;
+            LonMax = -999999f;
+            LonMin = +999999f;
         }
 
-        private void InitLocomotiveType(string powerSupplyName)
+        private void InitLocomotiveType(ILocomotivePowerSupply powerSupply)
         {
-            if (powerSupplyName.Contains("steam", System.StringComparison.OrdinalIgnoreCase))
-                typeOfLocomotive = "steam";
-            else
-                if (powerSupplyName.Contains("diesel", System.StringComparison.OrdinalIgnoreCase))
-                typeOfLocomotive = "diesel";
-            else
-                typeOfLocomotive = "electric";
+            ArgumentNullException.ThrowIfNull(powerSupply);
+
+            TypeOfLocomotive = powerSupply.Type switch
+            {
+                Orts.Common.PowerSupplyType.DieselMechanical or Orts.Common.PowerSupplyType.DieselHydraulic or Orts.Common.PowerSupplyType.DieselElectric => "diesel",
+                Orts.Common.PowerSupplyType.Steam => "steam",
+                _ => "electric",
+            };
         }
 
-        public static LatLon convertToLatLon(in WorldLocation worldLocation)
+        private static LatLon ConvertToLatLon(in WorldLocation worldLocation)
         {
             double latitude;
             double longitude;
@@ -126,64 +128,66 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             return latLon;
         }
 
-        public void addToPointOnApiMap(in WorldLocation worldLocation, string color, TypeOfPointOnApiMap typeOfPointOnApiMap, string name)
+        private void AddToPointOnApiMap(in WorldLocation worldLocation, string color, TypeOfPointOnApiMap typeOfPointOnApiMap, string name)
         {
-            LatLon latLon = convertToLatLon(worldLocation);
+            LatLon latLon = ConvertToLatLon(worldLocation);
 
-            addToPointOnApiMap(latLon,
+            AddToPointOnApiMap(latLon,
                 color, typeOfPointOnApiMap, name);
         }
 
-        public void addToPointOnApiMap(LatLon latLon, string color, TypeOfPointOnApiMap typeOfPointOnApiMap, string name)
+        private void AddToPointOnApiMap(LatLon latLon, string color, TypeOfPointOnApiMap typeOfPointOnApiMap, string name)
         {
             PointOnApiMap pointOnApiMap = new PointOnApiMap
             {
-                latLon = latLon,
-                color = color,
-                typeOfPointOnApiMap = typeOfPointOnApiMap,
-                name = name
+                LatLon = latLon,
+                Color = color,
+                TypeOfPointOnApiMap = typeOfPointOnApiMap,
+                Name = name
             };
 
-            if (pointOnApiMap.typeOfPointOnApiMap == TypeOfPointOnApiMap.Named)
+            if (pointOnApiMap.TypeOfPointOnApiMap == TypeOfPointOnApiMap.Named)
                 // named last is the list so that they get displayed on top
-                pointOnApiMapList.AddLast(pointOnApiMap);
+                PointOnApiMapList.Add(pointOnApiMap);
             else
-                pointOnApiMapList.AddFirst(pointOnApiMap);
+                PointOnApiMapList.Insert(0, pointOnApiMap);
 
-            if (pointOnApiMap.latLon.Lat > latMax)
-                latMax = pointOnApiMap.latLon.Lat;
-            if (pointOnApiMap.latLon.Lat < latMin)
-                latMin = pointOnApiMap.latLon.Lat;
-            if (pointOnApiMap.latLon.Lon > lonMax)
-                lonMax = pointOnApiMap.latLon.Lon;
-            if (pointOnApiMap.latLon.Lon < lonMin)
-                lonMin = pointOnApiMap.latLon.Lon;
+            if (pointOnApiMap.LatLon.Lat > LatMax)
+                LatMax = pointOnApiMap.LatLon.Lat;
+            if (pointOnApiMap.LatLon.Lat < LatMin)
+                LatMin = pointOnApiMap.LatLon.Lat;
+            if (pointOnApiMap.LatLon.Lon > LonMax)
+                LonMax = pointOnApiMap.LatLon.Lon;
+            if (pointOnApiMap.LatLon.Lon < LonMin)
+                LonMin = pointOnApiMap.LatLon.Lon;
         }
 
-        public void addToLineOnApiMap(LatLon latLonFrom, LatLon latLongTo)
+        private void AddToLineOnApiMap(LatLon latLonFrom, LatLon latLongTo)
         {
             LineOnApiMap lineOnApiMap = new LineOnApiMap
             {
-                latLonFrom = latLonFrom,
-                latLonTo = latLongTo
+                LatLonFrom = latLonFrom,
+                LatLonTo = latLongTo
             };
-            lineOnApiMapList.AddLast(lineOnApiMap);
+            LineOnApiMapList.Add(lineOnApiMap);
         }
 
-        public void addTrNodesToPointsOnApiMap(TrackNodes trackNodes)
+        public void AddTrackNodesToPointsOnApiMap(TrackNodes trackNodes)
         {
+            ArgumentNullException.ThrowIfNull(trackNodes);
+
             foreach (TrackNode trackNode in trackNodes)
             {
                 if (trackNode != null)
                 {
                     if (trackNode.UiD != null)
                     {
-                        addToPointOnApiMap(trackNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
+                        AddToPointOnApiMap(trackNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }
 
                     if ((trackNode is TrackJunctionNode junctionNode && junctionNode.UiD != null))
                     {
-                        addToPointOnApiMap(junctionNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
+                        AddToPointOnApiMap(junctionNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }
 
                     if ((trackNode is TrackVectorNode vectorNode && vectorNode.TrackVectorSections != null))
@@ -193,15 +197,15 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         TrackVectorSection trVectorSectionLast = null;
                         foreach (TrackVectorSection vectorSection in vectorNode.TrackVectorSections)
                         {
-                            LatLon latLonTo = convertToLatLon(vectorSection.Location);
-                            addToPointOnApiMap(vectorSection.Location, "red", TypeOfPointOnApiMap.Track, "track");
+                            LatLon latLonTo = ConvertToLatLon(vectorSection.Location);
+                            AddToPointOnApiMap(vectorSection.Location, "red", TypeOfPointOnApiMap.Track, "track");
                             if (first)
                             {
                                 first = false;
                             }
                             else
                             {
-                                addToLineOnApiMap(latLonFrom, latLonTo);
+                                AddToLineOnApiMap(latLonFrom, latLonTo);
                             }
                             latLonFrom = latLonTo;
                             trVectorSectionLast = vectorSection;
@@ -211,33 +215,35 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                             if (trackNode.TrackPins.Length == 2)
                             {
                                 int link = trackNode.TrackPins[1].Link;
-                                LatLon latLonTo = convertToLatLon(trackNodes[link].UiD.Location);
-                                addToLineOnApiMap(latLonFrom, latLonTo);
+                                LatLon latLonTo = ConvertToLatLon(trackNodes[link].UiD.Location);
+                                AddToLineOnApiMap(latLonFrom, latLonTo);
                             }
                         }
                     }
 
                     if (trackNode is TrackEndNode endNode)
                     {
-                        LatLon latLonFrom = convertToLatLon(endNode.UiD.Location);
+                        LatLon latLonFrom = ConvertToLatLon(endNode.UiD.Location);
                         int lastIndex = (trackNodes[trackNode.TrackPins[0].Link] as TrackVectorNode).TrackVectorSections.Length - 1;
-                        LatLon latLonTo = convertToLatLon((trackNodes[trackNode.TrackPins[0].Link] as TrackVectorNode).TrackVectorSections[lastIndex].Location);
-                        addToLineOnApiMap(latLonFrom, latLonTo);
+                        LatLon latLonTo = ConvertToLatLon((trackNodes[trackNode.TrackPins[0].Link] as TrackVectorNode).TrackVectorSections[lastIndex].Location);
+                        AddToLineOnApiMap(latLonFrom, latLonTo);
                     }
                 }
             }
         }
 
-        public void addTrItemsToPointsOnApiMap(List<TrackItem> trackItems)
+        public void AddTrackItemsToPointsOnApiMap(IReadOnlyCollection<TrackItem> trackItems)
         {
+            ArgumentNullException.ThrowIfNull(trackItems);
+
             foreach (TrackItem trackItem in trackItems)
             {
                 if (trackItem is not LevelCrossingItem)
                 {
                     if (!string.IsNullOrEmpty(trackItem.ItemName))
-                        addToPointOnApiMap(trackItem.Location, "green", TypeOfPointOnApiMap.Named, $"{trackItem.ItemName.Replace("'", "", StringComparison.OrdinalIgnoreCase)}, {trackItem.GetType().Name}");
+                        AddToPointOnApiMap(trackItem.Location, "green", TypeOfPointOnApiMap.Named, $"{trackItem.ItemName.Replace("'", "", StringComparison.OrdinalIgnoreCase)}, {trackItem.GetType().Name}");
                     else
-                        addToPointOnApiMap(trackItem.Location, "blue", TypeOfPointOnApiMap.Other, $"{trackItem.GetType().Name}");
+                        AddToPointOnApiMap(trackItem.Location, "blue", TypeOfPointOnApiMap.Other, $"{trackItem.GetType().Name}");
                 }
             }
         }

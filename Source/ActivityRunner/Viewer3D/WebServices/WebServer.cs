@@ -42,6 +42,7 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -311,17 +312,14 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         #region /API/MAP/INIT
         [Route(HttpVerbs.Get, "/MAP/INIT")]
-        public InfoApiMap apiMapInfo()
-        {
-            return getApiMapInfo(viewer);
-        }
+        public InfoApiMap ApiMapInfo() => GetApiMapInfo(viewer);
         #endregion
 
-        public static InfoApiMap getApiMapInfo(Viewer viewer)
+        public static InfoApiMap GetApiMapInfo(Viewer viewer)
         {
-            InfoApiMap infoApiMap = new InfoApiMap(viewer.PlayerLocomotive.PowerSupply.GetType().Name);
-            infoApiMap.addTrNodesToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackNodes);
-            infoApiMap.addTrItemsToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackItems);
+            InfoApiMap infoApiMap = new InfoApiMap(viewer.PlayerLocomotive.PowerSupply as ILocomotivePowerSupply);
+            infoApiMap.AddTrackNodesToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackNodes);
+            infoApiMap.AddTrackItemsToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackItems);
             return infoApiMap;
         }
 
