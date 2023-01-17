@@ -1,4 +1,4 @@
-// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2020 by the Open Rails project.
 //
 // This file is part of Open Rails.
 //
@@ -94,14 +94,6 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     Formatting = Formatting.Indented,
                     ContractResolver = new XnaFriendlyResolver()
                 })).ConfigureAwait(false);
-            }
-        }
-
-        public static async Task<T> DeserializationCallback<T>(IHttpContext context)
-        {
-            using (TextReader text = context.OpenRequestText())
-            {
-                return JsonConvert.DeserializeObject<T>(await text.ReadToEndAsync().ConfigureAwait(false));
             }
         }
 

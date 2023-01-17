@@ -25,12 +25,6 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
-    public class OverlayLayer
-    {
-        public string Name { get; set; }
-        public bool Visible { get; set; }
-    }
-
     /// <summary>
     /// Class to store the latitude and longitude of a position on the webpage map
     /// </summary>
@@ -89,8 +83,6 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
     public class InfoApiMap
     {
         public string typeOfLocomotive;
-        public string baseLayer;
-        public OverlayLayer[] overlayLayer;
 
         public LinkedList<PointOnApiMap> pointOnApiMapList;
         public LinkedList<LineOnApiMap> lineOnApiMapList;
