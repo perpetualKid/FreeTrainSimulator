@@ -62,7 +62,7 @@ namespace Orts.Toolbox.PopupWindows
             layout = layout.AddLayoutVertical();
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
-                InformationProvider = contentArea?.Content.TrackNodeInfo,
+                InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackNodeInfo,
                 ColumnWidth = new int[] { 120 - 4 },
             };
             layout.Add(trackNodeInfoGrid);
@@ -124,7 +124,7 @@ namespace Orts.Toolbox.PopupWindows
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
             contentArea = e.ContentArea;
-            trackNodeInfoGrid.InformationProvider = contentArea?.Content?.TrackNodeInfo;
+            trackNodeInfoGrid.InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackNodeInfo;
         }
     }
 }

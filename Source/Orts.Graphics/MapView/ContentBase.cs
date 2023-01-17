@@ -32,10 +32,6 @@ namespace Orts.Graphics.MapView
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
-        public INameValueInformationProvider TrackNodeInfo { get; private protected set; }
-
-        public INameValueInformationProvider TrackItemInfo { get; private protected set; }
-
         protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));

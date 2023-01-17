@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
@@ -9,8 +8,6 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.Track;
-
-using static System.Collections.Specialized.BitVector32;
 
 namespace Orts.Graphics.MapView.Widgets
 {

@@ -11,6 +11,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
+
     public abstract class TrackModel
     {
         private sealed class PartialTrackNodeList<T> : IReadOnlyList<T> where T : class, ITrackNode
@@ -31,6 +32,11 @@ namespace Orts.Models.Track
             public void Add(T item)
             {
                 elements.Add(item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item)));
+            }
+
+            public void AddRange(IEnumerable<T> items)
+            {
+                elements.AddRange(items.Select(item => item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item))));
             }
 
             public void Clear()
@@ -57,18 +63,18 @@ namespace Orts.Models.Track
 
             private class NodeEnumerator<TModelType> : IEnumerator<TModelType> where TModelType : class
             {
-                private readonly List<int> junctions;
+                private readonly List<int> elements;
                 private readonly List<ITrackNode> trackNodes;
                 private int current;
 
                 public NodeEnumerator(List<int> elements, List<ITrackNode> source)
                 {
-                    this.junctions = elements;
+                    this.elements = elements;
                     this.trackNodes = source;
                     current = -1;
                 }
 
-                public TModelType Current => trackNodes[junctions[current]] as TModelType;
+                public TModelType Current => trackNodes[elements[current]] as TModelType;
 
                 object IEnumerator.Current => Current;
 
@@ -79,13 +85,30 @@ namespace Orts.Models.Track
                 public bool MoveNext()
                 {
                     //Avoids going beyond the end of the collection.
-                    return ++current < junctions.Count;
+                    return ++current < elements.Count;
                 }
 
                 public void Reset()
                 {
                     current = -1;
                 }
+            }
+        }
+
+#pragma warning disable CA1034 // Nested types should not be visible
+        public class Tiled
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            public TileIndexedList<TrackSegmentBase, Tile> Segments { get; }
+            public TileIndexedList<JunctionNodeBase, Tile> JunctionNodes { get; }
+            public TileIndexedList<EndNodeBase, Tile> EndNodes { get; }
+
+            internal Tiled(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctions, IEnumerable<EndNodeBase> endNodes)
+            {
+                Segments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
+                JunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(junctions);
+                EndNodes = new TileIndexedList<EndNodeBase, Tile>(endNodes
+                    );
             }
         }
 
@@ -96,9 +119,7 @@ namespace Orts.Models.Track
         public IReadOnlyList<EndNodeBase> EndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
 
-        public TileIndexedList<TrackSegmentBase, Tile> TiledSegments { get; private set; }
-        public TileIndexedList<JunctionNodeBase, Tile> TiledJunctionNodes { get; private set; }
-        public TileIndexedList<EndNodeBase, Tile> TiledEndNodes { get; private set; }
+        public Tiled ByTile { get; private set; }
 
         protected TrackModel()
         {
@@ -126,22 +147,18 @@ namespace Orts.Models.Track
             IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
 
             instance.elements.AddRange(trackSegmentSections);
-            foreach (TrackSegmentSection trackSegment in instance.elements)
-                (instance.SegmentSections as PartialTrackNodeList<TrackSegmentSection>).Add(trackSegment);
+
+            (instance.SegmentSections as PartialTrackNodeList<TrackSegmentSection>).AddRange(instance.elements.Cast<TrackSegmentSection>());
 
             instance.elements.AddRange(junctionNodes);
             instance.elements.AddRange(endNodes);
             instance.elements.Sort((t1, t2) => t1.TrackNodeIndex.CompareTo(t2.TrackNodeIndex));
             instance.elements.Insert(0, null);
 
-            foreach (JunctionNodeBase junctionNode in junctionNodes)
-                (instance.Junctions as PartialTrackNodeList<JunctionNodeBase>).Add(junctionNode);
-            foreach (EndNodeBase endNode in endNodes)
-                (instance.EndNodes as PartialTrackNodeList<EndNodeBase>).Add(endNode);
+            (instance.Junctions as PartialTrackNodeList<JunctionNodeBase>).AddRange(junctionNodes);
+            (instance.EndNodes as PartialTrackNodeList<EndNodeBase>).AddRange(endNodes);
 
-            instance.TiledSegments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-            instance.TiledJunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(instance.Junctions);
-            instance.TiledEndNodes = new TileIndexedList<EndNodeBase, Tile>(instance.EndNodes);
+            instance.ByTile = new Tiled(trackSegments, instance.Junctions, instance.EndNodes);
 
             return instance;
         }
@@ -205,7 +222,7 @@ namespace Orts.Models.Track
         public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0, bool limit = false)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (TrackSegmentBase section in TiledSegments.BoundingBox(tile, tileRadius))
+            foreach (TrackSegmentBase section in ByTile.Segments.BoundingBox(tile, tileRadius))
             {
                 if (section.TrackSegmentAt(location))
                 {
@@ -214,7 +231,7 @@ namespace Orts.Models.Track
             }
             if (!limit)
             {
-                foreach (TrackSegmentBase section in TiledSegments)
+                foreach (TrackSegmentBase section in ByTile.Segments)
                 {
                     if (section.TrackSegmentAt(location))
                         return section;
@@ -244,7 +261,7 @@ namespace Orts.Models.Track
         public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (JunctionNodeBase junctionNode in TiledJunctionNodes.BoundingBox(tile, tileRadius))
+            foreach (JunctionNodeBase junctionNode in ByTile.JunctionNodes.BoundingBox(tile, tileRadius))
             {
                 if (junctionNode.JunctionNodeAt(location))
                     return junctionNode;
@@ -259,7 +276,7 @@ namespace Orts.Models.Track
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (EndNodeBase endNode in TiledEndNodes.BoundingBox(tile, tileRadius))
+            foreach (EndNodeBase endNode in ByTile.EndNodes.BoundingBox(tile, tileRadius))
             {
                 if (endNode.EndNodeAt(location))
                     return endNode;

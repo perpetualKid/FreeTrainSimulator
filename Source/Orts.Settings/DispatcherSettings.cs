@@ -73,10 +73,6 @@ namespace Orts.Settings
         nameof(MapViewItemSettings.SoundRegions) + "=False",
         nameof(MapViewItemSettings.Grid) + "=False",
         nameof(MapViewItemSettings.Paths) + "=False",
-        nameof(MapViewItemSettings.PathEnds) + "=False",
-        nameof(MapViewItemSettings.PathIntermediates) + "=False",
-        nameof(MapViewItemSettings.PathJunctions) + "=False",
-        nameof(MapViewItemSettings.PathReversals) + "=False",
         nameof(MapViewItemSettings.TrainNames) + "=True",
 })]
         public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }

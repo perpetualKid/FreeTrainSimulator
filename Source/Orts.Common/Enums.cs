@@ -938,10 +938,6 @@ namespace Orts.Common
         Pickups,
         SoundRegions,
         Paths,
-        PathEnds,
-        PathIntermediates,
-        PathJunctions,
-        PathReversals,
         Empty,
         TrainNames,
     }

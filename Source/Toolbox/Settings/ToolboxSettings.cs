@@ -109,10 +109,6 @@ namespace Orts.Toolbox.Settings
         $"{nameof(MapViewItemSettings.SoundRegions)}=True",
         $"{nameof(MapViewItemSettings.Grid)}=True",
         $"{nameof(MapViewItemSettings.Paths)}=True",
-        $"{nameof(MapViewItemSettings.PathEnds)}=True",
-        $"{nameof(MapViewItemSettings.PathIntermediates)}=True",
-        $"{nameof(MapViewItemSettings.PathJunctions)}=True",
-        $"{nameof(MapViewItemSettings.PathReversals)}=True",
         })]
         public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }
 
@@ -130,10 +126,6 @@ namespace Orts.Toolbox.Settings
             $"{nameof(ColorSetting.RoadTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.ForestGreen)}",
             $"{nameof(ColorSetting.RoadLevelCrossing)}={nameof(Microsoft.Xna.Framework.Color.DeepPink)}",
             $"{nameof(ColorSetting.PathTrack)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathTrackIntermediate)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathJunction)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathReversal)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
             $"{nameof(ColorSetting.RoadCarSpawner)}={nameof(Microsoft.Xna.Framework.Color.White)}",
             $"{nameof(ColorSetting.SignalItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
             $"{nameof(ColorSetting.PlatformItem)}={nameof(Microsoft.Xna.Framework.Color.Navy)}",

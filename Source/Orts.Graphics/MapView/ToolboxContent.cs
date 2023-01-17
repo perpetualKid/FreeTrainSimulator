@@ -22,15 +22,22 @@ namespace Orts.Graphics.MapView
     public class ToolboxContent : ContentBase
     {
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
+        private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
+
+        private TileIndexedList<TrackItemBase, Tile> trackItemsByTile;
 
         private readonly InsetComponent insetComponent;
-        private readonly DetailnfoProxy trackNodeInfo = new DetailnfoProxy();
 
         private EditorTrainPath currentPath;
 
         public TrainPath TrainPath => currentPath?.TrainPathModel;
         private TrackModel trackModel;
         private TrackModel roadTrackModel;
+
+        public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
+
+        public INameValueInformationProvider TrackItemInfo { get; } = new DetailInfoProxy();
+
 
         public ToolboxContent(Game game) :
             base(game)
@@ -39,7 +46,6 @@ namespace Orts.Graphics.MapView
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteName;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
-            TrackNodeInfo = trackNodeInfo;
         }
 
         public override async Task Initialize()
@@ -76,51 +82,80 @@ namespace Orts.Graphics.MapView
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
             nearestSegmentForStatus = (float.MaxValue, null);
+            nearestItemForStatus = (float.MaxValue, null);
             GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
             {
                 nearestItems[MapViewItemSettings.Grid] = nearestGridTile;
             }
 
-            foreach (MapViewItemSettings viewItemSettings in EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapViewItemSettings viewItem in EnumExtension.GetValues<MapViewItemSettings>())
             {
-                double distance = double.MaxValue;
-                if (viewItemSettings == MapViewItemSettings.Grid)
+                double distanceSquared = double.MaxValue;
+                if (viewItem == MapViewItemSettings.Grid)
                     //already drawn above
                     continue;
-                if (viewSettings[viewItemSettings] && contentItems[viewItemSettings] != null)
+                if (viewSettings[viewItem] && contentItems[viewItem] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[viewItemSettings].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate<Tile> item in contentItems[viewItem].BoundingBox(bottomLeft, topRight))
                     {
                         if (item is VectorPrimitive vectorPrimitive)
                         {
                             double itemDistance = vectorPrimitive.DistanceSquared(position);
-                            if (itemDistance < distance)
+                            if (itemDistance < distanceSquared)
                             {
-                                nearestItems[viewItemSettings] = vectorPrimitive;
-                                distance = itemDistance;
+                                nearestItems[viewItem] = vectorPrimitive;
+                                distanceSquared = itemDistance;
                             }
                         }
                         else if (item is PointPrimitive pointPrimitive)
                         {
                             double itemDistance = pointPrimitive.Location.DistanceSquared(position);
-                            if (itemDistance < distance)
+                            if (itemDistance < distanceSquared)
                             {
-                                nearestItems[viewItemSettings] = pointPrimitive;
-                                distance = itemDistance;
+                                nearestItems[viewItem] = pointPrimitive;
+                                distanceSquared = itemDistance;
                             }
                         }
                     }
                 }
-                if (distance < 100)
+                if (distanceSquared < 100)
                 {
-                    if (distance < 1 || distance < nearestSegmentForStatus.distance)
-                        nearestSegmentForStatus = (distance, nearestItems[viewItemSettings] as INameValueInformationProvider);
+                    switch (viewItem)
+                    {
+                        case MapViewItemSettings.Tracks:
+                        case MapViewItemSettings.JunctionNodes:
+                        case MapViewItemSettings.EndNodes:
+                        case MapViewItemSettings.Roads:
+                        case MapViewItemSettings.RoadCrossings:
+                        case MapViewItemSettings.RoadEndNodes:
+                            if (distanceSquared < 1 || distanceSquared < nearestSegmentForStatus.distance)
+                                nearestSegmentForStatus = (distanceSquared, nearestItems[viewItem] as INameValueInformationProvider);
+                            break;
+                        default:
+                            if (distanceSquared < 1 || distanceSquared < nearestItemForStatus.distance)
+                                nearestItemForStatus = (distanceSquared, nearestItems[viewItem] as INameValueInformationProvider);
+                            break;
+                    }
                 }
                 else
-                    nearestItems[viewItemSettings] = null;
+                    nearestItems[viewItem] = null;
             }
-            trackNodeInfo.Source = nearestSegmentForStatus.statusItem;
+
+            //distanceSquared = double.MaxValue;
+            //ITileCoordinate<Tile> nearest = null;
+            //foreach (ITileCoordinate<Tile> item in trackItemsByTile.BoundingBox(bottomLeft, topRight))
+            //{
+            //    double itemDistance = (item as PointPrimitive).Location.DistanceSquared(position);
+            //    if (itemDistance < distanceSquared)
+            //    {
+            //        nearest = item;
+            //        distanceSquared = itemDistance;
+            //    }
+            //}
+            
+            (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
+            (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
@@ -252,9 +287,9 @@ namespace Orts.Graphics.MapView
             insetComponent?.SetTrackSegments(trackSegments);
 
             trackModel = TrackModel.Initialize<RailTrackModel>(game, runtimeData, trackSegments, junctionSegments, endSegments);
-            contentItems[MapViewItemSettings.Tracks] = trackModel.TiledSegments;
-            contentItems[MapViewItemSettings.JunctionNodes] = trackModel.TiledJunctionNodes;
-            contentItems[MapViewItemSettings.EndNodes] = trackModel.TiledEndNodes;
+            contentItems[MapViewItemSettings.Tracks] = trackModel.ByTile.Segments;
+            contentItems[MapViewItemSettings.JunctionNodes] = trackModel.ByTile.JunctionNodes;
+            contentItems[MapViewItemSettings.EndNodes] = trackModel.ByTile.EndNodes;
 
             Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
@@ -275,8 +310,8 @@ namespace Orts.Graphics.MapView
             });
 
             roadTrackModel = TrackModel.Initialize<RoadTrackModel>(game, runtimeData, roadSegments, Enumerable.Empty<JunctionNodeBase>(), roadEndSegments);
-            contentItems[MapViewItemSettings.Roads] = roadTrackModel.TiledSegments;
-            contentItems[MapViewItemSettings.RoadEndNodes] = roadTrackModel.TiledEndNodes;
+            contentItems[MapViewItemSettings.Roads] = roadTrackModel.ByTile.Segments;
+            contentItems[MapViewItemSettings.RoadEndNodes] = roadTrackModel.ByTile.EndNodes;
 
             // identify all tiles by looking at tracks and roads and their respective end segments
             contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
@@ -323,10 +358,12 @@ namespace Orts.Graphics.MapView
             contentItems[MapViewItemSettings.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
             contentItems[MapViewItemSettings.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
             contentItems[MapViewItemSettings.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
+
+            trackItemsByTile = new TileIndexedList<TrackItemBase, Tile>(trackItems);
         }
         #endregion
 
-        private protected class DetailnfoProxy : DetailInfoProxyBase
+        private protected class DetailInfoProxy : DetailInfoProxyBase
         {
             internal INameValueInformationProvider Source;
 

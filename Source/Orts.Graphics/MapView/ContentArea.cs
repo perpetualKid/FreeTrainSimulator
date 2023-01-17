@@ -135,18 +135,6 @@ namespace Orts.Graphics.MapView
                     WidgetColorCache.UpdateColor<EditorTrainPathSegment>(color);
                     WidgetColorCache.UpdateColor<EditorTrainPath>(color);
                     break;
-                case ColorSetting.PathTrackEnd:
-                    WidgetColorCache.UpdateColor<PathEndTrackItem>(color);
-                    break;
-                case ColorSetting.PathTrackIntermediate:
-                    WidgetColorCache.UpdateColor<PathIntermediateTrackItem>(color);
-                    break;
-                case ColorSetting.PathJunction:
-                    WidgetColorCache.UpdateColor<PathJunctionTrackItem>(color);
-                    break;
-                case ColorSetting.PathReversal:
-                    WidgetColorCache.UpdateColor<PathReversalTrackItem>(color);
-                    break;
                 case ColorSetting.PlatformItem:
                     WidgetColorCache.UpdateColor<PlatformTrackItem>(color);
                     WidgetColorCache.UpdateColor<PlatformPath>(color);
