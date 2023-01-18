@@ -92,7 +92,7 @@ namespace Orts.Graphics.Xna
             {
                 measureContainer.measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
                 measureContainer.measureGraphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-                measureContainer.formatHolder = new StringFormat(StringFormat.GenericDefault);
+                measureContainer.formatHolder = new StringFormat(StringFormat.GenericDefault) { FormatFlags = StringFormatFlags.MeasureTrailingSpaces };
             }
 
             Size size = Size.Empty;

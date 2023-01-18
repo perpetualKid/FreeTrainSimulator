@@ -31,7 +31,7 @@ namespace Orts.Graphics.MapView.Widgets
                     debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
                     debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                     debugInformation["Length"] = $"{Length:F1}m";
-                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º";
+                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º ";
                     debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
                     debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
                     debugInfoHash = hash;

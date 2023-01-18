@@ -32,7 +32,7 @@ namespace Orts.Toolbox.PopupWindows
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(240, 202), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(260, 204), catalog)
         {
             this.contentArea = contentArea;
         }
@@ -60,10 +60,11 @@ namespace Orts.Toolbox.PopupWindows
 
             layout.AddHorizontalSeparator();
             layout = layout.AddLayoutVertical();
+            columnWidth = (int)(layout.RemainingWidth / Owner.DpiScaling / 2);
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackNodeInfo,
-                ColumnWidth = new int[] { 120 - 4 },
+                ColumnWidth = new int[] { columnWidth },
             };
             layout.Add(trackNodeInfoGrid);
             return layout;
@@ -76,7 +77,7 @@ namespace Orts.Toolbox.PopupWindows
                 if (searchTypeButtons.Selected != null)
                 {
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
-                        {
+                    {
                         case SearchType.Track:
                             ITrackNode node = TrackModel.Instance<RailTrackModel>(Owner.Game).NodeByIndex(nodeIndex);
                             if (node is TrackSegmentSection segmentSection)

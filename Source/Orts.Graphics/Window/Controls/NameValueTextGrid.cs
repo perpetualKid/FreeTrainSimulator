@@ -33,7 +33,7 @@ namespace Orts.Graphics.Window.Controls
 
         public OutlineRenderOptions OutlineRenderOptions { get; set; }
 
-        public float LineSpacing { get; set; } = 1.25f;
+        public float LineSpacing { get; set; } = 1.1f;
 
         public int Column { get; set; }
 
@@ -57,12 +57,12 @@ namespace Orts.Graphics.Window.Controls
                 if (value != null)
                 {
                     multiColumn = true;
-                    int heigth = (int)(font.Size * LineSpacing);
+                    int heigth = (int)Math.Ceiling((font.Height * LineSpacing));
                     columnClippingRectangles = new Rectangle?[value.Length];
                     for (int i = 0; i < value.Length; i++)
                     {
                         if (value[i] > 0)
-                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)(value[i] * Window.Owner.DpiScaling), heigth);
+                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)Math.Ceiling((value[i] * Window.Owner.DpiScaling)), heigth);
                     }
                 }
             }
@@ -140,7 +140,7 @@ namespace Orts.Graphics.Window.Controls
                         textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions) };
                     }
                     prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(columnClippingRectangles[0]?.Width ?? defaultColumnSize * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
-                    lineOffset += font.Size * LineSpacing;
+                    lineOffset += (int)Math.Ceiling(font.Height * LineSpacing);
                 }
                 Column = Math.Clamp(Column, 0, maxColumn);
                 Row = Math.Min(Row, drawItems.Count - 2); //basically Clamping, but Math.Clamp fails if Max < Min
