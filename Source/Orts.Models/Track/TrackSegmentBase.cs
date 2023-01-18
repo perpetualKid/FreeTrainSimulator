@@ -230,6 +230,11 @@ namespace Orts.Models.Track
                 deltaAngle = (float)Math.Atan2(deltaEnd.X, deltaEnd.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToEndDirection);
                 Angle += deltaAngle;
+
+                int sign = -Math.Sign(Angle);
+                centerPoint = base.Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
+                centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
+                centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
             }
             else
             {
