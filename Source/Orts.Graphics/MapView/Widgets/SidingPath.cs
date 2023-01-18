@@ -1,14 +1,35 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>
+    internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Siding" };
+        private protected static int debugInfoHash;
+
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual InformationDictionary DetailInfo
+        {
+            get
+            {
+                int hash = SidingName.GetHashCode(StringComparison.OrdinalIgnoreCase);
+                if (hash != debugInfoHash)
+                {
+                    debugInformation["Name"] = SidingName;
+                    debugInfoHash = hash;
+                }
+                return debugInformation;
+            }
+        }
+
         internal string SidingName { get; }
 
         private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
@@ -92,6 +113,15 @@ namespace Orts.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
+            foreach (SidingSection section in this.PathSections)
+            {
+                foreach (SidingSegment segment in section.SectionSegments)
+                {
+                    double distanceSquared;
+                    if (!double.IsNaN(distanceSquared = segment.DistanceSquared(point)))
+                        return distanceSquared;
+                }
+            }
             return double.NaN;
         }
 

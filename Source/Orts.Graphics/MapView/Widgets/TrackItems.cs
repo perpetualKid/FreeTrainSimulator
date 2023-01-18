@@ -491,7 +491,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             infoHolder["Item Type"] = "Signal";
             infoHolder["Signal Type"] = Normal ? "Normal" : "Other";
-            infoHolder["Signal Type Name"] = signalType;
+            infoHolder["Signal Name"] = signalType;
         }
     }
     #endregion

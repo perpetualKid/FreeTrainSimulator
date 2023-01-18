@@ -39,7 +39,7 @@ namespace Orts.Toolbox.PopupWindows
             trackItemInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackItemInfo,
-                ColumnWidth = new int[] { 120 - 4 },
+                ColumnWidth = new int[] { layout.RemainingWidth / 3, layout.RemainingWidth / 3 * 2 },
             };
             layout.Add(trackItemInfoGrid);
             return layout;

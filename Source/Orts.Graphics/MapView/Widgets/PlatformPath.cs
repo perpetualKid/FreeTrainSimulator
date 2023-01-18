@@ -1,14 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Transactions;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>
+    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Platform" };
+        private protected static int debugInfoHash;
+
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual InformationDictionary DetailInfo
+        {
+            get
+            {
+                int hash = HashCode.Combine(StationName, PlatformName);
+                if (hash != debugInfoHash)
+                {
+                    debugInformation["Name"] = PlatformName;
+                    debugInformation["Station"] = StationName;
+                    debugInfoHash = hash;
+                }
+                return debugInformation;
+            }
+        }
+
         internal string PlatformName { get; }
         internal string StationName { get; }
 
@@ -55,7 +78,7 @@ namespace Orts.Graphics.MapView.Widgets
             StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
             //Strip the station name out of platform name (only if they are not equal)
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
-                PlatformName = PlatformName[StationName.Length..];
+                PlatformName = PlatformName[(StationName.Length + 1)..];
 
             if (PathSections.Count == 0)
             {
@@ -99,6 +122,15 @@ namespace Orts.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
+            foreach (PlatformSection section in this.PathSections)
+            {
+                foreach (PlatformSegment segment in section.SectionSegments)
+                {
+                    double distanceSquared;
+                    if (!double.IsNaN(distanceSquared = segment.DistanceSquared(point)))
+                        return distanceSquared;
+                }
+            }
             return double.NaN;
         }
 
