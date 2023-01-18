@@ -35,8 +35,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     {
         protected float MaxForcePressurePSI = (float)Pressure.Standard.ToPSI(Pressure.Standard.FromInHg(21));    // relative pressure difference for max brake force
         protected float CylPressurePSIA;
-        private float BrakeCutOffPSIA;
-        private float BrakeRestorePSIA;
         protected float VacResPressurePSIA;  // vacuum reservior pressure with piston in released position
         // defaults based on information in http://www.lmsca.org.uk/lms-coaches/LMSRAVB.pdf
         public int NumBrakeCylinders = 2;

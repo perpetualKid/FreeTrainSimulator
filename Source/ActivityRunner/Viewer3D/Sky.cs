@@ -458,7 +458,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly Texture2D moonTexture;
         private readonly Texture2D moonMask;
         private readonly Texture2D cloudTexture;
-        private Matrix moonMatrix;
 
         public SkyMaterial(Viewer viewer)
             : base(viewer, null)

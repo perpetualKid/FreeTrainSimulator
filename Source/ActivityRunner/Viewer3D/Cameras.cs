@@ -718,7 +718,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class FreeRoamCamera : RotatingCamera
     {
-        private const float maxCameraHeight = 1000f;
         private const float ZoomFactor = 2f;
 
         public override string Name { get { return Viewer.Catalog.GetString("Free"); } }

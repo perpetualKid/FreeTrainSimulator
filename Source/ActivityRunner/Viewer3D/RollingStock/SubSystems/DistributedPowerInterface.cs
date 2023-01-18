@@ -388,7 +388,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         System.Drawing.Font TableSymbolFont;
         readonly int FontHeightTableText = 16;
         readonly int FontHeightTableSymbol = 19;
-        readonly int RowHeight = 34;
         readonly int ColLength = 88;
         public bool FullTable = true;
         public CabViewControlUnit LoadUnits;

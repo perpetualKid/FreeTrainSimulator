@@ -233,11 +233,7 @@ namespace Orts.Simulation.RollingStocks
         private float InitialWagonSmokeDurationS = 1.0f;
         public float WagonSmokeVelocityMpS = 15.0f;
         public Color WagonSmokeSteadyColor = Color.Gray;
-        // used during parsing only, to keep track which coupler is currently read - first one is rear, if there are more than one it's front,
-        // and could be more read from INC file
-        private float couplerCount;
         TrainCarLocation couplerLocation;
-        private int CouplerCountLocation;
 
         // Bearing Hot Box Smoke
         public float BearingHotBoxSmokeVolumeM3pS;

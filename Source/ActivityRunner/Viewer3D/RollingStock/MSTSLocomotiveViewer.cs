@@ -1283,7 +1283,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private Texture2D _CabTexture;
         private readonly Texture2D letterboxTexture;
         private CabShader _Shader;  // Shaders must have unique Keys - below
-        private int ShaderKey = 1;  // Shader Key must refer to only o
 
         private Point _PrevScreenSize;
 

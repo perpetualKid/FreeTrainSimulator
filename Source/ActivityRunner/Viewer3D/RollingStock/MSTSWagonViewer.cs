@@ -98,9 +98,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         // Create viewers for special steam effects on car
         private List<ParticleEmitterViewer> WagonGenerator = new List<ParticleEmitterViewer>();
-        private List<ParticleEmitterViewer> DieselLocoGenerator = new List<ParticleEmitterViewer>();
         private bool HasFirstPanto;
-        private int numBogie1, numBogie2, numBogie, bogie1Axles, bogie2Axles;
+        private int numBogie1, numBogie2, bogie1Axles, bogie2Axles;
         private int bogieMatrix1, bogieMatrix2;
         private FreightAnimationsViewer FreightAnimations;
 

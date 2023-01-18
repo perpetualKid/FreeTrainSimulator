@@ -213,10 +213,6 @@ namespace Orts.Simulation.RollingStocks
         float WheelSlipTimeS;
         float WheelStopSlipTimeS;
         float CurrentWheelSlipAdhesionMultiplier;
-        float DebugTimer; // Used for debugging adhesion coefficient
-        bool DebugSpeedReached; // Used for debugging adhesion coefficient
-        float DebugSpeedIncrement = 1; // Used for debugging adhesion coefficient
-        float DebugSpeed = 1; // Used for debugging adhesion coefficient
 
         // parameters for Track Sander based upon compressor air and abrasive table for 1/2" sand blasting nozzle @ 50psi
         public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
@@ -5658,7 +5654,6 @@ namespace Orts.Simulation.RollingStocks
         private protected class LocomotiveBrakeInformation : DetailInfoBase
         {
             private readonly MSTSLocomotive locomotive;
-            private static readonly bool metricUnits = Simulator.Instance.MetricUnits;
 
             public LocomotiveBrakeInformation(MSTSLocomotive locomotive) : base(true)
             {

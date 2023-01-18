@@ -111,9 +111,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly float ParticleBoxHeightM;
 
         // 16bit Box Parameters
-        private const float ParticleBoxLengthM_16 = 500;
-        private const float ParticleBoxWidthM_16 = 500;
-        private const float ParticleBoxHeightM_16 = 43;
         private const int IndiciesPerParticle = 6;
         private const int VerticiesPerParticle = 4;
         private const int PrimitivesPerParticle = 2;
