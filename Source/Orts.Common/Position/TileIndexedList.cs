@@ -61,6 +61,7 @@ namespace Orts.Common.Position
 
         public TileIndexedList(IEnumerable<TTileCoordinate> data)
         {
+            data = data.ToList();
             if (data is IEnumerable<ITileCoordinateVector<T>> vectorData)
             {
                 IEnumerable<ITileCoordinateVector<T>> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile));
