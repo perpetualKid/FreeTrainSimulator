@@ -80,6 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "OrangeRed",    // PathTrack
             "White",        // RoadCarSpawner
             "White",        // SignalItem
+            "Firebrick",    // StationItem
             "Navy",         // PlatformItem
             "ForestGreen",  // SidingItem
             "RoyalBlue",    // SpeedPostItem

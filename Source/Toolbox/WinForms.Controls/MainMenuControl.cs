@@ -38,6 +38,7 @@ namespace Orts.Toolbox.WinForms.Controls
 
             SetupColorComboBoxMenuItem(pathTrackColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PathTrack], ColorSetting.PathTrack);
 
+            SetupColorComboBoxMenuItem(stationColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.StationItem], ColorSetting.StationItem);
             SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
             SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);

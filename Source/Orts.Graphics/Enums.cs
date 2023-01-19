@@ -35,6 +35,7 @@
         PathTrack,
         RoadCarSpawner,
         SignalItem,
+        StationItem,
         PlatformItem,
         SidingItem,
         SpeedPostItem,

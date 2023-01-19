@@ -90,7 +90,9 @@ namespace Orts.Toolbox.WinForms.Controls
             this.roadTrackEndColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.pathTrackColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathTrackColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
+            this.stationColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stationColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.platformColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.sidingColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
@@ -429,6 +431,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.roadTrackColorToolStripMenuItem,
             this.roadTrackEndColorToolStripMenuItem,
             this.pathTrackColorToolStripMenuItem,
+            this.stationColorToolStripMenuItem,
             this.platformColorToolStripMenuItem,
             this.sidingColorToolStripMenuItem,
             this.speedpostColorToolStripMenuItem,
@@ -599,6 +602,21 @@ namespace Orts.Toolbox.WinForms.Controls
             this.pathTrackColorToolStripComboBoxMenuItem.Name = "pathTrackColorToolStripComboBoxMenuItem";
             this.pathTrackColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
             // 
+            // stationColorToolStripMenuItem
+            // 
+            this.stationColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.stationColorToolStripComboBoxMenuItem});
+            this.stationColorToolStripMenuItem.Name = "stationColorToolStripMenuItem";
+            this.stationColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.stationColorToolStripMenuItem.Text = "Station Color";
+            // 
+            // platformColorToolStripComboBoxMenuItem
+            // 
+            this.stationColorToolStripComboBoxMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.stationColorToolStripComboBoxMenuItem.MaxDropDownItems = 24;
+            this.stationColorToolStripComboBoxMenuItem.Name = "stationColorToolStripComboBoxMenuItem";
+            this.stationColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
+            // 
             // platformColorToolStripMenuItem
             // 
             this.platformColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -754,12 +772,14 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripComboBox railJunctionColorComboBoxMenuItem;
         private System.Windows.Forms.ToolStripMenuItem railCrossingColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem railLevelCrossingColorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stationColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem platformColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sidingColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem speedpostColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox speedpostColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripComboBox sidingColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripComboBox platformColorToolStripComboBoxMenuItem;
+        private System.Windows.Forms.ToolStripComboBox stationColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripComboBox railCrossingColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripComboBox railLevelCrossingColorToolStripComboBoxMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
