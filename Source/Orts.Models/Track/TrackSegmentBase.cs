@@ -336,7 +336,7 @@ namespace Orts.Models.Track
         /// </summary>
         public float DirectionAt(float distance)
         {
-            return Curved ? Direction + distance / Radius : Direction;
+            return Curved ? Direction + Math.Sign(Angle) * distance / Radius : Direction;
         }
 
         public PointD LocationAt(float distance)
