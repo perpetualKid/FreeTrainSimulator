@@ -173,44 +173,42 @@ namespace Orts.Simulation.RollingStocks
             base.Update(elapsedClockSeconds);
             WheelSpeedMpS = SpeedMpS; // Set wheel speed for control car, required to make wheels go around.
 
-            if (ControllerNumberOfGears > 0 && IsLeadLocomotive())
+            if (ControllerNumberOfGears > 0 && IsLeadLocomotive() && GearBoxController != null)
             {
-                // pass gearbox command key to other locomotives in train, don't treat the player locomotive in this fashion.
+                // Pass gearbox command key to other locomotives in train, don't treat the player locomotive in this fashion.
+                // This assumes that Contol cars have been "matched" with motor cars. Also return values will be on the basis of the last motor car in the train.         
                 foreach (TrainCar car in Train.Cars)
                 {
-                    var locog = car as MSTSDieselLocomotive;
-
-                    if (car is MSTSDieselLocomotive dieselLocomotive && car != this && !dieselLocomotive.IsLeadLocomotive() && GearBoxController != null)
+                    if (car is MSTSDieselLocomotive dieselLocomotive && car != this && !dieselLocomotive.IsLeadLocomotive() && (controlGearDown || controlGearUp))
                     {
 
                         if (controlGearUp)
                         {
 
                             dieselLocomotive.GearBoxController.NotchIndex = GearBoxController.NotchIndex;
-                            locog.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
+                            dieselLocomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
 
-                            locog.ChangeGearUp();
-
-                            controlGearUp = false;
+                            dieselLocomotive.ChangeGearUp();
                         }
 
                         if (controlGearDown)
                         {
 
                             dieselLocomotive.GearBoxController.NotchIndex = GearBoxController.NotchIndex;
-                            locog.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
+                            dieselLocomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
 
-                            locog.ChangeGearDown();
-
-                            controlGearDown = false;
+                            dieselLocomotive.ChangeGearDown();
                         }
 
-                        // Read values for the HuD
-                        controlGearIndex = locog.DieselEngines[0].GearBox.CurrentGearIndex;
-                        controlGearIndication = locog.DieselEngines[0].GearBox.GearIndication;
+                        // Read values for the HuD, will be based upon the last motorcar
+                        controlGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
+                        controlGearIndication = dieselLocomotive.DieselEngines[0].GearBox.GearIndication;
                     }
-
                 }
+
+                // Rest gear flags once all the cars have been processed
+                controlGearUp = false;
+                controlGearDown = false;
             }
         }
 

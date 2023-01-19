@@ -700,7 +700,7 @@ namespace Orts.Simulation.RollingStocks
                         CabViewControls cvcList = CabViewList[0].CVFFile.CabViewControls;
                         foreach (CabViewControl cvc in cvcList)
                         {
-                            if (brakeSystemComponents.TryGetValue(cvc.ControlType.CabViewControlType, out BrakeSystemComponent component) 
+                            if (brakeSystemComponents.TryGetValue(cvc.ControlType.CabViewControlType, out BrakeSystemComponent component)
                                 && pressureUnits.TryGetValue(cvc.ControlUnit, out Pressure.Unit unit))
                             {
                                 BrakeSystemPressureUnits[component] = unit;
@@ -2029,7 +2029,7 @@ namespace Orts.Simulation.RollingStocks
                 // Pass Gearbox commands
                 // Note - at the moment there is only one GearBox Controller created, but a gearbox for each diesel engine is created. 
                 // This code keeps all gearboxes in the locomotive aligned with the first engine and gearbox.
-                if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch && IsLeadLocomotive())
+                if (dieselLocomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch)
                 {
                     // don't change the first engine as this is the reference for all the others
                     for (int i = 1; i < dieselLocomotive.DieselEngines.Count; i++)
@@ -2037,20 +2037,24 @@ namespace Orts.Simulation.RollingStocks
                         dieselLocomotive.DieselEngines[i].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
                     }
                     previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
-                }
-                // pass gearbox command key to other locomotives in train, don't treat the player locomotive in this fashion.
-                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
-                {
-                    if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && !locomotive.IsLeadLocomotive())
-                    {
-                        locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
-                        locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                        locomotive.GearboxGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
-                        locomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
 
-                        simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, locomotive.GearBoxController.NotchIndex);
-                        locomotive.AlerterReset(TCSEvent.GearBoxChanged);
-                        locomotive.SignalGearBoxChangeEvents();
+                    if (IsLeadLocomotive())
+                    {
+                        // The lead locomotive passes gearbox commands position to other locomotives in train, don't treat the player locomotive in this fashion.
+                        foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
+                        {
+                            if (locomotive != this && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic && GearBoxController.NotchIndex != previousChangedGearBoxNotch && !locomotive.IsLeadLocomotive())
+                            {
+                                locomotive.DieselEngines[0].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
+                                locomotive.GearBoxController.NotchIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                                locomotive.GearboxGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex + 1;
+                                locomotive.GearBoxController.SetValue(dieselLocomotive.GearBoxController.NotchIndex);
+
+                                simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, locomotive.GearBoxController.NotchIndex);
+                                locomotive.AlerterReset(TCSEvent.GearBoxChanged);
+                                locomotive.SignalGearBoxChangeEvents();
+                            }
+                        }
                     }
                 }
             }
@@ -2761,7 +2765,7 @@ namespace Orts.Simulation.RollingStocks
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
             }
-            
+
             if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive && steamLocomotive.SteamEngineType != SteamEngineType.Geared)
             {
                 // Managed in MSTSSteamLocomotive implementation of AdvancedAdhesion
@@ -3159,7 +3163,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else if (pric > 0)
                 {
-                    pricBaseFrictionCoefficientFactor = Math.Min((pric - 5f) * precGrad + 0.6f, 0.9f); 
+                    pricBaseFrictionCoefficientFactor = Math.Min((pric - 5f) * precGrad + 0.6f, 0.9f);
                     // should give a value between 0.6 and 0.9
                 }
 
@@ -4172,7 +4176,7 @@ namespace Orts.Simulation.RollingStocks
 
         public virtual void ChangeGearDown()
         {
-            
+
         }
 
         public virtual void StartGearBoxDecrease()
