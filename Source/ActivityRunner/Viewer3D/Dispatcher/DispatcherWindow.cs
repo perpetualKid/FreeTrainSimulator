@@ -71,17 +71,13 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "CornSilk",     // Background
             "DimGray",      // RailTrack
             "BlueViolet",   // RailTrackEnd
-            "LightGray",  // RailTrackJunction
+            "LightGray",    // RailTrackJunction
             "Firebrick",    // RailTrackCrossing
             "Crimson",      // RailLevelCrossing
             "Olive",        // RoadTrack
             "ForestGreen",  // RoadTrackEnd
             "DeepPink",     // RoadLevelCrossing
-            "OrangeRed",       // PathTrack
-            "Gold",       // PathTrackEnd
-            "Gold",       // PathTrackIntermediate
-            "Gold",       // PathJunction
-            "Gold",       // PathReversal
+            "OrangeRed",    // PathTrack
             "White",        // RoadCarSpawner
             "White",        // SignalItem
             "Navy",         // PlatformItem
