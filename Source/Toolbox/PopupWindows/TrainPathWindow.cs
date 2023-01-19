@@ -239,13 +239,13 @@ namespace Orts.Toolbox.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, TabAction, true);
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, TabAction);
             return base.Close();
         }
 
