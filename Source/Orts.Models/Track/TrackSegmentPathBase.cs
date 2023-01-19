@@ -28,10 +28,16 @@ namespace Orts.Models.Track
         public ref readonly PointD BottomRightBound => ref bottomRight;
         public ref readonly PointD MidPoint => ref midPoint;
 
+        /// <summary>
+        /// Straigth length or Segment length of the arc on a curved track section
+        /// </summary>
+        public float Length { get; private protected set; }
+
         protected TrackSegmentPathBase(in PointD start, in PointD end)
             : base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
+            Length = (float)Vector.Distance(Location);
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
@@ -89,7 +95,10 @@ namespace Orts.Models.Track
                     }
                 }
             }
-
+            foreach (TrackSegmentSectionBase<T> section in PathSections)
+            {
+                Length += section.Length;
+            }
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
@@ -97,6 +106,28 @@ namespace Orts.Models.Track
         protected abstract TrackSegmentSectionBase<T> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> AddSection(TrackModel trackModel, int trackNodeIndex);
 #pragma warning restore CA1716 // Identifiers should not match keywords
+
+        public (T segment, float remainingDistance) SegmentAt(float distance)
+        {
+            double distanceCovered = 0;
+            foreach (TrackSegmentSectionBase<T> section in PathSections)
+            {
+                foreach (T segment in section.SectionSegments)
+                {
+                    if ((distanceCovered += segment.Length) > distance)
+                    {
+                        return (segment, (float)(distance - (distanceCovered - segment.Length)));
+                    }
+                }
+            }
+            return (null, float.NaN);
+        }
+
+        public float DirectionAt(float distance)
+        {
+            (T segment, float remainingDistance) = SegmentAt(distance);
+            return segment != null ? segment.DirectionAt(remainingDistance) : float.NaN;
+        }
 
         protected void SetBounds()
         {

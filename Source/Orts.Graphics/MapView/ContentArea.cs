@@ -488,9 +488,9 @@ namespace Orts.Graphics.MapView
             TrackItemBase.SetFont(CurrentFont);
         }
 
-        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)
+        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)
         {
-            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch);
+            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch);
         }
 
         protected override void Dispose(bool disposing)

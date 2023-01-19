@@ -39,7 +39,7 @@ namespace Orts.Graphics.DrawableComponents
         /// Draw a text message (string) with transparent background
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
         /// </summary>
-        public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, 
+        public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
@@ -48,9 +48,15 @@ namespace Orts.Graphics.DrawableComponents
             {
                 return textRenderer.RenderText(message, font, OutlineRenderOptions);
             });
+            Vector2 center = point;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
-
-            (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
+            Vector2 vector = point - center;
+            float x = (float)(Math.Cos(angle) * vector.X - Math.Sin(angle) * vector.Y);
+            float y = (float)(Math.Sin(angle) * vector.X + Math.Cos(angle) * vector.Y);
+            point = center + new Vector2(x, y);
+            //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+            //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
+            (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, angle, Vector2.Zero, scale, effects, 0);
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Transactions;
 
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
@@ -26,6 +25,7 @@ namespace Orts.Graphics.MapView.Widgets
                 {
                     debugInformation["Name"] = PlatformName;
                     debugInformation["Station"] = StationName;
+                    debugInformation["Length"] = $"{Length:F1}m";
                     debugInfoHash = hash;
                 }
                 return debugInformation;

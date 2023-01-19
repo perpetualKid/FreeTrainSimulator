@@ -18,19 +18,23 @@ namespace Orts.Models.Track
         private PointD topLeft;
         private PointD bottomRight;
 
-#pragma warning disable CA1002 // Do not expose generic lists
-        public List<T> SectionSegments { get; } = new List<T>();
-#pragma warning restore CA1002 // Do not expose generic lists
+        private readonly List<T> sectionSegments = new List<T>();
+        public IReadOnlyList<T> SectionSegments => sectionSegments;
         public ref readonly PointD TopLeftBound => ref topLeft;
         public ref readonly PointD BottomRightBound => ref bottomRight;
         public ref readonly PointD MidPoint => ref midPoint;
+
+        /// <summary>
+        /// Sum if the length of all section segments
+        /// </summary>
+        public float Length { get; private set; }
 
         public int TrackNodeIndex { get; }
 
         private protected TrackSegmentSectionBase(int trackNodeIndex, IEnumerable<T> trackSegments) : base()
         {
-            SectionSegments.AddRange(trackSegments);
-            SectionSegments.Sort((t1, t2) => t1.TrackVectorSectionIndex.CompareTo(t2.TrackVectorSectionIndex));
+            sectionSegments.AddRange(trackSegments);
+            sectionSegments.Sort((t1, t2) => t1.TrackVectorSectionIndex.CompareTo(t2.TrackVectorSectionIndex));
 
             if (SectionSegments.Count == 1)
             {
@@ -50,7 +54,10 @@ namespace Orts.Models.Track
 
                 SetVector(start, end);
             }
-
+            foreach (T item in SectionSegments)
+            {
+                Length += item.Length;
+            }
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
             SetBounds();
@@ -59,7 +66,8 @@ namespace Orts.Models.Track
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
         protected TrackSegmentSectionBase(in PointD start, in PointD end) : base(start, end)
         {
-            SectionSegments.Add(CreateItem(start, end));
+            sectionSegments.Add(CreateItem(start, end));
+            Length = SectionSegments[^1].Length;
             SetBounds();
         }
 
@@ -70,7 +78,8 @@ namespace Orts.Models.Track
             SetVector(trackModel.SegmentSections[trackNodeIndex].Location, trackModel.SegmentSections[trackNodeIndex].Vector);
             foreach (TrackSegmentBase segment in trackModel.SegmentSections[trackNodeIndex].SectionSegments)
             {
-                SectionSegments.Add(CreateItem(segment));
+                sectionSegments.Add(CreateItem(segment));
+                Length += SectionSegments[^1].Length;
             }
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
@@ -93,12 +102,12 @@ namespace Orts.Models.Track
             if (startSegment == null || endSegment == null)
             {
                 Trace.TraceWarning($"Start or End point not on track for Track Vector Node {trackNodeIndex}. This will be shown as straight line in the map view.");
-                SectionSegments.Add(CreateItem(start, end));
+                sectionSegments.Add(CreateItem(start, end));
                 SetBounds();
                 return;
             }
 
-            List<TrackSegmentBase> segments;
+            IReadOnlyList<TrackSegmentBase> segments;
 
             if ((segments = trackModel.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
@@ -109,34 +118,38 @@ namespace Orts.Models.Track
             {
                 //start section
                 bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                SectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
+                sectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
                 //interim sections
                 for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    SectionSegments.Add(CreateItem(segments[i]));
+                    sectionSegments.Add(CreateItem(segments[i]));
                 }
                 //end section
                 reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                SectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
+                sectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
             }
             else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
             {
                 //end section
                 bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                SectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
+                sectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
                 //interim sections
                 for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    SectionSegments.Add(CreateItem(segments[i]));
+                    sectionSegments.Add(CreateItem(segments[i]));
                 }
                 //start section
                 reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                SectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
+                sectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
             }
             //on a single track vector section
             else
             {
-                SectionSegments.Add(CreateItem(startSegment, start, end));
+                sectionSegments.Add(CreateItem(startSegment, start, end));
+            }
+            foreach (T item in SectionSegments)
+            {
+                Length += item.Length;
             }
             SetBounds();
         }
@@ -150,7 +163,7 @@ namespace Orts.Models.Track
 
             TrackSegmentBase startSegment;
             TrackSegmentBase endSegment;
-            List<TrackSegmentBase> segments;
+            IReadOnlyList<TrackSegmentBase> segments;
 
             // simple case, both are on the same tracknode
             if (startTrackNodeIndex == endTrackNodeIndex)
@@ -174,7 +187,7 @@ namespace Orts.Models.Track
             if (startSegment == null || endSegment == null)
             {
                 //                Trace.TraceWarning($"Can't connect the both ends for Track Items ID {start.TrackItemId} and ID {end.TrackItemId} on Track Vector Node {startTrackNodeIndex} and {endTrackNodeIndex}.");
-                SectionSegments.Add(CreateItem(start, end));
+                sectionSegments.Add(CreateItem(start, end));
                 return;
             }
 
@@ -186,34 +199,38 @@ namespace Orts.Models.Track
             {
                 //start section
                 bool reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location) < startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex + 1].Location);
-                SectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
+                sectionSegments.Add(CreateItem(startSegment, start, reverse ? startSegment.Location : startSegment.Vector));
                 //interim sections
                 for (int i = startSegment.TrackVectorSectionIndex + 1; i <= endSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    SectionSegments.Add(CreateItem(segments[i]));
+                    sectionSegments.Add(CreateItem(segments[i]));
                 }
                 //end section
                 reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location) > endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex - 1].Location);
-                SectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
+                sectionSegments.Add(CreateItem(endSegment, reverse ? endSegment.Vector : endSegment.Location, end));
             }
             else if (startSegment.TrackVectorSectionIndex > endSegment.TrackVectorSectionIndex)
             {
                 //end section
                 bool reverse = endSegment.Location.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location) < endSegment.Vector.DistanceSquared(segments[endSegment.TrackVectorSectionIndex + 1].Location);
-                SectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
+                sectionSegments.Add(CreateItem(endSegment, end, reverse ? endSegment.Location : endSegment.Vector));
                 //interim sections
                 for (int i = endSegment.TrackVectorSectionIndex + 1; i <= startSegment.TrackVectorSectionIndex - 1; i++)
                 {
-                    SectionSegments.Add(CreateItem(segments[i]));
+                    sectionSegments.Add(CreateItem(segments[i]));
                 }
                 //start section
                 reverse = startSegment.Location.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location) > startSegment.Vector.DistanceSquared(segments[startSegment.TrackVectorSectionIndex - 1].Location);
-                SectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
+                sectionSegments.Add(CreateItem(startSegment, reverse ? startSegment.Vector : startSegment.Location, start));
             }
             //on a single track vector section
             else
             {
-                SectionSegments.Add(CreateItem(startSegment, start, end));
+                sectionSegments.Add(CreateItem(startSegment, start, end));
+            }
+            foreach (T item in SectionSegments)
+            {
+                Length += item.Length;
             }
             TrackNodeIndex = SectionSegments[0].TrackNodeIndex;
             SetBounds();

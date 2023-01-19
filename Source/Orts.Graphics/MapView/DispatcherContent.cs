@@ -145,7 +145,7 @@ namespace Orts.Graphics.MapView
             if (trackModel == null || trackModel.SegmentSections.Count == 0)
                 return;
             Traveller traveller = new Traveller(trainTraveller);
-            List<TrackSegmentBase> trackSegments;
+            IReadOnlyList<TrackSegmentBase> trackSegments;
             if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
             {
                 PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));

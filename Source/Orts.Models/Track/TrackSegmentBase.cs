@@ -5,6 +5,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
@@ -34,7 +35,7 @@ namespace Orts.Models.Track
         /// </summary>
         public float Length { get; private protected set; }
         /// <summary>
-        /// Angular Size (Length) of the Arc in Degree for curved segments
+        /// Angular Size (opening) of the Arc in Radians for curved segments
         /// </summary>
         public float Angle { get; private protected set; }
         /// <summary>
@@ -235,6 +236,7 @@ namespace Orts.Models.Track
                 centerPoint = base.Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
                 centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
+                Length = Radius * Math.Abs(Angle);
             }
             else
             {
@@ -327,7 +329,30 @@ namespace Orts.Models.Track
             {
                 return Direction;
             }
+        }
 
+        /// <summary>
+        /// Direction (Heading from North) at point at distance along the current track segment
+        /// </summary>
+        public float DirectionAt(float distance)
+        {
+            return Curved ? Direction + distance / Radius : Direction;
+        }
+
+        public PointD LocationAt(float distance)
+        {
+            if (Curved)
+            {
+                int sign = Math.Sign(Angle);
+                double direction = Direction + sign * distance / Radius;
+                return (centerPoint + new PointD(sign * Math.Sin(direction) * Radius, sign * Math.Cos(direction) * Radius));
+            }
+            else
+            {
+                double dx = Vector.X - Location.X;
+                double dy = Vector.Y - Location.Y;
+                return (new PointD(Location.X + dx * distance/Length, Location.Y + dy * distance / Length));
+            }
         }
     }
 }

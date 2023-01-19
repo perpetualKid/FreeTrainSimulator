@@ -241,7 +241,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<SidingTrackItem>(colorVariation);
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top);
+            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -276,8 +276,8 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<PlatformTrackItem>(colorVariation);
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Top);
-            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, HorizontalAlignment.Left, VerticalAlignment.Bottom);
+            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
+            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -320,7 +320,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Center);
+            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
