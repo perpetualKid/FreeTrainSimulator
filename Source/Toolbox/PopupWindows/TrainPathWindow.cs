@@ -6,6 +6,7 @@ using System.Linq;
 using GetText;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
@@ -288,9 +289,16 @@ namespace Orts.Toolbox.PopupWindows
             }
             else if (line?.Tag is Models.Simplified.Path path)
             {
-                PathFile patFile = new PathFile(path.FilePath);
-                ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
-                (line.Controls[0] as RadioButton).State = true;
+                try
+                {
+                    PathFile patFile = new PathFile(path.FilePath);
+                    ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
+                    (line.Controls[0] as RadioButton).State = true;
+                }
+                catch (Exception ex) when (ex is Exception)
+                {
+                    System.Windows.Forms.MessageBox.Show("Invalid path data");
+                }
             }
         }
 
@@ -304,8 +312,15 @@ namespace Orts.Toolbox.PopupWindows
             }
             else
             {
-                ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
-                (sender as RadioButton).State = false;
+                try
+                {
+                    ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
+                    (sender as RadioButton).State = false;
+                }
+                catch (Exception ex) when (ex is Exception)
+                {
+                    System.Windows.Forms.MessageBox.Show("Invalid path data");
+                }
             }
         }
 
@@ -350,7 +365,7 @@ namespace Orts.Toolbox.PopupWindows
                 if (control != pathLine)
                 {
                     control.BorderColor = Color.Transparent;
-//                    ((pathLine as ControlLayout)?.Controls[0] as RadioButton).State = false;
+                    //                    ((pathLine as ControlLayout)?.Controls[0] as RadioButton).State = false;
                 }
                 else
                 {
