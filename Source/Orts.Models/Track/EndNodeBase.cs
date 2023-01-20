@@ -7,10 +7,14 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public abstract class EndNodeBase: PointPrimitive, ITrackNode
+    public abstract class EndNodeBase: PointPrimitive, IIndexedElement
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }
+
+#pragma warning disable CA1033 // Interface methods should be callable by child types
+        int IIndexedElement.Index => TrackNodeIndex;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
             base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))

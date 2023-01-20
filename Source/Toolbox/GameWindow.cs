@@ -198,7 +198,7 @@ namespace Orts.Toolbox
             }
         }
 
-        internal void UpdateItemVisibilityPreference(MapViewItemSettings setting, bool enabled)
+        internal void UpdateItemVisibilityPreference(MapContentType setting, bool enabled)
         {
             Settings.ViewSettings[setting] = enabled;
         }

@@ -94,7 +94,7 @@ namespace Orts.Graphics.MapView.Widgets
                   PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
+            TrackModel trackModel = TrackModel.Instance(game);
 
             TrainPathModel = new TrainPath(pathFile, filePath, game);
 

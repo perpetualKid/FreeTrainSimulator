@@ -12,7 +12,7 @@ namespace Orts.Models.Track
     /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class TrackSegmentSectionBase<T> : VectorPrimitive, ITrackNode where T : TrackSegmentBase
+    public abstract class TrackSegmentSectionBase<T> : VectorPrimitive, IIndexedElement where T : TrackSegmentBase
     {
         private PointD midPoint;
         private PointD topLeft;
@@ -30,6 +30,10 @@ namespace Orts.Models.Track
         public float Length { get; private set; }
 
         public int TrackNodeIndex { get; }
+
+#pragma warning disable CA1033 // Interface methods should be callable by child types
+        int IIndexedElement.Index => TrackNodeIndex;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         private protected TrackSegmentSectionBase(int trackNodeIndex, IEnumerable<T> trackSegments) : base()
         {

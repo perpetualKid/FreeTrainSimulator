@@ -488,7 +488,7 @@ namespace Orts.Graphics.MapView
             int fontsize = MathHelper.Clamp((int)(25 * Scale), 4, 25);
             if (fontsize != (CurrentFont?.Size ?? 0))
                 CurrentFont = fontManager[fontsize];
-            TrackItemBase.SetFont(CurrentFont);
+            TrackItemWidget.SetFont(CurrentFont);
         }
 
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)

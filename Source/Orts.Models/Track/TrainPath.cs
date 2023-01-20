@@ -28,7 +28,7 @@ namespace Orts.Models.Track
             ArgumentNullException.ThrowIfNull(pathFile);
             ArgumentNullException.ThrowIfNull(game);
 
-            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
+            TrackModel trackModel = TrackModel.Instance(game);
             PathFile = pathFile;
             FilePath = filePath;
             TrainPathItem beforeEndNode = null;

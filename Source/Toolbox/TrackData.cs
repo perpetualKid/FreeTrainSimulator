@@ -25,7 +25,6 @@ namespace Orts.Toolbox
 
         internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
         {
-            TrackModel.Instance<RailTrackModel>(game)?.Reset();
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
             TrackDB trackDB = null;

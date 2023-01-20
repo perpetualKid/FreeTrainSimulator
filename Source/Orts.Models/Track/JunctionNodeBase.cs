@@ -9,12 +9,16 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public abstract class JunctionNodeBase : PointPrimitive, ITrackNode
+    public abstract class JunctionNodeBase : PointPrimitive, IIndexedElement
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }
 
         public int MainRoute { get; }
+
+#pragma warning disable CA1033 // Interface methods should be callable by child types
+        int IIndexedElement.Index => TrackNodeIndex;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         protected JunctionNodeBase(TrackJunctionNode junctionNode, int mainRouteIndex, IList<TrackVectorNode> vectorNodes, TrackSections trackSections) :
             base(junctionNode?.UiD.Location ?? throw new ArgumentNullException(nameof(junctionNode)))

@@ -3,23 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-
-    public abstract class TrackModel
+    public enum TrackElementType
     {
-        private sealed class PartialTrackNodeList<T> : IReadOnlyList<T> where T : class, ITrackNode
+        RailTrack,
+        RoadTrack,
+    }
+
+    public sealed class TrackModel
+    {
+
+        private sealed class PartialTrackElementList<T> : IReadOnlyList<T> where T : class, IIndexedElement
         {
             private readonly List<int> elements;
-            private readonly List<ITrackNode> parent;
+            private readonly List<IIndexedElement> parent;
 
-            internal PartialTrackNodeList(List<ITrackNode> parent)
+            internal PartialTrackElementList(List<IIndexedElement> parent)
             {
                 this.parent = parent;
                 elements = new List<int>();
@@ -31,12 +39,12 @@ namespace Orts.Models.Track
 
             public void Add(T item)
             {
-                elements.Add(item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item)));
+                elements.Add(item?.Index ?? throw new ArgumentNullException(nameof(item)));
             }
 
             public void AddRange(IEnumerable<T> items)
             {
-                elements.AddRange(items.Select(item => item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item))));
+                elements.AddRange(items.Select(item => item?.Index ?? throw new ArgumentNullException(nameof(item))));
             }
 
             public void Clear()
@@ -46,7 +54,7 @@ namespace Orts.Models.Track
 
             public bool Contains(T item)
             {
-                return elements.Contains(item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item)));
+                return elements.Contains(item?.Index ?? throw new ArgumentNullException(nameof(item)));
             }
 
             public IEnumerator GetEnumerator()
@@ -54,7 +62,7 @@ namespace Orts.Models.Track
                 return new NodeEnumerator<T>(elements, parent);
             }
 
-            public static int IndexOf(T item) => item?.TrackNodeIndex ?? throw new ArgumentNullException(nameof(item));
+            public static int IndexOf(T item) => item?.Index ?? throw new ArgumentNullException(nameof(item));
 
             IEnumerator<T> IEnumerable<T>.GetEnumerator()
             {
@@ -64,10 +72,10 @@ namespace Orts.Models.Track
             private class NodeEnumerator<TModelType> : IEnumerator<TModelType> where TModelType : class
             {
                 private readonly List<int> elements;
-                private readonly List<ITrackNode> trackNodes;
+                private readonly List<IIndexedElement> trackNodes;
                 private int current;
 
-                public NodeEnumerator(List<int> elements, List<ITrackNode> source)
+                public NodeEnumerator(List<int> elements, List<IIndexedElement> source)
                 {
                     this.elements = elements;
                     this.trackNodes = source;
@@ -95,83 +103,118 @@ namespace Orts.Models.Track
             }
         }
 
-#pragma warning disable CA1034 // Nested types should not be visible
-        public class Tiled
-#pragma warning restore CA1034 // Nested types should not be visible
-        {
-            public TileIndexedList<TrackSegmentBase, Tile> Segments { get; }
-            public TileIndexedList<JunctionNodeBase, Tile> JunctionNodes { get; }
-            public TileIndexedList<EndNodeBase, Tile> EndNodes { get; }
+        private readonly List<IIndexedElement> railTrackElements = new List<IIndexedElement>();
+        private readonly List<IIndexedElement> roadTrackElements = new List<IIndexedElement>();
+        private readonly List<IIndexedElement> railTrackItems = new List<IIndexedElement>();
 
-            internal Tiled(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctions, IEnumerable<EndNodeBase> endNodes)
-            {
-                Segments = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-                JunctionNodes = new TileIndexedList<JunctionNodeBase, Tile>(junctions);
-                EndNodes = new TileIndexedList<EndNodeBase, Tile>(endNodes
-                    );
-            }
-        }
-
-        private readonly List<ITrackNode> elements = new List<ITrackNode>();
-
-        public RuntimeData RuntimeData { get; init; }
+        public RuntimeData RuntimeData { get; }
         public IReadOnlyList<JunctionNodeBase> Junctions { get; }
         public IReadOnlyList<EndNodeBase> EndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
+        public IReadOnlyList<EndNodeBase> RoadEndNodes { get; }
+        public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; }
 
-        public Tiled ByTile { get; private set; }
+        public EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapContentType>();
 
-        protected TrackModel()
+        private TrackModel(RuntimeData runtimeData)
         {
-            Junctions = new PartialTrackNodeList<JunctionNodeBase>(elements);
-            EndNodes = new PartialTrackNodeList<EndNodeBase>(elements);
-            SegmentSections = new PartialTrackNodeList<TrackSegmentSection>(elements);
+            RuntimeData = runtimeData;
+            Junctions = new PartialTrackElementList<JunctionNodeBase>(railTrackElements);
+            EndNodes = new PartialTrackElementList<EndNodeBase>(railTrackElements);
+            SegmentSections = new PartialTrackElementList<TrackSegmentSection>(railTrackElements);
+            RoadEndNodes = new PartialTrackElementList<EndNodeBase>(roadTrackElements);
+            RoadSegmentSections = new PartialTrackElementList<TrackSegmentSection>(roadTrackElements);
         }
 
-        public static T Instance<T>(Game game) where T : TrackModel
+        public static TrackModel Instance(Game game)
         {
-            return game?.Services.GetService<T>();
+            return game?.Services.GetService<TrackModel>();
         }
 
-        public static T Initialize<T>(Game game, RuntimeData runtimeData, IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
-            where T : TrackModel, new()
+        public static TrackModel Reset(Game game, RuntimeData runtimeData)
         {
-            game?.Services.RemoveService(typeof(T));
-            T instance = new T() { RuntimeData = runtimeData };
-            game.Services.AddService(typeof(T), instance);
+            game?.Services.RemoveService(typeof(TrackModel));
+            TrackModel instance = new TrackModel(runtimeData);
+            game.Services.AddService(instance);
+            return instance;
+        }
 
+        public void InitializeRailTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        {
             ArgumentNullException.ThrowIfNull(trackSegments);
             ArgumentNullException.ThrowIfNull(junctionNodes);
             ArgumentNullException.ThrowIfNull(endNodes);
 
             IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
 
-            instance.elements.AddRange(trackSegmentSections);
+            railTrackElements.AddRange(trackSegmentSections);
 
-            (instance.SegmentSections as PartialTrackNodeList<TrackSegmentSection>).AddRange(instance.elements.Cast<TrackSegmentSection>());
+            (SegmentSections as PartialTrackElementList<TrackSegmentSection>).AddRange(railTrackElements.Cast<TrackSegmentSection>());
 
-            instance.elements.AddRange(junctionNodes);
-            instance.elements.AddRange(endNodes);
-            instance.elements.Sort((t1, t2) => t1.TrackNodeIndex.CompareTo(t2.TrackNodeIndex));
-            instance.elements.Insert(0, null);
+            railTrackElements.AddRange(junctionNodes);
+            railTrackElements.AddRange(endNodes);
+            railTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
+            railTrackElements.Insert(0, null);
 
-            (instance.Junctions as PartialTrackNodeList<JunctionNodeBase>).AddRange(junctionNodes);
-            (instance.EndNodes as PartialTrackNodeList<EndNodeBase>).AddRange(endNodes);
+            (Junctions as PartialTrackElementList<JunctionNodeBase>).AddRange(junctionNodes);
+            (EndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
 
-            instance.ByTile = new Tiled(trackSegments, instance.Junctions, instance.EndNodes);
+            ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
+            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase, Tile>(Junctions);
+            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase, Tile>(EndNodes);
+        }
 
-            return instance;
+        public void InitializeRoadTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<EndNodeBase> endNodes)
+        {
+            ArgumentNullException.ThrowIfNull(trackSegments);
+            ArgumentNullException.ThrowIfNull(endNodes);
+
+            IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
+
+            roadTrackElements.AddRange(trackSegmentSections);
+
+            (RoadSegmentSections as PartialTrackElementList<TrackSegmentSection>).AddRange(roadTrackElements.Cast<TrackSegmentSection>());
+
+            roadTrackElements.AddRange(endNodes);
+            roadTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
+            roadTrackElements.Insert(0, null);
+
+            (RoadEndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
+
+            ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
+            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase, Tile>(RoadEndNodes);
+        }
+
+        public void InitializeTrackItems(IEnumerable<TrackItemBase> trackItems)
+        {
+            ArgumentNullException.ThrowIfNull(trackItems);
+
+            railTrackItems.AddRange(trackItems);
+            railTrackItems.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
         }
 
         public void Reset()
         {
-            elements.Clear();
-            (Junctions as PartialTrackNodeList<JunctionNodeBase>).Clear();
-            (EndNodes as PartialTrackNodeList<EndNodeBase>).Clear();
-            (SegmentSections as PartialTrackNodeList<TrackSegmentSection>).Clear();
+            railTrackElements.Clear();
+            (Junctions as PartialTrackElementList<JunctionNodeBase>).Clear();
+            (EndNodes as PartialTrackElementList<EndNodeBase>).Clear();
+            (SegmentSections as PartialTrackElementList<TrackSegmentSection>).Clear();
         }
 
-        public ITrackNode NodeByIndex(int index) => index > -1 && index < elements.Count ? elements[index] : null;
+        public IIndexedElement TrackNodeByIndex(int index, TrackElementType trackElementType = TrackElementType.RailTrack)
+        {
+            return trackElementType switch
+            {
+                TrackElementType.RailTrack => index > -1 && index < railTrackElements.Count ? railTrackElements[index] : null,
+                TrackElementType.RoadTrack => index > -1 && index < roadTrackElements.Count ? roadTrackElements[index] : null,
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        public IIndexedElement TrackItemByIndex(int index)
+        {
+            return index > -1 && index < railTrackItems.Count ? railTrackItems[index] : null;
+        }
 
         public IEnumerable<TrackSegmentBase> SegmentsAt(PointD location)
         {
@@ -222,7 +265,7 @@ namespace Orts.Models.Track
         public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0, bool limit = false)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (TrackSegmentBase section in ByTile.Segments.BoundingBox(tile, tileRadius))
+            foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks].BoundingBox(tile, tileRadius))
             {
                 if (section.TrackSegmentAt(location))
                 {
@@ -231,7 +274,7 @@ namespace Orts.Models.Track
             }
             if (!limit)
             {
-                foreach (TrackSegmentBase section in ByTile.Segments)
+                foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks])
                 {
                     if (section.TrackSegmentAt(location))
                         return section;
@@ -261,7 +304,7 @@ namespace Orts.Models.Track
         public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (JunctionNodeBase junctionNode in ByTile.JunctionNodes.BoundingBox(tile, tileRadius))
+            foreach (JunctionNodeBase junctionNode in ContentByTile[MapContentType.JunctionNodes].BoundingBox(tile, tileRadius))
             {
                 if (junctionNode.JunctionNodeAt(location))
                     return junctionNode;
@@ -276,19 +319,12 @@ namespace Orts.Models.Track
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
-            foreach (EndNodeBase endNode in ByTile.EndNodes.BoundingBox(tile, tileRadius))
+            foreach (EndNodeBase endNode in ContentByTile[MapContentType.EndNodes].BoundingBox(tile, tileRadius))
             {
                 if (endNode.EndNodeAt(location))
                     return endNode;
             }
             return null;
         }
-    }
-
-    public class RailTrackModel : TrackModel
-    { }
-
-    public class RoadTrackModel : TrackModel
-    {
     }
 }

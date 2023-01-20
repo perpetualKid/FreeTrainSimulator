@@ -21,16 +21,16 @@ namespace Orts.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
-        private readonly MapViewItemSettings[] drawItems = {
-            MapViewItemSettings.Platforms,
-            MapViewItemSettings.Sidings,
-            MapViewItemSettings.Tracks,
-            MapViewItemSettings.EndNodes,
-            MapViewItemSettings.JunctionNodes,
-            MapViewItemSettings.Signals,
-            MapViewItemSettings.StationNames,
-            MapViewItemSettings.PlatformNames,
-            MapViewItemSettings.SidingNames};
+        private readonly MapContentType[] drawItems = {
+            MapContentType.Platforms,
+            MapContentType.Sidings,
+            MapContentType.Tracks,
+            MapContentType.EndNodes,
+            MapContentType.JunctionNodes,
+            MapContentType.Signals,
+            MapContentType.StationNames,
+            MapContentType.PlatformNames,
+            MapContentType.SidingNames};
 
         private readonly InsetComponent insetComponent;
 
@@ -57,11 +57,11 @@ namespace Orts.Graphics.MapView
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
         {
-            foreach (MapViewItemSettings MapViewItemSettings in drawItems) // EnumExtension.GetValues<MapViewItemSettings>())
+            foreach (MapContentType MapViewItemSettings in drawItems) // EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[MapViewItemSettings] && contentItems[MapViewItemSettings] != null)
+                if (viewSettings[MapViewItemSettings] && trackModel.ContentByTile[MapViewItemSettings] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in contentItems[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate<Tile> item in trackModel.ContentByTile[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
@@ -82,7 +82,7 @@ namespace Orts.Graphics.MapView
                 if (ContentArea.InsideScreenArea(train))
                 {
                     train.Draw(ContentArea, ColorVariation.None);
-                    if (viewSettings[MapViewItemSettings.TrainNames])
+                    if (viewSettings[MapContentType.TrainNames])
                         train.DrawName(ContentArea);
                 }
             }
@@ -92,15 +92,15 @@ namespace Orts.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
         {
-            GridTile nearestGridTile = contentItems[MapViewItemSettings.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
-            if (nearestGridTile != nearestItems[MapViewItemSettings.Grid])
+            GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
+            if (nearestGridTile != nearestItems[MapContentType.Grid])
             {
-                nearestItems[MapViewItemSettings.Grid] = nearestGridTile;
+                nearestItems[MapContentType.Grid] = nearestGridTile;
             }
 
             double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;
-            foreach (JunctionNode junction in contentItems[MapViewItemSettings.JunctionNodes][nearestGridTile.Tile])
+            foreach (JunctionNode junction in trackModel.ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile])
             {
                 double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -109,7 +109,7 @@ namespace Orts.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            foreach (SignalTrackItem signal in contentItems[MapViewItemSettings.Signals][nearestGridTile.Tile])
+            foreach (SignalTrackItem signal in trackModel.ContentByTile[MapContentType.Signals][nearestGridTile.Tile])
             {
                 double itemDistance = signal.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -139,7 +139,6 @@ namespace Orts.Graphics.MapView
         // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
-            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
             float remainingPathLength = 2000;
             PathSegments.Clear();
             if (trackModel == null || trackModel.SegmentSections.Count == 0)
@@ -234,14 +233,12 @@ namespace Orts.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            contentItems[MapViewItemSettings.Tracks] = new TileIndexedList<TrackSegment, Tile>(trackSegments);
-            contentItems[MapViewItemSettings.JunctionNodes] = new TileIndexedList<JunctionNode, Tile>(junctionSegments);
-            contentItems[MapViewItemSettings.EndNodes] = new TileIndexedList<EndNode, Tile>(endSegments);
-            TrackModel.Initialize<RailTrackModel>(game, RuntimeData.GameInstance(game), trackSegments, junctionSegments, endSegments);
+            trackModel = TrackModel.Reset(game, RuntimeData.GameInstance(game));
+            trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
-            contentItems[MapViewItemSettings.Grid] = new TileIndexedList<GridTile, Tile>(
-                contentItems[MapViewItemSettings.Tracks].Select(d => d.Tile as ITile).Distinct()
-                .Union(contentItems[MapViewItemSettings.EndNodes].Select(d => d.Tile as ITile).Distinct())
+            trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile, Tile>(
+                trackModel.ContentByTile[MapContentType.Tracks].Select(d => d.Tile as ITile).Distinct()
+                .Union(trackModel.ContentByTile[MapContentType.EndNodes].Select(d => d.Tile as ITile).Distinct())
                 .Select(t => new GridTile(t)));
 
             InitializeBounds();
@@ -250,26 +247,25 @@ namespace Orts.Graphics.MapView
         private void AddTrackItems()
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackModel trackModel = TrackModel.Instance<RailTrackModel>(game);
 
-            IEnumerable<TrackItemBase> trackItems = TrackItemBase.CreateTrackItems(
+            IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 runtimeData.TrackDB?.TrackItems,
                 runtimeData.SignalConfigFile,
                 runtimeData.TrackDB,
-                trackModel.SegmentSections).Concat(TrackItemBase.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
-            contentItems[MapViewItemSettings.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
+            trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
 
             IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
-            contentItems[MapViewItemSettings.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+            trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
 
-            contentItems[MapViewItemSettings.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
+            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
 
             IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName);
-            contentItems[MapViewItemSettings.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
-            contentItems[MapViewItemSettings.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
-            contentItems[MapViewItemSettings.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
+            trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
+            trackModel.ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
+            trackModel.ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
 
         }
     }

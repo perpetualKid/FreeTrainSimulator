@@ -208,7 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
-            TrackModel.Instance<RailTrackModel>(this)?.Reset();
+            TrackModel.Instance(this)?.Reset();
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();

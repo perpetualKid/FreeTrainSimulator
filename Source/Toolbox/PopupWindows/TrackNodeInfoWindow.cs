@@ -55,7 +55,7 @@ namespace Orts.Toolbox.PopupWindows
             searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { State = false, Tag = SearchType.Road });
             searchBoxLine.Add(new Label(this, columnWidth, searchBoxLine.RemainingHeight, Catalog.GetString("Roads")));
 
-            line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find TrackNode by Index"), Graphics.HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));
+            line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find Track Node by Index"), Graphics.HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));
             headerLabel.OnClick += HeaderLabel_OnClick;
 
             layout.AddHorizontalSeparator();
@@ -79,21 +79,21 @@ namespace Orts.Toolbox.PopupWindows
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                     {
                         case SearchType.Track:
-                            ITrackNode node = TrackModel.Instance<RailTrackModel>(Owner.Game).NodeByIndex(nodeIndex);
+                            IIndexedElement node = TrackModel.Instance(Owner.Game).TrackNodeByIndex(nodeIndex, TrackElementType.RailTrack);
                             if (node is TrackSegmentSection segmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(segmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(Common.MapViewItemSettings.Tracks, segmentSection.SectionSegments[0]);
+                                contentArea.Content.HighlightItem(Common.MapContentType.Tracks, segmentSection.SectionSegments[0]);
                             }
                             break;
                         case SearchType.Road:
-                            ITrackNode roadNode = TrackModel.Instance<RoadTrackModel>(Owner.Game).NodeByIndex(nodeIndex);
+                            IIndexedElement roadNode = TrackModel.Instance(Owner.Game).TrackNodeByIndex(nodeIndex, TrackElementType.RoadTrack);
                             if (roadNode is TrackSegmentSection roadSegmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(roadSegmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(Common.MapViewItemSettings.Roads, roadSegmentSection.SectionSegments[0]);
+                                contentArea.Content.HighlightItem(Common.MapContentType.Roads, roadSegmentSection.SectionSegments[0]);
                             }
                             break;
                     }

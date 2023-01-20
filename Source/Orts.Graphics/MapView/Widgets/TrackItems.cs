@@ -18,7 +18,7 @@ using Orts.Models.Track;
 namespace Orts.Graphics.MapView.Widgets
 {
     #region TrackItemBase
-    internal abstract class TrackItemBase : PointPrimitive, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal abstract class TrackItemWidget : TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Empty" };
         private protected static int debugInfoItemId;
@@ -46,7 +46,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
-        public TrackItemBase(TrackItem source): base(source.Location)
+        public TrackItemWidget(TrackItem source): base(source.Location)
         {
             Size = 3;
             TrackItemId = source.TrackItemId;
@@ -54,12 +54,12 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal static void SetFont(System.Drawing.Font font)
         {
-            TrackItemBase.font = font;
+            TrackItemWidget.font = font;
         }
 
-        public static List<TrackItemBase> CreateRoadItems(IList<TrackItem> trackItems)
+        public static List<TrackItemWidget> CreateRoadItems(IList<TrackItem> trackItems)
         {
-            List<TrackItemBase> result = new List<TrackItemBase>();
+            List<TrackItemWidget> result = new List<TrackItemWidget>();
             if (trackItems == null)
                 return result;
 
@@ -85,9 +85,9 @@ namespace Orts.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemBase> CreateTrackItems(IReadOnlyList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
+        public static List<TrackItemWidget> CreateTrackItems(IReadOnlyList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
         {
-            List<TrackItemBase> result = new List<TrackItemBase>();
+            List<TrackItemWidget> result = new List<TrackItemWidget>();
             if (trackItems == null)
                 return result;
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
@@ -158,7 +158,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region CrossOverTrackItem
-    internal class CrossOverTrackItem : TrackItemBase
+    internal class CrossOverTrackItem : TrackItemWidget
     {
         public CrossOverTrackItem(CrossoverItem source) : base(source)
         {
@@ -180,7 +180,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region CarSpawnerTrackItem
-    internal class CarSpawnerTrackItem : TrackItemBase
+    internal class CarSpawnerTrackItem : TrackItemWidget
     {
         public CarSpawnerTrackItem(RoadCarSpawnerItem source) : base(source)
         {
@@ -200,7 +200,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region EmptyTrackItem
-    internal class EmptyTrackItem : TrackItemBase
+    internal class EmptyTrackItem : TrackItemWidget
     {
         public EmptyTrackItem(EmptyItem source) : base(source)
         {
@@ -222,7 +222,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region SidingTrackItem
-    internal class SidingTrackItem : TrackItemBase
+    internal class SidingTrackItem : TrackItemWidget
     {
         internal readonly string SidingName;
         internal readonly int LinkedId;
@@ -254,7 +254,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region PlatformTrackItem
-    internal class PlatformTrackItem : TrackItemBase
+    internal class PlatformTrackItem : TrackItemWidget
     {
         internal readonly string PlatformName;
         internal readonly string StationName;
@@ -291,7 +291,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region SpeedPostTrackItem
-    internal class SpeedPostTrackItem : TrackItemBase
+    internal class SpeedPostTrackItem : TrackItemWidget
     {
         private readonly string distance;
         internal readonly bool MilePost;
@@ -331,7 +331,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region HazardTrackItem
-    internal class HazardTrackItem : TrackItemBase
+    internal class HazardTrackItem : TrackItemWidget
     {
         public HazardTrackItem(HazardItem source) : base(source)
         {
@@ -351,7 +351,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region PickupTrackItem
-    internal class PickupTrackItem : TrackItemBase
+    internal class PickupTrackItem : TrackItemWidget
     {
         public PickupTrackItem(PickupItem source) : base(source)
         {
@@ -371,7 +371,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region LevelCrossingTrackItem
-    internal class LevelCrossingTrackItem : TrackItemBase
+    internal class LevelCrossingTrackItem : TrackItemWidget
     {
         internal readonly bool RoadLevelCrossing;
 
@@ -399,7 +399,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region SoundRegionTrackItem
-    internal class SoundRegionTrackItem : TrackItemBase
+    internal class SoundRegionTrackItem : TrackItemWidget
     {
         public SoundRegionTrackItem(SoundRegionItem source) : base(source)
         {
@@ -419,7 +419,7 @@ namespace Orts.Graphics.MapView.Widgets
     #endregion
 
     #region SignalTrackItem
-    internal class SignalTrackItem : TrackItemBase
+    internal class SignalTrackItem : TrackItemWidget
     {
         private readonly float angle;
         internal readonly bool Normal = true;

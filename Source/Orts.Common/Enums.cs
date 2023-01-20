@@ -912,7 +912,7 @@ namespace Orts.Common
         [Description("Hard")] Hard
     }
 
-    public enum MapViewItemSettings
+    public enum MapContentType
     {
         // types should be placed in the order they are drawn (overlap), top level last
         Grid,

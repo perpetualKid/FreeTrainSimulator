@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using GetText;
 
@@ -13,6 +9,7 @@ using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Models.Track;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -22,6 +19,9 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackItemInfoGrid;
+        private ControlLayout searchBoxLine;
+        private TextInput searchBox;
+        private Label headerLabel;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         public TrackItemInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
@@ -35,8 +35,22 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
 
+            ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
+            searchBoxLine = line.AddLayoutHorizontalLineOfText();
+            searchBoxLine.Visible = false;
+            int columnWidth = searchBoxLine.RemainingWidth / 4;
+            searchBoxLine.Add(searchBox = new TextInput(this, searchBoxLine.RemainingWidth, searchBoxLine.RemainingHeight));
+            searchBox.TextChanged += SearchBox_TextChanged;
+            searchBox.OnEscapeKey += SearchBox_OnEscapeKey;
+            searchBox.OnEnterKey += SearchBox_OnEnterKey;
+
+            line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find Track Item by Index"), Graphics.HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));
+            headerLabel.OnClick += HeaderLabel_OnClick;
+
+            layout.AddHorizontalSeparator();
+
             layout = layout.AddLayoutVertical();
-            int columnWidth = (int)(layout.RemainingWidth / Owner.DpiScaling / 3);
+            columnWidth = (int)(layout.RemainingWidth / Owner.DpiScaling / 3);
             trackItemInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackItemInfo,
@@ -51,6 +65,42 @@ namespace Orts.Toolbox.PopupWindows
             contentArea = e.ContentArea;
             trackItemInfoGrid.InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackItemInfo;
         }
+
+        private void SearchBox_OnEnterKey(object sender, EventArgs e)
+        {
+            if (int.TryParse((sender as TextInput).Text, out int nodeIndex))
+            {
+                IIndexedElement item = TrackModel.Instance(Owner.Game).TrackItemByIndex(nodeIndex);
+                if (item is TrackItemBase trackItem)
+                {
+//                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
+                    contentArea?.SetTrackingPosition(trackItem.Location);
+//                    contentArea.Content.HighlightItem(Common.MapViewItemSettings.Tracks, segmentSection.SectionSegments[0]);
+                }
+            }
+            SearchBox_OnEscapeKey(sender, e);
+        }
+
+        private void HeaderLabel_OnClick(object sender, MouseClickEventArgs e)
+        {
+            headerLabel.Visible = false;
+            searchBoxLine.Visible = true;
+        }
+
+        private void SearchBox_OnEscapeKey(object sender, EventArgs e)
+        {
+            searchBox.Text = null;
+            searchBoxLine.Visible = false;
+            headerLabel.Visible = true;
+        }
+
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            string searchText = (sender as TextInput).Text;
+            if (!string.IsNullOrEmpty(searchText) && !char.IsDigit(searchText[^1]))
+                (sender as TextInput).Text = searchText[..^1];
+        }
+
 
     }
 }
