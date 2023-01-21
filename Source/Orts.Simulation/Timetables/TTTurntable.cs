@@ -188,14 +188,19 @@ namespace Orts.Simulation.Timetables
                             if (pathValid)
                             {
                                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
-                                // if last element is end of track, remove it from path
+                                // if first element is end of track, remove it from path (path is defined outbound)
                                 TrackCircuitPartialPathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
-                                int lastIndex = usedRoute.Count - 1;
-                                if (usedRoute[lastIndex].TrackCircuitSection.CircuitType == TrackCircuitType.EndOfTrack)
+                                if (TrackCircuitSection.TrackCircuitList[usedRoute.First().TrackCircuitSection.Index].CircuitType == TrackCircuitType.EndOfTrack)
                                 {
-                                    lastIndex = usedRoute.Count - 2;
+                                    usedRoute.RemoveAt(0);
+                                }
+                                // if last element is send of track, remove it from path (if path has no junction it may be in reverse direction)
+                                if (TrackCircuitSection.TrackCircuitList[usedRoute.Last().TrackCircuitSection.Index].CircuitType == TrackCircuitType.EndOfTrack)
+                                {
+                                    usedRoute.RemoveAt(usedRoute.Count - 1);
                                 }
 
+                                // create path list if required
                                 if (AdditionalTurntableDetails.AccessPaths == null)
                                 {
                                     AdditionalTurntableDetails.AccessPaths = new List<AccessPathDetails>();
@@ -616,14 +621,6 @@ namespace Orts.Simulation.Timetables
         {
             AccessPathDetails thisPath = AdditionalTurntableDetails.AccessPaths[ipath];
 
-            float baseLength = 0;
-
-            // calculate total length of path sections except first section
-            for (int isection = 1; isection < thisPath.AccessPath.Count; isection++)
-            {
-                baseLength += thisPath.AccessPath[isection].TrackCircuitSection.Length;
-            }
-
             // calculate total length of track sections in first section backward upto turntable section
             TrackCircuitSection thisSection = thisPath.AccessPath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
@@ -657,13 +654,11 @@ namespace Orts.Simulation.Timetables
                 thisPath.AccessTraveller.Direction = Direction.Backward;
             }
 
-            float totalLength = baseLength + entrySectionLength;
-
             // deduct clearance for turntable
             // if no explicit clearance defined, use length of last vector before turntable
 
-            thisPath.TableApproachOffset = totalLength - AdditionalTurntableDetails.TurntableApproachClearanceM;
-            thisPath.TableMiddleEntry = totalLength + (thisTurntable.Length / 2.0f);
+            thisPath.TableApproachOffset = entrySectionLength - AdditionalTurntableDetails.TurntableApproachClearanceM;
+            thisPath.TableMiddleEntry = entrySectionLength + (thisTurntable.Length / 2.0f);
             thisPath.TableMiddleExit = exitSectionLength + (thisTurntable.Length / 2.0f);
 
 #if DEBUG_TURNTABLEINFO
@@ -833,24 +828,27 @@ namespace Orts.Simulation.Timetables
             for (int iSection = train.TCRoute.TCRouteSubpaths.Last().Count - 1; iSection >= 0 && reqPath == -1; iSection--)
             {
                 int lastSectionIndex = train.TCRoute.TCRouteSubpaths.Last()[iSection].TrackCircuitSection.Index;
-                TrackDirection lastSectionDirection = train.TCRoute.TCRouteSubpaths.Last().Last().Direction;
+                TrackDirection lastSectionDirection = train.TCRoute.TCRouteSubpaths.Last()[iSection].Direction;
 
-                for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count && reqPath < 0; iPath++)
+                if (TrackCircuitSection.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.Normal)
                 {
-                    TrackCircuitPartialPathRoute accessPath = AdditionalTurntableDetails.AccessPaths[iPath].AccessPath;
-                    reqPathIndex = accessPath.GetRouteIndex(lastSectionIndex, 0);
-
-                    // path is defined outbound, so directions must be opposite
-                    if (reqPathIndex >= 0 && accessPath[reqPathIndex].Direction != lastSectionDirection)
+                    for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count && reqPath < 0; iPath++)
                     {
-                        reqPath = iPath;
-                        lastValidSectionIndex = iSection;
+                        TrackCircuitPartialPathRoute accessPath = AdditionalTurntableDetails.AccessPaths[iPath].AccessPath;
+                        reqPathIndex = accessPath.GetRouteIndex(lastSectionIndex, 0);
+
+                        // path is defined outbound, so directions must be opposite
+                        if (reqPathIndex >= 0 && accessPath[reqPathIndex].Direction != lastSectionDirection)
+                        {
+                            reqPath = iPath;
+                            lastValidSectionIndex = iSection;
+                        }
                     }
                 }
             }
 
             // remove sections from train route if required
-            if (lastValidSectionIndex < train.TCRoute.TCRouteSubpaths.Last().Count - 1)
+            if (reqPath >= 0 && lastValidSectionIndex < train.TCRoute.TCRouteSubpaths.Last().Count - 1)
             {
                 for (int iSection = train.TCRoute.TCRouteSubpaths.Last().Count - 1; iSection > lastValidSectionIndex; iSection--)
                 {
@@ -973,7 +971,7 @@ namespace Orts.Simulation.Timetables
 #if DEBUG_POOLINFO
                 sob = new StringBuilder();
                 sob.AppendFormat("Pool {0} : cannot find train {1} for {2} ({3}) \n", PoolName, selectedTrainNumber, train.Number, train.Name);
-                sob.AppendFormat("           stored units : {0}", reqStorage.StoredUnits.Count);
+                sob.AppendFormat("           stored units : {0}", StoragePool[selectedStorage].StoredUnits.Count);
                 File.AppendAllText(@"C:\temp\PoolAnal.csv", sob.ToString() + "\n");
 #endif
                 return (TrainFromPool.Delayed);
@@ -989,7 +987,7 @@ namespace Orts.Simulation.Timetables
 #if DEBUG_POOLINFO
             sob = new StringBuilder();
             sob.AppendFormat("Pool {0} : train {1} ({2}) extracted as {3} ({4}) \n", PoolName, selectedTrain.Number, selectedTrain.Name, train.Number, train.Name);
-            sob.AppendFormat("           stored units : {0}", reqStorage.StoredUnits.Count);
+            sob.AppendFormat("           stored units : {0}", StoragePool[selectedStorage].StoredUnits.Count);
             File.AppendAllText(@"C:\temp\PoolAnal.csv", sob.ToString() + "\n");
 #endif
             // add access path from turntable to train path (path is defined outbound)
@@ -1209,8 +1207,9 @@ namespace Orts.Simulation.Timetables
             // no action if state is poolClaimed - state will resolve as train ahead is stabled in pool
 
             // valid pool
-            else if (reqPool > 0)
+            else if (reqPool >= 0)
             {
+                // train approaches from exit path - train is moving toward turntable and is stored after turntable movement
                 if (checkAccessPath)
                 {
                     bool validPath = TestPoolAccess(train, out reqPath);
@@ -1241,16 +1240,31 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        poolStorageState = reqPool;
+                        train.PoolStorageIndex = reqPool;
+
+                        // set approach to turntable
+                        // also add unit to storage as claim
+                        newRoute.Last().MovingTableApproachPath = reqPath;
+                        AddUnit(train, true);
+                        StoragePool[reqPool].ClaimUnits.Add(train.Number);
+
                     }
                 }
                 // create new route from access track only
                 // use first defined access track
-                // reverse path as path is outbound
+                // if only one unit allowed on storage, reverse path so train stands at allocated position
+                // if multiple units allowed on storage, do not reverse path so train moves to end of storage location
                 else
                 {
-                    newRoute = new TrackCircuitPartialPathRoute(AdditionalTurntableDetails.AccessPaths[0].AccessPath.ReversePath());
-                    poolStorageState = reqPool;
+                    if (StoragePool[reqPool].maxStoredUnits == 1)
+                    {
+                        newRoute = new TrackCircuitPartialPathRoute(AdditionalTurntableDetails.AccessPaths[0].AccessPath.ReversePath());
+                    }
+                    else
+                    {
+                        newRoute = new TrackCircuitPartialPathRoute(AdditionalTurntableDetails.AccessPaths[0].AccessPath);
+                    }
+                    train.PoolStorageIndex = reqPool;
                 }
             }
 
@@ -1275,6 +1289,11 @@ namespace Orts.Simulation.Timetables
             // get distance to approach point from present position of train
             int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TrackCircuitSection.Index, 0);
             float startoffset = TrackCircuitSection.TrackCircuitList[frontPosition.TrackCircuitSectionIndex].Length - frontPosition.Offset;
+            if (frontPosition.RouteListIndex < 0 && turntableSectionIndex < 0)
+            {
+                Trace.TraceInformation("Invalid check on turntable approach : present position and turntable index both < 0; for pool : " + PoolName);
+                return (-1);
+            }
             float distanceToTurntable = thisRoute.GetDistanceAlongRoute(frontPosition.RouteListIndex, startoffset,
                 turntableSectionIndex, AdditionalTurntableDetails.AccessPaths[pathIndex].TableApproachOffset, true);
 
@@ -2383,6 +2402,8 @@ namespace Orts.Simulation.Timetables
             parentTrain.ControlMode = TrainControlMode.AutoNode;
             parentTrain.DistanceTravelledM = 0;
             parentTrain.DelayedStartMoving(AiStartMovement.PathAction);
+            parentTrain.EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
+            parentTrain.EndAuthorityTypes[1] = EndAuthorityType.NoPathReserved;
 
             // actions for mode access (train going into storage)
             if (MovingTableAction == MovingTableAction.FromAccess)
@@ -2395,7 +2416,7 @@ namespace Orts.Simulation.Timetables
                 float endOffset = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.TrackNodeOffset + parentTrain.Length;
                 if (endOffset < parentTrain.DistanceToEndNodeAuthorityM[0])
                 {
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = endOffset;
+                    parentTrain.DistanceToEndNodeAuthorityM[0] = parentTrain.NextStopDistanceM = endOffset;
                 }
             }
 
@@ -2422,6 +2443,8 @@ namespace Orts.Simulation.Timetables
         public void RemoveTrainFromTurntable()
         {
             // clear table
+            parentTurntable ??= parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
+
             parentTurntable.TrainsOnMovingTable.Clear();
             parentTurntable.InUse = false;
             parentTurntable.GoToAutoTarget = false;
@@ -2429,7 +2452,7 @@ namespace Orts.Simulation.Timetables
 
             // reset train speed
             parentTrain.TrainMaxSpeedMpS = originalTrainMaxSpeedMpS;
-            ActivateSpeedLimit activeSpeeds = new ActivateSpeedLimit(0.0f, originalSpeedLimitMpS, originalSpeedSignalMpS);
+            ActivateSpeedLimit activeSpeeds = new ActivateSpeedLimit(0.0f, originalSpeedLimitMpS, originalSpeedSignalMpS, originalSpeedLimitMpS);
 
             if (parentTrain.TrainType == TrainType.Player)
             {
