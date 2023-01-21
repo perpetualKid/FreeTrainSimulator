@@ -549,7 +549,7 @@ namespace Orts.Simulation.AIs
 
             if (MovementState == AiMovementState.Static)
             {
-                PhysicsUpdate(0);   //required to make train visible ; set elapsed time to zero to avoid actual movement
+                CalculatePositionOfCars(0, 0);   //required to make train visible ; set elapsed time to zero to avoid actual movement
             }
             else
             {
