@@ -8676,9 +8676,10 @@ namespace Orts.Simulation.Physics
             LastReservedSection[0] = -1;
             LastReservedSection[1] = -1;
 
-            // clear outstanding clear sections
+            // clear outstanding clear sections and remove them from queue as they are no longer required
 
-            foreach (DistanceTravelledItem actionItem in RequiredActions)
+            List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+            foreach (DistanceTravelledItem actionItem in activeActions)
             {
                 if (actionItem is ClearSectionItem clearSectionItem)
                 {
