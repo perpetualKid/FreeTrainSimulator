@@ -1485,6 +1485,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SelectedTrain == e.PreviousTrain)
             {
                 SelectedTrain = e.CurrentTrain;
+                SetCommandReceivers();
             }
         }
 
