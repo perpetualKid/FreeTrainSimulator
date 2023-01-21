@@ -24,8 +24,6 @@ namespace Orts.Graphics.MapView
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
-        //public TileIndexedList<TrackItemBase, Tile> TrackItemsByTile { get; private set; }
-
         private readonly InsetComponent insetComponent;
 
         private EditorTrainPath currentPath;
@@ -139,18 +137,6 @@ namespace Orts.Graphics.MapView
                 else
                     nearestItems[viewItem] = null;
             }
-
-            //distanceSquared = double.MaxValue;
-            //ITileCoordinate<Tile> nearest = null;
-            //foreach (ITileCoordinate<Tile> item in trackItemsByTile.BoundingBox(bottomLeft, topRight))
-            //{
-            //    double itemDistance = (item as PointPrimitive).Location.DistanceSquared(position);
-            //    if (itemDistance < distanceSquared)
-            //    {
-            //        nearest = item;
-            //        distanceSquared = itemDistance;
-            //    }
-            //}
             
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
@@ -354,8 +340,6 @@ namespace Orts.Graphics.MapView
             trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
             trackModel.ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
             trackModel.ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
-
-            //TrackItemsByTile = new TileIndexedList<TrackItemBase, Tile>(trackItems);
         }
         #endregion
 
