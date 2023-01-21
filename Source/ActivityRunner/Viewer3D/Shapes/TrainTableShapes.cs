@@ -97,6 +97,17 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 animationKey = nextKey % SharedShape.Animations[0].FrameCount;
                 if (animationKey < 0)
                     animationKey += SharedShape.Animations[0].FrameCount;
+                // used if Turntable cannot turn 360 degrees
+                if (turntable.MaxAngle > 0 && animationKey != 0)
+                {
+                    if (animationKey < -SharedShape.Animations[0].FrameCount * turntable.MaxAngle / (2 * Math.PI) + SharedShape.Animations[0].FrameCount)
+                    {
+                        if (animationKey > 20)
+                            animationKey = -SharedShape.Animations[0].FrameCount * turntable.MaxAngle / (float)(2 * Math.PI) + SharedShape.Animations[0].FrameCount;
+                        else
+                            animationKey = 0;
+                    }
+                }
                 turntable.YAngle = MathHelper.WrapAngle((float)(nextKey / SharedShape.Animations[0].FrameCount * MathHelper.TwoPi));
 
                 if ((turntable.RotationDirection != Rotation.None || turntable.AutoRotationDirection != Rotation.None) && !rotating)

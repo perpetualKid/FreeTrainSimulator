@@ -41,6 +41,7 @@ namespace Orts.Simulation.World
         // Dynamic data
         public Rotation RotationDirection { get; set; }
         public Rotation AutoRotationDirection { get; set; }
+        public float MaxAngle { get; set; } = -1; // max angle extension for partial turntables (in radians)
 
         public float YAngle { get; set; } // Y angle of animated part, to be compared with Y angles of endpoints
         public bool ForwardConnected { get; private set; } = true; // Platform has its forward part connected to a track
@@ -74,6 +75,7 @@ namespace Orts.Simulation.World
                     TrackShapeIndex = stf.ReadIntBlock(-1);
                     InitializeAnglesAndTrackNodes();
                 }),
+                new STFReader.TokenProcessor("maxangle", ()=>{ MaxAngle = MathHelper.ToRadians(stf.ReadFloatBlock(STFReader.Units.None , null));}),
              });
         }
 
@@ -284,6 +286,18 @@ namespace Orts.Simulation.World
 
         public override void GeneralStartContinuous(bool clockwise)
         {
+            if (MaxAngle > 0)
+            {
+                var positiveYAngle = YAngle >= 0 ? YAngle : YAngle + 2 * (float)Math.PI;
+                if (RotationDirection == Rotation.CounterClockwise && positiveYAngle < 0.2 || RotationDirection == Rotation.Clockwise && positiveYAngle <= 2 * (float)Math.PI - MaxAngle && positiveYAngle > 0.2)
+                {
+                    RotationDirection = Rotation.None;
+                    ContinuousMotion = false;
+                    if (SendNotifications)
+                        Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Turntable is at its bound, can't rotate"));
+                    return;
+                }
+            }
             if (TrainsOnMovingTable.Count > 1 || TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard ^ TrainsOnMovingTable[0].BackOnBoard)
             {
                 RotationDirection = Rotation.None;
