@@ -1267,15 +1267,6 @@ namespace Orts.Simulation.Timetables
                     train.PoolStorageIndex = reqPool;
                 }
             }
-
-            // if route is valid, set state for last section to approach moving table
-            // also add unit to storage as claim
-            if (newRoute != null)
-            {
-                newRoute.Last().MovingTableApproachPath = reqPath;
-                AddUnit(train, true);
-                StoragePool[poolStorageState].ClaimUnits.Add(train.Number);
-            }
             return (newRoute);
         }
 
