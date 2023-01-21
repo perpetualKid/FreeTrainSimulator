@@ -52,7 +52,7 @@ namespace Orts.Simulation.AIs
     public class AITrain : Train
     {
         private protected int uid;
-        internal AIPath Path { get; set; }
+        internal AIPath Path { get; set; }  
 
         public float MaxDecelMpSSP = 1.0f;               // maximum decelleration
         public float MaxAccelMpSSP = 1.0f;               // maximum accelleration
@@ -4419,7 +4419,11 @@ namespace Orts.Simulation.AIs
                 if (thisItem.ActiveItem.SignalState == SignalAspectState.Stop &&
                     thisItem.ActiveItem.SignalDetails.HoldState == SignalHoldState.StationStop)
                 {
-                    actionValid = false;
+                    // check if train is approaching or standing at station and has not yet departed
+                    if (StationStops != null && StationStops.Count >= 1 && AtStation && StationStops[0].ExitSignal == thisItem.ActiveItem.ObjectDetails.thisRef)
+                    {
+                        actionValid = false;
+                    }
                 }
 
                 // check if cleared
