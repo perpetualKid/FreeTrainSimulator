@@ -246,7 +246,7 @@ namespace Orts.Simulation.Track
             // startOffset is remaining length of startSection in required direction
             // endOffset is length along endSection in required direction
 
-            if (startIndex == endIndex)
+            if (startIndex == endIndex && startIndex > -1)
             {
                 return startOffset - (this[startIndex].TrackCircuitSection.Length - endOffset);
             }

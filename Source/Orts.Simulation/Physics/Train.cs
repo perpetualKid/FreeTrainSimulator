@@ -11249,7 +11249,7 @@ namespace Orts.Simulation.Physics
                                 PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[i];
                                 if (string.Equals(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    int otherSectionIndex = routeElement.Direction == 0 ? otherPlatform.TCSectionIndex[0] : otherPlatform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
+                                    int otherSectionIndex = routeElement.Direction == 0 ? otherPlatform.TCSectionIndex[0] : otherPlatform.TCSectionIndex[^1];
                                     if (otherSectionIndex == beginSectionIndex)
                                     {
                                         if (otherPlatform.TrackCircuitOffset[Location.NearEnd, routeElement.Direction] < actualBegin)
