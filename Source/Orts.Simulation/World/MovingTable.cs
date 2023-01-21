@@ -179,8 +179,8 @@ namespace Orts.Simulation.World
             }
 
             int trainsWaiting = inf.ReadInt32();
-            for (int waitingTrain = 0; waitingTrain < trainsWaiting - 1; waitingTrain++)
-                WaitingTrains.Enqueue(waitingTrain);
+            for (int waitingTrain = 0; waitingTrain < trainsWaiting; waitingTrain++)
+                WaitingTrains.Enqueue(inf.ReadInt32());
         }
 
         private static Vector3 RestoreVector(BinaryReader inf)

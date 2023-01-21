@@ -363,10 +363,13 @@ namespace Orts.Simulation.World
                 int relativeCarPositions = 0;
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
-                    traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
+                    if (base.relativeCarPositions != null)
+                    {
+                        traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
                         Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
-                    traincar.UpdateFreightAnimationDiscretePositions();
-                    relativeCarPositions++;
+                        traincar.UpdateFreightAnimationDiscretePositions();
+                        relativeCarPositions++;
+                    }
                 }
             }
         }
