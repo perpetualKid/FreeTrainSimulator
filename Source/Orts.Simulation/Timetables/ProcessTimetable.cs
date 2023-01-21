@@ -1006,14 +1006,7 @@ namespace Orts.Simulation.Timetables
             {
                 if (thisTrain.TriggeredActivationRequired)
                 {
-                    if (thisTrain.Number == 0)
-                    {
-                        activatedTrains.Add(thisTrain.OrgAINumber);
-                    }
-                    else
-                    {
-                        activatedTrains.Add(thisTrain.Number);
-                    }
+                    activatedTrains.Add(thisTrain.OrgAINumber);
                 }
             }
 
@@ -1046,13 +1039,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            if (activatedTrains.Contains(otherTrain.Number))
-                            {
-                                activatedTrains.Remove(otherTrain.Number);
-                                thisTrigger.activatedTrain = otherTrain.Number;
-                                thisTrain.activatedTrainTriggers.Insert(itrigger, thisTrigger);
-                            }
-                            else if (activatedTrains.Contains(otherTrain.OrgAINumber))
+                            if (activatedTrains.Contains(otherTrain.OrgAINumber))
                             {
                                 activatedTrains.Remove(otherTrain.OrgAINumber);
                                 thisTrigger.activatedTrain = otherTrain.Number;
@@ -1089,13 +1076,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        if (activatedTrains.Contains(otherTrain.Number))
-                        {
-                            activatedTrains.Remove(otherTrain.Number);
-                            thisTrigger.activatedTrain = otherTrain.Number;
-                            reqPlayerTrain.activatedTrainTriggers.Insert(itrigger, thisTrigger);
-                        }
-                        else if (activatedTrains.Contains(otherTrain.OrgAINumber))
+                        if (activatedTrains.Contains(otherTrain.OrgAINumber))
                         {
                             activatedTrains.Remove(otherTrain.OrgAINumber);
                             thisTrigger.activatedTrain = otherTrain.Number;
@@ -1360,6 +1341,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 TTTrain.MovementState = AiMovementState.Static;
+                TTTrain.OrgAINumber = TTTrain.Number;
 
                 // no path defined : exit
                 if (string.IsNullOrEmpty(fileStrings[pathRow][columnIndex]))
