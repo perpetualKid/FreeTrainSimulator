@@ -10282,6 +10282,11 @@ namespace Orts.Simulation.Timetables
 
                 default:
                     iunits = numberOfUnits;
+                    if (iunits > Cars.Count - 1)
+                    {
+                        Trace.TraceInformation("Train {0} : no. of units to detach ({1}) : value too large, only {2} units on train\n", Name, iunits, Cars.Count);
+                        iunits = Cars.Count - 1;
+                    }
                     frontpos = detachUnits == DetachInfo.DetachUnitsInfo.unitsAtFront;
                     break;
             }
@@ -12063,6 +12068,14 @@ namespace Orts.Simulation.Timetables
 
             bool portionDefined = false;
             bool formedTrainDefined = false;
+
+
+            if (commandInfo?.CommandQualifiers == null || commandInfo.CommandQualifiers.Count < 1)
+            {
+                Trace.TraceInformation("Train {0} : missing detach command qualifiers", thisTrain?.Name);
+                Valid = false;
+                return;
+            }
 
             foreach (TTTrainCommands.TTTrainComQualifiers Qualifier in commandInfo.CommandQualifiers)
             {
