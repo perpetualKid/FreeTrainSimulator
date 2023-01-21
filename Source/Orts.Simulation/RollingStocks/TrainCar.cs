@@ -1555,7 +1555,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     // If speed exceeds the overturning speed, then indicated that an error condition has been reached.
-                    if (s > CriticalMaxSpeedMpS && Train.GetType() != typeof(AITrain) && Train.GetType() != typeof(TTTrain)) // Breaking of brake hose will not apply to TT mode or AI trains)
+                    if (s > CriticalMaxSpeedMpS && !(Train is AITrain) && !(Train is TTTrain)) // Breaking of brake hose will not apply to TT mode or AI trains)
                     {
                         if (!criticalMaxSpeedReached)
                         {
