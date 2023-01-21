@@ -1160,57 +1160,14 @@ namespace Orts.Simulation.AIs
                 int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
                 TimetablePool thisPool = simulator.PoolHolder.Pools[thisTrain.CreateInPool];
 
-                int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
-                thisTrain.TCRoute.TCRouteSubpaths[0] = thisPool.CreateInPool(thisTrain, out PoolStorageState, false);
-                thisTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
-                thisTrain.TCRoute.ActiveSubPath = 0;
+
+                int PoolStorageState = thisPool.CreateInPool(thisTrain, nextTrains);
 
                 // if no storage available - abondone train
                 if (PoolStorageState < 0)
                 {
                     Trace.TraceInformation("Train : " + thisTrain.Name + " : no storage room available in pool : " + thisPool.PoolName + " ; engine not created");
                     return (endPreRun);
-                }
-
-                // use stored traveller
-                thisTrain.PoolStorageIndex = PoolStorageState;
-                thisTrain.RearTDBTraveller = new Traveller(thisPool.StoragePool[thisTrain.PoolStorageIndex].StoragePathTraveller);
-
-                // if storage available check for other engines on storage track
-                if (thisPool.StoragePool[thisTrain.PoolStorageIndex].StoredUnits.Count > 0)
-                {
-                    int lastTrainNumber = thisPool.StoragePool[thisTrain.PoolStorageIndex].StoredUnits[thisPool.StoragePool[thisTrain.PoolStorageIndex].StoredUnits.Count - 1];
-                    TTTrain lastTrain = thisTrain.GetOtherTTTrainByNumber(lastTrainNumber);
-                    if (lastTrain == null)
-                    {
-                        lastTrain = Simulator.Instance.GetAutoGenTTTrainByNumber(lastTrainNumber);
-                    }
-                    if (lastTrain != null)
-                    {
-                        thisTrain.CreateAhead = lastTrain.Name;
-                    }
-                }
-
-                tempRoute = thisTrain.CalculateInitialTTTrainPosition(ref validPosition, nextTrains);
-
-                if (validPosition)
-                {
-                    thisTrain.SetInitialTrainRoute(tempRoute);
-                    thisTrain.CalculatePositionOfCars();
-                    for (int i = 0; i < thisTrain.Cars.Count; i++)
-                    {
-                        Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
-                        position.Y -= 1000;
-                        thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
-                    }
-                    thisTrain.ResetInitialTrainRoute(tempRoute);
-
-                    // set train route and position so proper position in pool can be calculated
-                    thisTrain.UpdateTrainPosition();
-
-                    // add unit to pool
-                    thisPool.AddUnit(thisTrain, false);
-                    validPosition = thisTrain.PostInit(false); // post init train but do not activate
                 }
             }
 

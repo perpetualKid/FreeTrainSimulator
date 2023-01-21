@@ -1,4 +1,4 @@
-// COPYRIGHT 2014 by the Open Rails project.
+﻿// COPYRIGHT 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -179,6 +179,7 @@ namespace Orts.Simulation.Timetables
         {
             public TrackCircuitPartialPathRoute StoragePath;          // path defined as storage location
             public Traveller StoragePathTraveller;            // traveller used to get path position and direction
+            public Traveller StoragePathReverseTraveller;     // traveller used if path must be reversed
             public string StorageName;                        // storage name
             public List<TrackCircuitPartialPathRoute> AccessPaths;    // access paths defined for storage location
             public float StorageLength;                       // available length
@@ -739,16 +740,74 @@ namespace Orts.Simulation.Timetables
         //================================================================================================//
         /// <summary>
         /// Create in pool : create train in pool
-        /// For this type of pool, a train is created in pool by running it into the pool as would be done on dispose
         /// </summary>
         /// <param name="train"></param>
-
-        public virtual TrackCircuitPartialPathRoute CreateInPool(TTTrain train, out int poolStorageIndex, bool checkAccessPath)
+        virtual public int CreateInPool(TTTrain train, List<TTTrain> nextTrains)
         {
-            int tempIndex;
-            TrackCircuitPartialPathRoute newRoute = SetPoolExit(train, out tempIndex, checkAccessPath);
+            int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
+            train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out PoolStorageState, false);
+            train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.TCRoute.ActiveSubPath = 0;
+
+            // if no storage available - abondone train
+            if (PoolStorageState < 0)
+            {
+                return (PoolStorageState);
+            }
+
+            // use stored traveller
+            train.PoolStorageIndex = PoolStorageState;
+            train.RearTDBTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
+
+            // if storage available check for other engines on storage track
+            if (StoragePool[train.PoolStorageIndex].StoredUnits.Count > 0)
+            {
+                int lastTrainNumber = StoragePool[train.PoolStorageIndex].StoredUnits[^1];
+                TTTrain lastTrain = train.GetOtherTTTrainByNumber(lastTrainNumber);
+                lastTrain ??= Simulator.Instance.GetAutoGenTTTrainByNumber(lastTrainNumber);
+                if (lastTrain != null)
+                {
+                    train.CreateAhead = lastTrain.Name;
+                }
+            }
+
+            bool validPosition = false;
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTTTrainPosition(ref validPosition, nextTrains);
+
+            if (validPosition)
+            {
+                train.SetInitialTrainRoute(tempRoute);
+                train.CalculatePositionOfCars();
+                for (int i = 0; i < train.Cars.Count; i++)
+                {
+                    Microsoft.Xna.Framework.Vector3 position = train.Cars[i].WorldPosition.XNAMatrix.Translation;
+                    position.Y -= 1000;
+                    train.Cars[i].UpdateWorldPosition(train.Cars[i].WorldPosition.SetTranslation(position));
+                }
+                train.ResetInitialTrainRoute(tempRoute);
+
+                // set train route and position so proper position in pool can be calculated
+                train.UpdateTrainPosition();
+
+                // add unit to pool
+                AddUnit(train, false);
+                validPosition = train.PostInit(false); // post init train but do not activate
+            }
+
+            return (PoolStorageState);
+        }
+
+
+        //================================================================================================//
+        /// <summary>
+        /// Place in pool : place train in pool
+        /// </summary>
+        /// <param name="train"></param>
+        virtual public TrackCircuitPartialPathRoute PlaceInPool(TTTrain train, out int poolStorageIndex, bool checkAccessPath)
+        {
+            TrackCircuitPartialPathRoute newRoute = SetPoolExit(train, out int tempIndex, checkAccessPath);
             poolStorageIndex = tempIndex;
-            return (newRoute);
+            return newRoute;
         }
 
         //================================================================================================//
