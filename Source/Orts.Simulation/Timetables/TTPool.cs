@@ -299,6 +299,7 @@ namespace Orts.Simulation.Timetables
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
                 newPool.StoragePathTraveller = new Traveller(inf);
+                newPool.StoragePathReverseTraveller = new Traveller(inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = new List<TrackCircuitPartialPathRoute>();
@@ -365,6 +366,7 @@ namespace Orts.Simulation.Timetables
             {
                 thisStorage.StoragePath.Save(outf);
                 thisStorage.StoragePathTraveller.Save(outf);
+                thisStorage.StoragePathReverseTraveller.Save(outf);
                 outf.Write(thisStorage.StorageName);
 
                 outf.Write(thisStorage.AccessPaths.Count);
@@ -528,8 +530,13 @@ namespace Orts.Simulation.Timetables
             {
                 TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
 
+                // front traveller
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
                 newPool.StoragePathTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                // rear traveller (for moving tables)
+                AIPathNode lastNode = newPath.Nodes.Last();
+                newPool.StoragePathReverseTraveller = new Traveller(lastNode.Location, newPool.StoragePathTraveller.Direction.Reverse());
+
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;
@@ -1120,17 +1127,38 @@ namespace Orts.Simulation.Timetables
             float remLength = 0;
 
             // same direction : use rear of train position
-            if (occSectionDirection == storageSectionDirection)
+            // for turntable pools, path is defined in opposite direction
+
+            if (this is TimetableTurntablePool)
             {
-                occSectionIndex = train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
-                TrackCircuitSection occSection = TrackCircuitSection.TrackCircuitList[occSectionIndex];
-                remLength = occSection.Length - train.PresentPosition[Direction.Backward].Offset;
+                // use rear of train position
+                if (occSectionDirection == storageSectionDirection)
+                {
+                    occSectionIndex = train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
+                    TrackCircuitSection occSection = TrackCircuitSection.TrackCircuitList[occSectionIndex];
+                    remLength = train.PresentPosition[Direction.Backward].Offset;
+                }
+                else
+                // use front of train position
+                {
+                    TrackCircuitSection occSection = TrackCircuitSection.TrackCircuitList[occSectionIndex];
+                    remLength = occSection.Length - train.PresentPosition[Direction.Forward].Offset;
+                }
             }
             else
-            // opposite direction : use front of train position
             {
-                TrackCircuitSection occSection = TrackCircuitSection.TrackCircuitList[occSectionIndex];
-                remLength = train.PresentPosition[Direction.Forward].Offset;
+                // use rear of train position
+                if (occSectionDirection == storageSectionDirection)
+                {
+                    occSectionIndex = train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
+                    TrackCircuitSection occSection = TrackCircuitSection.TrackCircuitList[occSectionIndex];
+                    remLength = occSection.Length - train.PresentPosition[Direction.Backward].Offset;
+                }
+                else
+                // use front of train position
+                {
+                    remLength = train.PresentPosition[Direction.Forward].Offset;
+                }
             }
 
             for (int iSection = reqStorage.StoragePath.Count - 1; iSection >= 0 && reqStorage.StoragePath[iSection].TrackCircuitSection.Index != occSectionIndex; iSection--)

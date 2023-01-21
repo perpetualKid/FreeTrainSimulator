@@ -444,6 +444,7 @@ namespace Orts.Simulation.Timetables
                 PoolDetails newPool = new PoolDetails();
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
                 newPool.StoragePathTraveller = new Traveller(inf);
+                newPool.StoragePathReverseTraveller = new Traveller(inf);
                 newPool.StorageName = inf.ReadString();
 
                 newPool.AccessPaths = null;
@@ -533,6 +534,7 @@ namespace Orts.Simulation.Timetables
             {
                 thisStorage.StoragePath.Save(outf);
                 thisStorage.StoragePathTraveller.Save(outf);
+                thisStorage.StoragePathReverseTraveller.Save(outf);
                 outf.Write(thisStorage.StorageName);
 
                 outf.Write(thisStorage.StoredUnits.Count);
@@ -712,6 +714,7 @@ namespace Orts.Simulation.Timetables
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Reverse;
                 thisPath.StoragePathTraveller.Direction = Direction.Forward;
+                thisPath.StoragePathReverseTraveller.Direction = Direction.Backward;
             }
             else
             {
@@ -722,6 +725,7 @@ namespace Orts.Simulation.Timetables
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Ahead;
                 thisPath.StoragePathTraveller.Direction = Direction.Backward;
+                thisPath.StoragePathReverseTraveller.Direction = Direction.Forward;
             }
 
             float totalLength = baseLength + entrySectionLength;
