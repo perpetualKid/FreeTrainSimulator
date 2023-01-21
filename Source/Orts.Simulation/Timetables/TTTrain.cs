@@ -5954,7 +5954,11 @@ namespace Orts.Simulation.Timetables
                         }
 
                         bool goingToAttach = false;
-                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.OrgAINumber)
+                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.Number)
+                        {
+                            goingToAttach = true;
+                        }
+                        else if (occTTTrain.TrainType == TRAINTYPE.PLAYER && AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.OrgAINumber)
                         {
                             goingToAttach = true;
                         }
@@ -6039,7 +6043,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     if (string.Equals(StationStops[0].PlatformItem.Name, thisPlatform.Name, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        intoPlatform = StationStops[0].CallOnAllowed;
+                                        intoPlatform = true;
                                     }
                                 }
                             }
