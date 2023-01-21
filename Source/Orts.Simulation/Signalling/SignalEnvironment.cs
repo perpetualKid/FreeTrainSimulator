@@ -2552,7 +2552,7 @@ namespace Orts.Simulation.Signalling
                             SpeedInfo speed_info = speedpost.SpeedLimit(SignalFunction.Speed);
                             if (considerSpeedReset)
                             {
-                                speed_info.Reset = speedpost.SignalSpeed(SignalFunction.Speed).Reset;
+                                speed_info.Reset = speedpost.SignalSpeed(SignalFunction.Speed)?.Reset ?? speed_info.Reset;
                             }
                             if ((isFreight && speed_info.FreightSpeed > 0) || (!isFreight && speed_info.PassengerSpeed > 0) || speed_info.Reset)
                             {
