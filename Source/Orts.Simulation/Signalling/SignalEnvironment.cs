@@ -1827,10 +1827,10 @@ namespace Orts.Simulation.Signalling
             node.SelectedRoute = switchPos;
             section.JunctionLastRoute = switchPos;
 
-            // update any linked signals
+            // update any linked signals - perform state update only (to avoid problems with route setting)
             foreach (int i in section.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signals[i].Update();
+                Signals[i].StateUpdate();
             }
         }
 
