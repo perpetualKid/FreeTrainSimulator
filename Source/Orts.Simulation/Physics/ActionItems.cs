@@ -58,6 +58,11 @@ namespace Orts.Simulation.Physics
                     outf.Write(RequiredDistance);
                     aiAction.SaveItem(outf);
                     break;
+                case ClearMovingTableAction clearMovingTableAction:
+                    outf.Write(5);
+                    outf.Write(RequiredDistance);
+                    clearMovingTableAction.SaveItem(outf);
+                    break;
                 default:
                     outf.Write(-1);
                     break;

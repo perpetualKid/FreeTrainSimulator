@@ -801,6 +801,10 @@ namespace Orts.Simulation.Physics
                         RequiredActions.InsertAction(auxAction);
                         Trace.TraceWarning("DistanceTravelledItem type 4 restored as AuxActionItem");
                         break;
+                    case 5:
+                        ClearMovingTableAction cmtAction = new ClearMovingTableAction(inf);
+                        RequiredActions.InsertAction(cmtAction);
+                        break;
                     default:
                         Trace.TraceWarning($"Unknown type of DistanceTravelledItem (type {actionType}");
                         break;
@@ -11547,7 +11551,7 @@ namespace Orts.Simulation.Physics
         /// Clear moving table after moving table actions
         /// Dummy method to allow virtualization by child classes
         /// </summary>
-        internal virtual void ClearMovingTable()
+        internal virtual void ClearMovingTable(DistanceTravelledItem action)
         {
         }
 
