@@ -484,6 +484,31 @@ namespace Orts.Simulation.World
         }
 
         /// <summary>
+        /// Check if train position is on turntable track section
+        /// </summary>
+
+        public bool CheckOnSection(Traveller trainPosition)
+        {
+            bool onTable = false;
+            int nodeIndex = -1;
+
+            for (int inode = 0; inode < trackNodesIndex.Length && nodeIndex == -1; inode++)
+            {
+                if (trackNodesIndex[inode] == trainPosition.TrackNode.Index)
+                {
+                    nodeIndex = inode;
+                }
+            }
+
+            if (nodeIndex >= 0)
+            {
+                onTable = (trainPosition.TrackVectorSectionIndex == trackNodesIndex[nodeIndex]);
+            }
+
+            return (onTable);
+        }
+
+        /// <summary>
         /// PerformUpdateActions: actions to be performed at every animation step
         /// </summary>
         public void PerformUpdateActions(Matrix absAnimationMatrix)
