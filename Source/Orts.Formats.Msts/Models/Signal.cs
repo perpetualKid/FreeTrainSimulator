@@ -741,6 +741,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = (float)Size.Length.FromYd(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = (float)Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = (float)Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedmps", ()=>{ ApproachControlSpeedMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
                 });
         }
     }
