@@ -103,12 +103,12 @@ namespace Orts.Graphics.MapView.Widgets
 
             static bool CheckPathItem(TrainPathItem pathItem, int index)
             {
-                if (pathItem.Junction && pathItem.JunctionNode == null)
+                if ((pathItem.ValidationResult & TrainPathNodeInvalidReasons.NoJunctionNode) == TrainPathNodeInvalidReasons.NoJunctionNode)
                 {
                     Trace.TraceWarning($"Path point #{index} is marked as junction but not actually located on junction.");
-                    return false;
+                    return true;
                 }
-                else if (pathItem.Invalid)
+                else if (pathItem.ValidationResult != TrainPathNodeInvalidReasons.None)
                 {
                     Trace.TraceWarning($"Path item #{index} is not on track.");
                     return false;
@@ -135,7 +135,7 @@ namespace Orts.Graphics.MapView.Widgets
                             //            Trace.TraceWarning($"Two junctions are not connected on single tracknode  for #{i}");
                             //            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
                             Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{index}");
-                            start.Invalid = true;
+                            start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
                             section = new TrainPathSection(start.Location, end.Location, PathType.Invalid);
                             break;
                         case 1:
@@ -155,7 +155,7 @@ namespace Orts.Graphics.MapView.Widgets
                         TrackSegmentBase otherNodeSegment = end.ConnectedSegments.Where(s => s.TrackNodeIndex == nodeSegment.TrackNodeIndex).FirstOrDefault();
                         reverseDirection = otherNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
                             (otherNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                            start.Location.DistanceSquared(nodeSegment.Vector) < start.Location.DistanceSquared(nodeSegment.Location));
+                            start.Location.DistanceSquared(nodeSegment.Location) > end.Location.DistanceSquared(nodeSegment.Location));
 
                         if (start.PathNode.NodeType == PathNodeType.End)
                             reverseDirection = !reverseDirection;
@@ -165,9 +165,9 @@ namespace Orts.Graphics.MapView.Widgets
                 if (start.NextMainItem == null || start.NextMainItem == end)
                 {
                     if (nodeSegment == null)
-                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, end.Location, start.PathNode.NodeType));
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, end.Location, start.PathNode.NodeType) { ValidationResult = start.ValidationResult });
                     else
-                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, nodeSegment, start.PathNode.NodeType, reverseDirection));
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, nodeSegment, start.PathNode.NodeType, reverseDirection) { ValidationResult = start.ValidationResult });
                 }
                 section.PathItem = pathItem ?? pathPoints[^1];
             }

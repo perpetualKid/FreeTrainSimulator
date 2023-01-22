@@ -13,6 +13,7 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected readonly BasicTextureType textureType;
         private protected float Direction;
+        public TrainPathNodeInvalidReasons ValidationResult{ get; set; }
 
         internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection): base(location)
         {
@@ -54,7 +55,14 @@ namespace Orts.Graphics.MapView.Widgets
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Size = Math.Max(3, (float)(8 / contentArea.Scale));
-            contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), Color.White, contentArea.SpriteBatch);
+            Color color = ValidationResult switch
+            {
+                TrainPathNodeInvalidReasons.None => Color.White,
+                TrainPathNodeInvalidReasons.NoJunctionNode => Color.Yellow,
+                _ => Color.Red,
+            };
+
+            contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.SpriteBatch);
         }
     }
 }

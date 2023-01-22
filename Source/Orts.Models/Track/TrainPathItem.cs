@@ -7,11 +7,19 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
+    [Flags]
+    public enum TrainPathNodeInvalidReasons
+    {
+        None = 0,
+        NoJunctionNode = 0x1,
+        NotOnTrack = 0x2,
+        NoConnectionPossible=0x4,
+        Invalid = 0x8,
+    }
+
     public class TrainPathItem : PointPrimitive
     {
         public PathNode PathNode { get; }
-
-        public bool Invalid { get; set; }
 
         public bool Junction => PathNode.Junction;
 
@@ -22,6 +30,8 @@ namespace Orts.Models.Track
         public TrainPathItem NextMainItem { get; internal set; }
         public TrainPathItem NextSidingItem { get; internal set; }
 
+        public TrainPathNodeInvalidReasons ValidationResult { get; set; }
+        
         internal TrainPathItem(PathNode node, TrackModel trackModel)
         {
             ArgumentNullException.ThrowIfNull(node);
@@ -29,10 +39,12 @@ namespace Orts.Models.Track
             PathNode = node;
 
             JunctionNode = node.Junction ? trackModel.JunctionAt(Location) : null;
-            Invalid |= node.Junction && JunctionNode == null;
+            if (node.Junction && JunctionNode == null)
+                ValidationResult |= TrainPathNodeInvalidReasons.NoJunctionNode;
 
             ConnectedSegments = trackModel.SegmentsAt(Location).ToList();
-            Invalid |= !ConnectedSegments.Any();
+            if (!ConnectedSegments.Any())
+                ValidationResult |= TrainPathNodeInvalidReasons.NotOnTrack;
         }
     }
 }
