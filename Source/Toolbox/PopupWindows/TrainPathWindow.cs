@@ -307,20 +307,20 @@ namespace Orts.Toolbox.PopupWindows
             ControlLayout line = (sender as RadioButton)?.Container;
             if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is Models.Simplified.Path path)
             {
-                PathFile patFile = new PathFile(path.FilePath);
-                ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
-            }
-            else
-            {
                 try
                 {
-                    ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
-                    (sender as RadioButton).State = false;
+                    PathFile patFile = new PathFile(path.FilePath);
+                    ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
                 }
                 catch (Exception ex) when (ex is Exception)
                 {
                     System.Windows.Forms.MessageBox.Show("Invalid path data");
                 }
+            }
+            else
+            {
+                ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
+                (sender as RadioButton).State = false;
             }
         }
 
