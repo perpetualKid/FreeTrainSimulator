@@ -65,8 +65,8 @@ namespace Orts.Toolbox.WinForms.Controls
             this.soundRegionsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tileGridVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
-            this.pathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pathsVisisbleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.restoreLastViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectLanguageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,8 +91,8 @@ namespace Orts.Toolbox.WinForms.Controls
             this.pathTrackColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathTrackColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.stationColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stationColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
+            this.platformColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.platformColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.sidingColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sidingColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
@@ -177,7 +177,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.viewInteractivesToolStripMenuItem,
             this.tileGridVisibleToolStripMenuItem,
             this.toolStripSeparator6,
-            this.pathToolStripMenuItem});
+            this.viewPathToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -260,28 +260,28 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.roadSegmentsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadSegmentsVisibleToolStripMenuItem.Name = "roadSegmentsVisibleToolStripMenuItem";
-            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.roadSegmentsVisibleToolStripMenuItem.Text = "Road Segments";
             // 
             // roadEndNodesVisibleToolStripMenuItem
             // 
             this.roadEndNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadEndNodesVisibleToolStripMenuItem.Name = "roadEndNodesVisibleToolStripMenuItem";
-            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.roadEndNodesVisibleToolStripMenuItem.Text = "Road End Nodes";
             // 
             // roadLevelCrossingsVisibleToolStripMenuItem
             // 
             this.roadLevelCrossingsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadLevelCrossingsVisibleToolStripMenuItem.Name = "roadLevelCrossingsVisibleToolStripMenuItem";
-            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.roadLevelCrossingsVisibleToolStripMenuItem.Text = "Level Crossings";
             // 
             // roadCarSpawnersVisibleToolStripMenuItem
             // 
             this.roadCarSpawnersVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadCarSpawnersVisibleToolStripMenuItem.Name = "roadCarSpawnersVisibleToolStripMenuItem";
-            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.roadCarSpawnersVisibleToolStripMenuItem.Text = "Car Spawners";
             // 
             // viewInteractivesToolStripMenuItem
@@ -401,20 +401,22 @@ namespace Orts.Toolbox.WinForms.Controls
             this.toolStripSeparator6.Name = "toolStripSeparator6";
             this.toolStripSeparator6.Size = new System.Drawing.Size(197, 6);
             // 
-            // pathToolStripMenuItem
+            // viewPathToolStripMenuItem
             // 
-            this.pathToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.showPathToolStripMenuItem});
-            this.pathToolStripMenuItem.Name = "pathToolStripMenuItem";
-            this.pathToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
-            this.pathToolStripMenuItem.Text = "Paths";
+            this.viewPathToolStripMenuItem.CheckOnClick = true;
+            this.viewPathToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.pathsVisisbleToolStripMenuItem});
+            this.viewPathToolStripMenuItem.Name = "viewPathToolStripMenuItem";
+            this.viewPathToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.viewPathToolStripMenuItem.Text = "Paths";
+            this.viewPathToolStripMenuItem.Click += new System.EventHandler(this.VisibilitySettingParentToolStripMenuItem_Click);
             // 
-            // ShowPathToolStripMenuItem
+            // pathsVisisbleToolStripMenuItem
             // 
-            this.showPathToolStripMenuItem.CheckOnClick = true;
-            this.showPathToolStripMenuItem.Name = "ShowPathToolStripMenuItem";
-            this.showPathToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
-            this.showPathToolStripMenuItem.Text = "Show Path";
+            this.pathsVisisbleToolStripMenuItem.CheckOnClick = true;
+            this.pathsVisisbleToolStripMenuItem.Name = "pathsVisisbleToolStripMenuItem";
+            this.pathsVisisbleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pathsVisisbleToolStripMenuItem.Text = "Show Path";
             // 
             // preferencesToolStripMenuItem
             // 
@@ -610,7 +612,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.stationColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.stationColorToolStripMenuItem.Text = "Station Color";
             // 
-            // platformColorToolStripComboBoxMenuItem
+            // stationColorToolStripComboBoxMenuItem
             // 
             this.stationColorToolStripComboBoxMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.stationColorToolStripComboBoxMenuItem.MaxDropDownItems = 24;
@@ -667,33 +669,33 @@ namespace Orts.Toolbox.WinForms.Controls
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(210, 6);
             // 
-            // PathEdittoolStripMenuItem
+            // pathEditToolStripMenuItem
             // 
             this.pathEditToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadPathToolStripMenuItem,
             this.toolStripSeparator7,
             this.enableEditToolStripMenuItem});
-            this.pathEditToolStripMenuItem.Name = "PathEdittoolStripMenuItem";
+            this.pathEditToolStripMenuItem.Name = "pathEditToolStripMenuItem";
             this.pathEditToolStripMenuItem.Size = new System.Drawing.Size(77, 20);
             this.pathEditToolStripMenuItem.Text = "Path Editor";
             // 
-            // LoadPathToolStripMenuItem
+            // loadPathToolStripMenuItem
             // 
-            this.loadPathToolStripMenuItem.Name = "LoadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.loadPathToolStripMenuItem.Text = "Load Path";
             this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.LoadPathToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(146, 6);
             // 
             // enableEditToolStripMenuItem
             // 
             this.enableEditToolStripMenuItem.Enabled = false;
             this.enableEditToolStripMenuItem.Name = "enableEditToolStripMenuItem";
-            this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.enableEditToolStripMenuItem.Text = "Enable Editing";
             this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
             // 
@@ -812,8 +814,8 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem pathEditToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripMenuItem pathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showPathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem viewPathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pathsVisisbleToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem enableEditToolStripMenuItem;
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -41,17 +42,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
-            {
-                double i when i < 0.3 => 30,
-                double i when i < 0.5 => 20,
-                double i when i < 0.75 => 15,
-                double i when i < 1 => 10,
-                double i when i < 3 => 7,
-                double i when i < 5 => 5,
-                double i when i < 8 => 4,
-                _ => 3,
-            };
+            Size = Math.Max(1.5f, (float)(4 / contentArea.Scale));
 
             Color drawColor = this.GetColor<JunctionNode>(colorVariation);
             contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);

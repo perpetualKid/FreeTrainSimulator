@@ -69,6 +69,8 @@ namespace Orts.Toolbox.WinForms.Controls
 
             SetupVisibilityMenuItem(tileGridVisibleToolStripMenuItem, MapContentType.Grid);
 
+            SetupVisibilityMenuItem(pathsVisisbleToolStripMenuItem, MapContentType.Paths);
+
             LoadLanguage(languageSelectionComboBoxMenuItem.ComboBox);
             languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
         }
