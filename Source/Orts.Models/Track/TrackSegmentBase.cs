@@ -254,10 +254,10 @@ namespace Orts.Models.Track
         {
             double distanceSquared;
 
-            if ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance)
-                return distanceSquared;
-            else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
-                return distanceSquared;
+            //if ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance)
+            //    return distanceSquared;
+            //else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
+            //    return distanceSquared;
 
             if (Curved)
             {
@@ -268,6 +268,11 @@ namespace Orts.Models.Track
                     || (Angle > 0 && ((angle > centerToStartDirection && angle < centerToEndDirection)
                     || (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection)))))
                     return (distanceSquared = centerPoint.Distance(point) - Radius) * distanceSquared;
+
+                if ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance)
+                    return distanceSquared;
+                else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
+                    return distanceSquared;
 
                 //if (Angle > 0 && ((angle < centerToStartDirection) || (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection))))
                 //    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
@@ -284,12 +289,14 @@ namespace Orts.Models.Track
 
                 // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
                 // (else if needed could return the distance from either start or end point)
-                //if (t < 0)
-                //    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
-                //else if (t > 1)
-                //    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
-                //                return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
-                return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
+                if (t < 0)
+                    return ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance) ? distanceSquared : double.NaN;
+                else if (t > 1)
+                    return ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance) ? distanceSquared : double.NaN;
+                else
+                    return point.DistanceSquared(Location + (Vector - Location) * t);
+                //return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
+                //return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
             }
         }
         #endregion
@@ -352,7 +359,7 @@ namespace Orts.Models.Track
             {
                 double dx = Vector.X - Location.X;
                 double dy = Vector.Y - Location.Y;
-                return (new PointD(Location.X + dx * distance/Length, Location.Y + dy * distance / Length));
+                return (new PointD(Location.X + dx * distance / Length, Location.Y + dy * distance / Length));
             }
         }
 
