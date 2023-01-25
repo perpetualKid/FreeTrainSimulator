@@ -304,12 +304,18 @@ namespace Orts.Models.Track
         public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
+            double distanceSquared = double.PositiveInfinity;
+            JunctionNodeBase result = null;
             foreach (JunctionNodeBase junctionNode in ContentByTile[MapContentType.JunctionNodes].BoundingBox(tile, tileRadius))
             {
-                if (junctionNode.JunctionNodeAt(location))
-                    return junctionNode;
+                double current;
+                if ((current = junctionNode.DistanceSquared(location)) < distanceSquared)
+                {
+                    distanceSquared = current;
+                    result = junctionNode;
+                }
             }
-            return null;
+            return result != null && result.JunctionNodeAt(location) ? result : null;
         }
 
         /// <summary>
@@ -319,11 +325,50 @@ namespace Orts.Models.Track
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
+            double distanceSquared = double.PositiveInfinity;
+            EndNodeBase result = null;
             foreach (EndNodeBase endNode in ContentByTile[MapContentType.EndNodes].BoundingBox(tile, tileRadius))
             {
-                if (endNode.EndNodeAt(location))
-                    return endNode;
+                double current;
+                if ((current = endNode.DistanceSquared(location)) < distanceSquared)
+                {
+                    distanceSquared = current;
+                    result = endNode;
+                }
             }
+            return result != null && result.EndNodeAt(location) ? result : null;
+        }
+
+        public TrainPathPoint FindIntermediaryConnection(TrainPathPoint start, TrainPathPoint end)
+        {
+            ArgumentNullException.ThrowIfNull(start);
+            ArgumentNullException.ThrowIfNull(end);
+
+            static bool ConnectThroughSameJunction(TrainPathPoint start, TrainPathPoint end)
+            {
+                return (start.Junction && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
+            }
+
+            TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];
+            TrackSegmentSection endNode = SegmentSections[end.ConnectedSegments[0].TrackNodeIndex];
+
+            TrainPathPoint startLocation = new TrainPathPoint(this, startNode.Location);
+            TrainPathPoint endLocation = new TrainPathPoint(this, endNode.Location);
+
+            if (ConnectThroughSameJunction(startLocation, endLocation))
+                return endLocation;
+
+            TrainPathPoint endVector = new TrainPathPoint(this, endNode.Vector);
+            if (ConnectThroughSameJunction(startLocation, endVector))
+                return endVector;
+
+            TrainPathPoint startVector = new TrainPathPoint(this, startNode.Vector);
+            if (ConnectThroughSameJunction(startVector, endLocation))
+                return endLocation;
+
+            if (ConnectThroughSameJunction(startVector, endVector))
+                return endVector;
+
             return null;
         }
     }

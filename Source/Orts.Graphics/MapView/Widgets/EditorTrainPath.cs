@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
@@ -8,6 +9,8 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.Track;
+
+using static System.Collections.Specialized.BitVector32;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -54,12 +57,6 @@ namespace Orts.Graphics.MapView.Widgets
                 PathType = pathType;
             }
 
-            public TrainPathSection(TrackModel trackModel, int startTrackNodeIndex, in PointD startLocation, int endTrackNodeIndex, in PointD endLocation, PathType pathType) :
-                base(trackModel, startTrackNodeIndex, startLocation, endTrackNodeIndex, endLocation)
-            {
-                PathType = pathType;
-            }
-
             public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
             {
                 colorVariation = PathType switch
@@ -96,33 +93,19 @@ namespace Orts.Graphics.MapView.Widgets
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackModel trackModel = TrackModel.Instance(game);
 
+            List<TrainPathSection> sections = new List<TrainPathSection>();
+
             TrainPathModel = new TrainPath(pathFile, filePath, game);
 
-            bool reverseDirection = false;
-            TrackSegmentBase nodeSegment = null;
+            (TrackSegmentBase NodeSegment, bool Reverse)? sectionStart = null;
 
-            static bool CheckPathItem(TrainPathItem pathItem, int index)
+            void AddSections(PathType pathType, TrainPathPoint start, TrainPathPoint end, int index)
             {
-                if ((pathItem.ValidationResult & TrainPathNodeInvalidReasons.NoJunctionNode) == TrainPathNodeInvalidReasons.NoJunctionNode)
+                if (!start.CheckPathItem(index) || !end.CheckPathItem(index))
                 {
-                    Trace.TraceWarning($"Path point #{index} is marked as junction but not actually located on junction.");
-                    return true;
-                }
-                else if (pathItem.ValidationResult != TrainPathNodeInvalidReasons.None)
-                {
-                    Trace.TraceWarning($"Path item #{index} is not on track.");
-                    return false;
-                }
-                return true;
-            }
-
-            void AddSection(PathType pathType, TrainPathItem start, TrainPathItem end, int index)
-            {
-                TrainPathSection section = null;
-                if (!CheckPathItem(start, index) || !CheckPathItem(end, index))
-                {
-                    nodeSegment = null;
-                    PathSections.Add(section = new TrainPathSection(start.Location, end.Location, PathType.Invalid));
+                    // either start or end are invalid in a sense they are not on track or no way to connect the ends
+                    // so we draw an "invalid" path section shown as straight dotted line on the map
+                    sections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
                 }
                 else
                 {
@@ -131,58 +114,74 @@ namespace Orts.Graphics.MapView.Widgets
                     switch (trackSegments.Count)
                     {
                         case 0:
-                            nodeSegment = null;
-                            //            Trace.TraceWarning($"Two junctions are not connected on single tracknode  for #{i}");
-                            //            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{i}");
-                            Trace.TraceWarning($"A junction could not be connected with another single tracknode  for #{index}");
-                            start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
-                            section = new TrainPathSection(start.Location, end.Location, PathType.Invalid);
+                            TrainPathPoint intermediary = trackModel.FindIntermediaryConnection(start, end);
+                            if (intermediary != null)
+                            {
+                                AddSections(pathType, start, intermediary, index);
+                                AddSections(pathType, intermediary, end, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"No valid connection found for #{index}");
+                                start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
+                                sections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
+                            }
                             break;
                         case 1:
-                            nodeSegment = trackSegments[0];
-                            section = new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType);
+                            TrackSegmentBase nodeSegment = trackSegments[0];
+                            sections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType));
+                            sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
                             break;
                         default:
                             nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).First();
-                            section = new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType);
+                            sections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType));
+                            sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
                             break;
                     }
-                    if (start.PathNode.NodeType != PathNodeType.End)
-                        PathSections.Add(section);
-
-                    if (nodeSegment != null)
-                    {
-                        TrackSegmentBase otherNodeSegment = end.ConnectedSegments.Where(s => s.TrackNodeIndex == nodeSegment.TrackNodeIndex).FirstOrDefault();
-                        reverseDirection = otherNodeSegment.TrackVectorSectionIndex < nodeSegment.TrackVectorSectionIndex ||
-                            (otherNodeSegment.TrackVectorSectionIndex == nodeSegment.TrackVectorSectionIndex &&
-                            start.Location.DistanceSquared(nodeSegment.Location) > end.Location.DistanceSquared(nodeSegment.Location));
-
-                        if (start.PathNode.NodeType == PathNodeType.End)
-                            reverseDirection = !reverseDirection;
-                    }
                 }
+            }
+
+            void AddPathPoint(PathType pathType, TrainPathPoint start, TrainPathPoint end, int index)
+            {
+                sectionStart = null;
+                AddSections(pathType, start, end, index);
+
+                if (start.NodeType != PathNodeType.End)
+                    PathSections.AddRange(sections);
+
                 EditorPathItem pathItem = null;
+
                 if (start.NextMainItem == null || start.NextMainItem == end)
                 {
-                    if (nodeSegment == null)
-                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, end.Location, start.PathNode.NodeType) { ValidationResult = start.ValidationResult });
+                    if (sectionStart == null)
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, end.Location, start.NodeType) { ValidationResult = start.ValidationResult });
                     else
-                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, nodeSegment, start.PathNode.NodeType, reverseDirection) { ValidationResult = start.ValidationResult });
+                    {
+                        bool reverse = sectionStart.Value.Reverse;
+                        if (start.NodeType == PathNodeType.End)
+                            reverse = !reverse;
+                        pathPoints.Add(pathItem = new EditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse) { ValidationResult = start.ValidationResult });
+                    }
                 }
-                section.PathItem = pathItem ?? pathPoints[^1];
+
+                foreach (TrainPathSection section in sections)
+                {
+                    section.PathItem = pathItem ?? pathPoints[^1];
+                }
+                sections.Clear();
             }
 
             for (int i = 0; i < TrainPathModel.PathItems.Count; i++)
             {
-                TrainPathItem pathItem = TrainPathModel.PathItems[i];
+                TrainPathPoint pathItem = TrainPathModel.PathItems[i];
 
-                if (pathItem.NextMainItem != null)
+                if (pathItem.NextMainItem != null) //main path
                 {
-                    AddSection(PathType.MainPath, pathItem, pathItem.NextMainItem, i);
+                    AddPathPoint(PathType.MainPath, pathItem, pathItem.NextMainItem, i);
                 }
-                if (pathItem.NextSidingItem != null)
+                if (pathItem.NextSidingItem != null) //passing path
                 {
-                    AddSection(PathType.PassingPath, pathItem, pathItem.NextSidingItem, i);
+                    AddPathPoint(PathType.PassingPath, pathItem, pathItem.NextSidingItem, i);
                 }
             }
             pathSections = PathSections.Select(section => section as TrainPathSection).ToLookup(section => section.PathItem, section => section);

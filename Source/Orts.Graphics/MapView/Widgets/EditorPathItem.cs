@@ -54,7 +54,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = Math.Max(3, (float)(8 / contentArea.Scale));
+            Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
             Color color = ValidationResult switch
             {
                 TrainPathNodeInvalidReasons.None => Color.White,

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
@@ -353,6 +354,20 @@ namespace Orts.Models.Track
                 double dy = Vector.Y - Location.Y;
                 return (new PointD(Location.X + dx * distance/Length, Location.Y + dy * distance / Length));
             }
+        }
+
+        /// <summary>
+        /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
+        /// </summary>
+        public bool IsReverseDirectionTowards(TrainPathPoint start, TrainPathPoint end)
+        {
+            ArgumentNullException.ThrowIfNull(start);
+            ArgumentNullException.ThrowIfNull(end);
+
+            TrackSegmentBase otherNodeSegment = end.ConnectedSegments.Where(s => s.TrackNodeIndex == TrackNodeIndex).FirstOrDefault();
+            return otherNodeSegment != null && (otherNodeSegment.TrackVectorSectionIndex < TrackVectorSectionIndex ||
+                (otherNodeSegment.TrackVectorSectionIndex == TrackVectorSectionIndex &&
+                start.Location.DistanceSquared(Location) > end.Location.DistanceSquared(Location)));
         }
     }
 }
