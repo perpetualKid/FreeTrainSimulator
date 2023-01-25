@@ -224,7 +224,7 @@ namespace Orts.Models.Track
             // if closer to a Tile boundary we may want to check neighbour tiles as well
             // just increase the tile radius around (9 tiles covered). If more optimization needed,
             // could rather figure which side of a tile and increase that size only
-            if (location.X % Tile.TileSize > 1000 || location.Y % Tile.TileSize > 1000)
+            if (Math.Abs(location.X) % Tile.TileSizeOver2 > 1000 || Math.Abs(location.Y) % Tile.TileSizeOver2 > 1000)
                 tileRadius = 1;
 
             // get a first track segment at the location (within proximity)
