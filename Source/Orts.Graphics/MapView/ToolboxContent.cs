@@ -171,7 +171,7 @@ namespace Orts.Graphics.MapView
                 }
             }
             // skip highlighting closest track items if a path is loaded
-            if (currentPath != null)
+            if (currentPath != null && viewSettings[MapContentType.Paths])
             {
 
             }

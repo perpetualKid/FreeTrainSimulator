@@ -133,9 +133,17 @@ namespace Orts.Graphics.MapView.Widgets
                             sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
                             break;
                         default:
-                            nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).First();
-                            sections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType));
-                            sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
+                            nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).FirstOrDefault();
+                            if (nodeSegment == null)
+                            {
+                                sections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
+                                start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
+                            }
+                            else
+                            {
+                                sections.Add(new TrainPathSection(trackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location, pathType));
+                                sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
+                            }
                             break;
                     }
                 }

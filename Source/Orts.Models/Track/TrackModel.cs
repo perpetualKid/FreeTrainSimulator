@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -265,22 +264,34 @@ namespace Orts.Models.Track
         public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0, bool limit = false)
         {
             Tile tile = PointD.ToTile(location);
+            double distanceSquared = double.PositiveInfinity;
+            TrackSegmentBase result = null;
             foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks].BoundingBox(tile, tileRadius))
             {
-                if (section.TrackSegmentAt(location))
+                double current;
+                if ((current = section.DistanceSquared(location)) < distanceSquared)
                 {
-                    return section;
+                    distanceSquared = current;
+                    result = section;
                 }
+            }
+            if (result != null && result.TrackSegmentAt(location))
+            {
+                return result;
             }
             if (!limit)
             {
                 foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks])
                 {
-                    if (section.TrackSegmentAt(location))
-                        return section;
+                    double current;
+                    if ((current = section.DistanceSquared(location)) < distanceSquared)
+                    {
+                        distanceSquared = current;
+                        result = section;
+                    }
                 }
             }
-            return null;
+            return result != null && result.TrackSegmentAt(location) ? result : null;
         }
 
         /// <summary>
