@@ -95,5 +95,16 @@ namespace Orts.Models.Track
         {
             return location.DistanceSquared(Location) <= ProximityTolerance;
         }
+
+        internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
+        {
+            TrackNode junctionNode = trackModel.RuntimeData.TrackDB.TrackNodes[TrackNodeIndex];
+
+            foreach (TrackPin pin in junctionNode.TrackPins)
+            {
+                TrackSegmentSection segment = trackModel.SegmentSections[pin.Link];
+                yield return segment.SectionSegments[(pin .Direction == TrackDirection.Reverse) ? 0 : ^1];
+            }
+        }
     }
 }

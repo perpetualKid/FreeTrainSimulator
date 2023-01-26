@@ -29,7 +29,7 @@ namespace Orts.Models.Track
 
         public JunctionNodeBase JunctionNode { get; }
 
-        public IList<TrackSegmentBase> ConnectedSegments { get; }
+        public IReadOnlyList<TrackSegmentBase> ConnectedSegments { get; }
 
         public TrainPathPoint NextMainItem { get; internal set; }
         public TrainPathPoint NextSidingItem { get; internal set; }
@@ -46,7 +46,7 @@ namespace Orts.Models.Track
             if (node.Junction && JunctionNode == null)
                 ValidationResult |= TrainPathNodeInvalidReasons.NoJunctionNode;
 
-            ConnectedSegments = trackModel.SegmentsAt(Location).ToList();
+            ConnectedSegments = GetConnectedNodes(trackModel);
             if (!ConnectedSegments.Any())
                 ValidationResult |= TrainPathNodeInvalidReasons.NotOnTrack;
         }
@@ -56,7 +56,7 @@ namespace Orts.Models.Track
             ArgumentNullException.ThrowIfNull(trackModel);
             JunctionNode = trackModel.JunctionAt(location);
 
-            ConnectedSegments = trackModel.SegmentsAt(Location).ToList();
+            ConnectedSegments = GetConnectedNodes(trackModel);
             if (!ConnectedSegments.Any())
                 ValidationResult |= TrainPathNodeInvalidReasons.NotOnTrack;
         }
@@ -74,6 +74,11 @@ namespace Orts.Models.Track
                 return false;
             }
             return true;
+        }
+
+        private IReadOnlyList<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
+        {
+            return JunctionNode != null ? JunctionNode.ConnectedSegments(trackModel).ToList() : (IReadOnlyList<TrackSegmentBase>)trackModel.SegmentsAt(Location).ToList();
         }
     }
 }
