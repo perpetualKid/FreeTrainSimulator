@@ -75,7 +75,7 @@ namespace Orts.Graphics.MapView.Widgets
             base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
-            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
+            StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();
             //Strip the station name out of platform name (only if they are not equal)
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[(StationName.Length + 1)..];
