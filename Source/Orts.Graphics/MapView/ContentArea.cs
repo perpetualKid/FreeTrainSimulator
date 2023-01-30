@@ -86,7 +86,7 @@ namespace Orts.Graphics.MapView
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
             SpriteBatch = new SpriteBatch(GraphicsDevice);
-            fontManager = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular);
+            fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
@@ -485,7 +485,7 @@ namespace Orts.Graphics.MapView
 
         private void UpdateFontSize()
         {
-            int fontsize = MathHelper.Clamp((int)(25 * Scale), 4, 25);
+            int fontsize = MathHelper.Clamp((int)(25 * Scale), 4, 20);
             if (fontsize != (CurrentFont?.Size ?? 0))
                 CurrentFont = fontManager[fontsize];
             TrackItemWidget.SetFont(CurrentFont);
