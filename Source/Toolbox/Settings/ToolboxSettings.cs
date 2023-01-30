@@ -82,7 +82,7 @@ namespace Orts.Toolbox.Settings
         public bool RestoreLastView { get; set; }
 
         [Default(true)]
-        public bool ComplementFontColor { get; set; }
+        public bool OutlineFont { get; set; }
 
         [Default(new string[]
         {

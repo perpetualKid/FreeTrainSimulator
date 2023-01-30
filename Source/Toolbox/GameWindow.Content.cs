@@ -85,7 +85,7 @@ namespace Orts.Toolbox
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(Settings.ViewSettings);
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
-            content.ContentArea.FontOutlineOptions = Settings.ComplementFontColor ? null : new OutlineRenderOptions(2, System.Drawing.Color.White, System.Drawing.Color.Black);// OutlineRenderOptions.Default;
+            content.ContentArea.FontOutlineOptions = Settings.OutlineFont ? OutlineRenderOptions.Default : null;
             ContentArea = content.ContentArea;
             mainmenu.PopulatePaths((TrackData.GameInstance(this) as TrackData).TrainPaths);
             windowManager[ToolboxWindowType.StatusWindow].Close();

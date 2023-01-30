@@ -68,17 +68,17 @@ namespace Orts.Toolbox.PopupWindows
                 line.Add(chkRestoreView);
 
                 line = layoutContainer.AddLayoutHorizontalLineOfText();
-                line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Complement Font Color")));
-                Checkbox chkFontColorComplement = new Checkbox(this);
-                chkFontColorComplement.OnClick += (object sender, MouseClickEventArgs e) =>
+                line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Use Font Outline")));
+                Checkbox chkOutlineFont = new Checkbox(this);
+                chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
-                    toolboxSettings.ComplementFontColor = (sender as Checkbox).State.Value;
+                    toolboxSettings.OutlineFont = (sender as Checkbox).State.Value;
                     if (null != contentArea)
-                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? null : OutlineRenderOptions.Default;
+                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? OutlineRenderOptions.Default : null;
                     ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
-                chkFontColorComplement.State = toolboxSettings.ComplementFontColor;
-                line.Add(chkFontColorComplement);
+                chkOutlineFont.State = toolboxSettings.OutlineFont;
+                line.Add(chkOutlineFont);
             };
             layout.Add(tabControl);
 
