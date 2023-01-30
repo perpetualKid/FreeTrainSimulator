@@ -597,7 +597,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetLocationFromTrackNode()
         {
-            Location = TrackDB.TrackNodes.JunctionNodes[JunctionIndex].UiD.Location;
+            Location = TrackDB.TrackNodes[JunctionIndex].UiD.Location;
         }
 
         /// <summary>

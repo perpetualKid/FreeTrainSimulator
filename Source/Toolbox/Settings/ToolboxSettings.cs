@@ -188,7 +188,7 @@ namespace Orts.Toolbox.Settings
         public EnumArray<string, ToolboxWindowType> PopupSettings { get; set; }
 
 
-        [Default("Segoe UI")]
+        [Default("Arial")]
         public string TextFont { get; set; }
 
         [Default(13)]
