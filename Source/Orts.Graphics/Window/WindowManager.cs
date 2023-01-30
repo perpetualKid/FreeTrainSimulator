@@ -233,12 +233,12 @@ namespace Orts.Graphics.Window
             if (!WindowOpen(window))
             {
                 SuppressDrawing = false;
-                    List<FormBase> updatedWindowList = new List<FormBase>(windows)
+                List<FormBase> updatedWindowList = new List<FormBase>(windows)
                     {
                         window
                     };
-                    updatedWindowList.Sort(windowSortComparer);
-                    Interlocked.Exchange(ref windows, updatedWindowList);
+                updatedWindowList.Sort(windowSortComparer);
+                Interlocked.Exchange(ref windows, updatedWindowList);
                 if (window is WindowBase framedWindow)
                 {
                     framedWindow.UpdateLocation();
@@ -405,6 +405,8 @@ namespace Orts.Graphics.Window
                 }
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 _ = (activeWindow?.HandleMouseClicked(pointerCommandArgs.Position, keyModifiers));
+                if (topMostTargetedWindow != null)
+                    userCommandArgs.Handled = true;
             }
         }
 
