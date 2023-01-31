@@ -39,7 +39,7 @@ namespace Orts.Toolbox.PopupWindows
         {
             public void Update(TrainPath path)
             {
-                if (path == null)
+                if (path == null || path.PathFile == null)
                     this.Clear();
                 else
                 {

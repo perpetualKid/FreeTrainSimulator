@@ -84,6 +84,11 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 return new EditorTrainPathSegment(source, start, end);
             }
+
+            public void UpdateVector(in PointD vector)
+            {
+                SectionSegments[0].UpdateVector(vector);
+            }
         }
 
         public EditorTrainPath(PathFile pathFile, string filePath, Game game)
@@ -114,6 +119,25 @@ namespace Orts.Graphics.MapView.Widgets
             SetBounds();
         }
 
+        public EditorTrainPath(Game game): base(PointD.None, PointD.None)
+        {
+            trackModel = TrackModel.Instance(game);
+        }
+
+        private TrainPathSection editorSection;
+        internal EditorPathItem Update(EditorPathItem pathItem)
+        { 
+            pathPoints.Add(pathItem);
+            editorSection = new TrainPathSection(pathItem.Location, pathItem.Location, PathType.Invalid);
+            editorSection.PathItem = pathItem;
+            PathSections.Add(editorSection);
+            return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
+        }
+
+        internal void UpdateLocation(in PointD location)
+        {
+            editorSection?.UpdateVector(location);
+        }
 
         public override double DistanceSquared(in PointD point)
         {

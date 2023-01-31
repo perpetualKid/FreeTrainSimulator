@@ -39,5 +39,10 @@ namespace Orts.Graphics.MapView.Widgets
             else
                 contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
+
+        internal void UpdateVector(in PointD vector)
+        { 
+            SetVector(vector);
+        }
     }
 }

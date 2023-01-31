@@ -377,6 +377,7 @@ namespace Orts.Toolbox
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, EditTrainPath);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)

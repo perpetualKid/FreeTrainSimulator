@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox
@@ -17,7 +18,7 @@ namespace Orts.Toolbox
     {
         #region public declarations
 
-       
+
         #endregion
 
         #region private declarations
@@ -154,6 +155,15 @@ namespace Orts.Toolbox
         internal void ShowAboutWindow()
         {
             windowManager[ToolboxWindowType.AboutWindow].Open();
+        }
+
+        private void EditTrainPath(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs mousePointCommandArgs)
+            {
+                (contentArea?.Content as ToolboxContent)?.AddPathPoint(mousePointCommandArgs.Position);
+                userCommandArgs.Handled = true;
+            }
         }
 
         internal void PrintScreen()

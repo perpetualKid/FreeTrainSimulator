@@ -21,6 +21,13 @@ namespace Orts.Graphics.MapView
 {
     public class ToolboxContent : ContentBase
     {
+        private enum ContentMode
+        { 
+            ViewRoute,
+            ViewPath,
+            EditPath,
+        }
+
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
@@ -34,6 +41,7 @@ namespace Orts.Graphics.MapView
 
         public INameValueInformationProvider TrackItemInfo { get; } = new DetailInfoProxy();
 
+        private EditorPathItem pathItem;
 
         public ToolboxContent(Game game) :
             base(game)
@@ -140,6 +148,21 @@ namespace Orts.Graphics.MapView
             
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
+            if (pathItem != null)
+            {
+                if (nearestSegmentForStatus.distance < 100)
+                {
+                    pathItem.UpdateNodeType(PathNodeType.Normal);
+                }
+                else
+                {
+                    pathItem.UpdateNodeType(PathNodeType.Temporary);
+                }
+
+                pathItem.UpdateLocation(position);
+                currentPath.UpdateLocation(position);
+                ContentArea.SuppressDrawing = false;
+            }
         }
 
         internal override void Draw(ITile bottomLeft, ITile topRight)
@@ -173,7 +196,7 @@ namespace Orts.Graphics.MapView
             // skip highlighting closest track items if a path is loaded
             if (currentPath != null && viewSettings[MapContentType.Paths])
             {
-
+                pathItem?.Draw(ContentArea);
             }
             else
             {
@@ -214,14 +237,27 @@ namespace Orts.Graphics.MapView
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
             }
+            else
+            {
+                currentPath = new EditorTrainPath(game);
+                pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Temporary);
+            }
         }
 
         public void HighlightPathItem(int index)
         {
             currentPath.SelectedNodeIndex = index;
-            Widgets.EditorPathItem item = currentPath.SelectedNode;
+            EditorPathItem item = currentPath.SelectedNode;
             if (item != null)
                 ContentArea.SetTrackingPosition(item.Location);
+        }
+
+        public void AddPathPoint(Point location)
+        {
+            if (currentPath != null)
+            {
+                pathItem = currentPath.Update(pathItem);
+            }
         }
         #endregion
 
