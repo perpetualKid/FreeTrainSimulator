@@ -51,7 +51,7 @@ namespace Orts.Simulation.AIs
     public class AI
     {
         private readonly Simulator simulator;
-        public List<AITrain> AITrains = new List<AITrain>();// active AI trains
+        public List<AITrain> AITrains { get; } = new List<AITrain>();// active AI trains
 
         public StartTrains StartList = new StartTrains(); // trains yet to be started
         public List<AITrain> AutoGenTrains = new List<AITrain>(); // auto-generated trains
