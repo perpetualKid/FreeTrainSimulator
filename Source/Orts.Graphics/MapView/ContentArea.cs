@@ -62,7 +62,7 @@ namespace Orts.Graphics.MapView
         public double CenterX => (BottomRightBound.X - TopLeftBound.X) / 2 + TopLeftBound.X;
         public double CenterY => (TopLeftBound.Y - BottomRightBound.Y) / 2 + BottomRightBound.Y;
 
-        public bool SuppressDrawing { get; private set; }
+        public bool SuppressDrawing { get; internal set; }
 
         public Point WindowSize { get; private set; }
 
@@ -284,11 +284,7 @@ namespace Orts.Graphics.MapView
 
         public override void Update(GameTime gameTime)
         {
-            if (Scale == previousScale && TopLeftBound == previousTopLeft && BottomRightBound == previousBottomRight)
-            {
-                SuppressDrawing = true;
-            }
-            else
+            if (Scale != previousScale || TopLeftBound != previousTopLeft || BottomRightBound != previousBottomRight)
             {
                 previousScale = Scale;
                 previousTopLeft = TopLeftBound;
@@ -443,8 +439,7 @@ namespace Orts.Graphics.MapView
         {
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
-            return new Vector2((float)(Scale * (x - offsetX)),
-                               (float)(WindowSize.Y - Scale * (y - offsetY)));
+            return new Vector2((float)(Scale * (x - offsetX)), (float)(WindowSize.Y - Scale * (y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
