@@ -19,14 +19,15 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView
 {
+    public enum ToolboxContentMode
+    {
+        ViewRoute,
+        ViewPath,
+        EditPath,
+    }
+
     public class ToolboxContent : ContentBase
     {
-        private enum ContentMode
-        { 
-            ViewRoute,
-            ViewPath,
-            EditPath,
-        }
 
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
@@ -43,7 +44,7 @@ namespace Orts.Graphics.MapView
 
         private EditorPathItem pathItem;
 
-        private ContentMode contentMode;
+        public ToolboxContentMode ContentMode { get; private set; }
 
         public ToolboxContent(Game game) :
             base(game)
@@ -151,7 +152,7 @@ namespace Orts.Graphics.MapView
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
 
-            if (contentMode == ContentMode.EditPath)
+            if (ContentMode == ToolboxContentMode.EditPath)
             {
                 pathItem.UpdateLocation(nearestItems[MapContentType.Tracks] as TrackSegment, position);
 
@@ -189,7 +190,7 @@ namespace Orts.Graphics.MapView
                     }
                 }
             }
-            if (contentMode == ContentMode.ViewRoute || !viewSettings[MapContentType.Paths])
+            if (ContentMode == ToolboxContentMode.ViewRoute || !viewSettings[MapContentType.Paths])
             {
                 if (null != nearestItems[MapContentType.Tracks])
                 {
@@ -228,17 +229,17 @@ namespace Orts.Graphics.MapView
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
                 viewSettings[MapContentType.Paths] = true;
-                contentMode = ContentMode.ViewPath;
+                ContentMode = ToolboxContentMode.ViewPath;
             }
             else
             {
-                contentMode = ContentMode.ViewRoute;
+                ContentMode = ToolboxContentMode.ViewRoute;
             }
         }
 
         public void InitializeNewPath()
         {
-            contentMode = ContentMode.EditPath;
+            ContentMode = ToolboxContentMode.EditPath;
             currentPath = new EditorTrainPath(game);
             pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Temporary);
         }
@@ -255,7 +256,7 @@ namespace Orts.Graphics.MapView
         {
             if (currentPath != null)
             {
-                if (pathItem.ValidationResult == TrainPathNodeInvalidReasons.None)
+                if (pathItem.ValidationResult == TrainPathPoint.InvalidReasons.None)
                     pathItem = currentPath.Update(pathItem);
             }
         }

@@ -345,7 +345,7 @@ namespace Orts.Toolbox.PopupWindows
                     line.Add(new Label(this, columnWidth, Owner.TextFontDefault.Height, $"{i:D2}"));
                     line.Add(new TrainPathItemControl(this, item.NodeType));
                     line.Add(new Label(this, columnWidth * 2, Owner.TextFontDefault.Height, item.NodeType.ToString()));
-                    line.Add(new Checkbox(this, false, CheckMarkStyle.Marks, true) { State = item.ValidationResult == TrainPathNodeInvalidReasons.None, ReadOnly = true });
+                    line.Add(new Checkbox(this, false, CheckMarkStyle.Marks, true) { State = item.ValidationResult == TrainPathPoint.InvalidReasons.None, ReadOnly = true });
                     line.OnClick += PathNodeLine_OnClick;
                     line.Tag = i;
                 }

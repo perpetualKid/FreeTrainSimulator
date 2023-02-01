@@ -357,7 +357,7 @@ namespace Orts.Models.Track
 
             static bool ConnectThroughSameJunction(TrainPathPoint start, TrainPathPoint end)
             {
-                return (start.Junction && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
+                return (start.JunctionNode != null && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
             }
 
             TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];

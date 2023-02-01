@@ -130,6 +130,14 @@ namespace Orts.Graphics.MapView.Widgets
             if (pathItem == null)
                 return null;
 
+            if (pathPoints.Count > 0)
+            {
+                TrainPathPoint start = new TrainPathPoint(pathPoints[^1].Location, trackModel);
+                TrainPathPoint end = new TrainPathPoint(pathItem.Location, trackModel);
+                List<TrainPathSection> sections = AddSections(PathType.MainPath, start, end, 0);
+                PathSections.RemoveAt(PathSections.Count-1);
+                PathSections.AddRange(sections);
+            }
             pathPoints.Add(pathItem);
             editorSection = new TrainPathSection(pathItem.Location, pathItem.Location, PathType.Invalid);
             editorSection.PathItem = pathItem;
@@ -234,7 +242,7 @@ namespace Orts.Graphics.MapView.Widgets
                         else
                         {
                             Trace.TraceWarning($"No valid connection found for #{index}");
-                            start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= TrainPathPoint.InvalidReasons.NoConnectionPossible;
                             sections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
                         }
                         break;
@@ -248,7 +256,7 @@ namespace Orts.Graphics.MapView.Widgets
                         if (nodeSegment == null)
                         {
                             sections.Add(new TrainPathSection(start.Location, end.Location, PathType.Invalid));
-                            start.ValidationResult |= TrainPathNodeInvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= TrainPathPoint.InvalidReasons.NoConnectionPossible;
                         }
                         else
                         {

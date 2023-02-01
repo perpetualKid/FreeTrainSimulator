@@ -13,9 +13,11 @@ namespace Orts.Graphics.MapView.Widgets
     {
         private protected BasicTextureType textureType;
         private protected float Direction;
-        public TrainPathNodeInvalidReasons ValidationResult{ get; set; }
+        private TrackSegmentBase trackSegment;
 
-        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection): base(location)
+        public TrainPathPoint.InvalidReasons ValidationResult { get; set; }
+
+        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location)
         {
             textureType = TextureFromNodeType(nodeType);
             Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
@@ -33,8 +35,8 @@ namespace Orts.Graphics.MapView.Widgets
             Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
             Color color = ValidationResult switch
             {
-                TrainPathNodeInvalidReasons.None => Color.White,
-                TrainPathNodeInvalidReasons.NoJunctionNode => Color.Yellow,
+                TrainPathPoint.InvalidReasons.None => Color.White,
+                TrainPathPoint.InvalidReasons.NoJunctionNode => Color.Yellow,
                 _ => Color.Red,
             };
 
@@ -48,16 +50,17 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         internal void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
-        {            
+        {
+            this.trackSegment = trackSegment;
             SetLocation(trackSegment?.SnapToSegment(location) ?? location);
             if (null == trackSegment)
             {
-                ValidationResult = TrainPathNodeInvalidReasons.NotOnTrack;
+                ValidationResult = TrainPathPoint.InvalidReasons.NotOnTrack;
                 textureType = TextureFromNodeType(PathNodeType.Temporary);
             }
             else
             {
-                ValidationResult = TrainPathNodeInvalidReasons.None;
+                ValidationResult = TrainPathPoint.InvalidReasons.None;
                 textureType = TextureFromNodeType(PathNodeType.Intermediate);
             }
         }
