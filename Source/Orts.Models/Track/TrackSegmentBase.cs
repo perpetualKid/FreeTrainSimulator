@@ -94,9 +94,8 @@ namespace Orts.Models.Track
 
                 int sign = -Math.Sign(trackSection.Angle);
 
-                double angleRadians = MathHelper.ToRadians(trackSection.Angle);
-                double cosArotated = Math.Cos(trackVectorSection.Direction.Y + angleRadians);
-                double sinArotated = Math.Sin(trackVectorSection.Direction.Y + angleRadians);
+                double cosArotated = Math.Cos(trackVectorSection.Direction.Y + Angle);
+                double sinArotated = Math.Sin(trackVectorSection.Direction.Y + Angle);
                 double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ));
@@ -130,18 +129,21 @@ namespace Orts.Models.Track
             centerToEndDirection = source.centerToEndDirection;
         }
 
-        protected TrackSegmentBase(TrackSegmentBase source, float remainingLength, float startOffset, bool reverse) : this(source)
+        /// <summary>
+        /// length is in m down the track, startOffset is either in m for straight, or in Rad for Curved
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        protected TrackSegmentBase(TrackSegmentBase source, float length, float startOffset, bool reverse) : this(source)
         {
             if (null == source)
                 throw new ArgumentNullException(nameof(source));
 
-            if (startOffset == 0 && remainingLength >= Length)//full path segment
+            if (startOffset == 0 && length >= Length)//full path segment
                 return;
-            //remainingLength is in m down the track, startOffset is either in m for straight, or in Rad for Curved
             if (Curved)
             {
                 int sign = Math.Sign(Angle);
-                float remainingArc = remainingLength / Radius * sign;
+                float remainingArc = length / Radius * sign;
 
                 if (reverse)
                 {
@@ -174,10 +176,10 @@ namespace Orts.Models.Track
                         startOffset = Length;
                     else
                         Length = startOffset;
-                    if (remainingLength < startOffset)
+                    if (length < startOffset)
                     {
-                        endOffset = startOffset - remainingLength;
-                        Length = remainingLength;
+                        endOffset = startOffset - length;
+                        Length = length;
                     }
                     (startOffset, endOffset) = (endOffset, startOffset);
                 }
@@ -185,10 +187,10 @@ namespace Orts.Models.Track
                 {
                     Length -= startOffset;
                     endOffset = Length;
-                    if (remainingLength + startOffset < Length)
+                    if (length + startOffset < Length)
                     {
-                        endOffset = remainingLength + startOffset;
-                        Length = remainingLength;
+                        endOffset = length + startOffset;
+                        Length = length;
                     }
                 }
 
@@ -375,6 +377,32 @@ namespace Orts.Models.Track
             return otherNodeSegment != null && (otherNodeSegment.TrackVectorSectionIndex < TrackVectorSectionIndex ||
                 (otherNodeSegment.TrackVectorSectionIndex == TrackVectorSectionIndex &&
                 start.Location.DistanceSquared(Location) > end.Location.DistanceSquared(Location)));
+        }
+
+        /// <summary>
+        /// Assuming <paramref name="location"/> is within the segment, returns the aligned point/location on the segment, 
+        /// aka snapping to the segment if close by
+        /// </summary>
+        public PointD SnapToSegment(in PointD point)
+        {
+            double distanceSquared;
+
+            if (Curved)
+            {
+                PointD deltaStart = point - centerPoint;
+                float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToStartDirection + Direction);
+                int sign = Math.Sign(Angle);
+
+                return centerPoint + new PointD(sign * Math.Sin(deltaAngle) * Radius, sign * Math.Cos(deltaAngle) * Radius);
+            }
+            else
+            {
+                distanceSquared = Length * Length;
+                // Calculate the t that minimizes the distance.
+                double t = (point - Location).DotProduct(Vector - Location) / distanceSquared;
+                return Location + (Vector - Location) * t;
+            }
         }
     }
 }

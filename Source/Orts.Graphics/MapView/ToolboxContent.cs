@@ -150,17 +150,18 @@ namespace Orts.Graphics.MapView
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
             if (pathItem != null)
             {
-                if (nearestSegmentForStatus.distance < 100)
+                if (nearestSegmentForStatus.distance < 10000)
                 {
-                    pathItem.UpdateNodeType(PathNodeType.Normal);
+                    pathItem.UpdateNodeType(PathNodeType.Normal);                    
+                    pathItem.UpdateLocation((nearestSegmentForStatus.statusItem as TrackSegment).SnapToSegment(position));
                 }
                 else
                 {
                     pathItem.UpdateNodeType(PathNodeType.Temporary);
+                    pathItem.UpdateLocation(position);
                 }
 
-                pathItem.UpdateLocation(position);
-                currentPath.UpdateLocation(position);
+                currentPath.UpdateLocation(pathItem.Location);
                 ContentArea.SuppressDrawing = false;
             }
         }
