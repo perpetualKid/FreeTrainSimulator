@@ -107,6 +107,11 @@ namespace Orts.Toolbox
             }
         }
 
+        internal void EditPath()
+        {
+            ((ToolboxContent)contentArea?.Content).InitializeNewPath();
+        }
+
         internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
         {
             if (routeSelection?.Length > 0)

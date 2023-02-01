@@ -41,10 +41,27 @@ namespace Orts.Graphics.MapView.Widgets
             contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.SpriteBatch);
         }
 
+
         internal void UpdateLocation(in PointD location)
         {
             SetLocation(location);
         }
+
+        internal void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
+        {            
+            SetLocation(trackSegment?.SnapToSegment(location) ?? location);
+            if (null == trackSegment)
+            {
+                ValidationResult = TrainPathNodeInvalidReasons.NotOnTrack;
+                textureType = TextureFromNodeType(PathNodeType.Temporary);
+            }
+            else
+            {
+                ValidationResult = TrainPathNodeInvalidReasons.None;
+                textureType = TextureFromNodeType(PathNodeType.Intermediate);
+            }
+        }
+
 
         internal void UpdateNodeType(PathNodeType nodeType)
         {

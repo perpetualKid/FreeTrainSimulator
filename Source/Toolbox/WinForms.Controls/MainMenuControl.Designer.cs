@@ -260,28 +260,28 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.roadSegmentsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadSegmentsVisibleToolStripMenuItem.Name = "roadSegmentsVisibleToolStripMenuItem";
-            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadSegmentsVisibleToolStripMenuItem.Text = "Road Segments";
             // 
             // roadEndNodesVisibleToolStripMenuItem
             // 
             this.roadEndNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadEndNodesVisibleToolStripMenuItem.Name = "roadEndNodesVisibleToolStripMenuItem";
-            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadEndNodesVisibleToolStripMenuItem.Text = "Road End Nodes";
             // 
             // roadLevelCrossingsVisibleToolStripMenuItem
             // 
             this.roadLevelCrossingsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadLevelCrossingsVisibleToolStripMenuItem.Name = "roadLevelCrossingsVisibleToolStripMenuItem";
-            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadLevelCrossingsVisibleToolStripMenuItem.Text = "Level Crossings";
             // 
             // roadCarSpawnersVisibleToolStripMenuItem
             // 
             this.roadCarSpawnersVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadCarSpawnersVisibleToolStripMenuItem.Name = "roadCarSpawnersVisibleToolStripMenuItem";
-            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadCarSpawnersVisibleToolStripMenuItem.Text = "Car Spawners";
             // 
             // viewInteractivesToolStripMenuItem
@@ -415,7 +415,7 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.pathsVisisbleToolStripMenuItem.CheckOnClick = true;
             this.pathsVisisbleToolStripMenuItem.Name = "pathsVisisbleToolStripMenuItem";
-            this.pathsVisisbleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pathsVisisbleToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.pathsVisisbleToolStripMenuItem.Text = "Show Path";
             // 
             // preferencesToolStripMenuItem
@@ -682,20 +682,19 @@ namespace Orts.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadPathToolStripMenuItem.Text = "Load Path";
             this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.LoadPathToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(146, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
             // 
             // enableEditToolStripMenuItem
             // 
-            this.enableEditToolStripMenuItem.Enabled = false;
             this.enableEditToolStripMenuItem.Name = "enableEditToolStripMenuItem";
-            this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.enableEditToolStripMenuItem.Text = "Enable Editing";
             this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
             // 

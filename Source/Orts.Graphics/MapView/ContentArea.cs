@@ -162,7 +162,7 @@ namespace Orts.Graphics.MapView
                 return;
 
             worldPosition = ScreenToWorldCoordinates(position);
-            if (Scale > 0.5)
+            if (Scale > 0.2)
                 Content.UpdatePointerLocation(worldPosition, bottomLeft, topRight);
         }
 

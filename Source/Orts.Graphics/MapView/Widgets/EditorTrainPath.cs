@@ -127,6 +127,9 @@ namespace Orts.Graphics.MapView.Widgets
         private TrainPathSection editorSection;
         internal EditorPathItem Update(EditorPathItem pathItem)
         { 
+            if (pathItem == null)
+                return null;
+
             pathPoints.Add(pathItem);
             editorSection = new TrainPathSection(pathItem.Location, pathItem.Location, PathType.Invalid);
             editorSection.PathItem = pathItem;

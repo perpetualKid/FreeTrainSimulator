@@ -43,6 +43,8 @@ namespace Orts.Graphics.MapView
 
         private EditorPathItem pathItem;
 
+        private ContentMode contentMode;
+
         public ToolboxContent(Game game) :
             base(game)
         {
@@ -97,7 +99,7 @@ namespace Orts.Graphics.MapView
             {
                 double distanceSquared = double.MaxValue;
                 if (viewItem == MapContentType.Grid)
-                    //already drawn above
+                    //already checked above
                     continue;
                 if (viewSettings[viewItem] && trackModel.ContentByTile[viewItem] != null)
                 {
@@ -123,7 +125,7 @@ namespace Orts.Graphics.MapView
                         }
                     }
                 }
-                if (distanceSquared < 100)
+                if (distanceSquared < 1000)
                 {
                     switch (viewItem)
                     {
@@ -148,18 +150,10 @@ namespace Orts.Graphics.MapView
             
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
-            if (pathItem != null)
+
+            if (contentMode == ContentMode.EditPath)
             {
-                if (nearestSegmentForStatus.distance < 10000)
-                {
-                    pathItem.UpdateNodeType(PathNodeType.Normal);                    
-                    pathItem.UpdateLocation((nearestSegmentForStatus.statusItem as TrackSegment).SnapToSegment(position));
-                }
-                else
-                {
-                    pathItem.UpdateNodeType(PathNodeType.Temporary);
-                    pathItem.UpdateLocation(position);
-                }
+                pathItem.UpdateLocation(nearestItems[MapContentType.Tracks] as TrackSegment, position);
 
                 currentPath.UpdateLocation(pathItem.Location);
                 ContentArea.SuppressDrawing = false;
@@ -175,6 +169,7 @@ namespace Orts.Graphics.MapView
                     if (viewItemSetting == MapContentType.Paths)
                     {
                         currentPath?.Draw(ContentArea);
+                        pathItem?.Draw(ContentArea);
                     }
                     else
                     {
@@ -194,12 +189,7 @@ namespace Orts.Graphics.MapView
                     }
                 }
             }
-            // skip highlighting closest track items if a path is loaded
-            if (currentPath != null && viewSettings[MapContentType.Paths])
-            {
-                pathItem?.Draw(ContentArea);
-            }
-            else
+            if (contentMode == ContentMode.ViewRoute || !viewSettings[MapContentType.Paths])
             {
                 if (null != nearestItems[MapContentType.Tracks])
                 {
@@ -237,12 +227,20 @@ namespace Orts.Graphics.MapView
             {
                 ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
                 ContentArea?.SetTrackingPosition(currentPath.MidPoint);
+                viewSettings[MapContentType.Paths] = true;
+                contentMode = ContentMode.ViewPath;
             }
             else
             {
-                currentPath = new EditorTrainPath(game);
-                pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Temporary);
+                contentMode = ContentMode.ViewRoute;
             }
+        }
+
+        public void InitializeNewPath()
+        {
+            contentMode = ContentMode.EditPath;
+            currentPath = new EditorTrainPath(game);
+            pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Temporary);
         }
 
         public void HighlightPathItem(int index)
@@ -257,7 +255,8 @@ namespace Orts.Graphics.MapView
         {
             if (currentPath != null)
             {
-                pathItem = currentPath.Update(pathItem);
+                if (pathItem.ValidationResult == TrainPathNodeInvalidReasons.None)
+                    pathItem = currentPath.Update(pathItem);
             }
         }
         #endregion

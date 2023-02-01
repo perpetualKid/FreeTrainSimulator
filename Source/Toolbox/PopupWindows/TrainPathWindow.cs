@@ -338,7 +338,6 @@ namespace Orts.Toolbox.PopupWindows
             if (currentPath != null)
             {
                 SelectActivePath();
-                metadataInformationProvider.Update(currentPath);
                 for (int i = 0; i < currentPath.PathItems.Count; i++)
                 {
                     TrainPathPoint item = currentPath.PathItems[i];
@@ -351,6 +350,7 @@ namespace Orts.Toolbox.PopupWindows
                     line.Tag = i;
                 }
             }
+            metadataInformationProvider.Update(currentPath);
             pathNodeScrollbox.UpdateContent();
         }
 
