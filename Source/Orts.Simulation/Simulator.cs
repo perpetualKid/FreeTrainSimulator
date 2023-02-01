@@ -1028,7 +1028,7 @@ namespace Orts.Simulation
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
             AIPath aiPath = new AIPath(PathFileName, TimetableMode);
-            PathName = aiPath.pathName;
+            PathName = aiPath.PathName;
 
             if (aiPath.Nodes == null)
             {

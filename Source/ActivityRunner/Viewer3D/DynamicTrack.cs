@@ -34,6 +34,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -183,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int lodIndex;
             for (lodIndex = 0; lodIndex < Primitive.TrProfile.LODs.Count; lodIndex++)
             {
-                lod = (LOD)Primitive.TrProfile.LODs[lodIndex];
+                lod = Primitive.TrProfile.LODs[lodIndex];
                 if (Viewer.Camera.InRange(Primitive.MSTSLODCenter, 0, lod.CutoffRadius)) break;
             }
             if (lodIndex == Primitive.TrProfile.LODs.Count) return;
@@ -209,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             while (lodIndex <= lastIndex)
             {
-                lod = (LOD)Primitive.TrProfile.LODs[lodIndex];
+                lod = Primitive.TrProfile.LODs[lodIndex];
                 for (int j = lod.PrimIndexStart; j < lod.PrimIndexStop; j++)
                 {
                     frame.AddPrimitive(Primitive.ShapePrimitives[j].Material, Primitive.ShapePrimitives[j], RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeFlags.AutoZBias);
@@ -393,7 +394,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // and the ChordSpan is adjusted to compensate.
         public PitchControls PitchControl = PitchControls.None; // Method of control for profile replication pitch
         public float PitchControlScalar; // Scalar parameter for PitchControls
-        public ArrayList LODs = new ArrayList(); // Array of Levels-Of-Detail
+        public List<LOD> LODs { get; } = new List<LOD>(); // Array of Levels-Of-Detail
 
         /// <summary>
         /// Enumeration of LOD control methods
@@ -575,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 new STFReader.TokenProcessor("lod", ()=> { LODs.Add(new LOD(viewer, stf)); }),
             });
 
-            if (LODs.Count == 0) throw new Exception("missing LODs");
+            if (LODs.Count == 0) throw new InvalidDataException("missing LODs");
         }
 
         /// <summary>
@@ -653,7 +654,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
             }
-            if (LODs.Count == 0) throw new Exception("missing LODs");
+            if (LODs.Count == 0) throw new InvalidDataException("missing LODs");
         }
 
         /// <summary>
@@ -716,7 +717,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class LOD
     {
         public float CutoffRadius; // Distance beyond which LODItem is not seen
-        public ArrayList LODItems = new ArrayList(); // Array of arrays of LODItems
+        public List<LODItem> LODItems { get; } = new List<LODItem>(); // Array of arrays of LODItems
         public int PrimIndexStart; // Start index of ShapePrimitive block for this LOD
         public int PrimIndexStop;
 
@@ -739,7 +740,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     LODItems.Add(lodItem); // Append to Polylines array
                     }),
             });
-            if (CutoffRadius == 0) throw new Exception("missing CutoffRadius");
+            if (CutoffRadius == 0) throw new InvalidDataException("missing CutoffRadius");
         }
 
         public void Mark()
@@ -751,7 +752,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class LODItem
     {
-        public ArrayList Polylines = new ArrayList();  // Array of arrays of vertices 
+        public List<Polyline> Polylines { get; } = new List<Polyline>();  // Array of arrays of vertices 
 
         public string Name;                            // e.g., "Rail sides"
         public string ShaderName;
@@ -802,7 +803,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Checks for required member variables:
             // Name not required.
             // MipMapLevelOfDetail bias initializes to 0.
-            if (Polylines.Count == 0) throw new Exception("missing Polylines");
+            if (Polylines.Count == 0) throw new InvalidDataException("missing Polylines");
 
             LoadMaterial(viewer, this);
         }
@@ -829,7 +830,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class Polyline
     {
-        public ArrayList Vertices = new ArrayList();    // Array of vertices 
+        public List<Vertex> Vertices { get; } = new List<Vertex>();    // Array of vertices 
 
         public string Name;                             // e.g., "1:1 embankment"
         public Vector2 DeltaTexCoord;                   // Incremental change in (u, v) from one cross section to the next
@@ -852,8 +853,8 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             // Checks for required member variables: 
             // Name not required.
-            if (DeltaTexCoord == Vector2.Zero) throw new Exception("missing DeltaTexCoord");
-            if (Vertices.Count == 0) throw new Exception("missing Vertices");
+            if (DeltaTexCoord == Vector2.Zero) throw new InvalidDataException("missing DeltaTexCoord");
+            if (Vertices.Count == 0) throw new InvalidDataException("missing Vertices");
         }
 
         /// <summary>
@@ -1008,9 +1009,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // In this implementation dtrack has only 1 DT subsection.
             if (track.TrackSections.Count != 1)
             {
-                throw new ApplicationException(
-                    "DynamicTrackPrimitive Constructor detected a multiple-subsection dynamic track section. " +
-                    "(SectionIdx = " + track.SectionIndex + ")");
+                throw new InvalidDataException($"DynamicTrackPrimitive Constructor detected a multiple-subsection dynamic track section. (SectionIdx = {track.SectionIndex})");
             }
             // Populate member DTrackData (a DtrackData struct)
             DTrackData = new DtrackData(track.TrackSections[0].Curved, track.TrackSections[0].Curved ? track.TrackSections[0].Angle : track.TrackSections[0].Length, track.TrackSections[0].Radius);
@@ -1019,12 +1018,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             TrProfile = viewer.TRP.TrackProfile;
             // Count all of the LODItems in all the LODs
-            int count = 0;
-            for (int i = 0; i < TrProfile.LODs.Count; i++)
-            {
-                LOD lod = (LOD)TrProfile.LODs[i];
-                count += lod.LODItems.Count;
-            }
+            int count = TrProfile.LODs.Sum(lod => lod.LODItems.Count);
+
             // Allocate ShapePrimitives array for the LOD count
             ShapePrimitives = new ShapePrimitive[count];
 
@@ -1032,7 +1027,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int primIndex = 0;
             for (int iLOD = 0; iLOD < TrProfile.LODs.Count; iLOD++)
             {
-                LOD lod = (LOD)TrProfile.LODs[iLOD];
+                LOD lod = TrProfile.LODs[iLOD];
                 lod.PrimIndexStart = primIndex; // Store start index for this LOD
                 for (int iLODItem = 0; iLODItem < lod.LODItems.Count; iLODItem++)
                 {
@@ -1070,7 +1065,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else CircArcGen();
 
             // Count vertices and indices
-            LOD lod = (LOD)TrProfile.LODs[lodIndex];
+            LOD lod = TrProfile.LODs[lodIndex];
             LODItem lodItem = (LODItem)lod.LODItems[lodItemIndex];
             NumVertices = (int)(lodItem.NumVertices * (NumSections + 1));
             NumIndices = (short)(lodItem.NumSegments * NumSections * 6);

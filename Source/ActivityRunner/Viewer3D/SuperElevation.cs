@@ -463,7 +463,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int count = 0;
             for (int i = 0; i < TrProfile.LODs.Count; i++)
             {
-                LOD lod = (LOD)TrProfile.LODs[i];
+                LOD lod = TrProfile.LODs[i];
                 count += lod.LODItems.Count;
             }
             // Allocate ShapePrimitives array for the LOD count
@@ -473,7 +473,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int primIndex = 0;
             for (int iLOD = 0; iLOD < TrProfile.LODs.Count; iLOD++)
             {
-                LOD lod = (LOD)TrProfile.LODs[iLOD];
+                LOD lod = TrProfile.LODs[iLOD];
                 lod.PrimIndexStart = primIndex; // Store start index for this LOD
                 for (int iLODItem = 0; iLODItem < lod.LODItems.Count; iLODItem++)
                 {
@@ -508,7 +508,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else CircArcGen();
 
             // Count vertices and indices
-            LOD lod = (LOD)TrProfile.LODs[iLOD];
+            LOD lod = TrProfile.LODs[iLOD];
             LODItem lodItem = (LODItem)lod.LODItems[iLODItem];
             NumVertices = (int)(lodItem.NumVertices * (NumSections + 1));
             NumIndices = (short)(lodItem.NumSegments * NumSections * 6);
