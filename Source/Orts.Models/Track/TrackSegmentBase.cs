@@ -385,20 +385,17 @@ namespace Orts.Models.Track
         /// </summary>
         public PointD SnapToSegment(in PointD point)
         {
-            double distanceSquared;
-
             if (Curved)
             {
                 PointD deltaStart = point - centerPoint;
                 float deltaAngle = (float)Math.Atan2(deltaStart.X, deltaStart.Y) - MathHelper.PiOver2;
                 deltaAngle = MathHelper.WrapAngle(deltaAngle - centerToStartDirection + Direction);
                 int sign = Math.Sign(Angle);
-
                 return centerPoint + new PointD(sign * Math.Sin(deltaAngle) * Radius, sign * Math.Cos(deltaAngle) * Radius);
             }
             else
             {
-                distanceSquared = Length * Length;
+                double distanceSquared = Length * Length;
                 // Calculate the t that minimizes the distance.
                 double t = (point - Location).DotProduct(Vector - Location) / distanceSquared;
                 return Location + (Vector - Location) * t;
