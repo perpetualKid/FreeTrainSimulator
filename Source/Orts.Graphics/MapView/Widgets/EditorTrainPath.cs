@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
@@ -124,30 +125,33 @@ namespace Orts.Graphics.MapView.Widgets
             trackModel = TrackModel.Instance(game);
         }
 
-        private TrainPathSection editorSection;
         internal EditorPathItem Update(EditorPathItem pathItem)
         { 
             if (pathItem == null)
                 return null;
 
-            if (pathPoints.Count > 0)
-            {
-                TrainPathPoint start = new TrainPathPoint(pathPoints[^1].Location, trackModel);
-                TrainPathPoint end = new TrainPathPoint(pathItem.Location, trackModel);
-                List<TrainPathSection> sections = AddSections(PathType.MainPath, start, end, 0);
-                PathSections.RemoveAt(PathSections.Count-1);
-                PathSections.AddRange(sections);
-            }
+            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != TrainPathPoint.InvalidReasons.None)
+                return pathItem;
+
+            editorSegmentStart = new TrainPathPoint(pathItem.Location, trackModel);
             pathPoints.Add(pathItem);
-            editorSection = new TrainPathSection(pathItem.Location, pathItem.Location, PathType.Invalid);
-            editorSection.PathItem = pathItem;
-            PathSections.Add(editorSection);
+            sections.Clear();
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
+        private TrainPathPoint editorSegmentStart;
+        private List<TrainPathSection> sections = new List<TrainPathSection>();
+
         internal void UpdateLocation(in PointD location)
         {
-            editorSection?.UpdateVector(location);
+            if (editorSegmentStart != null)
+            {
+                TrainPathPoint end = new TrainPathPoint(location, trackModel);
+                editorSegmentStart.ValidationResult = TrainPathPoint.InvalidReasons.None;
+                PathSections.RemoveRange(PathSections.Count - sections.Count,  sections.Count);
+                sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
+                PathSections.AddRange(sections);
+            }
         }
 
         public override double DistanceSquared(in PointD point)
