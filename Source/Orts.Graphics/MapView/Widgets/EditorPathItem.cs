@@ -9,13 +9,10 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class EditorPathItem : PointPrimitive, IDrawable<PointPrimitive>
+    internal class EditorPathItem : TrainPathItemBase, IDrawable<PointPrimitive>
     {
         private protected BasicTextureType textureType;
         private protected float Direction;
-        private TrackSegmentBase trackSegment;
-
-        public TrainPathPoint.InvalidReasons ValidationResult { get; set; }
 
         internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location)
         {
@@ -49,18 +46,15 @@ namespace Orts.Graphics.MapView.Widgets
             SetLocation(location);
         }
 
-        internal void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
+        internal new void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
         {
-            this.trackSegment = trackSegment;
-            SetLocation(trackSegment?.SnapToSegment(location) ?? location);
+            base.UpdateLocation(trackSegment, location);
             if (null == trackSegment)
             {
-                ValidationResult = TrainPathPoint.InvalidReasons.NotOnTrack;
                 textureType = TextureFromNodeType(PathNodeType.Temporary);
             }
             else
             {
-                ValidationResult = TrainPathPoint.InvalidReasons.None;
                 textureType = TextureFromNodeType(PathNodeType.Intermediate);
             }
         }

@@ -34,15 +34,14 @@ namespace Orts.Graphics.MapView
 
         private readonly InsetComponent insetComponent;
 
+        private EditorPathItem pathItem;
         private EditorTrainPath currentPath;
 
-        public TrainPath TrainPath => currentPath?.TrainPathModel;
+        public TrainPathBase TrainPath => currentPath;
 
         public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
 
         public INameValueInformationProvider TrackItemInfo { get; } = new DetailInfoProxy();
-
-        private EditorPathItem pathItem;
 
         public ToolboxContentMode ContentMode { get; private set; }
 
@@ -247,7 +246,7 @@ namespace Orts.Graphics.MapView
         public void HighlightPathItem(int index)
         {
             currentPath.SelectedNodeIndex = index;
-            EditorPathItem item = currentPath.SelectedNode;
+            TrainPathItemBase item = currentPath.SelectedNode;
             if (item != null)
                 ContentArea.SetTrackingPosition(item.Location);
         }

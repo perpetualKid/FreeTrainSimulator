@@ -37,7 +37,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private class TrainPathMetadataInformation : DetailInfoBase
         {
-            public void Update(TrainPath path)
+            public void Update(TrainPathBase path)
             {
                 if (path == null || path.PathFile == null)
                     this.Clear();
@@ -56,7 +56,7 @@ namespace Orts.Toolbox.PopupWindows
         private bool contentUpdated;
         private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;
-        private TrainPath currentPath;
+        private TrainPathBase currentPath;
         private VerticalScrollboxControlLayout pathNodeScrollbox;
         private VerticalScrollboxControlLayout pathScrollbox;
         private readonly List<WindowControl> pathControls = new List<WindowControl>();

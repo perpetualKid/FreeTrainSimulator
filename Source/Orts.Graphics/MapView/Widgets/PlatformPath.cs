@@ -134,6 +134,11 @@ namespace Orts.Graphics.MapView.Widgets
             return double.NaN;
         }
 
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(in PointD start, in PointD end)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new PlatformSection(trackModel, trackNodeIndex, start, end);

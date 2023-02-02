@@ -6,7 +6,7 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class EditorTrainPathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal class EditorTrainPathSegment : TrainPathSegmentBase, IDrawable<VectorPrimitive>
     {
         public EditorTrainPathSegment(TrackSegmentBase source) : base(source)
         {
@@ -38,11 +38,6 @@ namespace Orts.Graphics.MapView.Widgets
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
                 contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
-        }
-
-        internal void UpdateVector(in PointD vector)
-        { 
-            SetVector(vector);
         }
     }
 }
