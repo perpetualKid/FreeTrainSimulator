@@ -22,8 +22,6 @@ namespace Orts.Graphics.Window.Controls
                 PathNodeType.Normal => BasicTextureType.PathNormal,
                 PathNodeType.Intermediate => BasicTextureType.PathNormal,
                 PathNodeType.Wait => BasicTextureType.PathWait,
-                PathNodeType.SidingStart => BasicTextureType.PathNormal,
-                PathNodeType.SidingEnd => BasicTextureType.PathNormal,
                 PathNodeType.Reversal => BasicTextureType.PathReverse,
                 PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),

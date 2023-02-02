@@ -79,24 +79,24 @@ namespace Orts.Graphics.MapView.Widgets
             if (pathItem == null)
                 return null;
 
-            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != TrainPathPoint.InvalidReasons.None)
+            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != InvalidReasons.None)
                 return pathItem;
 
-            editorSegmentStart = new TrainPathPoint(pathItem.Location, TrackModel);
+            editorSegmentStart = new TrainPathItemPoint(pathItem.Location, TrackModel);
             PathPoints.Add(pathItem);
             sections.Clear();
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
-        private TrainPathPoint editorSegmentStart;
+        private TrainPathItemBase editorSegmentStart;
         private List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
 
         internal void UpdateLocation(in PointD location)
         {
             if (editorSegmentStart != null)
             {
-                TrainPathPoint end = new TrainPathPoint(location, TrackModel);
-                editorSegmentStart.ValidationResult = TrainPathPoint.InvalidReasons.None;
+                TrainPathItemPoint end = new TrainPathItemPoint(location, TrackModel);
+                editorSegmentStart.ValidationResult = InvalidReasons.None;
                 PathSections.RemoveRange(PathSections.Count - sections.Count,  sections.Count);
                 sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
                 PathSections.AddRange(sections);

@@ -152,10 +152,6 @@ namespace Orts.Formats.Msts
         End,
         /// <summary>Node is a wait/stop node</summary>
         Wait,
-        /// <summary>Node is a junction node at the start of a siding </summary>
-        SidingStart,
-        /// <summary>Node is a junction node at the end of a siding</summary>
-        SidingEnd,
         /// <summary>Node is a reversal node</summary>
         Reversal,
         /// <summary>Temporary node for editing purposes</summary>

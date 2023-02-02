@@ -350,12 +350,12 @@ namespace Orts.Models.Track
             return result != null && result.EndNodeAt(location) ? result : null;
         }
 
-        public TrainPathPoint FindIntermediaryConnection(TrainPathPoint start, TrainPathPoint end)
+        public TrainPathItemBase FindIntermediaryConnection(TrainPathItemBase start, TrainPathItemBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
-            static bool ConnectThroughSameJunction(TrainPathPoint start, TrainPathPoint end)
+            static bool ConnectThroughSameJunction(TrainPathItemBase start, TrainPathItemBase end)
             {
                 return (start.JunctionNode != null && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
             }
@@ -363,17 +363,17 @@ namespace Orts.Models.Track
             TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];
             TrackSegmentSection endNode = SegmentSections[end.ConnectedSegments[0].TrackNodeIndex];
 
-            TrainPathPoint startLocation = new TrainPathPoint(this, startNode.Location);
-            TrainPathPoint endLocation = new TrainPathPoint(this, endNode.Location);
+            TrainPathItemBase startLocation = new TrainPathItemPoint(this, startNode.Location);
+            TrainPathItemBase endLocation = new TrainPathItemPoint(this, endNode.Location);
 
             if (ConnectThroughSameJunction(startLocation, endLocation))
                 return endLocation;
 
-            TrainPathPoint endVector = new TrainPathPoint(this, endNode.Vector);
+            TrainPathItemBase endVector = new TrainPathItemPoint(this, endNode.Vector);
             if (ConnectThroughSameJunction(startLocation, endVector))
                 return endVector;
 
-            TrainPathPoint startVector = new TrainPathPoint(this, startNode.Vector);
+            TrainPathItemBase startVector = new TrainPathItemPoint(this, startNode.Vector);
             if (ConnectThroughSameJunction(startVector, endLocation))
                 return endLocation;
 

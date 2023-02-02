@@ -737,8 +737,6 @@ namespace ORTS.TrackViewer.Editing
                 PathNodeType.Start => TrainpathNodeType.Other,
                 PathNodeType.End => TrainpathNodeType.Other,
                 PathNodeType.Wait => TrainpathNodeType.Stop,
-                PathNodeType.SidingStart => TrainpathNodeType.Other,
-                PathNodeType.SidingEnd => TrainpathNodeType.Other,
                 PathNodeType.Reversal => TrainpathNodeType.Reverse,
                 PathNodeType.Temporary => TrainpathNodeType.Other,
                 _ => throw new NotImplementedException(),

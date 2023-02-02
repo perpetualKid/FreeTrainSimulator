@@ -14,13 +14,13 @@ namespace Orts.Graphics.MapView.Widgets
         private protected BasicTextureType textureType;
         private protected float Direction;
 
-        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location)
+        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
         {
             textureType = TextureFromNodeType(nodeType);
             Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
         }
 
-        internal EditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType) : base(location)
+        internal EditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType) : base(location, nodeType)
         {
             textureType = TextureFromNodeType(nodeType);
             PointD origin = vector - location;
@@ -32,8 +32,8 @@ namespace Orts.Graphics.MapView.Widgets
             Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
             Color color = ValidationResult switch
             {
-                TrainPathPoint.InvalidReasons.None => Color.White,
-                TrainPathPoint.InvalidReasons.NoJunctionNode => Color.Yellow,
+                InvalidReasons.None => Color.White,
+                InvalidReasons.NoJunctionNode => Color.Yellow,
                 _ => Color.Red,
             };
 
@@ -49,14 +49,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal new void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
         {
             base.UpdateLocation(trackSegment, location);
-            if (null == trackSegment)
-            {
-                textureType = TextureFromNodeType(PathNodeType.Temporary);
-            }
-            else
-            {
-                textureType = TextureFromNodeType(PathNodeType.Intermediate);
-            }
+            textureType = null == trackSegment ? TextureFromNodeType(PathNodeType.Temporary) : TextureFromNodeType(PathNodeType.Intermediate);
         }
 
         internal void UpdateNodeType(PathNodeType nodeType)
@@ -73,8 +66,6 @@ namespace Orts.Graphics.MapView.Widgets
                 PathNodeType.Normal => BasicTextureType.PathNormal,
                 PathNodeType.Intermediate => BasicTextureType.PathNormal,
                 PathNodeType.Wait => BasicTextureType.PathWait,
-                PathNodeType.SidingStart => BasicTextureType.PathNormal,
-                PathNodeType.SidingEnd => BasicTextureType.PathNormal,
                 PathNodeType.Reversal => BasicTextureType.PathReverse,
                 PathNodeType.Temporary => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),

@@ -255,7 +255,7 @@ namespace Orts.Graphics.MapView
         {
             if (currentPath != null)
             {
-                if (pathItem.ValidationResult == TrainPathPoint.InvalidReasons.None)
+                if (pathItem.ValidationResult == InvalidReasons.None)
                     pathItem = currentPath.Update(pathItem);
             }
         }

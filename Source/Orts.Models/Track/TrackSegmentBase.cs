@@ -368,7 +368,7 @@ namespace Orts.Models.Track
         /// <summary>
         /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
         /// </summary>
-        public bool IsReverseDirectionTowards(TrainPathPoint start, TrainPathPoint end)
+        public bool IsReverseDirectionTowards(TrainPathItemBase start, TrainPathItemBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);

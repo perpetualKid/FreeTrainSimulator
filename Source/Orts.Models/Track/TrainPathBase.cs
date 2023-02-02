@@ -23,14 +23,12 @@ namespace Orts.Models.Track
 
         public string FilePath { get; }
         public bool Invalid { get; set; }
-#pragma warning disable CA1002 // Do not expose generic lists
-        public List<TrainPathPoint> PathItems { get; } = new List<TrainPathPoint>();
-#pragma warning restore CA1002 // Do not expose generic lists
+        private List<TrainPathItemPoint> PathItems { get; } = new List<TrainPathItemPoint>();
 
         public PathFile PathFile { get; }
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrainPathItemBase> PathPoints { get; } = new List<TrainPathItemBase>();
+        public List<TrainPathItemBase> PathPoints { get; } = new List<TrainPathItemBase>();
 #pragma warning restore CA1002 // Do not expose generic lists
         private (TrackSegmentBase NodeSegment, bool Reverse)? sectionStart;
         protected TrackModel TrackModel { get; }
@@ -83,12 +81,12 @@ namespace Orts.Models.Track
             PathFile = pathFile;
             FilePath = filePath;
 
-            PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
-            TrainPathPoint.LinkPathPoints(PathItems);
+            PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathItemPoint(node, TrackModel)));
+            TrainPathItemBase.LinkPathPoints(PathItems.Cast<TrainPathItemBase>().ToList());
 
             for (int i = 0; i < PathItems.Count; i++)
             {
-                TrainPathPoint pathItem = PathItems[i];
+                TrainPathItemBase pathItem = PathItems[i];
 
                 if (pathItem.NextMainItem != null) //main path
                 {
@@ -102,7 +100,7 @@ namespace Orts.Models.Track
             SetBounds();
         }
 
-        protected void AddPathPoint(PathType pathType, TrainPathPoint start, TrainPathPoint end, int index)
+        protected void AddPathPoint(PathType pathType, TrainPathItemBase start, TrainPathItemBase end, int index)
         {
             sectionStart = null;
             List<TrainPathSectionBase> sections = AddSections(pathType, start, end, index);
@@ -116,7 +114,6 @@ namespace Orts.Models.Track
             {
                 if (sectionStart == null)
                 {
-                    //                    pathPoints.Add(pathItem = new EditorPathItemBase(start.Location, end.Location, start.NodeType) { ValidationResult = start.ValidationResult });
                     PathPoints.Add(pathItem = CreateEditorPathItem(start.Location, end.Location, start.NodeType));
                     pathItem.ValidationResult = start.ValidationResult;
                 }
@@ -127,7 +124,6 @@ namespace Orts.Models.Track
                         reverse = !reverse;
                     PathPoints.Add(pathItem = CreateEditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse));
                     pathItem.ValidationResult = start.ValidationResult;
-                    //pathPoints.Add(pathItem = new EditorPathItemBase(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse) { ValidationResult = start.ValidationResult });
                 }
             }
 
@@ -138,7 +134,7 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrainPathSectionBase> AddSections(PathType pathType, TrainPathPoint start, TrainPathPoint end, int index)
+        protected List<TrainPathSectionBase> AddSections(PathType pathType, TrainPathItemBase start, TrainPathItemBase end, int index)
 #pragma warning restore CA1002 // Do not expose generic lists
         {
             ArgumentNullException.ThrowIfNull(start);
@@ -161,7 +157,7 @@ namespace Orts.Models.Track
                 switch (trackSegments.Count)
                 {
                     case 0:
-                        TrainPathPoint intermediary = TrackModel.FindIntermediaryConnection(start, end);
+                        TrainPathItemBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
                             foreach (var item in AddSections(pathType, start, intermediary, index))
@@ -172,7 +168,7 @@ namespace Orts.Models.Track
                         else
                         {
                             Trace.TraceWarning($"No valid connection found for #{index}");
-                            start.ValidationResult |= TrainPathPoint.InvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= InvalidReasons.NoConnectionPossible;
                             section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = PathType.Invalid;
                             sections.Add(section);
@@ -192,7 +188,7 @@ namespace Orts.Models.Track
                             section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = PathType.Invalid;
                             sections.Add(section);
-                            start.ValidationResult |= TrainPathPoint.InvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= InvalidReasons.NoConnectionPossible;
                         }
                         else
                         {
@@ -206,6 +202,5 @@ namespace Orts.Models.Track
             }
             return sections;
         }
-
     }
 }
