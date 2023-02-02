@@ -25,11 +25,11 @@ namespace Orts.Graphics.MapView.Widgets
             Color drawColor = this.GetColor<EditorTrainPathSegment>(colorVariation);
             Size = MathHelper.Max(0.5f, (float)(2 / contentArea.Scale));
 
-            // this is bit of a hack to visualize invalid path segments
-            // since those are straight line only, we can just use DrawDashedLine and don't need to care for curved segments
+            // this is bit of a hack to visualize invalid path segments, using a negative scaleFactor as flag to mark them invalid
             if (scaleFactor < 0)
             {
                 scaleFactor = -scaleFactor;
+                // since those are straight line only, we can just use DrawDashedLine and don't need to care for curved segments
                 contentArea.BasicShapes.DrawDashedLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenCoordinates(in Vector), contentArea.SpriteBatch);
                 return;
             }

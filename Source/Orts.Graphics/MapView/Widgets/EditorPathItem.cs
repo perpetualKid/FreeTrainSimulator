@@ -65,7 +65,6 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-
         internal void UpdateNodeType(PathNodeType nodeType)
         {
             textureType = TextureFromNodeType(nodeType);

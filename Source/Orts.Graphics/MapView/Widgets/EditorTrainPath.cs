@@ -125,6 +125,7 @@ namespace Orts.Graphics.MapView.Widgets
             trackModel = TrackModel.Instance(game);
         }
 
+        #region path editing
         internal EditorPathItem Update(EditorPathItem pathItem)
         { 
             if (pathItem == null)
@@ -153,6 +154,7 @@ namespace Orts.Graphics.MapView.Widgets
                 PathSections.AddRange(sections);
             }
         }
+        #endregion
 
         public override double DistanceSquared(in PointD point)
         {

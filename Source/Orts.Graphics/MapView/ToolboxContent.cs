@@ -241,7 +241,7 @@ namespace Orts.Graphics.MapView
         {
             ContentMode = ToolboxContentMode.EditPath;
             currentPath = new EditorTrainPath(game);
-            pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Temporary);
+            pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
         }
 
         public void HighlightPathItem(int index)
