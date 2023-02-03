@@ -5,9 +5,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Position;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
@@ -368,7 +366,7 @@ namespace Orts.Models.Track
         /// <summary>
         /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
         /// </summary>
-        public bool IsReverseDirectionTowards(TrainPathItemBase start, TrainPathItemBase end)
+        public bool IsReverseDirectionTowards(TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);

@@ -12,12 +12,6 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public enum TrackElementType
-    {
-        RailTrack,
-        RoadTrack,
-    }
-
     public sealed class TrackModel
     {
 
@@ -350,30 +344,32 @@ namespace Orts.Models.Track
             return result != null && result.EndNodeAt(location) ? result : null;
         }
 
-        public TrainPathItemBase FindIntermediaryConnection(TrainPathItemBase start, TrainPathItemBase end)
+        public TrainPathPointBase FindIntermediaryConnection(TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
-            static bool ConnectThroughSameJunction(TrainPathItemBase start, TrainPathItemBase end)
+            static bool ConnectThroughSameJunction(TrainPathPointBase start, TrainPathPointBase end)
             {
                 return (start.JunctionNode != null && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
             }
 
+            //for two path points, try to find if they are connected through same junction on either end of their track node
+            //for that, need to test Point1.Start with both Point2.Start and Point2.End, and same for Point1.End test with Point2.Start and Point2.End
             TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];
             TrackSegmentSection endNode = SegmentSections[end.ConnectedSegments[0].TrackNodeIndex];
 
-            TrainPathItemBase startLocation = new TrainPathItemPoint(this, startNode.Location);
-            TrainPathItemBase endLocation = new TrainPathItemPoint(this, endNode.Location);
+            TrainPathPointBase startLocation = new TrainPathPoint(this, startNode.Location);
+            TrainPathPointBase endLocation = new TrainPathPoint(this, endNode.Location);
 
             if (ConnectThroughSameJunction(startLocation, endLocation))
                 return endLocation;
 
-            TrainPathItemBase endVector = new TrainPathItemPoint(this, endNode.Vector);
+            TrainPathPointBase endVector = new TrainPathPoint(this, endNode.Vector);
             if (ConnectThroughSameJunction(startLocation, endVector))
                 return endVector;
 
-            TrainPathItemBase startVector = new TrainPathItemPoint(this, startNode.Vector);
+            TrainPathPointBase startVector = new TrainPathPoint(this, startNode.Vector);
             if (ConnectThroughSameJunction(startVector, endLocation))
                 return endLocation;
 

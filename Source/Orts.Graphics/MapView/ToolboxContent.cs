@@ -246,7 +246,7 @@ namespace Orts.Graphics.MapView
         public void HighlightPathItem(int index)
         {
             currentPath.SelectedNodeIndex = index;
-            TrainPathItemBase item = currentPath.SelectedNode;
+            TrainPathPointBase item = currentPath.SelectedNode;
             if (item != null)
                 ContentArea.SetTrackingPosition(item.Location);
         }
@@ -255,7 +255,7 @@ namespace Orts.Graphics.MapView
         {
             if (currentPath != null)
             {
-                if (pathItem.ValidationResult == InvalidReasons.None)
+                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
                     pathItem = currentPath.Update(pathItem);
             }
         }

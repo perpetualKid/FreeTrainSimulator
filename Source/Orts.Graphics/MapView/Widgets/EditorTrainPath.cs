@@ -12,11 +12,11 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
     {
-        private readonly ILookup<TrainPathItemBase, TrainPathSectionBase> pathSectionLookup;
+        private readonly ILookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
 
         public int SelectedNodeIndex { get; set; } = -1;
 
-        public TrainPathItemBase SelectedNode => (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count) ? PathPoints[SelectedNodeIndex] : null;
+        public TrainPathPointBase SelectedNode => (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count) ? PathPoints[SelectedNodeIndex] : null;
 
         private class TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
         {
@@ -79,24 +79,24 @@ namespace Orts.Graphics.MapView.Widgets
             if (pathItem == null)
                 return null;
 
-            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != InvalidReasons.None)
+            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != PathNodeInvalidReasons.None)
                 return pathItem;
 
-            editorSegmentStart = new TrainPathItemPoint(pathItem.Location, TrackModel);
+            editorSegmentStart = new EditorPathItem(pathItem.Location, TrackModel);
             PathPoints.Add(pathItem);
             sections.Clear();
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
-        private TrainPathItemBase editorSegmentStart;
+        private EditorPathItem editorSegmentStart;
         private List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
 
         internal void UpdateLocation(in PointD location)
         {
             if (editorSegmentStart != null)
             {
-                TrainPathItemPoint end = new TrainPathItemPoint(location, TrackModel);
-                editorSegmentStart.ValidationResult = InvalidReasons.None;
+                EditorPathItem end = new EditorPathItem(location, TrackModel);
+                editorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
                 PathSections.RemoveRange(PathSections.Count - sections.Count,  sections.Count);
                 sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
                 PathSections.AddRange(sections);
@@ -147,12 +147,12 @@ namespace Orts.Graphics.MapView.Widgets
             throw new System.NotImplementedException();
         }
 
-        protected override TrainPathItemBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType)
+        protected override TrainPathPointBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType)
         {
             return new EditorPathItem(location, vector, nodeType);
         }
 
-        protected override TrainPathItemBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection)
+        protected override TrainPathPointBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection)
         {
             return new EditorPathItem(location, trackSegment, nodeType, reverseDirection);
         }

@@ -9,10 +9,13 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class EditorPathItem : TrainPathItemBase, IDrawable<PointPrimitive>
+    internal class EditorPathItem : TrainPathPointBase, IDrawable<PointPrimitive>
     {
         private protected BasicTextureType textureType;
         private protected float Direction;
+
+        internal EditorPathItem(in PointD location, TrackModel trackModel): base(location, trackModel)
+        { }
 
         internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
         {
@@ -32,14 +35,13 @@ namespace Orts.Graphics.MapView.Widgets
             Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
             Color color = ValidationResult switch
             {
-                InvalidReasons.None => Color.White,
-                InvalidReasons.NoJunctionNode => Color.Yellow,
+                PathNodeInvalidReasons.None => Color.White,
+                PathNodeInvalidReasons.NoJunctionNode => Color.Yellow,
                 _ => Color.Red,
             };
 
             contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.SpriteBatch);
         }
-
 
         internal void UpdateLocation(in PointD location)
         {

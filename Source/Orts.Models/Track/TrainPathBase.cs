@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -21,27 +20,28 @@ namespace Orts.Models.Track
             PassingPath,
         }
 
+        private List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
+
         public string FilePath { get; }
         public bool Invalid { get; set; }
-        private List<TrainPathItemPoint> PathItems { get; } = new List<TrainPathItemPoint>();
 
         public PathFile PathFile { get; }
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        public List<TrainPathItemBase> PathPoints { get; } = new List<TrainPathItemBase>();
+        public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
 #pragma warning restore CA1002 // Do not expose generic lists
         private (TrackSegmentBase NodeSegment, bool Reverse)? sectionStart;
         protected TrackModel TrackModel { get; }
 
-        protected abstract TrainPathItemBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType);
+        protected abstract TrainPathPointBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType);
 
-        protected abstract TrainPathItemBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection);
+        protected abstract TrainPathPointBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection);
 
         protected abstract class TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
         {
             public PathType PathType { get; internal set; }
 
-            public TrainPathItemBase PathItem { get; set; }
+            public TrainPathPointBase PathItem { get; set; }
 
             protected TrainPathSectionBase(in PointD startLocation, in PointD endLocation) :
                 base(startLocation, endLocation)
@@ -56,11 +56,6 @@ namespace Orts.Models.Track
             protected TrainPathSectionBase(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
                 base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
-            }
-
-            public void UpdateVector(in PointD vector)
-            {
-                SectionSegments[0].UpdateVector(vector);
             }
         }
 
@@ -81,12 +76,12 @@ namespace Orts.Models.Track
             PathFile = pathFile;
             FilePath = filePath;
 
-            PathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathItemPoint(node, TrackModel)));
-            TrainPathItemBase.LinkPathPoints(PathItems.Cast<TrainPathItemBase>().ToList());
+            pathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
+            TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList());
 
-            for (int i = 0; i < PathItems.Count; i++)
+            for (int i = 0; i < pathItems.Count; i++)
             {
-                TrainPathItemBase pathItem = PathItems[i];
+                TrainPathPointBase pathItem = pathItems[i];
 
                 if (pathItem.NextMainItem != null) //main path
                 {
@@ -100,7 +95,7 @@ namespace Orts.Models.Track
             SetBounds();
         }
 
-        protected void AddPathPoint(PathType pathType, TrainPathItemBase start, TrainPathItemBase end, int index)
+        protected void AddPathPoint(PathType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
         {
             sectionStart = null;
             List<TrainPathSectionBase> sections = AddSections(pathType, start, end, index);
@@ -108,7 +103,7 @@ namespace Orts.Models.Track
             if (start.NodeType != PathNodeType.End)
                 PathSections.AddRange(sections);
 
-            TrainPathItemBase pathItem = null;
+            TrainPathPointBase pathItem = null;
 
             if (start.NextMainItem == null || start.NextMainItem == end)
             {
@@ -134,7 +129,7 @@ namespace Orts.Models.Track
         }
 
 #pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrainPathSectionBase> AddSections(PathType pathType, TrainPathItemBase start, TrainPathItemBase end, int index)
+        protected List<TrainPathSectionBase> AddSections(PathType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
 #pragma warning restore CA1002 // Do not expose generic lists
         {
             ArgumentNullException.ThrowIfNull(start);
@@ -157,7 +152,7 @@ namespace Orts.Models.Track
                 switch (trackSegments.Count)
                 {
                     case 0:
-                        TrainPathItemBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
+                        TrainPathPointBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
                             foreach (var item in AddSections(pathType, start, intermediary, index))
@@ -168,7 +163,7 @@ namespace Orts.Models.Track
                         else
                         {
                             Trace.TraceWarning($"No valid connection found for #{index}");
-                            start.ValidationResult |= InvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= PathNodeInvalidReasons.NoConnectionPossible;
                             section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = PathType.Invalid;
                             sections.Add(section);
@@ -188,7 +183,7 @@ namespace Orts.Models.Track
                             section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = PathType.Invalid;
                             sections.Add(section);
-                            start.ValidationResult |= InvalidReasons.NoConnectionPossible;
+                            start.ValidationResult |= PathNodeInvalidReasons.NoConnectionPossible;
                         }
                         else
                         {

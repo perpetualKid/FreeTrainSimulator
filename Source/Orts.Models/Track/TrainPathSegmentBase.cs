@@ -15,11 +15,5 @@ namespace Orts.Models.Track
         protected TrainPathSegmentBase(in PointD start, in PointD end) : base(start, end)
         {
         }
-
-        internal void UpdateVector(in PointD vector)
-        {
-            SetVector(vector);
-        }
-
     }
 }
