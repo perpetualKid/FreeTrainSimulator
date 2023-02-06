@@ -161,7 +161,7 @@ namespace Orts.Toolbox
         {
             if (userCommandArgs is PointerCommandArgs mousePointCommandArgs && (contentArea?.Content is ToolboxContent toolboxContent && toolboxContent.ContentMode == ToolboxContentMode.EditPath))
             {
-                toolboxContent.AddPathPoint(mousePointCommandArgs.Position);
+                pathEditor?.AddPathPoint(mousePointCommandArgs.Position);
                 userCommandArgs.Handled = true;
             }
         }

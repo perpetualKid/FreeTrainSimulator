@@ -33,6 +33,7 @@ namespace Orts.Toolbox
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
         private PathEditor pathEditor;
+
         internal PathEditor PathEditor
         {
             get
@@ -153,6 +154,7 @@ namespace Orts.Toolbox
             ContentArea = null;
             selectedRoute = null;
             mainmenu.ClearPathMenu();
+            pathEditor?.Dispose();
             pathEditor = null;
         }
 

@@ -32,15 +32,24 @@ namespace Orts.Graphics.MapView
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
         private readonly InsetComponent insetComponent;
+        private ToolboxContentMode contentMode;
 
-        private EditorPathItem pathItem;
-        private EditorTrainPath currentPath;
+        internal PathEditorBase PathEditor { get; set; }
 
         public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
 
         public INameValueInformationProvider TrackItemInfo { get; } = new DetailInfoProxy();
 
-        public ToolboxContentMode ContentMode { get; private set; }
+        public ToolboxContentMode ContentMode
+        {
+            get => contentMode;
+            internal set
+            {
+                contentMode = value;
+                if (value == ToolboxContentMode.ViewPath)
+                    viewSettings[MapContentType.Paths] = true;
+            }
+        }
 
         public ToolboxContent(Game game) :
             base(game)
@@ -148,11 +157,9 @@ namespace Orts.Graphics.MapView
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
 
-            if (ContentMode == ToolboxContentMode.EditPath && pathItem !=  null)
+            if (ContentMode == ToolboxContentMode.EditPath)
             {
-                pathItem.UpdateLocation(nearestItems[MapContentType.Tracks] as TrackSegment, position);
-
-                currentPath.UpdateLocation(pathItem.Location);
+                PathEditor?.UpdatePointerLocation(position, nearestItems[MapContentType.Tracks] as TrackSegment);
                 ContentArea.SuppressDrawing = false;
             }
         }
@@ -165,8 +172,7 @@ namespace Orts.Graphics.MapView
                 {
                     if (viewItemSetting == MapContentType.Paths)
                     {
-                        currentPath?.Draw(ContentArea);
-                        pathItem?.Draw(ContentArea);
+                        PathEditor?.Draw();
                     }
                     else
                     {
@@ -215,62 +221,6 @@ namespace Orts.Graphics.MapView
                 }
             }
         }
-
-        #region additional content (Paths)
-        public TrainPathBase InitializePath(PathFile path, string filePath)
-        {
-            currentPath = path != null ? new EditorTrainPath(path, filePath, game) : null;
-            if (currentPath != null && currentPath.TopLeftBound != PointD.None && currentPath.BottomRightBound != PointD.None)
-            {
-                ContentArea?.UpdateScaleToFit(currentPath.TopLeftBound, currentPath.BottomRightBound);
-                ContentArea?.SetTrackingPosition(currentPath.MidPoint);
-                viewSettings[MapContentType.Paths] = true;
-                ContentMode = ToolboxContentMode.ViewPath;
-            }
-            else
-            {
-                ContentMode = ToolboxContentMode.ViewRoute;
-            }
-            return currentPath;
-        }
-
-        public TrainPathBase InitializeNewPath()
-        {
-            ContentMode = ToolboxContentMode.EditPath;
-            currentPath = new EditorTrainPath(game);
-            pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
-            return currentPath;
-        }
-
-        public void HighlightPathItem(int index)
-        {
-            currentPath.SelectedNodeIndex = index;
-            TrainPathPointBase item = currentPath.SelectedNode;
-            if (item != null)
-                ContentArea.SetTrackingPosition(item.Location);
-        }
-
-        private long lastPathClickTick;
-
-        public void AddPathPoint(Point location)
-        {
-            if (currentPath != null)
-            {
-                if (System.Environment.TickCount64 - lastPathClickTick < 200)
-                {
-                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                        currentPath.AddPathEndPoint(pathItem);
-                    pathItem = null;
-                }
-                else
-                {
-                    lastPathClickTick = System.Environment.TickCount64;
-                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                        pathItem = currentPath.AddPathPoint(pathItem);
-                }
-            }
-        }
-        #endregion
 
         #region build content database
         private void AddTrackSegments()

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Xml.XPath;
 
 using Orts.Formats.Msts.Files;
 using Orts.Graphics.MapView;
@@ -18,30 +17,15 @@ namespace Orts.Toolbox
         }
     }
 
-    internal class PathEditor
+    internal class PathEditor: PathEditorBase
     {
-        private long lastPathClickTick;
-
-        private readonly ToolboxContent toolboxContent;
         private Path path;
-
-        internal TrainPathBase TrainPath { get; private set; }
 
         public string FilePath => path?.FilePath;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnEditorPathChanged;
 
-        public PathEditor(ToolboxContent content, GameWindow gameWindow)
-        {
-            ArgumentNullException.ThrowIfNull(content);
-
-            toolboxContent = content;
-        }
-
-        public PathEditor(ContentArea contentArea)
-        {
-            toolboxContent = contentArea?.Content as ToolboxContent ?? throw new ArgumentNullException(nameof(contentArea));
-        }
+        public PathEditor(ContentArea contentArea): base(contentArea) { }
 
         public bool InitializePath(Path path)
         {
@@ -51,11 +35,11 @@ namespace Orts.Toolbox
                 {
                     this.path = path;
                     PathFile patFile = new PathFile(path.FilePath);
-                    TrainPath = toolboxContent.InitializePath(patFile, path.FilePath);
+                    InitializePath(patFile, path.FilePath);
                 }
                 else
                 {
-                    TrainPath = toolboxContent.InitializePath(null, null);
+                    InitializePath(null, null);
                 }
                 OnEditorPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
@@ -66,21 +50,10 @@ namespace Orts.Toolbox
             }
         }
 
-        internal void InitializeNewPath()
+        public void InitializeNewPath()
         {
-            TrainPath = toolboxContent.InitializeNewPath();
+            base.InitializePath();
             OnEditorPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-        }
-
-        internal void HighlightPathItem(int index)
-        {
-            toolboxContent.HighlightPathItem(index);
-
-            //TrainPath.SelectedNodeIndex = index;
-            //TrainPathPointBase item = currentPath.SelectedNode;
-            //if (item != null)
-            //    ContentArea.SetTrackingPosition(item.Location);
-
         }
 
         //internal void AddTrainPathPoint(Point location)

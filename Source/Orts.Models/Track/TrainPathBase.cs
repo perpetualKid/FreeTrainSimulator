@@ -62,6 +62,11 @@ namespace Orts.Models.Track
             TrackModel = TrackModel.Instance(game);
         }
 
+        protected TrainPathBase(TrackModel trackModel) : base(PointD.None, PointD.None)
+        {
+            TrackModel = trackModel;
+        }
+
         protected TrainPathBase(PathFile pathFile, string filePath, Game game)
             : base(PointD.FromWorldLocation(pathFile?.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathFile))),
                   PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Numerics;
+using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
@@ -52,6 +54,12 @@ namespace Orts.Graphics.MapView.Widgets
         {
             base.UpdateLocation(trackSegment, location);
             textureType = null == trackSegment ? TextureFromNodeType(PathNodeType.Temporary) : TextureFromNodeType(PathNodeType.Intermediate);
+        }
+
+        internal void UpdateDirection(in PointD nextLocation)
+        {
+            PointD origin = nextLocation - Location;
+            Direction = (float)Math.Atan2(origin.X, origin.Y);
         }
 
         internal void UpdateNodeType(PathNodeType nodeType)

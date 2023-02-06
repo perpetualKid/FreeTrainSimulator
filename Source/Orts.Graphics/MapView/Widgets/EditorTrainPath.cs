@@ -74,10 +74,6 @@ namespace Orts.Graphics.MapView.Widgets
         }
 
         #region path editing
-        internal void AddPathEndPoint(EditorPathItem pathItem)
-        {
-        }
-
         internal EditorPathItem AddPathPoint(EditorPathItem pathItem)
         {
             if (pathItem == null)
@@ -87,6 +83,12 @@ namespace Orts.Graphics.MapView.Widgets
                 return pathItem;
 
             editorSegmentStart = new EditorPathItem(pathItem.Location, TrackModel);
+            if (PathPoints.Count == 0)
+                pathItem.UpdateNodeType(PathNodeType.Start);
+            else
+            {
+                (PathPoints[^1] as EditorPathItem).UpdateDirection(pathItem.Location);
+            }
             PathPoints.Add(pathItem);
             sections.Clear();
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
