@@ -29,10 +29,27 @@ namespace Orts.Toolbox
     {
         private Folder selectedFolder;
         private Route selectedRoute;
-        private Path selectedPath; // going forward, there may be multiple paths selected at once
         private IEnumerable<Route> routes;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
+        private PathEditor pathEditor;
+        internal PathEditor PathEditor
+        {
+            get
+            {
+                if (null == pathEditor)
+                {
+                    pathEditor = new PathEditor(contentArea);
+                    pathEditor.OnEditorPathChanged += PathEditor_OnEditorPathChanged;
+                }
+                return pathEditor;
+            }
+        }
+
+        private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
+        {
+            mainmenu.PreSelectPath(e.Path.FilePath);
+        }
 
         internal async Task LoadFolders()
         {
@@ -94,22 +111,12 @@ namespace Orts.Toolbox
 
         internal bool LoadPath(Path path)
         {
-            try
-            {
-                PathFile patFile = new PathFile(path.FilePath);
-                selectedPath = path;
-                ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
-                return true;
-            }
-            catch (Exception ex) when (ex is Exception)
-            {
-                return false;
-            }
+            return PathEditor.InitializePath(path);
         }
 
         internal void EditPath()
         {
-            ((ToolboxContent)contentArea?.Content).InitializeNewPath();
+            PathEditor.InitializeNewPath();
         }
 
         internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
@@ -145,14 +152,13 @@ namespace Orts.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
-            selectedPath = null;
             mainmenu.ClearPathMenu();
+            pathEditor = null;
         }
 
         internal void UnloadPath()
         {
-            selectedPath = null;
-            ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
+            PathEditor.InitializePath(null);
         }
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)

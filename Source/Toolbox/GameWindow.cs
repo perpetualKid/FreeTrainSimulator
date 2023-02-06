@@ -258,7 +258,7 @@ namespace Orts.Toolbox
                     (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
-                pathSelection = selectedPath != null ? new string[] { selectedPath.FilePath } : null;
+                pathSelection = PathEditor != null ? new string[] { PathEditor.FilePath } : null;
             }
             Settings.RouteSelection = routeSelection;
             Settings.PathSelection = pathSelection;
@@ -472,7 +472,7 @@ namespace Orts.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));

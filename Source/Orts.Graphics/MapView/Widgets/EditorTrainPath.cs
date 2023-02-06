@@ -69,13 +69,17 @@ namespace Orts.Graphics.MapView.Widgets
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
         }
 
-        public EditorTrainPath(Game game): base(game)
+        public EditorTrainPath(Game game) : base(game)
         {
         }
 
         #region path editing
-        internal EditorPathItem Update(EditorPathItem pathItem)
-        { 
+        internal void AddPathEndPoint(EditorPathItem pathItem)
+        {
+        }
+
+        internal EditorPathItem AddPathPoint(EditorPathItem pathItem)
+        {
             if (pathItem == null)
                 return null;
 
@@ -97,7 +101,7 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 EditorPathItem end = new EditorPathItem(location, TrackModel);
                 editorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
-                PathSections.RemoveRange(PathSections.Count - sections.Count,  sections.Count);
+                PathSections.RemoveRange(PathSections.Count - sections.Count, sections.Count);
                 sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
                 PathSections.AddRange(sections);
             }

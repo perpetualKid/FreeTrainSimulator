@@ -28,7 +28,6 @@ namespace Orts.Graphics.MapView
 
     public class ToolboxContent : ContentBase
     {
-
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
@@ -36,8 +35,6 @@ namespace Orts.Graphics.MapView
 
         private EditorPathItem pathItem;
         private EditorTrainPath currentPath;
-
-        public TrainPathBase TrainPath => currentPath;
 
         public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
 
@@ -147,11 +144,11 @@ namespace Orts.Graphics.MapView
                 else
                     nearestItems[viewItem] = null;
             }
-            
+
             (TrackNodeInfo as DetailInfoProxy).Source = nearestSegmentForStatus.statusItem;
             (TrackItemInfo as DetailInfoProxy).Source = nearestItemForStatus.statusItem;
 
-            if (ContentMode == ToolboxContentMode.EditPath)
+            if (ContentMode == ToolboxContentMode.EditPath && pathItem !=  null)
             {
                 pathItem.UpdateLocation(nearestItems[MapContentType.Tracks] as TrackSegment, position);
 
@@ -220,7 +217,7 @@ namespace Orts.Graphics.MapView
         }
 
         #region additional content (Paths)
-        public void InitializePath(PathFile path, string filePath)
+        public TrainPathBase InitializePath(PathFile path, string filePath)
         {
             currentPath = path != null ? new EditorTrainPath(path, filePath, game) : null;
             if (currentPath != null && currentPath.TopLeftBound != PointD.None && currentPath.BottomRightBound != PointD.None)
@@ -234,13 +231,15 @@ namespace Orts.Graphics.MapView
             {
                 ContentMode = ToolboxContentMode.ViewRoute;
             }
+            return currentPath;
         }
 
-        public void InitializeNewPath()
+        public TrainPathBase InitializeNewPath()
         {
             ContentMode = ToolboxContentMode.EditPath;
             currentPath = new EditorTrainPath(game);
             pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
+            return currentPath;
         }
 
         public void HighlightPathItem(int index)
@@ -251,12 +250,24 @@ namespace Orts.Graphics.MapView
                 ContentArea.SetTrackingPosition(item.Location);
         }
 
+        private long lastPathClickTick;
+
         public void AddPathPoint(Point location)
         {
             if (currentPath != null)
             {
-                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                    pathItem = currentPath.Update(pathItem);
+                if (System.Environment.TickCount64 - lastPathClickTick < 200)
+                {
+                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
+                        currentPath.AddPathEndPoint(pathItem);
+                    pathItem = null;
+                }
+                else
+                {
+                    lastPathClickTick = System.Environment.TickCount64;
+                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
+                        pathItem = currentPath.AddPathPoint(pathItem);
+                }
             }
         }
         #endregion

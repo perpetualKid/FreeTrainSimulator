@@ -6,20 +6,16 @@ using System.Linq;
 using GetText;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
-using Orts.Formats.Msts.Files;
 using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Models.Track;
 using Orts.Toolbox.Settings;
-
-using SharpDX.Direct3D9;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -54,7 +50,6 @@ namespace Orts.Toolbox.PopupWindows
         }
 
         private bool contentUpdated;
-        private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;
         private TrainPathBase currentPath;
         private VerticalScrollboxControlLayout pathNodeScrollbox;
@@ -70,13 +65,14 @@ namespace Orts.Toolbox.PopupWindows
         private NameValueTextGrid metadataGrid;
         private readonly ToolboxSettings toolboxSettings;
         private readonly TrainPathMetadataInformation metadataInformationProvider = new TrainPathMetadataInformation();
+        private PathEditor pathEditor;
 
-        public TrainPathWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public TrainPathWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
         {
             toolboxSettings = settings;
-            this.contentArea = contentArea;
             contentUpdated = true;
+            pathEditor = (Owner.Game as GameWindow)?.PathEditor;
             this.userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
@@ -164,8 +160,15 @@ namespace Orts.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            contentArea = e.ContentArea;
+            pathEditor = (Owner.Game as GameWindow)?.PathEditor;
+            pathEditor.OnEditorPathChanged += PathEditor_OnEditorPathChanged;
             contentUpdated = true;
+        }
+
+        private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
+        {
+            currentPath = e.Path;
+            UpdateTrainPath();
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
@@ -176,7 +179,7 @@ namespace Orts.Toolbox.PopupWindows
                 {
                     UpdateAllTrainPaths();
                 }
-                if (currentPath != (currentPath = (contentArea?.Content as ToolboxContent)?.TrainPath))
+                if (currentPath != (currentPath = pathEditor?.TrainPath))
                 {
                     UpdateTrainPath();
                 }
@@ -259,7 +262,7 @@ namespace Orts.Toolbox.PopupWindows
             pathScrollbox.Clear();
             pathControls.Clear();
 
-            if (null != contentArea)
+            if (null != pathEditor)
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
@@ -284,18 +287,12 @@ namespace Orts.Toolbox.PopupWindows
             ControlLayout line = sender as ControlLayout;
             if ((line.Controls[0] as RadioButton)?.State == true)
             {
-                ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
+                pathEditor.InitializePath(null);
                 (line.Controls[0] as RadioButton).State = false;
             }
             else if (line?.Tag is Models.Simplified.Path path)
             {
-                try
-                {
-                    PathFile patFile = new PathFile(path.FilePath);
-                    ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
-                    (line.Controls[0] as RadioButton).State = true;
-                }
-                catch (Exception ex) when (ex is Exception)
+                if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
                     System.Windows.Forms.MessageBox.Show("Invalid path data");
                 }
@@ -307,19 +304,14 @@ namespace Orts.Toolbox.PopupWindows
             ControlLayout line = (sender as RadioButton)?.Container;
             if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is Models.Simplified.Path path)
             {
-                try
-                {
-                    PathFile patFile = new PathFile(path.FilePath);
-                    ((ToolboxContent)contentArea?.Content).InitializePath(patFile, path.FilePath);
-                }
-                catch (Exception ex) when (ex is Exception)
+                if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
                     System.Windows.Forms.MessageBox.Show("Invalid path data");
                 }
             }
             else
             {
-                ((ToolboxContent)contentArea?.Content).InitializePath(null, null);
+                pathEditor.InitializePath(null);
                 (sender as RadioButton).State = false;
             }
         }
@@ -365,15 +357,14 @@ namespace Orts.Toolbox.PopupWindows
                 if (control != pathLine)
                 {
                     control.BorderColor = Color.Transparent;
-                    //                    ((pathLine as ControlLayout)?.Controls[0] as RadioButton).State = false;
                 }
                 else
                 {
                     control.BorderColor = Color.Gray;
+                    ((control as ControlLayout)?.Controls[0] as RadioButton).State = true;
                     pathScrollbox.SetFocusOn(control);
                 }
             }
-
         }
 
         private void PathNodeLine_OnClick(object sender, MouseClickEventArgs e)
@@ -388,7 +379,7 @@ namespace Orts.Toolbox.PopupWindows
         {
             if (selectedPathNodeLine < 0 || selectedPathNodeLine >= pathNodeScrollbox.Client.Count)
             {
-                (contentArea?.Content as ToolboxContent)?.HighlightPathItem(-1);
+                pathEditor.HighlightPathItem(-1);
                 selectedPathNodeLine = Math.Clamp(selectedPathNodeLine, -1, pathNodeScrollbox.Client.Count);
             }
             foreach (WindowControl control in pathNodeScrollbox.Client.Controls)
@@ -398,7 +389,7 @@ namespace Orts.Toolbox.PopupWindows
                 else
                 {
                     control.BorderColor = Color.Gray;
-                    (contentArea?.Content as ToolboxContent)?.HighlightPathItem(selectedPathNodeLine);
+                    pathEditor.HighlightPathItem(selectedPathNodeLine);
                     pathNodeScrollbox.SetFocusOn(control);
                 }
             }

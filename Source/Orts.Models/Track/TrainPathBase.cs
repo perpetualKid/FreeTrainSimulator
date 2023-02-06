@@ -20,8 +20,6 @@ namespace Orts.Models.Track
             PassingPath,
         }
 
-        private List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
-
         public string FilePath { get; }
         public bool Invalid { get; set; }
 
@@ -76,6 +74,7 @@ namespace Orts.Models.Track
             PathFile = pathFile;
             FilePath = filePath;
 
+            List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
             pathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
             TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList());
 
