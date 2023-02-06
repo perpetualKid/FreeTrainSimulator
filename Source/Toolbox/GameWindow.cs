@@ -258,7 +258,7 @@ namespace Orts.Toolbox
                     (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
-                pathSelection = PathEditor != null ? new string[] { PathEditor.FilePath } : null;
+                pathSelection = new string[] { PathEditor != null ? PathEditor.FilePath : string.Empty};
             }
             Settings.RouteSelection = routeSelection;
             Settings.PathSelection = pathSelection;

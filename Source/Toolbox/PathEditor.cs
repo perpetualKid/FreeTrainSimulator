@@ -55,25 +55,5 @@ namespace Orts.Toolbox
             base.InitializePath();
             OnEditorPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
-
-        //internal void AddTrainPathPoint(Point location)
-        //{
-        //    if (currentPath != null)
-        //    {
-        //        if (Environment.TickCount64 - lastPathClickTick < 200)
-        //        {
-        //            if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-        //                currentPath.AddPathEndPoint(pathItem);
-        //            pathItem = null;
-        //        }
-        //        else
-        //        {
-        //            lastPathClickTick = Environment.TickCount64;
-        //            if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-        //                pathItem = currentPath.AddPathPoint(pathItem);
-        //        }
-        //    }
-        //}
-
     }
 }
