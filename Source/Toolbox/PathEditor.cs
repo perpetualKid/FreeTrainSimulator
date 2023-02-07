@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Formats.Msts.Files;
 using Orts.Graphics.MapView;
 using Orts.Models.Simplified;
@@ -23,7 +25,9 @@ namespace Orts.Toolbox
 
         public string FilePath => path?.FilePath;
 
-        internal event EventHandler<PathEditorChangedEventArgs> OnEditorPathChanged;
+        internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
+
+        internal event EventHandler<PathEditorChangedEventArgs> OnPathUpdated;
 
         public PathEditor(ContentArea contentArea): base(contentArea) { }
 
@@ -41,7 +45,7 @@ namespace Orts.Toolbox
                 {
                     InitializePath(null, null);
                 }
-                OnEditorPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
             catch (Exception ex) when (ex is Exception)
@@ -53,7 +57,13 @@ namespace Orts.Toolbox
         public void InitializeNewPath()
         {
             base.InitializePath();
-            OnEditorPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        public void AddPathPoint(Point screenLocation)
+        {
+            base.AddPathPoint();
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
     }
 }

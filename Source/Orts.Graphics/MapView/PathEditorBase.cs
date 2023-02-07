@@ -20,6 +20,7 @@ namespace Orts.Graphics.MapView
         private bool disposedValue;
 
         protected ToolboxContent ToolboxContent { get; }
+        protected TrackModel TrackModel { get; }
 
         public TrainPathBase TrainPath
         {
@@ -29,13 +30,16 @@ namespace Orts.Graphics.MapView
 
         protected PathEditorBase(ContentArea contentArea)
         {
+            ArgumentNullException.ThrowIfNull(contentArea);
+
+            TrackModel = TrackModel.Instance(contentArea.Game);
             ToolboxContent = contentArea?.Content as ToolboxContent ?? throw new ArgumentNullException(nameof(contentArea));
             ToolboxContent.PathEditor = this;
         }
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
         {
-            pathItem?.UpdateLocation(nearestSegment, location);
+            pathItem?.UpdateLocation(nearestSegment, location, TrackModel);
             trainPath.UpdateLocation(pathItem.Location);
             if (trainPath.PathPoints.Count > 0)
             {
@@ -72,7 +76,7 @@ namespace Orts.Graphics.MapView
             pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
         }
 
-        public void AddPathPoint(Point location)
+        protected void AddPathPoint()
         {
             if (trainPath != null)
             {

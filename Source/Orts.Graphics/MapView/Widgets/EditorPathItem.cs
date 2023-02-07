@@ -16,7 +16,7 @@ namespace Orts.Graphics.MapView.Widgets
         private protected BasicTextureType textureType;
         private protected float Direction;
 
-        internal EditorPathItem(in PointD location, TrackModel trackModel): base(location, trackModel)
+        internal EditorPathItem(in PointD location, TrackModel trackModel) : base(location, trackModel)
         { }
 
         internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
@@ -50,9 +50,9 @@ namespace Orts.Graphics.MapView.Widgets
             SetLocation(location);
         }
 
-        internal new void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
+        internal new void UpdateLocation(TrackSegmentBase trackSegment, in PointD location, TrackModel trackModel)
         {
-            base.UpdateLocation(trackSegment, location);
+            base.UpdateLocation(trackSegment, location, trackModel);
             textureType = null == trackSegment ? TextureFromNodeType(PathNodeType.Temporary) : TextureFromNodeType(PathNodeType.Intermediate);
         }
 
@@ -64,6 +64,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         internal void UpdateNodeType(PathNodeType nodeType)
         {
+            NodeType = nodeType;
             textureType = TextureFromNodeType(nodeType);
         }
 

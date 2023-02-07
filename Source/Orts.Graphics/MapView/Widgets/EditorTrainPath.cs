@@ -12,7 +12,7 @@ namespace Orts.Graphics.MapView.Widgets
 {
     internal class EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
     {
-        private readonly ILookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
+        private ILookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
 
         public int SelectedNodeIndex { get; set; } = -1;
 
@@ -88,9 +88,11 @@ namespace Orts.Graphics.MapView.Widgets
             else
             {
                 (PathPoints[^1] as EditorPathItem).UpdateDirection(pathItem.Location);
+                pathItem.UpdateNodeType(PathNodeType.Normal);
             }
             PathPoints.Add(pathItem);
             sections.Clear();
+            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
@@ -145,7 +147,6 @@ namespace Orts.Graphics.MapView.Widgets
         protected override TrackSegmentSectionBase<TrainPathSegmentBase> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new TrainPathSection(trackModel, trackNodeIndex, start, end);
-            throw new System.NotImplementedException();
         }
 
         protected override TrackSegmentSectionBase<TrainPathSegmentBase> AddSection(TrackModel trackModel, int trackNodeIndex)

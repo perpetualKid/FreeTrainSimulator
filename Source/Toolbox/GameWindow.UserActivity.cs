@@ -159,7 +159,8 @@ namespace Orts.Toolbox
 
         private void EditTrainPath(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (userCommandArgs is PointerCommandArgs mousePointCommandArgs && (contentArea?.Content is ToolboxContent toolboxContent && toolboxContent.ContentMode == ToolboxContentMode.EditPath))
+            if (userCommandArgs is PointerCommandArgs mousePointCommandArgs &&
+                (contentArea?.Content is ToolboxContent toolboxContent && toolboxContent.ContentMode == ToolboxContentMode.EditPath) && modifiers == KeyModifiers.None)
             {
                 pathEditor?.AddPathPoint(mousePointCommandArgs.Position);
                 userCommandArgs.Handled = true;

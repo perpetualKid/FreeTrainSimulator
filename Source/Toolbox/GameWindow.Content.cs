@@ -12,6 +12,7 @@ using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 using Orts.Formats.Msts.Files;
 using Orts.Graphics.Xna;
+using Orts.Models.Track;
 
 namespace Orts.Toolbox
 {
@@ -41,7 +42,7 @@ namespace Orts.Toolbox
                 if (null == pathEditor)
                 {
                     pathEditor = new PathEditor(contentArea);
-                    pathEditor.OnEditorPathChanged += PathEditor_OnEditorPathChanged;
+                    pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
                 }
                 return pathEditor;
             }
@@ -49,7 +50,7 @@ namespace Orts.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-            mainmenu.PreSelectPath(e.Path.FilePath);
+            mainmenu.PreSelectPath(e.Path?.FilePath);
         }
 
         internal async Task LoadFolders()

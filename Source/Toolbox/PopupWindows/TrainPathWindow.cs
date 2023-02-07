@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Common.Input;
+using Orts.Formats.Msts.Files;
 using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -73,7 +74,20 @@ namespace Orts.Toolbox.PopupWindows
             toolboxSettings = settings;
             contentUpdated = true;
             pathEditor = (Owner.Game as GameWindow)?.PathEditor;
+            pathEditor.OnPathUpdated += PathEditor_OnPathUpdated;
+            pathEditor.OnPathChanged += PathEditor_OnPathChanged;
             this.userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+        }
+
+        private void PathEditor_OnPathChanged(object sender, PathEditorChangedEventArgs e)
+        {
+            currentPath = e.Path;
+            UpdateTrainPath();
+        }
+
+        private void PathEditor_OnPathUpdated(object sender, PathEditorChangedEventArgs e)
+        {
+            UpdateTrainPath();
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -160,15 +174,13 @@ namespace Orts.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            pathEditor = (Owner.Game as GameWindow)?.PathEditor;
-            pathEditor.OnEditorPathChanged += PathEditor_OnEditorPathChanged;
+            if (e.ContentArea != null)
+            {
+                pathEditor = (Owner.Game as GameWindow)?.PathEditor;
+                pathEditor.OnPathUpdated += PathEditor_OnPathUpdated;
+                pathEditor.OnPathChanged += PathEditor_OnPathChanged;
+            }
             contentUpdated = true;
-        }
-
-        private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
-        {
-            currentPath = e.Path;
-            UpdateTrainPath();
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
@@ -342,6 +354,8 @@ namespace Orts.Toolbox.PopupWindows
                     line.Tag = i;
                 }
             }
+            else
+                ClearPathSelection();
             metadataInformationProvider.Update(currentPath);
             pathNodeScrollbox.UpdateContent();
         }
@@ -364,6 +378,15 @@ namespace Orts.Toolbox.PopupWindows
                     ((control as ControlLayout)?.Controls[0] as RadioButton).State = true;
                     pathScrollbox.SetFocusOn(control);
                 }
+            }
+        }
+
+        private void ClearPathSelection()
+        {
+            foreach (WindowControl control in pathScrollbox.Client.Controls)
+            {
+                control.BorderColor = Color.Transparent;
+                ((control as ControlLayout)?.Controls[0] as RadioButton).State = false;
             }
         }
 

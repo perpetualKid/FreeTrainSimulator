@@ -14,7 +14,7 @@ namespace Orts.Models.Track
         private readonly int nextMainNode;
         private readonly int nextSidingNode;
 
-        public PathNodeType NodeType { get; private set; }
+        public PathNodeType NodeType { get; protected set; }
 
         public JunctionNodeBase JunctionNode { get; }
 
@@ -44,6 +44,11 @@ namespace Orts.Models.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
+        protected TrainPathPointBase(in PointD location, PathNodeType nodeType) : base(location)
+        {
+            NodeType = nodeType;
+        }
+
         protected TrainPathPointBase(in PointD location, TrackModel trackModel) : base(location)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
@@ -53,6 +58,21 @@ namespace Orts.Models.Track
             nextSidingNode = -1;
 
             JunctionNode = trackModel.JunctionAt(Location);
+
+            ConnectedSegments = GetConnectedNodes(trackModel);
+            if (!ConnectedSegments.Any())
+                ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
+        }
+
+        protected TrainPathPointBase(in JunctionNodeBase junction, TrackModel trackModel): base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
+        {
+            ArgumentNullException.ThrowIfNull(trackModel);
+
+            NodeType = PathNodeType.Normal;
+            nextMainNode = -1;
+            nextSidingNode = -1;
+
+            JunctionNode = junction;
 
             ConnectedSegments = GetConnectedNodes(trackModel);
             if (!ConnectedSegments.Any())
@@ -74,14 +94,15 @@ namespace Orts.Models.Track
             return true;
         }
 
-        protected TrainPathPointBase(in PointD location, PathNodeType nodeType) : base(location)
+        protected void UpdateLocation(TrackSegmentBase trackSegment, in PointD location, TrackModel trackModel)
         {
-            NodeType = nodeType;
-        }
-
-        protected void UpdateLocation(TrackSegmentBase trackSegment, in PointD location)
-        {
+            ArgumentNullException.ThrowIfNull(trackModel);
             SetLocation(trackSegment?.SnapToSegment(location) ?? location);
+            JunctionNodeBase junction;
+            if ((junction = trackModel.JunctionAt(location)) != null)
+            {
+                SetLocation(junction.Location);
+            }
             ValidationResult = null == trackSegment ? PathNodeInvalidReasons.NotOnTrack : PathNodeInvalidReasons.None;
         }
 
@@ -112,7 +133,7 @@ namespace Orts.Models.Track
 
         private IReadOnlyList<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
-            return JunctionNode != null ? JunctionNode.ConnectedSegments(trackModel).ToList() : (IReadOnlyList<TrackSegmentBase>)trackModel.SegmentsAt(Location).ToList();
+            return JunctionNode?.ConnectedSegments(trackModel).ToList() ?? (IReadOnlyList<TrackSegmentBase>)trackModel.SegmentsAt(Location).ToList();
         }
     }
 
@@ -126,11 +147,7 @@ namespace Orts.Models.Track
         {
         }
 
-        public TrainPathPoint(TrackModel trackModel, PointD location) : base(location, trackModel)
-        {
-        }
-
-        public TrainPathPoint(in PointD location, PathNodeType nodeType) : base(location, nodeType)
+        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction, trackModel)
         {
         }
     }
