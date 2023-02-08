@@ -151,5 +151,11 @@ namespace Orts.Common.Logging
         private class LogicalOperation
         {
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            writer?.Dispose();
+            base.Dispose(disposing);
+        }
     }
 }

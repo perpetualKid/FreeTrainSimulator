@@ -15,9 +15,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class CompassWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label latitudeLabel;
         private Label longitudeLabel;
         private CompassControl compassControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Viewer viewer;
 
         private readonly string lat;
@@ -34,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling).AddLayoutVertical();
+            layout = base.Layout(layout, headerScaling);
             layout.Add(compassControl = new CompassControl(this, layout.RemainingWidth, layout.RemainingHeight - Owner.TextFontDefault.Height));
             ControlLayout textLine = layout.AddLayoutHorizontalLineOfText();
             int width = textLine.RemainingWidth / 2;

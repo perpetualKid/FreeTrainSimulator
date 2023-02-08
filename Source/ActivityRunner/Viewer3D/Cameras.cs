@@ -25,8 +25,8 @@ using System.Linq;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -164,7 +164,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public int TileX { get { return cameraLocation.TileX; } }
         public int TileZ { get { return cameraLocation.TileZ; } }
         public Vector3 Location { get { return cameraLocation.Location; } }
-        public WorldLocation CameraWorldLocation { get { return cameraLocation; } }
+        public ref WorldLocation CameraWorldLocation => ref cameraLocation; 
         protected int MouseScrollValue;
         internal protected float FieldOfView;
 
@@ -718,7 +718,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class FreeRoamCamera : RotatingCamera
     {
-        private const float maxCameraHeight = 1000f;
         private const float ZoomFactor = 2f;
 
         public override string Name { get { return Viewer.Catalog.GetString("Free"); } }
@@ -2174,8 +2173,10 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 nearsource = new Vector3(position.X, position.Y, 0f);
             Vector3 farsource = new Vector3(position.X, position.Y, 1f);
             Matrix world = Matrix.CreateTranslation(0, 0, 0);
-            Vector3 nearPoint = Viewer.DefaultViewport.Unproject(nearsource, XnaProjection, XnaView, world);
-            Vector3 farPoint = Viewer.DefaultViewport.Unproject(farsource, XnaProjection, XnaView, world);
+
+            ref readonly Viewport viewport = ref Viewer.RenderProcess.Viewport;
+            Vector3 nearPoint = viewport.Unproject(nearsource, XnaProjection, XnaView, world);
+            Vector3 farPoint = viewport.Unproject(farsource, XnaProjection, XnaView, world);
 
             Shapes.PoseableShape trainCarShape = mstsLocomotiveViewer.CabViewer3D.TrainCarShape;
             Dictionary<int, AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;

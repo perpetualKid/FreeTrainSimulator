@@ -71,19 +71,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "CornSilk",     // Background
             "DimGray",      // RailTrack
             "BlueViolet",   // RailTrackEnd
-            "LightGray",  // RailTrackJunction
+            "LightGray",    // RailTrackJunction
             "Firebrick",    // RailTrackCrossing
             "Crimson",      // RailLevelCrossing
             "Olive",        // RoadTrack
             "ForestGreen",  // RoadTrackEnd
             "DeepPink",     // RoadLevelCrossing
-            "OrangeRed",       // PathTrack
-            "Gold",       // PathTrackEnd
-            "Gold",       // PathTrackIntermediate
-            "Gold",       // PathJunction
-            "Gold",       // PathReversal
+            "OrangeRed",    // PathTrack
             "White",        // RoadCarSpawner
             "White",        // SignalItem
+            "Firebrick",    // StationItem
             "Navy",         // PlatformItem
             "ForestGreen",  // SidingItem
             "RoyalBlue",    // SpeedPostItem
@@ -151,7 +148,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         protected override void Initialize()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextShape.Initialize(this, spriteBatch);
             InputSettings.Initialize();
             userCommandController = new UserCommandController<UserCommand>();
 
@@ -167,33 +163,33 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
             {
                 return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
             {
                 return new SwitchChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
             {
                 return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
                 return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<FormBase>(() =>
             {
                 return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
             {
                 return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));
@@ -212,15 +208,14 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
-
-            TrackModel.Reset();
+            TrackModel.Instance(this)?.Reset();
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
                 (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
 
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
@@ -540,17 +535,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         }
         #endregion
 
-        private class CommonDebugInfo : DebugInfoBase
+        private class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private readonly ContentArea contentArea;
 
             private const double fpsLow = targetFps - targetFps / 5.0;
-            public CommonDebugInfo(ContentArea contentArea)
+            public CommonDebugInfo(ContentArea contentArea): base(true)
             {
                 this.contentArea = contentArea;
                 frameRate.Preset(targetFps);
-                FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
             }
 

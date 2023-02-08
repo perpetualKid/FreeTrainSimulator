@@ -23,42 +23,41 @@ namespace Orts.Common.Calc
     public class SmoothedData
     {
         private const double DefaultSmoothPeriod = 3;
-        private double rate;
+        private readonly double rate;
 
         public SmoothedData(): this(DefaultSmoothPeriod)
         {
         }
 
-        public SmoothedData(double smoothPeriodS)
+        public SmoothedData(double smoothPeriod)
         {
-            SmoothPeriod = smoothPeriodS;
+            SmoothPeriod = smoothPeriod;
             // Convert the input assuming 60 FPS (arbitary)
-            rate = -60.0 * Math.Log(1 - 1 / (60 * smoothPeriodS));
+            rate = -60.0 * Math.Log(1 - 1 / (60 * smoothPeriod));
         }
 
-        public virtual void Update(double periodS, double value)
+        public virtual void Update(double elapsed, double value)
         {
             Value = value;
 
-            if (periodS < double.Epsilon)
+            if (elapsed < double.Epsilon)
             {
                 if (double.IsNaN(SmoothedValue) || double.IsInfinity(SmoothedValue))
                     SmoothedValue = Value;
                 return;
             }
 
-            SmoothedValue = SmoothValue(SmoothedValue, periodS, Value);
+            SmoothedValue = SmoothValue(SmoothedValue, elapsed, Value);
         }
 
-        protected double SmoothValue(double smoothedValue, double periodS, double value)
+        protected double SmoothValue(double smoothedValue, double elapsed, double value)
         {
             // This formula and the calculation of `rate` are FPS-independent;
             // see https://www.gamedeveloper.com/programming/improved-lerp-smoothing- for more details
-            double ratio = Math.Exp(-rate * periodS);
-            if (double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue) || ratio < 0.5)
-                return value;
-            else
-                return smoothedValue * ratio + value * (1 - ratio);
+            double ratio = Math.Exp(-rate * elapsed);
+            return double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue) || ratio < 0.5
+                ? value
+                : smoothedValue * ratio + value * (1 - ratio);
         }
 
         public void Preset(double smoothedValue)
@@ -67,6 +66,7 @@ namespace Orts.Common.Calc
         }
 
         public double Value { get; private set; } = double.NaN;
+
         public double SmoothedValue { get; private set; } = double.NaN;
 
         public double SmoothPeriod { get; }
@@ -99,12 +99,12 @@ namespace Orts.Common.Calc
                 historyCount.Enqueue(0);
         }
 
-        public override void Update(double periodS, double value)
+        public override void Update(double elapsed, double value)
         {
-            base.Update(periodS, value);
+            base.Update(elapsed, value);
 
             longHistory.Enqueue(value);
-            position += periodS;
+            position += elapsed;
             count++;
 
             if (position >= historyStepSize)

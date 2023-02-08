@@ -882,7 +882,6 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Calculate the angle (direction in 2D) of the current junction (result will be cached).
         /// </summary>
-        /// <param name="tsectionDat">The datafile with all the track sections</param>
         /// <returns>The angle calculated</returns>
         public float Angle
         {
@@ -891,8 +890,6 @@ namespace Orts.Formats.Msts.Models
                 if (!float.IsNaN(angle))
                     return angle;
 
-                //try //so many things can be in conflict for trackshapes, tracksections etc.
-                //{
                 TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
                 SectionIndex[] sectionIndices = trackShape.SectionIndices;
 
@@ -914,10 +911,6 @@ namespace Orts.Formats.Msts.Models
                         }
                     }
                 }
-                //                }
-                //#pragma warning disable CA1031 // Do not catch general exception types
-                //                catch (Exception) { }
-                //#pragma warning restore CA1031 // Do not catch general exception types
                 return angle;
             }
         }
@@ -1098,8 +1091,10 @@ namespace Orts.Formats.Msts.Models
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
-            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
-                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
+            //if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+            //    STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
             //AX = stf.ReadFloat(STFReader.Units.None, null);
             //AY = stf.ReadFloat(STFReader.Units.None, null);
             //AZ = stf.ReadFloat(STFReader.Units.None, null);
@@ -1155,9 +1150,8 @@ namespace Orts.Formats.Msts.Models
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
             direction = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
 
-            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
-                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
-
+            //if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+            //    STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
         }
 
         /// <summary>

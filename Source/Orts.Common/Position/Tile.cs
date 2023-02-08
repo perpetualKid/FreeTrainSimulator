@@ -7,6 +7,8 @@ namespace Orts.Common.Position
     {
         public const int TileSize = 2048;
 
+        public const int TileSizeOver2 = TileSize / 2;
+
         private static readonly Tile zero;
 
         public static ref readonly Tile Zero => ref zero;

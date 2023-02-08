@@ -1,28 +1,49 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>
+    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Platform" };
+        private protected static int debugInfoHash;
+
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual InformationDictionary DetailInfo
+        {
+            get
+            {
+                int hash = HashCode.Combine(StationName, PlatformName);
+                if (hash != debugInfoHash)
+                {
+                    debugInformation["Name"] = PlatformName;
+                    debugInformation["Station"] = StationName;
+                    debugInformation["Length"] = $"{Length:F1}m";
+                    debugInfoHash = hash;
+                }
+                return debugInformation;
+            }
+        }
+
         internal string PlatformName { get; }
         internal string StationName { get; }
 
         private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
-            public PlatformSection(int trackNodeIndex) :
-                base(trackNodeIndex)
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
+                base(trackModel, trackNodeIndex)
             {
             }
 
-            public PlatformSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackNodeIndex, startLocation, endLocation)
+            public PlatformSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -50,14 +71,14 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public PlatformPath(PlatformTrackItem start, PlatformTrackItem end) :
-            base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
+        public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
-            StationName = string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName;
+            StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();
             //Strip the station name out of platform name (only if they are not equal)
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, System.StringComparison.OrdinalIgnoreCase))
-                PlatformName = PlatformName[StationName.Length..];
+                PlatformName = PlatformName[(StationName.Length + 1)..];
 
             if (PathSections.Count == 0)
             {
@@ -65,7 +86,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<PlatformPath> CreatePlatforms(IEnumerable<PlatformTrackItem> platformItems)
+        public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
@@ -81,7 +102,7 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
                     _ = platformItemMappings.Remove(end.TrackItemId);
-                    result.Add(new PlatformPath(start, end));
+                    result.Add(new PlatformPath(trackModel, start, end));
                 }
                 else
                 {
@@ -101,17 +122,31 @@ namespace Orts.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
+            foreach (PlatformSection section in this.PathSections)
+            {
+                foreach (PlatformSegment segment in section.SectionSegments)
+                {
+                    double distanceSquared;
+                    if (!double.IsNaN(distanceSquared = segment.DistanceSquared(point)))
+                        return distanceSquared;
+                }
+            }
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(in PointD start, in PointD end)
         {
-            return new PlatformSection(trackNodeIndex, start, end);
+            throw new NotImplementedException();
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(int trackNodeIndex)
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new PlatformSection(trackNodeIndex);
+            return new PlatformSection(trackModel, trackNodeIndex, start, end);
+        }
+
+        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
+        {
+            return new PlatformSection(trackModel, trackNodeIndex);
         }
 
     }

@@ -1,34 +1,43 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Models.Simplified;
 using Orts.Models.Track;
 
 namespace Orts.Toolbox
 {
-    public class TrackData: RuntimeData
+    public class TrackData : RuntimeData
     {
-        internal static async Task LoadTrackData(string routePath, bool? useMetricUnits, CancellationToken cancellationToken)
+        public IEnumerable<Path> TrainPaths { get; }
+
+        private TrackData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IEnumerable<Path> trainPaths) :
+            base(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, null)
         {
-            TrackModel.Reset();
+            TrainPaths = trainPaths;
+        }
+
+        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
+        {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
             TrackDB trackDB = null;
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
+            FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(route.Path);
             RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
 
             loadTasks.Add(Task.Run(() =>
             {
                 string tdbFile = routeFolder.TrackDatabaseFile(routeFile.Route.FileName);
-                if (!File.Exists(tdbFile))
+                if (!System.IO.File.Exists(tdbFile))
                 {
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
                     return;
@@ -38,23 +47,30 @@ namespace Orts.Toolbox
             loadTasks.Add(Task.Run(() =>
             {
                 trackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
-                if (File.Exists(routeFolder.RouteTrackSectionFile))
+                if (System.IO.File.Exists(routeFolder.RouteTrackSectionFile))
                     trackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
                 string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile.Route.FileName);
-                if (!File.Exists(rdbFile))
+                if (!System.IO.File.Exists(rdbFile))
                 {
-                    Trace.TraceError($"Road Database File not found in {rdbFile}");
+                    Trace.TraceWarning($"Road Database File not found in {rdbFile}");
                     return;
                 }
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
+            Task<IEnumerable<Path>> pathTask;
+            loadTasks.Add(pathTask = Path.GetPaths(route, true, cancellationToken));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
-            Initialize(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric));
+
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            game.Services.RemoveService(typeof(RuntimeData));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), pathTask.Result));
         }
     }
 }

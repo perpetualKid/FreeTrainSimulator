@@ -18,18 +18,16 @@
 // Use this define to diagnose issues in the JSON reader below.
 // #define DEBUG_JSON_READER
 
-using Microsoft.Xna.Framework;
-
-using Newtonsoft.Json;
-
-using Orts.Formats.Msts.Models;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+
+using Microsoft.Xna.Framework;
+
+using Newtonsoft.Json;
 
 namespace Orts.Formats.OR.Parsers
 {
@@ -85,7 +83,7 @@ namespace Orts.Formats.OR.Parsers
             paths = new Stack<string>();
         }
 
-        void ReadFile(Func<JsonReader, bool> tryParse)
+        private void ReadFile(Func<JsonReader, bool> tryParse)
         {
             try
             {
@@ -165,7 +163,7 @@ namespace Orts.Formats.OR.Parsers
                     case JsonToken.Integer:
                     case JsonToken.Null:
                     case JsonToken.String:
-                        paths.Push(path.ToString().Substring(basePosition));
+                        paths.Push(path.ToString()[basePosition..]);
                         if (!tryParse(this))
                             TraceInformation($"Skipped unknown {reader.TokenType} \"{reader.Value}\" in {Path}");
                         paths.Pop();

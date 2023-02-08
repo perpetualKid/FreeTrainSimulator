@@ -7,9 +7,12 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Graphics;
+using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
@@ -17,6 +20,7 @@ namespace Orts.Toolbox.PopupWindows
     internal class SettingsWindow : WindowBase
     {
         private readonly ToolboxSettings toolboxSettings;
+        private ContentArea contentArea;
 
         private enum TabSettings
         {
@@ -28,13 +32,16 @@ namespace Orts.Toolbox.PopupWindows
             Graphics
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public SettingsWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) : 
-            base(owner, "Settings", relativeLocation, new Point(360, 200), catalog)
+        public SettingsWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
+            this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
@@ -59,6 +66,19 @@ namespace Orts.Toolbox.PopupWindows
                 chkRestoreView.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.RestoreLastView = (sender as Checkbox).State.Value;
                 chkRestoreView.State = toolboxSettings.RestoreLastView;
                 line.Add(chkRestoreView);
+
+                line = layoutContainer.AddLayoutHorizontalLineOfText();
+                line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Use Font Outline")));
+                Checkbox chkOutlineFont = new Checkbox(this);
+                chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
+                {
+                    toolboxSettings.OutlineFont = (sender as Checkbox).State.Value;
+                    if (null != contentArea)
+                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? OutlineRenderOptions.Default : null;
+                    ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
+                };
+                chkOutlineFont.State = toolboxSettings.OutlineFont;
+                line.Add(chkOutlineFont);
             };
             layout.Add(tabControl);
 
@@ -67,13 +87,13 @@ namespace Orts.Toolbox.PopupWindows
 
         private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
         {
-            toolboxSettings.PopupSettings[WindowType.SettingsWindow] = e.Tab.ToString();
+            toolboxSettings.PopupSettings[ToolboxWindowType.SettingsWindow] = e.Tab.ToString();
         }
 
         protected override void Initialize()
         {
             base.Initialize();
-            if (toolboxSettings.RestoreLastView && EnumExtension.GetValue(toolboxSettings.PopupSettings[WindowType.SettingsWindow], out TabSettings tab))
+            if (toolboxSettings.RestoreLastView && EnumExtension.GetValue(toolboxSettings.PopupSettings[ToolboxWindowType.SettingsWindow], out TabSettings tab))
                 tabControl.TabAction(tab);
             tabControl.TabChanged += TabControl_TabChanged;
         }
@@ -97,5 +117,11 @@ namespace Orts.Toolbox.PopupWindows
                 tabControl?.TabAction();
             }
         }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            contentArea = e.ContentArea;
+        }
+
     }
 }

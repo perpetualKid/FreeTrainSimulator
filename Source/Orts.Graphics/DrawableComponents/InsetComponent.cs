@@ -79,19 +79,19 @@ namespace Orts.Graphics.DrawableComponents
             GraphicsDevice.SetRenderTarget(renderTarget);
             GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
-            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
-            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
             if (null != trackSegments)
             {
                 foreach (TrackSegment segment in trackSegments)
                 {
                     if (segment.Curved)
-                        BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
+                        content.BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
                     else
-                        BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                        content.BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
                 }
             }
 
@@ -111,19 +111,19 @@ namespace Orts.Graphics.DrawableComponents
 
         private void DrawClippingMarker()
         {
-            double width = content.BottomRightArea.X - content.TopLeftArea.X;
-            double height = content.TopLeftArea.Y - content.BottomRightArea.Y;
+            double width = content.BottomRightBound.X - content.TopLeftBound.X;
+            double height = content.TopLeftBound.Y - content.BottomRightBound.Y;
             float screenWidth = WorldToScreenSize(width);
             float screenHeight = WorldToScreenSize(height);
             //if (screenHeight > size.Y * 0.95 || screenWidth > size.X * 0.95)
             //    return;
-            Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftArea) + position;
-            BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
-            BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
-            BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
-            BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftBound) + position;
+            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
+            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
+            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
-                BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, spriteBatch);
+                content.BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, spriteBatch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

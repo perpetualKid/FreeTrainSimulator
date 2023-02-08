@@ -20,6 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class NextStationWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label stationPlatform;
         private Label currentDelay;
         private Label currentTime;
@@ -39,6 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private Label nextStationArriveScheduled;
         private Label nextStationDepartScheduled;
         private Label message;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public NextStationWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Next Station"), relativeLocation, new Point(520, 130), catalog)
@@ -48,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            layout = base.Layout(layout, headerScaling).AddLayoutVertical();
+            layout = base.Layout(layout, headerScaling);
 
             int columnWidth = layout.RemainingWidth / 8;
             ControlLayout line = layout.AddLayoutHorizontalLineOfText();
@@ -99,7 +101,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 Train playerTrain = Simulator.Instance.PlayerLocomotive.Train;
                 currentTime.Text = FormatStrings.FormatTime(Simulator.Instance.ClockTime);
-                currentDelay.Text = playerTrain?.Delay != null
+                currentDelay.Text = playerTrain?.Delay != null && playerTrain.Delay.Value.TotalSeconds > 10 
                     ? Catalog.GetString($"Current Delay: {FormatStrings.FormatDelayTime(playerTrain.Delay.Value)} " + Catalog.GetPluralString("minute", "minutes", (long)playerTrain.Delay.Value.TotalMinutes))
                     : string.Empty;
 
@@ -198,10 +200,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualArrival);
                                 previousStationArriveActual.Text = actualArrival.ToString("c");
-                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(timetableTrain.PreviousStop.ActualDepart);
                                 previousStationDepartActual.Text = actualDeparture.ToString("c");
-                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(arrival, actualDeparture);
                             }
                             else
                             {
@@ -230,7 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(timetableTrain.StationStops[0].ActualArrival);
                                 currentStationArriveActual.Text = actualArrival.ToString("c");
-                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
 
                             }
                             else
@@ -373,10 +375,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualArrival);
                                 previousStationArriveActual.Text = actualArrival.ToString("c");
-                                previousStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualDepart);
                                 previousStationDepartActual.Text = actualDeparture.ToString("c");
-                                previousStationDepartActual.TextColor = GetDepartColor(arrival, actualDeparture);
+                                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(arrival, actualDeparture);
                             }
                             else
                             {
@@ -403,7 +405,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ActualArrival);
                                 currentStationArriveActual.Text = actualArrival.ToString("c");
-                                currentStationArriveActual.TextColor = GetArrivalColor(arrival, actualArrival);
+                                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(arrival, actualArrival);
 
                             }
                             else
@@ -443,12 +445,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
 
                     UpdateCurrentStop(currentStop);
-                    currentStationDistance.Text = null;
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.Station, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
                     }
+                    else
+                        currentStationDistance.Text = null;
 
                     UpdateNextStop(currentStop?.NextTask as ActivityTaskPassengerStopAt);
                     nextStationDistance.Text = null;
@@ -475,10 +478,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 previousStationName.Text = previousStop.PlatformEnd1.Station;
                 previousStationArriveScheduled.Text = previousStop.ScheduledArrival.ToString("c");
                 previousStationArriveActual.Text = previousStop.ActualArrival?.ToString("c") ?? Catalog.GetString("(missed)");
-                previousStationArriveActual.TextColor = GetArrivalColor(previousStop.ScheduledArrival, previousStop.ActualArrival);
+                previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(previousStop.ScheduledArrival, previousStop.ActualArrival);
                 previousStationDepartScheduled.Text = previousStop.ScheduledDeparture.ToString("c");
                 previousStationDepartActual.Text = previousStop.ActualDeparture?.ToString("c") ?? Catalog.GetString("(missed)");
-                previousStationDepartActual.TextColor = GetDepartColor(previousStop.ScheduledDeparture, previousStop.ActualDeparture);
+                previousStationDepartActual.TextColor = ColorCoding.DepartureColor(previousStop.ScheduledDeparture, previousStop.ActualDeparture);
             }
             else
             {
@@ -500,7 +503,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 currentStationName.Text = currentStop.PlatformEnd1.Station;
                 currentStationArriveScheduled.Text = currentStop.ScheduledArrival.ToString("c");
                 currentStationArriveActual.Text = currentStop.ActualArrival?.ToString("c");
-                currentStationArriveActual.TextColor = GetArrivalColor(currentStop.ScheduledArrival, currentStop.ActualArrival);
+                currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(currentStop.ScheduledArrival, currentStop.ActualArrival);
                 currentStationDepartScheduled.Text = currentStop.ScheduledDeparture.ToString("c");
                 message.TextColor = currentStop.DisplayColor;
                 message.Text = currentStop.DisplayMessage;
@@ -532,27 +535,5 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 nextStationDistance.Text = null;
             }
         }
-
-
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan actual)
-        {
-            return actual <= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
-        {
-            return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan actual)
-        {
-            return actual >= expected ? Color.LightGreen : Color.LightSalmon;
-        }
-
     }
 }

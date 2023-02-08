@@ -19,8 +19,10 @@ namespace Orts.Toolbox.PopupWindows
     public class LocationWindow : WindowBase
     {
         private ContentArea contentArea;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label locationLabel;
         private Label tileLabel;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private PointD previousWorldPoint;
         private bool useWorldCoordinates = true;
         private bool updateRequired;
@@ -28,13 +30,13 @@ namespace Orts.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly ToolboxSettings toolboxSettings;
 
-        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation) :
-            base(owner, "World Coordinates", relativeLocation, new Point(200, 48))
+        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("World Coordinates"), relativeLocation, new Point(200, 48), catalog)
         {
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             toolboxSettings = settings ?? throw new ArgumentNullException(nameof(settings));
-            if (!bool.TryParse(toolboxSettings.PopupSettings[WindowType.LocationWindow], out useWorldCoordinates))
+            if (!bool.TryParse(toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow], out useWorldCoordinates))
                 useWorldCoordinates = true;
             Resize();
         }
@@ -65,7 +67,7 @@ namespace Orts.Toolbox.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 useWorldCoordinates = !useWorldCoordinates;
-                toolboxSettings.PopupSettings[WindowType.LocationWindow] = useWorldCoordinates.ToString();
+                toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow] = useWorldCoordinates.ToString();
                 updateRequired = true;
                 Resize();
             }
@@ -73,7 +75,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private void Resize()
         {
-            Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : CatalogManager.Catalog.GetString("Tile Coordinates");
+            Caption = useWorldCoordinates ? Catalog.GetString("World Coordinates") : Catalog.GetString("Tile Coordinates");
             Resize(useWorldCoordinates ? new Point(200, 48) : new Point(220, 60));
         }
 

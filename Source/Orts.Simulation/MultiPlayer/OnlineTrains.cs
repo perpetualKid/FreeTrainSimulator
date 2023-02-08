@@ -66,7 +66,8 @@ namespace Orts.Simulation.MultiPlayer
         public string MoveTrains(MSGMove move)
         {
             string tmp = "";
-            if (move == null) move = new MSGMove();
+            if (move == null)
+                move = new MSGMove();
             foreach (OnlinePlayer p in Players.Values)
             {
                 if (p.Train != null && Simulator.Instance.PlayerLocomotive != null && !(p.Train == Simulator.Instance.PlayerLocomotive.Train && p.Train.TrainType != TrainType.Remote))
@@ -79,8 +80,10 @@ namespace Orts.Simulation.MultiPlayer
             }
             foreach (Train t in Simulator.Instance.Trains)
             {
-                if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train) continue;//player drived train
-                if (t == null || FindTrain(t)) continue;//is an online player controlled train
+                if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train)
+                    continue;//player drived train
+                if (t == null || FindTrain(t))
+                    continue;//is an online player controlled train
                 if (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0)
                 {
                     move.AddNewItem("0xAI" + t.Number, t);
@@ -93,10 +96,12 @@ namespace Orts.Simulation.MultiPlayer
         public string MoveAllPlayerTrain(MSGMove move)
         {
             string tmp = "";
-            if (move == null) move = new MSGMove();
+            if (move == null)
+                move = new MSGMove();
             foreach (OnlinePlayer p in Players.Values)
             {
-                if (p.Train == null) continue;
+                if (p.Train == null)
+                    continue;
                 if (Math.Abs(p.Train.SpeedMpS) > 0.001 || Math.Abs(p.Train.LastReportedSpeed) > 0)
                 {
                     move.AddNewItem(p.Username, p.Train);
@@ -109,7 +114,8 @@ namespace Orts.Simulation.MultiPlayer
         public static string MoveAllTrain(MSGMove move)
         {
             string tmp = "";
-            if (move == null) move = new MSGMove();
+            if (move == null)
+                move = new MSGMove();
             foreach (Train t in Simulator.Instance.Trains)
             {
                 if (t != null && (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0))
@@ -137,12 +143,12 @@ namespace Orts.Simulation.MultiPlayer
 
         public void AddPlayers(MSGPlayer player)
         {
-            if (Players.ContainsKey(player.user)) 
+            if (Players.ContainsKey(player.user))
                 return;
-            if (player.user == MultiPlayerManager.Instance().UserName) 
+            if (player.user == MultiPlayerManager.Instance().UserName)
                 return; //do not add self//WARNING: may need to worry about train number here
-            OnlinePlayer p = new OnlinePlayer(player.user, 
-                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con), 
+            OnlinePlayer p = new OnlinePlayer(player.user,
+                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con),
                 Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path));
             p.AvatarUrl = player.url;
             p.LeadingLocomotiveID = player.leadingID;
@@ -155,7 +161,8 @@ namespace Orts.Simulation.MultiPlayer
             {
                 train.Number = player.num;
             }
-            if (player.con.Contains("tilted", StringComparison.OrdinalIgnoreCase)) train.IsTilting = true;
+            if (player.con.Contains("tilted", StringComparison.OrdinalIgnoreCase))
+                train.IsTilting = true;
             int direction = player.dir;
             train.DistanceTravelled = player.Travelled;
             train.TrainMaxSpeedMpS = player.trainmaxspeed;
@@ -179,7 +186,8 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Error", "MultiPlayer Error：" + e.Message)).ToString());
                 }
-                else throw new Exception();
+                else
+                    throw new Exception();
             }
             for (var i = 0; i < player.cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
@@ -196,7 +204,7 @@ namespace Orts.Simulation.MultiPlayer
                     Trace.WriteLine(error.Message);
                     car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, player.lengths[i]);
                 }
-                if (car == null) 
+                if (car == null)
                     continue;
 
                 car.Flipped = player.flipped[i] != 0;
@@ -239,9 +247,9 @@ namespace Orts.Simulation.MultiPlayer
                 var car = train.Cars[iCar];
                 if (car.CarID == p.LeadingLocomotiveID)
                 {
-                    train.LeadLocomotive = car;
-                    (train.LeadLocomotive as MSTSLocomotive).Headlight = player.headlight;
-                    (train.LeadLocomotive as MSTSLocomotive).UsingRearCab = player.frontorrearcab == "R" ? true : false;
+                    train.LeadLocomotive = car as MSTSLocomotive;
+                    train.LeadLocomotive.Headlight = player.headlight;
+                    train.LeadLocomotive.UsingRearCab = player.frontorrearcab == "R" ? true : false;
                 }
                 if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
                     MultiPlayerManager.Instance().AddOrRemoveLocomotive(player.user, train.Number, iCar, true);
@@ -281,11 +289,14 @@ namespace Orts.Simulation.MultiPlayer
             // find info about the new player train
             // look in all trains
 
-            if (player.user == MultiPlayerManager.Instance().UserName) return; //do not add self//WARNING: may need to worry about train number here
+            if (player.user == MultiPlayerManager.Instance().UserName)
+                return; //do not add self//WARNING: may need to worry about train number here
             OnlinePlayer p;
             var doesPlayerExist = Players.TryGetValue(player.user, out p);
-            if (!doesPlayerExist) return;
-            if (player.oldTrainReverseFormation) p.Train.ReverseFormation(false);
+            if (!doesPlayerExist)
+                return;
+            if (player.oldTrainReverseFormation)
+                p.Train.ReverseFormation(false);
             p.LeadingLocomotiveID = player.leadingID;
             Train train;
 
@@ -300,13 +311,15 @@ namespace Orts.Simulation.MultiPlayer
                 train.TrainType = TrainType.Remote;
             }
             p.Train = train;
-            if (player.newTrainReverseFormation) p.Train.ReverseFormation(false);
+            if (player.newTrainReverseFormation)
+                p.Train.ReverseFormation(false);
         }
 
         public string ExhaustingLocos(MSGExhaust exhaust)
         {
             string tmp = "";
-            if (exhaust == null) exhaust = new MSGExhaust();
+            if (exhaust == null)
+                exhaust = new MSGExhaust();
             foreach (OnlineLocomotive l in OnlineLocomotives)
             {
                 if (l.userName != MultiPlayerManager.GetUserName())
@@ -321,7 +334,7 @@ namespace Orts.Simulation.MultiPlayer
                     }
                 }
             }
-            if (exhaust != null) tmp += exhaust.ToString();
+            tmp += exhaust.ToString();
             return tmp;
         }
 

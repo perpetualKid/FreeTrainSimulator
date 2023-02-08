@@ -6,7 +6,7 @@
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <AssemblyTitle>Open Rails Menu</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
-    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
+    <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>Orts.Menu</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

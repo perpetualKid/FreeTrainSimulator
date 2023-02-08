@@ -23,13 +23,12 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common.Calc;
+using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 
-using static Orts.Scripting.Api.Etcs.ETCSStatus;
 using static Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs.DriverMachineInterface;
-
+using static Orts.Scripting.Api.Etcs.ETCSStatus;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 {
@@ -88,9 +87,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         private List<TextPrimitive> DialSpeeds;
         private List<Vector4> DialLineCoords;
         private Func<double, double> SpeedFromMpS;
-        private WindowTextFont FontDialSpeeds;
-        private WindowTextFont FontReleaseSpeed;
-        private WindowTextFont FontCurrentSpeed;
+        private System.Drawing.Font FontDialSpeeds;
+        private System.Drawing.Font FontReleaseSpeed;
+        private System.Drawing.Font FontCurrentSpeed;
 
         public CircularSpeedGauge(int maxSpeed, bool unitMetric, bool unitVisible, bool dialQuarterLines, int maxVisibleScale, DriverMachineInterface dmi) : base(dmi, 280, 300)
         {
@@ -105,9 +104,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             CurrentSpeed = new TextPrimitive[3];
             for (var i = 0; i < CurrentSpeed.Length; i++)
-                CurrentSpeed[i] = new TextPrimitive(new Point(CurrentSpeedPosition[i], CurrentSpeedPosition[3]), Color.Black, "0", FontCurrentSpeed);
+                CurrentSpeed[i] = new TextPrimitive(DMI.Viewer.Game, new Point(CurrentSpeedPosition[i], CurrentSpeedPosition[3]), Color.Black, "0", FontCurrentSpeed);
 
-            ReleaseSpeed = new TextPrimitive(ReleaseSpeedPosition, ColorGrey, String.Empty, FontReleaseSpeed);
+            ReleaseSpeed = new TextPrimitive(DMI.Viewer.Game, ReleaseSpeedPosition, ColorGrey, string.Empty, FontReleaseSpeed);
 
             if (NeedleTextureData == null)
             {
@@ -153,9 +152,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            FontDialSpeeds = GetFont(FontHeightDial, true);
-            FontReleaseSpeed = GetFont(FontHeightReleaseSpeed);
-            FontCurrentSpeed = GetFont(FontHeightCurrentSpeed, true);
+            FontDialSpeeds = GetTextFont(FontHeightDial, true);
+            FontReleaseSpeed = GetTextFont(FontHeightReleaseSpeed);
+            FontCurrentSpeed = GetTextFont(FontHeightCurrentSpeed, true);
 
             foreach (var text in DialSpeeds)
                 text.Font = FontDialSpeeds;
@@ -216,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                             || UnitMetric && speed % 100 == 0
                             || !UnitMetric && speed % 40 == 0)
                         {
-                            var textWidth = FontDialSpeeds.MeasureString($"{speed}") / Scale;
+                            var textWidth = TextTextureRenderer.Instance(DMI.Viewer.Game).Measure($"{speed}", FontDialSpeeds).Width / Scale;
                             GetXY(RadiusText, angle, ref x, ref y);
                             x -= textWidth / 2f * (1f + (float)Math.Sin(angle));
                             y -= textHeight / 2f * (1f - (float)Math.Cos(angle));
@@ -229,7 +228,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                                     case 140: x += textWidth / 6f; y -= textHeight / 6f; break;
                                 }
 
-                            DialSpeeds.Add(new TextPrimitive(new Point((int)x, (int)y), Color.White, $"{speed}", FontDialSpeeds));
+                            DialSpeeds.Add(new TextPrimitive(DMI.Viewer.Game, new Point((int)x, (int)y), Color.White, $"{speed}", FontDialSpeeds));
                         }
                     }
                     else
@@ -246,8 +245,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             if (!string.IsNullOrEmpty(Unit))
             {
-                var unitPosition = new Point((int)(UnitCenterPosition[0] - FontDialSpeeds.MeasureString(Unit) / Scale / 2f), (int)(UnitCenterPosition[1] - textHeight / 2f));
-                DialSpeeds.Add(new TextPrimitive(unitPosition, Color.White, Unit, FontDialSpeeds));
+                
+                var unitPosition = new Point((int)(UnitCenterPosition[0] - TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Unit, FontDialSpeeds).Width / Scale / Scale / 2f), (int)(UnitCenterPosition[1] - textHeight / 2f));
+                DialSpeeds.Add(new TextPrimitive(DMI.Viewer.Game, unitPosition, Color.White, Unit, FontDialSpeeds));
             }
             Active = true;
         }
@@ -505,7 +505,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         private bool DisplayDistanceBar;
         private Vector4 DistanceBar;
         private TextPrimitive TargetDistanceText;
-        private WindowTextFont TargetDistanceFont;
+        private System.Drawing.Font TargetDistanceFont;
         private readonly float FontHeightTargetDistance = 10;
         public TargetDistance(DriverMachineInterface dmi) : base(dmi, 54, 221)
         {
@@ -540,8 +540,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             float dist = status.TargetDistanceM.Value;
             
             var text = $"{((int)(dist / 10)) * 10}";
-            var fontSize = TargetDistanceFont.MeasureString(text) / Scale;
-            TargetDistanceText = new TextPrimitive(new Point((int)(54 - fontSize), (int)(30 - FontHeightTargetDistance) / 2), ColorGrey, text, TargetDistanceFont);
+            int fontSize = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(text, TargetDistanceFont).Width / Scale);
+            TargetDistanceText = new TextPrimitive(DMI.Viewer.Game, new Point((int)(54 - fontSize), (int)(30 - FontHeightTargetDistance) / 2), ColorGrey, text, TargetDistanceFont);
 
             if (dist > 1000) dist = 1000;
             double h;
@@ -563,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            TargetDistanceFont = GetFont(FontHeightTargetDistance);
+            TargetDistanceFont = GetTextFont(FontHeightTargetDistance);
         }
     }
 }

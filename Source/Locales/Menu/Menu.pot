@@ -1,26 +1,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Menu\n"
-"POT-Creation-Date: 2022-08-18 08:51:56+0200\n"
-"PO-Revision-Date: 2022-08-18 08:51:57+0200\n"
+"POT-Creation-Date: 2023-02-08 11:32:23+0100\n"
+"PO-Revision-Date: 2023-02-08 11:32:24+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
-
-#: ..\..\..\Menu\Options.Designer.cs:1171
-msgid "% cab 2D stretch"
-msgstr ""
-
-#: ..\..\..\Menu\Options.Designer.cs:771
-msgid "% external sound heard internally"
-msgstr ""
-
-#: ..\..\..\Menu\Options.Designer.cs:804
-msgid "% sound volume"
-msgstr ""
 
 #: ..\..\..\Menu\MainForm.cs:692
 msgid ":"
@@ -60,6 +48,18 @@ msgstr ""
 #: ..\..\..\Menu\Options.cs:136
 #, csharp-format
 msgid "{0}x{1}"
+msgstr ""
+
+#: ..\..\..\Menu\Options.Designer.cs:1171
+msgid "% cab 2D stretch"
+msgstr ""
+
+#: ..\..\..\Menu\Options.Designer.cs:771
+msgid "% external sound heard internally"
+msgstr ""
+
+#: ..\..\..\Menu\Options.Designer.cs:804
+msgid "% sound volume"
 msgstr ""
 
 #: ..\..\..\Menu\KeyInputEditControl.Designer.cs:90
@@ -390,7 +390,6 @@ msgid "Difficulty:"
 msgstr ""
 
 #: ..\..\..\Menu\Options.cs:454
-#, csharp-format
 msgid "Disabled"
 msgstr ""
 
@@ -502,6 +501,10 @@ msgstr ""
 
 #: ..\..\..\Menu\TestingForm.Designer.cs:249
 msgid "FPS"
+msgstr ""
+
+#: ..\..\..\Menu\MainForm.Designer.cs:119
+msgid "Free Train Simulator"
 msgstr ""
 
 #: ..\..\..\Menu\Options.Designer.cs:1618
@@ -758,7 +761,6 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: ..\..\..\Menu\MainForm.Designer.cs:119
 #: ..\..\..\Menu\MainForm.Designer.cs:941
 msgid "Open Rails"
 msgstr ""
@@ -893,7 +895,9 @@ msgstr ""
 #, csharp-format
 msgid ""
 "Restoring from a save made by version {0} of {1} may be incompatible with "
-"current version {2}. Please do not report any problems that may result.\n"
+"current version {2}.\n"
+"\n"
+"Please do not report any problems that may result.\n"
 "\n"
 "Continue?"
 msgstr ""
@@ -1166,13 +1170,6 @@ msgstr ""
 msgid ""
 "To prevent crashes and unexpected behaviour, Open Rails invalidates games "
 "saved from older versions if they fail to restore.\n"
-msgstr ""
-
-#: ..\..\..\Menu\ResumeForm.cs:193
-msgid ""
-"To prevent crashes and unexpected behaviour, Open Rails invalidates games "
-"saved from older versions if they fail to restore.\n"
-"{0} of {1} saves for this route are no longer valid."
 msgstr ""
 
 #: ..\..\..\Menu\MainForm.Designer.cs:169

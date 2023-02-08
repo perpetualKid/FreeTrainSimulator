@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -7,14 +6,13 @@ using Microsoft.Xna.Framework;
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
     internal class EndNode: EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "End Node" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
         protected const int Length = 2;
@@ -25,7 +23,7 @@ namespace Orts.Graphics.MapView.Widgets
             Size = width;
         }
 
-        public virtual NameValueCollection DebugInfo
+        public virtual InformationDictionary DetailInfo
         {
             get
             {
@@ -41,17 +39,17 @@ namespace Orts.Graphics.MapView.Widgets
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = this.GetColor<EndNode>(colorVariation);
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length * scaleFactor), Direction, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length * scaleFactor), Direction, contentArea.SpriteBatch);
         }
     }
 
     internal class RoadEndSegment : EndNode
     {
-        public override NameValueCollection DebugInfo
+        public override InformationDictionary DetailInfo
         {
             get
             {
-                NameValueCollection result = base.DebugInfo;
+                InformationDictionary result = base.DetailInfo;
                 result["Segment Type"] = "Road";
                 return result;
             }
@@ -65,7 +63,7 @@ namespace Orts.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = this.GetColor<RoadEndSegment>(colorVariation);
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

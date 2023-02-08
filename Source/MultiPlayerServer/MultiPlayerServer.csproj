@@ -4,23 +4,11 @@
 		<Description>Open Rails Multiplayer Server</Description>
 		<AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.MultiPlayerServer</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="7.0.0-preview.2.22152.2" />
-	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0-2.final" />
-	  <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.0">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	  <PackageReference Update="Microsoft.NETCore.Targets" Version="6.0.0-preview.4.21253.7" />
-	  <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
 	</ItemGroup>
 </Project>

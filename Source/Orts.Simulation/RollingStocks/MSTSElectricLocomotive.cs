@@ -39,6 +39,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Common.Calc;
+using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -350,49 +352,6 @@ namespace Orts.Simulation.RollingStocks
             base.SwitchToAutopilotControl();
         }
 
-        public override string GetStatus()
-        {
-            StringBuilder status = new StringBuilder();
-            status.Append($"{Simulator.Catalog.GetString("Pantographs")} = ");
-            foreach (Pantograph pantograph in Pantographs.List)
-                status.Append($"{pantograph.State.GetLocalizedDescription()} ");
-            status.AppendLine();
-            status.Append($"{Simulator.Catalog.GetString("Battery switch")} = {(LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.Append($"{Simulator.Catalog.GetString("Master key")} = {(LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.Append($"{Simulator.Catalog.GetString("Circuit breaker")} = {(Simulator.Catalog.GetParticularString("CircuitBreaker", ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription()))}\n");
-            status.Append($"{Simulator.Catalog.GetString("Electric train supply")} = {(LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off"))}\n");
-            status.AppendLine();
-            status.Append($"{Simulator.Catalog.GetParticularString("PowerSupply", "Power")} = {LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription()}");
-            return status.ToString();
-        }
-
-        public override string GetDebugStatus()
-        {
-            StringBuilder status = new StringBuilder(base.GetDebugStatus());
-            status.Append($"\t{ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription()}\t\t");
-            status.Append($"{(ElectricPowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"))}\t");
-            status.Append($"{(ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"))}\t");
-            status.Append($"\t{Simulator.Catalog.GetString("Auxiliary power")}\t\t{LocomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription()}\n");
-
-            if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && this.IsLeadLocomotive() && Train.CarSteamHeatOn)
-            {
-                bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-                // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive
-                // Display Steam Heat info
-                status.Append($"\t{Simulator.Catalog.GetString("StHeat:")}");
-                status.Append($"\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
-                status.Append($"\t{Simulator.Catalog.GetString("StTemp")}\t{FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("StUse")}\t{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}");
-                status.Append($"\t{Simulator.Catalog.GetString("WaterLvl")}\t{FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, isUK)}");
-                status.Append($"\t{Simulator.Catalog.GetString("Last:")}\t{Simulator.Catalog.GetString("Press")}\t{FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}");
-                status.Append($"\t{Simulator.Catalog.GetString("Temp")}\t{FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("OutTemp")}\t{FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits)}");
-                status.Append($"\t{Simulator.Catalog.GetString("NetHt")}\t{Train.LastCar.carNetHeatFlowRateW:N0}");
-            }
-
-            return status.ToString();
-        }
-
         /// <summary>
         /// Returns the controller which refills from the matching pickup point.
         /// </summary>
@@ -448,6 +407,21 @@ namespace Orts.Simulation.RollingStocks
                 Variable1 = 0;
                 Variable2 = 0;
             }
+        }
+
+        private protected override void UpdateCarStatus()
+        {
+            base.UpdateCarStatus();
+            carInfo["Pantographs"] = string.Join(' ', Pantographs.List.Select(p => p.State.GetLocalizedDescription()));
+            carInfo["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["MasterKey"]= LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["CircuitBreaker"] = ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+            carInfo["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
+            carInfo["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+
+            carInfo["TCS Autorization"] = ElectricPowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK");
+            carInfo["Driver Autorization"] = ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK");
+            carInfo["Auxiliar power"] = LocomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
         }
     } // class ElectricLocomotive
 }

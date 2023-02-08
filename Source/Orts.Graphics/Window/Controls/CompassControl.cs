@@ -19,7 +19,7 @@ namespace Orts.Graphics.Window.Controls
 
         public int Heading { get; set; }
 
-        public CompassControl(WindowBase window, int width, int height) : base(window, 0, 0, width, height)
+        public CompassControl(FormBase window, int width, int height) : base(window, 0, 0, width, height)
         {
             compassTexture = DrawCompassTexture();
             halfWidth = width / 2;
@@ -39,7 +39,7 @@ namespace Orts.Graphics.Window.Controls
         {
             base.Draw(spriteBatch, offset);
 
-            BasicShapes.DrawLine(1, Color.Gold, (Bounds.Location + offset + halfPoint).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
+            Window.Owner.BasicShapes.DrawLine(1, Color.Gold, (Bounds.Location + offset + halfPoint).ToVector2(), Bounds.Height, MathHelper.PiOver2, spriteBatch);
             spriteBatch.Draw(compassTexture, (Bounds.Location + offset).ToVector2(), clippingRectangle, Color.White);
         }
 

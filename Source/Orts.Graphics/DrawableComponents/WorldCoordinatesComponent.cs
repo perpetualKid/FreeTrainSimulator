@@ -15,7 +15,9 @@ namespace Orts.Graphics.DrawableComponents
 {
     public class WorldCoordinatesComponent: VolatileTextComponent
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly MouseInputGameComponent input;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private MouseState lastMouseState;
         private const double piRad = 180 / Math.PI;
 

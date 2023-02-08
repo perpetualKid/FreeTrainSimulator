@@ -33,12 +33,9 @@
         RoadTrackEnd,
         RoadLevelCrossing,
         PathTrack,
-        PathTrackEnd,
-        PathTrackIntermediate,
-        PathJunction,
-        PathReversal,
         RoadCarSpawner,
         SignalItem,
+        StationItem,
         PlatformItem,
         SidingItem,
         SpeedPostItem,
@@ -59,5 +56,6 @@
     public enum ShaderEffect
     {
         PopupWindow,
+        Diagram,
     }
 }

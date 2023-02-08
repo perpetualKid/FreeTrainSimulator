@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
+using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
@@ -226,16 +227,14 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 FirstCol = "Sprtr",
             });
 
-            TrainCar trainCar = viewer.PlayerLocomotive;
-            Train train = trainCar.Train;
-            string trainBrakeStatus = trainCar.GetTrainBrakeStatus();
-            string dynamicBrakeStatus = trainCar.GetDynamicBrakeStatus();
-            string engineBrakeStatus = trainCar.GetEngineBrakeStatus();
-            MSTSLocomotive locomotive = (MSTSLocomotive)trainCar;
-            string locomotiveStatus = locomotive.GetStatus();
+            MSTSLocomotive locomotive = viewer.PlayerLocomotive;
+            Train train = locomotive.Train;
+            string trainBrakeStatus = locomotive.GetTrainBrakeStatus();
+            string dynamicBrakeStatus = locomotive.GetDynamicBrakeStatus();
+            string engineBrakeStatus = locomotive.GetEngineBrakeStatus();
             bool combinedControlType = locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             bool showMUReverser = Math.Abs(train.MUReverserPercent) != 100f;
-            bool showRetainers = train.RetainerSetting != RetainerSetting.Exhaust;
+            bool showRetainers = train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust;
             bool stretched = train.Cars.Count > 1 && train.CouplersPulled == train.Cars.Count - 1;
             bool bunched = !stretched && train.Cars.Count > 1 && train.CouplersPushed == train.Cars.Count - 1;
             Orts.Simulation.Physics.TrainInfo trainInfo = train.GetTrainInfo();
@@ -296,8 +295,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Direction
             {
                 string reverserKey = string.Empty;
-                bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
-                bool nonSteamEnd = trainCar.EngineType != EngineType.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
+                bool moving = locomotive.AbsSpeedMpS > 1;
+                bool nonSteamEnd = locomotive.EngineType != EngineType.Steam && locomotive.Direction == MidpointDirection.N && (locomotive.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
                 if (reverserForwardDown)
                 {
@@ -335,7 +334,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     throttleKey = Symbols.EndLower + ColorCode[Color.Yellow];
                 else if (throttleIncrease)
                 {
-                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottleController.MaximumValue == trainCar.ThrottlePercent / 100)
+                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottleController.MaximumValue == locomotive.ThrottlePercent / 100)
                         throttleKey = Symbols.End + ColorCode[Color.Yellow];
                     else
                         throttleKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
@@ -343,7 +342,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 }
                 else if (throttleDecrease)
                 {
-                    if (locomotive.DynamicBrakePercent < 1 && trainCar.ThrottlePercent == 0)
+                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottlePercent == 0)
                         throttleKey = Symbols.End + ColorCode[Color.Yellow];
                     else
                         throttleKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
@@ -386,7 +385,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
 
             // Sander
-            if (locomotive.GetSanderOn())
+            if (locomotive.Sander)
             {
                 bool sanderBlocked = locomotive.AbsSpeedMpS > locomotive.SanderSpeedOfMpS;
                 string sanderKey = Symbols.ArrowToRight + ColorCode[Color.Yellow];
@@ -534,7 +533,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Retainers"),
-                    LastCol = $"{train.RetainerPercent} {train.RetainerSetting.GetLocalizedDescription()}",
+                    LastCol = $"{train.BrakeSystem.RetainerPercent} {train.BrakeSystem.RetainerSetting.GetLocalizedDescription()}",
                 });
             }
 
@@ -584,115 +583,12 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             AddSeparator();
 
-            if (locomotiveStatus != null)
-            {
-                foreach (string data in locomotiveStatus.Split('\n').Where((string d) => !string.IsNullOrWhiteSpace(d)))
-                {
-                    string[] parts = data.Split(new string[] { " = " }, 2, StringSplitOptions.None);
-                    string keyPart = parts[0];
-                    string valuePart = parts?[1];
-                    if (Viewer.Catalog.GetString(keyPart).StartsWith(Viewer.Catalog.GetString("Boiler pressure"), StringComparison.OrdinalIgnoreCase))
-                    {
-                        MSTSSteamLocomotive steamLocomotive2 = (MSTSSteamLocomotive)locomotive;
-                        float bandUpper = steamLocomotive2.PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
-                        float bandLower = steamLocomotive2.PreviousBoilerHeatOutBTUpS * 0.975f; // find lower bandwidth point - gives a total 5% bandwidth
-
-                        string heatIndicator;
-                        if (steamLocomotive2.BoilerHeatInBTUpS > bandLower && steamLocomotive2.BoilerHeatInBTUpS < bandUpper)
-                            heatIndicator = $"{Symbols.SmallDiamond}{ColorCode[Color.White]}";
-                        else if (steamLocomotive2.BoilerHeatInBTUpS < bandLower)
-                            heatIndicator = $"{Symbols.SmallArrowDown}{ColorCode[Color.Cyan]}";
-                        else if (steamLocomotive2.BoilerHeatInBTUpS > bandUpper)
-                            heatIndicator = $"{Symbols.SmallArrowUp}{ColorCode[Color.Orange]}";
-                        else
-                            heatIndicator = ColorCode[Color.White];
-
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = Viewer.Catalog.GetString("Boiler pressure"),
-                            LastCol = Viewer.Catalog.GetString(valuePart),
-                            SymbolCol = heatIndicator,
-                        });
-                    }
-                    else if (!normalTextMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels"), StringComparison.OrdinalIgnoreCase))
-                    {
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = keyPart.EndsWith("?", StringComparison.OrdinalIgnoreCase) || keyPart.EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart.Length > 1 ? Viewer.Catalog.GetString(valuePart.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase)) : "",
-                        });
-                    }
-                    else if (keyPart.StartsWith(Viewer.Catalog.GetString("Gear"), StringComparison.OrdinalIgnoreCase))
-                    {
-                        string gearKey = "";
-                        if (gearUp)
-                        {
-                            gearKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
-                            gearUp = false;
-                        }
-                        else if (gearDown)
-                        {
-                            gearKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
-                            gearDown = false;
-                        }
-                        else
-                            gearKey = "";
-
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart != null ? Viewer.Catalog.GetString(valuePart) : "",
-                            KeyPressed = gearKey,
-                            SymbolCol = gearKey,
-                        });
-                    }
-                    else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
-                    {
-                        string pantoKey = "";
-                        if (pantographKey)
-                        {
-                            string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up"), StringComparison.OrdinalIgnoreCase) ? Symbols.ArrowUp : Symbols.ArrowDown;
-                            pantoKey = arrow + ColorCode[Color.Yellow];
-                            pantographKey = false;
-                        }
-                        else
-                            pantoKey = "";
-
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart != null ? Viewer.Catalog.GetString(valuePart) : "",
-                            KeyPressed = pantoKey,
-                            SymbolCol = pantoKey,
-                        });
-                    }
-                    else if (parts.Contains(Viewer.Catalog.GetString("Engine")))
-                    {
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart != null ? $"{Viewer.Catalog.GetString(valuePart)}{ColorCode[Color.White]}" : "",
-                        });
-                    }
-                    else
-                    {
-                        AddLabel(new ListLabel
-                        {
-                            FirstCol = keyPart.EndsWith("?", StringComparison.OrdinalIgnoreCase) || keyPart.EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart != null ? Viewer.Catalog.GetString(valuePart) : "",
-                        });
-                    }
-                }
-            }
-
-            AddSeparator();
-
             if (normalTextMode)
             {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("FPS"),
-                    LastCol = $"{Math.Floor(viewer.RenderProcess.FrameRate.SmoothedValue)}",
+                    LastCol = $"{Math.Floor(MetricCollector.Instance.Metrics[Processes.SlidingMetric.FrameRate].SmoothedValue)}",
                 });
             }
 

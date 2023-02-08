@@ -377,7 +377,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var visibleCars = VisibleCars;
             var newVisibleCars = new List<RoadCar>(visibleCars.Count);
             foreach (var tile in Viewer.World.Scenery.WorldFiles)
-                foreach (var spawner in tile.carSpawners)
+                foreach (var spawner in tile.CarSpawners)
                     newVisibleCars.AddRange(spawner.Cars);
             VisibleCars = newVisibleCars;
         }

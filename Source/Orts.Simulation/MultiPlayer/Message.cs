@@ -1332,8 +1332,7 @@ namespace Orts.Simulation.MultiPlayer
             train.CalculatePositionOfCars();
             train.AITrainBrakePercent = 100;
 
-            if (train.Cars[0] is MSTSLocomotive)
-                train.LeadLocomotive = train.Cars[0];
+            train.LeadLocomotive = train.Cars[0] as MSTSLocomotive;
             if (train.Cars[0].CarID.StartsWith("AI"))
             {
                 // It's an AI train for the server, raise pantos and light lights
@@ -1570,8 +1569,7 @@ namespace Orts.Simulation.MultiPlayer
                 train.CalculatePositionOfCars();
                 train.AITrainBrakePercent = 100;
 
-                if (train.Cars[0] is MSTSLocomotive)
-                    train.LeadLocomotive = train.Cars[0];
+                train.LeadLocomotive = train.Cars[0] as MSTSLocomotive;
                 MultiPlayerManager.Instance().AddOrRemoveTrain(train, true);
                 if (MultiPlayerManager.IsServer())
                     MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, train, true);
@@ -2002,8 +2000,8 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     if (car.CarID == engine)
                     {
-                        car.Train.LeadLocomotive = car;
-                        (car.Train.LeadLocomotive as MSTSLocomotive).UsingRearCab = frontOrRearCab != "F";
+                        car.Train.LeadLocomotive = car as MSTSLocomotive ?? throw new InvalidCastException(nameof(car));
+                        car.Train.LeadLocomotive.UsingRearCab = frontOrRearCab != "F";
                         foreach (var p in MultiPlayerManager.OnlineTrains.Players)
                         {
                             if (p.Value.Train == t)
@@ -2593,13 +2591,13 @@ namespace Orts.Simulation.MultiPlayer
                         {
                             t.Number = oldTrainNumber;
                             if (oldIDIsLead == true)
-                                t.LeadLocomotive = car;
+                                t.LeadLocomotive = car as MSTSLocomotive;
                         }
                         if (car.CarID == firstCarIDNew)//got response about this train
                         {
                             t.Number = newTrainNumber;
                             if (newIDIsLead == true)
-                                t.LeadLocomotive = car;
+                                t.LeadLocomotive = car as MSTSLocomotive;
                         }
                     }
                 }
@@ -2607,7 +2605,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             else
             {
-                TrainCar lead = null;
+                MSTSLocomotive lead = null;
                 Train train = null;
                 List<TrainCar> trainCars = null;
                 bool canPlace = true;
@@ -2678,7 +2676,7 @@ namespace Orts.Simulation.MultiPlayer
                         foreach (var c in train.Cars)
                         {
                             if (c.CarID == firstCarIDOld && oldIDIsLead)
-                                train.LeadLocomotive = c;
+                                train.LeadLocomotive = c as MSTSLocomotive;
                             foreach (var p in MultiPlayerManager.OnlineTrains.Players)
                             {
                                 if (p.Value.LeadingLocomotiveID == c.CarID)
@@ -2759,7 +2757,7 @@ namespace Orts.Simulation.MultiPlayer
                 foreach (TrainCar car in train2.Cars)
                 {
                     if (car.CarID == firstCarIDNew && newIDIsLead)
-                        train2.LeadLocomotive = car;
+                        train2.LeadLocomotive = car as MSTSLocomotive;
                     car.Train = train2;
                     foreach (var p in MultiPlayerManager.OnlineTrains.Players)
                     {
@@ -3035,7 +3033,7 @@ namespace Orts.Simulation.MultiPlayer
             train.LeadLocomotive = null;
             train2.LeadLocomotive = null;
             if (Lead != -1 && Lead < train.Cars.Count)
-                train.LeadLocomotive = train.Cars[Lead];
+                train.LeadLocomotive = train.Cars[Lead] as MSTSLocomotive;
 
             if (train.LeadLocomotive == null)
                 train.LeadNextLocomotive();
@@ -3377,7 +3375,6 @@ namespace Orts.Simulation.MultiPlayer
             {
                 (loco as MSTSElectricLocomotive).ElectricPowerSupply.FilterVoltageV = VL;
             }
-            loco.notificationReceived = true;
         }
         public override string ToString()
         {
@@ -3472,7 +3469,7 @@ namespace Orts.Simulation.MultiPlayer
                     Trace.WriteLine("MSG from " + sender + ":" + msgx);
                     MultiPlayerManager.Instance().lastSender = sender;
                     if (Simulator.Instance.Confirmer != null)
-                        Simulator.Instance.Confirmer.MSG(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
+                        Simulator.Instance.Confirmer.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
                     MultiPlayerManager.Instance().OnMessageReceived(Simulator.Instance.GameTime, sender + ": " + msgx);
                     break;
                 }

@@ -23,7 +23,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 {
     public interface ISubSystem<T> where T : ISubSystem<T>
     {
-        void Copy(T other);
+        void Copy(T source);
         void Initialize();
         void InitializeMoving();
         void Save(BinaryWriter outf);

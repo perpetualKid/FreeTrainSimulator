@@ -38,6 +38,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -329,7 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // NumVertices and NumSegments used for sizing vertex and index buffers
         public uint VerticalNumVertices;                     // Total independent vertices in LOD
         public uint VerticalNumSegments;                     // Total line segment count in LOD
-        public ArrayList VerticalPolylines = new ArrayList();  // Array of arrays of vertices 
+        public List<Polyline> VerticalPolylines { get; } = new List<Polyline>();  // Array of arrays of vertices 
 
         /// <summary>
         /// LODItemWire constructor (default &amp; XML)
@@ -434,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     lodItem.Accum(pl.Vertices.Count);
 
                     vertical = VerticalWireProfile("TopWireVerticalLeft", topHeight, -dist / 2);
-                    lodItem.VerticalPolylines = new ArrayList();
+                    lodItem.VerticalPolylines.Clear();
                     lodItem.VerticalPolylines.Add(vertical);
                     lodItem.VerticalAccumulate(vertical.Vertices.Count);
                     vertical = VerticalWireProfile("TopWireVerticalRight", topHeight, dist / 2);
@@ -449,7 +450,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     lodItem.Accum(pl.Vertices.Count);
 
                     vertical = VerticalWireProfile("TopWireVertical", topHeight);
-                    lodItem.VerticalPolylines = new ArrayList();
+                    lodItem.VerticalPolylines.Clear();
                     lodItem.VerticalPolylines.Add(vertical);
                     lodItem.VerticalAccumulate(vertical.Vertices.Count);
                 }
@@ -523,12 +524,8 @@ namespace Orts.ActivityRunner.Viewer3D
             XNAEnd = endPosition.XNAMatrix.Translation;
 
             // Count all of the LODItems in all the LODs
-            int count = 0;
-            for (int i = 0; i < TrProfile.LODs.Count; i++)
-            {
-                LOD lod = (LOD)TrProfile.LODs[i];
-                count += lod.LODItems.Count;
-            }
+            int count = TrProfile.LODs.Sum(lod => lod.LODItems.Count);
+
             // Allocate ShapePrimitives array for the LOD count
             ShapePrimitives = new ShapePrimitive[count];
 
@@ -536,7 +533,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int primIndex = 0;
             for (int iLOD = 0; iLOD < TrProfile.LODs.Count; iLOD++)
             {
-                LOD lod = (LOD)TrProfile.LODs[iLOD];
+                LOD lod = TrProfile.LODs[iLOD];
                 lod.PrimIndexStart = primIndex; // Store start index for this LOD
                 for (int iLODItem = 0; iLODItem < lod.LODItems.Count; iLODItem++)
                 {
@@ -625,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 OldRadius = radius; // Get ready for next segment
             }
 
-            if (lodItem.VerticalPolylines != null && lodItem.VerticalPolylines.Count > 0)
+            if (lodItem.VerticalPolylines?.Count > 0)
             {
 
                 // Now generate and load subsequent cross sections
@@ -713,9 +710,9 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // Create and populate a new ShapePrimitive
-            var indexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short), NumIndices, BufferUsage.WriteOnly);
+            var indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), NumIndices, BufferUsage.WriteOnly);
             indexBuffer.SetData(TriangleListIndices);
-            return new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, lodItem.LODMaterial, new SharedShape.VertexBufferSet(VertexList, viewer.RenderProcess.GraphicsDevice), indexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            return new ShapePrimitive(viewer.Game.GraphicsDevice, lodItem.LODMaterial, new SharedShape.VertexBufferSet(VertexList, viewer.Game.GraphicsDevice), indexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
         }
 
         /// <summary>

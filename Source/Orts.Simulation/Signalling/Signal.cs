@@ -33,8 +33,6 @@ using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
-using SharpDX.MediaFoundation;
-
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//

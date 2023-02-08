@@ -36,12 +36,21 @@ steps:
   inputs:
     command: custom
     custom: tool
-    arguments: 'restore --tool-manifest .\source\.config\dotnet-tools.json'
+    arguments: 'restore --tool-manifest .\.config\dotnet-tools.json'
+    workingDirectory: .\source
 
 #need to run in the correct folder as version.json is not in root
-- script: dotnet tool run nbgv cloud -a
-  workingDirectory: .\source
+#- script: dotnet tool run nbgv cloud -a
+#  workingDirectory: .\source
+#  displayName: Set NBGV Variables
+
+- task: DotNetCoreCLI@2
   displayName: Set NBGV Variables
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'run nbgv cloud -a'
+    workingDirectory: '.\source'
 
 - task: Bash@3
   displayName: List all Environment Variables
@@ -114,4 +123,5 @@ steps:
         $feed='builds'}
       dotnet tool install --tool-manifest .\source\.config\dotnet-tools.json sleet
       cd .\source
+      dotnet tool restore
       dotnet tool run sleet push .\..\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}

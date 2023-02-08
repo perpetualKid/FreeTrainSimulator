@@ -23,7 +23,6 @@ using Orts.Common.Logging;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
 using Orts.Toolbox.PopupWindows;
@@ -49,7 +48,7 @@ namespace Orts.Toolbox
 
         private readonly Action onClientSizeChanged;
 
-        private WindowManager<WindowType> windowManager;
+        private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
 
@@ -154,6 +153,7 @@ namespace Orts.Toolbox
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
+            windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -197,11 +197,11 @@ namespace Orts.Toolbox
             if (setting == ColorSetting.Background)
             {
                 BackgroundColor = ColorExtension.FromName(colorName);
-                (windowManager[WindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
+                (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
             }
         }
 
-        internal void UpdateItemVisibilityPreference(MapViewItemSettings setting, bool enabled)
+        internal void UpdateItemVisibilityPreference(MapContentType setting, bool enabled)
         {
             Settings.ViewSettings[setting] = enabled;
         }
@@ -238,13 +238,13 @@ namespace Orts.Toolbox
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
-            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+            foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
                     Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
                 }
-                if (windowType != WindowType.QuitWindow)
+                if (windowType != ToolboxWindowType.QuitWindow)
                     Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
@@ -261,7 +261,7 @@ namespace Orts.Toolbox
                     (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
-                pathSelection = selectedPath != null ? new string[] { selectedPath.FilePath } : null;
+                pathSelection = new string[] { string.IsNullOrEmpty(PathEditor?.FilePath) ? string.Empty : PathEditor.FilePath };
             }
             Settings.RouteSelection = routeSelection;
             Settings.PathSelection = pathSelection;
@@ -344,14 +344,10 @@ namespace Orts.Toolbox
 
         protected override async void Initialize()
         {
-            List<Task> initTasks = new List<Task>()
-            {
-                LoadFolders(),
-            };
+            Task loadFolders = LoadFolders();
             InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextShape.Initialize(this, spriteBatch);
 
             UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
 
@@ -380,53 +376,64 @@ namespace Orts.Toolbox
             userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.DebugScreen].ToggleVisibility();
+                    windowManager[ToolboxWindowType.DebugScreen].ToggleVisibility();
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, EditTrainPath);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.LocationWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.LocationWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.HelpWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.TrackNodeInfoWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.TrackNodeInfoWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplayTrackItemInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ToolboxWindowType.TrackItemInfoWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.SettingsWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.SettingsWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[WindowType.LogWindow].ToggleVisibility();
+                    windowManager[ToolboxWindowType.LogWindow].ToggleVisibility();
+            });
+            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is not ModifiableKeyCommandArgs)
+                    windowManager[ToolboxWindowType.TrainPathWindow].ToggleVisibility();
             });
             #endregion
 
             #region popup windows
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[WindowType.AboutWindow].ToPoint());
-            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
+            windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
+            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.AboutWindow].ToPoint());
+            windowManager.SetLazyWindows(ToolboxWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[WindowType.QuitWindow].ToPoint());
+                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.QuitWindow].ToPoint());
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
                 quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
                 quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
                 return quitWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, "Debug", BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
@@ -434,32 +441,43 @@ namespace Orts.Toolbox
                 return debugWindow;
             }));
 
-            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[WindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.HelpWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                HelpWindow helpWindow = new HelpWindow(windowManager, Settings.PopupLocations[WindowType.HelpWindow].ToPoint());
-                return helpWindow;
+                return new HelpWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(WindowType.TrackNodeInfoWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[WindowType.TrackNodeInfoWindow].ToPoint());
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.SettingsWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, Settings.PopupLocations[WindowType.SettingsWindow].ToPoint());
+                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
+                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                return trackInfoWindow;
+            }));
+            windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
+            {
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
+                OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
-            windowManager.SetLazyWindows(WindowType.LogWindow, new Lazy<WindowBase>(() =>
+            windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
             {
-                LoggingWindow loggingWindow = new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[WindowType.LogWindow].ToPoint());
-                return loggingWindow;
+                return new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
+            }));
+            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
+            {
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
+                return trainPathDetailWindow;
             }));
             #endregion
 
@@ -467,12 +485,12 @@ namespace Orts.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            await Task.WhenAll(initTasks).ConfigureAwait(false);
+            await loadFolders.ConfigureAwait(false);
             await PreSelectRoute(Settings.RouteSelection, Settings.PathSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
             if (Settings.RestoreLastView)
             {
-                foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+                foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                 {
                     if (Settings.PopupStatus[windowType])
                         windowManager[windowType].Open();
@@ -500,7 +518,7 @@ namespace Orts.Toolbox
         {
             //DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
             //Components.Add(clock);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             //Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
@@ -529,21 +547,21 @@ namespace Orts.Toolbox
             base.Draw(gameTime);
 
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
+            graphicsDebugInfo.Update(gameTime);
         }
 
-        private class CommonDebugInfo : DebugInfoBase
+        private class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private ContentArea contentArea;
 
             private readonly int slowFps;
 
-            public CommonDebugInfo(GameWindow gameWindow)
+            public CommonDebugInfo(GameWindow gameWindow) : base(true)
             {
                 int targetFps = (int)Math.Round(1000 / gameWindow.TargetElapsedTime.TotalMilliseconds);
                 slowFps = targetFps - targetFps / 6;
                 frameRate.Preset(targetFps);
-                FormattingOptions = new Dictionary<string, FormatOption>();
                 this["Version"] = VersionInfo.FullVersion;
                 gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             }
@@ -564,41 +582,38 @@ namespace Orts.Toolbox
             }
         }
 
-        private class GraphicsDebugInfo : DebugInfoBase
+        private class GraphicsDebugInfo : DetailInfoBase
         {
-            public override string Get(string name)
+            public override void Update(GameTime gameTime)
             {
-                return name switch
+                if (UpdateNeeded)
                 {
-                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
-                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
-                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
-                    "Textures" => $"{CurrentMetrics.TextureCount}",
-                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
-                    "Targets" => $"{CurrentMetrics.TargetCount}",
-                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
-                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
-                    _ => base.Get(name),
-                };
+                    this["Clear Calls"] = $"{CurrentMetrics.ClearCount}";
+                    this["Draw Calls"] = $"{CurrentMetrics.DrawCount}";
+                    this["Primitives"] = $"{CurrentMetrics.PrimitiveCount}";
+                    this["Textures"] = $"{CurrentMetrics.TextureCount}";
+                    this["Sprites"] = $"{CurrentMetrics.SpriteCount}";
+                    this["Targets"] = $"{CurrentMetrics.TargetCount}";
+                    this["PixelShaders"] = $"{CurrentMetrics.PixelShaderCount}";
+                    this["VertexShaders"] = $"{CurrentMetrics.VertexShaderCount}";
+                }
+                base.Update(gameTime);
             }
 
             public GraphicsMetrics CurrentMetrics;
 
-            public GraphicsDebugInfo()
+            public GraphicsDebugInfo() : base(true)
             {
-                FormattingOptions = new Dictionary<string, FormatOption>
-                {
-                    { "GPU Information", FormatOption.Bold }
-                };
-                DebugInfo.Add("GPU Information", null);
-                DebugInfo.Add("Clear Calls", null);
-                DebugInfo.Add("Draw Calls", null);
-                DebugInfo.Add("Primitives", null);
-                DebugInfo.Add("Textures", null);
-                DebugInfo.Add("Sprites", null);
-                DebugInfo.Add("Targets", null);
-                DebugInfo.Add("PixelShaders", null);
-                DebugInfo.Add("VertexShaders", null);
+                FormattingOptions["GPU Information"] = FormatOption.Bold;
+                this["GPU Information"] = null;
+                this["Clear Calls"] = null;
+                this["Draw Calls"] = null;
+                this["Primitives"] = null;
+                this["Textures"] = null;
+                this["Sprites"] = null;
+                this["Targets"] = null;
+                this["PixelShaders"] = null;
+                this["VertexShaders"] = null;
             }
         }
     }

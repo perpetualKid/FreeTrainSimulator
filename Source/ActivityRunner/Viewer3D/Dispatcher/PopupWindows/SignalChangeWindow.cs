@@ -15,8 +15,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
     {
         private readonly Point offset;
         private ISignal signal;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private RadioButton rbtnSystem;
         private ControlLayout callonLine;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public SignalChangeWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), (catalog ??= CatalogManager.Catalog).GetString("Change Signal"), relativeLocation, new Point(140, 105), catalog)

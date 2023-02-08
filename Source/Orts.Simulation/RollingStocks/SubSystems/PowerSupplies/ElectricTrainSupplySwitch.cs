@@ -69,10 +69,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(ElectricTrainSupplySwitch other)
+        public void Copy(ElectricTrainSupplySwitch source)
         {
-            Mode = other.Mode;
-            On = other.On;
+            Mode = source.Mode;
+            On = source.On;
         }
 
         public virtual void Initialize()

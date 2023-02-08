@@ -424,8 +424,8 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformForward && passengerCarsWithinPlatform > 0 && trainCarIndex < train.Cars.Count - 1)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && train.Cars[trainCarIndex] is not MSTSLocomotive) ||
+                               (train.Cars[trainCarIndex] is MSTSLocomotive && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;
@@ -441,8 +441,8 @@ namespace Orts.Simulation.Signalling
                         while (walkingDistance <= trainPartOutsidePlatformBackward && passengerCarsWithinPlatform > 0 && trainCarIndex >= 0)
                         {
                             float walkingDistanceBehind = walkingDistance + train.Cars[trainCarIndex].CarLengthM;
-                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && !train.Cars[trainCarIndex].IsDriveable) ||
-                               (train.Cars[trainCarIndex].IsDriveable && train.Cars[trainCarIndex].PassengerCapacity > 0))
+                            if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && train.Cars[trainCarIndex] is not MSTSLocomotive) ||
+                               (train.Cars[trainCarIndex] is MSTSLocomotive && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
                                 if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
                                     passengerCarsWithinPlatform--;

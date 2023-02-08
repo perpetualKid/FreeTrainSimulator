@@ -54,7 +54,7 @@ namespace Orts.Formats.Msts
         private float trackNodeLength;
         private float trackNodeOffset;
 
-        public ref WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
+        public ref readonly WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
         public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
         public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
         public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }

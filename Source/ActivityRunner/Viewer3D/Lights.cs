@@ -28,7 +28,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common;
 using Orts.Scripting.Api;
 using System;
@@ -39,6 +38,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Common.Position;
 using Orts.Simulation;
+using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -92,10 +92,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     switch (light.Type)
                     {
                         case LightType.Glow:
-                            LightPrimitives.Add(new LightGlowPrimitive(this, Viewer.RenderProcess, light));
+                            LightPrimitives.Add(new LightGlowPrimitive(this, Viewer, light));
                             break;
                         case LightType.Cone:
-                            LightPrimitives.Add(new LightConePrimitive(this, Viewer.RenderProcess, light));
+                            LightPrimitives.Add(new LightConePrimitive(this, Viewer, light));
                             break;
                     }
                 }
@@ -517,7 +517,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private VertexBuffer VertexBuffer;
         private static IndexBuffer IndexBuffer;
 
-        public LightGlowPrimitive(LightViewer lightViewer, RenderProcess renderProcess, Light light)
+        public LightGlowPrimitive(LightViewer lightViewer, Viewer viewer, Light light)
             : base(light)
         {
             Debug.Assert(light.Type == LightType.Glow, "LightGlowPrimitive is only for LightType.Glow lights.");
@@ -553,7 +553,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     vertexData[6 * state + 4] = new LightGlowVertex(new Vector2(0, 1), position1, position2, normal1, normal2, color1, color2, state1.Radius, state2.Radius);
                     vertexData[6 * state + 5] = new LightGlowVertex(new Vector2(0, 0), position1, position2, normal1, normal2, color1, color2, state1.Radius, state2.Radius);
                 });
-                VertexBuffer = new VertexBuffer(renderProcess.GraphicsDevice, VertexDeclaration, vertexData.Length, BufferUsage.WriteOnly);
+                VertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, VertexDeclaration, vertexData.Length, BufferUsage.WriteOnly);
                 VertexBuffer.SetData(vertexData);
             }
             if (IndexBuffer == null)
@@ -561,7 +561,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var indexData = new short[] {
                     0, 1, 2, 3, 4, 5
                 };
-                IndexBuffer = new IndexBuffer(renderProcess.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
                 IndexBuffer.SetData(indexData);
             }
 
@@ -622,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private static IndexBuffer IndexBuffer;
         private static BlendState BlendState_SourceZeroDestOne;
 
-        public LightConePrimitive(LightViewer lightViewer, RenderProcess renderProcess, Light light)
+        public LightConePrimitive(LightViewer lightViewer, Viewer viewer, Light light)
             : base(light)
         {
             Debug.Assert(light.Type == LightType.Cone, "LightConePrimitive is only for LightType.Cone lights.");
@@ -662,7 +662,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     vertexData[(CircleSegments + 2) * state + CircleSegments + 0] = new LightConeVertex(position1, position2, color1, color2);
                     vertexData[(CircleSegments + 2) * state + CircleSegments + 1] = new LightConeVertex(new Vector3(position1.X, position1.Y, position1.Z - distance1), new Vector3(position2.X, position2.Y, position2.Z - distance2), color1, color2);
                 });
-                VertexBuffer = new VertexBuffer(renderProcess.GraphicsDevice, VertexDeclaration, vertexData.Length, BufferUsage.WriteOnly);
+                VertexBuffer = new VertexBuffer(viewer.Game.GraphicsDevice, VertexDeclaration, vertexData.Length, BufferUsage.WriteOnly);
                 VertexBuffer.SetData(vertexData);
             }
             if (IndexBuffer == null)
@@ -678,7 +678,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     indexData[6 * i + 4] = (short)i2;
                     indexData[6 * i + 5] = (short)(CircleSegments + 1);
                 }
-                IndexBuffer = new IndexBuffer(renderProcess.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
                 IndexBuffer.SetData(indexData);
             }
             if (BlendState_SourceZeroDestOne == null)

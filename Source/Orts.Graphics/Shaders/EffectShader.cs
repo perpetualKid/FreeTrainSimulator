@@ -26,8 +26,8 @@ namespace Orts.Graphics.Shaders
         }
 #pragma warning restore CA1044 // Properties should not be write only
 
-        protected EffectShader(GraphicsDevice graphicsDevice, string fileName) :
-            base(graphicsDevice, GetEffectCode(fileName))
+        protected EffectShader(GraphicsDevice graphicsDevice, string shaderName) :
+            base(graphicsDevice, GetEffectCode(shaderName + "Shader"))
         {
             for (byte i = 0; i < Parameters.Count; i++)
             {

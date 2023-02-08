@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
@@ -10,49 +9,56 @@ using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Widgets;
+using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {
         private protected readonly Game game;
-        private protected EnumArray<bool, MapViewItemSettings> viewSettings = new EnumArray<bool, MapViewItemSettings>(true);
+        private protected EnumArray<bool, MapContentType> viewSettings = new EnumArray<bool, MapContentType>(true);
 
-        private protected readonly EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings> contentItems = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapViewItemSettings>();
-        private protected readonly EnumArray<ITileCoordinate<Tile>, MapViewItemSettings> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapViewItemSettings>();
+        private protected readonly EnumArray<ITileCoordinate<Tile>, MapContentType> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapContentType>();
 
-        public bool UseMetricUnits { get; } = RuntimeData.Instance.UseMetricUnits;
+        private protected TrackModel trackModel;
+             
+        public bool UseMetricUnits { get; }
 
-        public string RouteName { get; } = RuntimeData.Instance.RouteName;
+        public string RouteName { get; } 
 
         public ContentArea ContentArea { get; }
 
         public Rectangle Bounds { get; protected set; }
 
-        public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+        public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
-
-        public INameValueInformationProvider TrackNodeInfo { get; private protected set; }
 
         protected ContentBase(Game game)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            if (null == RuntimeData.Instance)
+            if (null == RuntimeData.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
+            RouteName = RuntimeData.GameInstance(game).RouteName;
+            UseMetricUnits = RuntimeData.GameInstance(game).UseMetricUnits;
         }
 
         public abstract Task Initialize();
 
-        public void UpdateItemVisiblity(MapViewItemSettings setting, bool value)
+        public void UpdateItemVisiblity(MapContentType setting, bool value)
         {
             this.viewSettings[setting] = value;
         }
 
-        public void InitializeItemVisiblity(EnumArray<bool, MapViewItemSettings> settings)
+        public void InitializeItemVisiblity(EnumArray<bool, MapContentType> settings)
         {
             this.viewSettings = settings;
+        }
+
+        public void HighlightItem(MapContentType mapviewItem, ITileCoordinate<Tile> item)
+        {
+            nearestItems[mapviewItem] = item;
         }
 
         internal abstract void Draw(ITile bottomLeft, ITile topRight);
@@ -64,11 +70,11 @@ namespace Orts.Graphics.MapView
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
             // if there is only one tile, limit the dimensions to the extend of the track within that tile
-            if (contentItems[MapViewItemSettings.Grid].Count == 1)
+            if (trackModel.ContentByTile[MapContentType.Grid].Count == 1)
             {
-                if (contentItems[MapViewItemSettings.EndNodes].ItemCount > 0)
+                if (trackModel.ContentByTile[MapContentType.EndNodes].ItemCount > 0)
                 {
-                    foreach (EndNode endNode in contentItems[MapViewItemSettings.EndNodes])
+                    foreach (EndNode endNode in trackModel.ContentByTile[MapContentType.EndNodes])
                     {
                         minX = Math.Min(minX, endNode.Location.X);
                         minY = Math.Min(minY, endNode.Location.Y);
@@ -78,21 +84,20 @@ namespace Orts.Graphics.MapView
                 }
                 else
                 {
-                    foreach (TrackSegment trackSegment in contentItems[MapViewItemSettings.Tracks])
+                    foreach (TrackSegment trackSegment in trackModel.ContentByTile[MapContentType.Tracks])
                     {
                         minX = Math.Min(minX, trackSegment.Location.X);
                         minY = Math.Min(minY, trackSegment.Location.Y);
                         maxX = Math.Max(maxX, trackSegment.Location.X);
                         maxY = Math.Max(maxY, trackSegment.Location.Y);
                     }
-
                 }
             }
             else
             {
-                minX = Math.Min(minX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[0][0].Tile.X);
-                maxX = Math.Max(maxX, (contentItems[MapViewItemSettings.Grid] as TileIndexedList<GridTile, Tile>)[^1][0].Tile.X);
-                foreach (GridTile tile in contentItems[MapViewItemSettings.Grid])
+                minX = Math.Min(minX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile, Tile>)[0][0].Tile.X);
+                maxX = Math.Max(maxX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile, Tile>)[^1][0].Tile.X);
+                foreach (GridTile tile in trackModel.ContentByTile[MapContentType.Grid])
                 {
                     minY = Math.Min(minY, tile.Tile.Z);
                     maxY = Math.Max(maxY, tile.Tile.Z);
@@ -105,9 +110,9 @@ namespace Orts.Graphics.MapView
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
         }
 
-        private protected abstract class TrackNodeInfoProxyBase : INameValueInformationProvider
+        private protected abstract class DetailInfoProxyBase : INameValueInformationProvider
         {
-            public abstract NameValueCollection DebugInfo { get; }
+            public abstract InformationDictionary DetailInfo { get; }
 
             public abstract Dictionary<string, FormatOption> FormattingOptions { get; }
         }

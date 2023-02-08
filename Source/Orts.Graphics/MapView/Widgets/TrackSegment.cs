@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -9,19 +8,18 @@ using Microsoft.Xna.Framework;
 using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
     internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Vector Section" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public virtual NameValueCollection DebugInfo
+        public virtual InformationDictionary DetailInfo
         {
             get
             {
@@ -33,7 +31,7 @@ namespace Orts.Graphics.MapView.Widgets
                     debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
                     debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
                     debugInformation["Length"] = $"{Length:F1}m";
-                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º";
+                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º ";
                     debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
                     debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
                     debugInfoHash = hash;
@@ -51,20 +49,20 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<TrackSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
-                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
 
     }
 
     internal class RoadSegment : TrackSegment
     {
-        public override NameValueCollection DebugInfo
+        public override InformationDictionary DetailInfo
         {
             get
             {
-                NameValueCollection result = base.DebugInfo;
+                InformationDictionary result = base.DetailInfo;
                 result["Segment Type"] = "Road";
                 return result;
             }
@@ -79,9 +77,9 @@ namespace Orts.Graphics.MapView.Widgets
         {
             Color drawColor = this.GetColor<RoadSegment>(colorVariation);
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
-                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

@@ -24,11 +24,13 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Graphics;
+using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
 
@@ -143,7 +145,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             else
                 MipMapScale = 1;
 
-            Shader = new DriverMachineInterfaceShader(viewer.RenderProcess.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(viewer.Game.GraphicsDevice);
             ETCSDefaultWindow = new ETCSDefaultWindow(this, control);
             ETCSDefaultWindow.Visible = true;
 
@@ -170,7 +172,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "mipmap-2", name);
             else
                 path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", name);
-            return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, path);
+            return SharedTextureManager.Get(Viewer.Game.GraphicsDevice, path);
         }
         public void PrepareFrame(double elapsedSeconds)
         {
@@ -433,13 +435,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public bool Visible;
         public class TextPrimitive
         {
+            private readonly CabTextRenderer textRenderer;
             public Point Position;
             public Color Color;
-            public WindowTextFont Font;
+            public System.Drawing.Font Font;
             public string Text;
 
-            public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
+            public TextPrimitive(Game game, Point position, Color color, string text, System.Drawing.Font font)
             {
+                textRenderer = CabTextRenderer.Instance(game);
                 Position = position;
                 Color = color;
                 Text = text;
@@ -448,7 +452,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             public void Draw(SpriteBatch spriteBatch, Point position)
             {
-                Font.Draw(spriteBatch, position, Text, Color);
+                textRenderer.DrawString(spriteBatch, position.ToVector2(), Text, Font, Color);
             }
         }
         public struct TexturePrimitive
@@ -558,9 +562,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale * DMI.MipMapScale, SpriteEffects.None, 0);
         }
-        public WindowTextFont GetFont(float size, bool bold = false)
+
+        public System.Drawing.Font GetTextFont(float size, bool bold = false)
         {
-            return DMI.Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(size), bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
+            return FontManager.Exact("Arial", bold ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular)[(int)(size * 96 / 72)];
         }
         /// <summary>
         /// Get scaled font size, increasing it if result is small
@@ -625,7 +630,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public string WindowTitle { get; private set; }
 
         private TextPrimitive WindowTitleText;
-        private WindowTextFont WindowTitleFont;
+        private System.Drawing.Font WindowTitleFont;
         private readonly int FontHeightWindowTitle = 12;
         protected readonly DMIIconButton CloseButton;
         public DMISubwindow(string title, bool fullScreen, DriverMachineInterface dmi) : base(dmi, fullScreen ? 640 : 306, 450)
@@ -638,6 +643,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SetFont();
             AddToLayout(CloseButton, new Point(fullScreen ? 334 : 0, 400));
         }
+
         public override void ScaleChanged()
         {
             base.ScaleChanged();
@@ -646,9 +652,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            WindowTitleFont = GetFont(FontHeightWindowTitle);
+            WindowTitleFont = GetTextFont(FontHeightWindowTitle);
             SetTitle(WindowTitle);
         }
+
         public override void Draw(SpriteBatch spriteBatch, Point position)
         {
             if (!Visible)
@@ -659,12 +666,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             int y = position.Y + (int)Math.Round(WindowTitleText.Position.Y * Scale);
             WindowTitleText.Draw(spriteBatch, new Point(x, y));
         }
+
         public void SetTitle(string s)
         {
             WindowTitle = s;
-            int length = (int)(WindowTitleFont.MeasureString(s) / Scale);
+            int length = (int)(TextTextureRenderer.Instance(Parent.DMI.Viewer.Game).Measure(s, WindowTitleFont).Width / Scale);
             int x = FullScreen ? (334 - length - 5) : 5;
-            WindowTitleText = new TextPrimitive(new Point(x, (24 - FontHeightWindowTitle) / 2), ColorGrey, WindowTitle, WindowTitleFont);
+            WindowTitleText = new TextPrimitive(Parent.DMI.Viewer.Game, new Point(x, (24 - FontHeightWindowTitle) / 2), ColorGrey, WindowTitle, WindowTitleFont);
         }
     }
     public class DMIButton : DMIArea
@@ -694,7 +702,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class DMITextButton : DMIButton
     {
         private string[] Caption;
-        private WindowTextFont CaptionFont;
+        private System.Drawing.Font CaptionFont;
         private int FontHeightButton = 12;
         private TextPrimitive[] CaptionText;
         public DMITextButton(string caption, string displayName, bool upType, Action pressedAction, int width, int height, DriverMachineInterface dmi, int fontHeight = 12) :
@@ -712,8 +720,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             for (int i = 0; i < Caption.Length; i++)
             {
-                int fontWidth = (int)(CaptionFont.MeasureString(Caption[i]) / Scale);
-                CaptionText[i] = new TextPrimitive(new Point((Width - fontWidth) / 2, (Height - FontHeightButton) / 2 + FontHeightButton * (2 * i - Caption.Length + 1)), Color.White, Caption[i], CaptionFont);
+                int fontWidth = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Caption[i], CaptionFont).Width / Scale);
+                CaptionText[i] = new TextPrimitive(DMI.Viewer.Game, new Point((Width - fontWidth) / 2, (Height - FontHeightButton) / 2 + FontHeightButton * (2 * i - Caption.Length + 1)), Color.White, Caption[i], CaptionFont);
             }
         }
         public override void ScaleChanged()
@@ -725,8 +733,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            CaptionFont = GetFont(FontHeightButton);
+            CaptionFont = GetTextFont(FontHeightButton);
         }
+
         public override void PrepareFrame(ETCSStatus status)
         {
             base.PrepareFrame(status);
@@ -780,7 +789,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class DMITextLabel : DMIArea
     {
         private string[] Caption;
-        private WindowTextFont CaptionFont;
+        private System.Drawing.Font CaptionFont;
         private int FontHeightButton = 12;
         private TextPrimitive[] CaptionText;
         public DMITextLabel(string caption, int width, int height, DriverMachineInterface dmi) :
@@ -796,8 +805,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             for (int i = 0; i < Caption.Length; i++)
             {
-                int fontWidth = (int)(CaptionFont.MeasureString(Caption[i]) / Scale);
-                CaptionText[i] = new TextPrimitive(new Point((Width - fontWidth) / 2, (Height - FontHeightButton) / 2 + FontHeightButton * (2 * i - Caption.Length + 1)), ColorGrey, Caption[i], CaptionFont);
+                int fontWidth = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Caption[i], CaptionFont).Width / Scale);
+                CaptionText[i] = new TextPrimitive(DMI.Viewer.Game, new Point((Width - fontWidth) / 2, (Height - FontHeightButton) / 2 + FontHeightButton * (2 * i - Caption.Length + 1)), ColorGrey, Caption[i], CaptionFont);
             }
         }
         public override void ScaleChanged()
@@ -809,7 +818,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private void SetFont()
         {
-            CaptionFont = GetFont(FontHeightButton);
+            CaptionFont = GetTextFont(FontHeightButton);
         }
         public override void Draw(SpriteBatch spriteBatch, Point position)
         {
@@ -840,13 +849,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             base.PrepareFrame(frame, elapsedTime);
 
-            driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
+            driverMachineInterface.SizeTo(position.Width, position.Height);
             driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
             driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
         }
         public override void Draw()
         {
-            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(position.X, position.Y));
             ControlView.SpriteBatch.End();
             ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }

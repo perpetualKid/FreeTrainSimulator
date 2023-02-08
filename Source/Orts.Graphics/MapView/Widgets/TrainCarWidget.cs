@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.MapView.Widgets
 {
@@ -57,7 +54,7 @@ namespace Orts.Graphics.MapView.Widgets
         internal void DrawName(ContentArea contentArea)
         {
             Color fontColor = Color.Red;
-            TextShape.DrawString(contentArea.WorldToScreenCoordinates(Location), fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, HorizontalAlignment.Center, VerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top);
         }
     }
 
@@ -108,7 +105,7 @@ namespace Orts.Graphics.MapView.Widgets
                 double i when i < 8 => carSize * 1.1f,
                 _ => carSize,
             };
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
+            contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
                 contentArea.WorldToScreenSize(length), angle, contentArea.SpriteBatch);
         }
 

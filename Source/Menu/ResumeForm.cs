@@ -202,7 +202,7 @@ namespace Orts.Menu
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
-                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}. Please do not report any problems that may result.\n\nContinue?"), 
+                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"), 
                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }

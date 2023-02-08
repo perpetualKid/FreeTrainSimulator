@@ -12,7 +12,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView.Shapes
 {
-    public class BasicShapes
+    internal class BasicShapes
     {
         private readonly EnumArray<Texture2D, BasicTextureType> basicTextures = new EnumArray<Texture2D, BasicTextureType>();
         private readonly EnumArray<Texture2D, BasicTextureType> basicHighlightTextures = new EnumArray<Texture2D, BasicTextureType>();
@@ -24,26 +24,27 @@ namespace Orts.Graphics.MapView.Shapes
         private static readonly double[] cosTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // table with precalculated Cosine values: cosTable[numberDrawn] = cos(numberDrawn * 0.1degrees)
         private static readonly double[] sinTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // similar
 
-        [ThreadStatic]
-        private static BasicShapes instance;
-        private readonly SpriteBatch spriteBatch;
-
         static BasicShapes()
         {
             PrepareArcDrawing();
         }
 
-        private BasicShapes(SpriteBatch spriteBatch)
+        private BasicShapes()
         {
-            this.spriteBatch = spriteBatch;
         }
 
-        public static void Initialize(SpriteBatch spriteBatch)
+        public static BasicShapes Instance(Game game)
         {
-            if (null == instance)
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+
+            BasicShapes instance;
+            if ((instance = game.Components.OfType<BasicShapes>().FirstOrDefault()) == null)
             {
-                instance = new BasicShapes(spriteBatch);
+                instance = new BasicShapes();
+                instance.LoadContent(game.GraphicsDevice);
             }
+            return instance;
         }
 
         /// <summary>
@@ -51,28 +52,28 @@ namespace Orts.Graphics.MapView.Shapes
         /// </summary>
         /// <param name="graphicsDevice">The graphics device used</param>
         /// <param name="spriteBatch">The spritebatch to use for drawing</param>
-        public static void LoadContent(GraphicsDevice graphicsDevice)
+        private void LoadContent(GraphicsDevice graphicsDevice)
         {
-            instance.basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1);
-            instance.basicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
+            basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            basicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
 
             // textures modified from http://www.iconsdb.com
-            instance.LoadTexturesFromResources(graphicsDevice);
+            LoadTexturesFromResources(graphicsDevice);
             //correct center point offsets for non-centered images
-            instance.textureOffsets[BasicTextureType.Signal] = new Vector2(-16, 128);
-            instance.textureOffsets[BasicTextureType.SignalGreen] = new Vector2(-16, 128);
-            instance.textureOffsets[BasicTextureType.SignalRed] = new Vector2(-16, 128);
-            instance.textureOffsets[BasicTextureType.SignalYellow] = new Vector2(-16, 128);
-            instance.textureOffsets[BasicTextureType.SignalSmall] = new Vector2(8, 64);
-            instance.textureOffsets[BasicTextureType.SignalSmallGreen] = new Vector2(0, 48);
-            instance.textureOffsets[BasicTextureType.SignalSmallRed] = new Vector2(0, 48);
-            instance.textureOffsets[BasicTextureType.SignalSmallYellow] = new Vector2(0, 48);
-            instance.textureOffsets[BasicTextureType.Sound] = new Vector2(5, 5);
-            instance.textureOffsets[BasicTextureType.Platform] = new Vector2(31, 37);
-            instance.textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
-            instance.textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
-            instance.textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
-        }
+            textureOffsets[BasicTextureType.Signal] = new Vector2(-16, 128);
+            textureOffsets[BasicTextureType.SignalGreen] = new Vector2(-16, 128);
+            textureOffsets[BasicTextureType.SignalRed] = new Vector2(-16, 128);
+            textureOffsets[BasicTextureType.SignalYellow] = new Vector2(-16, 128);
+            textureOffsets[BasicTextureType.SignalSmall] = new Vector2(8, 64);
+            textureOffsets[BasicTextureType.SignalSmallGreen] = new Vector2(0, 48);
+            textureOffsets[BasicTextureType.SignalSmallRed] = new Vector2(0, 48);
+            textureOffsets[BasicTextureType.SignalSmallYellow] = new Vector2(0, 48);
+            textureOffsets[BasicTextureType.Sound] = new Vector2(5, 5);
+            textureOffsets[BasicTextureType.Platform] = new Vector2(31, 37);
+            textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
+            textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
+            textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
+        }   
 
         #region Drawing
         /// <summary>
@@ -84,16 +85,12 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="size">Size of the texture in pixels</param>
         /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch = null)
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch)
         {
-            Vector2 scaledSize;
-            if (size < 0)
-                scaledSize = new Vector2(-size);
-            else
-                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / this.basicTextures[texture].Width);
 
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            (spriteBatch ?? instance.spriteBatch).Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, Color.White, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
+            spriteBatch.Draw(highlight ? this.basicHighlightTextures[texture] : this.basicTextures[texture], point, null, Color.White, (float)angle, this.textureOffsets[texture], scaledSize, flipMode, 0);
         }
 
         /// <summary>
@@ -105,41 +102,42 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="size">Size of the texture in pixels</param>
         /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch = null)
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch)
         {
-            Vector2 scaledSize;
-            if (size < 0)
-                scaledSize = new Vector2(-size);
-            else
-                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / this.basicTextures[texture].Width);
 
-            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
+            spriteBatch.Draw(this.basicTextures[texture], point, null, color, (float)angle, this.textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
         }
 
         /// <summary>
         /// Draw one of the (predefined) textures at the given location with the given angle
         /// </summary>
-        /// <param name="texture">name by which the texture is internally known</param>
-        /// <param name="targetRectangle">area where the texture is drawn</param>
-        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
-        public static void DrawTexture(BasicTextureType texture, Rectangle targetRectangle, Color color, SpriteBatch spriteBatch = null)
+        /// <param name="texture">name by which the texture is internally known<br/></param>
+        /// <param name="targetRectangle">area where the texture is drawn<br/></param>
+        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)<br/></param>
+        public void DrawTexture(BasicTextureType texture, Rectangle targetRectangle, Color color, SpriteBatch spriteBatch)
         {
-            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], targetRectangle, color);
+            spriteBatch.Draw(this.basicTextures[texture], targetRectangle, color);
         }
 
         /// <summary>
         /// Basic method to draw a line. Coordinates are in screen coordinates.
         /// </summary>
-        /// <param name="width">Width of the line to draw </param>
-        /// <param name="color">Color of the line</param>
-        /// <param name="point">Vector to the first point of the line</param>
-        /// <param name="length">Length of the line</param>
-        /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
-        public static void DrawLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch = null)
+        /// <param name="width">Width of the line to draw<br/></param>
+        /// <param name="color">Color of the line<br/></param>
+        /// <param name="point">Vector to the first point of the line<br/></param>
+        /// <param name="length">Length of the line<br/></param>
+        /// <param name="angle">Angle (in down from horizontal) of where the line is pointing<br/></param>
+        public void DrawLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch)
         {
             // offset to compensate for the width of the line
-            Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
-            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            if (width >= 2)
+            {
+                Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
+                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            }
+            else
+                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
         }
 
         /// <summary>
@@ -149,7 +147,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="point1"> Vector to the first point of the line</param>
         /// <param name="point2"> Vector to the last point of the line</param>
         /// </summary>
-        public static void DrawLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch = null)
+        public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch)
         {
             double angle = Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             float length = Vector2.Distance(point1, point2);
@@ -163,7 +161,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="point1"> Vector to the first point of the line</param>
         /// <param name="point2"> Vector to the last point of the line</param>
         /// </summary>
-        public static void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch = null)
+        public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch)
         {
             double angle = Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             float cosAngle = (float)Math.Cos(angle);
@@ -192,7 +190,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="radius">Radius of the circle to which the arc belongs. Positive means curving left</param>
         /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
         /// <param name="arcSize">Arc size in Radian (2Pi would be full circle)</param>
-        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcSize, SpriteBatch spriteBatch = null)
+        public void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcSize, SpriteBatch spriteBatch)
         {
             // Positive arcDegree means curving to the left, negative arcDegree means curving to the right
             int sign = -Math.Sign(arcSize);
@@ -230,7 +228,7 @@ namespace Orts.Graphics.MapView.Shapes
                 point = center + centerToPointDirection * (float)(radius - sign * width / 2.0);  // correct for width of line
                 double length = radius * arcSteps * minAngle + 1; // the +1 to prevent white lines in between arc sections
 
-                (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
+                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
 
                 // prepare for next straight line
                 arcStepsRemaining -= arcSteps;

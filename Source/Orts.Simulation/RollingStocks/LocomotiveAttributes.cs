@@ -41,7 +41,7 @@ namespace Orts.Simulation.RollingStocks
         public Vector3 LightColorRGB;
     }
     */
-    public partial class MSTSLocomotive
+    public abstract partial class MSTSLocomotive
     {
         internal virtual void InitializeFromORTSSpecific(string wagFilePath, object initObject)
         {

@@ -6,7 +6,7 @@
 		<AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
-		<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.ActivityRunner</RootNamespace>
 	</PropertyGroup>
 	<PropertyGroup>
@@ -50,7 +50,6 @@
 			<GeneratePathProperty>True</GeneratePathProperty>
 		</PackageReference>
 		<PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
-		<PackageReference Include="Unosquare.Swan.Lite" Version="3.1.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -77,18 +76,6 @@
 		<None Update="Content\Web\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0-2.final" />
-	  <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.0">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	  <PackageReference Update="Microsoft.NETCore.Targets" Version="6.0.0-preview.4.21253.7" />
-	  <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="if not exist $(TargetDir)Content (md $(TargetDir)Content)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Content\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />

@@ -14,21 +14,21 @@ namespace Orts.Graphics.Window
         public bool ButtonDown { get; }
         public KeyModifiers KeyModifiers { get; }
 
-        public WindowMouseEvent(WindowBase window, Point mouseLocation, int mouseWheelDelta, KeyModifiers modifiers)
+        internal WindowMouseEvent(FormBase window, Point mouseLocation, int mouseWheelDelta, KeyModifiers modifiers)
         {
             MousePosition = mouseLocation - window?.Borders.Location ?? throw new ArgumentNullException(nameof(window));
             MouseWheelDelta = mouseWheelDelta;
             KeyModifiers = modifiers;
         }
 
-        public WindowMouseEvent(WindowBase window, Point mouseLocation, bool buttonDown, KeyModifiers modifiers)
+        internal WindowMouseEvent(FormBase window, Point mouseLocation, bool buttonDown, KeyModifiers modifiers)
         {
             MousePosition = mouseLocation - window?.Borders.Location ?? throw new ArgumentNullException(nameof(window));
             ButtonDown = buttonDown;
             KeyModifiers = modifiers;
         }
 
-        public WindowMouseEvent(WindowBase window, Point mouseLocation, Vector2 delta, KeyModifiers modifiers)
+        internal WindowMouseEvent(FormBase window, Point mouseLocation, Vector2 delta, KeyModifiers modifiers)
         {
             MousePosition = mouseLocation - window?.Borders.Location ?? throw new ArgumentNullException(nameof(window));
             Movement = delta.ToPoint();

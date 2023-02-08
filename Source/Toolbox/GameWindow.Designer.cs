@@ -26,7 +26,7 @@ namespace Orts.Toolbox
                     if (item is IDisposable disposable)
                         disposable.Dispose();
                 }
-
+                pathEditor?.Dispose();
                 ctsRouteLoading?.Dispose();
                 loadRoutesSemaphore.Dispose();
                 windowManager?.Dispose();
@@ -44,7 +44,6 @@ namespace Orts.Toolbox
             this.mainmenu.SuspendLayout();
             windowForm.MainMenuStrip = mainmenu.Controls[0] as MenuStrip;
             this.mainmenu.Dock = DockStyle.Top;
-            //windowForm.Controls.Add(mainmenu.Controls[0]);
             windowForm.Controls.Add(mainmenu);
 
             this.mainmenu.ResumeLayout();

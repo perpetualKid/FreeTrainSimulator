@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using System.Collections.Specialized;
 
 using GetText;
 
@@ -19,7 +18,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
     {
         private class SignalStateInformation : INameValueInformationProvider
         {
-            public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+            public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
             public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
         }
@@ -39,7 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             NameValueTextGrid signalStates = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
                 InformationProvider = signalStateInformation,
-                ColumnWidth = 100,
+                ColumnWidth = new int[] { (int)(layout.RemainingWidth / 2 / Owner.DpiScaling) },
             };
             layout.Add(signalStates);
             return layout;
@@ -47,29 +46,29 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 
         public void UpdateSignal(ISignal signal)
         {
-            signalStateInformation.DebugInfo.Clear();
+            signalStateInformation.DetailInfo.Clear();
 
             if (signal is Signal signalState)
             {
                 this.signal = signalState;
-                signalStateInformation.DebugInfo[Catalog.GetString("Train")] = signalState.EnabledTrain != null ? $"{signalState.EnabledTrain.Train.Number} - {signalState.EnabledTrain.Train.Name}" : Catalog.GetString("---");
-                signalStateInformation.DebugInfo[Catalog.GetString("Signal")] = $"{signalState.Index}";
+                signalStateInformation.DetailInfo[Catalog.GetString("Train")] = signalState.EnabledTrain != null ? $"{signalState.EnabledTrain.Train.Number} - {signalState.EnabledTrain.Train.Name}" : Catalog.GetString("---");
+                signalStateInformation.DetailInfo[Catalog.GetString("Signal")] = $"{signalState.Index}";
                 signalStateInformation.FormattingOptions[Catalog.GetString("Train")] = FormatOption.BoldYellow;
                 signalStateInformation.FormattingOptions[Catalog.GetString("Signal")] = FormatOption.BoldOrange;
                 foreach (SignalHead signalHead in signalState.SignalHeads)
                 {
-                    signalStateInformation.DebugInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
+                    signalStateInformation.DetailInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
                 }
             }
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
-{
+        {
             if (shouldUpdate && null != signal)
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)
                 {
-                    signalStateInformation.DebugInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
+                    signalStateInformation.DetailInfo[signalHead.SignalType.Name] = $"{signalHead.SignalIndicationState}";
                 }
             }
             base.Update(gameTime, shouldUpdate);

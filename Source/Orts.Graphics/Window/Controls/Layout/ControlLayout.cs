@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -18,7 +17,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
 
-        protected ControlLayout(WindowBase window, int x, int y, int width, int height)
+        protected ControlLayout(FormBase window, int x, int y, int width, int height)
             : base(window, x, y, width, height)
         {
         }
@@ -47,6 +46,16 @@ namespace Orts.Graphics.Window.Controls.Layout
             // Offset control by our position and current values. Don't touch its size, also consider alignment
             control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
+            switch (Container)
+            {
+                // extend the virtual size for scrollbox content (affecting the .Client property of the scrollboxes)
+                case VerticalScrollboxControlLayout:
+                    Resize(new Point(Bounds.Width, CurrentTop));
+                    break;
+                case HorizontalScrollboxControlLayout:
+                    Resize(new Point(CurrentLeft, Bounds.Height));
+                    break;
+            }
             control.Container = this;
             return control;
         }
@@ -221,7 +230,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             base.Dispose(disposing);
         }
 
-        private int VerticalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int VerticalChildAlignmentOffset(in Rectangle childBounds)
         {
             return VerticalChildAlignment switch
             {
@@ -232,7 +241,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             };
         }
 
-        private int HorizontalChildAlignmentOffset(in Rectangle childBounds)
+        private protected virtual int HorizontalChildAlignmentOffset(in Rectangle childBounds)
         {
             return HorizontalChildAlignment switch
             {

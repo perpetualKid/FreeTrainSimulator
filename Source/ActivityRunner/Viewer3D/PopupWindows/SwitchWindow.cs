@@ -1,7 +1,4 @@
-﻿
-using System;
-
-using GetText;
+﻿using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,8 +10,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 using Orts.Simulation;
-using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -22,11 +19,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal class SwitchWindow : WindowBase
     {
         private const int SwitchImageSize = 32;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private ImageControl forwardEye;
         private ImageControl backwardEye;
         private ImageControl trainDirection;
         private ImageControl forwardSwitch;
         private ImageControl backwardSwitch;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private Rectangle eyeSection = new Rectangle(0, (int)(4.25 * SwitchImageSize), SwitchImageSize, SwitchImageSize / 2);
         private Rectangle directionSection = new Rectangle(0, 4 * SwitchImageSize, SwitchImageSize, SwitchImageSize);
         private Rectangle switchSection = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize);
@@ -65,7 +64,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Initialize()
         {
-            switchStatesTexture = SharedTextureManager.Get(Owner.Game.GraphicsDevice, System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SwitchStates.png"));
+            switchStatesTexture = TextureManager.GetTextureStatic(System.IO.Path.Combine(RuntimeInfo.ContentFolder, "SwitchStates.png"), Owner.Game);
             base.Initialize();
         }
 
@@ -134,6 +133,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             forwardSwitch.ClippingRectangle = switchSection;
             UpdateSwitch(false);
             backwardSwitch.ClippingRectangle = switchSection;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            switchStatesTexture?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

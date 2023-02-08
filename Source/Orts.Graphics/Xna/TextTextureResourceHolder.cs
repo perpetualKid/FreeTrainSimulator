@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,34 +9,48 @@ namespace Orts.Graphics.Xna
 {
     public class TextTextureResourceHolder : ResourceGameComponent<Texture2D>
     {
-        private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
-        private readonly System.Drawing.Graphics measureGraphics;
+        private readonly TextTextureRenderer textRenderer;
 
-        public TextTextureResourceHolder(Game game) : this(game, 60)
-        {
-        }
+        public Texture2D EmptyTexture => textRenderer.EmptyTexture;
 
-        public TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
+        private TextTextureResourceHolder(Game game, int sweepInterval) : base(game)
         {
-            measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
             SweepInterval = sweepInterval;
+            textRenderer = TextTextureRenderer.Instance(game) ?? throw new InvalidOperationException("TextTextureRenderer not found");
         }
 
-        public Texture2D PrepareResource(string text, System.Drawing.Font font)
+        public static TextTextureResourceHolder Instance(Game game)
         {
-            int identifier = HashCode.Combine(text, font);
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+
+            TextTextureResourceHolder instance;
+            if ((instance = game.Components.OfType<TextTextureResourceHolder>().FirstOrDefault()) == null)
+            {
+                instance = new TextTextureResourceHolder(game, 30);
+            }
+            return instance;
+        }
+
+        public Texture2D PrepareResource(string text, System.Drawing.Font font, OutlineRenderOptions outline = null)
+        {
+            int identifier = HashCode.Combine(text, font, outline);
             if (!currentResources.TryGetValue(identifier, out Texture2D texture))
             {
-                if (!previousResources.TryGetValue(identifier, out texture))
+                if (previousResources.TryRemove(identifier, out texture))
                 {
-                    texture = TextTextureRenderer.Resize(text, font, Game.GraphicsDevice, measureGraphics);
-                    TextTextureRenderer.RenderText(text, font, texture);
-                    currentResources.Add(identifier, texture);
+                    if (!currentResources.TryAdd(identifier, texture))
+                        Trace.TraceInformation($"Texture Resource '{text}' already added.");
                 }
                 else
                 {
-                    currentResources.Add(identifier, texture);
-                    previousResources.Remove(identifier);
+                    texture = textRenderer.RenderText(text, font, outline);
+                    if (!currentResources.TryAdd(identifier, texture))
+                    {
+                        texture.Dispose();
+                        if (!currentResources.TryGetValue(identifier, out texture))
+                            Trace.TraceError($"Texture Resource '{text}' not found. Retrying.");
+                    }
                 }
             }
             return texture;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using GetText;
@@ -21,13 +20,16 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal class MultiPlayerWindow : WindowBase
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Label labelTime;
         private Label labelStatus;
         private Label labelPLayersOnline;
         private Label labelTrains;
         private VerticalScrollboxControlLayout scrollboxPlayers;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly List<(string, double, Train)> onlineTrains = new List<(string, double, Train)>();
         private int columnWidth;
+        private bool connectionLost;
 
         public MultiPlayerWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("MultiPlayer Info"), relativeLocation, new Point(260, 200), catalog)
@@ -78,7 +80,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 labelStatus.Text = MultiPlayerManager.Instance().GetMultiPlayerStatus();
                 labelPLayersOnline.Text = $"{MultiPlayerManager.OnlineTrains.Players.Count + 1} {Catalog.GetPluralString("player", "players", MultiPlayerManager.OnlineTrains.Players.Count + 1)}";
                 labelTrains.Text = $"{Simulator.Instance.Trains.Count} {Catalog.GetPluralString("train", "trains", Simulator.Instance.Trains.Count)}";
-                UpdateTrains();
+                if (MultiPlayerManager.MultiplayerState != MultiplayerState.None)
+                    UpdateTrains();
+                else if (!connectionLost)
+                {
+                    connectionLost = true;
+                    Resize();
+                }
             }
         }
 

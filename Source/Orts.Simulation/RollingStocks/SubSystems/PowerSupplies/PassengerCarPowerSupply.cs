@@ -112,25 +112,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(IPowerSupply other)
+        public void Copy(IPowerSupply source)
         {
-            if (other is ScriptedPassengerCarPowerSupply scriptedOther)
+            if (source is ScriptedPassengerCarPowerSupply scriptedOther)
             {
                 Copy(scriptedOther);
             }
         }
 
-        public void Copy(ScriptedPassengerCarPowerSupply other)
+        public void Copy(ScriptedPassengerCarPowerSupply source)
         {
-            BatterySwitch.Copy(other.BatterySwitch);
+            BatterySwitch.Copy(source.BatterySwitch);
 
-            ScriptName = other.ScriptName;
+            ScriptName = source.ScriptName;
 
-            PowerOnDelayS = other.PowerOnDelayS;
-            ContinuousPowerW = other.ContinuousPowerW;
-            HeatingPowerW = other.HeatingPowerW;
-            AirConditioningPowerW = other.AirConditioningPowerW;
-            AirConditioningYield = other.AirConditioningYield;
+            PowerOnDelayS = source.PowerOnDelayS;
+            ContinuousPowerW = source.ContinuousPowerW;
+            HeatingPowerW = source.HeatingPowerW;
+            AirConditioningPowerW = source.AirConditioningPowerW;
+            AirConditioningYield = source.AirConditioningYield;
         }
 
         public virtual void Initialize()
@@ -265,7 +265,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 return connectedToLocomotive;
             });
 
-            if (ElectricTrainSupplyConnectedLocomotives.Count() > 0)
+            if (ElectricTrainSupplyConnectedLocomotives.Any())
             {
                 ElectricTrainSupplyState = ElectricTrainSupplyConnectedLocomotives.Select(locomotive => locomotive.LocomotivePowerSupply.ElectricTrainSupplyState).Max();
             }

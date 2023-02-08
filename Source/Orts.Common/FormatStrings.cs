@@ -18,6 +18,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 using GetText;
@@ -32,6 +33,34 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
+#pragma warning disable CA1034 // Nested types should not be visible
+        public static class Markers
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            public const string ArrowUp = "▲"; // \u25B2
+            public const string ArrowDown = "▼"; // \u25BC
+            public const string ArrowRight = "►"; // \u25BA
+            public const string ArrowLeft = "◄"; // \u25C4
+
+            public const string ArrowUpSmall = "˄"; // \u02C4 //"△"; // \u25B3
+            public const string ArrowDownSmall = "˅"; // \u02C4 //"▽"; // \u25BD
+            public const string ArrowLeftSmall = "˂"; // \u02C2
+            public const string ArrowRigthSmall = "˃"; // \u02C3
+
+            public const string Block = "█"; // \u2588
+            public const string BlockUpperHalf = "▀"; // \u2580
+            public const string BlockLowerHalf = "▄"; // \u2584
+            public const string Fence = "│"; // \u2016 //"▐"; // \u2590
+            public const string Dash = "―"; // \u2015
+            public const string BlockHorizontal = "▬"; // \u25ac
+            public const string BlockVertical = "▮"; // \u25ae
+
+            public const string Descent = "↘"; // \u2198
+            public const string Ascent = "↗"; // \u2197
+
+            public const string Diamond = "◆"; // \u25C6
+        }
+
         private static readonly ICatalog catalog = CatalogManager.Catalog;
 
 #pragma warning disable IDE1006 // Naming Styles
@@ -324,9 +353,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss}";
         }
 
         /// <summary>
@@ -335,9 +362,7 @@ namespace Orts.Common
         /// </summary>
         public static string FormatPreciseTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}.{duration.Milliseconds:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm\\:ss\\.FF}";
         }
 
 
@@ -347,22 +372,26 @@ namespace Orts.Common
         /// </summary>
         public static string FormatApproximateTime(double clockTimeSeconds)
         {
-            TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            return $"{duration.Hours:D2}:{duration.Minutes:D2}";
+            return $"{TimeSpan.FromSeconds(clockTimeSeconds):hh\\:mm}";
         }
 
         /// <summary>
         /// Converts a timespan in MM:SS format also if more than one hour
+        /// Seconds are rounded to the nearest 10sec range
         /// </summary>
         public static string FormatDelayTime(TimeSpan delay)
         {
-            return $"{(int)delay.TotalMinutes}:{delay.Seconds:00}";
+            return $"{(int)delay.TotalMinutes}:{delay.Seconds / 10 * 10:00}";
         }
 
         public static string Max(this string value, int length)
         {
             return value?[..Math.Min(value.Length, length)];
+        }
+
+        public static string JoinIfNotEmpty(char separator, params string[] values)
+        {
+            return string.Join(separator, values.Where(s => !string.IsNullOrEmpty(s)));
         }
     }
 }

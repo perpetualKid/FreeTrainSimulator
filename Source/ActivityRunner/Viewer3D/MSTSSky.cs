@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
@@ -102,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D
             MSTSSkyViewer = viewer;
             MSTSSkyMaterial = viewer.MaterialManager.Load("MSTSSky");
             // Instantiate classes
-            MSTSSkyMesh = new MSTSSkyMesh(MSTSSkyViewer.RenderProcess);
+            MSTSSkyMesh = new MSTSSkyMesh(viewer);
             MSTSSkyVectors = new SunMoonPos();
 
             //viewer.World.MSTSSky.MSTSSkyMaterial.Viewer.MaterialManager.sunDirection.Y < 0
@@ -297,7 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Constructor
         /// </summary>
-        public MSTSSkyMesh(RenderProcess renderProcess)
+        public MSTSSkyMesh(Viewer viewer)
         {
             // Initialize the vertex and point-index buffers
             vertexList = new VertexPositionNormalTexture[numVertices];
@@ -312,7 +312,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Moon quad
             MoonLists(numVertices - 5, indexCount - 6);//(144, 792);
             // Meshes have now been assembled, so put everything into vertex and index buffers
-            InitializeVertexBuffers(renderProcess.GraphicsDevice);
+            InitializeVertexBuffers(viewer.Game.GraphicsDevice);
         }
         public override void Draw()
         {

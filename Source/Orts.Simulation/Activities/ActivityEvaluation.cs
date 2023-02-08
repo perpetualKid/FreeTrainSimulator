@@ -9,6 +9,8 @@ using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Scripting.Api;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation.Activities
@@ -20,10 +22,10 @@ namespace Orts.Simulation.Activities
         private double autoPilotTime;
         private bool autoPilotTimerRunning;
         private bool overSpeedRunning;
+        private bool fullTrainBrakeBelow8kmhRunning;
         private double overSpeedInitialTime;
         private double overSpeedTime;
         private static ActivityEvaluation instance;
-        private bool activityCompleted;
 
         private ActivityEvaluation()
         { }
@@ -56,6 +58,17 @@ namespace Orts.Simulation.Activities
                 overSpeedRunning = false;
                 overSpeedTime += Simulator.Instance.ClockTime - overSpeedInitialTime;
                 OverSpeed++;
+            }
+            MSTSLocomotive lead = Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive;
+            const double kmh8mps = 8 / 3.6;
+            if (!fullTrainBrakeBelow8kmhRunning && BrakeController.IsEmergencyState(lead.TrainBrakeController.State) && lead.IsPlayerTrain && lead.AbsSpeedMpS < kmh8mps)
+            {
+                FullTrainBrakeUnder8kmh++;
+                fullTrainBrakeBelow8kmhRunning = true;
+            }
+            else if (fullTrainBrakeBelow8kmhRunning && !BrakeController.IsEmergencyState(lead.TrainBrakeController.State))
+            {
+                fullTrainBrakeBelow8kmhRunning = false;
             }
             if (Simulator.Instance.ActivityRun.Completed)
             {

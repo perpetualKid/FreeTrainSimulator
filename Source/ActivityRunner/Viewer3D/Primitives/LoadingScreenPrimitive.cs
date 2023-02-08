@@ -2,8 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Materials;
-using Orts.ActivityRunner.Viewer3D.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {

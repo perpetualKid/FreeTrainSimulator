@@ -36,6 +36,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DispatchViewer));
             this.refreshButton = new System.Windows.Forms.Button();
             this.resLabel = new System.Windows.Forms.Label();
             this.AvatarView = new System.Windows.Forms.ListView();
@@ -82,7 +83,7 @@
             // refreshButton
             // 
             this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.refreshButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.refreshButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.refreshButton.Location = new System.Drawing.Point(820, 137);
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.Size = new System.Drawing.Size(93, 23);
@@ -95,17 +96,16 @@
             // 
             this.resLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resLabel.AutoSize = true;
-            this.resLabel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.resLabel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.resLabel.Location = new System.Drawing.Point(887, 35);
             this.resLabel.Name = "resLabel";
-            this.resLabel.Size = new System.Drawing.Size(26, 21);
+            this.resLabel.Size = new System.Drawing.Size(18, 16);
             this.resLabel.TabIndex = 8;
             this.resLabel.Text = "m";
             // 
             // AvatarView
             // 
             this.AvatarView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.AvatarView.HideSelection = false;
             this.AvatarView.Location = new System.Drawing.Point(779, 200);
             this.AvatarView.Name = "AvatarView";
             this.AvatarView.Size = new System.Drawing.Size(121, 556);
@@ -131,9 +131,9 @@
             this.chkAllowUserSwitch.AutoSize = true;
             this.chkAllowUserSwitch.Checked = true;
             this.chkAllowUserSwitch.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowUserSwitch.Location = new System.Drawing.Point(661, 71);
+            this.chkAllowUserSwitch.Location = new System.Drawing.Point(674, 71);
             this.chkAllowUserSwitch.Name = "chkAllowUserSwitch";
-            this.chkAllowUserSwitch.Size = new System.Drawing.Size(103, 21);
+            this.chkAllowUserSwitch.Size = new System.Drawing.Size(90, 19);
             this.chkAllowUserSwitch.TabIndex = 16;
             this.chkAllowUserSwitch.Text = "Auto Switch";
             this.chkAllowUserSwitch.UseVisualStyleBackColor = true;
@@ -145,9 +145,9 @@
             this.chkShowAvatars.AutoSize = true;
             this.chkShowAvatars.Checked = true;
             this.chkShowAvatars.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkShowAvatars.Location = new System.Drawing.Point(657, 53);
+            this.chkShowAvatars.Location = new System.Drawing.Point(676, 53);
             this.chkShowAvatars.Name = "chkShowAvatars";
-            this.chkShowAvatars.Size = new System.Drawing.Size(116, 21);
+            this.chkShowAvatars.Size = new System.Drawing.Size(97, 19);
             this.chkShowAvatars.TabIndex = 17;
             this.chkShowAvatars.Text = "Show Avatars";
             this.chkShowAvatars.UseVisualStyleBackColor = true;
@@ -156,10 +156,10 @@
             // MSG
             // 
             this.MSG.Enabled = false;
-            this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.MSG.Location = new System.Drawing.Point(1, 38);
             this.MSG.Name = "MSG";
-            this.MSG.Size = new System.Drawing.Size(560, 30);
+            this.MSG.Size = new System.Drawing.Size(560, 26);
             this.MSG.TabIndex = 18;
             this.MSG.WordWrap = false;
             this.MSG.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.checkKeys);
@@ -214,7 +214,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(770, 35);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(33, 17);
+            this.label1.Size = new System.Drawing.Size(25, 15);
             this.label1.TabIndex = 7;
             this.label1.Text = "Res";
             // 
@@ -239,9 +239,9 @@
             this.chkAllowNew.AutoSize = true;
             this.chkAllowNew.Checked = true;
             this.chkAllowNew.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowNew.Location = new System.Drawing.Point(663, 34);
+            this.chkAllowNew.Location = new System.Drawing.Point(677, 34);
             this.chkAllowNew.Name = "chkAllowNew";
-            this.chkAllowNew.Size = new System.Drawing.Size(85, 21);
+            this.chkAllowNew.Size = new System.Drawing.Size(71, 19);
             this.chkAllowNew.TabIndex = 29;
             this.chkAllowNew.Text = "Can Join";
             this.chkAllowNew.UseVisualStyleBackColor = true;
@@ -249,12 +249,12 @@
             // 
             // messages
             // 
-            this.messages.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.messages.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.messages.FormattingEnabled = true;
-            this.messages.ItemHeight = 24;
+            this.messages.ItemHeight = 18;
             this.messages.Location = new System.Drawing.Point(1, 68);
             this.messages.Name = "messages";
-            this.messages.Size = new System.Drawing.Size(560, 52);
+            this.messages.Size = new System.Drawing.Size(560, 40);
             this.messages.TabIndex = 22;
             this.messages.SelectedIndexChanged += new System.EventHandler(this.msgSelectedChanged);
             // 
@@ -288,9 +288,9 @@
             this.chkBoxPenalty.AutoSize = true;
             this.chkBoxPenalty.Checked = true;
             this.chkBoxPenalty.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkBoxPenalty.Location = new System.Drawing.Point(665, 107);
+            this.chkBoxPenalty.Location = new System.Drawing.Point(677, 107);
             this.chkBoxPenalty.Name = "chkBoxPenalty";
-            this.chkBoxPenalty.Size = new System.Drawing.Size(77, 21);
+            this.chkBoxPenalty.Size = new System.Drawing.Size(65, 19);
             this.chkBoxPenalty.TabIndex = 33;
             this.chkBoxPenalty.Text = "Penalty";
             this.chkBoxPenalty.UseVisualStyleBackColor = true;
@@ -302,9 +302,9 @@
             this.chkPreferGreen.AutoSize = true;
             this.chkPreferGreen.Checked = true;
             this.chkPreferGreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPreferGreen.Location = new System.Drawing.Point(654, 89);
+            this.chkPreferGreen.Location = new System.Drawing.Point(676, 89);
             this.chkPreferGreen.Name = "chkPreferGreen";
-            this.chkPreferGreen.Size = new System.Drawing.Size(113, 21);
+            this.chkPreferGreen.Size = new System.Drawing.Size(91, 19);
             this.chkPreferGreen.TabIndex = 34;
             this.chkPreferGreen.Text = "Prefer Green";
             this.chkPreferGreen.UseVisualStyleBackColor = true;
@@ -314,7 +314,7 @@
             // btnSeeInGame
             // 
             this.btnSeeInGame.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSeeInGame.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSeeInGame.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnSeeInGame.Location = new System.Drawing.Point(820, 113);
             this.btnSeeInGame.Name = "btnSeeInGame";
             this.btnSeeInGame.Size = new System.Drawing.Size(93, 23);
@@ -326,10 +326,10 @@
             // lblSimulationTimeText
             // 
             this.lblSimulationTimeText.AutoSize = true;
-            this.lblSimulationTimeText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSimulationTimeText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSimulationTimeText.Location = new System.Drawing.Point(5, 34);
             this.lblSimulationTimeText.Name = "lblSimulationTimeText";
-            this.lblSimulationTimeText.Size = new System.Drawing.Size(129, 20);
+            this.lblSimulationTimeText.Size = new System.Drawing.Size(103, 16);
             this.lblSimulationTimeText.TabIndex = 36;
             this.lblSimulationTimeText.Text = "Simulation Time";
             this.lblSimulationTimeText.Visible = false;
@@ -337,10 +337,10 @@
             // lblSimulationTime
             // 
             this.lblSimulationTime.AutoSize = true;
-            this.lblSimulationTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSimulationTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSimulationTime.Location = new System.Drawing.Point(115, 34);
             this.lblSimulationTime.Name = "lblSimulationTime";
-            this.lblSimulationTime.Size = new System.Drawing.Size(124, 20);
+            this.lblSimulationTime.Size = new System.Drawing.Size(100, 16);
             this.lblSimulationTime.TabIndex = 37;
             this.lblSimulationTime.Text = "SimulationTime";
             this.lblSimulationTime.Visible = false;
@@ -349,10 +349,10 @@
             // 
             this.lblShow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblShow.AutoSize = true;
-            this.lblShow.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblShow.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblShow.Location = new System.Drawing.Point(780, 180);
             this.lblShow.Name = "lblShow";
-            this.lblShow.Size = new System.Drawing.Size(50, 18);
+            this.lblShow.Size = new System.Drawing.Size(41, 15);
             this.lblShow.TabIndex = 38;
             this.lblShow.Text = "Show:";
             this.lblShow.Visible = false;
@@ -363,7 +363,7 @@
             this.gbTrainLabels.Controls.Add(this.bTrainKey);
             this.gbTrainLabels.Controls.Add(this.rbShowActiveTrainLabels);
             this.gbTrainLabels.Controls.Add(this.rbShowAllTrainLabels);
-            this.gbTrainLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gbTrainLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.gbTrainLabels.Location = new System.Drawing.Point(779, 323);
             this.gbTrainLabels.Name = "gbTrainLabels";
             this.gbTrainLabels.Size = new System.Drawing.Size(120, 129);
@@ -375,7 +375,7 @@
             // bTrainKey
             // 
             this.bTrainKey.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bTrainKey.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.bTrainKey.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.bTrainKey.Location = new System.Drawing.Point(77, 89);
             this.bTrainKey.Name = "bTrainKey";
             this.bTrainKey.Size = new System.Drawing.Size(40, 23);
@@ -391,7 +391,7 @@
             this.rbShowActiveTrainLabels.Checked = true;
             this.rbShowActiveTrainLabels.Location = new System.Drawing.Point(13, 22);
             this.rbShowActiveTrainLabels.Name = "rbShowActiveTrainLabels";
-            this.rbShowActiveTrainLabels.Size = new System.Drawing.Size(99, 22);
+            this.rbShowActiveTrainLabels.Size = new System.Drawing.Size(81, 19);
             this.rbShowActiveTrainLabels.TabIndex = 1;
             this.rbShowActiveTrainLabels.TabStop = true;
             this.rbShowActiveTrainLabels.Text = "Active only";
@@ -403,7 +403,7 @@
             this.rbShowAllTrainLabels.AutoSize = true;
             this.rbShowAllTrainLabels.Location = new System.Drawing.Point(13, 44);
             this.rbShowAllTrainLabels.Name = "rbShowAllTrainLabels";
-            this.rbShowAllTrainLabels.Size = new System.Drawing.Size(44, 22);
+            this.rbShowAllTrainLabels.Size = new System.Drawing.Size(38, 19);
             this.rbShowAllTrainLabels.TabIndex = 0;
             this.rbShowAllTrainLabels.Text = "All";
             this.rbShowAllTrainLabels.UseVisualStyleBackColor = true;
@@ -412,7 +412,7 @@
             // nudDaylightOffsetHrs
             // 
             this.nudDaylightOffsetHrs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.nudDaylightOffsetHrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.nudDaylightOffsetHrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.nudDaylightOffsetHrs.Location = new System.Drawing.Point(817, 556);
             this.nudDaylightOffsetHrs.Maximum = new decimal(new int[] {
             12,
@@ -425,7 +425,7 @@
             0,
             -2147483648});
             this.nudDaylightOffsetHrs.Name = "nudDaylightOffsetHrs";
-            this.nudDaylightOffsetHrs.Size = new System.Drawing.Size(40, 24);
+            this.nudDaylightOffsetHrs.Size = new System.Drawing.Size(40, 21);
             this.nudDaylightOffsetHrs.TabIndex = 44;
             this.nudDaylightOffsetHrs.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.nudDaylightOffsetHrs.Visible = false;
@@ -435,10 +435,10 @@
             // 
             this.lblDayLightOffsetHrs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblDayLightOffsetHrs.AutoSize = true;
-            this.lblDayLightOffsetHrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDayLightOffsetHrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblDayLightOffsetHrs.Location = new System.Drawing.Point(779, 534);
             this.lblDayLightOffsetHrs.Name = "lblDayLightOffsetHrs";
-            this.lblDayLightOffsetHrs.Size = new System.Drawing.Size(136, 18);
+            this.lblDayLightOffsetHrs.Size = new System.Drawing.Size(111, 15);
             this.lblDayLightOffsetHrs.TabIndex = 45;
             this.lblDayLightOffsetHrs.Text = "Daylight offset (hrs)";
             this.lblDayLightOffsetHrs.Visible = false;
@@ -465,10 +465,10 @@
             this.cbShowTrainLabels.AutoSize = true;
             this.cbShowTrainLabels.Checked = true;
             this.cbShowTrainLabels.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbShowTrainLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowTrainLabels.Location = new System.Drawing.Point(780, 395);
+            this.cbShowTrainLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.cbShowTrainLabels.Location = new System.Drawing.Point(790, 395);
             this.cbShowTrainLabels.Name = "cbShowTrainLabels";
-            this.cbShowTrainLabels.Size = new System.Drawing.Size(70, 22);
+            this.cbShowTrainLabels.Size = new System.Drawing.Size(60, 19);
             this.cbShowTrainLabels.TabIndex = 50;
             this.cbShowTrainLabels.Text = "Name";
             this.cbShowTrainLabels.UseVisualStyleBackColor = true;
@@ -487,22 +487,22 @@
             // 
             // tDispatch
             // 
-            this.tDispatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tDispatch.Location = new System.Drawing.Point(4, 25);
+            this.tDispatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.tDispatch.Location = new System.Drawing.Point(4, 24);
             this.tDispatch.Name = "tDispatch";
             this.tDispatch.Padding = new System.Windows.Forms.Padding(3);
-            this.tDispatch.Size = new System.Drawing.Size(915, 3);
+            this.tDispatch.Size = new System.Drawing.Size(915, 4);
             this.tDispatch.TabIndex = 0;
             this.tDispatch.Text = "Dispatch";
             this.tDispatch.UseVisualStyleBackColor = true;
             // 
             // tTimetable
             // 
-            this.tTimetable.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tTimetable.Location = new System.Drawing.Point(4, 25);
+            this.tTimetable.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.tTimetable.Location = new System.Drawing.Point(4, 24);
             this.tTimetable.Name = "tTimetable";
             this.tTimetable.Padding = new System.Windows.Forms.Padding(3);
-            this.tTimetable.Size = new System.Drawing.Size(915, 3);
+            this.tTimetable.Size = new System.Drawing.Size(915, 4);
             this.tTimetable.TabIndex = 1;
             this.tTimetable.Text = "Timetable";
             this.tTimetable.UseVisualStyleBackColor = true;
@@ -511,10 +511,10 @@
             // 
             this.cbShowTrainState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowTrainState.AutoSize = true;
-            this.cbShowTrainState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowTrainState.Location = new System.Drawing.Point(792, 415);
+            this.cbShowTrainState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.cbShowTrainState.Location = new System.Drawing.Point(802, 415);
             this.cbShowTrainState.Name = "cbShowTrainState";
-            this.cbShowTrainState.Size = new System.Drawing.Size(64, 22);
+            this.cbShowTrainState.Size = new System.Drawing.Size(54, 19);
             this.cbShowTrainState.TabIndex = 52;
             this.cbShowTrainState.Text = "State";
             this.cbShowTrainState.UseVisualStyleBackColor = true;
@@ -555,8 +555,8 @@
             // 
             // DispatchViewer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(923, 768);
             this.Controls.Add(this.lblInstruction4);
@@ -591,6 +591,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.tWindow);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(60, 28, 60, 28);
             this.Name = "DispatchViewer";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;

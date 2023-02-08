@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Updater;
-using Orts.Settings;
-using System.IO;
-using Orts.Common.Info;
 using Orts.Common;
+using Orts.Updater;
 
 namespace Tests.Orts.Updater
 {

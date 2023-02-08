@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls
@@ -22,7 +20,9 @@ namespace Orts.Graphics.Window.Controls
 
         private readonly System.Drawing.Font font;
         private readonly RasterizerState scissorTestRasterizer = new RasterizerState { ScissorTestEnable = true };
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly TextTextureResourceHolder textureHolder;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         private bool wordWrap;
         private static int scrollbarSize;
@@ -65,35 +65,35 @@ namespace Orts.Graphics.Window.Controls
 
         public HorizontalAlignment Alignment { get; }
 
-        public TextBox(WindowBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, bool wordWrap, System.Drawing.Font font, Color color)
+        public TextBox(FormBase window, int x, int y, int width, int height, string text, HorizontalAlignment alignment, bool wordWrap, System.Drawing.Font font, Color color)
             : base(window, x, y, width, height)
         {
             Alignment = alignment;
             TextColor = color;
             this.font = font ?? window?.Owner.TextFontDefault;
             scrollbarSize = (int)(16 * Window.Owner.DpiScaling);
-            textureHolder = new TextTextureResourceHolder(Window.Owner.Game, 10);
+            textureHolder = TextTextureResourceHolder.Instance(Window.Owner.Game);
             this.wordWrap = wordWrap;
             this.text = text;
             InitializeText();
         }
 
-        public TextBox(WindowBase window, int x, int y, int width, int height, string text, bool wordWrap)
+        public TextBox(FormBase window, int x, int y, int width, int height, string text, bool wordWrap)
             : this(window, x, y, width, height, text, HorizontalAlignment.Left, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap)
+        public TextBox(FormBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap)
             : this(window, 0, 0, width, height, text, align, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, bool wordWrap)
+        public TextBox(FormBase window, int width, int height, string text, bool wordWrap)
             : this(window, 0, 0, width, height, text, HorizontalAlignment.Left, wordWrap, null, Color.White)
         {
         }
 
-        public TextBox(WindowBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap, Color color)
+        public TextBox(FormBase window, int width, int height, string text, HorizontalAlignment align, bool wordWrap, Color color)
             : this(window, 0, 0, width, height, text, align, wordWrap, null, color)
         {
         }
@@ -330,7 +330,7 @@ namespace Orts.Graphics.Window.Controls
         private static List<string> WrapLines(string text, System.Drawing.Font font, int maxLineWidth)
         {
             List<string> lines = new List<string>();
-            string testesString;
+            string testedString;
 
             using (System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1))
             {
@@ -338,9 +338,9 @@ namespace Orts.Graphics.Window.Controls
                 {
                     void BreakLongWord(ReadOnlySpan<char> remainingLine)
                     {
-                        if (TextTextureRenderer.Measure((testesString = remainingLine.ToString()), font, measureGraphics).Width < maxLineWidth)
+                        if (measureGraphics.MeasureString(testedString = remainingLine.ToString(), font).Width < maxLineWidth)
                         {
-                            lines.Add(testesString);
+                            lines.Add(testedString);
                             return;
                         }
 
@@ -348,9 +348,9 @@ namespace Orts.Graphics.Window.Controls
                         int i = 0;
                         while (i < remainingLine.Length)
                         {
-                            while (++i < remainingLine.Length && TextTextureRenderer.Measure(testesString = remainingLine[previousStart..(i + 1)].ToString(), font, measureGraphics).Width < maxLineWidth)
+                            while (++i < remainingLine.Length && measureGraphics.MeasureString(testedString = remainingLine[previousStart..(i + 1)].ToString(), font).Width < maxLineWidth)
                                 ;
-                            lines.Add(testesString);
+                            lines.Add(testedString);
                             previousStart = i + 1;
                         }
                     }
@@ -367,21 +367,21 @@ namespace Orts.Graphics.Window.Controls
                         {
                             if (index > -1) // any further break in this line?
                             {
-                                testesString = line[lineOffset..(currentOffset + index + 1)].ToString();
+                                testedString = line[lineOffset..(currentOffset + index + 1)].ToString();
 
-                                if (TextTextureRenderer.Measure(testesString, font, measureGraphics).Width < maxLineWidth) // if it fits, check for the next word
+                                if (measureGraphics.MeasureString(testedString, font).Width < maxLineWidth) // if it fits, check for the next word
                                 {
                                     currentOffset += index + 1;
-                                    previousTestString = testesString;
+                                    previousTestString = testedString;
                                     index = line[currentOffset..].IndexOfAny(whitespaces);
 
                                     if (index < 0) // no more breaks in this line?
                                     {
                                         // check if the full remaining line fits
-                                        testesString = line[lineOffset..].ToString();
-                                        if (TextTextureRenderer.Measure(testesString, font, measureGraphics).Width < maxLineWidth) //fits, so we add the full remainder
+                                        testedString = line[lineOffset..].ToString();
+                                        if (measureGraphics.MeasureString(testedString, font).Width < maxLineWidth) //fits, so we add the full remainder
                                         {
-                                            lines.Add(testesString);
+                                            lines.Add(testedString);
                                             break;
                                         }
                                         else //doesn't fit, so we add the previousy tested bit, advance, and add the remaidner
@@ -428,7 +428,6 @@ namespace Orts.Graphics.Window.Controls
             if (disposing)
             {
                 scissorTestRasterizer?.Dispose();
-                textureHolder?.Dispose();
             }
             base.Dispose(disposing);
         }

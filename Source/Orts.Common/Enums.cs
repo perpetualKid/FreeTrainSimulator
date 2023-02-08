@@ -17,6 +17,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace Orts.Common
 {
@@ -32,8 +33,8 @@ namespace Orts.Common
     public enum Rotation
     {
         [Description("CounterClockwise")] CounterClockwise = -1,
-        [Description("None")]None = 0,
-        [Description("Clockwise")]Clockwise = 1,
+        [Description("None")] None = 0,
+        [Description("Clockwise")] Clockwise = 1,
     }
 
     [Description("Separator")]
@@ -81,7 +82,7 @@ namespace Orts.Common
     }
 
     //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Distance Travelled, Control Mode, Throttle, Brake, Dyn Brake, Gear
-    [ Flags]
+    [Flags]
     public enum EvaluationLogContents
     {
         [Description("None")] None = 0,
@@ -139,7 +140,7 @@ namespace Orts.Common
     }
 
     public enum CurveDirection
-    { 
+    {
         Straight,
         Left,
         Right,
@@ -911,21 +912,21 @@ namespace Orts.Common
         [Description("Hard")] Hard
     }
 
-    public enum MapViewItemSettings
+    public enum MapContentType
     {
         // types should be placed in the order they are drawn (overlap), top level last
         Grid,
+        Roads,
+        RoadEndNodes,
+        CarSpawners,
+        LevelCrossings,
+        RoadCrossings,
         Sidings,
         Platforms,
         Tracks,
         EndNodes,
         JunctionNodes,
         CrossOvers,
-        Roads,
-        RoadEndNodes,
-        CarSpawners,
-        LevelCrossings,
-        RoadCrossings,
         SidingNames,
         PlatformNames,
         StationNames,
@@ -937,10 +938,6 @@ namespace Orts.Common
         Pickups,
         SoundRegions,
         Paths,
-        PathEnds,
-        PathIntermediates,
-        PathJunctions,
-        PathReversals,
         Empty,
         TrainNames,
     }
@@ -962,8 +959,11 @@ namespace Orts.Common
     public enum RemoteControlGroup
     {
         /// -1: unconnected, 0: sync/front group, 1: async/rear group
+        [Description("———")]
         Unconnected = -1,
+        [Description("Sync")]
         FrontGroupSync = 0,
+        [Description("Async")]
         RearGroupAsync = 1
     }
 
@@ -1010,9 +1010,10 @@ namespace Orts.Common
     }
 
     public enum ViewerWindowType
-    { 
-        DebugScreen,
+    {
+        DebugOverlay,
         QuitWindow,
+        PauseOverlay,
         HelpWindow,
         ActivityWindow,
         CompassWindow,
@@ -1022,5 +1023,82 @@ namespace Orts.Common
         DetachTimetableTrainWindow,
         TrainListWindow,
         MultiPlayerWindow,
+        DrivingTrainWindow,
+        DistributedPowerWindow,
+        TrainOperationsWindow,
+        CarOperationsWindow,
+        TrackMonitorWindow,
+        MultiPlayerMessagingWindow,
+        NotificationOverlay,
+        CarIdentifierOverlay,
+        LocationsOverlay,
+        TrackItemOverlay,
+    }
+
+    public enum FourCharAcronym
+    {
+        // DPU
+        [Description("FLOW")] Flow,
+        [Description("LOAD")] Load,
+        [Description("GRUP")] LocoGroup,
+        [Description("OILP")] OilPressure,
+        [Description("POWR")] Power,
+        [Description("RMT")] Remote,
+        [Description("RPM")] Rpm,
+        [Description("REVR")] Reverser,
+        [Description("STAT")] Status,
+        [Description("TEMP")] Temperature,
+        [Description("THRO")] Throttle,
+        [Description("TIME")] Time,
+        [Description("TRAC")] TractiveEffort,
+        [Description("BRKP")] BrakePressure,
+        [Description("LOCS")] Locomotives,
+
+        //Train Driving
+        [Description("AIFR")] AiFireman,
+        [Description("AUTO")] AutoPilot,
+        [Description("PRES")] BoilerPressure,
+        [Description("WATR")] BoilerWaterGlass,
+        [Description("LEVL")] BoilerWaterLevel,
+        [Description("CIRC")] CircuitBreaker,
+        [Description("CCOK")] CylinderCocks,
+        [Description("DIR")] Direction,
+        [Description("DRLC")] DerailCoefficent,
+        [Description("DERL")] Derailment,
+        [Description("DOOR")] DoorsOpen,
+        [Description("ENGN")] Engine,
+        [Description("FIRE")] FireMass,
+        [Description("GEAR")] FixedGear,
+        [Description("FUEL")] FuelLevel,
+        [Description("GEAR")] Gear,
+        [Description("GRAD")] Gradient,
+        [Description("GRAT")] GrateLimit,
+        [Description("PANT")] Pantographs,
+        [Description("REGL")] Regulator,
+        [Description("RPLY")] Replay,
+        [Description("SAND")] Sander,
+        [Description("SPED")] Speed,
+        [Description("STEM")] SteamUsage,
+        [Description("WHEL")] Wheel,
+        [Description("ODO")] Odometer,
+
+        //Braking
+        [Description("BTRN")] TrainBrake,
+        [Description("BDYN")] DynamicBrake,
+        [Description("BLOC")] EngineBrake,
+        [Description("RETN")] Retainer,
+        [Description("ER")] EQReservoir,
+        [Description("MR")] MainReservoir,
+        [Description("BC")] BrakeCylinder,
+        [Description("EOTW")] EndOfTrainCar,
+        [Description("1STW")] FirstTrainCar,
+
+        //Diesel and Electric
+        [Description("TSUP")] ElectricTrainSupply,
+        [Description("TRAC")] TractionCutOffRelay,
+        [Description("MAST")] MasterKey,
+        [Description("BATT")] BatterySwitch,
+
+        [Description("EOTD")] EotDevice,
     }
 }

@@ -1,24 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>
+    internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Siding" };
+        private protected static int debugInfoHash;
+
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
+        public virtual InformationDictionary DetailInfo
+        {
+            get
+            {
+                int hash = SidingName.GetHashCode(StringComparison.OrdinalIgnoreCase);
+                if (hash != debugInfoHash)
+                {
+                    debugInformation["Name"] = SidingName;
+                    debugInfoHash = hash;
+                }
+                return debugInformation;
+            }
+        }
+
         internal string SidingName { get; }
 
         private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
         {
-            public SidingSection(int trackNodeIndex) : base(trackNodeIndex)
+            public SidingSection(TrackModel trackModel, int trackNodeIndex) : base(trackModel, trackNodeIndex)
             {
             }
 
-            public SidingSection(int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackNodeIndex, startLocation, endLocation)
+            public SidingSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackModel, trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -46,8 +67,8 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public SidingPath(SidingTrackItem start, SidingTrackItem end) :
-            base(start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
+        public SidingPath(TrackModel trackModel, SidingTrackItem start, SidingTrackItem end) :
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
             if (PathSections.Count == 0)
@@ -56,7 +77,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public static List<SidingPath> CreateSidings(IEnumerable<SidingTrackItem> sidingItems)
+        public static List<SidingPath> CreateSidings(TrackModel trackModel, IEnumerable<SidingTrackItem> sidingItems)
         {
             List<SidingPath> result = new List<SidingPath>();
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.TrackItemId);
@@ -72,7 +93,7 @@ namespace Orts.Graphics.MapView.Widgets
                         Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
                     }
                     _ = sidingItemMappings.Remove(end.TrackItemId);
-                    result.Add(new SidingPath(start, end));
+                    result.Add(new SidingPath(trackModel, start, end));
                 }
                 else
                 {
@@ -92,17 +113,31 @@ namespace Orts.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
+            foreach (SidingSection section in this.PathSections)
+            {
+                foreach (SidingSegment segment in section.SectionSegments)
+                {
+                    double distanceSquared;
+                    if (!double.IsNaN(distanceSquared = segment.DistanceSquared(point)))
+                        return distanceSquared;
+                }
+            }
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<SidingSegment> AddSection(int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(in PointD start, in PointD end)
         {
-            return new SidingSection(trackNodeIndex, start, end);
+            throw new NotImplementedException();
         }
 
-        protected override TrackSegmentSectionBase<SidingSegment> AddSection(int trackNodeIndex)
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new SidingSection(trackNodeIndex);
+            return new SidingSection(trackModel, trackNodeIndex, start, end);
+        }
+
+        protected override TrackSegmentSectionBase<SidingSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
+        {
+            return new SidingSection(trackModel, trackNodeIndex);
         }
     }
 

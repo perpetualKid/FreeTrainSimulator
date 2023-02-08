@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 using Microsoft.Xna.Framework;
@@ -21,7 +21,7 @@ namespace Orts.Graphics.MapView.Widgets
     internal class JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
-        private protected static NameValueCollection debugInformation = new NameValueCollection() { ["Node Type"] = "Junction" };
+        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
         public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
             base(junctionNode, mainRoute, vectorNodes, trackSections)
@@ -29,7 +29,7 @@ namespace Orts.Graphics.MapView.Widgets
             Size = diameter;
         }
 
-        public NameValueCollection DebugInfo
+        public InformationDictionary DetailInfo
         {
             get
             {
@@ -42,20 +42,10 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
-            {
-                double i when i < 0.3 => 30,
-                double i when i < 0.5 => 20,
-                double i when i < 0.75 => 15,
-                double i when i < 1 => 10,
-                double i when i < 3 => 7,
-                double i when i < 5 => 5,
-                double i when i < 8 => 4,
-                _ => 3,
-            };
+            Size = Math.Max(2.5f, (float)(4 / contentArea.Scale));
 
             Color drawColor = this.GetColor<JunctionNode>(colorVariation);
-            BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
     }
 
@@ -111,7 +101,7 @@ namespace Orts.Graphics.MapView.Widgets
             };
 
             Color drawColor = this.GetColor<JunctionNode>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
-            BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
     }

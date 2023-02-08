@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -38,10 +38,10 @@ namespace Orts.Simulation.AIs
 
     public class AIPath
     {
-        public AIPathNode FirstNode;    // path starting node
+        public AIPathNode FirstNode { get; }    // path starting node
         //public AIPathNode LastVisitedNode; not used anymore
-        public List<AIPathNode> Nodes = new List<AIPathNode>();
-        public string pathName; //name of the path to be able to print it.
+        public List<AIPathNode> Nodes { get; } = new List<AIPathNode>();
+        public string PathName { get; } //name of the path to be able to print it.
 
         /// <summary>
         /// Creates an AIPath from PAT file information.
@@ -51,11 +51,10 @@ namespace Orts.Simulation.AIs
         public AIPath(string filePath, bool isTimetableMode)
         {
             PathFile patFile = new PathFile(filePath);
-            pathName = patFile.Name;
+            PathName = patFile.Name;
             bool fatalerror = false;
             if (patFile.PathNodes.Count <= 0)
             {
-                fatalerror = true;
                 Nodes = null;
                 return;
             }
@@ -75,7 +74,7 @@ namespace Orts.Simulation.AIs
                 if (tpn.NextMainNode > -1)
                 {
                     node.NextMainNode = Nodes[tpn.NextMainNode];
-                    node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, i == 0 ? -1 : Nodes[i-1].NextMainTVNIndex );
+                    node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, i == 0 ? -1 : Nodes[i - 1].NextMainTVNIndex);
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextMainTVNIndex);
                     if (node.NextMainTVNIndex < 0)
@@ -107,7 +106,8 @@ namespace Orts.Simulation.AIs
 
             FindSidingEnds();
 
-            if (fatalerror) Nodes = null; // invalid path - do not return any nodes
+            if (fatalerror)
+                Nodes = null; // invalid path - do not return any nodes
         }
 
         /// <summary>
@@ -117,6 +117,7 @@ namespace Orts.Simulation.AIs
 
         public AIPath(AIPath otherPath)
         {
+            ArgumentNullException.ThrowIfNull(otherPath);
             FirstNode = new AIPathNode(otherPath.FirstNode);
             foreach (AIPathNode otherNode in otherPath.Nodes)
             {
@@ -148,7 +149,7 @@ namespace Orts.Simulation.AIs
                 FirstNode.NextSidingNode = Nodes[otherPath.FirstNode.NextSidingNode.Index];
             }
 
-            pathName = otherPath.pathName;
+            PathName = otherPath.PathName;
         }
 
         /// <summary>
@@ -178,7 +179,7 @@ namespace Orts.Simulation.AIs
         // restore game state
         public AIPath(BinaryReader inf)
         {
-            pathName = inf.ReadString();
+            PathName = inf.ReadString();
 
             int n = inf.ReadInt32();
             for (int i = 0; i < n; i++)
@@ -203,7 +204,7 @@ namespace Orts.Simulation.AIs
         // save game state
         public void Save(BinaryWriter outf)
         {
-            outf.Write(pathName);
+            outf.Write(PathName);
             outf.Write(Nodes.Count);
             for (int i = 0; i < Nodes.Count; i++)
                 Nodes[i].Save(outf);
@@ -226,7 +227,7 @@ namespace Orts.Simulation.AIs
         /// returns true if the specified vector node is at the facing point end of
         /// the specified juction node, else false.
         /// </summary>
-        private bool TestFacingPoint(int junctionIndex, int vectorIndex)
+        private static bool TestFacingPoint(int junctionIndex, int vectorIndex)
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
@@ -239,20 +240,17 @@ namespace Orts.Simulation.AIs
 
     public class AIPathNode
     {
-        public int Index;
-        public AIPathNodeType Type = AIPathNodeType.Other;
-        public int WaitTimeS;               // number of seconds to wait after stopping at this node
-        public int WaitUntil;               // clock time to wait until if not zero
-        public int NCars;                   // number of cars to uncouple, negative means keep rear
-        public AIPathNode NextMainNode;     // next path node on main path
-        public AIPathNode NextSidingNode;   // next path node on siding path
-        public int NextMainTVNIndex = -1;   // index of main vector node leaving this path node
-        public int NextSidingTVNIndex = -1; // index of siding vector node leaving this path node
-        public WorldLocation Location;      // coordinates for this path node
-        public int JunctionIndex = -1;      // index of junction node, -1 if none
-        public bool IsFacingPoint;          // true if this node entered from the facing point end
-        //public bool IsLastSwitchUse;        //true if this node is last to touch a switch
-        public bool IsVisited;              // true if the train has visited this node
+        public int Index { get; set; }
+        public AIPathNodeType Type { get; set; } = AIPathNodeType.Other;
+        public int WaitTimeS { get; private set; }               // number of seconds to wait after stopping at this node
+        public int WaitUntil { get; private set; }               // clock time to wait until if not zero
+        public AIPathNode NextMainNode { get; set; }     // next path node on main path
+        public AIPathNode NextSidingNode { get; set; }   // next path node on siding path
+        public int NextMainTVNIndex { get; set; } = -1;   // index of main vector node leaving this path node
+        public int NextSidingTVNIndex { get; set; } = -1; // index of siding vector node leaving this path node
+        public WorldLocation Location { get; set; }      // coordinates for this path node
+        public int JunctionIndex { get; set; } = -1;      // index of junction node, -1 if none
+        public bool IsFacingPoint { get; set; }          // true if this node entered from the facing point end
 
         /// <summary>
         /// Creates a single AIPathNode and initializes everything that do not depend on other nodes.
@@ -260,6 +258,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public AIPathNode(PathNode tpn, bool isTimetableMode)
         {
+            ArgumentNullException.ThrowIfNull(tpn);
+
             if (tpn.NodeType == PathNodeType.Reversal)
                 Type = AIPathNodeType.Reverse;
             else if (tpn.NodeType == PathNodeType.Wait)
@@ -282,14 +282,14 @@ namespace Orts.Simulation.AIs
         /// Constructor from other AIPathNode
         /// </summary>
         /// <param name="otherNode"></param>
-        
+
         public AIPathNode(AIPathNode otherNode)
         {
+            ArgumentNullException.ThrowIfNull(otherNode);
             Index = otherNode.Index;
             Type = otherNode.Type;
             WaitTimeS = otherNode.WaitTimeS;
             WaitUntil = otherNode.WaitUntil;
-            NCars = otherNode.NCars;
             NextMainNode = null; // set after completion of copying to get correct reference
             NextSidingNode = null; // set after completion of copying to get correct reference
             NextMainTVNIndex = otherNode.NextMainTVNIndex;
@@ -297,7 +297,6 @@ namespace Orts.Simulation.AIs
             Location = otherNode.Location;
             JunctionIndex = otherNode.JunctionIndex;
             IsFacingPoint = otherNode.IsFacingPoint;
-            IsVisited = otherNode.IsVisited;
         }
 
         // restore game state
@@ -307,7 +306,6 @@ namespace Orts.Simulation.AIs
             Type = (AIPathNodeType)inf.ReadInt32();
             WaitTimeS = inf.ReadInt32();
             WaitUntil = inf.ReadInt32();
-            NCars = inf.ReadInt32();
             NextMainTVNIndex = inf.ReadInt32();
             NextSidingTVNIndex = inf.ReadInt32();
             JunctionIndex = inf.ReadInt32();
@@ -322,7 +320,6 @@ namespace Orts.Simulation.AIs
             outf.Write((int)Type);
             outf.Write(WaitTimeS);
             outf.Write(WaitUntil);
-            outf.Write(NCars);
             outf.Write(NextMainTVNIndex);
             outf.Write(NextSidingTVNIndex);
             outf.Write(JunctionIndex);
@@ -339,6 +336,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public int FindTVNIndex(AIPathNode nextNode, int previousNextMainTVNIndex)
         {
+            ArgumentNullException.ThrowIfNull(nextNode);
+
             int junctionIndexThis = JunctionIndex;
             int junctionIndexNext = nextNode.JunctionIndex;
 
@@ -349,7 +348,7 @@ namespace Orts.Simulation.AIs
                 {
                     return FindTrackNodeIndex(this);
                 }
-                catch
+                catch (InvalidDataException)
                 {
                     junctionIndexThis = FindJunctionOrEndIndex(this.Location, false);
                 }
@@ -362,7 +361,7 @@ namespace Orts.Simulation.AIs
                 {
                     return FindTrackNodeIndex(nextNode);
                 }
-                catch
+                catch (InvalidDataException)
                 {
                     junctionIndexNext = FindJunctionOrEndIndex(nextNode.Location, false);
                 }
@@ -375,13 +374,15 @@ namespace Orts.Simulation.AIs
                 if (vectorNode.TrackPins[0].Link == junctionIndexThis && vectorNode.TrackPins[1].Link == junctionIndexNext)
                 {
                     iCand = vectorNode.Index;
-                    if (iCand != previousNextMainTVNIndex) break;
+                    if (iCand != previousNextMainTVNIndex)
+                        break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
                 else if (vectorNode.TrackPins[1].Link == junctionIndexThis && vectorNode.TrackPins[0].Link == junctionIndexNext)
                 {
                     iCand = vectorNode.Index;
-                    if (iCand != previousNextMainTVNIndex) break;
+                    if (iCand != previousNextMainTVNIndex)
+                        break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
             }
@@ -399,7 +400,7 @@ namespace Orts.Simulation.AIs
         private static int FindTrackNodeIndex(AIPathNode node)
         {
             Traveller traveller = new Traveller(node.Location);
-            return Convert.ToInt32(traveller.TrackNode.Index);
+            return traveller.TrackNode?.Index ?? -1;
         }
 
         /// <summary>
@@ -416,10 +417,14 @@ namespace Orts.Simulation.AIs
             for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Count; j++)
             {
                 TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
-                if (tn == null) continue;
-                if (wantJunctionNode && !(tn is TrackJunctionNode)) continue;
-                if (!wantJunctionNode && !(tn is TrackEndNode)) continue;
-                if (tn.UiD.Location.TileX != location.TileX || tn.UiD.Location.TileZ != location.TileZ) continue;
+                if (tn == null)
+                    continue;
+                if (wantJunctionNode && !(tn is TrackJunctionNode))
+                    continue;
+                if (!wantJunctionNode && !(tn is TrackEndNode))
+                    continue;
+                if (tn.UiD.Location.TileX != location.TileX || tn.UiD.Location.TileZ != location.TileZ)
+                    continue;
 
                 float dx = tn.UiD.Location.Location.X - location.Location.X;
                 dx += (tn.UiD.Location.TileX - location.TileX) * 2048;

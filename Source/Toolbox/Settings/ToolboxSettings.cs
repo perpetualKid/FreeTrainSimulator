@@ -81,37 +81,36 @@ namespace Orts.Toolbox.Settings
         [Default(true)]
         public bool RestoreLastView { get; set; }
 
+        [Default(true)]
+        public bool OutlineFont { get; set; }
+
         [Default(new string[]
         {
-        $"{nameof(MapViewItemSettings.Tracks)}=True",
-        $"{nameof(MapViewItemSettings.EndNodes)}=True",
-        $"{nameof(MapViewItemSettings.JunctionNodes)}=True",
-        $"{nameof(MapViewItemSettings.LevelCrossings)}=True",
-        $"{nameof(MapViewItemSettings.CrossOvers)}=True",
-        $"{nameof(MapViewItemSettings.Roads)}=True",
-        $"{nameof(MapViewItemSettings.RoadEndNodes)}=True",
-        $"{nameof(MapViewItemSettings.RoadCrossings)}=True",
-        $"{nameof(MapViewItemSettings.CarSpawners)}=True",
-        $"{nameof(MapViewItemSettings.Sidings)}=True",
-        $"{nameof(MapViewItemSettings.SidingNames)}=True",
-        $"{nameof(MapViewItemSettings.Platforms)}=True",
-        $"{nameof(MapViewItemSettings.PlatformNames)}=True",
-        $"{nameof(MapViewItemSettings.StationNames)}=True",
-        $"{nameof(MapViewItemSettings.SpeedPosts)}=True",
-        $"{nameof(MapViewItemSettings.MilePosts)}=True",
-        $"{nameof(MapViewItemSettings.Signals)}=True",
-        $"{nameof(MapViewItemSettings.OtherSignals)}=True",
-        $"{nameof(MapViewItemSettings.Hazards)}=True",
-        $"{nameof(MapViewItemSettings.Pickups)}=True",
-        $"{nameof(MapViewItemSettings.SoundRegions)}=True",
-        $"{nameof(MapViewItemSettings.Grid)}=True",
-        $"{nameof(MapViewItemSettings.Paths)}=True",
-        $"{nameof(MapViewItemSettings.PathEnds)}=True",
-        $"{nameof(MapViewItemSettings.PathIntermediates)}=True",
-        $"{nameof(MapViewItemSettings.PathJunctions)}=True",
-        $"{nameof(MapViewItemSettings.PathReversals)}=True",
+        $"{nameof(MapContentType.Tracks)}=True",
+        $"{nameof(MapContentType.EndNodes)}=True",
+        $"{nameof(MapContentType.JunctionNodes)}=True",
+        $"{nameof(MapContentType.LevelCrossings)}=True",
+        $"{nameof(MapContentType.CrossOvers)}=True",
+        $"{nameof(MapContentType.Roads)}=True",
+        $"{nameof(MapContentType.RoadEndNodes)}=True",
+        $"{nameof(MapContentType.RoadCrossings)}=True",
+        $"{nameof(MapContentType.CarSpawners)}=True",
+        $"{nameof(MapContentType.Sidings)}=True",
+        $"{nameof(MapContentType.SidingNames)}=True",
+        $"{nameof(MapContentType.Platforms)}=True",
+        $"{nameof(MapContentType.PlatformNames)}=True",
+        $"{nameof(MapContentType.StationNames)}=True",
+        $"{nameof(MapContentType.SpeedPosts)}=True",
+        $"{nameof(MapContentType.MilePosts)}=True",
+        $"{nameof(MapContentType.Signals)}=True",
+        $"{nameof(MapContentType.OtherSignals)}=True",
+        $"{nameof(MapContentType.Hazards)}=True",
+        $"{nameof(MapContentType.Pickups)}=True",
+        $"{nameof(MapContentType.SoundRegions)}=True",
+        $"{nameof(MapContentType.Grid)}=True",
+        $"{nameof(MapContentType.Paths)}=True",
         })]
-        public EnumArray<bool, MapViewItemSettings> ViewSettings { get; set; }
+        public EnumArray<bool, MapContentType> ViewSettings { get; set; }
 
         [Default("{Application} Log.txt")]
         public string LogFilename { get; set; }
@@ -127,12 +126,9 @@ namespace Orts.Toolbox.Settings
             $"{nameof(ColorSetting.RoadTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.ForestGreen)}",
             $"{nameof(ColorSetting.RoadLevelCrossing)}={nameof(Microsoft.Xna.Framework.Color.DeepPink)}",
             $"{nameof(ColorSetting.PathTrack)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathTrackEnd)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathTrackIntermediate)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathJunction)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
-            $"{nameof(ColorSetting.PathReversal)}={nameof(Microsoft.Xna.Framework.Color.Gold)}",
             $"{nameof(ColorSetting.RoadCarSpawner)}={nameof(Microsoft.Xna.Framework.Color.White)}",
             $"{nameof(ColorSetting.SignalItem)}={nameof(Microsoft.Xna.Framework.Color.White)}",
+            $"{nameof(ColorSetting.StationItem)}={nameof(Microsoft.Xna.Framework.Color.Firebrick)}",
             $"{nameof(ColorSetting.PlatformItem)}={nameof(Microsoft.Xna.Framework.Color.Navy)}",
             $"{nameof(ColorSetting.SidingItem)}={nameof(Microsoft.Xna.Framework.Color.ForestGreen)}",
             $"{nameof(ColorSetting.SpeedPostItem)}={nameof(Microsoft.Xna.Framework.Color.RoyalBlue)}",
@@ -145,48 +141,54 @@ namespace Orts.Toolbox.Settings
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=50,50",
-            $"{nameof(WindowType.AboutWindow)}=50,50",
-            $"{nameof(WindowType.StatusWindow)}=50,50",
-            $"{nameof(WindowType.DebugScreen)}=0,0",
-            $"{nameof(WindowType.LocationWindow)}=100,100",
-            $"{nameof(WindowType.HelpWindow)}=10,90",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=10,70",
-            $"{nameof(WindowType.SettingsWindow)}=70,70",
-            $"{nameof(WindowType.LogWindow)}=30,70",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=50,50",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=0,0",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=100,100",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=10,90",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=10,70",
+            $"{nameof(ToolboxWindowType.TrackItemInfoWindow)}=30,70",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=70,70",
+            $"{nameof(ToolboxWindowType.LogWindow)}=30,70",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=10,40",
         })]
-        public EnumArray<int[], WindowType> PopupLocations { get; set; }
+        public EnumArray<int[], ToolboxWindowType> PopupLocations { get; set; }
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=False",
-            $"{nameof(WindowType.AboutWindow)}=False",
-            $"{nameof(WindowType.StatusWindow)}=False",
-            $"{nameof(WindowType.DebugScreen)}=False",
-            $"{nameof(WindowType.LocationWindow)}=True",
-            $"{nameof(WindowType.HelpWindow)}=True",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=True",
-            $"{nameof(WindowType.SettingsWindow)}=True",
-            $"{nameof(WindowType.LogWindow)}=False",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=False",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=False",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=False",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=False",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=True",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=True",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=True",
+            $"{nameof(ToolboxWindowType.TrackItemInfoWindow)}=True",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=True",
+            $"{nameof(ToolboxWindowType.LogWindow)}=False",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=False",
         })]
-        public EnumArray<bool, WindowType> PopupStatus { get; set; }
+        public EnumArray<bool, ToolboxWindowType> PopupStatus { get; set; }
 
         [Default(new string[]
         {
-            $"{nameof(WindowType.QuitWindow)}=\"\"",
-            $"{nameof(WindowType.AboutWindow)}=\"\"",
-            $"{nameof(WindowType.StatusWindow)}=\"\"",
-            $"{nameof(WindowType.DebugScreen)}=\"\"",
-            $"{nameof(WindowType.LocationWindow)}=\"\"",
-            $"{nameof(WindowType.HelpWindow)}=\"\"",
-            $"{nameof(WindowType.TrackNodeInfoWindow)}=\"\"",
-            $"{nameof(WindowType.SettingsWindow)}=\"\"",
-            $"{nameof(WindowType.LogWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.QuitWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.AboutWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.StatusWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.DebugScreen)}=\"\"",
+            $"{nameof(ToolboxWindowType.LocationWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.HelpWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrackNodeInfoWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrackItemInfoWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.SettingsWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.LogWindow)}=\"\"",
+            $"{nameof(ToolboxWindowType.TrainPathWindow)}=\"\"",
         })]
-        public EnumArray<string, WindowType> PopupSettings { get; set; }
+        public EnumArray<string, ToolboxWindowType> PopupSettings { get; set; }
 
 
-        [Default("Segoe UI")]
+        [Default("Arial")]
         public string TextFont { get; set; }
 
         [Default(13)]

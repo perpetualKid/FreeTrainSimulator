@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 using GetText;
 
@@ -21,7 +16,7 @@ namespace Orts.Toolbox.PopupWindows
         private readonly string logText;
 
         public LoggingWindow(WindowManager owner, string logFile, Point relativeLocation, Catalog catalog = null) : 
-            base(owner, "Logging", relativeLocation, new Point(-50, 300), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Logging"), relativeLocation, new Point(-50, 300), catalog)
         {
             if (File.Exists(logFile))
             {
@@ -37,8 +32,7 @@ namespace Orts.Toolbox.PopupWindows
         {
             layout = base.Layout(layout, headerScaling);
 
-            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, HorizontalAlignment.Left, false,
-                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.White));
+            layout.Add(new TextBox(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight, logText, HorizontalAlignment.Left, false, Owner.TextFontMonoDefault, Color.White));
             return layout;
         }
     }

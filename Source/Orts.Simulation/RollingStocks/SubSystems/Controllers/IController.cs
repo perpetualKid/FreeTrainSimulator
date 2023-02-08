@@ -41,7 +41,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         float UpdateValue { get; set; }
         float CurrentValue { get; set; }
-        int CurrentNotch { get; set; }
+        int NotchIndex { get; set; }
         double CommandStartTime { get; set; }
         int SetValue(float value);
 

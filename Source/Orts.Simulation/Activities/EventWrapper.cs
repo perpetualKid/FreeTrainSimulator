@@ -37,6 +37,9 @@ namespace Orts.Simulation.Activities
     /// </summary>
     public abstract class EventWrapper
     {
+        /// <summary>Maximum size of a platform or station we use for searching forward and backward</summary>
+        protected const float MaxPlatformOrStationSize = 10000f;
+
         public ActivityEvent ActivityEvent { get; }     // Points to object parsed from file *.act
         public int OriginalActivationLevel { get; internal set; } // Needed to reset .ActivationLevel
         public int TimesTriggered { get; internal set; }          // Needed for evaluation after activity ends
@@ -68,19 +71,15 @@ namespace Orts.Simulation.Activities
         /// </summary>
         /// <param name="activity"></param>
         /// <returns></returns>
-        public virtual bool Triggered(Activity activity)
-        {  // To be overloaded by subclasses
-            return false;  // Compiler insists something is returned.
-        }
+        public abstract bool Triggered(Activity activity);
 
         /// <summary>
         /// Acts on the outcomes and then sets ActivationLevel = 0 to prevent re-use.
         /// </summary>
         /// <param name="activity"></param>
         /// <returns>true if entire activity ends here whether it succeeded or failed</returns>
-        internal bool IsActivityEnded(Activity activity)
+        internal bool CompletesActivity(Activity activity)
         {
-
             if (ActivityEvent.Reversible)
                 // Stop this event being actioned
                 Disabled = true;
@@ -92,6 +91,7 @@ namespace Orts.Simulation.Activities
                 return false;
             if (ActivityEvent.Outcomes == null) 
                 return false;
+
             // Set Activation Level of each event in the Activate list to 1.
             // Uses lambda expression => for brevity.
             foreach (int eventId in ActivityEvent.Outcomes.ActivateList)
@@ -108,14 +108,11 @@ namespace Orts.Simulation.Activities
                     item.ActivityEvent.ActivationLevel += +1;
 
             // Activity sound management
-
             if (ActivityEvent.SoundFile != null || ActivityEvent.Outcomes.ActivitySound != null)
-                if (activity.TriggeredActivityEvent == null) 
-                    activity.TriggeredActivityEvent = this;
+                activity.TriggeredActivityEvent ??= this;
 
             if (ActivityEvent.WeatherChange != null || ActivityEvent.Outcomes.WeatherChange != null)
-                if (activity.TriggeredActivityEvent == null) 
-                    activity.TriggeredActivityEvent = this;
+                activity.TriggeredActivityEvent ??= this;
 
             if (ActivityEvent.Outcomes.ActivityFail != null)
             {
@@ -135,16 +132,13 @@ namespace Orts.Simulation.Activities
             return false;
         }
 
-        /// <summary>Maximum size of a platform or station we use for searching forward and backward</summary>
-        protected const float maxPlatformOrStationSize = 10000f;
-
         private protected static DistanceResult CalculateToPoint(Traveller start, in WorldLocation target)
         {
             Traveller poiTraveller;
             poiTraveller = new Traveller(start);
 
             // Find distance once
-            float distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
+            float distance = poiTraveller.DistanceTo(target, MaxPlatformOrStationSize);
 
             // If valid
             if (distance > 0)
@@ -156,7 +150,7 @@ namespace Orts.Simulation.Activities
                 // Go to opposite direction
                 poiTraveller = new Traveller(start, true);
 
-                distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
+                distance = poiTraveller.DistanceTo(target, MaxPlatformOrStationSize);
                 // If valid, it is behind us
                 if (distance > 0)
                 {
@@ -471,10 +465,23 @@ namespace Orts.Simulation.Activities
             //if (timeActivityEvent == null) 
             //    return false;
             Train = Simulator.Instance.PlayerLocomotive.Train;
-            bool triggered = (timeActivityEvent.Time <= (int)Simulator.Instance.ClockTime - activity.startTimeS);
+            bool triggered = (timeActivityEvent.Time <= (int)Simulator.Instance.ClockTime - activity.StartTime);
             return triggered;
         }
 
+    }
+
+    public class EventCategorySystemWrapper : EventWrapper
+    {
+        public EventCategorySystemWrapper(string header, string text): 
+            base(new SystemActivityEvent(header, text))
+        {
+        }
+
+        public override bool Triggered(Activity activity)
+        {
+            return true;
+        }
     }
 
     // Result of calculation

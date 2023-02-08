@@ -17,12 +17,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 
 using static Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs.DriverMachineInterface;
@@ -39,7 +38,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             MoreKey = new DMIIconButton("NA_23.bmp", "NA_23.bmp", "More", false, () =>
             {
                 CurrentKeyPage++;
-                if (CurrentKeyPage * 11 >= Keys.Count) CurrentKeyPage = 0;
+                if (CurrentKeyPage * 11 >= Keys.Count)
+                    CurrentKeyPage = 0;
                 field.DataEntryWindow.PrepareLayout();
             }, 102, 50, field.DMI);
             MoreKey.Enabled = true;
@@ -55,9 +55,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             private TextPrimitive LettersText;
             private readonly int FontHeightNumber = 16;
             private readonly int FontHeightLetters = 10;
-            public AlphanumericButton(string num, string letters, DataEntryField field) : base(num + " "+ letters, false, () => field.HandleKeyPress(num+ letters), 102, 50, field.DMI, true)
+            public AlphanumericButton(string num, string letters, DataEntryField field) : base(num + " " + letters, false, () => field.HandleKeyPress(num + letters), 102, 50, field.DMI, true)
             {
-                Number = num+" ";
+                Number = num + " ";
                 Letters = letters;
                 SetText();
             }
@@ -83,12 +83,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             private void SetText()
             {
-                var f1 = GetFont(FontHeightNumber);
-                var f2 = GetFont(FontHeightLetters);
-                var size1 = (int)(f1.MeasureString(Number) / Scale);
-                var size2 = (int)(f2.MeasureString(Letters) / Scale);
-                NumberText = new TextPrimitive(new Point((Width - size1 - size2) / 2, (Height - FontHeightNumber) / 2), ColorGrey, Number, f1);
-                LettersText = new TextPrimitive(new Point((Width - size1 - size2) / 2 + size1, (Height + FontHeightNumber) / 2 - FontHeightLetters), ColorGrey, Letters, f2);
+                var f1 = GetTextFont(FontHeightNumber);
+                var f2 = GetTextFont(FontHeightLetters);
+                var size1 = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Number, f1).Width / Scale);
+                var size2 = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Letters, f2).Width / Scale);
+                NumberText = new TextPrimitive(DMI.Viewer.Game, new Point((Width - size1 - size2) / 2, (Height - FontHeightNumber) / 2), ColorGrey, Number, f1);
+                LettersText = new TextPrimitive(DMI.Viewer.Game, new Point((Width - size1 - size2) / 2 + size1, (Height + FontHeightNumber) / 2 - FontHeightLetters), ColorGrey, Letters, f2);
             }
         }
         public AlphanumericKeyboard(DataEntryField field) : base(field)
@@ -211,9 +211,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             private void SetText()
             {
-                var font = GetFont(FontHeightDataField);
-                var size = (int)(font.MeasureString(Name) / Scale);
-                Label = new TextPrimitive(new Point(Width-10-size, (Height-FontHeightDataField)/2), ColorGrey, Name, font);
+                var font = GetTextFont(FontHeightDataField);
+                var size = (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Name, font).Width / Scale);
+                Label = new TextPrimitive(DMI.Viewer.Game, new Point(Width - 10 - size, (Height - FontHeightDataField) / 2), ColorGrey, Name, font);
             }
         }
         public class FieldDataArea : DMIButton
@@ -225,7 +225,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             private int CursorIndex;
             public FieldDataArea(string name, bool hasLabel, DriverMachineInterface dmi) : base(name, true, null, hasLabel ? 102 : 306, 50, dmi)
             {
-                Data = new TextPrimitive(new Point(10, (Height - FontHeightDataField) / 2), Color.Transparent, "", null);
+                Data = new TextPrimitive(DMI.Viewer.Game, new Point(10, (Height - FontHeightDataField) / 2), Color.Transparent, "", null);
                 Enabled = true;
                 SetFont();
             }
@@ -263,29 +263,30 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 CursorIndex = cursorIndex;
                 float length;
                 float charlength;
+                TextTextureRenderer renderer = TextTextureRenderer.Instance(DMI.Viewer.Game);
                 if (cursorIndex >= Data.Text.Length)
                 {
-                    length = Data.Font.MeasureString(Data.Text) / Scale;
-                    charlength = Data.Font.MeasureString("8") / Scale;
+                    length = renderer.Measure(Data.Text, Data.Font).Width / Scale;
+                    charlength = renderer.Measure("8", Data.Font).Width / Scale;
                 }
                 else
                 {
-                    length = Data.Font.MeasureString(Data.Text.Substring(0, cursorIndex)) / Scale;
-                    charlength = Data.Font.MeasureString(Data.Text[cursorIndex].ToString()) / Scale;
+                    length = renderer.Measure(Data.Text.Substring(0, cursorIndex), Data.Font).Width / Scale;
+                    charlength = renderer.Measure(Data.Text[cursorIndex].ToString(), Data.Font).Width / Scale;
                 }
                 Cursor = new Rectangle(10 + (int)length, (Height + FontHeightDataField) / 2 + 3, (int)charlength, 1);
             }
 
             private void SetFont()
             {
-                Data.Font = GetFont(FontHeightDataField);
+                Data.Font = GetTextFont(FontHeightDataField);
             }
         }
         public DataEntryField(DMIDataEntryValue field, int index, DataEntryWindow window, bool singleField)
         {
             Name = field.Name;
             Field = field;
-            AcceptedValue = PreviousValue = field.Value??"";
+            AcceptedValue = PreviousValue = field.Value ?? "";
             Index = index;
             DataEntryWindow = window;
             DMI = DataEntryWindow.DMI;
@@ -294,12 +295,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             if (!singleField)
             {
                 LabelArea = new FieldLabelArea(Name, DMI);
-                LabelEchoText = new DMIArea.TextPrimitive(new Point((int)(DataEntryWindow.LabelFont.MeasureString(Name) / DMI.Scale), 0), Color.White, Name, DataEntryWindow.LabelFont);
+                LabelEchoText = new DMIArea.TextPrimitive(DMI.Viewer.Game, new Point((int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Name, DataEntryWindow.LabelFont).Width / DMI.Scale), 0), Color.White, Name, DataEntryWindow.LabelFont);
             }
 
-            if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Dedicate) Keyboard = new DedicateKeyboard(field.Keyboard.KeyLabels, this);
-            else if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Numeric) Keyboard = new NumericKeyboard(this);
-            else if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Alphanumeric) Keyboard = new AlphanumericKeyboard(this);
+            if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Dedicate)
+                Keyboard = new DedicateKeyboard(field.Keyboard.KeyLabels, this);
+            else if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Numeric)
+                Keyboard = new NumericKeyboard(this);
+            else if (field.Keyboard.Type == DMIKeyboard.KeyboardType.Alphanumeric)
+                Keyboard = new AlphanumericKeyboard(this);
 
             DataArea.PressedAction = () => DataEntryWindow.FieldSelected(Index);
             DataArea.ShowButtonBorder = false;
@@ -313,7 +317,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             {
                 Selected = val;
                 CurrentValue = PreviousValue;
-                if (Selected) KeyboardValue = "";
+                if (Selected)
+                    KeyboardValue = "";
             }
             UpdateText();
         }
@@ -322,10 +327,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             if (Accepted != val)
             {
                 Accepted = val;
-                if (Accepted) AcceptedValue = CurrentValue;
-                else AcceptedValue = "";
+                if (Accepted)
+                    AcceptedValue = CurrentValue;
+                else
+                    AcceptedValue = "";
                 PreviousValue = AcceptedValue;
-                if (!Selected) CurrentValue = PreviousValue;
+                if (!Selected)
+                    CurrentValue = PreviousValue;
                 if (Accepted)
                 {
                     //TechnicalRangeInvalid = !DataEntryWindow.Definition.TechnicalRangeCheck[Name].IsValid(AcceptedValue);
@@ -335,7 +343,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 else
                 {
                     TechnicalResolutionInvalid = TechnicalRangeInvalid = OperationalRangeInvalid = false;
-                    if (DataEntryWindow.Fields.Count > 1) DataEntryWindow.YesButton.Enabled = false;
+                    if (DataEntryWindow.Fields.Count > 1)
+                        DataEntryWindow.YesButton.Enabled = false;
                 }
                 DataEntryWindow.UnlockNavigationButtons();
             }
@@ -388,7 +397,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     text = AcceptedValue;
                     color = Accepted ? Color.White : ColorGrey;
                 }
-                DataEchoText = new DMIArea.TextPrimitive(new Point(0, 0), color, text, DataEntryWindow.LabelFont);
+                DataEchoText = new DMIArea.TextPrimitive(DMI.Viewer.Game, new Point(0, 0), color, text, DataEntryWindow.LabelFont);
             }
         }
         public void ScaleChanged()
@@ -400,7 +409,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             {
                 LabelArea.ScaleChanged();
                 DataEchoText.Font = DataEntryWindow.LabelFont;
-                LabelEchoText = new DMIArea.TextPrimitive(new Point((int)(DataEntryWindow.LabelFont.MeasureString(Name) / DMI.Scale), 0), Color.White, Name, DataEntryWindow.LabelFont);
+                LabelEchoText = new DMIArea.TextPrimitive(DMI.Viewer.Game, new Point((int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(Name, DataEntryWindow.LabelFont).Width / DMI.Scale), 0), Color.White, Name, DataEntryWindow.LabelFont);
             }
         }
         public void HandleKeyPress(string keyname)
@@ -413,8 +422,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
             else if (Keyboard is NumericKeyboard)
             {
-                if (keyname == "DEL") KeyboardValue = KeyboardValue.Length>0 ? KeyboardValue.Substring(0, KeyboardValue.Length - 1) : "";
-                else KeyboardValue += keyname;
+                if (keyname == "DEL")
+                    KeyboardValue = KeyboardValue.Length > 0 ? KeyboardValue.Substring(0, KeyboardValue.Length - 1) : "";
+                else
+                    KeyboardValue += keyname;
                 CursorIndex = KeyboardValue.Length;
             }
             else if (Keyboard is AlphanumericKeyboard)
@@ -429,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     if (CursorIndex >= KeyboardValue.Length || !keyname.Contains(KeyboardValue[KeyboardValue.Length - 1], StringComparison.OrdinalIgnoreCase))
                     {
                         KeyboardValue += keyname[0];
-                        CursorIndex = keyname.Length == 1 ? KeyboardValue.Length : KeyboardValue.Length-1;
+                        CursorIndex = keyname.Length == 1 ? KeyboardValue.Length : KeyboardValue.Length - 1;
                     }
                     else
                     {
@@ -450,7 +461,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         private int NumPages => (Fields.Count - 1) / 4 + 1;
 
-        private int CurrentPage => ActiveField/4;
+        private int CurrentPage => ActiveField / 4;
         public int ActiveField;
         public readonly List<DataEntryField> Fields = new List<DataEntryField>();
         private DMIButton[] KeyboardButtons = new DMIButton[12];
@@ -459,7 +470,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly DMIYesButton YesButton;
         private DMITextLabel DataEntryCompleteLabel;
         public readonly DMIDataEntryDefinition Definition;
-        public WindowTextFont LabelFont { get; private set; }
+        public System.Drawing.Font LabelFont { get; private set; }
 
         private readonly int FontHeightLabel = 12;
         public class DMIYesButton : DMIButton
@@ -491,9 +502,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             private void SetText()
             {
-                var font = GetFont(FontHeightYes);
+                var font = GetTextFont(FontHeightYes);
                 string text = Viewer.Catalog.GetString("Yes");
-                Yes = new TextPrimitive(new Point((Width-(int)(font.MeasureString(text)/Scale))/2, (Height-FontHeightYes)/2), Color.Black, text, font);
+                Yes = new TextPrimitive(DMI.Viewer.Game, new Point((Width - (int)(TextTextureRenderer.Instance(DMI.Viewer.Game).Measure(text, font).Width / Scale)) / 2, (Height - FontHeightYes) / 2), Color.Black, text, font);
             }
         }
         public DataEntryWindow(DMIDataEntryDefinition definition, DriverMachineInterface dmi) : base(definition.WindowTitle, definition.FullScreen || definition.Fields.Count > 1, dmi)
@@ -501,7 +512,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             Definition = definition;
             Title = definition.WindowTitle;
             int i = 0;
-            LabelFont = GetFont(FontHeightLabel);
+            LabelFont = GetTextFont(FontHeightLabel);
             foreach (var field in Definition.Fields)
             {
                 Fields.Add(new DataEntryField(field, i, this, !FullScreen));
@@ -561,22 +572,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     {
                         return;
                     }
-                    if (overrideOperational) foreach (var check in Definition.OperationalCrossChecks)
-                    {
-                        var conflict = check.GetConflictingVariables(values);
-                        foreach (var name in conflict)
+                    if (overrideOperational)
+                        foreach (var check in Definition.OperationalCrossChecks)
                         {
-                            foreach (var field in Fields)
+                            var conflict = check.GetConflictingVariables(values);
+                            foreach (var name in conflict)
                             {
-                                if (field.Name == name)
+                                foreach (var field in Fields)
                                 {
-                                    checkPassed = false;
-                                    field.OperationalCrossCheckInvalid = true;
-                                    break;
+                                    if (field.Name == name)
+                                    {
+                                        checkPassed = false;
+                                        field.OperationalCrossCheckInvalid = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
                     if (!checkPassed)
                     {
                         YesButton.DelayType = true;
@@ -609,7 +621,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public override void Draw(SpriteBatch spriteBatch, Point position)
         {
             base.Draw(spriteBatch, position);
-            if (!FullScreen) return;
+            if (!FullScreen)
+                return;
             for (int i = 0; i < Fields.Count; i++)
             {
                 {
@@ -621,7 +634,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 {
                     var text = Fields[i].DataEchoText;
                     int x = position.X + (int)Math.Round((204 + 5) * Scale);
-                    int y = position.Y + (int)Math.Round((100 + 2*i*FontHeightLabel) * Scale);
+                    int y = position.Y + (int)Math.Round((100 + 2 * i * FontHeightLabel) * Scale);
                     text.Draw(spriteBatch, new Point(x, y));
                 }
             }
@@ -632,7 +645,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             areas.Add(CloseButton);
             for (int i = 0; i < Fields.Count; i++)
             {
-                if (i != ActiveField) Fields[i].SetSelected(false);
+                if (i != ActiveField)
+                    Fields[i].SetSelected(false);
             }
             Fields[ActiveField].SetSelected(true);
             if (!FullScreen)
@@ -651,7 +665,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     areas.Add(PrevButton);
                 }
                 DataEntryCompleteLabel.Position = new Point(0, 330);
-                YesButton.Position = new Point(0, 330+ DataEntryCompleteLabel.Height);
+                YesButton.Position = new Point(0, 330 + DataEntryCompleteLabel.Height);
                 areas.Add(DataEntryCompleteLabel);
                 areas.Add(YesButton);
                 for (int i = 4 * (ActiveField / 4); i < Fields.Count && i < (4 * (ActiveField / 4 + 1)); i++)
@@ -675,11 +689,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     KeyboardButtons[11] = keyboard.MoreKey;
                     break;
                 }
-                else if (i+keyboard.CurrentKeyPage*11 < keyboard.Keys.Count) KeyboardButtons[i] = field.Keyboard.Keys[i + keyboard.CurrentKeyPage * 11];
+                else if (i + keyboard.CurrentKeyPage * 11 < keyboard.Keys.Count)
+                    KeyboardButtons[i] = field.Keyboard.Keys[i + keyboard.CurrentKeyPage * 11];
             }
             for (int i = 0; i < KeyboardButtons.Length; i++)
             {
-                if (KeyboardButtons[i] == null) continue;
+                if (KeyboardButtons[i] == null)
+                    continue;
                 KeyboardButtons[i].Position = new Point((FullScreen ? 334 : 0) + i % 3 * 102, 200 + 50 * (i / 3));
                 areas.Add(KeyboardButtons[i]);
             }
@@ -694,7 +710,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 field.SetAccepted(true);
                 if (field.TechnicalRangeInvalid || field.TechnicalResolutionInvalid || (field.OperationalRangeInvalid && !overrideOperational))
                 {
-                    if (field.OperationalRangeInvalid) field.DataArea.DelayType = true;
+                    if (field.OperationalRangeInvalid)
+                        field.DataArea.DelayType = true;
                     return;
                 }
                 string result = WindowTitle + "\n";
@@ -709,17 +726,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 field.SetAccepted(true);
                 if (field.TechnicalRangeInvalid || field.TechnicalResolutionInvalid || (field.OperationalRangeInvalid && !overrideOperational))
                 {
-                    if (field.OperationalRangeInvalid) Fields[index].DataArea.DelayType = true;
-                    for (int i=0; i<Fields.Count; i++)
+                    if (field.OperationalRangeInvalid)
+                        Fields[index].DataArea.DelayType = true;
+                    for (int i = 0; i < Fields.Count; i++)
                     {
-                        if (i != index) Fields[i].DataArea.Enabled = false;
+                        if (i != index)
+                            Fields[i].DataArea.Enabled = false;
                     }
                     PrevButton.Enabled = false;
                     NextButton.Enabled = false;
                     return;
                 }
-                if (index + 1 < Fields.Count) ActiveField++;
-                else ActiveField = 0;
+                if (index + 1 < Fields.Count)
+                    ActiveField++;
+                else
+                    ActiveField = 0;
                 NextButton.Enabled = CurrentPage + 1 < NumPages;
                 PrevButton.Enabled = CurrentPage > 0;
                 bool allaccepted = true;
@@ -746,7 +767,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public override void ScaleChanged()
         {
             base.ScaleChanged();
-            LabelFont = GetFont(FontHeightLabel);
+            LabelFont = GetTextFont(FontHeightLabel);
             Fields.ForEach(x => x.ScaleChanged());
         }
         public void UnlockNavigationButtons()

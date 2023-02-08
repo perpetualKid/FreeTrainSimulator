@@ -21,9 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common.Info;
 using Orts.Common.Native;
 using Orts.Settings;

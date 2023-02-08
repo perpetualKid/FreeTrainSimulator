@@ -1163,7 +1163,9 @@ namespace ORTS.TrackViewer.Drawing
             {
                 TrackVectorNode tn = (useRailTracks ?              
                     trackDB.TrackNodes.VectorNodes[trackNodeIndex]: roadTrackDB.TrackNodes.VectorNodes[trackNodeIndex]);
-                
+
+                if (tn == null)
+                    return WorldLocation.None;
                 TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
 
                 TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);

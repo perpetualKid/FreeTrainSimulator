@@ -24,7 +24,7 @@ namespace Orts.Scripting.Script
 {
     public class PBL2BrakeController : BrakeController
     {
-        private enum State
+        private enum InternalControllerState
         {
             Overcharge,
             OverchargeElimination,
@@ -48,7 +48,7 @@ namespace Orts.Scripting.Script
         private const double firstDepressureBar = 0.5;
         private const double brakeReleasedDepressureBar = 0.2;
 
-        private State currentState;
+        private InternalControllerState currentState;
 
         private bool firstDepression;
         private bool overcharge;
@@ -64,7 +64,7 @@ namespace Orts.Scripting.Script
 
         public override void Initialize()
         {
-            foreach (INotchController notch in Notches())
+            foreach (IControllerNotch notch in Notches())
             {
                 switch (notch.NotchStateType)
                 {
@@ -121,28 +121,28 @@ namespace Orts.Scripting.Script
                 quickRelease = false;
 
             if (EmergencyBrakingPushButton() || TCSEmergencyBraking())
-                currentState = State.Emergency;
+                currentState = InternalControllerState.Emergency;
             else if (
                 apply && pressureBar > regulatorPressureBar - FullServReductionBar()
                 || firstDepression && !release && !quickRelease && pressureBar > regulatorPressureBar - firstDepressureBar
                 )
-                currentState = State.Apply;
+                currentState = InternalControllerState.Apply;
             else if (/*overchargeElimination && */pressureBar > regulatorPressureBar)
-                currentState = State.OverchargeElimination;
+                currentState = InternalControllerState.OverchargeElimination;
             else if (overcharge && pressureBar <= regulatorPressureBar + overchargePressureBar)
-                currentState = State.Overcharge;
+                currentState = InternalControllerState.Overcharge;
             else if (quickRelease && pressureBar < regulatorPressureBar)
-                currentState = State.QuickRelease;
+                currentState = InternalControllerState.QuickRelease;
             else if (release && pressureBar < regulatorPressureBar
                     || !firstDepression && pressureBar > regulatorPressureBar - brakeReleasedDepressureBar && pressureBar < regulatorPressureBar
                     || pressureBar < regulatorPressureBar - FullServReductionBar())
-                currentState = State.Release;
+                currentState = InternalControllerState.Release;
             else
-                currentState = State.Lap;
+                currentState = InternalControllerState.Lap;
 
             switch (currentState)
             {
-                case State.Overcharge:
+                case InternalControllerState.Overcharge:
                     SetUpdateValue(-1);
 
                     pressureBar += QuickReleaseRateBarpS() * elapsedClockSeconds;
@@ -152,7 +152,7 @@ namespace Orts.Scripting.Script
                         pressureBar = MaxPressureBar() + overchargePressureBar;
                     break;
 
-                case State.OverchargeElimination:
+                case InternalControllerState.OverchargeElimination:
                     SetUpdateValue(-1);
 
                     pressureBar -= overchargeEleminationPressureRateBarpS * elapsedClockSeconds;
@@ -161,7 +161,7 @@ namespace Orts.Scripting.Script
                         pressureBar = MaxPressureBar();
                     break;
 
-                case State.QuickRelease:
+                case InternalControllerState.QuickRelease:
                     SetUpdateValue(-1);
 
                     pressureBar += QuickReleaseRateBarpS() * elapsedClockSeconds;
@@ -171,7 +171,7 @@ namespace Orts.Scripting.Script
                         pressureBar = regulatorPressureBar;
                     break;
 
-                case State.Release:
+                case InternalControllerState.Release:
                     SetUpdateValue(-1);
 
                     pressureBar += ReleaseRateBarpS() * elapsedClockSeconds;
@@ -181,11 +181,11 @@ namespace Orts.Scripting.Script
                         pressureBar = regulatorPressureBar;
                     break;
 
-                case State.Lap:
+                case InternalControllerState.Lap:
                     SetUpdateValue(0);
                     break;
 
-                case State.Apply:
+                case InternalControllerState.Apply:
                     SetUpdateValue(1);
 
                     pressureBar -= ApplyRateBarpS() * elapsedClockSeconds;
@@ -195,7 +195,7 @@ namespace Orts.Scripting.Script
                         pressureBar = Math.Max(regulatorPressureBar - FullServReductionBar(), 0.0);
                     break;
 
-                case State.Emergency:
+                case InternalControllerState.Emergency:
                     SetUpdateValue(1);
 
                     pressureBar -= EmergencyRateBarpS() * elapsedClockSeconds;
@@ -220,19 +220,19 @@ namespace Orts.Scripting.Script
         {
             switch (currentState)
             {
-                case State.Release:
+                case InternalControllerState.Release:
                     SetCurrentValue(releaseValue);
                     SetUpdateValue(-1);
                     pressureBar -= ReleaseRateBarpS() * elapsedClockSeconds;
                     break;
 
-                case State.Apply:
+                case InternalControllerState.Apply:
                     SetCurrentValue(applyValue);
                     SetUpdateValue(0);
                     pressureBar += ApplyRateBarpS() * elapsedClockSeconds;
                     break;
 
-                case State.Emergency:
+                case InternalControllerState.Emergency:
                     SetCurrentValue(emergencyValue);
                     SetUpdateValue(1);
                     pressureBar += EmergencyRateBarpS() * elapsedClockSeconds;
@@ -317,47 +317,47 @@ namespace Orts.Scripting.Script
             return true;
         }
 
-        public override ControllerState GetState()
+        public override ControllerState State
         {
-            switch (currentState)
+            get
             {
-                case State.Overcharge:
-                    return ControllerState.Overcharge;
+                switch (currentState)
+                {
+                    case InternalControllerState.Overcharge:
+                        return ControllerState.Overcharge;
 
-                case State.OverchargeElimination:
-                    return ControllerState.Overcharge;
+                    case InternalControllerState.OverchargeElimination:
+                        return ControllerState.Overcharge;
 
-                case State.QuickRelease:
-                    return ControllerState.FullQuickRelease;
+                    case InternalControllerState.QuickRelease:
+                        return ControllerState.FullQuickRelease;
 
-                case State.Release:
-                    return ControllerState.Release;
+                    case InternalControllerState.Release:
+                        return ControllerState.Release;
 
-                case State.Lap:
-                    return ControllerState.Lap;
+                    case InternalControllerState.Lap:
+                        return ControllerState.Lap;
 
-                case State.Apply:
-                    return ControllerState.Apply;
+                    case InternalControllerState.Apply:
+                        return ControllerState.Apply;
 
-                case State.Emergency:
-                    if (EmergencyBrakingPushButton())
-                        return ControllerState.EBPB;
-                    else if (TCSEmergencyBraking())
-                        return ControllerState.TCSEmergency;
-                    else if (TCSFullServiceBraking())
-                        return ControllerState.TCSFullServ;
-                    else
-                        return ControllerState.Emergency;
+                    case InternalControllerState.Emergency:
+                        if (EmergencyBrakingPushButton())
+                            return ControllerState.EBPB;
+                        else if (TCSEmergencyBraking())
+                            return ControllerState.TCSEmergency;
+                        else if (TCSFullServiceBraking())
+                            return ControllerState.TCSFullServ;
+                        else
+                            return ControllerState.Emergency;
 
-                default:
-                    return ControllerState.Dummy;
+                    default:
+                        return ControllerState.Dummy;
+                }
             }
         }
 
-        public override float? GetStateFraction()
-        {
-            return null;
-        }
+        public override float StateFraction => float.NaN;
 
         private void SetValue(float v)
         {

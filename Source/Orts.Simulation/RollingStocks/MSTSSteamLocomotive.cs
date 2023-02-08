@@ -66,12 +66,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -94,6 +94,14 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public class MSTSSteamLocomotive : MSTSLocomotive
     {
+        private enum AiFireState
+        {
+            None,
+            On,// Flag to set the AI fire to on for starting of locomotive
+            Off,// Flag to set the AI fire to off for locomotive when approaching a stop 
+            Reset,// Flag if AI fire has been reset, ie no overrides in place
+        }
+
         //Configure a default cutoff controller
         //If none is specified, this will be used, otherwise those values will be overwritten
         public MSTSNotchController CutoffController = new MSTSNotchController(-0.9f, 0.9f, 0.1f);
@@ -131,6 +139,7 @@ namespace Orts.Simulation.RollingStocks
         /// Grate limit of locomotive exceedeed?
         /// </summary>
         public bool IsGrateLimit { get; protected set; }
+        private long grateNotificationTimeout;
 
         private bool HasSuperheater;  // Flag to indicate whether locomotive is superheated steam type
         private bool IsSuperSet;    // Flag to indicate whether superheating is reducing cylinder condenstation
@@ -138,15 +147,14 @@ namespace Orts.Simulation.RollingStocks
         private bool safety2IsOn; // Safety valve #2 is on and opertaing
         private bool safety3IsOn; // Safety valve #3 is on and opertaing
         private bool safety4IsOn; // Safety valve #4 is on and opertaing
-        private bool IsFixGeared;
-        private bool IsSelectGeared;
+        private bool fixGeared;
+        private bool selectGeared;
         private bool IsLocoSlip;        // locomotive is slipping
         private bool IsCritTELimit; // Flag to advise if critical TE is exceeded
         private bool ISBoilerLimited;  // Flag to indicate that Boiler is limiting factor with the locomotive power
-        private bool SetFireOn; // Flag to set the AI fire to on for starting of locomotive
-        private bool SetFireOff; // Flag to set the AI fire to off for locomotive when approaching a stop 
-        private bool SetFireReset; // Flag if AI fire has been reset, ie no overrides in place
-        private bool AIFireOverride; // Flag to show ai fire has has been overriden
+        private AiFireState aiFireState;
+        private long aiFireResetTicks;
+        private bool aiFireOverride; // Flag to show ai fire has has been overriden
         private bool InjectorLockedOut; // Flag to lock injectors from changing within a fixed period of time
 
         // Aux Tender Parameters
@@ -167,7 +175,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasTenderCoupled = true;
         private float BlowdownSteamUsageLBpS;
         private float BlowdownValveSizeDiaIn2;
-        private string SteamLocoType;     // Type of steam locomotive type
+        private string steamLocoType;     // Type of steam locomotive type
 
         private float PulseTracker;
         private int NextPulse = 1;
@@ -273,7 +281,7 @@ namespace Orts.Simulation.RollingStocks
         public float SteamPerformanceTimeS; // Records the time since starting movement
         public float CumulativeWaterConsumptionLbs;
         public float CumulativeCylinderSteamConsumptionLbs;
-        private float CummulativeTotalSteamConsumptionLbs;
+        private float CumulativeTotalSteamConsumptionLbs;
         public static float DbfEvalCumulativeWaterConsumptionLbs;//DebriefEval
 
         private int LocoIndex;
@@ -484,13 +492,6 @@ namespace Orts.Simulation.RollingStocks
         public float LogReleasePressurePSI;
         public float LogSteamChestPressurePSI;
 
-        // Values for Steam Cylinder events
-        private float ValveTravel = 10.8268f;
-        private float ValveLead = 0.275591f;
-        private float ValveExhLap = 0.708661f;
-        private float ValveSteamLap;
-        private double ValveAdvanceAngleDeg;
-
         public float LogLPInitialPressurePSI;
         public float LogLPCutoffPressurePSI;
         public float LogLPBackPressurePSI;
@@ -570,9 +571,7 @@ namespace Orts.Simulation.RollingStocks
         private float DisplaySpeedFactor;  // Value displayed in HUD
 
         public float MaxTractiveEffortLbf;     // Maximum theoritical tractive effort for locomotive
-        public float DisplayMaxTractiveEffortLbf;     // HuD display value of maximum theoritical tractive effort for locomotive
 
-        private float DisplayTractiveEffortLbsF; // Value of Tractive effort to display in HUD
         private float MaxCriticalSpeedTractiveEffortLbf;  // Maximum power value @ critical speed of piston
         private float DisplayCriticalSpeedTractiveEffortLbf;  // Display power value @ speed of piston
         private float absStartTractiveEffortN;      // Record starting tractive effort
@@ -587,7 +586,6 @@ namespace Orts.Simulation.RollingStocks
         private float DisplayMaxLocoSpeedMpH;      // Display value of speed of loco when max performance reached
         private float MaxPistonSpeedFtpM;   // Piston speed @ max performance for the locomotive
         private float MaxIndicatedHorsePowerHP; // IHP @ max performance for the locomotive
-        private float DisplayMaxIndicatedHorsePowerHP; // Display value for HUD of IHP @ max performance for the geared locomotive
         private float RetainedGearedMaxMaxIndicatedHorsePowerHP; // Retrains maximum IHP value for steam locomotives.
         private float absSpeedMpS;
         private float CombFrictionN;  // Temporary parameter to store combined friction values of locomotive and tender
@@ -788,66 +786,168 @@ namespace Orts.Simulation.RollingStocks
         {
             switch (lowercasetoken)
             {
-                case "engine(numcylinders": NumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(cylinderstroke": CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(cylinderdiameter": CylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(lpnumcylinders": LPNumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(lpcylinderstroke": LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(lpcylinderdiameter": LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
-                case "engine(ortscylinderportopening": CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(boilervolume": BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null); break;
-                case "engine(maxboilerpressure": MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.Temperature, null); break;  // New input and conversion units to be added for temperature
+                case "engine(numcylinders":
+                    NumCylinders = stf.ReadIntBlock(null);
+                    break;
+                case "engine(cylinderstroke":
+                    CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(cylinderdiameter":
+                    CylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(lpnumcylinders":
+                    LPNumCylinders = stf.ReadIntBlock(null);
+                    break;
+                case "engine(lpcylinderstroke":
+                    LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(lpcylinderdiameter":
+                    LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
+                    break;
+                case "engine(ortscylinderportopening":
+                    CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(boilervolume":
+                    BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null);
+                    break;
+                case "engine(maxboilerpressure":
+                    MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(ortsmaxsuperheattemperature":
+                    MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.Temperature, null);
+                    break;  // New input and conversion units to be added for temperature
                 case "engine(ortsmaxindicatedhorsepower":
                     MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.Units.Power, null);
                     MaxIndicatedHorsePowerHP = (float)Dynamics.Power.ToHp(MaxIndicatedHorsePowerHP);  // Convert input to HP for use internally in this module
                     break;
-                case "engine(vacuumbrakeslargeejectorusagerate": EjectorLargeSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
-                case "engine(vacuumbrakessmallejectorusagerate": EjectorSmallSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
-                case "engine(ortssuperheatcutoffpressurefactor": SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(shovelcoalmass": ShovelMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(maxtendercoalmass": MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(maxtenderwatermass": MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(steamfiremanmaxpossiblefiringrate": MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
-                case "engine(steamfiremanismechanicalstoker": Stoker = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
-                case "engine(enginecontrollers(cutoff": CutoffController.Parse(stf); break;
-                case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); SmallEjectorControllerFitted = true; break;
-                case "engine(enginecontrollers(ortslargeejector": LargeEjectorController.Parse(stf); LargeEjectorControllerFitted = true; break;
-                case "engine(enginecontrollers(injector1water": Injector1Controller.Parse(stf); break;
-                case "engine(enginecontrollers(injector2water": Injector2Controller.Parse(stf); break;
-                case "engine(enginecontrollers(blower": BlowerController.Parse(stf); break;
-                case "engine(enginecontrollers(dampersfront": DamperController.Parse(stf); break;
-                case "engine(enginecontrollers(shovel": FiringRateController.Parse(stf); break;
-                case "engine(enginecontrollers(firedoor": FireboxDoorController.Parse(stf); break;
-                case "engine(effects(steamspecialeffects": ParseEffects(lowercasetoken, stf); break;
-                case "engine(ortsgratearea": GrateAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(superheater": SuperheaterFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(istenderrequired": IsTenderRequired = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsevaporationarea": EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsboilersurfacearea": BoilerSurfaceAreaFt2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsfractionboilerinsulated": FractionBoilerAreaInsulated = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsheatcoefficientinsulation": KcInsulation = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortssuperheatarea": SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
-                case "engine(ortsfuelcalorific": FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.Units.EnergyDensity, null); break;
-                case "engine(ortsboilerevaporationrate": BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortscylinderefficiencyrate": CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortscylinderinitialpressuredrop": InitialPressureDropRatioRpMtoX = stf.CreateInterpolator(); break;
-                case "engine(ortscylinderbackpressure": BackPressureIHPtoPSI = stf.CreateInterpolator(); break;
-                case "engine(ortsburnrate": NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator(); break;
-                case "engine(ortsboilerefficiency": BoilerEfficiencyGrateAreaLBpFT2toX = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventexhaust": CylinderExhausttoCutoff = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventcompression": CylinderCompressiontoCutoff = stf.CreateInterpolator(); break;
-                case "engine(ortscylindereventadmission": CylinderAdmissiontoCutoff = stf.CreateInterpolator(); break;
+                case "engine(vacuumbrakeslargeejectorusagerate":
+                    EjectorLargeSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null));
+                    break;
+                case "engine(vacuumbrakessmallejectorusagerate":
+                    EjectorSmallSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null));
+                    break;
+                case "engine(ortssuperheatcutoffpressurefactor":
+                    SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(shovelcoalmass":
+                    ShovelMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(maxtendercoalmass":
+                    MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(maxtenderwatermass":
+                    MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(steamfiremanmaxpossiblefiringrate":
+                    MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600;
+                    break;
+                case "engine(steamfiremanismechanicalstoker":
+                    Stoker = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortssteamfiremanmaxpossiblefiringrate":
+                    ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600;
+                    break;
+                case "engine(enginecontrollers(cutoff":
+                    CutoffController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(ortssmallejector":
+                    SmallEjectorController.Parse(stf);
+                    SmallEjectorControllerFitted = true;
+                    break;
+                case "engine(enginecontrollers(ortslargeejector":
+                    LargeEjectorController.Parse(stf);
+                    LargeEjectorControllerFitted = true;
+                    break;
+                case "engine(enginecontrollers(injector1water":
+                    Injector1Controller.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(injector2water":
+                    Injector2Controller.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(blower":
+                    BlowerController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(dampersfront":
+                    DamperController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(shovel":
+                    FiringRateController.Parse(stf);
+                    break;
+                case "engine(enginecontrollers(firedoor":
+                    FireboxDoorController.Parse(stf);
+                    break;
+                case "engine(effects(steamspecialeffects":
+                    ParseEffects(lowercasetoken, stf);
+                    break;
+                case "engine(ortsgratearea":
+                    GrateAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(superheater":
+                    SuperheaterFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(istenderrequired":
+                    IsTenderRequired = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsevaporationarea":
+                    EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsboilersurfacearea":
+                    BoilerSurfaceAreaFt2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsfractionboilerinsulated":
+                    FractionBoilerAreaInsulated = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsheatcoefficientinsulation":
+                    KcInsulation = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortssuperheatarea":
+                    SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null);
+                    break;
+                case "engine(ortsfuelcalorific":
+                    FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.Units.EnergyDensity, null);
+                    break;
+                case "engine(ortsboilerevaporationrate":
+                    BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortscylinderefficiencyrate":
+                    CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortscylinderinitialpressuredrop":
+                    InitialPressureDropRatioRpMtoX = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylinderbackpressure":
+                    BackPressureIHPtoPSI = stf.CreateInterpolator();
+                    break;
+                case "engine(ortsburnrate":
+                    NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator();
+                    break;
+                case "engine(ortsboilerefficiency":
+                    BoilerEfficiencyGrateAreaLBpFT2toX = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventexhaust":
+                    CylinderExhausttoCutoff = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventcompression":
+                    CylinderCompressiontoCutoff = stf.CreateInterpolator();
+                    break;
+                case "engine(ortscylindereventadmission":
+                    CylinderAdmissiontoCutoff = stf.CreateInterpolator();
+                    break;
                 case "engine(ortssteamgearratio":
                     stf.MustMatch("(");
                     SteamGearRatioLow = stf.ReadFloat(STFReader.Units.None, null);
                     SteamGearRatioHigh = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                     break;
-                case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsgearedtractiveeffortfactor": GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortstractiveeffortfactor": TractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortssteammaxgearpistonrate":
+                    MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsgearedtractiveeffortfactor":
+                    GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortstractiveeffortfactor":
+                    TractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
                     string steamengineType = stf.ReadString();
@@ -865,8 +965,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortssteamgeartype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
-                    IsFixGeared = string.Equals(typeString2, "Fixed", StringComparison.OrdinalIgnoreCase);
-                    IsSelectGeared = string.Equals(typeString2, "Select", StringComparison.OrdinalIgnoreCase);
+                    fixGeared = string.Equals(typeString2, "Fixed", StringComparison.OrdinalIgnoreCase);
+                    selectGeared = string.Equals(typeString2, "Select", StringComparison.OrdinalIgnoreCase);
                     break;
 
                 case "engine(ortsbattery(mode":
@@ -876,9 +976,13 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsmasterkey(headlightcontrol":
                     LocomotivePowerSupply.Parse(lowercasetoken, stf);
                     break;
-                case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
+                case "engine(enginecontrollers(waterscoop":
+                    HasWaterScoop = true;
+                    break;
 
-                default: base.Parse(lowercasetoken, stf); break;
+                default:
+                    base.Parse(lowercasetoken, stf);
+                    break;
             }
         }
 
@@ -888,11 +992,11 @@ namespace Orts.Simulation.RollingStocks
         /// need to parse the wag file multiple times.
         /// NOTE:  you must initialize all the same variables as you parsed above
         /// </summary>
-        public override void Copy(MSTSWagon copy)
+        public override void Copy(MSTSWagon source)
         {
-            base.Copy(copy);  // each derived level initializes its own variables
+            base.Copy(source);  // each derived level initializes its own variables
 
-            MSTSSteamLocomotive locoCopy = (MSTSSteamLocomotive)copy;
+            MSTSSteamLocomotive locoCopy = (MSTSSteamLocomotive)source;
             NumCylinders = locoCopy.NumCylinders;
             CylinderStrokeM = locoCopy.CylinderStrokeM;
             CylinderDiameterM = locoCopy.CylinderDiameterM;
@@ -946,8 +1050,8 @@ namespace Orts.Simulation.RollingStocks
             IsSaturated = locoCopy.IsSaturated;
             IsTenderRequired = locoCopy.IsTenderRequired;
             HasSuperheater = locoCopy.HasSuperheater;
-            IsFixGeared = locoCopy.IsFixGeared;
-            IsSelectGeared = locoCopy.IsSelectGeared;
+            fixGeared = locoCopy.fixGeared;
+            selectGeared = locoCopy.selectGeared;
             LargeEjectorControllerFitted = locoCopy.LargeEjectorControllerFitted;
             CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
             CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
@@ -1219,7 +1323,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Test to see if gear type set
             bool IsGearAssumed = false;
-            if (IsFixGeared || IsSelectGeared) // If a gear type has been selected, but gear type not set in steamenginetype, then set assumption
+            if (fixGeared || selectGeared) // If a gear type has been selected, but gear type not set in steamenginetype, then set assumption
             {
                 if (SteamEngineType != SteamEngineType.Geared)
                 {
@@ -1262,7 +1366,7 @@ namespace Orts.Simulation.RollingStocks
 
             // If the maximum cutoff for the locomotive is less then the default tractive effort constant value, then flag to the user to check. See this reference - 
             // https://babel.hathitrust.org/cgi/pt?id=wu.89089676290&view=1up&seq=510&skin=2021&q1=booster
-            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.Settings.VerboseConfigurationMessages && ( CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
+            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.Settings.VerboseConfigurationMessages && (CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
             {
                 Trace.TraceInformation("Maximum Cutoff setting {0} is less then the TractiveEffortFactor {1}, is this correct?", CutoffController.MaximumValue, TractiveEffortFactor);
             }
@@ -1270,7 +1374,7 @@ namespace Orts.Simulation.RollingStocks
             if (SteamEngineType == SteamEngineType.Compound)
             {
                 //  Initialise Compound locomotive
-                SteamLocoType = "Compound locomotive";
+                steamLocoType = "Compound locomotive";
 
                 // Model current based upon a four cylinder, balanced compound, type Vauclain, as built by Baldwin, with no receiver between the HP and LP cylinder
                 // Set to compound operation intially
@@ -1278,22 +1382,21 @@ namespace Orts.Simulation.RollingStocks
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                 SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
                 MaxTractiveEffortLbf = (float)(CylinderEfficiencyRate * (1.6f * MaxBoilerPressurePSI * Size.Length.ToIn(LPCylinderDiameterM) * Size.Length.ToIn(LPCylinderDiameterM) * Size.Length.ToIn(LPCylinderStrokeM)) / ((CompoundCylinderRatio + 1.0f) * (Size.Length.ToIn(DriverWheelRadiusM * 2.0f))));
-                DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 LogIsCompoundLoco = true;  // Set logging to true for compound locomotive
 
             }
             else if (SteamEngineType == SteamEngineType.Geared)
             {
-                if (IsFixGeared)
+                if (fixGeared)
                 {
                     // Advise if gearing is assumed
                     if (IsGearAssumed)
                     {
-                        SteamLocoType = "Not formally defined (assumed Fixed Geared) locomotive";
+                        steamLocoType = "Not formally defined (assumed Fixed Geared) locomotive";
                     }
                     else
                     {
-                        SteamLocoType = "Fixed Geared locomotive";
+                        steamLocoType = "Fixed Geared locomotive";
                     }
 
                     // Check for ENG file values
@@ -1316,18 +1419,17 @@ namespace Orts.Simulation.RollingStocks
                     MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
                     MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                     DisplayMaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
-                    DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
-                else if (IsSelectGeared)
+                else if (selectGeared)
                 {
                     // Advise if gearing is assumed
                     if (IsGearAssumed)
                     {
-                        SteamLocoType = "Not formally defined (assumed Selectable Geared) locomotive";
+                        steamLocoType = "Not formally defined (assumed Selectable Geared) locomotive";
                     }
                     else
                     {
-                        SteamLocoType = "Selectable Geared locomotive";
+                        steamLocoType = "Selectable Geared locomotive";
                     }
 
                     // Check for ENG file values
@@ -1366,35 +1468,31 @@ namespace Orts.Simulation.RollingStocks
                     MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
                     MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                     DisplayMaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
-                    DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
                 else
                 {
-                    SteamLocoType = "Unknown Geared locomotive (default to non-gear)";
+                    steamLocoType = "Unknown Geared locomotive (default to non-gear)";
                     // Default to non-geared locomotive
                     MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                     SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
                     MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
-                    DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
             }
             else if (SteamEngineType == SteamEngineType.Simple)    // Simple locomotive
             {
-                SteamLocoType = "Simple locomotive";
+                steamLocoType = "Simple locomotive";
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                 SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
                 MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
-                DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
             }
             else // Default to Simple Locomotive (Assumed Simple) shows up as "Unknown"
             {
                 Trace.TraceWarning("Steam engine type parameter not formally defined. Simple locomotive has been assumed");
-                SteamLocoType = "Not formally defined (assumed simple) locomotive.";
+                steamLocoType = "Not formally defined (assumed simple) locomotive.";
                 //  SteamEngineType += "Simple";
                 MotiveForceGearRatio = 1.0f;  // set gear ratio to default, as not a geared locomotive
                 SteamGearRatio = 1.0f;     // set gear ratio to default, as not a geared locomotive
                 MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
-                DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
             }
 
             // ******************  Test Boiler Type ********************* 
@@ -1494,7 +1592,7 @@ namespace Orts.Simulation.RollingStocks
             // Determine if Superheater in use
             if (HasSuperheater)
             {
-                SteamLocoType += " + Superheater";
+                steamLocoType += " + Superheater";
 
                 if (MaxSuperheatRefTempF == 0) // If Max superheat temp is not set in ENG file, then set a default.
                 {
@@ -1509,11 +1607,11 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (IsSaturated)
             {
-                SteamLocoType += " + Saturated";
+                steamLocoType += " + Saturated";
             }
             else if (SuperheatAreaM2 == 0 && SuperheaterFactor > 1.0) // check if MSTS value, then set superheating
             {
-                SteamLocoType += " + Not formally defined (assumed superheated)";
+                steamLocoType += " + Not formally defined (assumed superheated)";
                 Trace.TraceWarning("Steam boiler type parameter not formally defined. Superheated locomotive has been assumed.");
 
                 HasSuperheater = true;
@@ -1527,7 +1625,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else // Default to saturated type of locomotive
             {
-                SteamLocoType += " + Not formally defined (assumed saturated)";
+                steamLocoType += " + Not formally defined (assumed saturated)";
                 MaxSuperheatRefTempF = 0.0f;
                 CylinderClearancePC = 0.08f;
             }
@@ -1805,8 +1903,6 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            DisplayMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
-
             // If DrvWheelWeight is not in ENG file, then calculate from Factor of Adhesion(FoA) = DrvWheelWeight / Start (Max) Tractive Effort, assume FoA = 4.2
 
             if (DrvWheelWeightKg == 0) // if DrvWheelWeightKg not in ENG file.
@@ -1918,7 +2014,7 @@ namespace Orts.Simulation.RollingStocks
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
                 Trace.TraceInformation("Version - {0}", VersionInfo.Version);
                 Trace.TraceInformation("Locomotive Name - {0}", LocomotiveName);
-                Trace.TraceInformation("Steam Locomotive Type - {0}", SteamLocoType);
+                Trace.TraceInformation("Steam Locomotive Type - {0}", steamLocoType);
 
                 Trace.TraceInformation("**************** General ****************");
                 Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM), locoNumDrvAxles, Mass.Kilogram.ToTonsUK(DrvWheelWeightKg));
@@ -1945,10 +2041,10 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Sets controller settings from other engine for cab switch
         /// </summary>
-        /// <param name="other"></param>
-        public override void CopyControllerSettings(TrainCar other)
+        /// <param name="source"></param>
+        public override void CopyControllerSettings(TrainCar source)
         {
-            base.CopyControllerSettings(other);
+            base.CopyControllerSettings(source);
             if (CutoffController != null)
                 CutoffController.SetValue(Train.MUReverserPercent / 100);
         }
@@ -2187,9 +2283,15 @@ namespace Orts.Simulation.RollingStocks
                 // On a steam locomotive, the Reverser is the same as the Cut Off Control.
                 switch (Direction)
                 {
-                    case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                    case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                    case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                    case MidpointDirection.Reverse:
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                        break;
+                    case MidpointDirection.N:
+                        simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                        break;
+                    case MidpointDirection.Forward:
+                        simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                        break;
                 }
             if (IsPlayerTrain)
             {
@@ -2411,7 +2513,8 @@ namespace Orts.Simulation.RollingStocks
             WaterConsumptionLbpS = (float)(InjectorBoilerInputLB / elapsedClockSeconds); // water consumption
             WaterConsumptionLbpS = MathHelper.Clamp(WaterConsumptionLbpS, 0, WaterConsumptionLbpS);
             CumulativeWaterConsumptionLbs += InjectorBoilerInputLB;
-            if (CumulativeWaterConsumptionLbs > 0) DbfEvalCumulativeWaterConsumptionLbs = CumulativeWaterConsumptionLbs;//DebriefEval
+            if (CumulativeWaterConsumptionLbs > 0)
+                DbfEvalCumulativeWaterConsumptionLbs = CumulativeWaterConsumptionLbs;//DebriefEval
 
 #if DEBUG_AUXTENDER
 
@@ -2510,43 +2613,36 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // AIFireOverride flag set to challenge driver if boiler AI fireman is overriden - ie steam safety valves will be set and blow if pressure is excessive
-                if (SetFireOn || SetFireOff) // indicate that AI fireman override is in use
+                if (aiFireState is AiFireState.On or AiFireState.Off) // indicate that AI fireman override is in use
                 {
-                    AIFireOverride = true; // Set whenever SetFireOn or SetFireOff are selected
+                    aiFireOverride = true; // Set whenever SetFireOn or SetFireOff are selected
                 }
                 else if (BoilerPressurePSI < MaxBoilerPressurePSI && BoilerHeatSmoothedBTU < MaxBoilerHeatBTU && BoilerHeatBTU < MaxBoilerSafetyPressHeatBTU)
                 {
-                    AIFireOverride = false; // Reset if pressure and heat back to "normal"
+                    aiFireOverride = false; // Reset if pressure and heat back to "normal"
                 }
 
-                if (SetFireReset)  // Check FireReset Override command - resets fireoff and fireon override
+                switch (aiFireState)
                 {
-                    SetFireOff = false;
-                    SetFireOn = false;
-                    SetFireReset = false;
-                }
-
-                // Check FireOff Override command - allows player to force fire low in preparation for a station stop
-                if (SetFireOff)
-                {
-                    if (BoilerPressurePSI < MaxBoilerPressurePSI - 20.0f || BoilerHeatSmoothedBTU < 0.90f || (absSpeedMpS < 0.01f && throttle < 0.01f))
-                    {
-                        SetFireOff = false; // Disable FireOff if bolierpressure too low
-                    }
-
-                    BurnRateRawKGpS = 0.0035f;
-                }
-
-                // Check FireOn Override command - allows player to force the fire up in preparation for a station departure
-                if (SetFireOn)
-                {
-                    if ((BoilerHeatSmoothedBTU > 0.995f * MaxBoilerHeatBTU && absSpeedMpS > 10.0f) || BoilerPressurePSI > MaxBoilerPressurePSI || absSpeedMpS <= 10.0f && (BoilerHeatSmoothedBTU > MaxBoilerHeatBTU || BoilerHeatBTU > 1.1f * MaxBoilerSafetyPressHeatBTU))
-                    {
-                        SetFireOn = false; // Disable FireOn if bolierpressure and boilerheat back to "normal"
-                    }
-                    BurnRateRawKGpS = 0.9f * (float)Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
+                    case AiFireState.Off:
+                        if (BoilerPressurePSI < MaxBoilerPressurePSI - 20.0f || BoilerHeatSmoothedBTU < 0.90f || (absSpeedMpS < 0.01f && throttle < 0.01f))
+                        {
+                            aiFireState = AiFireState.None; // Disable FireOff if bolierpressure too low
+                        }
+                        BurnRateRawKGpS = 0.0035f;
+                        break;
+                    case AiFireState.On:
+                        if ((BoilerHeatSmoothedBTU > 0.995f * MaxBoilerHeatBTU && absSpeedMpS > 10.0f) || BoilerPressurePSI > MaxBoilerPressurePSI || absSpeedMpS <= 10.0f && (BoilerHeatSmoothedBTU > MaxBoilerHeatBTU || BoilerHeatBTU > 1.1f * MaxBoilerSafetyPressHeatBTU))
+                        {
+                            aiFireState = AiFireState.None; // Disable FireOn if bolierpressure and boilerheat back to "normal"
+                        }
+                        BurnRateRawKGpS = 0.9f * (float)Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
+                        break;
                 }
             }
+
+            if (aiFireState == AiFireState.Reset && System.Environment.TickCount64 > aiFireResetTicks)
+                aiFireState = AiFireState.None;
 
             float MinimumBurnRateKGpS = 0.0012626f; // Set minimum burn rate @ 10lb/hr
             BurnRateRawKGpS = MathHelper.Clamp(BurnRateRawKGpS, MinimumBurnRateKGpS, BurnRateRawKGpS); // ensure burnrate never goes to zero, unless the fire drops to an unacceptable level, or a fusible plug blows
@@ -2959,14 +3055,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 #region Safety Valve - AI Firing
                 // turn safety valves on if boiler heat is excessive, and fireman is not trying to raise steam for rising gradient by using the AI fire override
-                if (AIFireOverride && BoilerPressurePSI > MaxBoilerPressurePSI + SafetyValveStartPSI)
+                if (aiFireOverride && BoilerPressurePSI > MaxBoilerPressurePSI + SafetyValveStartPSI)
                 {
                     SignalEvent(TrainEvent.SteamSafetyValveOn);
                     SafetyIsOn = true;
                 }
 
                 // turn safety vales off if boiler heat has returned to "normal", fitreman is no longer in override mode
-                else if (!AIFireOverride && BoilerPressurePSI < MaxBoilerPressurePSI - SafetyValveDropPSI)
+                else if (!aiFireOverride && BoilerPressurePSI < MaxBoilerPressurePSI - SafetyValveDropPSI)
                 {
                     SignalEvent(TrainEvent.SteamSafetyValveOff);
                     SafetyIsOn = false;
@@ -3126,6 +3222,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (!IsGrateLimit)  // Provide message to player that grate limit has been exceeded
                 {
+                    carInfo["GrateLimit"] = Simulator.Catalog.GetString("Exceeded");
                     simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit exceeded - boiler heat rate cannot increase."));
                 }
                 IsGrateLimit = true;
@@ -3135,7 +3232,12 @@ namespace Orts.Simulation.RollingStocks
                 if (IsGrateLimit)  // Provide message to player that grate limit has now returned within limits
                 {
                     simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit return to normal."));
+                    grateNotificationTimeout = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
+                    carInfo["GrateLimit"] = Simulator.Catalog.GetString("Normal");
                 }
+                if (System.Environment.TickCount64 > grateNotificationTimeout)
+                    carInfo["GrateLimit"] = null;
+
                 IsGrateLimit = false;
             }
 
@@ -3280,7 +3382,7 @@ namespace Orts.Simulation.RollingStocks
             // Ai Fireman
             if (!FiringIsManual && BoilerPressurePSI > MaxBoilerPressurePSI) // For AI fireman stop excessive pressure
             {
-                if (!AIFireOverride)
+                if (!aiFireOverride)
                 {
                     BoilerPressurePSI = MaxBoilerPressurePSI;  // Check for AI firing
                 }
@@ -3293,7 +3395,7 @@ namespace Orts.Simulation.RollingStocks
             ApplyBoilerPressure();
 
             // Calculate cummulative steam consumption
-            CummulativeTotalSteamConsumptionLbs += PreviousTotalSteamUsageLBpS * (float)elapsedClockSeconds;
+            CumulativeTotalSteamConsumptionLbs += PreviousTotalSteamUsageLBpS * (float)elapsedClockSeconds;
         }
 
         private void ApplyBoilerPressure()
@@ -4485,7 +4587,6 @@ namespace Orts.Simulation.RollingStocks
                     TractiveEffortLbsF = 0.0f;
                 }
                 TractiveEffortLbsF = MathHelper.Clamp(TractiveEffortLbsF, 0, TractiveEffortLbsF);
-                DisplayTractiveEffortLbsF = TractiveEffortLbsF;
 
                 // Calculate IHP
                 // IHP = (MEP x CylStroke(ft) x cylArea(sq in) x No Strokes (/min)) / 33000) - this is per cylinder
@@ -4640,8 +4741,8 @@ namespace Orts.Simulation.RollingStocks
             // By default this model uses information based upon a "NYC 4-4-2 locomotive", for smaller locomotives this data is changed in the OR initialisation phase.
 
             if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting)
-                // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
-                // Don't use slip model when train is in auto pilot
+            // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
+            // Don't use slip model when train is in auto pilot
             {
                 float SlipCutoffPressureAtmPSI;
                 float SlipCylinderReleasePressureAtmPSI;
@@ -4998,7 +5099,7 @@ namespace Orts.Simulation.RollingStocks
                     // angular acceleration = (sum of forces * wheel radius) / moment of inertia
                     float AngAccRadpS2 = (float)(Dynamics.Force.FromLbf(SteamTangentialWheelForce - SteamStaticWheelForce) * DriverWheelRadiusM) / TotalMomentInertia;
 
- //                   Trace.TraceInformation("AngAcc {0}  Tang {1} Static {2} Radius {3} Inertia {4} WheelSpeed {5}", AngAccRadpS2, N.FromLbf(SteamTangentialWheelForce), N.FromLbf(SteamStaticWheelForce), DriverWheelRadiusM, TotalMomentInertia, FrictionWheelSpeedMpS);
+                    //                   Trace.TraceInformation("AngAcc {0}  Tang {1} Static {2} Radius {3} Inertia {4} WheelSpeed {5}", AngAccRadpS2, N.FromLbf(SteamTangentialWheelForce), N.FromLbf(SteamStaticWheelForce), DriverWheelRadiusM, TotalMomentInertia, FrictionWheelSpeedMpS);
                     // tangential acceleration = angular acceleration * wheel radius
                     // tangential speed = angular acceleration * time
                     PrevFrictionWheelSpeedMpS = FrictionWheelSpeedMpS; // Save current value of wheelspeed
@@ -5007,7 +5108,7 @@ namespace Orts.Simulation.RollingStocks
                     // Convert from radpS to MpS for the wheel size
                     var revsPs = wheelSpeedRadpS / (2.0f * (float)Math.PI); // Convert rads to revs
                     var diffWheelSpeedMpS = revsPs * 2.0f * (float)Math.PI * DriverWheelRadiusM;
-                    
+
                     // each wheel rev will travel the circumference of the wheel
                     FrictionWheelSpeedMpS += (float)diffWheelSpeedMpS;  // change wheel speed whilever wheel accelerating/decelerating
                     FrictionWheelSpeedMpS = MathHelper.Clamp(FrictionWheelSpeedMpS, 0.0f, 62.58f);  // Clamp wheel speed at maximum of 140mph (62.58 m/s)
@@ -5696,7 +5797,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // Determine if AI fireman should shovel coal despite the fact that boiler heat has exceeded max boiler heat - provides a crude "look ahead" capability. 
                 // Example - boiler heat excessive, and train faces heavy climb up grade, fire burn rate still needs to increase, despite the fact that AI code normally will try and reduce burn rate.
-                if (throttle > 0.98 && CurrentElevationPercent < -0.3 && BoilerHeatCheck > 1.25 && BoilerHeatExcess < 1.07)
+                if (throttle > 0.98 && CurrentElevationPercent > 0.3 && BoilerHeatCheck > 1.25 && BoilerHeatExcess < 1.07)
                 {
                     ShovelAnyway = true; // Fireman should be increasing fire burn rate despite high boiler heat
                 }
@@ -5919,793 +6020,10 @@ namespace Orts.Simulation.RollingStocks
             return data;
         }
 
-        public override string GetStatus()
-        {
-            // Set variable to change text colour as appropriate to flag different degrees of warning
-            var boilerPressurePercent = BoilerPressurePSI / MaxBoilerPressurePSI;
-            var boilerPressureSafety = "";
-            if (FiringIsManual || AIFireOverride)
-            {
-                boilerPressureSafety = boilerPressurePercent <= 0.25 || boilerPressurePercent > 1.0 ? "!!!" : boilerPressurePercent <= 0.5 || boilerPressurePercent > 0.985 ? "???" : "";
-            }
-            else
-            {
-                boilerPressureSafety = boilerPressurePercent <= 0.25 ? "!!!" : boilerPressurePercent <= 0.5 ? "???" : "";
-            }
-            var boilerWaterSafety = WaterFraction < WaterMinLevel || WaterFraction > WaterMaxLevel ? "!!!" : WaterFraction < WaterMinLevelSafe || WaterFraction > WaterMaxLevelSafe ? "???" : "";
-            var coalPercent = TenderCoalMassKG / MaxTenderCoalMassKG;
-            var waterPercent = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
-            var fuelSafety = CoalIsExhausted || WaterIsExhausted ? "!!!" : coalPercent <= 0.105 || waterPercent <= 0.105 ? "???" : "";
-            var steamusagesafety = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? "!!!" : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? "???" : "";
-
-            var status = new StringBuilder();
-
-            if (IsFixGeared)
-                status.AppendFormat("{0} = 1 ({1:F2})\n", Simulator.Catalog.GetString("Fixed gear"), SteamGearRatio);
-            else if (IsSelectGeared)
-                status.AppendFormat("{0} = {2} ({1:F2})\n", Simulator.Catalog.GetString("Gear"),
-                    SteamGearRatio, SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition.ToString());
-            status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI), steamusagesafety, FormatStrings.h);
-            status.AppendFormat("{0}{2} = {1}{2}\n", Simulator.Catalog.GetString("Boiler pressure"), FormatStrings.FormatPressure(BoilerPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true), boilerPressureSafety);
-            status.AppendFormat("{0}{2} = {1:F0}% {3}{2}\n", Simulator.Catalog.GetString("Boiler water glass"), 100 * waterGlassPercent, boilerWaterSafety, FiringIsManual ? Simulator.Catalog.GetString("(safe range)") : "");
-
-            if (FiringIsManual)
-            {
-                status.AppendFormat("{0}{3} = {2:F0}% {1}{3}\n", Simulator.Catalog.GetString("Boiler water level"), Simulator.Catalog.GetString("(absolute)"), WaterFraction * 100, boilerWaterSafety);
-                if (IdealFireMassKG > 0)
-                    status.AppendFormat("{0} = {1:F0}%\n", Simulator.Catalog.GetString("Fire mass"), FireMassKG / IdealFireMassKG * 100);
-                else
-                    status.AppendFormat("{0} = {1:F0}%\n", Simulator.Catalog.GetString("Fire Heat Loss"), FireHeatLossPercent * 100);
-            }
-
-            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * TenderWaterPercent, fuelSafety);
-
-            return status.ToString();
-        }
-
-        public override string GetDebugStatus()
-        {
-            var status = new StringBuilder(base.GetDebugStatus());
-            bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
-
-            status.AppendFormat("\n\n\t\t === {0} === \t\t\n", Simulator.Catalog.GetString("Key Inputs"));
-
-            status.AppendFormat("{0}\t\t{1}\n", Simulator.Catalog.GetString("Locomotive Type:"),
-                SteamLocoType);
-
-            status.AppendFormat("{0}\t{1}\t{6}\t{2}\t{7}\t{3}\t{8}\t{4}\t{9}\t{5}\t{10}\n",
-                Simulator.Catalog.GetString("Input:"),
-                Simulator.Catalog.GetString("Evap"),
-                Simulator.Catalog.GetString("Grate"),
-                Simulator.Catalog.GetString("Boiler"),
-                Simulator.Catalog.GetString("SuperHr"),
-                Simulator.Catalog.GetString("FuelCal"),
-                FormatStrings.FormatArea(EvaporationAreaM2, simulator.MetricUnits),
-                FormatStrings.FormatArea(GrateAreaM2, simulator.MetricUnits),
-                FormatStrings.FormatVolume(Size.Volume.FromFt3(BoilerVolumeFT3), simulator.MetricUnits),
-                FormatStrings.FormatArea(SuperheatAreaM2, simulator.MetricUnits),
-                FormatStrings.FormatEnergyDensityByMass(FuelCalorificKJpKG, simulator.MetricUnits));
-
-            status.AppendFormat("{0}\t{1}\t{2:N2}\t{3}\t{4:N3}\n",
-                Simulator.Catalog.GetString("Adj:"),
-                Simulator.Catalog.GetString("CylEff"),
-                CylinderEfficiencyRate,
-                Simulator.Catalog.GetString("PortOpen"),
-                CylinderPortOpeningFactor);
-
-            status.AppendFormat("\n\t\t === {0} === \t\t{1}/{2}\n",
-                Simulator.Catalog.GetString("Steam Production"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EvaporationLBpS)), simulator.MetricUnits),
-                FormatStrings.h);
-
-            status.AppendFormat("{0}\t{1}\t{5}\t{2}\t{6}\t{3}\t{7}/{8}\t\t{4}\t{9:N2}\n",
-                Simulator.Catalog.GetString("Boiler:"),
-                Simulator.Catalog.GetParticularString("HUD", "Power"),
-                Simulator.Catalog.GetString("Mass"),
-                Simulator.Catalog.GetString("MaxOutp"),
-                Simulator.Catalog.GetString("BoilerEff"),
-                FormatStrings.FormatPower(Dynamics.Power.FromKW(BoilerKW), simulator.MetricUnits, true, false),
-                FormatStrings.FormatMass(Mass.Kilogram.FromLb(BoilerMassLB), simulator.MetricUnits),
-                FormatStrings.FormatMass(Mass.Kilogram.FromLb(MaxBoilerOutputLBpH), simulator.MetricUnits),
-                FormatStrings.h,
-                BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
-
-            status.AppendFormat("{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t{8}\t\t{9}\t{10}\t\t{11}\t{12}\t\t{13}\t{14}\n",
-                Simulator.Catalog.GetString("Heat:"),
-                Simulator.Catalog.GetString("In"),
-                FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(BoilerHeatInBTUpS), simulator.MetricUnits, false, true),
-                Simulator.Catalog.GetString("Out"),
-                FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(PreviousBoilerHeatOutBTUpS), simulator.MetricUnits, false, true),
-                Simulator.Catalog.GetString("Rad"),
-                FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(Frequency.Periodic.FromHours(BoilerHeatRadiationLossBTU)), simulator.MetricUnits, false, true),
-                Simulator.Catalog.GetString("Stored"),
-                FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(BoilerHeatSmoothedBTU), simulator.MetricUnits),
-                Simulator.Catalog.GetString("Max"),
-                FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(MaxBoilerHeatBTU), simulator.MetricUnits),
-                Simulator.Catalog.GetString("Safety"),
-                FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(MaxBoilerSafetyPressHeatBTU), simulator.MetricUnits),
-                Simulator.Catalog.GetString("Raw"),
-                FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(BoilerHeatBTU), simulator.MetricUnits)
-                );
-
-            status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
-                Simulator.Catalog.GetString("Temp:"),
-                Simulator.Catalog.GetString("Flue"),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromK(FlueTempK), simulator.MetricUnits),
-                Simulator.Catalog.GetString("Water"),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromK(BoilerWaterTempK), simulator.MetricUnits),
-                Simulator.Catalog.GetString("MaxSupH"),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(MaxSuperheatRefTempF), simulator.MetricUnits),
-                Simulator.Catalog.GetString("CurSupH"),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(CurrentSuperheatTempF), simulator.MetricUnits));
-
-            status.AppendFormat("\n\t\t === {0} === \t\t{1}/{2}\n",
-                Simulator.Catalog.GetString("Steam Usage"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), simulator.MetricUnits),
-                FormatStrings.h);
-
-            if (!(BrakeSystem is VacuumSinglePipe))
-            {
-                // Display air compressor information
-                status.AppendFormat("{0}\t{1}\t{2}/{21}\t{3}\t{4}/{21}\t{5}\t{6}/{21}\t{7}\t{8}/{21}\t{9}\t{10}/{21}\t{11}\t{12}/{21}\t{13}\t{14}/{21}\t{15}\t{16}/{21}\t{17}\t{18}/{21} ({19}x{20:N1}\")\n",
-                    Simulator.Catalog.GetString("Usage:"),
-                    Simulator.Catalog.GetString("Cyl"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Blower"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Comprsr"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CompSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("SafetyV"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("CylCock"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Genertr"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Stoker"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("BlowD"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowdownSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("MaxSafe"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), simulator.MetricUnits),
-                    NumSafetyValves,
-                    SafetyValveSizeIn,
-                    FormatStrings.h);
-            }
-            else
-            {
-                // Display steam ejector information instead of air compressor
-                status.AppendFormat("{0}\t{1}\t{2}/{21}\t{3}\t{4}/{21}\t{5}\t{6}/{21}\t{7}\t{8}/{21}\t{9}\t{10}/{21}\t{11}\t{12}/{21}\t{13}\t{14}/{21}\t{15}\t{16}/{21}\t{17}\t{18}/{21} ({19}x{20:N1}\")\n",
-                    Simulator.Catalog.GetString("Usage:"),
-                    Simulator.Catalog.GetString("Cyl"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Blower"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Ejector"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("SafetyV"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("CylCock"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Genertr"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Stoker"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("BlowD"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowdownSteamUsageLBpS)), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("MaxSafe"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), simulator.MetricUnits),
-                    NumSafetyValves,
-                    SafetyValveSizeIn,
-                    FormatStrings.h);
-            }
-
-
-#if DEBUG_STEAM_CYLINDER_EVENTS
-
-            status.AppendFormat("{0}\t{1}\t{2:N2}\t{3}\t{4:N2}\t{5}\t{6:N2}\t{7}\t{8:N2}\t{9}\t{10:N2}\t{11}\t{12:N2}\n",
-            Simulator.Catalog.GetString("CylValve:"),
-            Simulator.Catalog.GetString("Travel"),
-            ValveTravel,
-            Simulator.Catalog.GetString("Cutoff"),
-            cutoff * 100,
-            Simulator.Catalog.GetString("Lead"),
-            ValveLead,
-            Simulator.Catalog.GetString("ExhLap"),
-            ValveExhLap,
-            Simulator.Catalog.GetString("StLap"),
-            ValveSteamLap,
-            Simulator.Catalog.GetString("AdvAng"),
-            ValveAdvanceAngleDeg
-              );
-            
-#endif
-
-
-            // Display steam cylinder events
-            status.AppendFormat("{0}\t{1}\t{2:N2}\t{3}\t{4:N2}\t{5}\t{6:N2}\t{7}\t{8:N3}\n",
-            Simulator.Catalog.GetString("CylEvts:"),
-            Simulator.Catalog.GetString("Cutoff"),
-            cutoff * 100,
-            Simulator.Catalog.GetString("CylExh"),
-            CylinderExhaustOpenFactor * 100,
-            Simulator.Catalog.GetString("CylComp"),
-            CylinderCompressionCloseFactor * 100,
-            Simulator.Catalog.GetString("CyAdmis"),
-            CylinderAdmissionOpenFactor * 100
-                             );
-
-            if (SteamEngineType == SteamEngineType.Compound)  // Display Steam Indicator Information for compound locomotive
-            {
-
-                // Display steam indicator pressures in HP cylinder
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
-                Simulator.Catalog.GetString("PressHP:"),
-                Simulator.Catalog.GetString("Chest"),
-                FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Initial"),
-                FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Cutoff"),
-                FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Rel"),
-                FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Back"),
-                FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("MEP"),
-                FormatStrings.FormatPressure(HPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true)
-                );
-
-                // Display steam indicator pressures in LP cylinder
-                status.AppendFormat("{0}\t\t\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
-                Simulator.Catalog.GetString("PressLP:"),
-                Simulator.Catalog.GetString("Initial"),
-                FormatStrings.FormatPressure(LogLPInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Cutoff"),
-                FormatStrings.FormatPressure(LogLPCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Rel"),
-                FormatStrings.FormatPressure(LogLPReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("Back"),
-                FormatStrings.FormatPressure(LogLPBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("MEP"),
-                FormatStrings.FormatPressure(LPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true)
-                );
-
-            }
-            else  // Display Steam Indicator Information for single expansion locomotive
-            {
-
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
-                Simulator.Catalog.GetString("Press:"),
-                    Simulator.Catalog.GetString("Chest"),
-                    FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("Initial"),
-                    FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("Cutoff"),
-                    FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("Rel"),
-                    FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("Back"),
-                    FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("MEP"),
-                    FormatStrings.FormatPressure(MeanEffectivePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)
-                    );
-            }
-
-            status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
-                Simulator.Catalog.GetString("Status:"),
-                Simulator.Catalog.GetString("Safety"),
-                SafetyIsOn ? Simulator.Catalog.GetString("Open") : Simulator.Catalog.GetString("Closed"),
-                Simulator.Catalog.GetString("Plug"),
-                FusiblePlugIsBlown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("Prime"),
-                BoilerIsPriming ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("Comp"),
-                CylinderCompoundOn ? Simulator.Catalog.GetString("Off") : Simulator.Catalog.GetString("On")
-                );
-
-#if DEBUG_LOCO_STEAM_USAGE
-            status.AppendFormat("{0}\t{1}\t{2:N2}\t{3}\t{4:N2}\t{5}\t{6:N2}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12:N2}\t{13}\t{14:N2}\t{15}\t{16:N2}\t{17}\t{18:N2}\t{19}\t{20:N2}\t{21}\t{22}\n",
-                "DbgUse:",
-                "SwpVol",
-                CylinderSweptVolumeFT3pFT,
-                "CutoffVol",
-                CylinderReleaseSteamVolumeFt3,
-                "CompVol",
-                CylinderAdmissionSteamVolumeFt3,
-                "RawSt",
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RawCalculatedCylinderSteamUsageLBpS)), simulator.MetricUnits),
-                "CalcSt",
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCylinderSteamUsageLBpS)), simulator.MetricUnits),
-                "ClrWt",
-                CylinderAdmissionSteamWeightLbs,
-                "CutWt",
-                CylinderReleaseSteamWeightLbs,
-                "TotWt",
-                RawCylinderSteamWeightLbs,
-                "SupFact",
-                SuperheaterSteamUsageFactor,
-                "CondFact",
-                CylinderCondensationFactor,
-                "SuperSet",
-                IsSuperSet);
-#endif
-
-            if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && this.IsLeadLocomotive() && Train.CarSteamHeatOn)
-            {
-                // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive, and steam heat valve is on.
-                // Display Steam Heat info
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}/{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16:N0}\n",
-                   Simulator.Catalog.GetString("StHeat:"),
-                   Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                   Simulator.Catalog.GetString("StTemp"),
-                   FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits),
-                   Simulator.Catalog.GetString("StUse"),
-                   FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits),
-                   FormatStrings.h,
-                   Simulator.Catalog.GetString("Last:"),
-                   Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                   Simulator.Catalog.GetString("Temp"),
-                   FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits),
-                   Simulator.Catalog.GetString("OutTemp"),
-                   FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits),
-                   Simulator.Catalog.GetString("NetHt"),
-                   Train.LastCar.carNetHeatFlowRateW);
-            }
-
-            status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Fireman"));
-            status.AppendFormat("{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}\t{6:N0}/{13}\t\t{7}\t{8:N0}/{13}\t\t{9}\t{10:N0}/{13}\t\t{11}\t{12}/{14}{13}\t{15}\t{16}/{18}{17}\t\t{19}\t{20:N0}\n",
-                Simulator.Catalog.GetString("Fire:"),
-                Simulator.Catalog.GetString("Ideal"),
-                FormatStrings.FormatMass(IdealFireMassKG, simulator.MetricUnits),
-                Simulator.Catalog.GetString("Actual"),
-                FormatStrings.FormatMass(FireMassKG, simulator.MetricUnits),
-                Simulator.Catalog.GetString("MaxFireR"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(DisplayMaxFiringRateKGpS), simulator.MetricUnits),
-                Simulator.Catalog.GetString("FeedRate"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(FuelFeedRateKGpS), simulator.MetricUnits),
-                Simulator.Catalog.GetString("BurnRate"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(FuelBurnRateSmoothedKGpS), simulator.MetricUnits),
-                Simulator.Catalog.GetString("Combust"),
-                FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateCombustionRateLBpFt2), simulator.MetricUnits),
-                FormatStrings.h,
-                simulator.MetricUnits ? FormatStrings.m2 : FormatStrings.ft2,
-                Simulator.Catalog.GetString("GrLimit"),
-                FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateLimitLBpFt2), simulator.MetricUnits),
-                FormatStrings.h,
-                simulator.MetricUnits ? FormatStrings.m2 : FormatStrings.ft2,
-                Simulator.Catalog.GetString("MaxBurn"),
-                MaxFiringRateLbpH
-                );
-
-#if DEBUG_LOCO_BURN_AI
-            status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4:N2}\t{5}\t{6:N2}\t{7}\t{8:N2}\t{9}\t{10:N2}\t{11}\t{12:N0}\t{13}\t{14:N0}\t{15}\t{16:N0}\t{17}\t{18:N0}\t{19}\t{20:N0}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\n {27}\t{28}\t{29:N3}\n",
-                "DbgBurn1:",
-                "BoilHeat",
-                FullBoilerHeat ? "Yes" : "No",
-                "H/R",
-                HeatRatio,
-                "BoilH/R",
-                FullBoilerHeatRatio,
-                "MBoilH/R",
-                MaxBoilerHeatRatio,
-                "PrRatio",
-                PressureRatio,
-                "FireHeat",
-                FireHeatTxfKW,
-                "RawBurn",
-                Frequency.Periodic.ToHours(Mass.Kilogram.ToLb( BurnRateRawKGpS)),
-                "RawHeat",
-                BoilerHeatBTU,
-                "SuperSet",
-                IsSuperSet,
-                "GratLmt",
-                GrateLimitLBpFt2,
-                "MaxFuel",
-                Frequency.Periodic.ToHours(Mass.Kilogram.ToLb( MaxFuelBurnGrateKGpS)),
-                "BstReset",
-                FuelBoostReset ? "Yes" : "No",
-                "ShAny",
-                ShovelAnyway,
-                "DbgBurn2:",
-                "FHLoss",
-                FireHeatLossPercent);
-#endif
-
-            status.AppendFormat("{0}\t{1}\t{6}/{12}\t\t({7:N0} {13})\t{2}\t{8}/{12}\t\t{3}\t{9}\t\t{4}\t{10}/{12}\t\t{5}\t{11}\n",
-                Simulator.Catalog.GetString("Injector:"),
-                Simulator.Catalog.GetString("Max"),
-                Simulator.Catalog.GetString("Inj1"),
-                Simulator.Catalog.GetString("Temp1"),
-                Simulator.Catalog.GetString("Inj2"),
-                Simulator.Catalog.GetString("Temp2"),
-                FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(MaxInjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, isUK),
-                InjectorSize,
-                FormatStrings.FormatFuelVolume(Injector1Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, isUK),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector1WaterDelTempF), simulator.MetricUnits),
-                FormatStrings.FormatFuelVolume(Injector2Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, isUK),
-                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector2WaterDelTempF), simulator.MetricUnits),
-                FormatStrings.h,
-                FormatStrings.mm);
-
-            if (SteamIsAuxTenderCoupled)
-            {
-                status.AppendFormat("{0}\t{1}\t{2}\t{3:N0}%\t{4}\t{5}\t\t{6:N0}%\t{7}\t{8}\t\t{9}\t{10}\t\t{11}\t{12:N0}\t{13}\t{14:N0}\n",
-                    Simulator.Catalog.GetString("Tender:"),
-                    Simulator.Catalog.GetString("Coal"),
-                    FormatStrings.FormatMass(TenderCoalMassKG, simulator.MetricUnits),
-                    TenderCoalMassKG / MaxTenderCoalMassKG * 100,
-                    Simulator.Catalog.GetString("Water(C)"),
-                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), simulator.MetricUnits, isUK),
-                    CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100,
-                    Simulator.Catalog.GetString("Water(T)"),
-                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentLocoTenderWaterVolumeUKG), simulator.MetricUnits, isUK),
-                    Simulator.Catalog.GetString("Water(A)"),
-                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentAuxTenderWaterVolumeUKG), simulator.MetricUnits, isUK),
-                    Simulator.Catalog.GetString("Steam"),
-                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("TotSteam"),
-                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CummulativeTotalSteamConsumptionLbs), simulator.MetricUnits)
-                    );
-            }
-            else
-            {
-                status.AppendFormat("{0}\t{1}\t{2}\t{3:N0}%\t{4}\t{5}\t\t{6:N0}%\t{7}\t{8:N0}\t{9}\t\t{10:N0}\n",
-                    Simulator.Catalog.GetString("Tender:"),
-                    Simulator.Catalog.GetString("Coal"),
-                    FormatStrings.FormatMass(TenderCoalMassKG, simulator.MetricUnits),
-                    TenderCoalMassKG / MaxTenderCoalMassKG * 100,
-                    Simulator.Catalog.GetString("Water"),
-                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), simulator.MetricUnits, isUK),
-                    CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100,
-                    Simulator.Catalog.GetString("Steam"),
-                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("TotSteam"),
-                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CummulativeTotalSteamConsumptionLbs), simulator.MetricUnits)
-                    );
-            }
-
-            status.AppendFormat("{0}\t{1}\t{2}\t\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\n",
-                Simulator.Catalog.GetString("Status:"),
-                Simulator.Catalog.GetString("CoalOut"),
-                CoalIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("WaterOut"),
-                WaterIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("FireOut"),
-                FireIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("Stoker"),
-                StokerIsMechanical ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("Boost"),
-                FuelBoost ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("GrLimit"),
-                IsGrateLimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("FireOn"),
-                SetFireOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("FireOff"),
-                SetFireOff ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                Simulator.Catalog.GetString("AIOR"),
-                AIFireOverride ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
-                );
-
-            if (SteamEngineType == SteamEngineType.Geared)
-            {
-                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Performance"));
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
-                    Simulator.Catalog.GetString("Power:"),
-                    Simulator.Catalog.GetString("MaxInd"),
-                    FormatStrings.FormatPower(Dynamics.Power.FromHp(DisplayMaxIndicatedHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("Ind"),
-                    FormatStrings.FormatPower(Dynamics.Power.FromHp(IndicatedHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("Drawbar"),
-                    FormatStrings.FormatPower(Dynamics.Power.FromHp(DrawbarHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("BlrLmt"),
-                    ISBoilerLimited ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"));
-
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
-                         Simulator.Catalog.GetString("Force:"),
-                         Simulator.Catalog.GetString("TheorTE"),
-                         FormatStrings.FormatForce(Dynamics.Force.FromLbf(DisplayMaxTractiveEffortLbf), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("StartTE"),
-                         FormatStrings.FormatForce(absStartTractiveEffortN, simulator.MetricUnits),
-                         Simulator.Catalog.GetString("TE"),
-                         FormatStrings.FormatForce(Dynamics.Force.FromLbf(DisplayTractiveEffortLbsF), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("Draw"),
-                         FormatStrings.FormatForce(Dynamics.Force.FromLbf(DrawBarPullLbsF), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("CritSpeed"),
-                         FormatStrings.FormatSpeedDisplay(Speed.MeterPerSecond.FromMpH(DisplayMaxLocoSpeedMpH), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("SpdLmt"),
-                         IsCritTELimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"));
-
-                status.AppendFormat("{0}\t{1}\t{2:N0} {7}/{8}\t\t{3}\t{4:N0} {9}\t{5} {6:N2}\t\t{10}\t{11}\n",
-                    Simulator.Catalog.GetString("Move:"),
-                    Simulator.Catalog.GetString("Piston"),
-                    simulator.MetricUnits ? Size.Length.FromFt(PistonSpeedFtpMin) : PistonSpeedFtpMin,
-                    Simulator.Catalog.GetString("DrvWhl"),
-                    Frequency.Periodic.ToMinutes(DrvWheelRevRpS),
-                    Simulator.Catalog.GetString("MF-Gear"),
-                    MotiveForceGearRatio,
-                    simulator.MetricUnits ? FormatStrings.m : FormatStrings.ft,
-                    FormatStrings.min,
-                    FormatStrings.rpm,
-                    Simulator.Catalog.GetString("Max-SpdF"),
-                    DisplaySpeedFactor
-
-                    );
-            }
-            else
-            {
-                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Performance"));
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
-                    Simulator.Catalog.GetString("Power:"),
-                    Simulator.Catalog.GetString("MaxInd"),
-                FormatStrings.FormatPower(Dynamics.Power.FromHp(MaxIndicatedHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("Ind"),
-                FormatStrings.FormatPower(Dynamics.Power.FromHp(IndicatedHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("Drawbar"),
-                FormatStrings.FormatPower(Dynamics.Power.FromHp(DrawbarHorsePowerHP), simulator.MetricUnits, false, false),
-                    Simulator.Catalog.GetString("BlrLmt"),
-                    ISBoilerLimited ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"));
-
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
-                         Simulator.Catalog.GetString("Force:"),
-                         Simulator.Catalog.GetString("TheorTE"),
-                     FormatStrings.FormatForce(Dynamics.Force.FromLbf(MaxTractiveEffortLbf), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("StartTE"),
-                         FormatStrings.FormatForce(absStartTractiveEffortN, simulator.MetricUnits),
-                         Simulator.Catalog.GetString("TE"),
-                     FormatStrings.FormatForce(Dynamics.Force.FromLbf(DisplayTractiveEffortLbsF), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("Draw"),
-                     FormatStrings.FormatForce(Dynamics.Force.FromLbf(DrawBarPullLbsF), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("CritSpeed"),
-                     FormatStrings.FormatSpeedDisplay(Speed.MeterPerSecond.FromMpH(MaxLocoSpeedMpH), simulator.MetricUnits),
-                         Simulator.Catalog.GetString("SpdLmt"),
-                         IsCritTELimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"));
-
-                status.AppendFormat("{0}\t{1}\t{2:N0} {7}/{8}\t\t{3}\t{4:N0} {9}\t{5} {6:N2}\t\t{10}\t{11}\n",
-                    Simulator.Catalog.GetString("Move:"),
-                    Simulator.Catalog.GetString("Piston"),
-                simulator.MetricUnits ? Size.Length.FromFt(PistonSpeedFtpMin) : PistonSpeedFtpMin,
-                    Simulator.Catalog.GetString("DrvWhl"),
-                Frequency.Periodic.ToMinutes(DrvWheelRevRpS),
-                    Simulator.Catalog.GetString("MF-Gear"),
-                    MotiveForceGearRatio,
-                    simulator.MetricUnits ? FormatStrings.m : FormatStrings.ft,
-                    FormatStrings.min,
-                    FormatStrings.rpm,
-                    Simulator.Catalog.GetString("Max-SpdF"),
-                    DisplaySpeedFactor
-
-                    );
-            }
-
-            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared) 
-                // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
-            {
-                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Slip Monitor"));
-                status.AppendFormat("{0}\t{1}\t{2:N0}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12:N2}\t{13}\t{14}\t{15:N2}\t{16}\t{17}\t{18:N1}\n",
-                    Simulator.Catalog.GetString("Slip:"),
-                    Simulator.Catalog.GetString("MForceN"),
-                    FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Piston"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartPistonForceLeftLbf), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Tang(c)"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartTangentialCrankWheelForceLbf), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Tang(t)"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamTangentialWheelForce), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Static"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamStaticWheelForce), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Coeff"),
-                    Train.LocomotiveCoefficientFriction,
-                    Simulator.Catalog.GetString("Slip"),
-                    IsLocoSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                    Simulator.Catalog.GetString("WheelM"),
-                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("FoA"),
-                    CalculatedFactorofAdhesion);
-
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4:N2}\t{5}\t{6:N2}\n",
-                Simulator.Catalog.GetString("Sand:"),
-                Simulator.Catalog.GetString("S/Use"),
-                FormatStrings.FormatVolume(TrackSanderSandConsumptionM3pS, simulator.MetricUnits),
-                Simulator.Catalog.GetString("S/Box"),
-                FormatStrings.FormatVolume(CurrentTrackSandBoxCapacityM3, simulator.MetricUnits),
-                Simulator.Catalog.GetString("M/Press"),
-                MainResPressurePSI);
-            }
-
-#if DEBUG_STEAM_EFFECTS
-            status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6:N2}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12:N2}\t{13}\t{14:N2}\t{15}\t{16:N2}\t{17}\t{18:N2}\t{19}\t{20:N2}\n",
-                "StEff#1:",
-                "Cyl1Vel",
-                Cylinders1SteamVelocityMpS,
-                "Cyl1Vol",
-                Cylinders1SteamVolumeM3pS,
-                "Cyl1Dur",
-                Cylinder1ParticleDurationS,
-                "Cyl2Vel",
-                Cylinders2SteamVelocityMpS,
-                "Cyl2Vol",
-                Cylinders2SteamVolumeM3pS,
-                "Cyl2Dur",
-                Cylinder2ParticleDurationS,
-                "CockTime",
-                CylinderCockOpenTimeS,
-                "SVVel",
-                SafetyValvesSteamVelocityMpS,
-                "SVVol",
-                SafetyValvesSteamVolumeM3pS,
-                "SVDur",
-                SafetyValvesParticleDurationS
-                );
-
-            status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6:N2}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12:N2}\n",
-                "StEff#2:",
-                "CompVel",
-                CompressorSteamVelocityMpS,
-                "CompVol",
-                CompressorSteamVolumeM3pS,
-                "CompDur",
-                CompressorParticleDurationS,
-                "Inj1Vel",
-                Injector1SteamVelocityMpS,
-                "Inj1Vol",
-                Injector1SteamVolumeM3pS,
-                "Inj1Dur",
-                Injector1ParticleDurationS
-                );
-
-#endif
-
-#if DEBUG_STEAM_SLIP_HUD
-
-                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Slip Debug"));
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
-                    Simulator.Catalog.GetString("Start:"),
-                    Simulator.Catalog.GetString("CyPressL"),
-                    FormatStrings.FormatPressure(CrankLeftCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("CyPressR"),
-                    FormatStrings.FormatPressure(CrankRightCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("Tang(c)"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartTangentialCrankWheelForceLbf), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Tang(t)"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartTangentialWheelTreadForceLbf), simulator.MetricUnits),
-                    Simulator.Catalog.GetString("Static"),
-                    FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartStaticWheelFrictionForceLbf), simulator.MetricUnits)
-                );
-
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
-                  Simulator.Catalog.GetString("Speed:"),
-                  Simulator.Catalog.GetString("CyPressL"),
-                  FormatStrings.FormatPressure(CrankLeftCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
-                  Simulator.Catalog.GetString("CyPressR"),
-                  FormatStrings.FormatPressure(CrankRightCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
-                  Simulator.Catalog.GetString("Tang(c)"),
-                  FormatStrings.FormatForce(Dynamics.Force.FromLbf(SpeedTotalTangCrankWheelForceLbf), simulator.MetricUnits),
-                  Simulator.Catalog.GetString("Tang(t)"),
-                  FormatStrings.FormatForce(Dynamics.Force.FromLbf(SpeedTangentialWheelTreadForceLbf), simulator.MetricUnits),
-                  Simulator.Catalog.GetString("Static"),
-                  FormatStrings.FormatForce(Dynamics.Force.FromLbf(SpeedStaticWheelFrictionForceLbf), simulator.MetricUnits)
-                );
-
-                status.AppendFormat("{0}\t{1}\t{2}\n",
-                      Simulator.Catalog.GetString("Wheel:"),
-                      Simulator.Catalog.GetString("TangSp"),
-                FrictionWheelSpeedMpS
-                );
-
-
-#endif
-
-
-#if DEBUG_STEAM_SOUND_VARIABLES
-
-            status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Sound Variables"));
-            status.AppendFormat("{0}\t{1:N2}\t{2}\t{3:N2}\t{4}\t{5:N2}\n",
-              Simulator.Catalog.GetString("V1:"),
-              Variable1,
-              Simulator.Catalog.GetString("V2:"),
-              Variable2,
-              Simulator.Catalog.GetString("V3:"),
-              Variable3
-              );
-
-#endif
-
-            // If vacuum braked display information on ejectors
-            if ((BrakeSystem is VacuumSinglePipe))
-            {
-
-                status.AppendFormat("\n\t\t\t === {0} === \t\t{1}/{2}\n",
-                Simulator.Catalog.GetString("Ejector / Vacuum Pump"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), simulator.MetricUnits),
-                FormatStrings.h);
-
-                status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}/{5}\t{6}\t{7:N2}\t{8}\t{9}",
-                Simulator.Catalog.GetString("Large:"),
-                Simulator.Catalog.GetString("Press"),
-                FormatStrings.FormatPressure(SteamEjectorLargePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                Simulator.Catalog.GetString("StCons"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorLargeSteamConsumptionLbpS)), simulator.MetricUnits),
-                FormatStrings.h,
-                Simulator.Catalog.GetString("Rate"),
-                LargeEjectorBrakePipeChargingRatePSIorInHgpS,
-                Simulator.Catalog.GetString("Lg Ej"),
-                LargeSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
-                );
-
-                if (SmallEjectorControllerFitted) // only display small ejector if fitted.
-                {
-                    status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}/{5}\t{6}\t{7:N2}\t{8}\t{9}",
-                    Simulator.Catalog.GetString("Small:"),
-                    Simulator.Catalog.GetString("Press"),
-                    FormatStrings.FormatPressure(SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
-                    Simulator.Catalog.GetString("StCons"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorSmallSteamConsumptionLbpS)), simulator.MetricUnits),
-                    FormatStrings.h,
-                    Simulator.Catalog.GetString("Rate"),
-                    SmallEjectorBrakePipeChargingRatePSIorInHgpS,
-                    Simulator.Catalog.GetString("Sm Ej"),
-                    SmallSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
-                    );
-                }
-
-                if (VacuumPumpFitted) // only display vacuum pump if fitted.
-                {
-                    status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}\t{5}\t{6}",
-                    Simulator.Catalog.GetString("Vac:"),
-                    Simulator.Catalog.GetString("Out"),
-                    VacuumPumpOutputFt3pM,
-                    Simulator.Catalog.GetString("Rate"),
-                    VacuumPumpChargingRateInHgpS,
-                    Simulator.Catalog.GetString("Pump"),
-                    VacuumPumpOperating ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
-                    );
-                }
-
-                status.AppendFormat("\t{0}\t{1:N2}\t{2}\t{3:N2}\n",
-                    Simulator.Catalog.GetString("Leak:"),
-                    TrainBrakePipeLeakPSIorInHgpS,
-                    Simulator.Catalog.GetString("Net:"),
-                    HUDNetBPLossGainPSI
-                    );
-
-
-            }
-
-            // If a water scoop fitted display relevant debug info for the player train only
-            if (IsPlayerTrain && HasWaterScoop)
-            {
-                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Water Scoop"));
-                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\n",
-                Simulator.Catalog.GetString("Fill:"),
-               Simulator.Catalog.GetString("ScDwn"),
-               IsWaterScoopDown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-               Simulator.Catalog.GetString("ScBrk"),
-               ScoopIsBroken ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-               Simulator.Catalog.GetString("Min"),
-               FormatStrings.FormatSpeedDisplay(WaterScoopMinSpeedMpS, simulator.MetricUnits),
-               Simulator.Catalog.GetString("WaVel"),
-               FormatStrings.FormatSpeedDisplay(WaterScoopVelocityMpS, simulator.MetricUnits),
-               Simulator.Catalog.GetString("Drag"),
-               FormatStrings.FormatForce(WaterScoopDragForceN, simulator.MetricUnits),
-               Simulator.Catalog.GetString("WaterU"),
-               FormatStrings.FormatFuelVolume(WaterScoopedQuantityLpS, simulator.MetricUnits, isUK),
-               Simulator.Catalog.GetString("Input"),
-               FormatStrings.FormatFuelVolume(WaterScoopInputAmountL, simulator.MetricUnits, isUK),
-               Simulator.Catalog.GetString("Total"),
-               FormatStrings.FormatFuelVolume(WaterScoopTotalWaterL, simulator.MetricUnits, isUK)
-
-               );
-            }
-
-            return status.ToString();
-        }
-
         // Gear Box
-
         public void SteamStartGearBoxIncrease()
         {
-            if (IsSelectGeared)
+            if (selectGeared)
             {
                 if (throttle == 0)   // only change gears if throttle is at zero
                 {
@@ -6720,8 +6038,6 @@ namespace Orts.Simulation.RollingStocks
                             MotiveForceGearRatio = 0.0f;
                             DisplayMaxLocoSpeedMpH = 0.0f;
                             SteamGearRatio = 0.0f;
-                            DisplayMaxTractiveEffortLbf = 0.0f;
-                            DisplayMaxIndicatedHorsePowerHP = 0.0f;
                             DrawbarHorsePowerHP = 0.0f;
                             DrawBarPullLbsF = 0.0f;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
@@ -6739,7 +6055,6 @@ namespace Orts.Simulation.RollingStocks
                             SignalEvent(TrainEvent.GearPosition1);
 
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio);
-                            DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
 
                             // If value set in ENG file then hold to this value, otherwise calculate the value
                             if (RetainedGearedMaxMaxIndicatedHorsePowerHP != 0)
@@ -6762,8 +6077,6 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 ISBoilerLimited = false;
                             }
-
-                            DisplayMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
                         }
                         else if (SteamGearPosition == 2.0)
                         {
@@ -6776,7 +6089,6 @@ namespace Orts.Simulation.RollingStocks
                             SignalEvent(TrainEvent.GearPosition2);
 
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
-                            DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
 
                             // If value set in ENG file then hold to this value, otherwise calculate the value
                             if (RetainedGearedMaxMaxIndicatedHorsePowerHP != 0)
@@ -6799,8 +6111,6 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 ISBoilerLimited = false;
                             }
-
-                            DisplayMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
                         }
                     }
                 }
@@ -6819,7 +6129,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void SteamStartGearBoxDecrease()
         {
-            if (IsSelectGeared)
+            if (selectGeared)
             {
                 if (throttle == 0)  // only change gears if throttle is at zero
                 {
@@ -6837,7 +6147,6 @@ namespace Orts.Simulation.RollingStocks
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
                             SteamGearRatio = SteamGearRatioLow;
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
-                            DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
                             SignalEvent(TrainEvent.GearPosition1);
 
@@ -6862,9 +6171,6 @@ namespace Orts.Simulation.RollingStocks
                             {
                                 ISBoilerLimited = false;
                             }
-
-                            DisplayMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
-
                         }
                         else if (SteamGearPosition == 0.0)
                         {
@@ -6873,8 +6179,6 @@ namespace Orts.Simulation.RollingStocks
                             MotiveForceGearRatio = 0.0f;
                             DisplayMaxLocoSpeedMpH = 0.0f;
                             SteamGearRatio = 0.0f;
-                            DisplayMaxTractiveEffortLbf = 0.0f;
-                            DisplayMaxIndicatedHorsePowerHP = 0.0f;
                             DrawbarHorsePowerHP = 0.0f;
                             DrawBarPullLbsF = 0.0f;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
@@ -7055,9 +6359,15 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                    break;
+                case MidpointDirection.N:
+                    simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                    break;
+                case MidpointDirection.Forward:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                    break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7074,9 +6384,15 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = simulator.ClockTime;
             switch (Direction)
             {
-                case MidpointDirection.Reverse: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case MidpointDirection.N: simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case MidpointDirection.Forward: simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off);
+                    break;
+                case MidpointDirection.N:
+                    simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral);
+                    break;
+                case MidpointDirection.Forward:
+                    simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On);
+                    break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7579,13 +6895,11 @@ namespace Orts.Simulation.RollingStocks
                 {
                     // Calculate maximum tractive effort if set for compounding
                     MaxTractiveEffortLbf = (float)(CylinderEfficiencyRate * (1.6f * MaxBoilerPressurePSI * Size.Length.ToIn(LPCylinderDiameterM) * Size.Length.ToIn(LPCylinderDiameterM) * Size.Length.ToIn(LPCylinderStrokeM)) / ((CompoundCylinderRatio + 1.0f) * (Size.Length.ToIn(DriverWheelRadiusM * 2.0f))));
-                    DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
                 else // Compound bypass valve opened - operating in simple mode
                 {
                     // Calculate maximum tractive effort if set to simple operation
                     MaxTractiveEffortLbf = (float)(CylinderEfficiencyRate * (1.6f * MaxBoilerPressurePSI * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM)) / (Size.Length.ToIn(DriverWheelRadiusM * 2.0f)));
-                    DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
             }
         }
@@ -7634,24 +6948,21 @@ namespace Orts.Simulation.RollingStocks
 
         public void AIFireOn()
         {
-            SetFireOn = true;
+            aiFireState = AiFireState.On;
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has started adding fuel to fire"));
-            SetFireOff = false;
         }
 
         public void AIFireOff()
         {
-            SetFireOff = true;
+            aiFireState = AiFireState.Off;
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has stopped adding fuel to fire"));
-            SetFireOn = false;
         }
 
         public void AIFireReset()
         {
-            SetFireReset = true;
+            aiFireState = AiFireState.Reset;
+            aiFireResetTicks = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has been reset"));
-            SetFireOff = false;
-            SetFireOn = false;
         }
 
         /// <summary>
@@ -7661,8 +6972,10 @@ namespace Orts.Simulation.RollingStocks
         /// <returns>Matching controller or null</returns>
         public override MSTSNotchController GetRefillController(PickupType type)
         {
-            if (type == PickupType.FuelCoal) return FuelController;
-            if (type == PickupType.FuelWater) return WaterController;
+            if (type == PickupType.FuelCoal)
+                return FuelController;
+            if (type == PickupType.FuelWater)
+                return WaterController;
             return null;
         }
 
@@ -7743,15 +7056,19 @@ namespace Orts.Simulation.RollingStocks
             if (Train.MUReverserPercent == 100)
             {
                 Train.MUReverserPercent = 25;
-                if ((Flipped ^ UsingRearCab)) CutoffController.SetValue(-0.25f);
-                else CutoffController.SetValue(0.25f);
+                if ((Flipped ^ UsingRearCab))
+                    CutoffController.SetValue(-0.25f);
+                else
+                    CutoffController.SetValue(0.25f);
 
             }
             else if (Train.MUReverserPercent == -100)
             {
                 Train.MUReverserPercent = -25;
-                if ((Flipped ^ UsingRearCab)) CutoffController.SetValue(0.25f);
-                else CutoffController.SetValue(-0.25f);
+                if ((Flipped ^ UsingRearCab))
+                    CutoffController.SetValue(0.25f);
+                else
+                    CutoffController.SetValue(-0.25f);
 
             }
             base.SwitchToPlayerControl();
@@ -7759,7 +7076,8 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SwitchToAutopilotControl()
         {
-            if (Train.MUDirection != MidpointDirection.Forward) SignalEvent(TrainEvent.ReverserChange);
+            if (Train.MUDirection != MidpointDirection.Forward)
+                SignalEvent(TrainEvent.ReverserChange);
             Train.MUDirection = MidpointDirection.Forward;
             Train.MUReverserPercent = 100;
             base.SwitchToAutopilotControl();
@@ -7780,5 +7098,318 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        private protected override void UpdateCarStatus()
+        {
+            base.UpdateCarStatus();
+
+            bool ukUnits = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+
+            carInfo["Steam Locomotive type"] = steamLocoType;
+            // Set variable to change text colour as appropriate to flag different degrees of warning
+            var boilerPressurePercent = BoilerPressurePSI / MaxBoilerPressurePSI;
+
+            float coalPercent = TenderCoalMassKG / MaxTenderCoalMassKG;
+            float waterPercent = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
+
+            if (fixGeared)
+                carInfo["FixedGear"] = $"= 1 ({SteamGearRatio:F2})";
+            else if (selectGeared)
+                carInfo["Gear"] = $"= {(SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition)} ({SteamGearRatio:F2})";
+            carInfo["SteamUsage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI)}/{FormatStrings.h}";
+            carInfo["BoilerPressure"] = $"{FormatStrings.FormatPressure(BoilerPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)}";
+            carInfo["BoilerWaterGlass"] = $"{100 * waterGlassPercent:F0}%{(FiringIsManual ? " " + Simulator.Catalog.GetString("(safe range)") : "")}";
+
+            if (FiringIsManual)
+            {
+                carInfo["BoilerWaterLevel"] = $"{WaterFraction * 100:F0}% {Simulator.Catalog.GetString("(absolute)")}";
+                carInfo.FormattingOptions["BoilerWaterLevel"] = carInfo.FormattingOptions["BoilerWaterGlass"];
+                if (IdealFireMassKG > 0)
+                {
+                    carInfo["FireMass"] = $"{FireMassKG / IdealFireMassKG * 100:F0}%";
+                    carInfo["FireHeatLoss"] = null;
+                }
+                else
+                {
+                    carInfo["FireMass"] = null;
+                    carInfo["FireHeatLoss"] = $"{FireHeatLossPercent * 100:F0}%";
+                }
+            }
+            else
+            {
+                carInfo["BoilerWaterLevel"] = null;
+                carInfo.FormattingOptions["BoilerWaterLevel"] = null;
+                carInfo["FireMass"] = null;
+                carInfo["FireHeatLoss"] = null;
+            }
+            carInfo["FuelLevelCoal"] = $"{100 * coalPercent:F0}%";
+            carInfo["FuelLevelWater"] = $"{100 * TenderWaterPercent:F0}%";
+
+            float bandUpper = PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
+            float bandLower = PreviousBoilerHeatOutBTUpS * 0.975f; // find lower bandwidth point - gives a total 5% bandwidth
+
+            if (BoilerHeatInBTUpS > bandLower && BoilerHeatInBTUpS < bandUpper)
+            {
+                carInfo["HeatingStatus"] = FormatStrings.Markers.Diamond;
+                carInfo.FormattingOptions["HeatingStatus"] = null;
+            }
+            else if (BoilerHeatInBTUpS < bandLower)
+            {
+                carInfo["HeatingStatus"] = FormatStrings.Markers.ArrowDownSmall;
+                carInfo.FormattingOptions["HeatingStatus"] = FormatOption.RegularCyan;
+            }
+            else if (BoilerHeatInBTUpS > bandUpper)
+            {
+                carInfo["HeatingStatus"] = FormatStrings.Markers.ArrowUpSmall;
+                carInfo.FormattingOptions["HeatingStatus"] = FormatOption.RegularOrange;
+            }
+
+            // Grate limit
+            carInfo.FormattingOptions["GrateLimit"] = IsGrateLimit ? FormatOption.RegularOrangeRed : null;
+
+            carInfo["AIFireMan"] = aiFireState switch
+            {
+                AiFireState.Off => Simulator.Catalog.GetString("Off"),
+                AiFireState.On => Simulator.Catalog.GetString("On"),
+                AiFireState.Reset => Simulator.Catalog.GetString("Reset"),
+                _ => null,
+            };
+            carInfo.FormattingOptions["AIFireMan"] = aiFireState is AiFireState.Reset ? FormatOption.RegularCyan : null;
+
+            carInfo.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["SteamUsage"] = PreviousTotalSteamUsageLBpS > EvaporationLBpS ? FormatOption.RegularOrangeRed : PreviousTotalSteamUsageLBpS > EvaporationLBpS * 0.95f ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["FuelLevelCoal"] = CoalIsExhausted ? FormatOption.RegularOrangeRed : coalPercent <= 0.105 ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["FuelLevelWater"] = WaterIsExhausted ? FormatOption.RegularOrangeRed : waterPercent <= 0.105 ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["BoilerWaterGlass"] = WaterFraction < WaterMinLevel || WaterFraction > WaterMaxLevel ? FormatOption.RegularOrangeRed : WaterFraction < WaterMinLevelSafe || WaterFraction > WaterMaxLevelSafe ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["BoilerPressure"] = FiringIsManual || aiFireOverride
+                ? boilerPressurePercent is <= (float)0.25 or > (float)1.0 ? FormatOption.RegularOrangeRed
+                : boilerPressurePercent is <= (float)0.5 or > (float)0.985 ? FormatOption.RegularYellow : null
+                : boilerPressurePercent <= 0.25 ? FormatOption.RegularOrangeRed : boilerPressurePercent <= 0.5 ? FormatOption.RegularYellow : null;
+
+            carInfo[".Input"] = null;
+            carInfo["Input"] = null;
+            carInfo["Evaporation Area"] = FormatStrings.FormatArea(EvaporationAreaM2, simulator.MetricUnits);
+            carInfo["Grate Area"] = FormatStrings.FormatArea(GrateAreaM2, simulator.MetricUnits);
+            carInfo["Boiler Volume"] = FormatStrings.FormatVolume(Size.Volume.FromFt3(BoilerVolumeFT3), simulator.MetricUnits);
+            carInfo["Superheat Area"] = FormatStrings.FormatArea(SuperheatAreaM2, simulator.MetricUnits);
+            carInfo["Fuel Calorific"] = FormatStrings.FormatEnergyDensityByMass(FuelCalorificKJpKG, simulator.MetricUnits);
+
+            carInfo["Cylinder Efficiency"] = $"{CylinderEfficiencyRate:N2}";
+            carInfo["Port Opening Factor"] = $"{CylinderPortOpeningFactor:N3}";
+
+            carInfo[".Steam Production"] = null;
+            carInfo["Steam Production"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EvaporationLBpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+            carInfo["Boiler Power"] = FormatStrings.FormatPower(Dynamics.Power.FromKW(BoilerKW), simulator.MetricUnits, true, false);
+
+            carInfo["Mass"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(BoilerMassLB), simulator.MetricUnits);
+            carInfo["Max Output"] = $"{FormatStrings.FormatMass(Mass.Kilogram.FromLb(MaxBoilerOutputLBpH), simulator.MetricUnits)}/{FormatStrings.h}";
+            carInfo["Boiler Effiency"] = $"{BoilerEfficiencyGrateAreaLBpFT2toX[Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2)]:N2}";
+
+            carInfo["Heat In"] = FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(BoilerHeatInBTUpS), simulator.MetricUnits, false, true);
+            carInfo["Heat Out"] = FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(PreviousBoilerHeatOutBTUpS), simulator.MetricUnits, false, true);
+            carInfo["Radiation"] = FormatStrings.FormatPower(Dynamics.Power.FromBTUpS(Frequency.Periodic.FromHours(BoilerHeatRadiationLossBTU)), simulator.MetricUnits, false, true);
+            carInfo["Stored Heat"] = FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(BoilerHeatSmoothedBTU), simulator.MetricUnits);
+            carInfo["Max Heat"] = FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(MaxBoilerHeatBTU), simulator.MetricUnits);
+            carInfo["Safety Heat"] = FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(MaxBoilerSafetyPressHeatBTU), simulator.MetricUnits);
+            carInfo["Raw Heat"] = FormatStrings.FormatEnergy(Dynamics.Power.FromBTUpS(BoilerHeatBTU), simulator.MetricUnits);
+
+            carInfo["Steam Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromK(FlueTempK), simulator.MetricUnits);
+            carInfo["Water Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromK(BoilerWaterTempK), simulator.MetricUnits);
+            carInfo["Max Superheat Temp"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(MaxSuperheatRefTempF), simulator.MetricUnits);
+            carInfo["Current Superheat Temp"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(CurrentSuperheatTempF), simulator.MetricUnits);
+
+            carInfo[".Steam Usage"] = null;
+            carInfo["Steam Usage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+
+            carInfo["Cylinder Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), simulator.MetricUnits);
+            carInfo["Blower Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), simulator.MetricUnits);
+            if (BrakeSystem is not VacuumSinglePipe)
+            {
+                // Display air compressor information
+                carInfo["Compressor Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CompSteamUsageLBpS)), simulator.MetricUnits);
+            }
+            else
+            {
+                // Display steam ejector information instead of air compressor
+                carInfo["Ejector Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), simulator.MetricUnits);
+            }
+            carInfo["Safety Valve Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), simulator.MetricUnits);
+            carInfo["Cyclinder Cock Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), simulator.MetricUnits);
+            carInfo["Generator Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), simulator.MetricUnits);
+            carInfo["Stoker Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), simulator.MetricUnits);
+            carInfo["Blowdown Steam Usage"] = FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowdownSteamUsageLBpS)), simulator.MetricUnits);
+            carInfo["Max Safety Steam Usage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), simulator.MetricUnits)}/{FormatStrings.h} ({NumSafetyValves}x{SafetyValveSizeIn:N1}\")";
+
+            // Display steam cylinder events
+            carInfo["Cyclinder Steam CutOff"] = $"{cutoff * 100:N2}";
+            carInfo["Cyclinder Exhaust Factor"] = $"{CylinderExhaustOpenFactor * 100:N2}";
+            carInfo["Cyclinder Compression Factor"] = $"{CylinderCompressionCloseFactor * 100:N2}";
+            carInfo["Cyclinder Admission Factor CutOff"] = $"{CylinderAdmissionOpenFactor * 100:N3}";
+
+            if (SteamEngineType == SteamEngineType.Compound)  // Display Steam Indicator Information for compound locomotive
+            {
+                // Display steam indicator pressures in HP cylinder
+                carInfo["HP Cylinder Pressure"] = null;
+                carInfo["HP Chest Pressure"] = FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["HP Initial Pressure"] = FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["HP CutOff Pressure"] = FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["HP Release Pressure"] = FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["HP Back Pressure"] = FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["HP MEP Pressure"] = FormatStrings.FormatPressure(HPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true);
+
+                // Display steam indicator pressures in LP cylinder
+                carInfo["LP Initial Pressure"] = FormatStrings.FormatPressure(LogLPInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["LP CutOff Pressure"] = FormatStrings.FormatPressure(LogLPCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["LP Release Pressure"] = FormatStrings.FormatPressure(LogLPReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["LP Back Pressure"] = FormatStrings.FormatPressure(LogLPBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["LP MEP Pressure"] = FormatStrings.FormatPressure(LPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true);
+            }
+            else  // Display Steam Indicator Information for single expansion locomotive
+            {
+                carInfo["Cylinder Pressure"] = null;
+                carInfo["Chest Pressure"] = FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Initial Pressure"] = FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["CutOff Pressure"] = FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Release Pressure"] = FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Back Pressure"] = FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["MEP Pressure"] = FormatStrings.FormatPressure(HPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true);
+            }
+
+            carInfo["Steam Status"] = null;
+            carInfo["Safety Valve"] = SafetyIsOn ? Simulator.Catalog.GetString("Open") : Simulator.Catalog.GetString("Closed");
+            carInfo["Fusible Plug Blown"] = FusiblePlugIsBlown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Boiler Prime"] = BoilerIsPriming ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Cylinder Compound"] = CylinderCompoundOn ? Simulator.Catalog.GetString("Off") : Simulator.Catalog.GetString("On");
+
+            carInfo[".Fireman"] = null;
+            carInfo["Fireman"] = null;
+            carInfo["Ideal Fire Mass"] = FormatStrings.FormatMass(IdealFireMassKG, simulator.MetricUnits);
+            carInfo["Actual Fire Mass"] = FormatStrings.FormatMass(FireMassKG, simulator.MetricUnits);
+            carInfo["Max Fire Rate"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(DisplayMaxFiringRateKGpS), simulator.MetricUnits):N0}/{FormatStrings.h}";
+            carInfo["Feed Rate"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(FuelFeedRateKGpS), simulator.MetricUnits):N0}/{FormatStrings.h}";
+            carInfo["Burn Rate"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(FuelBurnRateSmoothedKGpS), simulator.MetricUnits):N0}/{FormatStrings.h}";
+            carInfo["Combust Rate"] = $"{FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateCombustionRateLBpFt2), simulator.MetricUnits):N0}/{(simulator.MetricUnits ? FormatStrings.m2 : FormatStrings.ft2)}{FormatStrings.h}";
+            carInfo["Grate Limit"] = $"{FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateLimitLBpFt2), simulator.MetricUnits):N0}/{(simulator.MetricUnits ? FormatStrings.m2 : FormatStrings.ft2)}{FormatStrings.h}";
+            carInfo["Max Burn Rate"] = $"{MaxFiringRateLbpH:N0}";
+            carInfo["Injector"] = null;
+            carInfo["Injector Max Flowrate"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(MaxInjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, ukUnits)}/{FormatStrings.h} ({InjectorSize:N0} {FormatStrings.mm})";
+            carInfo["Injector 1"] = $"{FormatStrings.FormatFuelVolume(Injector1Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, ukUnits)}/{FormatStrings.h}";
+            carInfo["Injector 1 Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector1WaterDelTempF), simulator.MetricUnits);
+            carInfo["Injector 2"] = $"{FormatStrings.FormatFuelVolume(Injector2Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), simulator.MetricUnits, ukUnits)}/{FormatStrings.h}";
+            carInfo["Injector 2 Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector2WaterDelTempF), simulator.MetricUnits);
+            carInfo["Tender"] = null;
+            carInfo["Tender Coal"] = $"{FormatStrings.FormatMass(TenderCoalMassKG, simulator.MetricUnits)} ({TenderCoalMassKG / MaxTenderCoalMassKG * 100:N0}%)";
+            carInfo["Tender Steam"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), simulator.MetricUnits);
+            carInfo["Tender Steam Cumulative"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeTotalSteamConsumptionLbs), simulator.MetricUnits);
+            if (SteamIsAuxTenderCoupled)
+            {
+                carInfo["Tender Water (Combined)"] = $"{FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), simulator.MetricUnits, ukUnits)} ({CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100:N0}%)";
+                carInfo["Tender Water (Tender)"] = FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentLocoTenderWaterVolumeUKG), simulator.MetricUnits, ukUnits);
+                carInfo["Tender Water (Aux)"] = FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentAuxTenderWaterVolumeUKG), simulator.MetricUnits, ukUnits);
+            }
+            else
+            {
+                carInfo["Tender Water"] = $"{FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), simulator.MetricUnits, ukUnits)} ({CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100:N0}%)";
+            }
+            carInfo["Fireman Status"] = null;
+            carInfo["Coal Exhausted"] = CoalIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Water Exhausted"] = WaterIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Fire Exhausted"] = FireIsExhausted ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Mechanical Stoker"] = StokerIsMechanical ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Fuel Boost"] = FuelBoost ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Grate Limit"] = IsGrateLimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Fire State On"] = aiFireState == AiFireState.On ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Fire State Off"] = aiFireState == AiFireState.Off ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+            carInfo["Fireman Override"] = aiFireOverride ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+
+
+            carInfo[".Performance"] = null;
+            carInfo[".Performance"] = null;
+            carInfo["Indicated Power Max"] = FormatStrings.FormatPower(Dynamics.Power.FromHp(MaxIndicatedHorsePowerHP), simulator.MetricUnits, false, false);
+            carInfo["Indicated Power"] = FormatStrings.FormatPower(Dynamics.Power.FromHp(IndicatedHorsePowerHP), simulator.MetricUnits, false, false);
+            carInfo["Drawbar"] = FormatStrings.FormatPower(Dynamics.Power.FromHp(DrawbarHorsePowerHP), simulator.MetricUnits, false, false);
+            carInfo["Boiler Limited"] = ISBoilerLimited ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+
+            carInfo["Tractive Effort Max"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(MaxTractiveEffortLbf), simulator.MetricUnits);
+            carInfo["Tractive Effort Start"] = FormatStrings.FormatForce(absStartTractiveEffortN, simulator.MetricUnits);
+            carInfo["Tractive Effort"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(TractiveEffortLbsF), simulator.MetricUnits);
+            carInfo["Drawbar Pull Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(DrawBarPullLbsF), simulator.MetricUnits);
+            carInfo["Critical Speed"] = FormatStrings.FormatSpeedDisplay(Speed.MeterPerSecond.FromMpH(DisplayMaxLocoSpeedMpH), simulator.MetricUnits);
+            carInfo["Tractive Effort Exceeded"] = IsCritTELimit ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+
+            carInfo["Movement"] = null;
+            carInfo["Movement Piston"] = $"{(simulator.MetricUnits ? Size.Length.FromFt(PistonSpeedFtpMin) : PistonSpeedFtpMin)}/{(simulator.MetricUnits ? FormatStrings.m : FormatStrings.ft)}/{FormatStrings.min}";
+            carInfo["Movement Drivewheel"] = $"{Frequency.Periodic.ToMinutes(DrvWheelRevRpS)} {FormatStrings.rpm}";
+            carInfo["Motive Force Gear Ratio"] = $"{MotiveForceGearRatio:N2}";
+            carInfo["Speed Factor Max"] = $"{MaxSpeedFactor:F3}";
+
+            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared)
+            // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
+            {
+                carInfo[".Slip Monitor"] = null;
+                carInfo["Slip Monitor"] = null;
+                carInfo["Motive Force"] = FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits);
+                carInfo["Piston Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartPistonForceLeftLbf), simulator.MetricUnits);
+                carInfo["Tang. Crank Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartTangentialCrankWheelForceLbf), simulator.MetricUnits);
+                carInfo["Tang. Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamTangentialWheelForce), simulator.MetricUnits);
+                carInfo["Static Wheel Force"] = FormatStrings.FormatForce(Dynamics.Force.FromLbf(SteamStaticWheelForce), simulator.MetricUnits);
+                carInfo["Friction Coeff."] = $"{Train.LocomotiveCoefficientFriction:N2}";
+                carInfo["Sliping"] = IsLocoSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+                carInfo["Drivewheel Mass"] = FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), simulator.MetricUnits);
+                carInfo["Adhesion Factor"] = $"{CalculatedFactorofAdhesion:N1}";
+
+                carInfo["Sander"] = null;
+                carInfo["Sander Consumption"] = FormatStrings.FormatVolume(TrackSanderSandConsumptionM3pS, simulator.MetricUnits);
+                carInfo["Sander Capacity"] = FormatStrings.FormatVolume(CurrentTrackSandBoxCapacityM3, simulator.MetricUnits);
+                carInfo["Main Res. Pressure"] = $"{MainResPressurePSI:N2}";
+            }
+
+            // If vacuum braked display information on ejectors
+            if (BrakeSystem is VacuumSinglePipe)
+            {
+                carInfo[".Vaccum Pump"] = null;
+                carInfo["Ejector / Vacuum Pump"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+
+                carInfo["Large Ejector Pressure"] = FormatStrings.FormatPressure(SteamEjectorLargePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                carInfo["Large Ejector Consumption"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorLargeSteamConsumptionLbpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+                carInfo["Large Ejector Charging Rate"] = $"{SmallEjectorBrakePipeChargingRatePSIorInHgpS:N2}";
+                carInfo["Large Ejector Active"] = LargeSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+
+                if (SmallEjectorControllerFitted) // only display small ejector if fitted.
+                {
+                    carInfo["Small Ejector Pressure"] = FormatStrings.FormatPressure(SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
+                    carInfo["Small Ejector Consumption"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorSmallSteamConsumptionLbpS)), simulator.MetricUnits)}/{FormatStrings.h}";
+                    carInfo["Small Ejector Charging Rate"] = $"{SmallEjectorBrakePipeChargingRatePSIorInHgpS:N2}";
+                    carInfo["Small Ejector Active"] = SmallSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+                }
+
+                if (VacuumPumpFitted) // only display vacuum pump if fitted.
+                {
+                    carInfo[".Vaccum Pump"] = null;
+                    carInfo["Vaccum Pump"] = null;
+                    carInfo["Vaccum Pump Output"] = $"{VacuumPumpOutputFt3pM:N2}";
+                    carInfo["Vaccum Pump Charging Rate"] = $"{VacuumPumpChargingRateInHgpS:N2}";
+                    carInfo["Vaccum Pump Operating"] = VacuumPumpOperating ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+                }
+
+                carInfo[".Brake Pipe Leakage"] = null;
+                carInfo["Brake Pipe Leakage"] = $"{TrainBrakePipeLeakPSIorInHgpS:N2}";
+                carInfo["Brake Pipe Net Loss/Grain"] = $"{HUDNetBPLossGainPSI:N2}";
+            }
+
+            // If a water scoop fitted display relevant debug info for the player train only
+            if (IsPlayerTrain && HasWaterScoop)
+            {
+                carInfo[".WaterScoop"] = null;
+                carInfo["Water Scoop"] = null;
+                carInfo["Water Scoop Down"] = IsWaterScoopDown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+                carInfo["Water Scoop Broken"] = ScoopIsBroken ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No");
+                carInfo["Water Scoop Min Speed"] = FormatStrings.FormatSpeedDisplay(WaterScoopMinSpeedMpS, simulator.MetricUnits);
+                carInfo["Water Scoop Velocity"] = FormatStrings.FormatSpeedDisplay(WaterScoopVelocityMpS, simulator.MetricUnits);
+                carInfo["Water Scoop Drag Force"] = FormatStrings.FormatForce(WaterScoopDragForceN, simulator.MetricUnits);
+                carInfo["Water Scoop Quantity"] = FormatStrings.FormatFuelVolume(WaterScoopedQuantityLpS, simulator.MetricUnits, ukUnits);
+                carInfo["Water Scoop Input"] = FormatStrings.FormatFuelVolume(WaterScoopInputAmountL, simulator.MetricUnits, ukUnits);
+                carInfo["Water Scoop Total"] = FormatStrings.FormatFuelVolume(WaterScoopTotalWaterL, simulator.MetricUnits, ukUnits);
+            }
+        }
     } // class SteamLocomotive
 }

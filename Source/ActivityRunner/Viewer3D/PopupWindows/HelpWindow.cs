@@ -22,6 +22,7 @@ using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -55,26 +56,41 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             Report,
         }
 
+        private enum SearchColumn
+        {
+            Command = 1,
+            Key = 2,
+        }
+
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
         private readonly Viewer viewer;
 
         private ActivityTask lastActivityTask;
         private bool stoppedAt;
-        private int lastLastEventID = -1;
+        private bool activityEventTriggered;
         private ControlLayout activityTimetableScrollbox;
         private ControlLayout activityWorkOrderScrollbox;
         private ControlLayout evaluationTab;
         private TextBox reportText;
         private bool evaluationCompleted;
 
-        public HelpWindow(WindowManager owner, Point relativeLocation, Viewer viewer, UserSettings settings, Catalog catalog = null) :
+        private TextInput searchBox;
+        private SearchColumn searchMode;
+        private readonly List<WindowControl> helpCommandControls = new List<WindowControl>();
+        private VerticalScrollboxControlLayout helpCommandScrollbox;
+
+        public HelpWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(560, 380), catalog)
         {
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = viewer.UserCommandController;
             this.settings = settings;
             this.viewer = viewer;
+            if (Simulator.Instance.ActivityRun != null)
+                Simulator.Instance.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -84,8 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             #region Keyboard tab
             tabControl.TabLayouts[TabSettings.KeyboardShortcuts] = (layoutContainer) =>
             {
-                System.Drawing.Font keyFont = FontManager.Scaled(Owner.DefaultFontName, System.Drawing.FontStyle.Regular)[Owner.DefaultFontSize - 1];
-                layoutContainer = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
+                System.Drawing.Font keyFont = FontManager.Scaled(Owner.FontName, System.Drawing.FontStyle.Regular)[Owner.FontSize - 1];
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Center;
 
                 int keyWidth = layoutContainer.RemainingWidth / KeyboardMap.MapWidth;
@@ -103,14 +118,29 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.AddHorizontalSeparator();
                 ControlLayoutHorizontal headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 int width = headerLine.RemainingWidth / 2;
-                headerLine.Add(new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Function")));
-                headerLine.Add(new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Key")));
+                Label headerLabel;
+
+                headerLine.Add(headerLabel = new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Command") + TextInput.SearchIcon));
+                headerLabel.Tag = SearchColumn.Command;
+                headerLabel.OnClick += CommandListFilter_OnClick;
+                headerLine.Add(headerLabel = new Label(this, width, headerLine.RemainingHeight, Catalog.GetString("Key") + TextInput.SearchIcon));
+                headerLabel.Tag = SearchColumn.Key;
+                headerLabel.OnClick += CommandListFilter_OnClick;
+                headerLine.Add(searchBox = new TextInput(this, -headerLine.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
+                searchBox.Visible = false;
+                searchBox.TextChanged += SearchBox_TextChanged;
+                searchBox.OnEscapeKey += SearchBox_OnEscapeKey;
+
                 layoutContainer.AddHorizontalSeparator();
+                
+                layoutContainer.Add(helpCommandScrollbox = new VerticalScrollboxControlLayout(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight));
+
                 foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 {
-                    ControlLayoutHorizontal line = layoutContainer.AddLayoutHorizontalLineOfText();
+                    ControlLayoutHorizontal line = helpCommandScrollbox.Client.AddLayoutHorizontalLineOfText();
                     line.Add(new Label(this, width, line.RemainingHeight, command.GetLocalizedDescription()));
                     line.Add(new Label(this, width, line.RemainingHeight, settings.Input.UserCommands[command].ToString()));
+                    helpCommandControls.Add(line);
                 }
             };
             #endregion
@@ -136,9 +166,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     layoutContainer.AddHorizontalSeparator();
                     activityTimetableScrollbox = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
 
-                    if (viewer.Simulator.ActivityRun != null)
+                    if (Simulator.Instance.ActivityRun != null)
                     {
-                        foreach (ActivityTaskPassengerStopAt activityTask in viewer.Simulator.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>())
+                        foreach (ActivityTaskPassengerStopAt activityTask in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>())
                         {
                             Label actualArrival, actualDeparture;
                             line = activityTimetableScrollbox.AddLayoutHorizontalLineOfText();
@@ -146,11 +176,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledArrival}", HorizontalAlignment.Center));
                             line.Add(actualArrival = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
+                            { TextColor = ColorCoding.ArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival) });
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledDeparture}", HorizontalAlignment.Center));
                             line.Add(actualDeparture = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
-                            { TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
+                            { TextColor = ColorCoding.DepartureColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture) });
                             line.Tag = (activityTask, actualArrival, actualDeparture);
                         }
                     }
@@ -241,7 +271,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                         }
                                         if (!wagonFound)
                                         {
-                                            foreach (var car in viewer.PlayerTrain.Cars)
+                                            foreach (var car in Simulator.Instance.PlayerLocomotive.Train.Cars)
                                             {
                                                 if (car.UiD == wagonItem.UiD)
                                                 {
@@ -318,14 +348,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             AddEvaluationLine(evaluationLayoutContainer, "Timetable:", null);
                             int stationStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Count();
                             AddEvaluationLine(evaluationLayoutContainer, "Station Stops:", $"{stationStops}", 20);
-                            Func<(string text, Color textColor)> remainingStopsFunc = () =>
+                            (string text, Color textColor) remainingStopsFunc()
                             {
                                 return ($"{Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
-                            };
+                            }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Remaining Stops:", remainingStopsFunc().text, 20);
-                            activityEvaluation.Add((functionLabel, remainingStopsFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)remainingStopsFunc));
 
-                            Func<(string text, Color textColor)> delayFunc = () =>
+                            (string text, Color textColor) delayFunc()
                             {
                                 TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
                                 return ($"{delay}", delay.TotalSeconds switch
@@ -336,19 +366,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     < 0 => Color.LightSalmon,
                                     _ => Color.LightGreen,
                                 });
-                            };
+                            }
                             (string text, Color textColor) = delayFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Current Delay:", text, textColor, 20);
-                            activityEvaluation.Add((functionLabel, delayFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)delayFunc));
 
-                            Func<(string text, Color textColor)> missedStopsFunc = () =>
+                            (string text, Color textColor) missedStopsFunc()
                             {
                                 int count = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count();
                                 return ($"{count}", count > 0 ? Color.LightSalmon : Color.White);
-                            };
+                            }
                             (string text, Color textColor) missedStops = missedStopsFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Missed Stops:", missedStops.text, missedStops.textColor, 20);
-                            activityEvaluation.Add((functionLabel, missedStopsFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)missedStopsFunc));
 
                             foreach (ActivityTaskPassengerStopAt item in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null))
                             {
@@ -362,21 +392,21 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                             AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"{taskCount}", 20);
 
-                            Func<(string text, Color textColor)> taskDoneFunc = () =>
+                            (string text, Color textColor) taskDoneFunc()
                             {
                                 int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
                                     Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                                 return ($"{count}", Color.White);
-                            };
+                            }
                             (string text, Color textColor) taskDone = taskDoneFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Accomplished:", taskDone.text, 20);
-                            activityEvaluation.Add((functionLabel, taskDoneFunc));
-                            Func<(string text, Color textColor)> couplerSpeedFunc = () =>
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)taskDoneFunc));
+                            (string text, Color textColor) couplerSpeedFunc()
                             {
                                 return ($"{ActivityEvaluation.Instance.OverSpeedCoupling}", Color.White);
-                            };
+                            }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Coupling speed exceeded:", couplerSpeedFunc().text, 20);
-                            activityEvaluation.Add((functionLabel, couplerSpeedFunc));
+                            activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)couplerSpeedFunc));
                         };
                         (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Details] = (evaluationLayoutContainer) =>
                         {
@@ -417,37 +447,38 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                             if (Simulator.Instance.ActivityRun?.Tasks.OfType<ActivityTaskPassengerStopAt>().Count() > 0)
                             {
-                                Func<(string text, Color textColor)> missedStopsFunc = () =>
+                                (string text, Color textColor) missedStopsFunc()
                                 {
                                     return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null).Count()}", Color.White);
-                                };
-                                (string text, Color textColor) missedStops = missedStopsFunc();
-                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops missed:", missedStops.text, missedStops.textColor, 20);
-                                activityEvaluation.Add((functionLabel, missedStopsFunc));
-                                Func<(string text, Color textColor)> remainingStopsFunc = () =>
+                                }
+                                (string text, Color textColor) = missedStopsFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops missed:", text, textColor, 20);
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)missedStopsFunc));
+                                (string text, Color textColor) remainingStopsFunc()
                                 {
                                     return ($"= {Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !stopTask.ActualArrival.HasValue).Count()}", Color.White);
-                                };
+                                }
                                 (string text, Color textColor) remainingStops = remainingStopsFunc();
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Station Stops remaining:", remainingStops.text, remainingStops.textColor, 20);
-                                activityEvaluation.Add((functionLabel, remainingStopsFunc));
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)remainingStopsFunc));
                             }
-                            
+
                             int taskCount = Simulator.Instance.ActivityRun.EventList.Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>()
                                 .Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
                             if (taskCount > 0)
                             {
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks:", $"= {taskCount}", 20);
 
-                                Func<(string text, Color textColor)> taskDoneFunc = () =>
+                                (string text, Color textColor) taskDoneFunc()
                                 {
-                                    int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
-                                        Where((activityTask) => activityTask.Type != EventType.AllStops && activityTask.Type != EventType.ReachSpeed).Count();
+                                    int count = Simulator.Instance.ActivityRun.EventList.Where((wrapper) => wrapper.TimesTriggered == 1).
+                                    Select((wrapper) => wrapper.ActivityEvent).OfType<ActionActivityEvent>().
+                                    Count((activityTask) => activityTask.Type is not EventType.AllStops and not EventType.ReachSpeed);
                                     return ($"= {count}", Color.White);
-                                };
-                                (string text, Color textColor) taskDone = taskDoneFunc();
-                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks accomplished:", taskDone.text, 20);
-                                activityEvaluation.Add((functionLabel, taskDoneFunc));
+                                }
+                                (string text, Color textColor) = taskDoneFunc();
+                                functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Tasks accomplished:", text, 20);
+                                activityEvaluation.Add((functionLabel, (Func<(string text, Color textColor)>)taskDoneFunc));
                             }
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Train Overturned", $"= {ActivityEvaluation.Instance.TrainOverTurned}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TrainOverTurned}", Color.White)));
@@ -455,9 +486,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         };
                         (evaluationTab as TabControl<EvaluationTabSettings>).TabLayouts[EvaluationTabSettings.Report] = (evaluationLayoutContainer) =>
                         {
-                            reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight, 
-                                "Report will be available here when activity is completed.", HorizontalAlignment.Left, false,
-                                FontManager.Scaled("Courier New", System.Drawing.FontStyle.Regular)[12], Color.White);
+                            reportText = new TextBox(this, 0, 0, evaluationLayoutContainer.RemainingWidth, evaluationLayoutContainer.RemainingHeight,
+                                "Report will be available here when activity is completed.", HorizontalAlignment.Left, false, Owner.TextFontMonoDefault, Color.White);
                             evaluationLayoutContainer.Add(reportText);
                         };
                         layoutContainer.Add(evaluationTab);
@@ -469,7 +499,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 tabControl.TabLayouts[TabSettings.TimetableBriefing] = (layoutContainer) =>
                 {
-                    TextBox timetableBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, (viewer.SelectedTrain as Orts.Simulation.Timetables.TTTrain)?.Briefing, false);
+                    TextBox timetableBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, (viewer.SelectedTrain as TTTrain)?.Briefing, false);
                     layoutContainer.Add(timetableBriefing);
                 };
             }
@@ -480,6 +510,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             };
             layout.Add(tabControl);
             return layout;
+        }
+
+        private void ActivityRun_OnEventTriggered(object sender, ActivityEventArgs e)
+        {
+            activityEventTriggered = true;
         }
 
         private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
@@ -497,7 +532,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            if (shouldUpdate && ! evaluationCompleted)
+            if (shouldUpdate && !evaluationCompleted)
             {
                 if (Simulator.Instance.ActivityRun != null)
                 {
@@ -510,30 +545,29 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             (ActivityTaskPassengerStopAt activityTask, Label actualArrival, Label actualDeparture) = ((ActivityTaskPassengerStopAt, Label, Label))line.Tag;
                             actualArrival.Text = $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
-                            actualArrival.TextColor = GetArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival);
+                            actualArrival.TextColor = ColorCoding.ArrivalColor(activityTask.ScheduledArrival, activityTask.ActualArrival);
                             actualDeparture.Text = $"{(activityTask.ActualDeparture.HasValue ? activityTask.ActualDeparture : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}";
-                            actualDeparture.TextColor = GetDepartColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture);
+                            actualDeparture.TextColor = ColorCoding.DepartureColor(activityTask.ScheduledDeparture, activityTask.ActualDeparture);
                         }
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityWorkOrders && activityWorkOrderScrollbox != null && Simulator.Instance.ActivityRun.EventList != null)
                     {
-                        if (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent != null && (lastLastEventID == -1 ||
-                            (Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != lastLastEventID)))
+                        if (activityEventTriggered)
                         {
-                            lastLastEventID = Simulator.Instance.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
-                            foreach ((EventWrapper activityEvent, Label label) item in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
+                            foreach ((EventWrapper activityEvent, Label label) in activityWorkOrderScrollbox.Tag as List<(EventWrapper, Label)>)
                             {
-                                item.label.Text = item.activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
+                                label.Text = activityEvent.TimesTriggered == 1 ? "Done" : string.Empty;
                             }
+                            activityEventTriggered = false;
                         }
                     }
                     else if (tabControl.CurrentTab == TabSettings.ActivityEvaluation)
                     {
-                        foreach ((Label label, Func<(string, Color)> func) item in evaluationTab.Tag as List<(Label, Func<(string, Color)>)>)
+                        foreach ((Label label, Func<(string, Color)> func) in evaluationTab.Tag as List<(Label, Func<(string, Color)>)>)
                         {
-                            (string text, Color textColor) value = item.func();
-                            item.label.Text = value.text;
-                            item.label.TextColor = value.textColor;
+                            (string text, Color textColor) = func();
+                            label.Text = text;
+                            label.TextColor = textColor;
                         }
                         if (ActivityEvaluation.Instance.ActivityCompleted && ActivityEvaluation.Instance.ReportText != null)
                         {
@@ -549,8 +583,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, TabAction, true);
-            return base.Open();
+            bool result = base.Open();
+            if (result)
+            {
+                userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, TabAction, true);
+            }
+            return result;
         }
 
         public override bool Close()
@@ -561,7 +599,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
-            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & settings.Input.WindowTabCommandModifier) == settings.Input.WindowTabCommandModifier)
             {
                 tabControl?.TabAction();
             }
@@ -595,14 +633,62 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return result;
         }
 
-        private static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
+        private void CommandListFilter_OnClick(object sender, MouseClickEventArgs e)
         {
-            return actual.HasValue && actual.Value <= expected ? Color.LightGreen : Color.LightSalmon;
+            searchMode = (SearchColumn)((sender as Label).Tag);
+            searchBox.Container.Controls[0].Visible = false;
+            searchBox.Container.Controls[1].Visible = false;
+            searchBox.Visible = true;
         }
 
-        private static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
+        private void SearchBox_OnEscapeKey(object sender, EventArgs e)
         {
-            return actual.HasValue && actual.Value >= expected ? Color.LightGreen : Color.LightSalmon;
+            searchBox.Text = null;
+            searchBox.Visible = false;
+            searchBox.Container.Controls[0].Visible = true;
+            searchBox.Container.Controls[1].Visible = true;
         }
+
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            Filter((sender as TextInput).Text, searchMode);
+        }
+
+        private void Filter(string searchText, SearchColumn searchFlags)
+        {
+            helpCommandScrollbox.Clear();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                foreach (ControlLayoutHorizontal line in helpCommandControls)
+                    helpCommandScrollbox.Client.Add(line);
+            }
+            else
+            {
+                foreach (ControlLayoutHorizontal line in helpCommandControls)
+                {
+                    switch (searchMode)
+                    {
+
+                        case SearchColumn.Command:
+                            if ((line.Controls[0] as Label)?.Text?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                                helpCommandScrollbox.Client.Add(line);
+                            break;
+                        case SearchColumn.Key:
+                            if ((line.Controls[1] as Label)?.Text?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                                helpCommandScrollbox.Client.Add(line);
+                            break;
+                    }
+                }
+            }
+            helpCommandScrollbox.UpdateContent();
+        }
+
+        protected override void FocusLost()
+        {
+            searchBox.ReleaseFocus();
+            base.FocusLost();
+        }
+
     }
 }

@@ -3,7 +3,6 @@
 namespace Orts.Common.Xna
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-#pragma warning disable CA1051 // Do not declare visible instance fields
 #pragma warning disable CA2225 // Operator overloads have named alternates
     public readonly struct Vector2D
 #pragma warning restore CA1815 // Override equals and operator equals on value types
@@ -66,7 +65,6 @@ namespace Orts.Common.Xna
         }
 
         #endregion
-#pragma warning restore CA1051 // Do not declare visible instance fields
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
     }

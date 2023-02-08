@@ -32,7 +32,7 @@ namespace Orts.Menu
         [STAThread]  // requred for use of the DirectoryBrowserDialog in the main form.
         private static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+//            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.EnableVisualStyles();
 
             if (Debugger.IsAttached)

@@ -184,7 +184,7 @@ namespace Orts.Graphics.DrawableComponents
                     //g.DrawLine(rulerPen, padding + rulerLength * 0.75f, 0, padding + rulerLength * 0.75f, markerLength);
 
                     System.Drawing.SizeF textSize = g.MeasureString(startMarker, font);
-                    g.DrawString(startMarker, font, fontBrush, 12 - textSize.Width / 2, markerLength * 2);
+                    g.DrawString(startMarker, font, fontBrush, 0, markerLength * 2);
                     textSize = g.MeasureString(endMarker, font);
                     g.DrawString(endMarker, font, fontBrush, rulerLength + overSize - textSize.Width, markerLength * 2);
 

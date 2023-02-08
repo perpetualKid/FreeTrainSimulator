@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
 
-using Microsoft.Xna.Framework.Graphics;
-
 using Orts.Common;
 
 namespace Orts.Graphics.Window.Controls.Layout
@@ -26,7 +24,9 @@ namespace Orts.Graphics.Window.Controls.Layout
             internal ControlLayout TabLayout;
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ControlLayout tabHeader;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Font highlightFont;
         private readonly bool hideEmptyTabs;
 
@@ -40,14 +40,15 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public event EventHandler<TabChangedEventArgs<T>> TabChanged;
 
-        public TabControl(WindowBase window, int width, int height, bool hideEmptyTabs = false) : base(window, 0, 0, width, height)
+        public TabControl(FormBase window, int width, int height, bool hideEmptyTabs = false) : base(window, 0, 0, width, height)
         {
             ControlLayout verticalLayout = AddLayoutVertical();
             tabHeader = verticalLayout.AddLayoutHorizontal(window?.Owner.TextFontDefault.Height ?? throw new ArgumentNullException(nameof(window)));
             verticalLayout.AddHorizontalSeparator(true);
-            highlightFont = new Font(window.Owner.TextFontDefaultBold, window.Owner.TextFontDefaultBold.Style | FontStyle.Underline);
+            highlightFont = FontManager.Scaled(window.Owner.FontName, FontStyle.Bold | FontStyle.Underline)[window.Owner.FontSize];
             Client = verticalLayout.AddLayoutVertical();
             this.hideEmptyTabs = hideEmptyTabs;
+            
         }
 
         public void UpdateTabLayout(T tab)
@@ -86,7 +87,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                     tabData[item] = new TabData()
                     {
                         Tab = item,
-                        TabLabel = new Label(this.Window, labelWidth, tabHeader.RemainingHeight, item.GetDescription(), HorizontalAlignment.Center)
+                        TabLabel = new Label(this.Window, labelWidth, tabHeader.RemainingHeight, item.GetLocalizedDescription(), HorizontalAlignment.Center)
                         {
                             Tag = item,
                         },
@@ -144,11 +145,6 @@ namespace Orts.Graphics.Window.Controls.Layout
                 tab = tab.Next();
             }
             ActivateTab(tab);
-        }
-
-        internal override void Draw(SpriteBatch spriteBatch, Microsoft.Xna.Framework.Point offset)
-        {
-            base.Draw(spriteBatch, offset);
         }
     }
 }

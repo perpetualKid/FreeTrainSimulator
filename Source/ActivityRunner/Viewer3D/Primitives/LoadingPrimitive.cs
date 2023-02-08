@@ -4,8 +4,8 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Materials;
-using Orts.ActivityRunner.Viewer3D.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
@@ -42,6 +42,8 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
         public override void Draw()
         {
+            if (disposedValue) 
+                return;
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
         }
@@ -53,6 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
                 if (disposing)
                 {
                     Material?.Dispose();
+                    VertexBuffer?.Dispose();
                 }
 
                 disposedValue = true;

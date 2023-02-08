@@ -33,9 +33,6 @@
  *  This is consolidated by the train class into overall movement for the train.
  */
 
-// Compiler flags for debug print-out facilities
-// #define DEBUG_SIGNALPASS
-
 // Debug Calculation of Aux Tender operation
 // #define DEBUG_AUXTENDER
 
@@ -48,14 +45,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -111,6 +113,11 @@ namespace Orts.Simulation.Physics
 
         public TrainCar FirstCar => Cars[0];
         public TrainCar LastCar => Cars[^1];
+
+        public T NextOf<T>(T current) where T : TrainCar => Cars.OfType<T>().SkipWhile(t => t != current).Skip(1).FirstOrDefault() ?? Cars.OfType<T>().FirstOrDefault();
+
+        public T PreviousOf<T>(T current) where T : TrainCar => Cars.OfType<T>().TakeWhile(t => t != current).LastOrDefault() ?? Cars.OfType<T>().LastOrDefault();
+
         public bool IsActive => TrainType == TrainType.Player || (this is AITrain aITrain && aITrain.MovementState != AiMovementState.Static && !(TrainType == TrainType.AiIncorporated && !IncorporatingTrain.IsPathless));
 
         public Traveller RearTDBTraveller { get; internal set; }               // positioned at the back of the last car in the train
@@ -147,20 +154,12 @@ namespace Orts.Simulation.Physics
         public float MUDynamicBrakePercent { get; internal set; } = -1;         // dynamic brake control for MU'd locomotives, <0 for off
         public float DPDynamicBrakePercent { get; internal set; } = -1;         // Distributed Power async/back group dynamic brake control
         public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
-        internal float EqualReservoirPressurePSIorInHg { get; set; } = 90;      // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
 
-        // Class AirSinglePipe etc. use this property for pressure in PSI, 
-        // but Class VacuumSinglePipe uses it for vacuum in InHg.
-        internal float BrakeLine2PressurePSI { get; set; }              // extra line for dual line systems, main reservoir
-        internal float BrakeLine3PressurePSI { get; set; }              // extra line just in case, engine brake pressure
-        internal float BrakeLine4 { get; set; } = -1;                    // extra line just in case, ep brake control line. -1: release/inactive, 0: hold, 0 < value <=1: apply
-        public RetainerSetting RetainerSetting { get; internal set; } = RetainerSetting.Exhaust;
-        public int RetainerPercent { get; internal set; } = 100;
-        public float TotalTrainBrakePipeVolumeM3 { get; internal set; } // Total volume of train brake pipe
-        public float TotalTrainBrakeCylinderVolumeM3 { get; internal set; } // Total volume of train brake cylinders
-        internal float TotalTrainBrakeSystemVolumeM3 { get; set; } // Total volume of train brake system
-        public float TotalCurrentTrainBrakeSystemVolumeM3 { get; internal set; } // Total current volume of train brake system
-        internal bool EQEquippedVacLoco { get; set; }          // Flag for locomotives fitted with vacuum brakes that have an Equalising reservoir fitted
+        public TrainBrakeSystem BrakeSystem { get; }
+
+        public INameValueInformationProvider DispatcherInfo { get; private set; }
+
+
         internal float PreviousCarCount { get; set; }                  // Keeps track of the last number of cars in the train consist (for vacuum brakes)
         internal bool TrainBPIntact { get; set; } = true;           // Flag to indicate that the train BP is not intact, ie due to disconnection or an open valve cock.
 
@@ -169,8 +168,8 @@ namespace Orts.Simulation.Physics
         internal float HUDLocomotiveBrakeCylinderPSI { get; set; }    // Display value for locomotive HUD
         internal bool HUDBrakeSlide { get; set; }                     // Display indication for brake wheel slip
         internal bool WagonsAttached { get; set; }    // Wagons are attached to train
-        internal float LeadPipePressurePSI { get; set; }       // Keeps record of Lead locomootive brake pipe pressure
 
+        //TODO 20220927 should be replaced by an enum value, or implementing INameValueInformationProvider interface
         public bool IsWheelSlipWarninq { get; private set; }
         public bool IsWheelSlip { get; private set; }
         public bool IsBrakeSkid { get; private set; }
@@ -197,7 +196,6 @@ namespace Orts.Simulation.Physics
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
-        public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
         public TrainType TrainType { get; internal set; } = TrainType.Player;
 
@@ -212,6 +210,12 @@ namespace Orts.Simulation.Physics
         // max speed of player locomotive, max speed of consist (MaxVelocityA)
         internal float TrainMaxSpeedMpS { get; set; }
         public float AllowedMaxSpeedMpS { get; internal set; }                 // Max speed as allowed
+
+        /// <summary>
+        /// The max speed allowed as the lower of Allowed Speed (as per Signals/Route) and max Train/TrainCar speed
+        /// </summary>
+        public float MaxTrainSpeedAllowed => Math.Min(TrainMaxSpeedMpS, AllowedMaxSpeedMpS);
+
         internal float AllowedMaxSpeedSignalMpS { get; set; }           // Max speed as set by signal
         internal float AllowedMaxSpeedLimitMpS { get; set; }            // Max speed as set by limit
         private protected float allowedMaxTempSpeedLimitMpS;        // Max speed as set by temp speed limit
@@ -341,11 +345,6 @@ namespace Orts.Simulation.Physics
         private protected static readonly Simulator simulator = Simulator.Instance;                 // reference to the simulator
         private protected static readonly char Separator = (char)simulator.Settings.DataLoggerSeparator;
 
-        #region steam and heating
-        private static readonly double resetCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(65.0);
-        #endregion
-
-
         // For AI control of the train
         public float AITrainBrakePercent
         {
@@ -398,25 +397,34 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        public TrainCar LeadLocomotive
+        public MSTSLocomotive LeadLocomotive
         {
             get
             {
-                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] : null;
+                return LeadLocomotiveIndex >= 0 && LeadLocomotiveIndex < Cars.Count ? Cars[LeadLocomotiveIndex] as MSTSLocomotive : null;
             }
             internal set
             {
                 LeadLocomotiveIndex = -1;
                 for (int i = 0; i < Cars.Count; i++)
-                    if (value == Cars[i] && value.IsDriveable)
+                    if (value == Cars[i])
                     {
                         LeadLocomotiveIndex = i;
-                        //MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
-                        //if (lead.EngineBrakeController != null)
-                        //    lead.EngineBrakeController.UpdateEngineBrakePressure(ref BrakeLine3PressurePSI, 1000);
                     }
             }
         }
+
+        /// <summary>
+        /// returns the traincar at the opposite end of the train of the player locomotive<br/>
+        /// May be <see langword="null"/> if this is an individual car (locomotive) only
+        /// </summary>
+        public TrainCar EndOfTrainCar => Cars.Count > 0 ? Cars[^1] != simulator.PlayerLocomotive ? Cars[^1] : Cars[0] : null;
+
+        /// <summary>
+        /// returns the first wagon in this train (wagon is not an engine car or tender)
+        /// May be <see langword="null"/> if this is an individual car (locomotive) only
+        /// </summary>
+        public TrainCar FirstWagonCar => Cars.Where((car => car.WagonType is not WagonType.Engine or WagonType.Tender)).FirstOrDefault();
 
         // Get the UiD value of the first wagon - searches along train, and gets the integer UiD of the first wagon that is not an engine or tender
         public virtual int GetFirstWagonUiD()
@@ -462,12 +470,14 @@ namespace Orts.Simulation.Physics
             allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.Route.SpeedLimit;
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
+            DispatcherInfo = GetDispatcherInfoProvider();
         }
 
         // Constructor
         public Train()
         {
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
 
             if (simulator.IsAutopilotMode && TotalNumber == 1 && simulator.TrainDictionary.Count == 0)
                 TotalNumber = 0; //The autopiloted train has number 0
@@ -487,6 +497,7 @@ namespace Orts.Simulation.Physics
         public Train(int number)
         {
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
             Number = number;
             RoutedForward = new TrainRouted(this, 0);
             RoutedBackward = new TrainRouted(this, 1);
@@ -501,6 +512,7 @@ namespace Orts.Simulation.Physics
                 throw new ArgumentNullException(nameof(source));
 
             Init();
+            BrakeSystem = new TrainBrakeSystem(this);
             Number = TotalNumber;
             Name = $"{source.Name}{TotalNumber}";
             TotalNumber++;
@@ -563,6 +575,8 @@ namespace Orts.Simulation.Physics
                 throw new ArgumentNullException(nameof(inf));
             Init();
 
+            BrakeSystem = new TrainBrakeSystem(this);
+
             RoutedForward = new TrainRouted(this, 0);
             RoutedBackward = new TrainRouted(this, 1);
             ColdStart = false;
@@ -582,14 +596,14 @@ namespace Orts.Simulation.Physics
             MUDynamicBrakePercent = inf.ReadSingle();
             DPDynamicBrakePercent = inf.ReadSingle();
             DistributedPowerMode = (DistributedPowerMode)inf.ReadInt32();
-            EqualReservoirPressurePSIorInHg = inf.ReadSingle();
-            BrakeLine2PressurePSI = inf.ReadSingle();
-            BrakeLine3PressurePSI = inf.ReadSingle();
-            BrakeLine4 = inf.ReadSingle();
+            BrakeSystem.EqualReservoirPressurePSIorInHg = inf.ReadSingle();
+            BrakeSystem.BrakeLine2Pressure = inf.ReadSingle();
+            BrakeSystem.BrakeLine3Pressure = inf.ReadSingle();
+            BrakeSystem.BrakeLine4Pressure = inf.ReadSingle();
             aiBrakePercent = inf.ReadSingle();
             LeadLocomotiveIndex = inf.ReadInt32();
-            RetainerSetting = (RetainerSetting)inf.ReadInt32();
-            RetainerPercent = inf.ReadInt32();
+            BrakeSystem.RetainerSetting = (RetainerSetting)inf.ReadInt32();
+            BrakeSystem.RetainerPercent = inf.ReadInt32();
             RearTDBTraveller = new Traveller(inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
@@ -804,7 +818,7 @@ namespace Orts.Simulation.Physics
                 // restore leadlocomotive
                 if (LeadLocomotiveIndex >= 0)
                 {
-                    LeadLocomotive = Cars[LeadLocomotiveIndex];
+                    LeadLocomotive = Cars[LeadLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(LeadLocomotiveIndex));
                     if (TrainType != TrainType.Static)
                         simulator.PlayerLocomotive = LeadLocomotive;
 
@@ -901,14 +915,14 @@ namespace Orts.Simulation.Physics
             outf.Write(MUDynamicBrakePercent);
             outf.Write(DPDynamicBrakePercent);
             outf.Write((int)DistributedPowerMode);
-            outf.Write(EqualReservoirPressurePSIorInHg);
-            outf.Write(BrakeLine2PressurePSI);
-            outf.Write(BrakeLine3PressurePSI);
-            outf.Write(BrakeLine4);
+            outf.Write(BrakeSystem.EqualReservoirPressurePSIorInHg);
+            outf.Write(BrakeSystem.BrakeLine2Pressure);
+            outf.Write(BrakeSystem.BrakeLine3Pressure);
+            outf.Write(BrakeSystem.BrakeLine4Pressure);
             outf.Write(aiBrakePercent);
             outf.Write(LeadLocomotiveIndex);
-            outf.Write((int)RetainerSetting);
-            outf.Write(RetainerPercent);
+            outf.Write((int)BrakeSystem.RetainerSetting);
+            outf.Write(BrakeSystem.RetainerPercent);
             RearTDBTraveller.Save(outf);
             outf.Write(SlipperySpotDistanceM);
             outf.Write(SlipperySpotLengthM);
@@ -1124,13 +1138,13 @@ namespace Orts.Simulation.Physics
         /// then pressing Ctrl+E cycles the cabs in the sequence
         ///     A -> b -> C -> d -> e -> F
         /// </summary>
-        public TrainCar GetNextCab()
+        public MSTSLocomotive GetNextCab()
         {
             // negative numbers used if rear cab selected
             // because '0' has no negative, all indices are shifted by 1!!!!
 
             int presentIndex = LeadLocomotiveIndex + 1;
-            if (((MSTSLocomotive)LeadLocomotive).UsingRearCab)
+            if ((LeadLocomotive).UsingRearCab)
                 presentIndex = -presentIndex;
 
             List<int> cabList = new List<int>();
@@ -1164,11 +1178,11 @@ namespace Orts.Simulation.Physics
 
             int nextCabIndex = cabList[lastIndex + 1];
 
-            TrainCar oldLead = LeadLocomotive;
+            MSTSLocomotive oldLead = LeadLocomotive;
             LeadLocomotiveIndex = Math.Abs(nextCabIndex) - 1;
             Trace.Assert(LeadLocomotive != null, "Tried to switch to non-existent loco");
-            TrainCar newLead = LeadLocomotive;  // Changing LeadLocomotiveIndex also changed LeadLocomotive
-            ((MSTSLocomotive)newLead).UsingRearCab = nextCabIndex < 0;
+            MSTSLocomotive newLead = LeadLocomotive;  // Changing LeadLocomotiveIndex also changed LeadLocomotive
+            (newLead).UsingRearCab = nextCabIndex < 0;
 
             if (oldLead != null && newLead != null && oldLead != newLead)
             {
@@ -1200,7 +1214,7 @@ namespace Orts.Simulation.Physics
 
             for (int i = 0; i < Cars.Count; i++)
             {
-                if (Cars[i].IsDriveable)
+                if (Cars[i] is MSTSLocomotive)
                 {
                     // Count the driveables
                     coud++;
@@ -1217,7 +1231,7 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-            TrainCar prevLead = LeadLocomotive;
+            MSTSLocomotive prevLead = LeadLocomotive;
 
             // If found one after the current
             if (nextLead != -1)
@@ -1225,7 +1239,7 @@ namespace Orts.Simulation.Physics
             // If not, and have more than one, set the first
             else if (coud > 1)
                 LeadLocomotiveIndex = firstLead;
-            TrainCar newLead = LeadLocomotive;
+            MSTSLocomotive newLead = LeadLocomotive;
             if (prevLead != null && newLead != null && prevLead != newLead)
                 newLead.CopyControllerSettings(prevLead);
         }
@@ -1334,18 +1348,23 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void SetDistributedPowerUnitIds(bool keepRemoteGroups = false)
         {
-            var id = 0;
-            foreach (var car in Cars)
+            int id = 0;
+            bool currentGroup = false;
+            foreach (TrainCar car in Cars)
             {
-                //Console.WriteLine("___{0} {1}", car.CarID, id);
-                if (car is MSTSLocomotive)
+                if (car is MSTSLocomotive locomotive)
                 {
-                    (car as MSTSLocomotive).DistributedPowerUnitId = id;
+                    if (!currentGroup)
+                    {
+                        id++;
+                        currentGroup = true;
+                    }
+                    locomotive.DistributedPowerUnitId = id;
                     if (car.RemoteControlGroup == RemoteControlGroup.RearGroupAsync && !keepRemoteGroups)
                         car.RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
                 }
                 else
-                    id++;
+                    currentGroup = false;
             }
         }
 
@@ -1388,7 +1407,7 @@ namespace Orts.Simulation.Physics
             float dpDynamicBrakePercent = LeadLocomotive.DynamicBrakePercent;
             float dpThrottlePercent = LeadLocomotive.ThrottlePercent;
             int dpDynamicBrakeCurrentNotch = MathHelper.Clamp((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(dpDynamicBrakePercent / 100), 0, 8);
-            int dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).ThrottleController.CurrentNotch;
+            int dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).ThrottleController.NotchIndex;
             int idToMove = -1;
             int idLead = LeadLocomotive != null ? (Cars[LeadLocomotiveIndex] as MSTSLocomotive).DistributedPowerUnitId : -1;
             for (int i = Cars.Count - 1; i >= 0; i--)
@@ -1399,8 +1418,8 @@ namespace Orts.Simulation.Physics
                 {
                     dpDynamicBrakePercent = DPDynamicBrakePercent;
                     dpThrottlePercent = DPThrottlePercent;
-                    dpDynamicBrakeCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
-                    dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
+                    dpDynamicBrakeCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex;
+                    dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex;
                     continue;
                 }
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
@@ -1414,8 +1433,8 @@ namespace Orts.Simulation.Physics
                     Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
                     DPDynamicBrakePercent = dpDynamicBrakePercent;
                     DPThrottlePercent = dpThrottlePercent;
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch = dpDynamicBrakeCurrentNotch;
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.CurrentNotch = dpThrottleCurrentNotch;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.NotchIndex = dpDynamicBrakeCurrentNotch;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.NotchIndex = dpThrottleCurrentNotch;
                 }
                 else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                     Cars[i].RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
@@ -1581,30 +1600,30 @@ namespace Orts.Simulation.Physics
             //            aiBrakePercent = 0;
             //            AITrainBrakePercent = 0;
 
-            if (LeadLocomotiveIndex >= 0)
+            MSTSLocomotive lead = LeadLocomotive;
+            if (lead != null)
             {
-                MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead is MSTSSteamLocomotive)
                     MUReverserPercent = 25;
-                lead.CurrentElevationPercent = 100f * lead.WorldPosition.XNAMatrix.M32;
+                lead.CurrentElevationPercent = -100f * lead.WorldPosition.XNAMatrix.M32;
 
                 //TODO: next if block has been inserted to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the block should be deleted
                 //         
-                if (lead.IsDriveable && (lead as MSTSLocomotive).UsingRearCab)
+                if (lead.UsingRearCab)
                 {
                     lead.CurrentElevationPercent = -lead.CurrentElevationPercent;
                 }
                 // give it a bit more gas if it is uphill
-                if (lead.CurrentElevationPercent < -2.0)
+                if (lead.CurrentElevationPercent > 2.0)
                     initialThrottlepercent = 40f;
                 // better block gas if it is downhill
-                else if (lead.CurrentElevationPercent > 1.0)
+                else if (lead.CurrentElevationPercent < -1.0)
                     initialThrottlepercent = 0f;
 
                 if (lead.TrainBrakeController != null)
                 {
-                    EqualReservoirPressurePSIorInHg = lead.TrainBrakeController.MaxPressurePSI;
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = lead.TrainBrakeController.MaxPressurePSI;
                 }
             }
             MUThrottlePercent = initialThrottlepercent;
@@ -1729,7 +1748,7 @@ namespace Orts.Simulation.Physics
             {
                 LogTrainSpeed(simulator.GameTime);
             }
-
+            (DispatcherInfo as TrainDispatcherInfo).Update(null);
         } // end Update
 
         //================================================================================================//
@@ -1785,7 +1804,7 @@ namespace Orts.Simulation.Physics
                 massKg += car.MassKG;
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
-                if (car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab))
+                if (car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab))
                 {
                     car.TotalForceN = -car.TotalForceN;
                     car.SpeedMpS = -car.SpeedMpS;
@@ -1884,7 +1903,7 @@ namespace Orts.Simulation.Physics
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                 if (car1.Flipped)
-                if (car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab))
+                if (car.Flipped ^ (car is MSTSLocomotive && car.Train.IsActualPlayerTrain && (car as MSTSLocomotive).UsingRearCab))
                     car.SpeedMpS = -car.SpeedMpS;
             }
 #if DEBUG_SPEED_FORCES
@@ -2357,7 +2376,7 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    builder.Append($"{(0 - simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
+                    builder.Append($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
@@ -3343,36 +3362,36 @@ namespace Orts.Simulation.Physics
                 return;
             if (!increase)
             {
-                RetainerSetting = RetainerSetting.Exhaust;
-                RetainerPercent = 100;
+                BrakeSystem.RetainerSetting = RetainerSetting.Exhaust;
+                BrakeSystem.RetainerPercent = 100;
             }
-            else if (RetainerPercent < 100)
-                RetainerPercent *= 2;
-            else if (RetainerSetting != RetainerSetting.SlowDirect)
+            else if (BrakeSystem.RetainerPercent < 100)
+                BrakeSystem.RetainerPercent *= 2;
+            else if (BrakeSystem.RetainerSetting != RetainerSetting.SlowDirect)
             {
-                RetainerPercent = 25;
-                switch (RetainerSetting)
+                BrakeSystem.RetainerPercent = 25;
+                switch (BrakeSystem.RetainerSetting)
                 {
                     case RetainerSetting.Exhaust:
-                        RetainerSetting = RetainerSetting.LowPressure;
+                        BrakeSystem.RetainerSetting = RetainerSetting.LowPressure;
                         break;
                     case RetainerSetting.LowPressure:
-                        RetainerSetting = RetainerSetting.HighPressure;
+                        BrakeSystem.RetainerSetting = RetainerSetting.HighPressure;
                         break;
                     case RetainerSetting.HighPressure:
-                        RetainerSetting = RetainerSetting.SlowDirect;
+                        BrakeSystem.RetainerSetting = RetainerSetting.SlowDirect;
                         break;
                 }
             }
 
             (_, int last) = FindLeadLocomotives();
-            int step = 100 / RetainerPercent;
+            int step = 100 / BrakeSystem.RetainerPercent;
             for (int i = 0; i < Cars.Count; i++)
             {
                 int j = Cars.Count - 1 - i;
                 if (j <= last)
                     break;
-                Cars[j].BrakeSystem.SetRetainer(i % step == 0 ? RetainerSetting : RetainerSetting.Exhaust);
+                Cars[j].BrakeSystem.SetRetainer(i % step == 0 ? BrakeSystem.RetainerSetting : RetainerSetting.Exhaust);
             }
         }
 
@@ -3384,15 +3403,15 @@ namespace Orts.Simulation.Physics
             // lead locomotive (the player driven one) resides. Within this group both the main reservoir pressure and the 
             // engine brake pipe pressure will be propagated. It only identifies multiple units when coupled directly together,
             // for example a double headed steam locomotive will most often have a tender separating the two locomotives, 
-            // so the second locomotive will not be identified, nor will a locomotive added at the rear of the train. 
+            // so the second locomotive will not be identified, nor will a locomotive which is added at the rear of the train. 
 
             int first = -1;
             int last = -1;
             if (LeadLocomotiveIndex >= 0)
             {
-                for (int i = LeadLocomotiveIndex; i < Cars.Count && Cars[i].IsDriveable; i++)
+                for (int i = LeadLocomotiveIndex; i < Cars.Count && Cars[i] is MSTSLocomotive; i++)
                     last = i;
-                for (int i = LeadLocomotiveIndex; i >= 0 && Cars[i].IsDriveable; i--)
+                for (int i = LeadLocomotiveIndex; i >= 0 && Cars[i] is MSTSLocomotive; i--)
                     first = i;
             }
 
@@ -3424,21 +3443,21 @@ namespace Orts.Simulation.Physics
             return (first, last);
         }
 
-        internal TrainCar FindLeadLocomotive()
+        internal MSTSLocomotive FindLeadLocomotive()
         {
             (int first, int last) = FindLeadLocomotives();
             if (first > -1 && first < LeadLocomotiveIndex)
             {
-                return Cars[first];
+                return Cars[first] as MSTSLocomotive;
             }
             else if (last > -1 && last > LeadLocomotiveIndex)
             {
-                return Cars[last];
+                return Cars[last] as MSTSLocomotive;
             }
             for (int i = 0; i < Cars.Count; i++)
             {
-                if (Cars[i].IsDriveable)
-                    return Cars[i];
+                if (Cars[i] is MSTSLocomotive)
+                    return Cars[i] as MSTSLocomotive;
             }
             Trace.TraceWarning($"Train {Name} ({Number}) has no locomotive!");
             return null;
@@ -3455,9 +3474,9 @@ namespace Orts.Simulation.Physics
             {
                 if (car.WagonType == WagonType.Freight)
                     IsFreight = true;
-                if ((car.WagonType == WagonType.Passenger) || (car.IsDriveable && car.PassengerCapacity > 0))
+                if ((car.WagonType == WagonType.Passenger) || (car is MSTSLocomotive && car.PassengerCapacity > 0))
                     PassengerCarsNumber++;
-                if (car.IsDriveable && (car as MSTSLocomotive).CabViewList.Count > 0)
+                if ((car as MSTSLocomotive)?.CabViewList.Count > 0)
                     IsPlayable = true;
             }
             if (TrainType == TrainType.AiIncorporated && IncorporatingTrainNo > -1)
@@ -9969,627 +9988,6 @@ namespace Orts.Simulation.Physics
             return trainId[..(location - 1)];
         }
 
-        /// <summary>
-        /// Create status line
-        /// <\summary>
-        /// <remarks>
-        ///  "Train", "Travelled", "Speed", "Max", "AI mode", "AI data", "Mode", "Auth", "Distance", "Signal", "Distance", "Consist", "Path"
-        ///  0   Train: Number with trailing type (F freight, P Passenger)
-        ///  1   Travelled: travelled distance so far
-        ///  2   Speed: Current speed
-        ///  3   Max: Maximum allowed speed
-        ///  4   AIMode :
-        ///      INI     : AI is in INIT mode
-        ///      STC     : AI is static
-        ///      STP     : AI is Stopped
-        ///      BRK     : AI Brakes
-        ///      ACC     : AI do acceleration
-        ///      FOL     : AI follows
-        ///      RUN     : AI is running
-        ///      EOP     : AI approch and of path
-        ///      STA     : AI is on Station Stop
-        ///      WTP     : AI is on Waiting Point
-        ///      STE     : AI is in Stopped Existing state
-        ///  5   AI Data :
-        ///      000&000     : Throttel & Brake in %
-        ///                  : for mode INI, BRK, ACC, FOL, RUN or EOP
-        ///      HH:mm:ss    : for mode STA or WTP with actualDepart or DepartTime
-        ///                  : for mode STC with Start Time Value
-        ///      ..:..:..    : For other case
-        ///  6   Mode:
-        ///          SIGN or Sdelay: Train in AUTO_SIGNAL, with delay if train delayed
-        ///          NODE or Ndelay: Train in AUTO_NODE, with delay if train delayed
-        ///          MAN: Train in AUTO_MANUAL
-        ///          OOC: Train in OUT_OF_CONTROL
-        ///          EXP: Train in EXPLORER
-        ///  7   Auth + Distance:    For Player Train
-        ///          case OOC:   Distance set to blank
-        ///              SPAD:   Signal Passed At Danger
-        ///              RSPD:   Rear SPAD
-        ///              OOAU:   Out Of Authority
-        ///              OOPA:   Out Of Path
-        ///              SLPP:   Slipped out Path
-        ///              SLPT:   Slipped to End of Track
-        ///              OOTR:   To End Of Track
-        ///              MASW:   Misaligned Switch
-        ///              ....:   Undefined
-        ///          case Waiting Point: WAIT, Distance set to Train Number to Wait ????
-        ///          case NODE:                      Distance: Blank or
-        ///              EOT:    End Of Track
-        ///              EOP:    End Of Path
-        ///              RSW:    Reserved Switch
-        ///              LP:     Loop
-        ///              TAH:    Train Ahead
-        ///              MXD:    Max Distance        Distance: To End Of Authority
-        ///              NOP:    No Path Reserved    Distance: To End Of Authority
-        ///              ...:    Undefined
-        ///          Other:
-        ///              Blank + Blank
-        ///  7   Next Action :   For AI Train
-        ///              SPDL    :   Speed limit
-        ///              SIGL    :   Speed signal
-        ///              STOP    :   Signal STOP
-        ///              REST    :   Signal RESTRICTED
-        ///              EOA     :   End Of Authority
-        ///              STAT    :   Station Stop
-        ///              TRAH    :   Train Ahead
-        ///              EOR     :   End Of Route
-        ///              NONE    :   None
-        ///  9   Signal + Distance
-        ///          Manual or Explorer: Distance set to blank
-        ///              First:  Reverse direction
-        ///                  G:  Signal at STOP but Permission Granted
-        ///                  S:  Signal At STOP
-        ///                  P:  Signal at STOP & PROCEED
-        ///                  R:  Signal at RESTRICTING
-        ///                  A:  Signal at APPROACH 1, 2 or 3
-        ///                  C:  Signal at CLEAR 1 or 2
-        ///                  -:  Not Defined
-        ///              <>
-        ///              Second: Forward direction
-        ///                  G:  Signal at STOP but Permission Granted
-        ///                  S:  Signal At STOP
-        ///                  P:  Signal at STOP & PROCEED
-        ///                  R:  Signal at RESTRICTING
-        ///                  A:  Signal at APPROACH 1, 2 or 3
-        ///                  C:  Signal at CLEAR 1 or 2
-        ///                  -:  Not Defined
-        ///          Other:  Distance is Distance to next Signal
-        ///              STOP:   Signal at STOP
-        ///              SPRC:   Signal at STOP & PROCEED
-        ///              REST:   Signal at RESTRICTING
-        ///              APP1:   Signal at APPROACH 1
-        ///              APP2:   Signal at APPROACH 2
-        ///              APP3:   Signal at APPROACH 3
-        ///              CLR1:   Signal at CLEAR 1
-        ///              CLR2:   Signal at CLEAR 2
-        ///  11  Consist:
-        ///          PLAYER:
-        ///          REMOTE:
-        ///  12  Path:
-        ///          not Manual nor Explorer:
-        ///              number or ?     :   Id of subpath in valid TCRoute or ? if no valid TCRoute
-        ///              =[n]            :   Number of remaining station stops
-        ///              {               :   Starting String
-        ///              CircuitString   :   List of Circuit (see next)
-        ///              }               :   Ending String
-        ///              x or blank      :   x if already on TCRoute
-        ///          Manual or Explorer:
-        ///              CircuitString   :   Backward
-        ///              ={  Dir }=      :   Dir is '<' or '>'
-        ///              CircuitString   :   Forward
-        ///          For AI  :
-        ///              Train Name
-        ///  
-        ///      CircuitString analyse:
-        ///          Build string for section information
-        ///      returnString +
-        ///      CircuitType:
-        ///          >   : Junction
-        ///          +   : CrossOver
-        ///          [   : End of Track direction 1
-        ///          ]   : End of Track direction 0
-        ///          -   : Default (Track Section)
-        ///      Deadlock traps:
-        ///          Yes : Ended with *
-        ///              Await number    : ^
-        ///              Await more      : ~
-        ///      Train Occupancy:    + '&' If more than one
-        ///          N° of train     : If one train
-        ///      If train reservation :
-        ///          (
-        ///          Train Number
-        ///          )
-        ///      If signal reserved :
-        ///          (S
-        ///          Signal Number
-        ///          )
-        ///      If one or more train claim
-        ///          #
-        /// <\remarks>
-        public string[] GetStatus(bool metric)
-        {
-
-            string[] statusString = new string[13];
-
-            //  0, "Train"
-            if (Delay.HasValue && Delay.Value.TotalMinutes >= 1)
-            {
-                statusString[0] = $"{Number} D";
-            }
-            else if (IsFreight)
-            {
-                statusString[0] = $"{Number} F";
-            }
-            else
-            {
-                statusString[0] = $"{Number} P";
-            }
-
-            //  1, "Travelled"
-            statusString[1] = FormatStrings.FormatDistanceDisplay(DistanceTravelledM, metric);
-
-            //  2, "Speed"
-            float trainSpeed = TrainType == TrainType.Remote && SpeedMpS != 0 ? targetSpeedMpS : SpeedMpS;
-            statusString[2] = FormatStrings.FormatSpeedDisplay(trainSpeed, metric);
-            if (Math.Abs(trainSpeed) > Math.Abs(AllowedMaxSpeedMpS))
-                statusString[2] += "!!!";
-
-            //  3, "Max"
-            statusString[3] = FormatStrings.FormatSpeedLimit(AllowedMaxSpeedMpS, metric);
-
-            //  4, "AI mode"
-            statusString[4] = " ";  // for AI trains
-
-            //  5, "AI data"
-            statusString[5] = " ";  // for AI trains
-
-            //  6, "Mode"
-            statusString[6] = ControlMode switch
-            {
-                TrainControlMode.AutoSignal => Delay.HasValue ? $"S +{Delay.Value.TotalMinutes:00}" : "SIGN",
-                TrainControlMode.AutoNode => Delay.HasValue ? $"N +{Delay.Value.TotalMinutes:00}" : "NODE",
-                TrainControlMode.Manual => "MAN",
-                TrainControlMode.OutOfControl => "OOC",
-                TrainControlMode.Explorer => "EXPL",
-                TrainControlMode.TurnTable => "TURN",
-                _ => "----",
-            };
-
-            //  7, "Auth"
-            if (ControlMode == TrainControlMode.OutOfControl)
-            {
-                statusString[7] = OutOfControlReason switch
-                {
-                    OutOfControlReason.PassedAtDanger => "SPAD",
-                    OutOfControlReason.RearPassedAtDanger => "RSPD",
-                    OutOfControlReason.OutOfAuthority => "OOAU",
-                    OutOfControlReason.OutOfPath => "OOPA",
-                    OutOfControlReason.SlippedIntoPath => "SLPP",
-                    OutOfControlReason.SlippedToEndOfTrack => "SLPT",
-                    OutOfControlReason.OutOfTrack => "OOTR",
-                    OutOfControlReason.MisalignedSwitch => "MASW",
-                    OutOfControlReason.SlippedIntoTurnTable => "SLPT",
-                    _ => "....",
-                };
-
-                //  8, "Distance"
-                statusString[8] = " ";
-            }
-            else if (ControlMode == TrainControlMode.AutoNode)
-            {
-                statusString[7] = EndAuthorityTypes[0] switch
-                {
-                    EndAuthorityType.EndOfTrack => "EOT",
-                    EndAuthorityType.EndOfPath => "EOP",
-                    EndAuthorityType.ReservedSwitch => "RSW",
-                    EndAuthorityType.Loop => "LP ",
-                    EndAuthorityType.TrainAhead => "TAH",
-                    EndAuthorityType.MaxDistance => "MXD",
-                    EndAuthorityType.NoPathReserved => "NOP",
-                    _ => "",
-                };
-
-                //  8, "Distance"
-                if (EndAuthorityTypes[0] != EndAuthorityType.MaxDistance && EndAuthorityTypes[0] != EndAuthorityType.NoPathReserved)
-                {
-                    statusString[8] = FormatStrings.FormatDistance(DistanceToEndNodeAuthorityM[0], metric);
-                }
-                else
-                {
-                    statusString[8] = " ";
-                }
-            }
-            else
-            {
-                statusString[7] = " ";
-
-                //  8, "Distance"
-                statusString[7] = " ";
-            }
-
-            //  9, "Signal"
-            if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
-            {
-                // reverse direction
-                char firstchar = '-';
-
-                if (NextSignalObject[1] != null)
-                {
-                    SignalAspectState nextAspect = GetNextSignalAspect(1);
-                    if (NextSignalObject[1].EnabledTrain == null || NextSignalObject[1].EnabledTrain.Train != this)
-                        nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
-
-                    switch (nextAspect)
-                    {
-                        case SignalAspectState.Stop:
-                            firstchar = (NextSignalObject[1].OverridePermission == SignalPermission.Granted) ? 'G' : 'S';
-                            break;
-                        case SignalAspectState.Stop_And_Proceed:
-                            firstchar = 'P';
-                            break;
-                        case SignalAspectState.Restricting:
-                            firstchar = 'R';
-                            break;
-                        case SignalAspectState.Approach_1:
-                            firstchar = 'A';
-                            break;
-                        case SignalAspectState.Approach_2:
-                            firstchar = 'A';
-                            break;
-                        case SignalAspectState.Approach_3:
-                            firstchar = 'A';
-                            break;
-                        case SignalAspectState.Clear_1:
-                            firstchar = 'C';
-                            break;
-                        case SignalAspectState.Clear_2:
-                            firstchar = 'C';
-                            break;
-                    }
-                }
-
-                // forward direction
-                char lastchar = '-';
-
-                if (NextSignalObject[0] != null)
-                {
-                    SignalAspectState nextAspect = GetNextSignalAspect(0);
-                    if (NextSignalObject[0].EnabledTrain == null || NextSignalObject[0].EnabledTrain.Train != this)
-                        nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
-
-                    switch (nextAspect)
-                    {
-                        case SignalAspectState.Stop:
-                            lastchar = NextSignalObject[0].OverridePermission == SignalPermission.Granted ? 'G' : 'S';
-                            break;
-                        case SignalAspectState.Stop_And_Proceed:
-                            lastchar = 'P';
-                            break;
-                        case SignalAspectState.Restricting:
-                            lastchar = 'R';
-                            break;
-                        case SignalAspectState.Approach_1:
-                            lastchar = 'A';
-                            break;
-                        case SignalAspectState.Approach_2:
-                            lastchar = 'A';
-                            break;
-                        case SignalAspectState.Approach_3:
-                            lastchar = 'A';
-                            break;
-                        case SignalAspectState.Clear_1:
-                            lastchar = 'C';
-                            break;
-                        case SignalAspectState.Clear_2:
-                            lastchar = 'C';
-                            break;
-                    }
-                }
-                statusString[9] = $"{firstchar}<>{lastchar}";
-
-                //  10, "Distance"
-                statusString[10] = " ";
-            }
-            else
-            {
-                if (NextSignalObject[0] != null)
-                {
-                    SignalAspectState nextAspect = GetNextSignalAspect(0);
-
-                    switch (nextAspect)
-                    {
-                        case SignalAspectState.Stop:
-                            statusString[9] = "STOP";
-                            break;
-                        case SignalAspectState.Stop_And_Proceed:
-                            statusString[9] = "SPRC";
-                            break;
-                        case SignalAspectState.Restricting:
-                            statusString[9] = "REST";
-                            break;
-                        case SignalAspectState.Approach_1:
-                            statusString[9] = "APP1";
-                            break;
-                        case SignalAspectState.Approach_2:
-                            statusString[9] = "APP2";
-                            break;
-                        case SignalAspectState.Approach_3:
-                            statusString[9] = "APP3";
-                            break;
-                        case SignalAspectState.Clear_1:
-                            statusString[9] = "CLR1";
-                            break;
-                        case SignalAspectState.Clear_2:
-                            statusString[9] = "CLR2";
-                            break;
-                    }
-
-                    //  10, "Distance"
-                    statusString[10] = DistanceToSignal.HasValue ? FormatStrings.FormatDistance(DistanceToSignal.Value, metric) : "-";
-                }
-                else
-                {
-                    statusString[9] = " ";
-                    //  10, "Distance"
-                    statusString[10] = " ";
-                }
-            }
-
-            //  11, "Consist"
-            statusString[11] = "PLAYER";
-            if (!simulator.TimetableMode && this != simulator.OriginalPlayerTrain)
-                statusString[11] = Name[..Math.Min(Name.Length, 7)];
-
-            if (TrainType == TrainType.Remote)
-            {
-                string trainName;
-                if (LeadLocomotive != null)
-                    trainName = GetTrainName(LeadLocomotive.CarID);
-                else if (Cars != null && Cars.Count > 0)
-                    trainName = GetTrainName(Cars[0].CarID);
-                else
-                    trainName = "REMOTE";
-                statusString[11] = trainName[..Math.Min(trainName.Length, 7)];
-            }
-
-            //  12, "Path"
-            StringBuilder circuitString = new StringBuilder();
-
-            if ((ControlMode != TrainControlMode.Manual && ControlMode != TrainControlMode.Explorer) || ValidRoute[1] == null)
-            {
-                // station stops
-                if (StationStops == null || StationStops.Count == 0)
-                {
-                    circuitString.Append("[ ] ");
-                }
-                else
-                {
-                    circuitString.Append($"[{StationStops.Count}] ");
-                }
-
-                // route
-                if (TCRoute == null)
-                {
-                    circuitString.Append("?={");
-                }
-                else
-                {
-                    circuitString.Append(TCRoute.ActiveSubPath);
-                    circuitString.Append("={");
-                }
-
-                int startIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                if (startIndex < 0)
-                {
-                    circuitString.Append("<out of route>");
-                }
-                else
-                {
-                    for (int i = PresentPosition[Direction.Forward].RouteListIndex; i < ValidRoute[0].Count; i++)
-                    {
-                        BuildSectionString(circuitString, ValidRoute[0][i].TrackCircuitSection, Direction.Forward);
-
-                    }
-                }
-
-                circuitString.Append('}');
-
-                if (TCRoute != null && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
-                {
-                    circuitString.Append('x');
-                    circuitString.Append(TCRoute.ActiveSubPath + 1);
-                }
-                if (TCRoute != null && TCRoute.OriginalSubpath != -1)
-                    circuitString.Append("???");
-            }
-            else
-            {
-                // backward path
-                StringBuilder backstring = new StringBuilder();
-                for (int i = ValidRoute[1].Count - 1; i >= 0; i--)
-                {
-                    BuildSectionString(backstring, ValidRoute[1][i].TrackCircuitSection, Direction.Backward);
-                }
-
-                if (backstring.Length > 20)
-                {
-                    // ensure string starts with section delimiter
-                    while (backstring[0] != '-' && backstring[0] != '+' && backstring[0] != '<')
-                        backstring.Remove(0, 1);
-
-                    if (backstring.Length > 20)
-                        backstring.Length = 20;
-
-                    circuitString.Append("...");
-                }
-                circuitString.Append(backstring);
-
-                // train indication and direction
-                circuitString.Append("={");
-                if (MUDirection == MidpointDirection.Reverse)
-                {
-                    circuitString.Append('<');
-                }
-                else
-                {
-                    circuitString.Append('>');
-                }
-                circuitString.Append("}=");
-
-                // forward path
-
-                StringBuilder forwardstring = new StringBuilder();
-                for (int i = 0; i < ValidRoute[0].Count; i++)
-                {
-                    BuildSectionString(forwardstring, ValidRoute[0][i].TrackCircuitSection, 0);
-                }
-                circuitString.Append(forwardstring);
-            }
-
-            statusString[12] = circuitString.ToString();
-
-            return statusString;
-        }
-
-        /// <summary>
-        ///  Build string for section information
-        ///  <c>returnString +
-        ///     CircuitType:
-        ///         >   : Junction
-        ///         +   : CrossOver
-        ///         [   : End of Track direction 1
-        ///         ]   : End of Track direction 0
-        ///     Deadlock traps:
-        ///         Yes : Ended with *
-        ///             Await number    : ^
-        ///             Await more      : ~
-        ///     Train Occupancy:    + '&' If more than one
-        ///         N° of train     : If one train
-        ///     If train reservation :
-        ///         (
-        ///         Train Number
-        ///         )
-        ///     If signal reserved :
-        ///         (S
-        ///         Signal Number
-        ///         )
-        ///     If one or more train claim
-        ///         #</c>
-        /// </summary>
-        private void BuildSectionString(StringBuilder builder, TrackCircuitSection section, Direction direction)
-        {
-            switch (section.CircuitType)
-            {
-                case TrackCircuitType.Junction:
-                    builder.Append('>');
-                    break;
-                case TrackCircuitType.Crossover:
-                    builder.Append('+');
-                    break;
-                case TrackCircuitType.EndOfTrack:
-                    builder.Append(direction == Direction.Forward ? ']' : '[');
-                    break;
-                default:
-                    builder.Append('-');
-                    break;
-            }
-
-            if (section.DeadlockTraps.ContainsKey(Number))
-            {
-                if (section.DeadlockAwaited.Contains(Number))
-                {
-                    builder.Append("^[");
-                    List<int> deadlockInfo = section.DeadlockTraps[Number];
-                    for (int index = 0; index < deadlockInfo.Count - 2; index++)
-                    {
-                        builder.Append(deadlockInfo[index]);
-                        builder.Append(',');
-                    }
-                    builder.Append(deadlockInfo.Last());
-                    builder.Append(']');
-                }
-                else if (section.DeadlockAwaited.Count > 0)
-                {
-                    builder.Append('~');
-                }
-                builder.Append('*');
-            }
-
-            if (section.CircuitState.OccupationState.Count > 0)
-            {
-                List<TrainRouted> allTrains = section.CircuitState.TrainsOccupying();
-                builder.Append(allTrains[0].Train.Number);
-                if (allTrains.Count > 1)
-                {
-                    builder.Append('&');
-                }
-            }
-
-            if (section.CircuitState.TrainReserved != null)
-            {
-                builder.Append($"({section.CircuitState.TrainReserved.Train.Number})");
-            }
-
-            if (section.CircuitState.SignalReserved >= 0)
-            {
-                builder.Append($"(S{section.CircuitState.SignalReserved})");
-            }
-
-            if (section.CircuitState.TrainClaimed.Count > 0)
-            {
-                builder.Append('#');
-            }
-        }
-
-        /// <summary>
-        /// Add restart times at stations and waiting points
-        /// Update the string for 'TextPageDispatcherInfo'.
-        /// Modifiy fields 4 and 5
-        /// <\summary>
-        public void AddRestartTime(string[] stateString)
-        {
-            if (null == stateString)
-                return;
-            string movString = string.Empty;
-            string abString = string.Empty;
-
-            if (this == simulator.OriginalPlayerTrain)
-            {
-                if (simulator.ActivityRun?.ActivityTask is ActivityTaskPassengerStopAt passengerStop && passengerStop.BoardingS > 0)
-                {
-                    movString = "STA";
-                    abString = $"{TimeSpan.FromSeconds(passengerStop.BoardingEndS):c}";
-                }
-                else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.specRequiredActions.Count > 0 &&
-                    AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate auxAction &&
-                    auxAction.currentMvmtState == AiMovementState.HandleAction)
-                {
-                    movString = "WTS";
-                    abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
-                }
-            }
-            else if (StationStops.Count > 0 && AtStation)
-            {
-                movString = "STA";
-                abString = (StationStops[0].ActualDepart > 0) ? $"{TimeSpan.FromSeconds(StationStops[0].ActualDepart):c}" : "..:..:..";
-            }
-            else if (Math.Abs(SpeedMpS) <= 0.01 && this is AITrain aiTrain && aiTrain.nextActionInfo is AuxActionWPItem auxAction &&
-                    aiTrain.MovementState == AiMovementState.HandleAction)
-            {
-                movString = "WTP";
-                abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
-            }
-            else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef auxWPAction &&
-                auxWPAction.keepIt?.currentMvmtState == AiMovementState.HandleAction)
-            {
-                movString = "WTP";
-                abString = $"{TimeSpan.FromSeconds(auxWPAction.keepIt.ActualDepart):c}";
-            }
-            stateString[4] = movString;
-            stateString[5] = abString;
-        }
-
         //TODO 20210121 refactor
         // Contains data about all types of signals
         public EnumArray<List<TrainPathItem>[], Direction> PlayerTrainSignals { get; } = new EnumArray<List<TrainPathItem>[], Direction>(() =>
@@ -10796,8 +10194,8 @@ namespace Orts.Simulation.Physics
                         else if (section.Pins[sectionDirection, Location.FarEnd].Link == -1)
                         {
                             // trailing
-                            if ((section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute == 0) ||
-                                (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
+                            if ((section.ActivePins[sectionDirection.Reverse(), Location.FarEnd].Link > 0 && section.JunctionDefaultRoute == 0) ||
+                                (section.ActivePins[sectionDirection.Reverse(), Location.NearEnd].Link > 0 && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
                                 float junctionAngle = junctionNode.Angle;
@@ -10870,6 +10268,19 @@ namespace Orts.Simulation.Physics
             }
         }
 
+        public bool TrainOnPath
+        {
+            get
+            {
+                if (TCRoute?.ActiveSubPath >= 0 && TCRoute?.TCRouteSubpaths.Count > TCRoute.ActiveSubPath)
+                {
+                    TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
+                    return pathRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0) >= 0;
+                }
+                return false;
+            }
+        }
+
         /// <summary>
         /// Create TrackInfoObject for information in TrackMonitor window
         /// </summary>
@@ -10891,7 +10302,7 @@ namespace Orts.Simulation.Physics
                     break;
                 default:// no state? should not occur, but just set no details at all
                     result = new TrainInfo(ControlMode, Direction.Forward, 0);
-                    TrainPathItem dummyItem = new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f);
+                    TrainPathItem dummyItem = TrainPathItem.Undefined;
                     result.ObjectInfoForward.Add(dummyItem);
                     result.ObjectInfoBackward.Add(dummyItem);
                     break;
@@ -12628,6 +12039,405 @@ namespace Orts.Simulation.Physics
         {
             return PresentPosition[Direction.Forward].Offset != PreviousPosition[Direction.Forward].Offset;
         }
+
+        #region Train Dispatcher Info
+        private protected virtual INameValueInformationProvider GetDispatcherInfoProvider() => new TrainDispatcherInfo(this);
+
+        private protected class TrainDispatcherInfo : DetailInfoBase
+        {
+            private readonly Train train;
+            private protected readonly Catalog catalog;
+            private int numberCars;
+            private protected readonly bool metricData;
+
+            public TrainDispatcherInfo(Train train)
+            {
+                this.train = train;
+                this.catalog = Simulator.Catalog as Catalog;
+                metricData = RuntimeData.Instance.UseMetricUnits;
+            }
+
+            private void Initialize()
+            {
+                this["Name"] = train.TrainType == TrainType.Remote
+                    ? train.LeadLocomotive != null
+                        ? (GetTrainName(train.LeadLocomotive.CarID))
+                        : train.Cars != null && train.Cars.Count > 0 ? (GetTrainName(train.Cars[0].CarID)) : "REMOTE"
+                    : train.Name;
+
+                this["TrainType"] = train.IsFreight ? catalog.GetString("Freight") : catalog.GetString("Passenger");
+            }
+
+            /// <remarks>
+            ///  "Train", "Travelled", "Speed", "Max", "AI mode", "AI data", "Mode", "Auth", "Distance", "Signal", "Distance", "Consist", "Path"
+            ///  0   Train: Number with trailing type (F freight, P Passenger)
+            ///  1   Travelled: travelled distance so far
+            ///  2   Speed: Current speed
+            ///  3   Max: Maximum allowed speed
+            ///  4   AIMode :
+            ///      INI     : AI is in INIT mode
+            ///      STC     : AI is static
+            ///      STP     : AI is Stopped
+            ///      BRK     : AI Brakes
+            ///      ACC     : AI do acceleration
+            ///      FOL     : AI follows
+            ///      RUN     : AI is running
+            ///      EOP     : AI approch and of path
+            ///      STA     : AI is on Station Stop
+            ///      WTP     : AI is on Waiting Point
+            ///      STE     : AI is in Stopped Existing state
+            ///  5   AI Data :
+            ///      000&000     : Throttel & Brake in %
+            ///                  : for mode INI, BRK, ACC, FOL, RUN or EOP
+            ///      HH:mm:ss    : for mode STA or WTP with actualDepart or DepartTime
+            ///                  : for mode STC with Start Time Value
+            ///      ..:..:..    : For other case
+            ///  6   Mode:
+            ///          SIGN or Sdelay: Train in AUTO_SIGNAL, with delay if train delayed
+            ///          NODE or Ndelay: Train in AUTO_NODE, with delay if train delayed
+            ///          MAN: Train in AUTO_MANUAL
+            ///          OOC: Train in OUT_OF_CONTROL
+            ///          EXP: Train in EXPLORER
+            ///  7   Auth + Distance:    For Player Train
+            ///          case OOC:   Distance set to blank
+            ///              SPAD:   Signal Passed At Danger
+            ///              RSPD:   Rear SPAD
+            ///              OOAU:   Out Of Authority
+            ///              OOPA:   Out Of Path
+            ///              SLPP:   Slipped out Path
+            ///              SLPT:   Slipped to End of Track
+            ///              OOTR:   To End Of Track
+            ///              MASW:   Misaligned Switch
+            ///              ....:   Undefined
+            ///          case Waiting Point: WAIT, Distance set to Train Number to Wait ????
+            ///          case NODE:                      Distance: Blank or
+            ///              EOT:    End Of Track
+            ///              EOP:    End Of Path
+            ///              RSW:    Reserved Switch
+            ///              LP:     Loop
+            ///              TAH:    Train Ahead
+            ///              MXD:    Max Distance        Distance: To End Of Authority
+            ///              NOP:    No Path Reserved    Distance: To End Of Authority
+            ///              ...:    Undefined
+            ///          Other:
+            ///              Blank + Blank
+            ///  7   Next Action :   For AI Train
+            ///              SPDL    :   Speed limit
+            ///              SIGL    :   Speed signal
+            ///              STOP    :   Signal STOP
+            ///              REST    :   Signal RESTRICTED
+            ///              EOA     :   End Of Authority
+            ///              STAT    :   Station Stop
+            ///              TRAH    :   Train Ahead
+            ///              EOR     :   End Of Route
+            ///              NONE    :   None
+            ///  9   Signal + Distance
+            ///          Manual or Explorer: Distance set to blank
+            ///              First:  Reverse direction
+            ///                  G:  Signal at STOP but Permission Granted
+            ///                  S:  Signal At STOP
+            ///                  P:  Signal at STOP & PROCEED
+            ///                  R:  Signal at RESTRICTING
+            ///                  A:  Signal at APPROACH 1, 2 or 3
+            ///                  C:  Signal at CLEAR 1 or 2
+            ///                  -:  Not Defined
+            ///              <>
+            ///              Second: Forward direction
+            ///                  G:  Signal at STOP but Permission Granted
+            ///                  S:  Signal At STOP
+            ///                  P:  Signal at STOP & PROCEED
+            ///                  R:  Signal at RESTRICTING
+            ///                  A:  Signal at APPROACH 1, 2 or 3
+            ///                  C:  Signal at CLEAR 1 or 2
+            ///                  -:  Not Defined
+            ///          Other:  Distance is Distance to next Signal
+            ///              STOP:   Signal at STOP
+            ///              SPRC:   Signal at STOP & PROCEED
+            ///              REST:   Signal at RESTRICTING
+            ///              APP1:   Signal at APPROACH 1
+            ///              APP2:   Signal at APPROACH 2
+            ///              APP3:   Signal at APPROACH 3
+            ///              CLR1:   Signal at CLEAR 1
+            ///              CLR2:   Signal at CLEAR 2
+            ///  11  Consist:
+            ///          PLAYER:
+            ///          REMOTE:
+            ///  12  Path:
+            ///          not Manual nor Explorer:
+            ///              number or ?     :   Id of subpath in valid TCRoute or ? if no valid TCRoute
+            ///              =[n]            :   Number of remaining station stops
+            ///              {               :   Starting String
+            ///              CircuitString   :   List of Circuit (see next)
+            ///              }               :   Ending String
+            ///              x or blank      :   x if already on TCRoute
+            ///          Manual or Explorer:
+            ///              CircuitString   :   Backward
+            ///              ={  Dir }=      :   Dir is '<' or '>'
+            ///              CircuitString   :   Forward
+            ///          For AI  :
+            ///              Train Name
+            ///  
+            ///      CircuitString analyse:
+            ///          Build string for section information
+            ///      returnString +
+            ///      CircuitType:
+            ///          >   : Junction
+            ///          +   : CrossOver
+            ///          [   : End of Track direction 1
+            ///          ]   : End of Track direction 0
+            ///          -   : Default (Track Section)
+            ///      Deadlock traps:
+            ///          Yes : Ended with *
+            ///              Await number    : ^
+            ///              Await more      : ~
+            ///      Train Occupancy:    + '&' If more than one
+            ///          N° of train     : If one train
+            ///      If train reservation :
+            ///          (
+            ///          Train Number
+            ///          )
+            ///      If signal reserved :
+            ///          (S
+            ///          Signal Number
+            ///          )
+            ///      If one or more train claim
+            ///          #
+            /// <\remarks>
+
+            public override void Update(GameTime gameTime)
+            {
+                if (UpdateNeeded)
+                {
+                    if (numberCars != (numberCars = train.Cars.Count))
+                    {
+                        Initialize();
+                    }
+                    this["Delay"] = train.Delay?.TotalSeconds > 10 ? $"{FormatStrings.FormatDelayTime(train.Delay.Value)}" : null;
+                    //  "Travelled"
+                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.Route.MilepostUnitsMetric);
+                    //  "Speed"
+                    float trainSpeed = train.TrainType == TrainType.Remote && train.SpeedMpS != 0 ? train.targetSpeedMpS : train.SpeedMpS;
+                    this["Speed"] = FormatStrings.FormatSpeedDisplay(trainSpeed, metricData);
+                    //  "Allowed Speed"
+                    this["AllowedSpeed"] = FormatStrings.FormatSpeedLimit(train.AllowedMaxSpeedMpS, metricData);
+                    base.Update(gameTime);
+                    //  "Mode"
+                    this["ControlMode"] = train.ControlMode.GetLocalizedDescription();
+                    //  "Mode"
+                    this["ControlMode"] = train.ControlMode.GetLocalizedDescription();
+                    //  "Authorization"
+                    switch (train.ControlMode)
+                    {
+                        case TrainControlMode.OutOfControl:
+                            this["Authorization"] = train.OutOfControlReason.GetLocalizedDescription();
+                            this["AuthDistance"] = null;
+                            break;
+                        case TrainControlMode.AutoNode:
+                            this["Authorization"] = train.EndAuthorityTypes[0].GetLocalizedDescription();
+                            this["AuthorizationDistance"] = null;
+                            //  8, "Distance"
+                            this["AuthDistance"] = train.EndAuthorityTypes[0] is not EndAuthorityType.MaxDistance and not EndAuthorityType.NoPathReserved ?
+                                FormatStrings.FormatDistance(train.DistanceToEndNodeAuthorityM[0], metricData) : null;
+                            break;
+                        default:
+                            this["Authorization"] = null;
+                            this["AuthDistance"] = null;
+                            break;
+                    }
+
+                    //  "Signal"
+                    if (train.ControlMode is TrainControlMode.Manual or TrainControlMode.Explorer)
+                    {
+                        string SignalState(int direction)
+                        {
+                            SignalAspectState nextAspect = train.NextSignalObject[direction]?.EnabledTrain?.Train != train ? SignalAspectState.Stop : train.GetNextSignalAspect(direction);  // aspect only valid if signal enabled for this train
+
+                            string result = nextAspect.GetLocalizedDescription();
+                            if (nextAspect == SignalAspectState.Stop && train.NextSignalObject[direction]?.OverridePermission == SignalPermission.Granted)
+                                result += $" ({catalog.GetString("Granted")})";
+                            return result;
+                        }
+                        this["Signal"] = $"{SignalState(1)}<>{SignalState(0)}";
+                        //  "Distance"
+                        this["SignalDistance"] = null;
+                    }
+                    else
+                    {
+                        if (train.NextSignalObject[0] != null)
+                        {
+                            this["Signal"] = train.GetNextSignalAspect(0).GetLocalizedDescription();
+                            //  "Distance"
+                            this["SignalDistance"] = train.DistanceToSignal.HasValue ? FormatStrings.FormatDistance(train.DistanceToSignal.Value, metricData) : null;
+                        }
+                        else
+                        {
+                            this["Signal"] = null;
+                            //  "Distance"
+                            this["SignalDistance"] = null;
+                        }
+                    }
+
+                    //  "Path"
+                    StringBuilder circuitString = new StringBuilder();
+
+                    if ((train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.Explorer) || train.ValidRoute[1] == null)
+                    {
+                        // station stops
+                        circuitString.Append(train.StationStops?.Count > 0 ? $"[{train.StationStops.Count}] " : "[ ] ");
+                        // route
+                        circuitString.Append($"{train.TCRoute?.ActiveSubPath.ToString(CultureInfo.InvariantCulture) ?? "?"}?={{");
+
+                        int startIndex = train.PresentPosition[Direction.Forward].RouteListIndex;
+                        if (startIndex < 0)
+                        {
+                            circuitString.Append("<out of route>");
+                        }
+                        else
+                        {
+                            for (int i = train.PresentPosition[Direction.Forward].RouteListIndex; i < train.ValidRoute[0].Count; i++)
+                            {
+                                BuildSectionString(circuitString, train.ValidRoute[0][i].TrackCircuitSection, Direction.Forward, train.Number);
+
+                            }
+                        }
+                        circuitString.Append('}');
+                        if (train.TCRoute?.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1)
+                        {
+                            circuitString.Append($"x{train.TCRoute.ActiveSubPath + 1}");
+                        }
+                        if (train.TCRoute != null && train.TCRoute.OriginalSubpath != -1)
+                            circuitString.Append("???");
+                    }
+                    else
+                    {
+                        // backward path
+                        StringBuilder backstring = new StringBuilder();
+                        for (int i = train.ValidRoute[1].Count - 1; i >= 0; i--)
+                        {
+                            BuildSectionString(backstring, train.ValidRoute[1][i].TrackCircuitSection, Direction.Backward, train.Number);
+                        }
+
+                        if (backstring.Length > 20)
+                        {
+                            // ensure string starts with section delimiter
+                            while (backstring[0] != '-' && backstring[0] != '+' && backstring[0] != '<')
+                                backstring.Remove(0, 1);
+
+                            if (backstring.Length > 20)
+                                backstring.Length = 20;
+
+                            circuitString.Append("...");
+                        }
+                        circuitString.Append(backstring);
+
+                        // train indication and direction
+                        circuitString.Append($"={{{(train.MUDirection == MidpointDirection.Reverse ? '<' : '>')}}}=");
+
+                        // forward path
+                        StringBuilder forwardstring = new StringBuilder();
+                        for (int i = 0; i < train.ValidRoute[0].Count; i++)
+                        {
+                            BuildSectionString(forwardstring, train.ValidRoute[0][i].TrackCircuitSection, 0, train.Number);
+                        }
+                        circuitString.Append(forwardstring);
+                    }
+                    this["Path"] = circuitString.ToString();
+
+                    base.Update(gameTime);
+                }
+            }
+
+            /// <summary>
+            ///  Build string for section information
+            ///  <c>returnString +
+            ///     CircuitType:
+            ///         >   : Junction
+            ///         +   : CrossOver
+            ///         [   : End of Track direction 1
+            ///         ]   : End of Track direction 0
+            ///     Deadlock traps:
+            ///         Yes : Ended with *
+            ///             Await number    : ^
+            ///             Await more      : ~
+            ///     Train Occupancy:    + '&' If more than one
+            ///         N° of train     : If one train
+            ///     If train reservation :
+            ///         (
+            ///         Train Number
+            ///         )
+            ///     If signal reserved :
+            ///         (S
+            ///         Signal Number
+            ///         )
+            ///     If one or more train claim
+            ///         #</c>
+            /// </summary>
+            private protected static void BuildSectionString(StringBuilder builder, TrackCircuitSection section, Direction direction, int trainNumber)
+            {
+                switch (section.CircuitType)
+                {
+                    case TrackCircuitType.Junction:
+                        builder.Append('>');
+                        break;
+                    case TrackCircuitType.Crossover:
+                        builder.Append('+');
+                        break;
+                    case TrackCircuitType.EndOfTrack:
+                        builder.Append(direction == Direction.Forward ? ']' : '[');
+                        break;
+                    default:
+                        builder.Append('-');
+                        break;
+                }
+
+                if (section.DeadlockTraps.ContainsKey(trainNumber))
+                {
+                    if (section.DeadlockAwaited.Contains(trainNumber))
+                    {
+                        builder.Append("^[");
+                        List<int> deadlockInfo = section.DeadlockTraps[trainNumber];
+                        for (int index = 0; index < deadlockInfo.Count - 2; index++)
+                        {
+                            builder.Append(deadlockInfo[index]);
+                            builder.Append(',');
+                        }
+                        builder.Append(deadlockInfo.Last());
+                        builder.Append(']');
+                    }
+                    else if (section.DeadlockAwaited.Count > 0)
+                    {
+                        builder.Append('~');
+                    }
+                    builder.Append('*');
+                }
+
+                if (section.CircuitState.OccupationState.Count > 0)
+                {
+                    List<TrainRouted> allTrains = section.CircuitState.TrainsOccupying();
+                    builder.Append(allTrains[0].Train.Number);
+                    if (allTrains.Count > 1)
+                    {
+                        builder.Append('&');
+                    }
+                }
+
+                if (section.CircuitState.TrainReserved != null)
+                {
+                    builder.Append($"({section.CircuitState.TrainReserved.Train.Number})");
+                }
+
+                if (section.CircuitState.SignalReserved >= 0)
+                {
+                    builder.Append($"(S{section.CircuitState.SignalReserved})");
+                }
+
+                if (section.CircuitState.TrainClaimed.Count > 0)
+                {
+                    builder.Append('#');
+                }
+            }
+        }
+        #endregion
     }
     // class Train
 }

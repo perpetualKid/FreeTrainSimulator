@@ -39,22 +39,31 @@ namespace Orts.Formats.Msts
     public enum SignalAspectState
     {
         /// <summary>Stop (absolute)</summary>
+        [Description("Stop")]
         Stop,
         /// <summary>Stop and proceed</summary>
+        [Description("StopProceed")]
         Stop_And_Proceed,
         /// <summary>Restricting</summary>
+        [Description("Restricting")]
         Restricting,
         /// <summary>Final caution before 'stop' or 'stop and proceed'</summary>
+        [Description("Approach1")]
         Approach_1,
         /// <summary>Advanced caution</summary>
+        [Description("Approach2")]
         Approach_2,
         /// <summary>Least restrictive advanced caution</summary>
+        [Description("Approach3")]
         Approach_3,
         /// <summary>Clear to next signal</summary>
+        [Description("Clear1")]
         Clear_1,
         /// <summary>Clear to next signal (least restrictive)</summary>
+        [Description("Clear2")]
         Clear_2,
         /// <summary>Signal aspect is unknown (possibly not yet defined)</summary>
+        [Description("Unknown")]
         Unknown,
     }
 
@@ -143,10 +152,6 @@ namespace Orts.Formats.Msts
         End,
         /// <summary>Node is a wait/stop node</summary>
         Wait,
-        /// <summary>Node is a junction node at the start of a siding </summary>
-        SidingStart,
-        /// <summary>Node is a junction node at the end of a siding</summary>
-        SidingEnd,
         /// <summary>Node is a reversal node</summary>
         Reversal,
         /// <summary>Temporary node for editing purposes</summary>

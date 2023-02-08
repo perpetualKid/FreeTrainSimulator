@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox
@@ -17,7 +18,7 @@ namespace Orts.Toolbox
     {
         #region public declarations
 
-       
+
         #endregion
 
         #region private declarations
@@ -25,8 +26,6 @@ namespace Orts.Toolbox
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
-
-        private string stpath;
 
         #endregion
 
@@ -44,7 +43,7 @@ namespace Orts.Toolbox
 
         internal void PrepareExitApplication()
         {
-            windowManager[WindowType.QuitWindow].Open();
+            windowManager[ToolboxWindowType.QuitWindow].Open();
         }
 
         private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
@@ -155,7 +154,17 @@ namespace Orts.Toolbox
 
         internal void ShowAboutWindow()
         {
-            windowManager[WindowType.AboutWindow].Open();
+            windowManager[ToolboxWindowType.AboutWindow].Open();
+        }
+
+        private void EditTrainPath(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs mousePointCommandArgs &&
+                contentArea?.Content is ToolboxContent toolboxContent && toolboxContent.ContentMode == ToolboxContentMode.EditPath)
+            {
+                pathEditor?.MouseAction(mousePointCommandArgs.Position, modifiers);
+                userCommandArgs.Handled = true;
+            }
         }
 
         internal void PrintScreen()
@@ -182,38 +191,5 @@ namespace Orts.Toolbox
                 }
             }
         }
-
-        /// <summary>
-        /// Once a path has been selected, do the necessary loading.
-        /// </summary>
-        /// <param name="spath">Path name as a string</param>
-        internal void SetPath(string spath)
-        {
-            //if (!CanDiscardModifiedPath())
-            //    return;
-
-            if (spath == null)
-            {
-                MessageBox.Show("Null Path", $"{RuntimeInfo.ApplicationName}");
-            }
-            else
-            {
-                foreach (Models.Simplified.Path path in paths)
-                {
-                    if (spath == path.Name)
-                    {
-                        stpath = "P:" + spath;
-                        //(windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = stpath;
-                        //windowManager[WindowType.StatusWindow].Open();
-
-                        //Patheditor = new Patheditor(path);
-
-                        //windowManager[WindowType.StatusWindow].Close();
-                    }
-                }
-                
-            }
-        }
-
     }
 }

@@ -9,10 +9,9 @@ namespace Orts.Common.Position
         private static readonly PointD none = new PointD(0, 0);
 
         public static ref readonly PointD None => ref none;
-#pragma warning disable CA1051 // Do not declare visible instance fields
+
         public readonly double X;
         public readonly double Y;
-#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public PointD(double x, double y)
         {
@@ -30,21 +29,18 @@ namespace Orts.Common.Position
             int xTileDistance = (int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
-            return new WorldLocation(xTileDistance, zTileDistance, 
+            return new WorldLocation(xTileDistance, zTileDistance,
                 new Vector3((float)(location.X - (xTileDistance * WorldLocation.TileSize)), 0, (float)(location.Y - (zTileDistance * WorldLocation.TileSize))));
         }
 
         public static Tile ToTile(in PointD location)
         {
-                return new Tile((int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            return new Tile((int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
         public static PointD TileCenter(in ITile tile)
         {
-            if (tile == null)
-                throw new ArgumentNullException(nameof(tile));
-
-            return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
+            return tile == null ? throw new ArgumentNullException(nameof(tile)) : new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
         }
 
         public double Distance(in PointD other)

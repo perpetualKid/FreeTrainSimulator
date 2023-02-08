@@ -1,4 +1,7 @@
-﻿
+﻿using System;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -22,13 +25,18 @@ namespace Orts.Formats.Msts
 
         public static RuntimeData Instance { get; private set; }
 
+        public static RuntimeData GameInstance(Game game)
+        {
+            return game?.Services.GetService<RuntimeData>() ?? Instance;
+        }
+
         public static void Initialize(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
             Instance = new RuntimeData(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, runtimeReferenceResolver);
         }
 
-        private RuntimeData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
-        { 
+        protected RuntimeData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
+        {
             RouteName = routeName;
             TSectionDat = trackSections;
             TrackDB = trackDb;

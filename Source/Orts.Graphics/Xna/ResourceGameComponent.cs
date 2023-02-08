@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Graphics.Xna
@@ -12,21 +15,16 @@ namespace Orts.Graphics.Xna
     /// <typeparam name="T">The type of resource to be managed</typeparam>
     public abstract class ResourceGameComponent<T> : GameComponent
     {
-        private TimeSpan sweepInterval = TimeSpan.FromSeconds(10);
+        private TimeSpan sweepInterval = TimeSpan.FromSeconds(30);
         private TimeSpan nextSweep;
-        private protected Dictionary<int, T> currentResources = new Dictionary<int, T>();
-        private protected Dictionary<int, T> previousResources = new Dictionary<int, T>();
-        private Dictionary<int, T> sweepResources = new Dictionary<int, T>();
+        private protected ConcurrentDictionary<int, T> currentResources = new ConcurrentDictionary<int, T>();
+        private protected ConcurrentDictionary<int, T> previousResources = new ConcurrentDictionary<int, T>();
+        private ConcurrentDictionary<int, T> sweepResources = new ConcurrentDictionary<int, T>();
         private readonly bool disposableT = typeof(IDisposable).IsAssignableFrom(typeof(T));
 
         protected ResourceGameComponent(Game game) : base(game)
         {
             game?.Components.Add(this);
-        }
-
-        public override void Initialize()
-        {
-            base.Initialize();
         }
 
         protected int SweepInterval
@@ -35,11 +33,12 @@ namespace Orts.Graphics.Xna
             set => sweepInterval = TimeSpan.FromSeconds(value);
         }
 
+        public event EventHandler<EventArgs> Refresh;
+
         public override void Update(GameTime gameTime)
         {
             if (gameTime?.TotalGameTime > nextSweep)
             {
-
                 (currentResources, previousResources, sweepResources) = (sweepResources, currentResources, previousResources);
                 if (disposableT)
                 {
@@ -48,8 +47,39 @@ namespace Orts.Graphics.Xna
                 }
                 sweepResources.Clear();
                 nextSweep = gameTime.TotalGameTime.Add(sweepInterval);
+                Refresh?.Invoke(this, EventArgs.Empty);
             }
             base.Update(gameTime);
+        }
+
+        private protected T Get(int identifier, Func<T> create)
+        {
+            if (!currentResources.TryGetValue(identifier, out T resource))
+            {
+                if (previousResources.TryRemove(identifier, out resource))
+                {
+                    if (!currentResources.TryAdd(identifier, resource))
+                    {
+                        if (disposableT)
+                            (resource as IDisposable).Dispose();
+                    }
+                }
+                else
+                {
+                    if ((resource = create()) != null && !currentResources.TryAdd(identifier, resource))
+                    {
+                        T holder = resource;
+                        if (currentResources.TryGetValue(identifier, out resource))
+                        {
+                            if (disposableT)
+                                (holder as IDisposable).Dispose();
+                        }
+                        else
+                            resource = holder;
+                    }
+                }
+            }
+            return resource;
         }
 
         protected override void Dispose(bool disposing)
@@ -67,4 +97,26 @@ namespace Orts.Graphics.Xna
             base.Dispose(disposing);
         }
     }
+
+    public sealed class ResourceGameComponent<T, TIdentifier> : ResourceGameComponent<T>
+    {
+        private static readonly bool intIdentifier = typeof(TIdentifier) == typeof(int);
+
+        public ResourceGameComponent(Game game) : base(game)
+        {
+        }
+
+        public T Get(TIdentifier source, Func<T> create)
+        {
+            ArgumentNullException.ThrowIfNull(create);
+            return Get(source.GetHashCode(), create);
+        }
+
+        public bool Exists(TIdentifier identifier)
+        {
+            T result = Get(intIdentifier ? Unsafe.As<TIdentifier, int>(ref identifier) : identifier.GetHashCode(), () => default(T));
+            return !EqualityComparer<T>.Default.Equals(result, default(T));
+        }
+    }
+
 }
