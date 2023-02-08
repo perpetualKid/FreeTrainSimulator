@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Orts.Settings\n"
-"POT-Creation-Date: 2022-08-18 08:52:02+0200\n"
-"PO-Revision-Date: 2022-08-18 08:52:02+0200\n"
+"POT-Creation-Date: 2023-02-08 11:32:31+0100\n"
+"PO-Revision-Date: 2023-02-08 11:32:31+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,47 +10,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\Orts.Settings\RailDriverSettings.cs:183
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:181
 #, csharp-format
 msgid "\"{0}\" and "
 msgstr ""
 
-#: ..\..\..\Orts.Settings\InputSettings.cs:406
+#: ..\..\..\Orts.Settings\InputSettings.cs:411
 #, csharp-format
 msgid "{0} and {1} both match {2}"
 msgstr ""
 
-#: ..\..\..\Orts.Settings\InputSettings.cs:374
+#: ..\..\..\Orts.Settings\InputSettings.cs:379
 #, csharp-format
 msgid "{0} requires and is modified by Alt"
 msgstr ""
 
-#: ..\..\..\Orts.Settings\InputSettings.cs:372
+#: ..\..\..\Orts.Settings\InputSettings.cs:377
 #, csharp-format
 msgid "{0} requires and is modified by Control"
 msgstr ""
 
-#: ..\..\..\Orts.Settings\InputSettings.cs:370
+#: ..\..\..\Orts.Settings\InputSettings.cs:375
 #, csharp-format
 msgid "{0} requires and is modified by Shift"
 msgstr ""
 
-#: ..\..\..\Orts.Settings\RailDriverSettings.cs:180
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:178
 #, csharp-format
 msgid ""
 "Button {0} is assigned to \r\n"
 "\t"
-msgstr ""
-
-#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:12
-msgid "OpenRails.ini"
-msgstr ""
-
-#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:14
-msgid "OpenRails.json"
-msgstr ""
-
-#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:16
-msgid "SOFTWARE\\OpenRails"
 msgstr ""
 
