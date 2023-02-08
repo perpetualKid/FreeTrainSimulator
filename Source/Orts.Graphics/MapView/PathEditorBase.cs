@@ -80,24 +80,23 @@ namespace Orts.Graphics.MapView
             pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
         }
 
-        protected void AddPathEndPoint()
+        protected bool AddPathEndPoint()
         {
-            if (trainPath != null)
+            if (trainPath?.PathPoints.Count > 1 && pathItem.ValidationResult == PathNodeInvalidReasons.None)
             {
-                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                    (trainPath.PathPoints[^1] as EditorPathItem).UpdateNodeType(PathNodeType.End);
+                (trainPath.PathPoints[^1] as EditorPathItem).UpdateDirection(trainPath.PathPoints[^2].Location);
+                (trainPath.PathPoints[^1] as EditorPathItem).UpdateNodeType(PathNodeType.End);
                 pathItem = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
+                return true;
             }
+            return false;
         }
 
-        protected void AddPathPoint()
+        protected bool AddPathPoint()
         {
-            if (trainPath != null)
-            {
-                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                    pathItem = trainPath.AddPathPoint(pathItem);
-            }
+            EditorPathItem currentItem = pathItem;
+            return trainPath != null && pathItem.ValidationResult == PathNodeInvalidReasons.None && (pathItem = trainPath.AddPathPoint(pathItem)) != currentItem;
         }
         #endregion
 
