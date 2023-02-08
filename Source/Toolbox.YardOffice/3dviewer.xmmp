@@ -1,9 +1,0 @@
-<Project>
-  <Project.ExportOptions Namespace="Toolbox.YardOffice" Class="Viewer3D" OutputPath="C:\Users\barry\source\repos\PerpetualKid\Source\Toolbox.YardOffice" />
-  <HorizontalStackPanel>
-    <HorizontalStackPanel.Proportions>
-      <Proportion Type="Fill" />
-    </HorizontalStackPanel.Proportions>
-    <Panel Id="Viewer3D_pnl" />
-  </HorizontalStackPanel>
-</Project>

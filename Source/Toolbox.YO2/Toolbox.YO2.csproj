@@ -14,8 +14,8 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
-    <PackageReference Include="Myra" Version="1.4.3" />
-    <PackageReference Include="NPoco" Version="5.3.2" />
+    <PackageReference Include="Myra" Version="1.4.5" />
+    <PackageReference Include="NPoco" Version="5.7.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="UI\" />
@@ -25,6 +25,18 @@
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0-2.final" />
+    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Update="Microsoft.NETCore.Targets" Version="6.0.0-preview.4.21253.7" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
