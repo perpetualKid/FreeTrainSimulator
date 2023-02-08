@@ -378,7 +378,15 @@ namespace Orts.Models.Track
         }
 
         /// <summary>
-        /// Assuming <paramref name="location"/> is within the segment, returns the aligned point/location on the segment, 
+        /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
+        /// </summary>
+        public bool IsReverseDirectionTowards(in PointD start, in PointD end)
+        {
+            return start.DistanceSquared(Location) > end.DistanceSquared(Location);
+        }
+
+        /// <summary>
+        /// Assuming <paramref name="location"/> is within the segment, returns the projected point/location on the segment, 
         /// aka snapping to the segment if close by
         /// </summary>
         public PointD SnapToSegment(in PointD point)

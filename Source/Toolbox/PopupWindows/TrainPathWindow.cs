@@ -383,6 +383,8 @@ namespace Orts.Toolbox.PopupWindows
 
         private void ClearPathSelection()
         {
+            if (null == pathScrollbox || null == currentPath)
+                return;
             foreach (WindowControl control in pathScrollbox.Client.Controls)
             {
                 control.BorderColor = Color.Transparent;

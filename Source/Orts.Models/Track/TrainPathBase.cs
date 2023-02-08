@@ -142,7 +142,7 @@ namespace Orts.Models.Track
             List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
             TrainPathSectionBase section;
 
-            if (!start.CheckPathItem(index) || !end.CheckPathItem(index))
+            if (!start.ValidatePathItem(index) || !end.ValidatePathItem(index))
             {
                 // either start or end are invalid in a sense they are not on track or no way to connect the ends
                 // so we draw an "invalid" path section shown as straight dotted line on the map

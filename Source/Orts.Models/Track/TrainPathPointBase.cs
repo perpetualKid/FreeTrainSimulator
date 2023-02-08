@@ -79,7 +79,7 @@ namespace Orts.Models.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        public bool CheckPathItem(int index)
+        public bool ValidatePathItem(int index)
         {
             if (ValidationResult == PathNodeInvalidReasons.NoJunctionNode)
             {
