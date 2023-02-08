@@ -103,9 +103,12 @@ namespace Orts.Toolbox.WinForms.Controls
             this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.enableEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadActivityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.consistEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -117,6 +120,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.viewToolStripMenuItem,
             this.preferencesToolStripMenuItem,
             this.pathEditToolStripMenuItem,
+            this.toolStripMenuItem1,
             this.helpToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
@@ -260,28 +264,28 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.roadSegmentsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadSegmentsVisibleToolStripMenuItem.Name = "roadSegmentsVisibleToolStripMenuItem";
-            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadSegmentsVisibleToolStripMenuItem.Text = "Road Segments";
             // 
             // roadEndNodesVisibleToolStripMenuItem
             // 
             this.roadEndNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadEndNodesVisibleToolStripMenuItem.Name = "roadEndNodesVisibleToolStripMenuItem";
-            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadEndNodesVisibleToolStripMenuItem.Text = "Road End Nodes";
             // 
             // roadLevelCrossingsVisibleToolStripMenuItem
             // 
             this.roadLevelCrossingsVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadLevelCrossingsVisibleToolStripMenuItem.Name = "roadLevelCrossingsVisibleToolStripMenuItem";
-            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadLevelCrossingsVisibleToolStripMenuItem.Text = "Level Crossings";
             // 
             // roadCarSpawnersVisibleToolStripMenuItem
             // 
             this.roadCarSpawnersVisibleToolStripMenuItem.CheckOnClick = true;
             this.roadCarSpawnersVisibleToolStripMenuItem.Name = "roadCarSpawnersVisibleToolStripMenuItem";
-            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.roadCarSpawnersVisibleToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.roadCarSpawnersVisibleToolStripMenuItem.Text = "Car Spawners";
             // 
             // viewInteractivesToolStripMenuItem
@@ -415,7 +419,7 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.pathsVisisbleToolStripMenuItem.CheckOnClick = true;
             this.pathsVisisbleToolStripMenuItem.Name = "pathsVisisbleToolStripMenuItem";
-            this.pathsVisisbleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pathsVisisbleToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.pathsVisisbleToolStripMenuItem.Text = "Show Path";
             // 
             // preferencesToolStripMenuItem
@@ -699,6 +703,21 @@ namespace Orts.Toolbox.WinForms.Controls
             this.enableEditToolStripMenuItem.Text = "Enable Editing";
             this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
             // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.loadActivityToolStripMenuItem,
+            this.consistEditorToolStripMenuItem});
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(93, 20);
+            this.toolStripMenuItem1.Text = "Activity Editor";
+            // 
+            // loadActivityToolStripMenuItem
+            // 
+            this.loadActivityToolStripMenuItem.Name = "loadActivityToolStripMenuItem";
+            this.loadActivityToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadActivityToolStripMenuItem.Text = "Load Activity";
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -711,16 +730,22 @@ namespace Orts.Toolbox.WinForms.Controls
             // documentationToolStripMenuItem
             // 
             this.documentationToolStripMenuItem.Name = "documentationToolStripMenuItem";
-            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.documentationToolStripMenuItem.Text = "Documentation";
             this.documentationToolStripMenuItem.Click += new System.EventHandler(this.DocumentationToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // consistEditorToolStripMenuItem
+            // 
+            this.consistEditorToolStripMenuItem.Name = "consistEditorToolStripMenuItem";
+            this.consistEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.consistEditorToolStripMenuItem.Text = "Consist Editor";
             // 
             // MainMenuControl
             // 
@@ -818,5 +843,8 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem pathsVisisbleToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem enableEditToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem loadActivityToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem consistEditorToolStripMenuItem;
     }
 }
