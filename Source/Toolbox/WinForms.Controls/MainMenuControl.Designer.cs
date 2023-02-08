@@ -102,13 +102,10 @@ namespace Orts.Toolbox.WinForms.Controls
             this.pathEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
-            this.enableEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadActivityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.consistEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -120,7 +117,6 @@ namespace Orts.Toolbox.WinForms.Controls
             this.viewToolStripMenuItem,
             this.preferencesToolStripMenuItem,
             this.pathEditToolStripMenuItem,
-            this.toolStripMenuItem1,
             this.helpToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
@@ -678,7 +674,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.pathEditToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadPathToolStripMenuItem,
             this.toolStripSeparator7,
-            this.enableEditToolStripMenuItem});
+            this.newPathToolStripMenuItem});
             this.pathEditToolStripMenuItem.Name = "pathEditToolStripMenuItem";
             this.pathEditToolStripMenuItem.Size = new System.Drawing.Size(77, 20);
             this.pathEditToolStripMenuItem.Text = "Path Editor";
@@ -686,37 +682,21 @@ namespace Orts.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadPathToolStripMenuItem.Text = "Load Path";
             this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.LoadPathToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(146, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
             // 
-            // enableEditToolStripMenuItem
+            // newPathToolStripMenuItem
             // 
-            this.enableEditToolStripMenuItem.Enabled = false;
-            this.enableEditToolStripMenuItem.Name = "enableEditToolStripMenuItem";
-            this.enableEditToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
-            this.enableEditToolStripMenuItem.Text = "Enable Editing";
-            this.enableEditToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.loadActivityToolStripMenuItem,
-            this.consistEditorToolStripMenuItem});
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(93, 20);
-            this.toolStripMenuItem1.Text = "Activity Editor";
-            // 
-            // loadActivityToolStripMenuItem
-            // 
-            this.loadActivityToolStripMenuItem.Name = "loadActivityToolStripMenuItem";
-            this.loadActivityToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.loadActivityToolStripMenuItem.Text = "Load Activity";
+            this.newPathToolStripMenuItem.Name = "newPathToolStripMenuItem";
+            this.newPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newPathToolStripMenuItem.Text = "New Path";
+            this.newPathToolStripMenuItem.Click += new System.EventHandler(this.EnableEditToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -730,22 +710,16 @@ namespace Orts.Toolbox.WinForms.Controls
             // documentationToolStripMenuItem
             // 
             this.documentationToolStripMenuItem.Name = "documentationToolStripMenuItem";
-            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.documentationToolStripMenuItem.Text = "Documentation";
             this.documentationToolStripMenuItem.Click += new System.EventHandler(this.DocumentationToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
-            // 
-            // consistEditorToolStripMenuItem
-            // 
-            this.consistEditorToolStripMenuItem.Name = "consistEditorToolStripMenuItem";
-            this.consistEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.consistEditorToolStripMenuItem.Text = "Consist Editor";
             // 
             // MainMenuControl
             // 
@@ -842,9 +816,6 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem viewPathToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pathsVisisbleToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
-        private System.Windows.Forms.ToolStripMenuItem enableEditToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem loadActivityToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem consistEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem newPathToolStripMenuItem;
     }
 }

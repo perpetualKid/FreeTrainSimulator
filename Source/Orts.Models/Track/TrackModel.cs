@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 using Microsoft.Xna.Framework;
 
@@ -12,12 +13,6 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track
 {
-    public enum TrackElementType
-    {
-        RailTrack,
-        RoadTrack,
-    }
-
     public sealed class TrackModel
     {
 
@@ -350,37 +345,64 @@ namespace Orts.Models.Track
             return result != null && result.EndNodeAt(location) ? result : null;
         }
 
-        public TrainPathPoint FindIntermediaryConnection(TrainPathPoint start, TrainPathPoint end)
+        public TrainPathPointBase FindIntermediaryConnection(TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
-            static bool ConnectThroughSameJunction(TrainPathPoint start, TrainPathPoint end)
+            //for two path points, try to find if they are connected through same junction on either end of their track node
+            //but also check if they are connected across In- and Out Pin, not both on the same side
+            TrackPin[] startPins = RuntimeData.TrackDB.TrackNodes[start.ConnectedSegments[0].TrackNodeIndex].TrackPins;
+            TrackPin[] endPins = RuntimeData.TrackDB.TrackNodes[end.ConnectedSegments[0].TrackNodeIndex].TrackPins;
+
+            TrackPin[] connectors;
+            if ((connectors = startPins.Intersect(endPins, TrackPinComparer.LinkOnlyComparer).ToArray()).Length > 0)
             {
-                return (start.Junction && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
+                TrackJunctionNode junction = RuntimeData.TrackDB.TrackNodes[connectors[0].Link] as TrackJunctionNode;
+                bool startSet = false;
+                bool endSet = false;
+                for (int i = 0; i < junction.InPins; i++)
+                {
+                    if (junction.TrackPins[i].Link == start.ConnectedSegments[0].TrackNodeIndex)
+                    { startSet = true; }
+                    else if (junction.TrackPins[i].Link == end.ConnectedSegments[0].TrackNodeIndex)
+                    { endSet = true; }
+                }
+                if (startSet ^ endSet) 
+                    return new TrainPathPoint(Junctions[junction.Index], this);
             }
-
-            TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];
-            TrackSegmentSection endNode = SegmentSections[end.ConnectedSegments[0].TrackNodeIndex];
-
-            TrainPathPoint startLocation = new TrainPathPoint(this, startNode.Location);
-            TrainPathPoint endLocation = new TrainPathPoint(this, endNode.Location);
-
-            if (ConnectThroughSameJunction(startLocation, endLocation))
-                return endLocation;
-
-            TrainPathPoint endVector = new TrainPathPoint(this, endNode.Vector);
-            if (ConnectThroughSameJunction(startLocation, endVector))
-                return endVector;
-
-            TrainPathPoint startVector = new TrainPathPoint(this, startNode.Vector);
-            if (ConnectThroughSameJunction(startVector, endLocation))
-                return endLocation;
-
-            if (ConnectThroughSameJunction(startVector, endVector))
-                return endVector;
-
             return null;
+
+            //old way based on location-based segment lookup
+            //static bool ConnectThroughSameJunction(TrainPathPointBase start, TrainPathPointBase end)
+            //{
+            //    return (start.JunctionNode != null && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);
+            //}
+
+            ////for two path points, try to find if they are connected through same junction on either end of their track node
+            ////for that, need to test Point1.Start with both Point2.Start and Point2.End, and same for Point1.End test with Point2.Start and Point2.End
+            //TrackSegmentSection startNode = SegmentSections[start.ConnectedSegments[0].TrackNodeIndex];
+            //TrackSegmentSection endNode = SegmentSections[end.ConnectedSegments[0].TrackNodeIndex];
+
+
+            //TrainPathPointBase startLocation = new TrainPathPoint(startNode.Location, this);
+            //TrainPathPointBase endLocation = new TrainPathPoint(endNode.Location, this);
+
+            //if (ConnectThroughSameJunction(startLocation, endLocation))
+            //    return endLocation;
+
+            //TrainPathPointBase endVector = new TrainPathPoint(endNode.Vector, this);
+            //if (ConnectThroughSameJunction(startLocation, endVector))
+            //    return endVector;
+
+            //TrainPathPointBase startVector = new TrainPathPoint(startNode.Vector,this);
+            //if (ConnectThroughSameJunction(startVector, endLocation))
+            //    return endLocation;
+
+            //if (ConnectThroughSameJunction(startVector, endVector))
+            //    return endVector;
+
+            //return null;
         }
     }
 }

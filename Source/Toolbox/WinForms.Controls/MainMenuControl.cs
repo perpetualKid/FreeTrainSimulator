@@ -400,19 +400,29 @@ namespace Orts.Toolbox.WinForms.Controls
 
         internal void PreSelectPath(string pathFile)
         {
-            foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
+            if (string.IsNullOrEmpty(pathFile))
             {
-                if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as Models.Simplified.Path)?.FilePath == pathFile)
+                foreach (ToolStripMenuItem dropdownItem in loadPathToolStripMenuItem.DropDownItems)
                 {
-                    UncheckOtherMenuItems(menuItem);
-                    break;
+                    dropdownItem.Checked = false;
+                }
+            }
+            else
+            {
+                foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
+                {
+                    if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as Models.Simplified.Path)?.FilePath == pathFile)
+                    {
+                        UncheckOtherMenuItems(menuItem);
+                        break;
+                    }
                 }
             }
         }
 
         private void EnableEditToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            parent.EditPath();
         }
 
         #endregion

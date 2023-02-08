@@ -42,7 +42,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = Math.Max(2f, (float)(4 / contentArea.Scale));
+            Size = Math.Max(2.5f, (float)(4 / contentArea.Scale));
 
             Color drawColor = this.GetColor<JunctionNode>(colorVariation);
             contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);

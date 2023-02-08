@@ -26,7 +26,7 @@ namespace Orts.Toolbox
                     if (item is IDisposable disposable)
                         disposable.Dispose();
                 }
-
+                pathEditor?.Dispose();
                 ctsRouteLoading?.Dispose();
                 loadRoutesSemaphore.Dispose();
                 windowManager?.Dispose();

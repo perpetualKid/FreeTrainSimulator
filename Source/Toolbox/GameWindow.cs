@@ -258,7 +258,7 @@ namespace Orts.Toolbox
                     (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
-                pathSelection = selectedPath != null ? new string[] { selectedPath.FilePath } : null;
+                pathSelection = new string[] { string.IsNullOrEmpty(PathEditor?.FilePath) ? string.Empty : PathEditor.FilePath };
             }
             Settings.RouteSelection = routeSelection;
             Settings.PathSelection = pathSelection;
@@ -377,6 +377,7 @@ namespace Orts.Toolbox
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, EditTrainPath);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -471,7 +472,7 @@ namespace Orts.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));
@@ -552,7 +553,7 @@ namespace Orts.Toolbox
 
             private readonly int slowFps;
 
-            public CommonDebugInfo(GameWindow gameWindow): base(true)
+            public CommonDebugInfo(GameWindow gameWindow) : base(true)
             {
                 int targetFps = (int)Math.Round(1000 / gameWindow.TargetElapsedTime.TotalMilliseconds);
                 slowFps = targetFps - targetFps / 6;
@@ -597,7 +598,7 @@ namespace Orts.Toolbox
 
             public GraphicsMetrics CurrentMetrics;
 
-            public GraphicsDebugInfo(): base(true)
+            public GraphicsDebugInfo() : base(true)
             {
                 FormattingOptions["GPU Information"] = FormatOption.Bold;
                 this["GPU Information"] = null;
