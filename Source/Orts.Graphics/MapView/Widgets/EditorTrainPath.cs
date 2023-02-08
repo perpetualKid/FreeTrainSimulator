@@ -92,12 +92,14 @@ namespace Orts.Graphics.MapView.Widgets
             }
             PathPoints.Add(pathItem);
             sections.Clear();
+            intermediaryPathPointSet = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
             return new EditorPathItem(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
         private EditorPathItem editorSegmentStart;
         private List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
+        private bool intermediaryPathPointSet;
 
         internal void UpdateLocation(in PointD location)
         {
@@ -106,7 +108,15 @@ namespace Orts.Graphics.MapView.Widgets
                 EditorPathItem end = new EditorPathItem(location, TrackModel);
                 editorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
                 PathSections.RemoveRange(PathSections.Count - sections.Count, sections.Count);
+                if (intermediaryPathPointSet)
+                    PathPoints.RemoveAt(PathPoints.Count - 1);
+                intermediaryPathPointSet = false;
                 sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
+                if (sections.Count > 1)
+                {
+                    PathPoints.Add(CreateEditorPathItem(sections[0].Vector, end.Location, PathNodeType.Normal));
+                    intermediaryPathPointSet = true;
+                }
                 PathSections.AddRange(sections);
             }
         }

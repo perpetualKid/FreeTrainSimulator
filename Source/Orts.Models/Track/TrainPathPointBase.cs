@@ -94,18 +94,6 @@ namespace Orts.Models.Track
             return true;
         }
 
-        protected void UpdateLocation(TrackSegmentBase trackSegment, in PointD location, TrackModel trackModel)
-        {
-            ArgumentNullException.ThrowIfNull(trackModel);
-            SetLocation(trackSegment?.SnapToSegment(location) ?? location);
-            JunctionNodeBase junction;
-            if ((junction = trackModel.JunctionAt(location)) != null)
-            {
-                SetLocation(junction.Location);
-            }
-            ValidationResult = null == trackSegment ? PathNodeInvalidReasons.NotOnTrack : PathNodeInvalidReasons.None;
-        }
-
         internal static void LinkPathPoints(List<TrainPathPointBase> pathPoints)
         {
             TrainPathPointBase beforeEndNode = null;

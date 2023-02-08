@@ -373,6 +373,7 @@ namespace Orts.Models.Track
             }
             return null;
 
+            //old way based on location-based segment lookup
             //static bool ConnectThroughSameJunction(TrainPathPointBase start, TrainPathPointBase end)
             //{
             //    return (start.JunctionNode != null && start.JunctionNode?.TrackNodeIndex == end.JunctionNode?.TrackNodeIndex);

@@ -163,7 +163,6 @@ namespace Orts.Models.Track
                                 sections.Add(item);
                             foreach (var item in AddSections(pathType, intermediary, end, index))
                                 sections.Add(item);
-                            PathPoints.Add(CreateEditorPathItem(intermediary.Location, end.Location, PathNodeType.Normal));
                         }
                         else
                         {

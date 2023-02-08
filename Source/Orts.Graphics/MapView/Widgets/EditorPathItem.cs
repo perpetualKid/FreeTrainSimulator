@@ -50,10 +50,11 @@ namespace Orts.Graphics.MapView.Widgets
             SetLocation(location);
         }
 
-        internal new void UpdateLocation(TrackSegmentBase trackSegment, in PointD location, TrackModel trackModel)
+        internal void UpdateLocation(in PointD location, bool onTrack)
         {
-            base.UpdateLocation(trackSegment, location, trackModel);
-            textureType = null == trackSegment ? TextureFromNodeType(PathNodeType.Temporary) : TextureFromNodeType(PathNodeType.Intermediate);
+            SetLocation(location);
+            ValidationResult = onTrack ? PathNodeInvalidReasons.None : PathNodeInvalidReasons.NotOnTrack;
+            textureType = onTrack ? TextureFromNodeType(PathNodeType.Intermediate) : TextureFromNodeType(PathNodeType.Temporary);
         }
 
         internal void UpdateDirection(in PointD nextLocation)

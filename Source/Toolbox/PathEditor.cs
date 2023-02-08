@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Xml.XPath;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Graphics.MapView;
 using Orts.Models.Simplified;
 using Orts.Models.Track;
@@ -22,6 +26,7 @@ namespace Orts.Toolbox
     internal class PathEditor: PathEditorBase
     {
         private Path path;
+        private long lastPathClickTick;
 
         public string FilePath => path?.FilePath;
 
@@ -60,9 +65,17 @@ namespace Orts.Toolbox
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
-        public void AddPathPoint(Point screenLocation)
+        public void MouseAction(Point screenLocation, KeyModifiers keyModifiers)
         {
-            base.AddPathPoint();
+            if (System.Environment.TickCount64 - lastPathClickTick < 200) //considered as double click
+            {
+                AddPathEndPoint();
+            }
+            else
+            {
+                AddPathPoint();
+            }
+            lastPathClickTick = System.Environment.TickCount64;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
     }

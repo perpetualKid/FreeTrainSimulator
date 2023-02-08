@@ -1,19 +1,16 @@
 ﻿using System;
 
-using Microsoft.Xna.Framework;
-
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView
 {
-    public abstract class PathEditorBase: IDisposable
+    public abstract class PathEditorBase : IDisposable
     {
-        private long lastPathClickTick;
         private EditorTrainPath trainPath;
         private EditorPathItem pathItem;
 
@@ -39,11 +36,18 @@ namespace Orts.Graphics.MapView
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
         {
-            pathItem?.UpdateLocation(nearestSegment, location, TrackModel);
-            trainPath.UpdateLocation(pathItem.Location);
+            // if a tracksegment is nearby, snap to the segment
+            PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
+            JunctionNodeBase junction;
+            if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
+            {
+                snapLocation = junction.Location;
+            }
+            pathItem.UpdateLocation(snapLocation, nearestSegment != null);
+            trainPath.UpdateLocation(snapLocation);
             if (trainPath.PathPoints.Count > 0)
             {
-                (trainPath.PathPoints[^1] as EditorPathItem).UpdateDirection(location);
+                (trainPath.PathPoints[^1] as EditorPathItem).UpdateDirection(snapLocation);
             }
         }
 
@@ -76,23 +80,23 @@ namespace Orts.Graphics.MapView
             pathItem = new EditorPathItem(PointD.None, PointD.None, PathNodeType.Start);
         }
 
+        protected void AddPathEndPoint()
+        {
+            if (trainPath != null)
+            {
+                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
+                    (trainPath.PathPoints[^1] as EditorPathItem).UpdateNodeType(PathNodeType.End);
+                pathItem = null;
+                ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
+            }
+        }
+
         protected void AddPathPoint()
         {
             if (trainPath != null)
             {
-                if (Environment.TickCount64 - lastPathClickTick < 200)
-                {
-                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                        (trainPath.PathPoints[^1] as EditorPathItem).UpdateNodeType(PathNodeType.End);
-                    pathItem = null;
-                    ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
-                }
-                else
-                {
-                    lastPathClickTick = Environment.TickCount64;
-                    if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
-                        pathItem = trainPath.AddPathPoint(pathItem);
-                }
+                if (pathItem.ValidationResult == PathNodeInvalidReasons.None)
+                    pathItem = trainPath.AddPathPoint(pathItem);
             }
         }
         #endregion
