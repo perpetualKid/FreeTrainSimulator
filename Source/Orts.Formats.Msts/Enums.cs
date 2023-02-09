@@ -142,8 +142,8 @@ namespace Orts.Formats.Msts
 
     public enum PathNodeType
     {
-        /// <summary>Node is a regular node </summary>
-        Normal,
+        /// <summary>Node is a regular node on a junction</summary>
+        Junction,
         /// <summary>Node is an intermediate point node </summary>
         Intermediate,
         /// <summary>Node is the start node </summary>

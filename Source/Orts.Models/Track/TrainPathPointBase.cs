@@ -53,7 +53,7 @@ namespace Orts.Models.Track
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            NodeType = PathNodeType.Normal;
+            NodeType = PathNodeType.Junction;
             nextMainNode = -1;
             nextSidingNode = -1;
 
@@ -68,7 +68,7 @@ namespace Orts.Models.Track
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            NodeType = PathNodeType.Normal;
+            NodeType = PathNodeType.Junction;
             nextMainNode = -1;
             nextSidingNode = -1;
 
