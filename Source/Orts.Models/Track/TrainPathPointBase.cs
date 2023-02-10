@@ -53,26 +53,41 @@ namespace Orts.Models.Track
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            NodeType = PathNodeType.Junction;
             nextMainNode = -1;
             nextSidingNode = -1;
 
             JunctionNode = trackModel.JunctionAt(Location);
+            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
 
             ConnectedSegments = GetConnectedNodes(trackModel);
             if (!ConnectedSegments.Any())
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(in JunctionNodeBase junction, TrackModel trackModel): base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
+        protected TrainPathPointBase(in PointD location, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            NodeType = PathNodeType.Junction;
+            nextMainNode = -1;
+            nextSidingNode = -1;
+
+            JunctionNode = trackModel.JunctionAt(Location);
+            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
+
+            ConnectedSegments = trackModel.OtherSegmentsAt(location, trackSegment).Prepend(trackSegment).ToList();
+            if (!ConnectedSegments.Any())
+                ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
+        }
+
+        protected TrainPathPointBase(JunctionNodeBase junction, TrackModel trackModel): base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
+        {
+            ArgumentNullException.ThrowIfNull(trackModel);
+
             nextMainNode = -1;
             nextSidingNode = -1;
 
             JunctionNode = junction;
+            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
 
             ConnectedSegments = GetConnectedNodes(trackModel);
             if (!ConnectedSegments.Any())
