@@ -58,8 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models", "Orts.Models\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.YO2", "Toolbox.YO2\Toolbox.YO2.csproj", "{F6695401-5B08-4085-A962-CB3267E5CC79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.YO1", "Toolbox.YO1\Toolbox.YO1.csproj", "{99FB8682-6CAB-46AC-A337-16B0634043A0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -154,10 +152,6 @@ Global
 		{F6695401-5B08-4085-A962-CB3267E5CC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6695401-5B08-4085-A962-CB3267E5CC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6695401-5B08-4085-A962-CB3267E5CC79}.Release|Any CPU.Build.0 = Release|Any CPU
-		{99FB8682-6CAB-46AC-A337-16B0634043A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99FB8682-6CAB-46AC-A337-16B0634043A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{99FB8682-6CAB-46AC-A337-16B0634043A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{99FB8682-6CAB-46AC-A337-16B0634043A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
