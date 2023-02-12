@@ -19,7 +19,7 @@ namespace Orts.Graphics.Window.Controls
             {
                 PathNodeType.Start => BasicTextureType.PathStart,
                 PathNodeType.End => BasicTextureType.PathEnd,
-                PathNodeType.Normal => BasicTextureType.PathNormal,
+                PathNodeType.Junction => BasicTextureType.PathNormal,
                 PathNodeType.Intermediate => BasicTextureType.PathNormal,
                 PathNodeType.Wait => BasicTextureType.PathWait,
                 PathNodeType.Reversal => BasicTextureType.PathReverse,

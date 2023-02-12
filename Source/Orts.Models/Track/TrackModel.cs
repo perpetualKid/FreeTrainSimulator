@@ -305,7 +305,7 @@ namespace Orts.Models.Track
 
         /// <summary>
         /// returns the <see cref="JunctionNodeBase" junction at this location (within Proximity tolerance)
-        /// If no segment in this place, returns null.
+        /// If no junction in this place, returns null.
         /// </summary>
         public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
@@ -326,7 +326,7 @@ namespace Orts.Models.Track
 
         /// <summary>
         /// returns the <see cref="EndNodeBase" end node at this location (within Proximity tolerance)
-        /// If no segment in this place, returns null.
+        /// If no junction in this place, returns null.
         /// </summary>
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
@@ -343,6 +343,36 @@ namespace Orts.Models.Track
                 }
             }
             return result != null && result.EndNodeAt(location) ? result : null;
+        }
+
+        public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, bool end)
+        {
+            TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
+            return Junctions[end ? trackPins[1].Link : trackPins[0].Link];
+        }
+
+        public JunctionNodeBase TrackNodeJunction(in PointD location, int trackNodeIndex)
+        {
+            TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
+            if (SegmentSections[trackNodeIndex].Length > 2)
+            {
+                JunctionNodeBase junction;
+                if ((junction = Junctions[trackPins[0].Link])?.JunctionNodeAt(location) ?? false)
+                    return junction;
+                else if ((junction = Junctions[trackPins[1].Link])?.JunctionNodeAt(location) ?? false)
+                    return junction;
+            }
+            else
+            {
+                JunctionNodeBase junction;
+                double startDistance = (junction = Junctions[trackPins[0].Link])?.DistanceSquared(location) ?? double.MaxValue;
+                double endDistance = Junctions[trackPins[1].Link]?.DistanceSquared(location) ?? double.MaxValue;
+                if (startDistance < endDistance && startDistance < 10 && junction.JunctionNodeAt(location))
+                    return junction;
+                else if (endDistance < 10 && (junction = Junctions[trackPins[1].Link]).JunctionNodeAt(location))
+                    return junction;
+            }
+            return null;
         }
 
         public TrainPathPointBase FindIntermediaryConnection(TrainPathPointBase start, TrainPathPointBase end)

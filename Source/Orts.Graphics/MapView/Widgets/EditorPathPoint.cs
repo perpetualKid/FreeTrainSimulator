@@ -11,21 +11,21 @@ using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets
 {
-    internal class EditorPathItem : TrainPathPointBase, IDrawable<PointPrimitive>
+    internal class EditorPathPoint : TrainPathPointBase, IDrawable<PointPrimitive>
     {
         private protected BasicTextureType textureType;
         private protected float Direction;
 
-        internal EditorPathItem(in PointD location, TrackModel trackModel) : base(location, trackModel)
+        internal EditorPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
         { }
 
-        internal EditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
+        internal EditorPathPoint(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
         {
             textureType = TextureFromNodeType(nodeType);
             Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
         }
 
-        internal EditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType) : base(location, nodeType)
+        internal EditorPathPoint(in PointD location, in PointD vector, PathNodeType nodeType) : base(location, nodeType)
         {
             textureType = TextureFromNodeType(nodeType);
             PointD origin = vector - location;
@@ -75,7 +75,7 @@ namespace Orts.Graphics.MapView.Widgets
             {
                 PathNodeType.Start => BasicTextureType.PathStart,
                 PathNodeType.End => BasicTextureType.PathEnd,
-                PathNodeType.Normal => BasicTextureType.PathNormal,
+                PathNodeType.Junction => BasicTextureType.PathNormal,
                 PathNodeType.Intermediate => BasicTextureType.PathNormal,
                 PathNodeType.Wait => BasicTextureType.PathWait,
                 PathNodeType.Reversal => BasicTextureType.PathReverse,

@@ -732,7 +732,7 @@ namespace ORTS.TrackViewer.Editing
 
             NodeType = tpn.NodeType switch
             {
-                PathNodeType.Normal => TrainpathNodeType.Other,
+                PathNodeType.Junction => TrainpathNodeType.Other,
                 PathNodeType.Intermediate => TrainpathNodeType.Other,
                 PathNodeType.Start => TrainpathNodeType.Other,
                 PathNodeType.End => TrainpathNodeType.Other,
