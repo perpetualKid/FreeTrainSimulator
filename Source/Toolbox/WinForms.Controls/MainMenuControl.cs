@@ -10,6 +10,8 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Models.Simplified;
+using Orts.Toolbox.ConsistEditor;
+
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -427,22 +429,10 @@ namespace Orts.Toolbox.WinForms.Controls
 
         #endregion
 
-        private void ActivityEditortoolStripMenuItem1_Click(object sender, EventArgs e)
+        private void consistEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Myra.Graphics2D.UI.Desktop Mdesktop = new Myra.Graphics2D.UI.Desktop();
-            Myra.Graphics2D.UI.Window Mwindow = new Myra.Graphics2D.UI.Window();
-            Mwindow.Width = 200;
-            Mwindow.Height = 200;
-            Mwindow.Left = 50;
-            Mwindow.Top = 100;
-           // Mwindow.X = 20;
-           // Mwindow.Y = 20;
-            Mwindow.Visible = true;
-            Mwindow.Title = "Myra Window";
-
-            Mwindow.ShowModal(Mdesktop);
-            Mdesktop.Root = Mwindow;
-            Mdesktop.Render();
+            CEForm1 cef1 = new CEForm1();
+            cef1.Show();
         }
     }
 }
