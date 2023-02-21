@@ -3265,6 +3265,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                 parameter2 = tmp[3].Trim();
                         }
                     }
+                    else
+                        continue;
 
                     if (EnumExtension.GetValue(tmp[0].Trim(), out CabViewControlType type))
                     {
