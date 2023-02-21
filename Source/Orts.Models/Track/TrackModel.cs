@@ -351,6 +351,12 @@ namespace Orts.Models.Track
             return Junctions[end ? trackPins[1].Link : trackPins[0].Link];
         }
 
+        public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, TrackDirection trackDirection)
+        {
+            TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
+            return Junctions[trackDirection == TrackDirection.Reverse ? trackPins[1].Link : trackPins[0].Link];
+        }
+
         public JunctionNodeBase TrackNodeJunction(in PointD location, int trackNodeIndex)
         {
             TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
