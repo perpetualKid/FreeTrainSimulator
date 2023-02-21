@@ -2559,7 +2559,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     float pantos = UpdateCommandValue(0, buttonEventType, delta);
                     if (pantos != 0)
                     {
-                        if (Locomotive.Pantographs[1].State == PantographState.Down && Locomotive.Pantographs[2].State == PantographState.Down) //TODO 20210412 investigate why compiler is showing CA1508 warning the condition is always true
+#pragma warning disable CA1508 // Avoid dead conditional code // 20230221 - false positive                        
+                        if (Locomotive.Pantographs[1].State == PantographState.Down && Locomotive.Pantographs[2].State == PantographState.Down)
                         {
                             if (pantos > 0)
                                 _ = new PantographCommand(Viewer.Log, 1, true);
@@ -2587,6 +2588,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             else if (Control.ControlType == CabViewControlType.Pantographs_4C)
                                 _ = new PantographCommand(Viewer.Log, 2, false);
                         }
+#pragma warning restore CA1508 // Avoid dead conditional code
                     }
                     break;
                 case CabViewControlType.Steam_Heat:
