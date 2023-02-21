@@ -612,6 +612,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     pd.Mark();
             CabRenderer?.Mark();
             CabRenderer3D?.Mark();
+            CabViewer3D.Mark();
             base.Mark();
         }
 
