@@ -232,11 +232,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Parse(STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
             Parse(stf.Tree.ToLower(), stf);
         }
 
         public void Parse(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
+
             switch (lowercasetoken)
             {
                 case "engine(trainbrakescontrollermaxsystempressure":
