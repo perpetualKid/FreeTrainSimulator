@@ -30,7 +30,7 @@ namespace Orts.Formats.OR.Files
 
     public class LoadStationsPopulationFile
     {
-        public List<ContainerStationPopulation> LoadStationsPopulation { get; } = new List<ContainerStationPopulation>();
+        public IReadOnlyCollection<ContainerStationPopulation> LoadStationsPopulation { get; } = new List<ContainerStationPopulation>();
 
         public LoadStationsPopulationFile(string fileName)
         {
@@ -47,7 +47,7 @@ namespace Orts.Formats.OR.Files
                     // Ignore these items.
                     break;
                 case "ContainerStationsPopulation[].":
-                    LoadStationsPopulation.Add(new ContainerStationPopulation(item));
+                    (LoadStationsPopulation as List<ContainerStationPopulation>).Add(new ContainerStationPopulation(item));
                     break;
                 default:
                     return false;

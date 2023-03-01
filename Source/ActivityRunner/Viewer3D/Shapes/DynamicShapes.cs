@@ -322,20 +322,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         {
                             ref readonly Quaternion slerp1Quaternion = ref slerp1.Quaternion;
                             ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
-                            Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, quadrantAmount);
+                            Quaternion q = Quaternion.Slerp(slerp1Quaternion.XnaQuaternion(), slerp2Quaternion.XnaQuaternion(), quadrantAmount);
                             Vector3 location = xnaPose.Translation;
                             xnaPose = Matrix.CreateFromQuaternion(q);
                             xnaPose.Translation = location;
                         }
                         else if (position1 is LinearKey key1 && position2 is LinearKey key2) //OR-Clock anim.node has tcb keys
                         {
-                            xnaPose.Translation = Vector3.Lerp(key1.Position, key2.Position, quadrantAmount);
+                            xnaPose.Translation = Vector3.Lerp(key1.Position.XnaVector(), key2.Position.XnaVector(), quadrantAmount);
                         }
                         else if (position1 is TcbKey tcbkey1 && position2 is TcbKey tcbkey2) //OR-Clock anim.node has tcb keys
                         {
                             ref readonly Quaternion tcb1Quaternion = ref tcbkey1.Quaternion;
                             ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
-                            Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, quadrantAmount);
+                            Quaternion q = Quaternion.Slerp(tcb1Quaternion.XnaQuaternion(), tcb2Quaternion.XnaQuaternion(), quadrantAmount);
                             Vector3 location = xnaPose.Translation;
                             xnaPose = Matrix.CreateFromQuaternion(q);
                             xnaPose.Translation = location;
@@ -1059,12 +1059,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             controllerZ = SharedShape.Animations[0].AnimationNodes[animationMatrixZIndex].Controllers[0];
             controllerGrabber01 = SharedShape.Animations[0].AnimationNodes[grabber01Index].Controllers[0];
             controllerGrabber02 = SharedShape.Animations[0].AnimationNodes[grabber02Index].Controllers[0];
-            ref readonly Vector3 linearkeyPosition0 = ref ((LinearKey)controllerX[0]).Position;
-            ref readonly Vector3 linearkeyPosition1 = ref ((LinearKey)controllerX[1]).Position;
-            Vector3 result = (Vector3.Zero - linearkeyPosition0) / (linearkeyPosition1 - linearkeyPosition0);
-            animationKeyX = Math.Abs(result.X) * controllerX[1].Frame;
-            animationKeyY = Math.Abs(result.Y) * controllerY[1].Frame;
-            animationKeyZ = Math.Abs(result.Z) * controllerZ[1].Frame;
+
+            animationKeyX = Math.Abs((0 - ((LinearKey)controllerX[0]).Position.X) / ((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X) * controllerX[1].Frame;
+            animationKeyY = Math.Abs((0 - ((LinearKey)controllerY[0]).Position.Y) / ((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y) * controllerY[1].Frame;
+            animationKeyZ = Math.Abs((0 - ((LinearKey)controllerZ[0]).Position.Z) / ((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z) * controllerZ[1].Frame;
             string soundPath;
             if (fuelPickupItemObject.CraneSound != null && File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile(fuelPickupItemObject.CraneSound)) ||
                 File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile("containercrane.sms")) ||
@@ -1101,12 +1099,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 ((LinearKey)controllerGrabber01[0]).Position.Z - ((LinearKey)controllerGrabber01[1]).Position.Z, ((LinearKey)controllerGrabber02[0]).Position.Z - ((LinearKey)controllerGrabber02[1]).Position.Z);
             containerHandlingItem.ReInitPositionOffset(absAnimationMatrix);
 
-            linearkeyPosition0 = ref ((LinearKey)controllerX[0]).Position;
-            linearkeyPosition1 = ref ((LinearKey)controllerX[1]).Position;
-            result = (containerHandlingItem.PickingSurfaceRelativeTopStartPosition - linearkeyPosition0) / (linearkeyPosition1 - linearkeyPosition0);
-            animationKeyX = Math.Abs(result.X) * controllerX[1].Frame;
-            animationKeyY = Math.Abs(result.Y) * controllerY[1].Frame;
-            animationKeyZ = Math.Abs(result.Z) * controllerZ[1].Frame;
+            animationKeyX = Math.Abs((containerHandlingItem.PickingSurfaceRelativeTopStartPosition.X - ((LinearKey)controllerX[0]).Position.X) / (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X)) * controllerX[1].Frame;
+            animationKeyY = Math.Abs((containerHandlingItem.PickingSurfaceRelativeTopStartPosition.Y - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
+            animationKeyZ = Math.Abs((containerHandlingItem.PickingSurfaceRelativeTopStartPosition.Z - ((LinearKey)controllerZ[0]).Position.Z) / (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z)) * controllerZ[1].Frame;
             AnimateOneMatrix(animationMatrixXIndex, animationKeyX);
             AnimateOneMatrix(animationMatrixYIndex, animationKeyY);
             AnimateOneMatrix(animationMatrixZIndex, animationKeyZ);
@@ -1159,14 +1154,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                        for (var i = 0; i < SharedShape.Matrices.Length; ++i)
                            AnimateMatrix(i, AnimationKey);
             */
-            ref readonly Vector3 linearkeyPosition0 = ref ((LinearKey)controllerX[0]).Position;
-            ref readonly Vector3 linearkeyPosition1 = ref ((LinearKey)controllerX[1]).Position;
             if (fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 float tempFrameRate;
                 if (containerHandlingItem.MoveX)
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetX - linearkeyPosition0.X) / (linearkeyPosition1.X - linearkeyPosition0.X)) * controllerX[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.TargetX - ((LinearKey)controllerX[0]).Position.X) / (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X)) * controllerX[1].Frame;
                     //                    if (AnimationKey == 0 && Sound != null) Sound.HandleEvent(Event.FuelTowerDown);
                     tempFrameRate = Math.Abs(animationKeyX - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyX < animationTarget)
@@ -1196,7 +1189,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 if (containerHandlingItem.MoveY)
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetY - linearkeyPosition0.Y) / (linearkeyPosition1.Y - linearkeyPosition0.Y)) * controllerY[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.TargetY - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[0]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyY - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyY < animationTarget)
                     {
@@ -1224,7 +1217,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 if (containerHandlingItem.MoveZ)
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetZ - linearkeyPosition0.Z) / (linearkeyPosition1.Z - linearkeyPosition0.Z)) * controllerZ[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.TargetZ - ((LinearKey)controllerZ[0]).Position.Z) / (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z)) * controllerZ[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyZ - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyZ < animationTarget)
                     {
@@ -1300,12 +1293,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         animationKeyGrabber02 = 0;
                 }
             }
-            linearkeyPosition0 = ref ((LinearKey)controllerX[0]).Position;
-            linearkeyPosition1 = ref ((LinearKey)controllerX[1]).Position;
-            Vector3 result = linearkeyPosition1 - linearkeyPosition0;
-            containerHandlingItem.ActualX = result.X * animationKeyX / controllerX[1].Frame + ((LinearKey)controllerX[0]).Position.X;
-            containerHandlingItem.ActualY = result.Y * animationKeyY / controllerY[1].Frame + ((LinearKey)controllerY[0]).Position.Y;
-            containerHandlingItem.ActualZ = result.Z * animationKeyZ / controllerZ[1].Frame + ((LinearKey)controllerZ[0]).Position.Z;
+            containerHandlingItem.ActualX = (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X) * animationKeyX / controllerX[1].Frame + ((LinearKey)controllerX[0]).Position.X;
+            containerHandlingItem.ActualY = (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y) * animationKeyY / controllerY[1].Frame + ((LinearKey)controllerY[0]).Position.Y;
+            containerHandlingItem.ActualZ = (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z) * animationKeyZ / controllerZ[1].Frame + ((LinearKey)controllerZ[0]).Position.Z;
             containerHandlingItem.ActualGrabber01 = (((LinearKey)controllerGrabber01[1]).Position.Z - ((LinearKey)controllerGrabber01[0]).Position.Z) * animationKeyGrabber01 / controllerGrabber01[1].Frame + ((LinearKey)controllerGrabber01[0]).Position.Z;
             containerHandlingItem.ActualGrabber02 = (((LinearKey)controllerGrabber02[1]).Position.Z - ((LinearKey)controllerGrabber02[0]).Position.Z) * animationKeyGrabber02 / controllerGrabber02[1].Frame + ((LinearKey)controllerGrabber02[0]).Position.Z;
 

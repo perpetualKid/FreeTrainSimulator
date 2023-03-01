@@ -55,7 +55,7 @@ namespace Orts.Formats.OR.Models
     {
         public LoadStationId LoadStationId { get; private set; }
 
-        public List<LoadDataEntry> LoadData { get; } = new List<LoadDataEntry>();
+        public IReadOnlyCollection<LoadDataEntry> LoadData { get; } = new List<LoadDataEntry>();
 
         public ContainerStationPopulation(JsonReader json)
         {
@@ -74,7 +74,7 @@ namespace Orts.Formats.OR.Models
                     LoadStationId = new LoadStationId(item);
                     break;
                 case "LoadData[].":
-                    LoadData.Add(new LoadDataEntry(item));
+                    (LoadData as List<LoadDataEntry>).Add(new LoadDataEntry(item));
                     break;
                 default:
                     return false;

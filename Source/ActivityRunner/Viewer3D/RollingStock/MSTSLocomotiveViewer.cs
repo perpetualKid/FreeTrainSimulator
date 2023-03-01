@@ -222,7 +222,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlRefill, KeyEventType.KeyPressed, AttemptToRefillOrUnload, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlRefill, KeyEventType.KeyReleased, StopRefillingOrUnloading, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyPressed, AttemptToRefillOrUnloadContainer, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyReleased, StopRefillingOrUnloading, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyReleased, StopRefillingOrUnloadingContainer, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand, true);
@@ -326,7 +326,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRefill, KeyEventType.KeyPressed, AttemptToRefillOrUnload);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRefill, KeyEventType.KeyReleased, StopRefillingOrUnloading);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyPressed, AttemptToRefillOrUnloadContainer);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyReleased, StopRefillingOrUnloading);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDiscreteUnload, KeyEventType.KeyReleased, StopRefillingOrUnloadingContainer);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand);
@@ -934,12 +934,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else if (match.IntakePoint.LinkedFreightAnim is FreightAnimationDiscrete load)
             {
                 // discrete freight wagon animation
-                if (load == null)
-                {
-                    Simulator.Instance.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("wag file not equipped for containers"));
-                    return;
-                }
-                else if (load.Loaded && !onlyUnload)
+                if (load.Loaded && !onlyUnload)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString($"{match.Pickup.PickupType.GetLocalizedDescription()} now loaded."));
                     return;
@@ -1063,7 +1058,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 match.Wagon.UnloadingPartsOpen = false;
             }
 
-            new RefillCommand(Viewer.Log, controller.CurrentValue, controller.CommandStartTime);  // for Replay to use
+            _ = new RefillCommand(Viewer.Log, controller.CurrentValue, controller.CommandStartTime);  // for Replay to use
             if (controller.UpdateValue >= 0)
                 controller.StopIncrease();
             else

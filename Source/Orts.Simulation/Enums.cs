@@ -177,4 +177,25 @@ namespace Orts.Simulation
         Default,
         Container
     }
+
+    public enum ContainerType
+    {
+        None,
+        C20ft,
+        C40ft,
+        C40ftHC,
+        C45ft,
+        C45ftHC,
+        C48ft,
+        C53ft
+    }
+
+    public enum ContainerStatus
+    {
+        OnEarth,
+        Loading,
+        Unloading,
+        WaitingForLoading,
+        WaitingForUnloading
+    }
 }

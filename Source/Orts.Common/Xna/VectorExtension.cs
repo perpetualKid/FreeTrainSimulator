@@ -80,5 +80,15 @@ namespace Orts.Common.Xna
         {
             return new Vector4(value.X, value.Y, value.Width, value.Height);
         }
+
+        public static Vector3 XnaVector(this in Vector3 vector)
+        {
+            return new Vector3(vector.X, vector.Y, -vector.Z);
+        }
+
+        public static Quaternion XnaQuaternion(this in Quaternion quaternion)
+        {
+            return new Quaternion(quaternion.X, quaternion.Y, -quaternion.Z, quaternion.W);
+        }
     }
 }

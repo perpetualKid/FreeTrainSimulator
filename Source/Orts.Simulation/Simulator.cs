@@ -362,6 +362,10 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellationToken)
         {
+            if (ActivityFile?.Activity?.Header?.LoadStationsPopulationFile != null)
+            {
+                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".lsp")));
+            }
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
@@ -372,10 +376,6 @@ namespace Orts.Simulation
 
             MultiPlayerManager.Instance().RememberOriginalSwitchState();
 
-            if (ActivityFile?.Activity?.Header?.LoadStationsPopulationFile != null)
-            {
-                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".lsp")));
-            }
             // start activity logging if required
             if (Settings.EvaluationStationStops && ActivityRun != null)
             {

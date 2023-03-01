@@ -29,44 +29,16 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Parsers;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Scripting.Api;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 
+using SharpDX.DirectWrite;
+
 namespace Orts.Simulation.World
 {
-
-    public enum ContainerType
-    {
-        None,
-        C20ft,
-        C40ft,
-        C40ftHC,
-        C45ft,
-        C45ftHC,
-        C48ft,
-        C53ft
-    }
-
-    public enum ContainerStatus
-    {
-        OnEarth,
-        Loading,
-        Unloading,
-        WaitingForLoading,
-        WaitingForUnloading
-    }
-
-    public class ContainerList
-    {
-#pragma warning disable CA1002 // Do not expose generic lists
-        public List<Container> Containers { get; } = new List<Container>();
-#pragma warning restore CA1002 // Do not expose generic lists
-    }
-
     public class Container : IWorldPosition
     {
         private static readonly char[] directorySeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
@@ -78,19 +50,19 @@ namespace Orts.Simulation.World
         public float WidthM = 2.44f;
         public float LengthM = 12.19f;
         public float HeightM = 2.59f;
-        public ContainerType ContainerType = ContainerType.C40ft;
-        public bool Flipped = false;
+        public ContainerType ContainerType { get; private set; } = ContainerType.C40ft;
+        public bool Flipped;
         public static float Length20ftM = 6.095f;
         public static float Length40ftM = 12.19f;
 
         public ref readonly WorldPosition WorldPosition => ref worldPosition;  // current position of the container
-        public float RealRelativeYOffset = 0;
-        public float RealRelativeZOffset = 0;
+
         public Vector3 IntrinsicShapeOffset;
         public ContainerHandlingItem ContainerStation;
         public Matrix RelativeContainerMatrix = Matrix.Identity;
         public MSTSWagon Wagon;
         public string LoadFilePath;
+
         public Container(FreightAnimationDiscrete freightAnimDiscreteSource, FreightAnimationDiscrete freightAnimDiscrete, bool stacked = false)
         {
             ArgumentNullException.ThrowIfNull(freightAnimDiscreteSource);
@@ -132,13 +104,7 @@ namespace Orts.Simulation.World
 
         public Container(BinaryReader inf, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingItem containerStation, bool fromContainerStation, int stackLocationIndex = 0)
         {
-            ArgumentNullException.ThrowIfNull(containerStation);
-            ArgumentNullException.ThrowIfNull(freightAnimDiscrete);
 
-            if (fromContainerStation)
-                ContainerStation = containerStation;
-            else
-                Wagon = freightAnimDiscrete.Wagon;
             Name = inf.ReadString();
             BaseShapeFileFolderSlash = inf.ReadString();
             ShapeFileName = inf.ReadString();
@@ -151,6 +117,8 @@ namespace Orts.Simulation.World
             MassKG = inf.ReadSingle();
             if (fromContainerStation)
             {
+                ArgumentNullException.ThrowIfNull(containerStation);
+                ContainerStation = containerStation;
                 // compute WorldPosition starting from offsets and position of container station
                 var containersCount = containerStation.StackLocations[stackLocationIndex].Containers.Count;
                 var mstsOffset = IntrinsicShapeOffset;
@@ -167,6 +135,8 @@ namespace Orts.Simulation.World
             }
             else
             {
+                ArgumentNullException.ThrowIfNull(freightAnimDiscrete);
+                Wagon = freightAnimDiscrete.Wagon;
                 RelativeContainerMatrix = MatrixExtension.RestoreMatrix(inf);
                 worldPosition = new WorldPosition(Wagon.WorldPosition.TileX, Wagon.WorldPosition.TileZ, MatrixExtension.Multiply(RelativeContainerMatrix, Wagon.WorldPosition.XNAMatrix));
             }
@@ -209,18 +179,15 @@ namespace Orts.Simulation.World
         public void ComputeContainerStationContainerPosition(int stackLocationIndex, int loadPositionVertical)
         {
             // compute WorldPosition starting from offsets and position of container station
-            var mstsOffset = IntrinsicShapeOffset;
+            Vector3 mstsOffset = IntrinsicShapeOffset;
             mstsOffset.Z *= -1;
-            var stackLocation = ContainerStation.StackLocations[stackLocationIndex];
-            var totalOffset = stackLocation.Position - mstsOffset;
+            ContainerStackLocation stackLocation = ContainerStation.StackLocations[stackLocationIndex];
+            Vector3 totalOffset = stackLocation.Position - mstsOffset;
             totalOffset.Z += LengthM * (stackLocation.Flipped ? -1 : 1) / 2;
-            if (stackLocation.Containers != null && stackLocation.Containers.Count != 0)
-                for (var iPos = stackLocation.Containers.Count - 1; iPos >= 0; iPos--)
-                    totalOffset.Y += stackLocation.Containers[iPos].HeightM;
+            totalOffset.Y += stackLocation.Containers.Sum(c => c.HeightM);
             totalOffset.Z *= -1;
             totalOffset = Vector3.Transform(totalOffset, ContainerStation.WorldPosition.XNAMatrix);
-            worldPosition = ContainerStation.WorldPosition;
-            WorldPosition.SetTranslation(totalOffset);
+            worldPosition = ContainerStation.WorldPosition.SetTranslation(totalOffset);
         }
 
         public void Update()
@@ -254,7 +221,8 @@ namespace Orts.Simulation.World
             Name = containerParameters.Name;
 
             ShapeFileName = @"..\" + containerParameters.ShapeFileName;
-            _ = Enum.TryParse(containerParameters.ContainerType, out ContainerType);
+            if (Enum.TryParse(containerParameters.ContainerType, out ContainerType containerType))
+                ContainerType = containerType;
             string root = containerParameters.ShapeFileName[..containerParameters.ShapeFileName.IndexOfAny(directorySeparators)];
             BaseShapeFileFolderSlash = Path.Combine(baseFolder, root) + Path.DirectorySeparatorChar;
             ComputeDimensions();
@@ -428,8 +396,10 @@ namespace Orts.Simulation.World
                 StackLocations[i] = stackLocation;
                 if (StackLocationsLength + 0.01f > Container.Length40ftM)
                 {
-                    StackLocations[i + stackLocationsCount] = new ContainerStackLocation(stackLocation);
-                    StackLocations[i + stackLocationsCount].Usable = false;
+                    StackLocations[i + stackLocationsCount] = new ContainerStackLocation(stackLocation)
+                    {
+                        Usable = false
+                    };
                 }
                 i++;
             }
@@ -544,13 +514,13 @@ namespace Orts.Simulation.World
                 containerManager.LoadedContainers.Add(loadFilePath, container);
             }
             ContainerStackLocation stackLocation = StackLocations[stackLocationIndex];
+            stackLocation.Containers ??= new List<Container>();
             if (stackLocation.Containers?.Count >= stackLocation.MaxStackedContainers)
                 Trace.TraceWarning("Stack Location {0} is full, can't lay down container", stackLocationIndex);
-            else if (stackLocation.Containers?[0].LengthM != container.LengthM)
+            else if (stackLocation.Containers.Count > 0 && stackLocation.Containers[0].LengthM != container.LengthM)
                 Trace.TraceWarning("Stack Location {0} is occupied with containers of different length", stackLocationIndex);
-            else if (stackLocation.Containers != null && stackLocation.Length + 0.01f < container.LengthM)
+            else if (stackLocation.Length + 0.01f < container.LengthM)
                 Trace.TraceWarning("Stack Location {0} is too short for container {1}", stackLocationIndex, container.Name);
-            stackLocation.Containers ??= new List<Container>();
             container.ComputeContainerStationContainerPosition(stackLocationIndex, stackLocation.Containers.Count);
             stackLocation.Containers.Add(container);
             Containers.Add(container);
@@ -920,7 +890,8 @@ namespace Orts.Simulation.World
                         Status = ContainerStationStatus.Idle;
                         MSTSWagon.RefillProcess.OkToRefill = false;
                         ContainerManager.ActiveOperationsCounter--;
-                        if (ContainerManager.ActiveOperationsCounter < 0) ContainerManager.ActiveOperationsCounter = 0;
+                        if (ContainerManager.ActiveOperationsCounter < 0)
+                            ContainerManager.ActiveOperationsCounter = 0;
                     }
                     break;
                 default:
