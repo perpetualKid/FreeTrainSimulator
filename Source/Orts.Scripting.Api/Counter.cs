@@ -1,11 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Microsoft.Xna.Framework;
 
 namespace Orts.Scripting.Api
 {
+    public interface IGametimeSource
+    { 
+        double GameTime { get; }
+    }
+
     /// <summary>
     /// Base class for Timer and OdoMeter. Not to be used directly.
     /// </summary>
@@ -30,20 +33,10 @@ namespace Orts.Scripting.Api
             CurrentValue = script.GameTime;
         }
 
-        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic //TrainCar
+        public Timer(IGametimeSource source)
         {
-            CurrentValue = () => (float)car.Simulator.GameTime;
+            CurrentValue = () => source.GameTime;
         }
-
-        //public Timer(dynamic eot)//TODO 20220510 refactor use of dynamic //Eot
-        //{
-        //    CurrentValue = () => (float)eot.Train.Simulator.GameTime;
-        //}
-
-        //public Timer(ContainerHandlingItem containerStation)
-        //{
-        //    CurrentValue = () => (float)containerStation.Simulator.GameTime;
-        //}
     }
 
     public class Odometer : Counter

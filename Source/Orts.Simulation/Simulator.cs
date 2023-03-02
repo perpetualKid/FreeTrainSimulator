@@ -93,7 +93,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public partial class Simulator
+    public class Simulator: IGametimeSource
     {
         private string explorePath;
         private string exploreConsist;

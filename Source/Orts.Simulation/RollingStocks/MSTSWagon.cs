@@ -3941,7 +3941,7 @@ namespace Orts.Simulation.RollingStocks
             FreightAnimations.FreightType = matchPickup.PickupType;
 
             var containerStation = simulator.ContainerManager.ContainerHandlingItems.Where(item => item.Key == matchPickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
-            if (containerStation.Status != ContainerHandlingItem.ContainerStationStatus.Idle)
+            if (containerStation.Status != ContainerStationStatus.Idle)
             {
                 simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Container station busy with preceding mission"));
                 return;

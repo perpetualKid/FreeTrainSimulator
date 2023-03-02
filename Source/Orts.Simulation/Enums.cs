@@ -198,4 +198,28 @@ namespace Orts.Simulation
         WaitingForLoading,
         WaitingForUnloading
     }
+
+    public enum ContainerStationStatus
+    {
+        Idle,
+        LoadRaiseToPick,
+        LoadHorizontallyMoveToPick,
+        LoadLowerToPick,
+        LoadWaitingForPick,
+        LoadRaiseToLayOnWagon,
+        LoadHorizontallyMoveToLayOnWagon,
+        LoadLowerToLayOnWagon,
+        LoadWaitingForLayingOnWagon,
+        UnloadRaiseToPick,
+        UnloadHorizontallyMoveToPick,
+        UnloadLowerToPick,
+        UnloadWaitingForPick,
+        UnloadRaiseToLayOnEarth,
+        UnloadHorizontallyMoveToLayOnEarth,
+        UnloadLowerToLayOnEarth,
+        UnloadWaitingForLayingOnEarth,
+        RaiseToIdle,
+    }
+
+
 }

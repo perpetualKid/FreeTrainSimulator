@@ -363,7 +363,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public bool Validity(MSTSWagon wagon, Container container, LoadPosition loadPosition, Vector3 inOffset, float loadingAreaLength, out Vector3 offset)
         {
-            offset = new Vector3();
             offset = inOffset;
             var validity = false;
             var zOffset = 0f;

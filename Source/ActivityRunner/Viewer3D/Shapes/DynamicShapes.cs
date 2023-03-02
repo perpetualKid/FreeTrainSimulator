@@ -132,20 +132,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                     ref readonly Quaternion slerp1Quaternion = ref slerp1.Quaternion;
                     ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
-                    Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, amount);
+                    Quaternion q = Quaternion.Slerp(slerp1Quaternion.XnaQuaternion(), slerp2Quaternion.XnaQuaternion(), amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
                 else if (position1 is LinearKey key1 && position2 is LinearKey key2)  // a key sets an absolute position, vs shifting the existing matrix
                 {
-                    xnaPose.Translation = Vector3.Lerp(key1.Position, key2.Position, amount);
+                    xnaPose.Translation = Vector3.Lerp(key1.Position.XnaVector(), key2.Position.XnaVector(), amount);
                 }
                 else if (position1 is TcbKey tcbkey1 && position2 is TcbKey tcbkey2) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
                 {
                     ref readonly Quaternion tcb1Quaternion = ref tcbkey1.Quaternion;
                     ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
-                    Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, amount);
+                    Quaternion q = Quaternion.Slerp(tcb1Quaternion.XnaQuaternion(), tcb2Quaternion.XnaQuaternion(), amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
@@ -1060,9 +1060,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             controllerGrabber01 = SharedShape.Animations[0].AnimationNodes[grabber01Index].Controllers[0];
             controllerGrabber02 = SharedShape.Animations[0].AnimationNodes[grabber02Index].Controllers[0];
 
-            animationKeyX = Math.Abs((0 - ((LinearKey)controllerX[0]).Position.X) / ((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X) * controllerX[1].Frame;
-            animationKeyY = Math.Abs((0 - ((LinearKey)controllerY[0]).Position.Y) / ((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y) * controllerY[1].Frame;
-            animationKeyZ = Math.Abs((0 - ((LinearKey)controllerZ[0]).Position.Z) / ((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z) * controllerZ[1].Frame;
+            animationKeyX = Math.Abs((0 - ((LinearKey)controllerX[0]).Position.X) / (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X)) * controllerX[1].Frame;
+            animationKeyY = Math.Abs((0 - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
+            animationKeyZ = Math.Abs((0 - ((LinearKey)controllerZ[0]).Position.Z) / (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z)) * controllerZ[1].Frame;
             string soundPath;
             if (fuelPickupItemObject.CraneSound != null && File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile(fuelPickupItemObject.CraneSound)) ||
                 File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile("containercrane.sms")) ||
@@ -1092,9 +1092,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             AnimateOneMatrix(animationMatrixZIndex, animationKeyZ);
 
             Matrix absAnimationMatrix = XNAMatrices[animationMatrixYIndex];
-            MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixXIndex], out absAnimationMatrix);
-            MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixZIndex], out absAnimationMatrix);
-            MatrixExtension.Multiply(absAnimationMatrix, WorldPosition.XNAMatrix, out absAnimationMatrix);
+            absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixXIndex]);
+            absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixZIndex]);
+            absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, WorldPosition.XNAMatrix);
             containerHandlingItem.PassSpanParameters(((LinearKey)controllerZ[0]).Position.Z, ((LinearKey)controllerZ[1]).Position.Z,
                 ((LinearKey)controllerGrabber01[0]).Position.Z - ((LinearKey)controllerGrabber01[1]).Position.Z, ((LinearKey)controllerGrabber02[0]).Position.Z - ((LinearKey)controllerGrabber02[1]).Position.Z);
             containerHandlingItem.ReInitPositionOffset(absAnimationMatrix);
@@ -1189,7 +1189,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 if (containerHandlingItem.MoveY)
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetY - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[0]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.TargetY - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyY - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyY < animationTarget)
                     {
@@ -1316,9 +1316,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (containerHandlingItem.ContainerAttached)
             {
                 Matrix absAnimationMatrix = XNAMatrices[animationMatrixYIndex];
-                MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixXIndex], out absAnimationMatrix);
-                MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixZIndex], out absAnimationMatrix);
-                MatrixExtension.Multiply(absAnimationMatrix, WorldPosition.XNAMatrix, out absAnimationMatrix);
+                absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixXIndex]);
+                absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, XNAMatrices[animationMatrixZIndex]);
+                absAnimationMatrix = MatrixExtension.Multiply(absAnimationMatrix, WorldPosition.XNAMatrix);
                 containerHandlingItem.TransferContainer(absAnimationMatrix);
             }
             // let's make some noise
