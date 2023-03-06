@@ -2647,11 +2647,11 @@ namespace Orts.Simulation.RollingStocks
                 //Compute axle inertia from parameters if possible
                 if (AxleInertiaKgm2 <= 0) // if no axleinertia value supplied in ENG file, calculate axleinertia value.
                 {
-                    if (LocoNumDrvAxles > 0 && DriverWheelRadiusM > 0)
+                    if (locoNumDrvAxles > 0 && DriverWheelRadiusM > 0)
                     {
                         float radiusSquared = DriverWheelRadiusM * DriverWheelRadiusM;
                         float wheelMass = 500 * radiusSquared / (0.5f * 0.5f);
-                        AxleInertiaKgm2 = LocoNumDrvAxles * wheelMass * radiusSquared + 500;
+                        AxleInertiaKgm2 = locoNumDrvAxles * wheelMass * radiusSquared + 500;
                     }
                     else
                         AxleInertiaKgm2 = 2000.0f;
