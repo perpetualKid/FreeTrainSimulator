@@ -36,7 +36,6 @@ namespace Orts.Menu
             this.pbBrakePipeChargingRate = new System.Windows.Forms.PictureBox();
             this.pbGraduatedRelease = new System.Windows.Forms.PictureBox();
             this.pbRetainers = new System.Windows.Forms.PictureBox();
-            this.pbMapWindow = new System.Windows.Forms.PictureBox();
             this.pbControlConfirmations = new System.Windows.Forms.PictureBox();
             this.pbAlerter = new System.Windows.Forms.PictureBox();
             this.pbOverspeedMonitor = new System.Windows.Forms.PictureBox();
@@ -233,7 +232,6 @@ namespace Orts.Menu
             ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).BeginInit();
@@ -406,7 +404,6 @@ namespace Orts.Menu
             this.tabPageGeneral.Controls.Add(this.pbBrakePipeChargingRate);
             this.tabPageGeneral.Controls.Add(this.pbGraduatedRelease);
             this.tabPageGeneral.Controls.Add(this.pbRetainers);
-            this.tabPageGeneral.Controls.Add(this.pbMapWindow);
             this.tabPageGeneral.Controls.Add(this.pbControlConfirmations);
             this.tabPageGeneral.Controls.Add(this.pbAlerter);
             this.tabPageGeneral.Controls.Add(this.pbOverspeedMonitor);
@@ -539,19 +536,6 @@ namespace Orts.Menu
             this.pbRetainers.Click += new System.EventHandler(this.HelpIcon_Click);
             this.pbRetainers.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
             this.pbRetainers.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
-            // 
-            // pbMapWindow
-            // 
-            this.pbMapWindow.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
-            this.pbMapWindow.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
-            this.pbMapWindow.Location = new System.Drawing.Point(7, 74);
-            this.pbMapWindow.Name = "pbMapWindow";
-            this.pbMapWindow.Size = new System.Drawing.Size(18, 18);
-            this.pbMapWindow.TabIndex = 34;
-            this.pbMapWindow.TabStop = false;
-            this.pbMapWindow.Click += new System.EventHandler(this.HelpIcon_Click);
-            this.pbMapWindow.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
-            this.pbMapWindow.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // pbControlConfirmations
             // 
@@ -2952,7 +2936,6 @@ namespace Orts.Menu
             ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).EndInit();
@@ -3217,7 +3200,6 @@ namespace Orts.Menu
         private System.Windows.Forms.PictureBox pbBrakePipeChargingRate;
         private System.Windows.Forms.PictureBox pbGraduatedRelease;
         private System.Windows.Forms.PictureBox pbRetainers;
-        private System.Windows.Forms.PictureBox pbMapWindow;
         private System.Windows.Forms.PictureBox pbControlConfirmations;
         private System.Windows.Forms.PictureBox pbAlerter;
         private System.Windows.Forms.CheckBox checkElectricPowerConnected;
