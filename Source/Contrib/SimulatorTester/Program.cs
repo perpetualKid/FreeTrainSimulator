@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Windows.Forms;
 
 using Orts.Common.Calc;
 using Orts.Common.Info;
@@ -71,7 +70,7 @@ namespace Orts.SimulatorTester
 
             if (settings.Verbose)
             {
-                Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", Application.ProductName);
+                Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", RuntimeInfo.ProductName);
                 LogSeparator();
 
                 SystemInfo.WriteSystemDetails();
@@ -79,7 +78,7 @@ namespace Orts.SimulatorTester
 
                 Console.WriteLine("Version      = {0}", VersionInfo.Version.Length > 0 ? VersionInfo.Version : "<none>");
                 Console.WriteLine("Build        = {0}", VersionInfo.Build);
-                Console.WriteLine("Executable   = {0}", Path.GetFileName(Application.ExecutablePath));
+                Console.WriteLine("Executable   = {0}", Path.GetFileName(RuntimeInfo.ApplicationFile));
                 foreach (var arg in args)
                     Console.WriteLine("Argument     = {0}", arg);
                 LogSeparator();
