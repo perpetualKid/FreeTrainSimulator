@@ -1333,7 +1333,7 @@ namespace Orts.Simulation.AIs
                             car.IsPartOfActiveTrain = false;  // to stop sounds
                             // remove continers if any
                             if (car.FreightAnimations?.Animations != null)
-                                car.FreightAnimations?.RemoveDiscreteFreightAnimations(car as MSTSWagon);
+                                car.FreightAnimations?.RemoveDiscreteFreightAnimations();
                         }
                     }
                 }
