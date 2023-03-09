@@ -1144,16 +1144,16 @@ namespace Orts.Simulation.RollingStocks
                 status.Append($"{brakeInfoValue:F0}\t");
 
                 // MR
-                status.Append($"{(FormatStrings.FormatPressure((Simulator.Instance.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (Simulator.Instance.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)):F0}");
+                status.Append($"{(FormatStrings.FormatPressure(MainResPressurePSI, Pressure.Unit.PSI, (Simulator.Instance.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)):F0}");
             }
             return status.ToString();
         }
 
 
         //TODO 20220901 this should be refactored
-        private static string BrakeValue(string tokenIni, string tokenEnd) // used by GetDpuStatus(bool dataHud)
+        private string BrakeValue(string tokenIni, string tokenEnd) // used by GetDpuStatus(bool dataHud)
         {
-            string trainBrakeStatus = Simulator.Instance.PlayerLocomotive.GetTrainBrakeStatus();
+            string trainBrakeStatus = GetTrainBrakeStatus();
             var brakeInfoValue = "-";
             if (trainBrakeStatus.Contains(tokenIni, StringComparison.OrdinalIgnoreCase) && trainBrakeStatus.Contains(tokenEnd, StringComparison.OrdinalIgnoreCase))
             {
@@ -1165,7 +1165,7 @@ namespace Orts.Simulation.RollingStocks
             return brakeInfoValue;
         }
 
-        public string GetMultipleUnitsConfiguration()
+        public string MultipleUnitsConfiguration()
         {
             if (Train == null)
                 return null;

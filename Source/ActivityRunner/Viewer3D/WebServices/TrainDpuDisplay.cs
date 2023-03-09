@@ -161,7 +161,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             MSTSLocomotive locomotive = viewer.PlayerLocomotive;
             Train train = locomotive.Train;
-            var multipleUnitsConfiguration = (locomotive as MSTSDieselLocomotive)?.GetMultipleUnitsConfiguration();
+            var multipleUnitsConfiguration = (locomotive as MSTSDieselLocomotive)?.MultipleUnitsConfiguration();
             List<string> lastCol;
             List<string> symbolCol;
             var notDpuTrain = false;
