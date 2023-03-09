@@ -506,6 +506,7 @@ namespace Orts.Simulation.AIs
         public float RequiredSpeedMpS;
         public float RequiredDistance;
         public int Delay;
+        public int OriginalDelay;
         public int EndSignalIndex { get; protected set; }
 
         public AuxiliaryAction NextAction = AuxiliaryAction.None;
@@ -690,6 +691,7 @@ namespace Orts.Simulation.AIs
             : base(thisTrain, inf)
         {
             Delay = inf.ReadInt32();
+            OriginalDelay = inf.ReadInt32();
             NextAction = AuxiliaryAction.WaitingPoint;
         }
 
@@ -697,6 +699,7 @@ namespace Orts.Simulation.AIs
         {
             base.save(outf, cnt);
             outf.Write(Delay);
+            outf.Write(OriginalDelay);
         }
 
         internal override AIActionItem Handler(params object[] list)
