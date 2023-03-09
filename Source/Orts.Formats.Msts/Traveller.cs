@@ -220,7 +220,7 @@ namespace Orts.Formats.Msts
                         throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
                     else
                     {
-                        throw new MissingTrackNodeException();
+                        throw new MissingTrackNodeException("Missing Track Node at "+location.TileX+" "+location.TileZ+"!");
                     }
 
                 }
