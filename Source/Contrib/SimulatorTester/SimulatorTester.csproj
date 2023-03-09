@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	<UseWindowsForms>true</UseWindowsForms>
+	<Description>Open Rails Transport Simulator</Description>
+	<RootNamespace>Orts.SimulatorTester</RootNamespace>
+    <AssemblyTitle>Open Rails Simulator Tester (Contributed)</AssemblyTitle>
+	<OutputPath>..\..\..\Program</OutputPath>
+	<RootNamespace>Orts.SimulatorTester</RootNamespace>
+	<AssemblyName>Contrib.SimulatorTester</AssemblyName>
+	<ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
+    <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
+  </ItemGroup>
+</Project>
