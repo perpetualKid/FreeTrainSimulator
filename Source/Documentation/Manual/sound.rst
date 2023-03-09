@@ -210,6 +210,7 @@ Trigger       Function
 =========     ======================================================================
 Trigger       Function
 =========     ======================================================================
+147           SteamGearLeverToggle : Toggles when steam gear lever is moved.
 148           AIFiremanSoundOn : AI fireman mode is on.
 149           AIFiremanSoundOff : AI fireman mode is off, ie in Manual Firing mode.
 =========     ======================================================================
@@ -427,7 +428,7 @@ There are 7 properties:
 
   - Variable3 reflects the dynamic brake (diesel | electric) or fuel rate (steam)
 		
-Note: Separately, for a whole route, sounds for all curves below a certain radius can be automatically triggered as vehicles pass - see :ref:`sound-curve` below.		
+Note: Separately, for a whole route, sounds for all curves below a certain radius can be automatically triggered as vehicles pass - see :ref:`sound-curve` below.	
 
 
 Comparison with MSTS
@@ -476,6 +477,23 @@ Testing Sound Files at Runtime
 
 The :ref:`sound debug window <driving-sound-debug>` is a useful tool for 
 testing.
+
+.. _sound-container-cranes:
+
+Discrete triggers for container cranes
+======================================
+
+=========     =====================================
+Trigger       Function
+=========     =====================================
+1             CraneXAxisMove
+2             CraneXAxisSlowDown
+3             CraneYAxisMove
+4             CraneYAxisSlowDown
+5             CraneZAxisMove
+6             CraneZAxisSlowDown
+7             CraneYAxisDown (triggers when grabber hits container)
+=========     =====================================
 
 .. _sound-curve:
 

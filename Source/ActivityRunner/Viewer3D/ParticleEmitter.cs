@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D
         internal void Mark()
         {
             if (Material != null) // stops error messages if a special effect entry is not a defined OR parameter
-            Material.Mark();
+                Material.Mark();
         }
     }
 
@@ -465,16 +465,16 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, null)
         {
             texture = viewer.TextureManager.Get(textureName, true);
-            shader = Viewer.MaterialManager.ParticleEmitterShader;
+            shader = base.viewer.MaterialManager.ParticleEmitterShader;
         }
 
         public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0];
-            if (Viewer.Settings.UseMSTSEnv == false)
-                shader.LightVector = Viewer.World.Sky.solarDirection;
+            if (viewer.Settings.UseMSTSEnv == false)
+                shader.LightVector = viewer.World.Sky.solarDirection;
             else
-                shader.LightVector = Viewer.World.MSTSSky.mstsskysolarDirection;
+                shader.LightVector = viewer.World.MSTSSky.mstsskysolarDirection;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
@@ -514,7 +514,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(texture);
+            viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }

@@ -275,12 +275,111 @@ namespace Orts.Common.Calc
             prevDerivation = derivation;
 
             //Limit if enabled
-            if (IsLimited)
+            return IsLimited ? (Value <= min) ? (Value = min) : ((Value >= max) ? (Value = max) : Value) : Value;
+        }
+
+        /// <summary>
+        /// Integrates given value with given time span
+        /// </summary>
+        /// <param name="timeSpan">Integration step or timespan in seconds</param>
+        /// <param name="value">Value to integrate</param>
+        /// <returns>Value of integration in the next step (t + timeSpan)</returns>
+        public double Integrate(double timeSpan, Func<double, double> value)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            double end = timeSpan;
+            double k1, k2, k3;
+
+            //Skip when timeSpan is less then zero
+            if (timeSpan <= 0.0f)
             {
-                return (Value <= min) ? (Value = min) : ((Value >= max) ? (Value = max) : Value);
+                return Value;
+            }
+            int count;
+            if (Math.Abs(prevDerivation) > Error)
+            {
+                count = ++NumOfSubstepsPS;
+                if (count > MaxSubsteps)
+                    count = MaxSubsteps;
+                waitBeforeSpeedingUp = 100;
             }
             else
-                return Value;
+            {
+                if (--waitBeforeSpeedingUp <= 0)    //wait for a while before speeding up the integration
+                {
+                    count = Math.Max(--NumOfSubstepsPS, 1);
+                    waitBeforeSpeedingUp = 10;      //not so fast ;)
+                }
+                else
+                    count = NumOfSubstepsPS;
+            }
+
+            timeSpan /= count;
+            NumOfSubstepsPS = count;
+            IsStepDividing = count > 1;
+
+
+            double step;
+            #region SOLVERS
+            //while ((step += timeSpan) <= end)
+            for (step = timeSpan; step <= end; step += timeSpan)
+            {
+                switch (Method)
+                {
+                    case IntegratorMethod.EulerBackward:
+                        Value += (derivation = timeSpan * value(Value));
+                        break;
+                    case IntegratorMethod.EulerBackMod:
+                        Value += (derivation = timeSpan / 2.0f * (previousValues[0] + value(Value)));
+                        previousValues[0] = value(Value);
+                        break;
+                    case IntegratorMethod.EulerForward:
+                        throw new NotImplementedException("Not implemented yet!");
+
+                    case IntegratorMethod.RungeKutta2:
+                        k1 = Value + timeSpan / 2 * value(Value);
+                        k2 = 2 * (k1 - Value) / timeSpan;
+                        Value += (derivation = timeSpan * k2);
+                        break;
+                    case IntegratorMethod.RungeKutta4:
+                        k1 = value(Value);
+                        k2 = value(Value + k1 * timeSpan / 2.0f);
+                        k3 = value(Value + k2 * timeSpan / 2.0f);
+                        double k4 = value(Value + k3 * timeSpan);
+                        Value += (derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) * timeSpan / 6.0f);
+                        break;
+                    case IntegratorMethod.NewtonRhapson:
+                        throw new NotImplementedException("Not implemented yet!");
+
+                    case IntegratorMethod.AdamsMoulton:
+                        //prediction
+                        double predicted = Value + timeSpan / 24.0f * (55.0f * previousValues[0] - 59.0f * previousValues[1] + 37.0f * previousValues[2] - 9.0f * previousValues[3]);
+                        //correction
+                        Value += timeSpan / 24.0f * (9.0f * predicted + 19.0f * previousValues[0] - 5.0f * previousValues[1] + previousValues[2]);
+                        for (int i = previousStep.Length - 1; i > 0; i--)
+                        {
+                            previousStep[i] = previousStep[i - 1];
+                            previousValues[i] = previousValues[i - 1];
+                        }
+                        previousValues[0] = value(Value);
+                        previousStep[0] = timeSpan;
+                        break;
+                    default:
+                        throw new NotImplementedException("Not implemented yet!");
+
+                }
+                //To make sure the loop exits
+                //if (count-- < 0)
+                //    break;
+            }
+
+            #endregion
+
+            prevDerivation = derivation;
+
+            //Limit if enabled
+            return IsLimited ? Math.Clamp(Value, min, max) : Value;
         }
 
         /// <summary>
@@ -294,12 +393,7 @@ namespace Orts.Common.Calc
             double timeSpan = clockSeconds - oldTime;
             oldTime = clockSeconds;
             Value += timeSpan * value;
-            if (IsLimited)
-            {
-                return (Value <= min) ? min : ((Value >= max) ? max : Value);
-            }
-            else
-                return Value;
+            return IsLimited ? Math.Clamp(Value, min, max) : Value;
         }
 
         public void Save(BinaryWriter outf)

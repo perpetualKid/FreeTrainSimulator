@@ -67,7 +67,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             State = EoTState.Disarmed;
             ID = StaticRandom.Next(0, 99999);
-            delayTimer = new Timer(this);
+            delayTimer = new Timer(simulator);
         }
 
         public override void Initialize()
@@ -120,8 +120,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 case EoTState.Armed:
                     if (level == EndOfTrainLevel.TwoWay)
                     {
-                        if (delayTimer == null)
-                            delayTimer = new Timer(this);
+                        delayTimer ??= new Timer(simulator);
                         delayTimer.Setup(LocalTestDelayS);
                         State = EoTState.LocalTestOn;
                         delayTimer.Start();
@@ -174,7 +173,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 throw new ArgumentNullException(nameof(inf));
             ID = inf.ReadInt32();
             State = (EoTState)(inf.ReadInt32());
-            delayTimer = new Timer(this);
+            delayTimer = new Timer(simulator);
             switch (State)
             {
                 case EoTState.CommTestOn:
@@ -226,7 +225,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (State == EoTState.Disarmed &&
                 (level == EndOfTrainLevel.OneWay || level == EndOfTrainLevel.TwoWay))
             {
-                delayTimer ??= new Timer(this);
+                delayTimer ??= new Timer(simulator);
                 delayTimer.Setup(CommTestDelayS);
                 State = EoTState.CommTestOn;
                 delayTimer.Start();

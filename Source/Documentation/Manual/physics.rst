@@ -313,23 +313,15 @@ the *Axle brake force*. The *Axle out force* is the output force of
 the adhesion model (used to pull the train). To compute the model
 correctly the FPS rate needs to be divided by a *Solver dividing* value
 in a range from 1 to 50. By default, the Runge-Kutta4 solver is used to
-obtain the best results. When the *Solver dividing* value is higher than
-40, in order to reduce CPU load the Euler-modified solver is used instead.
+obtain the best results.
 
 In some cases when the CPU load is high, the time step for the computation
 may become very high and the simulation may start to oscillate (the
-*Wheel slip* rate of change (in the brackets) becomes very high). There
-is a stability correction feature that modifies the dynamics of the
-adhesion characteristics. Higher instability can cause a huge wheel slip.
+*Wheel slip* rate of change (in the brackets) becomes very high).
 You can use the ``DebugResetWheelSlip`` (``<Ctrl+X>`` keys by default)
 command to reset the adhesion model. If you experience such behavior most
 of time, use the basic adhesion model instead by pressing
 ``DebugToggleAdvancedAdhesion`` ( ``<Ctrl+Alt+X>`` keys by default).
-
-Another option is to use a Moving average filter available in the
-:ref:`Simulation Options <options-simulation>`. The higher the value,
-the more stable the simulation will be. However, the higher value causes
-slower dynamic response. The recommended range is between 10 and 50.
 
 .. index::
    single: ORTSWheelSlipCausesThrottleDown
@@ -337,6 +329,16 @@ slower dynamic response. The recommended range is between 10 and 50.
 To match some of the real world features, the *Wheel slip* event can
 cause automatic zero throttle setting. Use the ``Engine (ORTS
 (ORTSWheelSlipCausesThrottleDown))`` Boolean value of the ENG file.
+
+.. index::
+   single: ORTSSlipControlSystem
+   
+Modern locomotives have slip control systems which automatically adjust
+power, providing an optimal tractive effort avoiding wheel slip. 
+The ``ORTSSlipControlSystem ( Full )``  parameter can be inserted
+into the engine section of the .eng file to indicate the presence of
+such system.
+
 
 Engine -- Classes of Motive Power
 =================================
@@ -355,7 +357,7 @@ The diesel locomotive model in ORTS simulates the behavior of two basic
 types of diesel engine driven locomotives-- diesel-electric and
 diesel-mechanical. The diesel engine model is the same for both types, but
 acts differently because of the different type of load. Basic controls
-(direction, throttle, dynamic brake, air brakes) are common across all
+(direction, throttle, and brakes) are common across all
 classes of engines. Diesel engines can be started or stopped by pressing
 the START/STOP key (``<Shift+Y>`` in English keyboards). The starting and
 stopping sequence is driven by a *starter* logic, which can be customized,
@@ -939,6 +941,20 @@ auxiliary systems can be adjusted by the optional parameter
 
 A :ref:`scripting interface <features-scripting-powersupply>` to customize the
 behavior of the power supply is also available.
+
+Traction motor type
+'''''''''''''''''''
+
+.. index::
+   single: ORTSTractionMotorType
+
+There are different types of electric motors: series DC motors,
+asynchronous/synchronous AC motors, etc.
+Currently a simple AC induction motor has been implemented, and can be selected
+with the ``ORTSTractionMotorType ( AC ) `` parameter, to be inserted in the Engine
+section of the ENG file. The use of this motor will have an impact on wheel slip,
+because the wheel speed never exceeds the frequency of the rotating magnetic field.
+
 
 Steam Locomotives
 -----------------
@@ -4118,10 +4134,8 @@ railway tunnels by Sirong YI*, Liangtao NIE, Yanheng CHEN, Fangfang QIN**
 Tunnel Friction -- Application in OR
 ====================================
 
-To enable this calculation capability it is necessary to select the
-:ref:`Tunnel dependent resistance <options-tunnel-resistance>` option on the
-Open Rails Menu. The implication of tunnel resistance is designed to model the
-relative impact, and does not take into account multiple trains in the tunnel
+Tunnel resistance is designed to model the
+relative impact on the current train, and does not take into account multiple trains in the tunnel
 at the same time.
 
 Tunnel resistance values can be seen in the :ref:`Train Forces HUD
@@ -4686,7 +4700,7 @@ EOT - End of train device
 General
 -------
 
-See :ref:`here https://en.wikipedia.org/wiki/End-of-train_device` for basic info about EOTs.
+See `https://en.wikipedia.org/wiki/End-of-train_device` for basic info about EOTs.
 
 EOTs in Open Rails may be of three different levels (types)::
 

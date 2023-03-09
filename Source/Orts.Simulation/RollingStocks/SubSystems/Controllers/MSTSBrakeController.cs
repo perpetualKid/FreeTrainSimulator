@@ -117,13 +117,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     switch (notchType)
                     {
                         case ControllerState.Release:
-                            pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), ReleaseRateBarpS(), elapsedClockSeconds);
+                            pressureBar = IncreasePressure(pressureBar, Math.Min(MaxPressureBar(), MainReservoirPressureBar()), ReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
                         case ControllerState.FullQuickRelease:
                         case ControllerState.SMEReleaseStart:
-                            pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), QuickReleaseRateBarpS(), elapsedClockSeconds);
+                            pressureBar = IncreasePressure(pressureBar, Math.Min(MaxPressureBar(), MainReservoirPressureBar()), QuickReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
@@ -193,7 +193,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                                 if (pressureBar > MaxPressureBar() - MinReductionBar())
                                     pressureBar = MaxPressureBar() - MinReductionBar();
-                                pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
+                                pressureBar = DecreasePressure(pressureBar, Math.Min(x, MainReservoirPressureBar()), ApplyRateBarpS(), elapsedClockSeconds);
                                 if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.EPApply)
                                     pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
                             }
@@ -205,7 +205,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                             if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.GSelfLap)
-                                pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
+                                pressureBar = IncreasePressure(pressureBar, Math.Min(x, MainReservoirPressureBar()), ReleaseRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Emergency:
                             pressureBar -= EmergencyRateBarpS() * elapsedClockSeconds;
@@ -213,7 +213,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                         case ControllerState.Dummy:
                             x = MaxPressureBar() - FullServReductionBar() * (notch.Smooth ? x : CurrentValue());
-                            pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
+                            pressureBar = IncreasePressure(pressureBar, Math.Min(x, MainReservoirPressureBar()), ReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;

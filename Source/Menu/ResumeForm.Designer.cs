@@ -14,8 +14,9 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ResumeForm));
             this.gridSaves = new System.Windows.Forms.DataGridView();
             this.fileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -25,7 +26,6 @@
             this.distanceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.currentTileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.validDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.evalDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.Blank = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.saveBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.buttonResume = new System.Windows.Forms.Button();
@@ -61,7 +61,8 @@
             this.gridSaves.AllowUserToAddRows = false;
             this.gridSaves.AllowUserToDeleteRows = false;
             this.gridSaves.AutoGenerateColumns = false;
-            this.gridSaves.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.gridSaves.MultiSelect = false;
+            this.gridSaves.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
             this.gridSaves.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.gridSaves.BackgroundColor = System.Drawing.SystemColors.Window;
             this.gridSaves.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -85,7 +86,6 @@
             this.distanceDataGridViewTextBoxColumn,
             this.currentTileDataGridViewTextBoxColumn,
             this.validDataGridViewCheckBoxColumn,
-            this.evalDataGridViewCheckBoxColumn,
             this.Blank});
             this.gridSaves.DataSource = this.saveBindingSource;
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
@@ -123,11 +123,13 @@
             // realTimeDataGridViewTextBoxColumn
             // 
             this.realTimeDataGridViewTextBoxColumn.DataPropertyName = "RealTime";
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            this.realTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
             this.realTimeDataGridViewTextBoxColumn.HeaderText = "Saved At";
             this.realTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
             this.realTimeDataGridViewTextBoxColumn.Name = "realTimeDataGridViewTextBoxColumn";
             this.realTimeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.realTimeDataGridViewTextBoxColumn.Width = 97;
+            this.realTimeDataGridViewTextBoxColumn.Width = 102;
             // 
             // pathNameDataGridViewTextBoxColumn
             // 
@@ -141,11 +143,13 @@
             // gameTimeDataGridViewTextBoxColumn
             // 
             this.gameTimeDataGridViewTextBoxColumn.DataPropertyName = "GameTime";
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            this.gameTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
             this.gameTimeDataGridViewTextBoxColumn.HeaderText = "Time";
             this.gameTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
             this.gameTimeDataGridViewTextBoxColumn.Name = "gameTimeDataGridViewTextBoxColumn";
             this.gameTimeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.gameTimeDataGridViewTextBoxColumn.Width = 71;
+            this.gameTimeDataGridViewTextBoxColumn.Width = 78;
             // 
             // distanceDataGridViewTextBoxColumn
             // 
@@ -156,16 +160,17 @@
             this.distanceDataGridViewTextBoxColumn.MinimumWidth = 6;
             this.distanceDataGridViewTextBoxColumn.Name = "distanceDataGridViewTextBoxColumn";
             this.distanceDataGridViewTextBoxColumn.ReadOnly = true;
-            this.distanceDataGridViewTextBoxColumn.Width = 95;
+            this.distanceDataGridViewTextBoxColumn.Width = 78;
             // 
             // currentTileDataGridViewTextBoxColumn
             // 
             this.currentTileDataGridViewTextBoxColumn.DataPropertyName = "CurrentTile";
+            this.currentTileDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
             this.currentTileDataGridViewTextBoxColumn.HeaderText = "Tile";
             this.currentTileDataGridViewTextBoxColumn.MinimumWidth = 6;
             this.currentTileDataGridViewTextBoxColumn.Name = "currentTileDataGridViewTextBoxColumn";
             this.currentTileDataGridViewTextBoxColumn.ReadOnly = true;
-            this.currentTileDataGridViewTextBoxColumn.Width = 62;
+            this.currentTileDataGridViewTextBoxColumn.Width = 102;
             // 
             // validDataGridViewCheckBoxColumn
             // 
@@ -176,16 +181,6 @@
             this.validDataGridViewCheckBoxColumn.ReadOnly = true;
             this.validDataGridViewCheckBoxColumn.ThreeState = true;
             this.validDataGridViewCheckBoxColumn.Width = 48;
-            // 
-            // evalDataGridViewCheckBoxColumn
-            // 
-            this.evalDataGridViewCheckBoxColumn.DataPropertyName = "DebriefEvaluation";
-            this.evalDataGridViewCheckBoxColumn.HeaderText = "Eval";
-            this.evalDataGridViewCheckBoxColumn.MinimumWidth = 6;
-            this.evalDataGridViewCheckBoxColumn.Name = "evalDataGridViewCheckBoxColumn";
-            this.evalDataGridViewCheckBoxColumn.ReadOnly = true;
-            this.evalDataGridViewCheckBoxColumn.ThreeState = true;
-            this.evalDataGridViewCheckBoxColumn.Width = 42;
             // 
             // Blank
             // 
@@ -493,7 +488,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn distanceDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn currentTileDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewCheckBoxColumn validDataGridViewCheckBoxColumn;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn evalDataGridViewCheckBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn Blank;
     }
 }

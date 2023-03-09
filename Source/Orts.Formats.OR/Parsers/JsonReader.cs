@@ -260,20 +260,20 @@ namespace Orts.Formats.OR.Parsers
 
         public Vector3 AsVector3(Vector3 defaultValue)
         {
-            var vector3 = defaultValue;
+            Vector3 vector3 = defaultValue;
             switch (reader.TokenType)
             {
                 case JsonToken.StartArray:
                     if (TryRead(json =>
                     {
-                        var floats = new List<float>(3);
+                        List<float> floats = new List<float>(3);
                         ReadBlock(item =>
                         {
                             floats.Add(item.AsFloat(0));
                             return true;
                         });
                         return floats;
-                    }, out var vector))
+                    }, out List<float> vector))
                     {
                         if (vector.Count == 3)
                             return new Vector3(vector[0], vector[1], vector[2]);

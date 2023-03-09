@@ -183,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
                 layoutContainer.HorizontalChildAlignment = HorizontalAlignment.Right;
                 layoutContainer.Add(graphMotiveForce = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(120 * Owner.DpiScaling), graphWidth, 40, "0 %", "100 %", Catalog.GetString("Motive Force"), graphWidth / 2) { GraphColor = Color.LimeGreen });
-                layoutContainer.Add(graphForceSubsteps = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(60 * Owner.DpiScaling), graphWidth, 40, "0", "300", Catalog.GetString("Number of Substeps"), graphWidth / 2) { GraphColor = Color.DeepSkyBlue });
+                layoutContainer.Add(graphForceSubsteps = new GraphControl(this, 0, layoutContainer.RemainingHeight - (int)(60 * Owner.DpiScaling), graphWidth, 40, "0", "50", Catalog.GetString("Number of Substeps"), graphWidth / 2) { GraphColor = Color.DeepSkyBlue });
             };
             tabLayout.TabLayouts[TabSettings.Brake] = (layoutContainer) =>
             {
@@ -298,7 +298,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             graphMotiveForce.AddSample(locomotive.MotiveForceN / locomotive.MaxForceN);
                         }
-                        graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS / (float)locomotive.LocomotiveAxle.AxleRevolutionsInt.MaxSubsteps);
+                        graphForceSubsteps.AddSample(locomotive.LocomotiveAxle.NumOfSubstepsPS / 50.0f);
                         break;
                 }
             }

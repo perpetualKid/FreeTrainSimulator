@@ -213,6 +213,7 @@ namespace Orts.Common.Input
         [Description("Control Cylinder Compound")] ControlCylinderCompound,
         [Description("Control Firing")] ControlFiring,
         [Description("Control Refill")] ControlRefill,
+        [Description("Control Discrete Unload")] ControlDiscreteUnload,
         [Description("Control Water Scoop")] ControlWaterScoop,
         [Description("Control ImmediateRefill")] ControlImmediateRefill,
         [Description("Control Turntable Clockwise")] ControlTurntableClockwise,

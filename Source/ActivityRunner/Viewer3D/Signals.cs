@@ -677,8 +677,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignalLightMaterial(Viewer viewer, string textureName)
             : base(viewer, textureName)
         {
-            shader = Viewer.MaterialManager.SceneryShader;
-            texture = Viewer.TextureManager.Get(textureName, true);
+            shader = base.viewer.MaterialManager.SceneryShader;
+            texture = base.viewer.TextureManager.Get(textureName, true);
 
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
@@ -692,7 +692,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void SetState(Material previousMaterial)
         {
-            shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex]; //["SignalLight"];
+            shader.CurrentTechnique = viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex]; //["SignalLight"];
             shader.ImageTexture = texture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
@@ -720,7 +720,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(texture);
+            viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }
@@ -735,8 +735,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignalLightGlowMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            shader = Viewer.MaterialManager.SceneryShader;
-            texture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
+            shader = base.viewer.MaterialManager.SceneryShader;
+            texture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, Path.Combine(base.viewer.ContentPath, "SignalLightGlow.png"));
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "SignalLightGlow")
@@ -750,7 +750,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void SetState(Material previousMaterial)
         {
-            shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex];
+            shader.CurrentTechnique = viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex];
             shader.ImageTexture = texture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
@@ -760,7 +760,7 @@ namespace Orts.ActivityRunner.Viewer3D
             const float startNightTrans = 0.1f;
             const float finishNightTrans = -0.1f;
 
-            var sunDirection = Viewer.Settings.UseMSTSEnv ? Viewer.World.MSTSSky.mstsskysolarDirection : Viewer.World.Sky.solarDirection;
+            var sunDirection = viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.solarDirection;
             nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
@@ -788,7 +788,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(texture);
+            viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }

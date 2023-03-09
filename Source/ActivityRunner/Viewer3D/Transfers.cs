@@ -156,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TransferMaterial(Viewer viewer, string textureName)
             : base(viewer, textureName)
         {
-            texture = Viewer.TextureManager.Get(textureName, true);
+            texture = base.viewer.TextureManager.Get(textureName, true);
             transferSamplerState = new SamplerState
             {
                 AddressU = TextureAddressMode.Clamp,
@@ -164,7 +164,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Filter = TextureFilter.Anisotropic,
                 MaxAnisotropy = 16,
             };
-            shader = Viewer.MaterialManager.SceneryShader;
+            shader = base.viewer.MaterialManager.SceneryShader;
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "TransferPS")
@@ -205,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void ResetState()
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
+            var shader = viewer.MaterialManager.SceneryShader;
             shader.ReferenceAlpha = 0;
 
             graphicsDevice.BlendState = BlendState.Opaque;
@@ -219,7 +219,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(texture);
+            viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }

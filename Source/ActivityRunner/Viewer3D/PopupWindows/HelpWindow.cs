@@ -329,7 +329,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 };
                 #endregion
                 #region Activity Evaluation
-                if (settings.ActivityEvalulation && Simulator.Instance.ActivityRun != null)
+                if (Simulator.Instance.ActivityRun != null)
                 {
                     tabControl.TabLayouts[TabSettings.ActivityEvaluation] = (layoutContainer) =>
                     {
@@ -358,14 +358,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             (string text, Color textColor) delayFunc()
                             {
                                 TimeSpan delay = Simulator.Instance.PlayerLocomotive.Train.Delay ?? TimeSpan.Zero;
-                                return ($"{delay}", delay.TotalSeconds switch
-                                {
-                                    > 120 => Color.OrangeRed,
-                                    > 60 => Color.LightSalmon,
-                                    0 => Color.White,
-                                    < 0 => Color.LightSalmon,
-                                    _ => Color.LightGreen,
-                                });
+                                return ($"{delay}", ColorCoding.DelayColor(delay));
                             }
                             (string text, Color textColor) = delayFunc();
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Current Delay:", text, textColor, 20);

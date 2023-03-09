@@ -11,8 +11,13 @@ namespace Orts.Common.Calc
     /// </summary>
     public static class StaticRandom
     {
-        private static readonly Random random = new Random();
+        private static Random random = new Random();
         private static readonly object lockObj = new object();
+
+        public static void MakeDeterministic()
+        {
+            random = new Random(0);
+        }
 
 #pragma warning disable CA5394 // Do not use insecure randomness
         /// <summary>

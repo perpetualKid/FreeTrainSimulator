@@ -1242,7 +1242,7 @@ namespace Orts.Formats.Msts.Models
         {
             block.VerifyID(TokenID.Linear_Key);
             Frame = block.ReadInt();
-            position = new Vector3(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat());
+            position = new Vector3(block.ReadFloat(), block.ReadFloat(), block.ReadFloat());
             block.VerifyEndOfBlock();
         }
     }
@@ -1273,7 +1273,7 @@ namespace Orts.Formats.Msts.Models
         {
             block.VerifyID(TokenID.Tcb_Key);
             Frame = block.ReadInt();
-            quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat());
+            quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), block.ReadFloat(), block.ReadFloat());
             Tension = block.ReadFloat();
             Continuity = block.ReadFloat();
             Bias = block.ReadFloat();

@@ -114,7 +114,7 @@ namespace Orts.Formats.Msts
 
     #region Path
     public enum TrackNodeType
-    { 
+    {
         Track,
         Junction,
         End,
@@ -642,7 +642,8 @@ namespace Orts.Formats.Msts
         [Description("freight-livestock")] FreightLivestock = 11,  // New to OR
         [Description("freight-fuel")] FreightFuel = 12,  // New to OR
         [Description("freight-milk")] FreightMilk = 13,   // New to OR
-        [Description("mail")] SpecialMail = 14  // New to OR
+        [Description("mail")] SpecialMail = 14,  // New to OR
+        [Description("container")]Container = 15,  // New to OR
     }
     #endregion
 
@@ -701,7 +702,7 @@ namespace Orts.Formats.Msts
         VacuumTwinPipe,
         StraightVacuumSinglePipe,
         Ecp,
-        Ep, 
+        Ep,
         Sme,
     }
 #pragma warning restore CA1707 // Identifiers should not contain underscores

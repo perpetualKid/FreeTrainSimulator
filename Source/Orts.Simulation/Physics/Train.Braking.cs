@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Orts.Common;
 using Orts.Simulation.RollingStocks;
@@ -18,6 +19,13 @@ namespace Orts.Simulation.Physics
             {
                 simulator.Confirmer?.Warning(CabControl.InitializeBrakes, CabSetting.Warn1);// As Confirmer may not be created until after a restore.
                 return;
+            }
+            if (simulator.Settings.VerboseConfigurationMessages && LeadLocomotiveIndex >= 0) // Check incompatibilities between brake control valves
+            {
+                if (Cars.Any(x => (x as MSTSWagon).BrakeValve != LeadLocomotive.BrakeValve))
+                {
+                    Trace.TraceInformation("Cars along the train have incompatible brake control valves");
+                }
             }
             UnconditionalInitializeBrakes();
             return;

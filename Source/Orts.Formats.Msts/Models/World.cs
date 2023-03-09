@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -12,7 +13,7 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
-    public abstract class WorldObject
+    public abstract class WorldObject: IWorldPosition
     {
         internal protected class PositionHolder
         {
@@ -260,7 +261,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        internal void InsertORSpecificData(SBR block)
+        internal void InsertORSpecificData(SBR block, IReadOnlyCollection<TokenID> allowedTokens)
         {
             block.VerifyID(TokenID.Tr_Worldfile);
             while (!block.EndOfBlock())
@@ -269,52 +270,57 @@ namespace Orts.Formats.Msts.Models
                 {
                     try
                     {
-                        WorldObject origObject;
-                        bool wrongBlock = false;
-                        if (!subBlock.EndOfBlock())
+                        if (allowedTokens == null || allowedTokens.Contains(subBlock.ID))
                         {
-                            SBR subSubBlockUID = subBlock.ReadSubBlock();
-                            // check if a block with this UiD already present
-                            if (subSubBlockUID.ID == TokenID.UiD)
+                            WorldObject origObject;
+                            bool wrongBlock = false;
+                            if (!subBlock.EndOfBlock())
                             {
-                                uint UID = subSubBlockUID.ReadUInt();
-                                origObject = Find(x => x.UiD == UID);
-                                if (origObject == null)
+                                SBR subSubBlockUID = subBlock.ReadSubBlock();
+                                // check if a block with this UiD already present
+                                if (subSubBlockUID.ID == TokenID.UiD)
                                 {
-                                    wrongBlock = true;
-                                    Trace.TraceWarning("Skipped world block {0} (0x{0:X}), UID {1} not matching with base file", subBlock.ID, UID);
-                                    subSubBlockUID.Skip();
-                                    subBlock.Skip();
-                                }
-                                else
-                                {
-                                    wrongBlock = !TestMatch(subBlock, origObject);
-                                    if (!wrongBlock)
+                                    uint UID = subSubBlockUID.ReadUInt();
+                                    origObject = Find(x => x.UiD == UID);
+                                    if (origObject == null)
                                     {
-                                        subSubBlockUID.Skip();
-                                        while (!subBlock.EndOfBlock() && !wrongBlock)
-                                        {
-                                            using (SBR subSubBlock = subBlock.ReadSubBlock())
-                                            {
-                                                origObject.AddOrModifyObj(subSubBlock);
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
+                                        wrongBlock = true;
                                         Trace.TraceWarning("Skipped world block {0} (0x{0:X}), UID {1} not matching with base file", subBlock.ID, UID);
                                         subSubBlockUID.Skip();
                                         subBlock.Skip();
                                     }
+                                    else
+                                    {
+                                        wrongBlock = !TestMatch(subBlock, origObject);
+                                        if (!wrongBlock)
+                                        {
+                                            subSubBlockUID.Skip();
+                                            while (!subBlock.EndOfBlock() && !wrongBlock)
+                                            {
+                                                using (SBR subSubBlock = subBlock.ReadSubBlock())
+                                                {
+                                                    origObject.AddOrModifyObj(subSubBlock);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Trace.TraceWarning("Skipped world block {0} (0x{0:X}), UID {1} not matching with base file", subBlock.ID, UID);
+                                            subSubBlockUID.Skip();
+                                            subBlock.Skip();
+                                        }
+                                    }
                                 }
-                            }
 
+                            }
+                            subBlock.EndOfBlock();
                         }
-                        subBlock.EndOfBlock();
+                        else
+                        {
+                            subBlock.Skip();
+                        }
                     }
-#pragma warning disable CA1031 // Do not catch general exception types
-                    catch (Exception error)
-#pragma warning restore CA1031 // Do not catch general exception types
+                    catch (Exception error) when (error is Exception)
                     {
                         Trace.WriteLine(new FileLoadException(block.FileName, error));
                     }
@@ -412,6 +418,13 @@ namespace Orts.Formats.Msts.Models
         public CapacityData Capacity { get; private set; }
         public TrackItems TrackItemIds { get; } = new TrackItems();
         public uint CollideFlags { get; private set; }
+        public int MaxStackedContainers { get; private set; }
+        public float StackLocationsLength { get; private set; } = 12.19f;
+        public StackLocationItems StackLocations { get; private set; }
+        public float PickingSurfaceYOffset { get; private set; }
+        public Vector3 PickingSurfaceRelativeTopStartPosition { get; private set; }
+        public int GrabberArmsParts { get; private set; } = 2;
+        public string CraneSound { get; private set; }
 
         /// <summary>
         /// Creates the object, but currently skips the animation field.
@@ -430,6 +443,27 @@ namespace Orts.Formats.Msts.Models
                 case TokenID.PickupType:
                     PickupType = (PickupType)subBlock.ReadUInt();
                     subBlock.Skip(); // Discard the 2nd value (0 or 1 but significance is not known)
+                    break;
+                case TokenID.OrtsMaxStackedContainers:
+                    MaxStackedContainers = subBlock.ReadInt();
+                    break;
+                case TokenID.OrtsStackLocationsLength:
+                    StackLocationsLength = subBlock.ReadFloat();
+                    break;
+                case TokenID.OrtsStackLocations:
+                    StackLocations = new StackLocationItems(subBlock, this);
+                    break;
+                case TokenID.OrtsPickingSurfaceYOffset:
+                    PickingSurfaceYOffset = subBlock.ReadFloat();
+                    break;
+                case TokenID.OrtsPickingSurfaceRelativeTopStartPosition:
+                    PickingSurfaceRelativeTopStartPosition = subBlock.ReadVector3();
+                    break;
+                case TokenID.OrtsGrabberArmsParts:
+                    GrabberArmsParts = subBlock.ReadInt();
+                    break;
+                case TokenID.OrtsCraneSound:
+                    CraneSound = subBlock.ReadString();
                     break;
                 case TokenID.PickupAnimData: Options = new AnimationData(subBlock); break;
                 case TokenID.PickupCapacity: Capacity = new CapacityData(subBlock); break;
@@ -474,6 +508,69 @@ namespace Orts.Formats.Msts.Models
                 QuantityAvailableKG = (float)Mass.Kilogram.FromLb(block.ReadFloat());
                 FeedRateKGpS = (float)Mass.Kilogram.FromLb(block.ReadFloat());
                 block.VerifyEndOfBlock();
+            }
+        }
+
+        public class StackLocationItems
+        {
+            public IList<StackLocation> Locations { get; private set; }
+
+            public StackLocationItems(SBR block, PickupObject pickupObject)
+            {
+                Locations = new List<StackLocation>();
+                var count = block.ReadUInt();
+                for (var i = 0; i < count; i++)
+                {
+                    using (var subBlock = block.ReadSubBlock())
+                    {
+                        if (subBlock.ID == TokenID.StackLocation)
+                        {
+                            Locations.Add(new StackLocation(subBlock, pickupObject));
+                        }
+                    }
+                }
+                block.VerifyEndOfBlock();
+            }
+        }
+
+        public class StackLocation
+        {
+            public Vector3 Position { get; private set; }
+            public int MaxStackedContainers { get; private set; }
+            public float Length { get; private set; }
+            public bool Flipped { get; private set; }
+
+            public StackLocation(SBR block, PickupObject pickupObject)
+            {
+                while (!block.EndOfBlock())
+                {
+                    using (var subBlock = block.ReadSubBlock())
+                    {
+                        switch (subBlock.ID)
+                        {
+                            case TokenID.Position:
+                                Position = subBlock.ReadVector3();
+                                break;
+                            case TokenID.MaxStackedContainers:
+                                MaxStackedContainers = subBlock.ReadInt();
+                                break;
+                            case TokenID.Length:
+                                Length = subBlock.ReadFloat();
+                                break;
+                            case TokenID.Flipped:
+                                subBlock.ReadInt();
+                                Flipped = true;
+                                break;
+                            default:
+                                subBlock.Skip();
+                                break;
+                        }
+                    }
+                }
+                if (Length == 0)
+                    Length = pickupObject.StackLocationsLength;
+                if (MaxStackedContainers == 0)
+                    MaxStackedContainers = pickupObject.MaxStackedContainers;
             }
         }
     }

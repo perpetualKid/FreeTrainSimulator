@@ -63,7 +63,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             Locomotive = locomotive;
 
-            Timer = new Timer(Locomotive);
+            Timer = new Timer(Simulator.Instance);
             Timer.Setup(DelayS);
         }
 

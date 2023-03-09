@@ -725,52 +725,28 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             float distanceTravelledM = 0.0f; // Distance travelled by non-driven wheels
             float distanceTravelledDrivenM = 0.0f;  // Distance travelled by driven wheels
-            float AnimationWheelRadiusM = 0.0f; // Radius of non driven wheels
-            float AnimationDriveWheelRadiusM = 0.0f; // Radius of driven wheels
+            float AnimationWheelRadiusM = MSTSWagon.WheelRadiusM; // Radius of non driven wheels
+            float AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM; // Radius of driven wheels
 
-            if (MSTSWagon is MSTSLocomotive && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
+            if (MSTSWagon is MSTSLocomotive mstsLocomotive && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
             {
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                                distanceTravelledM = MSTSWagon.WheelSpeedMpS * elapsedTime.ClockSeconds;
 
-                if (Car.EngineType == EngineType.Steam) // Steam locomotive so set up different speeds for different driver and non-driver wheels
-                {
-                    distanceTravelledM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
-                    distanceTravelledDrivenM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedSlipMpS * (float)elapsedTime.ClockSeconds;
-                    // Set values of wheel radius - assume that drive wheel and non driven wheel are different sizes
-                    AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
-                    AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM;
-                }
-                else  // Other driveable rolling stock - all wheels have same speed.
-                {
-                    distanceTravelledM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
-                    distanceTravelledDrivenM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && ((MSTSLocomotive)MSTSWagon).UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
-                    // Set values of wheel radius - assume that drive wheel and non driven wheel are same sizes
-                    AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
-                    AnimationDriveWheelRadiusM = MSTSWagon.WheelRadiusM;
-                }
+                distanceTravelledM = ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && mstsLocomotive.UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
+                distanceTravelledDrivenM = Car.EngineType == EngineType.Steam
+                    ? ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && mstsLocomotive.UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedSlipMpS * (float)elapsedTime.ClockSeconds
+                    : ((MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && mstsLocomotive.UsingRearCab) ? -1 : 1) * MSTSWagon.WheelSpeedMpS * (float)elapsedTime.ClockSeconds;
             }
             else // set values for simple adhesion
             {
 
                 distanceTravelledM = ((MSTSWagon is MSTSLocomotive locomotive1 && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && locomotive1.UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
                 distanceTravelledDrivenM = ((MSTSWagon is MSTSLocomotive locomotive && MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && locomotive.UsingRearCab) ? -1 : 1) * MSTSWagon.SpeedMpS * (float)elapsedTime.ClockSeconds;
-                // Set values of wheel radius - assume that drive wheel and non driven wheel are same sizes
-                if (Car.EngineType == EngineType.Steam) // set values for steam stock
-                {
-                    AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
-                    AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM;
-                }
-                else // set values for non-driveable stock, eg wagons, and driveable stock such as diesels, electric locomotives 
-                {
-                    AnimationWheelRadiusM = MSTSWagon.WheelRadiusM;
-                    AnimationDriveWheelRadiusM = MSTSWagon.WheelRadiusM;
-                }
-
             }
 
-            if (Car.BrakeSkid) // if car wheels are skidding because of brakes lockin wheels up then stop wheels rotating.
+            if (Car.BrakeSkid) // if car wheels are skidding because of brakes locking wheels up then stop wheels rotating.
             {
                 distanceTravelledM = 0.0f;
                 distanceTravelledDrivenM = 0.0f;
@@ -1297,6 +1273,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             FreightShape?.Mark();
             InteriorShape?.Mark();
             FreightAnimations?.Mark();
+            FrontCouplerShape?.Mark();
+            FrontCouplerOpenShape?.Mark();
+            RearCouplerShape?.Mark();
+            RearCouplerOpenShape?.Mark();
+            FrontAirHoseShape?.Mark();
+            FrontAirHoseDisconnectedShape?.Mark();
+            RearAirHoseShape?.Mark();
+            RearAirHoseDisconnectedShape?.Mark();
+
+            foreach (var pdl in ParticleDrawers.Values)
+            {
+                foreach (var pd in pdl)
+                {
+                    pd.Mark();
+                }
+            }
         }
     }
 }

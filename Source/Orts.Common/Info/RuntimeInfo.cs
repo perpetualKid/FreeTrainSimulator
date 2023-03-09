@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 
 using Orts.Common.Logging;
 
@@ -19,6 +23,7 @@ namespace Orts.Common.Info
 
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
+        public static string ApplicationFile => Path.GetFileName(Assembly.GetCallingAssembly().Location);
         /// <summary>
         /// returns the current application base directory, i.e. Program\netcoreapp3.1
         /// </summary>
@@ -63,5 +68,20 @@ namespace Orts.Common.Info
                 Directory.CreateDirectory(ConfigFolder);
             }
         }
+
+        public static string GetCacheFilePath(string cacheType, string key)
+        {
+            using (HashAlgorithm hasher = SHA256.Create())
+            {
+                byte[] hashBytes = hasher.ComputeHash(Encoding.Default.GetBytes(key));
+                string hash = string.Join("", hashBytes.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
+
+                string directory = Path.Combine(UserDataFolder, "Cache", cacheType);
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+                return Path.Combine(directory, hash + ".dat");
+            }
+        }
+
     }
 }

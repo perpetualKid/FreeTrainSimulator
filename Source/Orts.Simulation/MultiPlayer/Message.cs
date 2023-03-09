@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,6 +37,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
+using System.Reflection;
+using Orts.Simulation.World;
 
 namespace Orts.Simulation.MultiPlayer
 {
@@ -79,10 +82,10 @@ namespace Orts.Simulation.MultiPlayer
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
+                "MOVINGTBL" => new MSGMovingTable(messageEncoding.GetString(content)),
                 _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
             };
         }
-
         public abstract void HandleMsg();
 
         public virtual int EstimatedMessageSize => 0;
@@ -2808,6 +2811,7 @@ namespace Orts.Simulation.MultiPlayer
     }
     #endregion MSGUncouple
 
+
     #region MSGCouple
     public class MSGCouple : Message
     {
@@ -3971,4 +3975,105 @@ namespace Orts.Simulation.MultiPlayer
     }
     #endregion MSGFlip
 
+    #region MSGMovingTbl
+
+    public class MSGMovingTable : Message
+    {
+        private string user, newTrainName, carID, firstCarIDOld, firstCarIDNew;
+        public MovingTable.MessageCode subMessageCode;
+        private int movingTableIndex;
+        private bool clockwise;
+        private float yangle;
+
+        public MSGMovingTable(string m)
+        {
+            string[] areas = m.Split('\t');
+
+            movingTableIndex = int.Parse(areas[0].Trim());
+            user = areas[1].Trim();
+            subMessageCode = (MovingTable.MessageCode)int.Parse(areas[2].Trim());
+            clockwise = int.Parse(areas[3].Trim()) == 0 ? false : true;
+            yangle = float.Parse(areas[4].Trim());
+
+        }
+
+        public MSGMovingTable(int mti, string u, MovingTable.MessageCode smc, bool cw, float y)
+        {
+            movingTableIndex = mti;
+            user = u;
+            subMessageCode = smc;
+            clockwise = cw;
+            yangle = y;
+        }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(user))
+                return "5: ALIVE"; //wrong, so just return an ALIVE string
+            string tmp = "MOVINGTBL " + movingTableIndex + "\t" + user + "\t" + (int)subMessageCode + "\t" + (clockwise ? 1 : 0) + "\t" + yangle + "\t";
+            return " " + tmp.Length + ": " + tmp;
+        }
+
+        public override void HandleMsg()
+        {
+            if (user != MultiPlayerManager.GetUserName())
+            {
+                Simulator.Instance.ActiveMovingTable = Simulator.Instance.MovingTables[movingTableIndex];
+                if (Simulator.Instance.ActiveMovingTable is TurnTable turntable)
+                {
+                    switch (subMessageCode)
+                    {
+                        case MovingTable.MessageCode.GoToTarget:
+                            turntable.RemotelyControlled = true;
+                            if (Math.Abs(MathHelper.WrapAngle(turntable.YAngle - yangle)) > 0.2f)
+                            {
+                                turntable.YAngle = yangle;
+                                turntable.TargetY = yangle;
+                                turntable.AlignToRemote = true;
+                            }
+                            turntable.GeneralComputeTarget(clockwise);
+                            break;
+                        case MovingTable.MessageCode.StartingContinuous:
+                            turntable.YAngle = yangle;
+                            turntable.TargetY = yangle;
+                            turntable.AlignToRemote = true;
+                            turntable.GeneralStartContinuous(clockwise);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else if (Simulator.Instance.ActiveMovingTable is TransferTable transfertable)
+                {
+                    switch (subMessageCode)
+                    {
+                        case MovingTable.MessageCode.GoToTarget:
+                            transfertable.RemotelyControlled = true;
+                            if (Math.Abs(transfertable.OffsetPos - yangle) > 2.8f)
+                            {
+                                transfertable.OffsetPos = yangle;
+                                transfertable.TargetOffset = yangle;
+                                transfertable.AlignToRemote = true;
+                            }
+                            transfertable.GeneralComputeTarget(clockwise);
+                            break;
+                        case MovingTable.MessageCode.StartingContinuous:
+                            transfertable.OffsetPos = yangle;
+                            transfertable.TargetOffset = yangle;
+                            transfertable.AlignToRemote = true;
+                            transfertable.GeneralStartContinuous(clockwise);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                if (MultiPlayerManager.IsServer())
+                {
+                    MultiPlayerManager.BroadCast(this.ToString());//if server receives this, will tell others, including whoever sent the information
+                }
+            }
+        }
+    }
+
+    #endregion MSGMovingTbl
 }

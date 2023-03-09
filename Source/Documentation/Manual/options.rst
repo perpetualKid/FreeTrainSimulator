@@ -56,6 +56,16 @@ Control confirmations can also be toggled on and off at runtime using the
 key combination Ctrl-Alt-F10. 
 
 
+Graduated release air brakes
+----------------------------
+
+Selecting this option allows a partial release of the brakes. Generally
+speaking, operating with the option checked is equivalent to passenger
+standard and unchecked is equivalent to freight standard. A complete
+description of this option can be found :ref:`here <physics-braking>`.
+
+
+
 .. _options-retainers:
 
 Retainer valve on all cars
@@ -170,16 +180,23 @@ Audio Options
 
 .. image:: images/options-audio.png
 
+Sound Volume
+------------
+The *% sound volume* scroll button allows adjustment of the volume of OR sound. 
+
+Default is 40.
+
+Sound Detail Level
+------------------
 Except for very slow computers, it is suggested that you set the Sound detail level to 5.
 
-The *% sound volume* scroll button allows adjustment of the volume of OR
-sound. Default is 40.
-
-The *% external sound heard internally* scroll button allows to define the percentage
-of the original volume of external sounds heard in cab and passenger views. In fact
-in real world external sounds are attenuated when heard within a trainset.
+External Sound
+--------------
+The *% external sound heard internally* scroll button defines the percentage
+of the original volume of external sounds heard in cab and passenger views.
 This percentage may be overridden trainset by trainset as defined
 :ref:`here <sound-external>`.
+
 
 Video Options
 =============
@@ -260,53 +277,19 @@ distance, anti-aliasing, or world object density.
 The default setting is checked.
 
 
-.. _options-cab-stretch:
-
-% Cab 2D stretch
-----------------
-
-OR manages not only cab interiors using 2D images in a MSTS-compatible
-way, but also supports 3D models. Most 2D cab images follow MSTS practice,
-being 1024 x 768 pixels to suit monitors with a 4:3 aspect ratio.
-
-So, the problem arises -- how to display these 4:3 cabs on a 16:9 or 16:10
-monitor?
-
-One possibility is to stretch these images horizontally to match other
-aspect ratios, as shown in the image below.
-
-.. image:: images/options-2dstretch_1.png
-
-To respect the proportions however, by default OR does no stretching and
-shows the full width of the cab interior, thus losing a portion from the
-top and bottom of the image. You can use the Up and Down Arrow keys to pan
-and reveal these missing portions.
-
-Therefore the setting for % Cab 2D Stretch has a default value of 0
-providing no stretching and a maximum value of 100 which stretches the
-picture so as to cover the complete display. Intermediate values provide a
-blend of panning and stretching.
-
-.. image:: images/options-2dstretch_2.png
-
-OR can also pillarbox or letterbox the cab by filling the missing space with 
-black bars. You can activate this mode in-game by pressing Ctrl+1. It overrides 
-any stretching.
-
-.. image:: images/options-2dstretch_3.png
-
 Viewing distance
 ----------------
 
-This option defines the maximum distance at which terrain is displayed. 
+This option defines the maximum distance at which terrain and objects are displayed. 
 Where the content provides "Distant Mountains", these are displayed independently (see below).
-
-Note: Some routes are optimized for the standard MSTS maximum viewing distance (2km).
 
 Note: When the option to tune settings automatically is applied, then this 
 value will be overridden and dynamically changed to maintain a target frame rate.
 
+Note: Some routes are optimized for a viewing distance of 2km as this is the maximum provided by MSTS.
+
 The default distance is 2km.
+
 
 Distant mountains
 -----------------
@@ -317,9 +300,32 @@ Note: "Distant Mountains" are present in the route if it has a folder called LO_
 
 The default setting is checked.
 
-The default distance is 40km
+The default distance is 40km.
 
 .. image:: images/options-mountains.png
+
+
+Extend object maximum viewing distance to horizon
+-------------------------------------------------
+
+With this option selected, all objects viewable up to the viewing distance
+(as defined above) are displayed, even if they have a level of detail (LOD) that is less distant. 
+
+Without this option, ORTS only displays objects up to their peak distance set by their level of detail (LOD) 
+or the viewing distance, whichever is less. 
+
+Selecting this option shows all the objects that should be in view but it may reduce the frame rate.
+MSTS limits the viewing distance to just 2km and the peak LOD distances are usually 2km, so this option
+is especially useful for viewing routes created for MSTS at distances above 2km.
+
+However, for routes that make good use of LOD settings, showing the objects that should be in view can be 
+achieved at higher frame rates by unchecking this option.
+For example, if the viewing distance is 10km and the content has been created with some large objects having 
+peak distance LODs set at 5km and smaller objects having LODs which are much shorter, then this strategy
+will show all the objects that should be in view without reducing the frame rate.
+
+The default setting is checked.
+
 
 Viewing vertical FOV
 --------------------
@@ -537,15 +543,6 @@ pressing ``<F12>`` a file with the name dump.csv is generated in the
 configured Open Rails logging folder (placed on the Desktop by default).
 This file can be used for later analysis.
 
-Evaluation Options
-==================
-
-.. image:: images/options-evaluation.png
-
-When data logging is started (see preceding paragraph), data selected in
-this panel are logged, allowing a later evaluation on how the activity was
-executed by the player.
-
 .. _options-Content:
 
 Content Options
@@ -553,9 +550,10 @@ Content Options
 
 .. image:: images/options-content.png
 
-This window allows you to add, remove or modify access to additional MSTS
-installations or miniroute installations for Open Rails. Installations
-located on other drives, or on a USB key, can be added even if they are
+This window allows you to add, remove or modify access to content.
+Each profile may be a folder containing one or more routes, or an MSTS
+installation. 
+Profiles located on other drives, or on a USB key, can be added even if they are
 not always available.
 
 Click on the *Add* button, and locate the desired installation. OR will
@@ -563,6 +561,12 @@ automatically enter a proposed name in the *Name:* window that will
 appear in the *Installation set:* window on the main menu form. Modify
 the name if desired, then click *OK* to add the new path and name to
 Open Rails.
+
+Please do not store content or any files within the folder containing the Open Rails software.
+This is because the Updater operates by wiping out the contents of that folder before replacing it
+with a new updated version. 
+It would be unfriendly for users to lose content that they have stored there, so
+attempts to add a profile folder stored there are blocked and lead to an error message. 
 
 To remove an entry (note that this does not remove the installation
 itself!) select the entry in the window, and click *Delete*, then *OK*
@@ -700,15 +704,6 @@ lat/lon rectangle corresponding to the arid zone of North America (lat from
 The randomization is not performed either if the activity contains weather
 change events.
 
-.. _options-dds-textures:
-
-Load DDS textures in preference to ACE
---------------------------------------
-
-Open Rails is capable of loading both ACE and DDS textures. If only one of
-the two is present, it is loaded. If both are present, the ACE texture is
-loaded unless this option has been selected.
-
 
 MSTS Environments
 -----------------
@@ -720,12 +715,6 @@ With this option selected, ORTS applies the MSTS environment files. This
 includes support of Kosmos environments, even if the final effect may be
 different from the current MSTS one.
 
-Adhesion factor correction
---------------------------
-
-The adhesion is multiplied by this percentage factor. Therefore lower
-values of the slider reduce adhesion and cause more frequent wheel slips
-and therefore a more difficult, but more challenging driving experience.
 
 Level of detail bias
 --------------------
@@ -752,37 +741,21 @@ Note: If your content does not use multiple LODs, then this option will have no 
 Adhesion proportional to rain/snow/fog
 --------------------------------------
 
-When this option is selected, adhesion becomes dependent on the intensity
+Adhesion is dependent on the intensity
 of rain and snow and the density of fog. Intensities and density can be
 modified at runtime by the player.
+
+
+Adhesion factor correction
+--------------------------
+
+The adhesion is multiplied by this percentage factor. Therefore lower
+values of the slider reduce adhesion and cause more frequent wheel slips
+and therefore a more difficult, but more challenging driving experience.
+
 
 Adhesion factor random change
 -----------------------------
 
 This factor randomizes the adhesion factor corrector by the entered
 percentage. The higher the value, the higher the adhesion variations.
-
-Precipitation Box Size
-----------------------
-
-Open Rails will simulate precipitation -- i.e. rain or snow, as falling
-individual particles. This represents a significant computing and display
-system load, especially for systems with limited resources. Therefore, the
-region in which the precipitation particles are visible, the
-*Precipitation Box*, is limited in size and moves with the camera. The
-size of the box can be set by the entries in the height, width and length
-boxes. The X and Z values are centered on the camera location, and falling
-particles *spawn* and fall from the top of the box.
-
-The max size for both length and width is 3000 meters or 9,842ft. Due to possibe
-resource issues, the ability to use max length and width may not be possible.  The
-best way to use the precipitation box is to define a square around your entire train
-if small enough or around most of your train.  Keep track on how your resources are 
-being used since snow will take up the most resources so you will have to adjust the
-size until you are satisified with the results.
-
-The reason for defining a square around your train is to minimize the moments when your train
-is approaching the edge of the precipitation box.  Worst case is to save the activity,
-exit and re-enter the activity since doing this will set your train back in the middle of the
-precipitation box.
-

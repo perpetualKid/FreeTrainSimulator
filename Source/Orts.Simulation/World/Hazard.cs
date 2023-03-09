@@ -64,7 +64,7 @@ namespace Orts.Simulation.World
                     hazardFile = new HazardFile(Simulator.Instance.RouteFolder.HazardFile(hazFileName));
                     hazardFiles.Add(hazFileName, hazardFile);
                 }
-                hazards[itemID].HazFile = hazardFile;
+                hazards[itemID].HazardFile = hazardFile;
                 //based on act setting for frequency
                 if (Simulator.Instance.ActivityFile != null)
                 {
@@ -123,7 +123,7 @@ namespace Orts.Simulation.World
         private HazardFile hazardFile;
 
         internal WorldLocation Location;
-        public HazardFile HazFile
+        public HazardFile HazardFile
         {
             get => hazardFile;
             set

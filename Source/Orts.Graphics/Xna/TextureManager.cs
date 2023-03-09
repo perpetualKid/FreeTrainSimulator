@@ -13,8 +13,6 @@ namespace Orts.Graphics.Xna
 {
     public class TextureManager : ResourceGameComponent<Texture2D>
     {
-        public bool PreferDDSTextures { get; set; }
-
         public Texture2D MissingTexture { get; private set; }
 
         public TextureManager(Game game) : base(game)
@@ -40,7 +38,7 @@ namespace Orts.Graphics.Xna
                 return defaultTexture;
 
             int identifier = string.GetHashCode(path, StringComparison.OrdinalIgnoreCase);
-            Texture2D texture = Get(identifier, () => LoadTexture(path, Game, PreferDDSTextures));
+            Texture2D texture = Get(identifier, () => LoadTexture(path, Game));
             if (texture == null)
             {
                 Trace.TraceWarning($"Missing texture {path} replaced with default texture");
@@ -63,7 +61,7 @@ namespace Orts.Graphics.Xna
             return string.IsNullOrEmpty(path) ? instance.MissingTexture : cache ? instance.GetTextureCached(path, null) : LoadTexture(path, game);
         }
 
-        private static Texture2D LoadTexture(string path, Game game, bool preferDdsLoading = false)
+        private static Texture2D LoadTexture(string path, Game game)
         {
             string extension = Path.GetExtension(path);
             Texture2D result = null;
@@ -80,15 +78,15 @@ namespace Orts.Graphics.Xna
                             else
                             {
                                 Trace.TraceWarning($"Required dds texture {path} not existing; trying ace texture instead.");
-                                result = LoadTexture(Path.ChangeExtension(path, "ace"), game, false);
+                                result = LoadTexture(Path.ChangeExtension(path, "ace"), game);
                             }
                             break;
                         }
                     case string _ when ".ace".Equals(extension, StringComparison.OrdinalIgnoreCase):
                         {
                             string alternativeTexture;
-                            if (preferDdsLoading && File.Exists(alternativeTexture = Path.ChangeExtension(path, "dds")))
-                                result = LoadTexture(alternativeTexture, game, false);
+                            if (File.Exists(alternativeTexture = Path.ChangeExtension(path, "dds")))
+                                result = LoadTexture(alternativeTexture, game);
                             else if (File.Exists(path))
                             {
                                 result = AceFile.Texture2DFromFile(game.GraphicsDevice, path);

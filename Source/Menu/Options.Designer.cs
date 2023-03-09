@@ -36,7 +36,6 @@ namespace Orts.Menu
             this.pbBrakePipeChargingRate = new System.Windows.Forms.PictureBox();
             this.pbGraduatedRelease = new System.Windows.Forms.PictureBox();
             this.pbRetainers = new System.Windows.Forms.PictureBox();
-            this.pbMapWindow = new System.Windows.Forms.PictureBox();
             this.pbControlConfirmations = new System.Windows.Forms.PictureBox();
             this.pbAlerter = new System.Windows.Forms.PictureBox();
             this.pbOverspeedMonitor = new System.Windows.Forms.PictureBox();
@@ -55,10 +54,10 @@ namespace Orts.Menu
             this.checkRetainers = new System.Windows.Forms.CheckBox();
             this.tabPageAudio = new System.Windows.Forms.TabPage();
             this.numericExternalSoundPassThruPercent = new System.Windows.Forms.NumericUpDown();
-            this.label11 = new System.Windows.Forms.Label();
+            this.labelExternalSound = new System.Windows.Forms.Label();
             this.numericSoundVolumePercent = new System.Windows.Forms.NumericUpDown();
-            this.soundVolumeLabel = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.labelSoundVolume = new System.Windows.Forms.Label();
+            this.labelSoundDetailLevel = new System.Windows.Forms.Label();
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -202,7 +201,6 @@ namespace Orts.Menu
             this.AdhesionLevelLabel = new System.Windows.Forms.Label();
             this.trackAdhesionFactorChange = new System.Windows.Forms.TrackBar();
             this.trackAdhesionFactor = new System.Windows.Forms.TrackBar();
-            this.checkAdhesionPropToWeather = new System.Windows.Forms.CheckBox();
             this.checkSignalLightGlow = new System.Windows.Forms.CheckBox();
             this.checkUseMSTSEnv = new System.Windows.Forms.CheckBox();
             this.labelPerformanceTunerTarget = new System.Windows.Forms.Label();
@@ -215,9 +213,12 @@ namespace Orts.Menu
             this.label6 = new System.Windows.Forms.Label();
             this.numericUseSuperElevation = new System.Windows.Forms.NumericUpDown();
             this.ElevationText = new System.Windows.Forms.Label();
-            this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.checkLODViewingExtension = new System.Windows.Forms.CheckBox();
+            this.pbSoundVolumePercent = new System.Windows.Forms.PictureBox();
+            this.pbSoundDetailLevel = new System.Windows.Forms.PictureBox();
+            this.pbExternalSoundPassThruPercent = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -229,7 +230,6 @@ namespace Orts.Menu
             ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).BeginInit();
@@ -280,6 +280,9 @@ namespace Orts.Menu
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbSoundVolumePercent)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbSoundDetailLevel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbExternalSoundPassThruPercent)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -399,7 +402,6 @@ namespace Orts.Menu
             this.tabPageGeneral.Controls.Add(this.pbBrakePipeChargingRate);
             this.tabPageGeneral.Controls.Add(this.pbGraduatedRelease);
             this.tabPageGeneral.Controls.Add(this.pbRetainers);
-            this.tabPageGeneral.Controls.Add(this.pbMapWindow);
             this.tabPageGeneral.Controls.Add(this.pbControlConfirmations);
             this.tabPageGeneral.Controls.Add(this.pbAlerter);
             this.tabPageGeneral.Controls.Add(this.pbOverspeedMonitor);
@@ -431,8 +433,8 @@ namespace Orts.Menu
             // 
             // pbEnableWebServer
             // 
-            this.pbEnableWebServer.Image = ((System.Drawing.Image)(resources.GetObject("pbEnableWebServer.Image")));
-            this.pbEnableWebServer.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbEnableWebServer.InitialImage")));
+            this.pbEnableWebServer.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbEnableWebServer.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbEnableWebServer.Location = new System.Drawing.Point(7, 298);
             this.pbEnableWebServer.Name = "pbEnableWebServer";
             this.pbEnableWebServer.Size = new System.Drawing.Size(18, 18);
@@ -444,8 +446,8 @@ namespace Orts.Menu
             // 
             // pbEnableTcsScripts
             // 
-            this.pbEnableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbEnableTcsScripts.Image")));
-            this.pbEnableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbEnableTcsScripts.InitialImage")));
+            this.pbEnableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbEnableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbEnableTcsScripts.Location = new System.Drawing.Point(7, 274);
             this.pbEnableTcsScripts.Name = "pbEnableTcsScripts";
             this.pbEnableTcsScripts.Size = new System.Drawing.Size(18, 18);
@@ -457,8 +459,8 @@ namespace Orts.Menu
             // 
             // pbOtherUnits
             // 
-            this.pbOtherUnits.Image = ((System.Drawing.Image)(resources.GetObject("pbOtherUnits.Image")));
-            this.pbOtherUnits.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbOtherUnits.InitialImage")));
+            this.pbOtherUnits.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbOtherUnits.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbOtherUnits.Location = new System.Drawing.Point(7, 250);
             this.pbOtherUnits.Name = "pbOtherUnits";
             this.pbOtherUnits.Size = new System.Drawing.Size(18, 18);
@@ -470,8 +472,8 @@ namespace Orts.Menu
             // 
             // pbPressureUnit
             // 
-            this.pbPressureUnit.Image = ((System.Drawing.Image)(resources.GetObject("pbPressureUnit.Image")));
-            this.pbPressureUnit.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbPressureUnit.InitialImage")));
+            this.pbPressureUnit.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbPressureUnit.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbPressureUnit.Location = new System.Drawing.Point(7, 223);
             this.pbPressureUnit.Name = "pbPressureUnit";
             this.pbPressureUnit.Size = new System.Drawing.Size(18, 18);
@@ -483,8 +485,8 @@ namespace Orts.Menu
             // 
             // pbLanguage
             // 
-            this.pbLanguage.Image = ((System.Drawing.Image)(resources.GetObject("pbLanguage.Image")));
-            this.pbLanguage.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbLanguage.InitialImage")));
+            this.pbLanguage.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbLanguage.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbLanguage.Location = new System.Drawing.Point(7, 197);
             this.pbLanguage.Name = "pbLanguage";
             this.pbLanguage.Size = new System.Drawing.Size(18, 18);
@@ -496,8 +498,8 @@ namespace Orts.Menu
             // 
             // pbBrakePipeChargingRate
             // 
-            this.pbBrakePipeChargingRate.Image = ((System.Drawing.Image)(resources.GetObject("pbBrakePipeChargingRate.Image")));
-            this.pbBrakePipeChargingRate.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbBrakePipeChargingRate.InitialImage")));
+            this.pbBrakePipeChargingRate.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbBrakePipeChargingRate.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbBrakePipeChargingRate.Location = new System.Drawing.Point(7, 170);
             this.pbBrakePipeChargingRate.Name = "pbBrakePipeChargingRate";
             this.pbBrakePipeChargingRate.Size = new System.Drawing.Size(18, 18);
@@ -509,8 +511,8 @@ namespace Orts.Menu
             // 
             // pbGraduatedRelease
             // 
-            this.pbGraduatedRelease.Image = ((System.Drawing.Image)(resources.GetObject("pbGraduatedRelease.Image")));
-            this.pbGraduatedRelease.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbGraduatedRelease.InitialImage")));
+            this.pbGraduatedRelease.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbGraduatedRelease.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbGraduatedRelease.Location = new System.Drawing.Point(7, 142);
             this.pbGraduatedRelease.Name = "pbGraduatedRelease";
             this.pbGraduatedRelease.Size = new System.Drawing.Size(18, 18);
@@ -522,8 +524,8 @@ namespace Orts.Menu
             // 
             // pbRetainers
             // 
-            this.pbRetainers.Image = ((System.Drawing.Image)(resources.GetObject("pbRetainers.Image")));
-            this.pbRetainers.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbRetainers.InitialImage")));
+            this.pbRetainers.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbRetainers.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbRetainers.Location = new System.Drawing.Point(7, 118);
             this.pbRetainers.Name = "pbRetainers";
             this.pbRetainers.Size = new System.Drawing.Size(18, 18);
@@ -533,23 +535,10 @@ namespace Orts.Menu
             this.pbRetainers.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
             this.pbRetainers.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // pbMapWindow
-            // 
-            this.pbMapWindow.Image = ((System.Drawing.Image)(resources.GetObject("pbMapWindow.Image")));
-            this.pbMapWindow.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbMapWindow.InitialImage")));
-            this.pbMapWindow.Location = new System.Drawing.Point(7, 74);
-            this.pbMapWindow.Name = "pbMapWindow";
-            this.pbMapWindow.Size = new System.Drawing.Size(18, 18);
-            this.pbMapWindow.TabIndex = 34;
-            this.pbMapWindow.TabStop = false;
-            this.pbMapWindow.Click += new System.EventHandler(this.HelpIcon_Click);
-            this.pbMapWindow.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
-            this.pbMapWindow.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
-            // 
             // pbControlConfirmations
             // 
-            this.pbControlConfirmations.Image = ((System.Drawing.Image)(resources.GetObject("pbControlConfirmations.Image")));
-            this.pbControlConfirmations.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbControlConfirmations.InitialImage")));
+            this.pbControlConfirmations.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbControlConfirmations.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbControlConfirmations.Location = new System.Drawing.Point(7, 51);
             this.pbControlConfirmations.Name = "pbControlConfirmations";
             this.pbControlConfirmations.Size = new System.Drawing.Size(18, 18);
@@ -561,8 +550,8 @@ namespace Orts.Menu
             // 
             // pbAlerter
             // 
-            this.pbAlerter.Image = ((System.Drawing.Image)(resources.GetObject("pbAlerter.Image")));
-            this.pbAlerter.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbAlerter.InitialImage")));
+            this.pbAlerter.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbAlerter.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbAlerter.Location = new System.Drawing.Point(7, 6);
             this.pbAlerter.Name = "pbAlerter";
             this.pbAlerter.Size = new System.Drawing.Size(18, 18);
@@ -574,8 +563,8 @@ namespace Orts.Menu
             // 
             // pbOverspeedMonitor
             // 
-            this.pbOverspeedMonitor.Image = ((System.Drawing.Image)(resources.GetObject("pbOverspeedMonitor.Image")));
-            this.pbOverspeedMonitor.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbOverspeedMonitor.InitialImage")));
+            this.pbOverspeedMonitor.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbOverspeedMonitor.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
             this.pbOverspeedMonitor.Location = new System.Drawing.Point(321, 6);
             this.pbOverspeedMonitor.Name = "pbOverspeedMonitor";
             this.pbOverspeedMonitor.Size = new System.Drawing.Size(18, 18);
@@ -728,11 +717,14 @@ namespace Orts.Menu
             // 
             // tabPageAudio
             // 
+            this.tabPageAudio.Controls.Add(this.pbExternalSoundPassThruPercent);
+            this.tabPageAudio.Controls.Add(this.pbSoundDetailLevel);
+            this.tabPageAudio.Controls.Add(this.pbSoundVolumePercent);
             this.tabPageAudio.Controls.Add(this.numericExternalSoundPassThruPercent);
-            this.tabPageAudio.Controls.Add(this.label11);
+            this.tabPageAudio.Controls.Add(this.labelExternalSound);
             this.tabPageAudio.Controls.Add(this.numericSoundVolumePercent);
-            this.tabPageAudio.Controls.Add(this.soundVolumeLabel);
-            this.tabPageAudio.Controls.Add(this.label2);
+            this.tabPageAudio.Controls.Add(this.labelSoundVolume);
+            this.tabPageAudio.Controls.Add(this.labelSoundDetailLevel);
             this.tabPageAudio.Controls.Add(this.numericSoundDetailLevel);
             this.tabPageAudio.Location = new System.Drawing.Point(4, 24);
             this.tabPageAudio.Name = "tabPageAudio";
@@ -749,7 +741,7 @@ namespace Orts.Menu
             0,
             0,
             0});
-            this.numericExternalSoundPassThruPercent.Location = new System.Drawing.Point(6, 80);
+            this.numericExternalSoundPassThruPercent.Location = new System.Drawing.Point(35, 60);
             this.numericExternalSoundPassThruPercent.Name = "numericExternalSoundPassThruPercent";
             this.numericExternalSoundPassThruPercent.Size = new System.Drawing.Size(58, 23);
             this.numericExternalSoundPassThruPercent.TabIndex = 5;
@@ -759,16 +751,20 @@ namespace Orts.Menu
             0,
             0,
             0});
+            this.numericExternalSoundPassThruPercent.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.numericExternalSoundPassThruPercent.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // label11
+            // labelExternalSound
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(70, 82);
-            this.label11.Margin = new System.Windows.Forms.Padding(3);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(183, 15);
-            this.label11.TabIndex = 6;
-            this.label11.Text = "% external sound heard internally";
+            this.labelExternalSound.AutoSize = true;
+            this.labelExternalSound.Location = new System.Drawing.Point(95, 62);
+            this.labelExternalSound.Margin = new System.Windows.Forms.Padding(3);
+            this.labelExternalSound.Name = "label11";
+            this.labelExternalSound.Size = new System.Drawing.Size(183, 15);
+            this.labelExternalSound.TabIndex = 6;
+            this.labelExternalSound.Text = "% external sound heard internally";
+            this.labelExternalSound.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.labelExternalSound.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // numericSoundVolumePercent
             // 
@@ -777,7 +773,7 @@ namespace Orts.Menu
             0,
             0,
             0});
-            this.numericSoundVolumePercent.Location = new System.Drawing.Point(6, 29);
+            this.numericSoundVolumePercent.Location = new System.Drawing.Point(35, 6);
             this.numericSoundVolumePercent.Minimum = new decimal(new int[] {
             10,
             0,
@@ -792,30 +788,36 @@ namespace Orts.Menu
             0,
             0,
             0});
+            this.numericSoundVolumePercent.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.numericSoundVolumePercent.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // soundVolumeLabel
+            // labelSoundVolume
             // 
-            this.soundVolumeLabel.AutoSize = true;
-            this.soundVolumeLabel.Location = new System.Drawing.Point(70, 30);
-            this.soundVolumeLabel.Margin = new System.Windows.Forms.Padding(3);
-            this.soundVolumeLabel.Name = "soundVolumeLabel";
-            this.soundVolumeLabel.Size = new System.Drawing.Size(96, 15);
-            this.soundVolumeLabel.TabIndex = 2;
-            this.soundVolumeLabel.Text = "% sound volume";
+            this.labelSoundVolume.AutoSize = true;
+            this.labelSoundVolume.Location = new System.Drawing.Point(95, 8);
+            this.labelSoundVolume.Margin = new System.Windows.Forms.Padding(3);
+            this.labelSoundVolume.Name = "soundVolumeLabel";
+            this.labelSoundVolume.Size = new System.Drawing.Size(96, 15);
+            this.labelSoundVolume.TabIndex = 2;
+            this.labelSoundVolume.Text = "% sound volume";
+            this.labelSoundVolume.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.labelSoundVolume.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
-            // label2
+            // labelSoundDetailLevel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(70, 56);
-            this.label2.Margin = new System.Windows.Forms.Padding(3);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(100, 15);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Sound detail level";
+            this.labelSoundDetailLevel.AutoSize = true;
+            this.labelSoundDetailLevel.Location = new System.Drawing.Point(95, 35);
+            this.labelSoundDetailLevel.Margin = new System.Windows.Forms.Padding(3);
+            this.labelSoundDetailLevel.Name = "label2";
+            this.labelSoundDetailLevel.Size = new System.Drawing.Size(100, 15);
+            this.labelSoundDetailLevel.TabIndex = 4;
+            this.labelSoundDetailLevel.Text = "Sound detail level";
+            this.labelSoundDetailLevel.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.labelSoundDetailLevel.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // numericSoundDetailLevel
             // 
-            this.numericSoundDetailLevel.Location = new System.Drawing.Point(6, 54);
+            this.numericSoundDetailLevel.Location = new System.Drawing.Point(35, 33);
             this.numericSoundDetailLevel.Maximum = new decimal(new int[] {
             5,
             0,
@@ -824,9 +826,12 @@ namespace Orts.Menu
             this.numericSoundDetailLevel.Name = "numericSoundDetailLevel";
             this.numericSoundDetailLevel.Size = new System.Drawing.Size(58, 23);
             this.numericSoundDetailLevel.TabIndex = 3;
+            this.numericSoundDetailLevel.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.numericSoundDetailLevel.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // tabPageVideo
             // 
+            this.tabPageVideo.Controls.Add(this.checkLODViewingExtension);
             this.tabPageVideo.Controls.Add(this.panel1);
             this.tabPageVideo.Controls.Add(this.checkBoxFullScreenNativeResolution);
             this.tabPageVideo.Controls.Add(this.labelMSAACount);
@@ -2293,7 +2298,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.AdhesionLevelLabel);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactorChange);
             this.tabPageExperimental.Controls.Add(this.trackAdhesionFactor);
-            this.tabPageExperimental.Controls.Add(this.checkAdhesionPropToWeather);
             this.tabPageExperimental.Controls.Add(this.checkSignalLightGlow);
             this.tabPageExperimental.Controls.Add(this.checkUseMSTSEnv);
             this.tabPageExperimental.Controls.Add(this.labelPerformanceTunerTarget);
@@ -2306,7 +2310,6 @@ namespace Orts.Menu
             this.tabPageExperimental.Controls.Add(this.label6);
             this.tabPageExperimental.Controls.Add(this.numericUseSuperElevation);
             this.tabPageExperimental.Controls.Add(this.ElevationText);
-            this.tabPageExperimental.Controls.Add(this.checkPreferDDSTexture);
             this.tabPageExperimental.Controls.Add(this.label5);
             this.tabPageExperimental.Location = new System.Drawing.Point(4, 24);
             this.tabPageExperimental.Name = "tabPageExperimental";
@@ -2635,17 +2638,6 @@ namespace Orts.Menu
             this.trackAdhesionFactor.Value = 130;
             this.trackAdhesionFactor.ValueChanged += new System.EventHandler(this.TrackAdhesionFactor_ValueChanged);
             // 
-            // checkAdhesionPropToWeather
-            // 
-            this.checkAdhesionPropToWeather.AutoSize = true;
-            this.checkAdhesionPropToWeather.Location = new System.Drawing.Point(324, 231);
-            this.checkAdhesionPropToWeather.Name = "checkAdhesionPropToWeather";
-            this.checkAdhesionPropToWeather.Size = new System.Drawing.Size(238, 19);
-            this.checkAdhesionPropToWeather.TabIndex = 29;
-            this.checkAdhesionPropToWeather.Text = "Adhesion proportional to rain/snow/fog";
-            this.checkAdhesionPropToWeather.UseVisualStyleBackColor = true;
-            this.checkAdhesionPropToWeather.CheckedChanged += new System.EventHandler(this.AdhesionPropToWeatherCheckBox_CheckedChanged);
-            // 
             // checkSignalLightGlow
             // 
             this.checkSignalLightGlow.AutoSize = true;
@@ -2827,15 +2819,54 @@ namespace Orts.Menu
             this.ElevationText.TabIndex = 1;
             this.ElevationText.Text = "Super-elevation";
             // 
-            // checkPreferDDSTexture
+            // pbSoundVolumePercent
             // 
-            this.checkPreferDDSTexture.AutoSize = true;
-            this.checkPreferDDSTexture.Location = new System.Drawing.Point(324, 186);
-            this.checkPreferDDSTexture.Name = "checkPreferDDSTexture";
-            this.checkPreferDDSTexture.Size = new System.Drawing.Size(233, 19);
-            this.checkPreferDDSTexture.TabIndex = 23;
-            this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
-            this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
+            this.pbSoundVolumePercent.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbSoundVolumePercent.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbSoundVolumePercent.Location = new System.Drawing.Point(7, 6);
+            this.pbSoundVolumePercent.Name = "pbSoundVolumePercent";
+            this.pbSoundVolumePercent.Size = new System.Drawing.Size(18, 18);
+            this.pbSoundVolumePercent.TabIndex = 29;
+            this.pbSoundVolumePercent.TabStop = false;
+            this.pbSoundVolumePercent.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbSoundVolumePercent.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbSoundVolumePercent.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbSoundDetailLevel
+            // 
+            this.pbSoundDetailLevel.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbSoundDetailLevel.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbSoundDetailLevel.Location = new System.Drawing.Point(7, 33);
+            this.pbSoundDetailLevel.Name = "pbSoundDetailLevel";
+            this.pbSoundDetailLevel.Size = new System.Drawing.Size(18, 18);
+            this.pbSoundDetailLevel.TabIndex = 30;
+            this.pbSoundDetailLevel.TabStop = false;
+            this.pbSoundDetailLevel.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbSoundDetailLevel.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbSoundDetailLevel.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbExternalSoundPassThruPercent
+            // 
+            this.pbExternalSoundPassThruPercent.Image = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbExternalSoundPassThruPercent.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbHelpIcon.Image")));
+            this.pbExternalSoundPassThruPercent.Location = new System.Drawing.Point(7, 60);
+            this.pbExternalSoundPassThruPercent.Name = "pbExternalSoundPassThruPercent";
+            this.pbExternalSoundPassThruPercent.Size = new System.Drawing.Size(18, 18);
+            this.pbExternalSoundPassThruPercent.TabIndex = 31;
+            this.pbExternalSoundPassThruPercent.TabStop = false;
+            this.pbExternalSoundPassThruPercent.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbExternalSoundPassThruPercent.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbExternalSoundPassThruPercent.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // checkLODViewingExtension
+            // 
+            this.checkLODViewingExtension.AutoSize = true;
+            this.checkLODViewingExtension.Location = new System.Drawing.Point(6, 141);
+            this.checkLODViewingExtension.Name = "checkLODViewingExtension";
+            this.checkLODViewingExtension.Size = new System.Drawing.Size(268, 19);
+            this.checkLODViewingExtension.TabIndex = 25;
+            this.checkLODViewingExtension.Text = "Extend object maximum viewing distance to horizon";
+            this.checkLODViewingExtension.UseVisualStyleBackColor = true;
             // 
             // label5
             // 
@@ -2880,7 +2911,6 @@ namespace Orts.Menu
             ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).EndInit();
@@ -2976,8 +3006,8 @@ namespace Orts.Menu
         private System.Windows.Forms.TabPage tabPageAudio;
         private System.Windows.Forms.TabPage tabPageVideo;
         private System.Windows.Forms.NumericUpDown numericSoundVolumePercent;
-        private System.Windows.Forms.Label soundVolumeLabel;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelSoundVolume;
+        private System.Windows.Forms.Label labelSoundDetailLevel;
         private System.Windows.Forms.NumericUpDown numericSoundDetailLevel;
         private System.Windows.Forms.NumericUpDown numericCab2DStretch;
         private System.Windows.Forms.Label labelCab2DStretch;
@@ -3022,7 +3052,6 @@ namespace Orts.Menu
         private System.Windows.Forms.NumericUpDown numericDataLogTSInterval;
         private System.Windows.Forms.CheckBox checkDataLogTrainSpeed;
         private System.Windows.Forms.CheckBox checkUseMSTSEnv;
-        private System.Windows.Forms.CheckBox checkPreferDDSTexture;
         private System.Windows.Forms.Label labelLanguage;
         private System.Windows.Forms.ComboBox comboLanguage;
         private System.Windows.Forms.Label labelDistantMountainsViewingDistance;
@@ -3045,7 +3074,6 @@ namespace Orts.Menu
         private System.Windows.Forms.TrackBar trackAdhesionFactorChange;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TrackBar trackAdhesionFactor;
-        private System.Windows.Forms.CheckBox checkAdhesionPropToWeather;
         private System.Windows.Forms.CheckBox checkModelInstancing;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;
@@ -3082,7 +3110,7 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkCorrectQuestionableBrakingParams;
         private System.Windows.Forms.CheckBox checkSpeedMonitor;
         private System.Windows.Forms.NumericUpDown numericExternalSoundPassThruPercent;
-        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label labelExternalSound;
         private System.Windows.Forms.CheckBox checkDoubleWire;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox checkDoorsAITrains;
@@ -3145,10 +3173,13 @@ namespace Orts.Menu
         private System.Windows.Forms.PictureBox pbBrakePipeChargingRate;
         private System.Windows.Forms.PictureBox pbGraduatedRelease;
         private System.Windows.Forms.PictureBox pbRetainers;
-        private System.Windows.Forms.PictureBox pbMapWindow;
         private System.Windows.Forms.PictureBox pbControlConfirmations;
         private System.Windows.Forms.PictureBox pbAlerter;
         private System.Windows.Forms.CheckBox checkElectricPowerConnected;
         private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.CheckBox checkLODViewingExtension;
+        private System.Windows.Forms.PictureBox pbSoundVolumePercent;
+        private System.Windows.Forms.PictureBox pbExternalSoundPassThruPercent;
+        private System.Windows.Forms.PictureBox pbSoundDetailLevel;
     }
 }

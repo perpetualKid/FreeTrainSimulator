@@ -43,6 +43,7 @@ namespace Orts.Formats.OR.Files
             switch (reader.Path)
             {
                 case "":
+                case "[]":
                 case "Changes[].":
                     // Ignore these items.
                     break;
