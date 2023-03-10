@@ -431,8 +431,8 @@ namespace Orts.Toolbox.WinForms.Controls
 
         private void consistEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CEForm1 cef1 = new CEForm1();
-            cef1.Show();
+            CEForm cef = new CEForm();
+            cef.Show();
         }
     }
 }
