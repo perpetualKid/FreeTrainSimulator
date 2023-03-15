@@ -722,7 +722,7 @@ namespace Orts.Formats.Msts.Parsers
             None = 0,
             /// Combined using an | with other Units if the unit is compulsory (compulsory units will slow parsing)
             Compulsory = 1 << 0,
-\           /// Valid Units: kg, t, lb
+           /// Valid Units: kg, t, lb
             /// <para>Scaled to kilograms.</para>
             Mass = 1 << 1,
             /// Valid Units: m, cm, mm, km, ft, ', in, "
