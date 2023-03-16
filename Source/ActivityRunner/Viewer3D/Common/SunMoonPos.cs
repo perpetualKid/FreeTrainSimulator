@@ -26,6 +26,7 @@
 //
 
 using Microsoft.Xna.Framework;
+
 using System;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
@@ -87,8 +88,10 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 * Math.Sin(Math.Acos(solarZenithCosine)));
 
             // Running at 64 bit solarAzimuthCosine can be slightly below -1, generating NaN results
-            if (solarAzimuthCosine > 1.0d) solarAzimuthCosine = 1.0d;
-            if (solarAzimuthCosine < -1.0d) solarAzimuthCosine = -1.0d;
+            if (solarAzimuthCosine > 1.0d)
+                solarAzimuthCosine = 1.0d;
+            if (solarAzimuthCosine < -1.0d)
+                solarAzimuthCosine = -1.0d;
 
             // Solar azimuth angle, radians. Currently not used.
             //          double solarAzimuthAngle = Math.Acos(solarAzimuthCosine);
