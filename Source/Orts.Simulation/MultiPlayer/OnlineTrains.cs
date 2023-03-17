@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,6 +28,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.MultiPlayer
 {
@@ -180,24 +182,38 @@ namespace Orts.Simulation.MultiPlayer
             {
                 train.RearTDBTraveller = new Traveller(player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
             }
-            catch (Exception e)
+            catch (Exception e) when (MultiPlayerManager.IsServer())
             {
-                if (MultiPlayerManager.IsServer())
-                {
-                    MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Error", "MultiPlayer Error：" + e.Message)).ToString());
-                }
-                else
-                    throw new Exception();
+                MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Error", "MultiPlayer Error：" + e.Message)).ToString());
             }
+            string[] faDiscreteSplit;
+            List<LoadData> loadDataList = new List<LoadData>();
             for (var i = 0; i < player.cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
 
                 string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, player.cars[i]);
-                TrainCar car = null;
+                TrainCar car;
                 try
                 {
                     car = RollingStock.Load(train, wagonFilePath);
+                    car.CarID = player.ids[i];
                     car.CarLengthM = player.lengths[i] / 100.0f;
+                    if (player.faDiscretes[i][0] != '0')
+                    {
+                        int numDiscretes = player.faDiscretes[i][0];
+                        // There are discrete freight animations, add them to wagon
+                        faDiscreteSplit = player.faDiscretes[i].Split('&');
+                        loadDataList.Clear();
+                        for (int j = 1; j < faDiscreteSplit.Length; j++)
+                        {
+                            var faDiscrete = faDiscreteSplit[j];
+                            string[] loadDataItems = faDiscrete.Split('%');
+                            EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition);
+                            LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
+                            loadDataList.Add(loadData);
+                        }
+                        car.FreightAnimations?.Load(loadDataList);
+                    }
                 }
                 catch (Exception error)
                 {
@@ -208,7 +224,6 @@ namespace Orts.Simulation.MultiPlayer
                     continue;
 
                 car.Flipped = player.flipped[i] != 0;
-                car.CarID = player.ids[i];
 
                 if (car is MSTSWagon w)
                 {

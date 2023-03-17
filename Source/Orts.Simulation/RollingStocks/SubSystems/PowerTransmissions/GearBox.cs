@@ -30,6 +30,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     public class MSTSGearBoxParams
     {
         public int GearBoxNumberOfGears = 1;
+        public bool ReverseGearBoxIndication;
         public int GearBoxDirectDriveGear = 1;
         public bool FreeWheelFitted;
         public GearBoxType GearBoxType = GearBoxType.Unknown;
@@ -68,6 +69,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 case "engine(gearboxnumberofgears":
                     GearBoxNumberOfGears = stf.ReadIntBlock(1);
                     initLevel++;
+                    break;
+                case "engine(ortsreversegearboxindication":
+                    int tempIndication = stf.ReadIntBlock(1);
+                    if (tempIndication == 1)
+                    {
+                        ReverseGearBoxIndication = true;
+                    }
                     break;
                 case "engine(gearboxdirectdrivegear":
                     GearBoxDirectDriveGear = stf.ReadIntBlock(1);
@@ -179,8 +187,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public void Copy(MSTSGearBoxParams copy)
         {
             GearBoxNumberOfGears = copy.GearBoxNumberOfGears;
+            ReverseGearBoxIndication = copy.ReverseGearBoxIndication;
             GearBoxDirectDriveGear = copy.GearBoxDirectDriveGear;
             GearBoxType = copy.GearBoxType;
+            MaxTEFound = copy.MaxTEFound;
             ClutchType = copy.ClutchType;
             GearBoxOperation = copy.GearBoxOperation;
             GearBoxEngineBraking = copy.GearBoxEngineBraking;
@@ -218,7 +228,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public bool ManualGearBoxChangeOn;
         public bool ManualGearUp;
         public bool ManualGearDown;
-        
+
         private bool clutchLockOut;
 
         public int CurrentGearIndex { get; set; } = -1;
@@ -412,6 +422,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public int NumOfGears => Gears.Count;
 
+        // The default gear configuration is N-1-2-3-4, etc. However some locomotives have a N-4-3-2-1 configuration. So the display indication is reversed to 
+        // give the impression that this gear system is set.
+        public int GearIndication => ReverseGearBoxIndication ? MathHelper.Clamp(NumOfGears - CurrentGearIndex, 0, NumOfGears) : CurrentGearIndex + 1;
+
         public float CurrentSpeedMpS
         {
             get
@@ -517,6 +531,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public bool AutoClutch = true;
 
+        public bool ReverseGearBoxIndication { get; set; }
+
         public ClutchType ClutchType = ClutchType.Unknown;
         public GearBoxType GearBoxType = GearBoxType.Unknown;
         public GearBoxOperation GearBoxOperation = GearBoxOperation.Manual;
@@ -618,11 +634,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                             if (CurrentSpeedMpS > 0)
                             {
-                                if (tractiveForceN > (DieselEngine.RailPowerTab[DieselEngine.RealRPM] / CurrentSpeedMpS))
-                                {
-                                    tractiveForceN = DieselEngine.RailPowerTab[DieselEngine.RealRPM] / CurrentSpeedMpS;
-                                }
+                                var tractiveEffortLimitN = (DieselEngine.DieselPowerTab[DieselEngine.RealRPM] * (DieselEngine.LoadPercent / 100f)) / CurrentSpeedMpS;
 
+                                if (tractiveForceN > tractiveEffortLimitN )
+                                {
+                                    tractiveForceN = tractiveEffortLimitN;
+                                }
                             }
 
                             // Set TE to zero if gear change happening && type B gear box
@@ -741,6 +758,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if ((!GearBoxParams.IsInitialized) && (GearBoxParams.AtLeastOneParamFound))
                     Trace.TraceWarning("Some of the gearbox parameters are missing! Default physics will be used.");
 
+                ReverseGearBoxIndication = GearBoxParams.ReverseGearBoxIndication;
                 GearBoxType = GearBoxParams.GearBoxType;
                 ClutchType = GearBoxParams.ClutchType;
                 GearBoxFreeWheelFitted = GearBoxParams.FreeWheelFitted;
@@ -758,13 +776,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     if (!GearBoxParams.MaxTEFound)
                     {
                         // If user has entered this value then assume that they have already put the maximum torque value in
-                        Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxMaxTractiveForceForGearsN[i];
+                        Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / Locomotive.DieselEngines.Count;
+
+                        // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
+                        Gears[i].TractiveForceatMaxSpeedN = (float)(GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / (DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM])) / Locomotive.DieselEngines.Count;
                     }
                     else
                     {
                         // if they entered the TE at maximum gear speed, then increase the value accordingly 
-                        Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * 1.234f;
-                    }
+                        Gears[i].MaxTractiveForceN = (float)(GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM]) / Locomotive.DieselEngines.Count;
+
+                        // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
+                        Gears[i].TractiveForceatMaxSpeedN = GearBoxParams.GearBoxTractiveForceAtSpeedN[i] / Locomotive.DieselEngines.Count;
+                    }                        
+
                     Gears[i].OverspeedPercentage = GearBoxParams.GearBoxOverspeedPercentageForFailure;
                     Gears[i].UpGearProportion = GearBoxParams.GearBoxUpGearProportion;
                     if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
@@ -1004,6 +1029,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public float ChangeUpSpeedRpM;
         public float ChangeDownSpeedRpM;
         public float MaxTractiveForceN;
+        public float TractiveForceatMaxSpeedN;
         public float OverspeedPercentage;
         public float BackLoadForceN;
         public float CoastingForceN;

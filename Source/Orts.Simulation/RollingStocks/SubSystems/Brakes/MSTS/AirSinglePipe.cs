@@ -283,10 +283,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 controlResPressurePSI = maxPressurePSI;
             this.fullServPressurePSI = fullServPressurePSI;
             autoCylPressurePSI = immediateRelease ? 0 : Math.Min((maxPressurePSI - BrakeLine1PressurePSI) * auxCylVolumeRatio, maxCylPressurePSI);
-            auxResPressurePSI = TwoPipes ? maxPressurePSI : Math.Max(maxPressurePSI - autoCylPressurePSI / auxCylVolumeRatio, BrakeLine1PressurePSI);
+            auxResPressurePSI = Math.Max(TwoPipes ? maxPressurePSI : maxPressurePSI - autoCylPressurePSI / AuxCylVolumeRatio, BrakeLine1PressurePSI);
             if ((car as MSTSWagon).EmergencyReservoirPresent)
                 emergResPressurePSI = Math.Max(auxResPressurePSI, maxPressurePSI);
-            tripleValveState = ValveState.Lap;
+            tripleValveState = autoCylPressurePSI < 1 ? ValveState.Release : ValveState.Lap;
             holdingValve = ValveState.Release;
             HandbrakePercent = handbrakeOn ? 100 : 0;
             SetRetainer(RetainerSetting.Exhaust);

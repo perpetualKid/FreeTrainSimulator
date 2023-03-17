@@ -57,6 +57,7 @@ namespace Orts.Simulation
     public enum TrainPathItemType
     {
         Signal,
+        SpeedSignal,
         Speedpost,
         Station,
         Authority,

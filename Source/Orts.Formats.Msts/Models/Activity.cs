@@ -291,6 +291,13 @@ namespace Orts.Formats.Msts.Models
         public string Folder { get; }
         public LoadPosition LoadPosition { get; }
 
+        public LoadData(string name, string folder, LoadPosition loadPosition)
+        {
+            Name = name;
+            Folder = folder;
+            LoadPosition = loadPosition;
+        }
+
         public LoadData(STFReader stf)
         {
             ArgumentNullException.ThrowIfNull(stf);

@@ -22,7 +22,7 @@ namespace Orts.Simulation.Signalling
         private SignalScripts.SCRScripts signalScript;   // used sigscript
         private CsSignalScript csSignalScript;
 
-        public SignalFunction SignalFunction => SignalType?.FunctionType ?? SignalFunction.Unknown;
+        public SignalFunction SignalFunction { get; private set; } = SignalFunction.Unknown;
 
         public int OrtsSignalFunctionIndex => SignalType?.OrtsFunctionTypeIndex ?? -1;
 
@@ -30,6 +30,12 @@ namespace Orts.Simulation.Signalling
         public int OrtsNormalSubtypeIndex { get; set; }
         public int TDBIndex { get; private set; }
         internal EnumArray<SpeedInfo, SignalAspectState> SpeedInfoSet { get; } = new EnumArray<SpeedInfo, SignalAspectState>();
+
+        internal SpeedInfo CurrentSpeedInfo => SpeedInfoSetBySignalScript ? SignalScriptSpeedInfo : SpeedInfoSet[SignalIndicationState];
+
+        public bool SpeedInfoSetBySignalScript { get; internal set; }
+        internal SpeedInfo SignalScriptSpeedInfo { get; set; } // speed limit info set by C# signal script
+
         public Signal MainSignal { get; private set; }
 
         public SignalAspectState SignalIndicationState { get; set; } = SignalAspectState.Stop;
@@ -78,6 +84,7 @@ namespace Orts.Simulation.Signalling
             DrawState = 1;
             SignalIndicationState = SignalAspectState.Clear_2;
             SignalType = new SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
+            SignalFunction = SignalFunction.Speed;
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
@@ -99,67 +106,67 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal void SetSignalType(List<TrackItem> trackItems, SignalConfigurationFile signalConfig)
         {
-            SignalItem signalItem = (SignalItem)trackItems[TDBIndex];
-
-            // set signal type
-            if (signalConfig.SignalTypes.ContainsKey(signalItem.SignalType))
+            if (trackItems[TDBIndex] is SignalItem signalItem)
             {
+
                 // set signal type
-                SignalType = signalConfig.SignalTypes[signalItem.SignalType];
-
-                // get related signalscript
-                SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
-
-                csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
-                if (csSignalScript == null && !string.IsNullOrEmpty(SignalType.Script))
-                    csSignalScript = CsSignalScripts.TryGetScript(SignalType.Script);
-
-                if (csSignalScript != null)
+                if (signalConfig.SignalTypes.ContainsKey(signalItem.SignalType))
                 {
-                    csSignalScript.AttachToHead(this);
-                    csSignalScript.Initialize();
-                }
+                    // set signal type
+                    SignalType = signalConfig.SignalTypes[signalItem.SignalType];
+                    SignalFunction = SignalType.FunctionType;
+                    // get related signalscript
+                    SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
-                // set signal speeds
-                foreach (SignalAspect aspect in SignalType.Aspects)
-                {
-                    SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0, false);
-                }
+                    csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
+                    if (csSignalScript == null && !string.IsNullOrEmpty(SignalType.Script))
+                        csSignalScript = CsSignalScripts.TryGetScript(SignalType.Script);
 
-                // set normal subtype
-                OrtsNormalSubtypeIndex = SignalType.OrtsNormalSubTypeIndex;
+                    if (csSignalScript != null)
+                    {
+                        csSignalScript.AttachToHead(this);
+                    }
 
-                // update overall SignalNumClearAhead
+                    // set signal speeds
+                    foreach (SignalAspect aspect in SignalType.Aspects)
+                    {
+                        SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0, false);
+                    }
 
-                if (SignalFunction == SignalFunction.Normal)
-                {
-                    MainSignal.SignalNumClearAheadMsts = Math.Max(MainSignal.SignalNumClearAheadMsts, SignalType.ClearAheadNumberMsts);
-                    MainSignal.SignalNumClearAheadOrts = Math.Max(MainSignal.SignalNumClearAheadOrts, SignalType.ClearAheadNumberOrts);
-                    MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAheadOrts;
-                }
+                    // set normal subtype
+                    OrtsNormalSubtypeIndex = SignalType.OrtsNormalSubTypeIndex;
 
-                // set approach control limits
-                if (SignalType.ApproachControlDetails != null)
-                {
-                    ApproachControlLimitPositionM = SignalType.ApproachControlDetails.ApproachControlPositionM;
-                    ApproachControlLimitSpeedMpS = SignalType.ApproachControlDetails.ApproachControlSpeedMpS;
+                    // update overall SignalNumClearAhead
+
+                    if (SignalFunction == SignalFunction.Normal)
+                    {
+                        MainSignal.SignalNumClearAheadMsts = Math.Max(MainSignal.SignalNumClearAheadMsts, SignalType.ClearAheadNumberMsts);
+                        MainSignal.SignalNumClearAheadOrts = Math.Max(MainSignal.SignalNumClearAheadOrts, SignalType.ClearAheadNumberOrts);
+                        MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAheadOrts;
+                    }
+
+                    // set approach control limits
+                    if (SignalType.ApproachControlDetails != null)
+                    {
+                        ApproachControlLimitPositionM = SignalType.ApproachControlDetails.ApproachControlPositionM;
+                        ApproachControlLimitSpeedMpS = SignalType.ApproachControlDetails.ApproachControlSpeedMpS;
+                    }
+                    else
+                    {
+                        ApproachControlLimitPositionM = null;
+                        ApproachControlLimitSpeedMpS = null;
+                    }
                 }
                 else
                 {
-                    ApproachControlLimitPositionM = null;
-                    ApproachControlLimitSpeedMpS = null;
+                    Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
                 }
+            }
+        }
 
-                if (SignalFunction == SignalFunction.Speed)
-                {
-                    MainSignal.IsSignal = false;
-                    MainSignal.IsSpeedSignal = true;
-                }
-            }
-            else
-            {
-                Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
-            }
+        public void Initialize()
+        {
+            csSignalScript?.Initialize();
         }
 
         //================================================================================================//
@@ -328,12 +335,14 @@ namespace Orts.Simulation.Signalling
                 if (signalType != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
-                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
+                    if (sigFound >= 0)
+                        thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
                 }
                 if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
-                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
+                    if (sigFound >= 0)
+                        thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
                 }
 
                 if (sig2Index == thisSignal.Index) // this signal also contains type 2 signal and is therefor valid
@@ -443,22 +452,53 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         ///  Sets the state to the most restrictive aspect for this head.
         /// </summary>
-        public void SetMostRestrictiveAspect()
+        public void RequestMostRestrictiveAspect()
         {
-            SignalIndicationState = SignalType?.GetMostRestrictiveAspect() ?? SignalAspectState.Stop;
-            DrawState = DefaultDrawState(SignalIndicationState);
-            TextSignalAspect = string.Empty;
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestMostRestrictiveAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                SignalIndicationState = SignalType?.GetMostRestrictiveAspect() ?? SignalAspectState.Stop;
+                DrawState = DefaultDrawState(SignalIndicationState);
+            }
+        }
+
+        public void RequestApproachAspect()
+        {
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestApproachAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                int drawState1 = DefaultDrawState(SignalAspectState.Approach_1);
+                int drawState2 = DefaultDrawState(SignalAspectState.Approach_2);
+
+                SignalIndicationState = drawState1 > 0 ? SignalAspectState.Approach_1 : drawState2 > 0 ? SignalAspectState.Approach_2 : SignalAspectState.Approach_3;
+                DrawState = DefaultDrawState(SignalIndicationState);
+            }
         }
 
         //================================================================================================//
         /// <summary>
         ///  Sets the state to the least restrictive aspect for this head.
         /// </summary>
-        public void SetLeastRestrictiveAspect()
+        public void RequestLeastRestrictiveAspect()
         {
-            SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
-            DefaultDrawState(SignalIndicationState);
-            TextSignalAspect = string.Empty;
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestLeastRestrictiveAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
+                DefaultDrawState(SignalIndicationState);
+            }
         }
 
         //================================================================================================//
@@ -479,7 +519,8 @@ namespace Orts.Simulation.Signalling
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
                     node = RuntimeData.Instance.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
-                    if (!(node is TrackJunctionNode junctionNode)) return 0;
+                    if (!(node is TrackJunctionNode junctionNode))
+                        return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {
                         if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)

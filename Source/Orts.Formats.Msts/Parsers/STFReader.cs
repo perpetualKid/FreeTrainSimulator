@@ -171,7 +171,8 @@ namespace Orts.Formats.Msts.Parsers
         /// </summary>
         public const string EndBlockCommentSentinel = "#\u00b6";
 
-        /// <summary>Open a file, reader the header line, and prepare for STF parsing
+        /// <summary>
+        /// Open a file, reader the header line, and prepare for STF parsing
         /// </summary>
         /// <param name="filename">Filename of the STF file to be opened and parsed.</param>
         /// <param name="useTree"><para>true - if the consumer is going to use the Tree Property as it's parsing method (MSTS wagons &amp; engines)</para>
@@ -185,7 +186,8 @@ namespace Orts.Formats.Msts.Parsers
             if (useTree) tree = new List<string>();
         }
 
-        /// <summary>Use an open stream for STF parsing, this constructor assumes that the SIMIS signature has already been gathered (or there isn't one)
+        /// <summary>
+        /// Use an open stream for STF parsing, this constructor assumes that the SIMIS signature has already been gathered (or there isn't one)
         /// </summary>
         /// <param name="inputStream">Stream that will be parsed.</param>
         /// <param name="fileName">Is only used for error reporting.</param>
@@ -201,7 +203,8 @@ namespace Orts.Formats.Msts.Parsers
             if (useTree) tree = new List<string>();
         }
 
-        /// <summary>Implements the IDisposable interface so this class can be implemented with the 'using(STFReader r = new STFReader(...)) {...}' C# statement.
+        /// <summary>
+        /// Implements the IDisposable interface so this class can be implemented with the 'using(STFReader r = new STFReader(...)) {...}' C# statement.
         /// </summary>
         public void Dispose()
         {
@@ -212,7 +215,8 @@ namespace Orts.Formats.Msts.Parsers
         {
             Dispose(false);
         }
-        /// <summary>Releases the resources used by the STFReader.
+        /// <summary>
+        /// Releases the resources used by the STFReader.
         /// </summary>
         /// <param name="disposing">
         /// <para>true - release managed and unmanaged resources.</para>
@@ -234,19 +238,28 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Property that returns true when the EOF has been reached
+        /// <summary>
+        /// Property that returns true when the EOF has been reached
         /// </summary>
         public bool Eof { get { return PeekChar() == -1; } }
-        /// <summary>Filename property for the file being parsed - for reporting purposes
+
+        /// <summary>
+        /// Filename property for the file being parsed - for reporting purposes
         /// </summary>
         public string FileName { get; private set; }
-        /// <summary>Line Number property for the file being parsed - for reporting purposes
+
+        /// <summary>
+        /// Line Number property for the file being parsed - for reporting purposes
         /// </summary>
         public int LineNumber { get; private set; }
-        /// <summary>SIMIS header read from the first line of the file being parsed
+
+        /// <summary>
+        /// SIMIS header read from the first line of the file being parsed
         /// </summary>
         public string SimisSignature { get; private set; }
-        /// <summary>Property returning the last {item} read using ReadItem() prefixed with string describing the nested block hierachy.
+
+        /// <summary>
+        /// Property returning the last {item} read using ReadItem() prefixed with string describing the nested block hierachy.
         /// <para>The string returned is formatted 'rootnode(nestednode(childnode(previous_item'.</para>
         /// </summary>
         /// <remarks>
@@ -270,7 +283,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Returns the next whitespace delimited {item} from the STF file skipping comments, etc.
+        /// <summary>
+        /// Returns the next whitespace delimited {item} from the STF file skipping comments, etc.
         /// </summary>
         /// <remarks>
         /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy <see cref="EndBlockCommentSentinel"/> is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
@@ -281,7 +295,8 @@ namespace Orts.Formats.Msts.Parsers
             return ReadItem(false);
         }
 
-        /// <summary>This is an internal function in STFReader, it returns the next whitespace delimited {item} from the STF file.
+        /// <summary>
+        /// This is an internal function in STFReader, it returns the next whitespace delimited {item} from the STF file.
         /// </summary>
         /// <remarks>
         /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy <see cref="EndBlockCommentSentinel"/> is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
@@ -306,7 +321,8 @@ namespace Orts.Formats.Msts.Parsers
             return ReadItem(false, string_mode);
         }
 
-        /// <summary>Calling this function causes ReadItem() to repeat the last {item} that was read from the STF file
+        /// <summary>
+        /// Calling this function causes ReadItem() to repeat the last {item} that was read from the STF file
         /// </summary>
         /// <remarks>
         /// <para>The current implementation of StepBackOneItem() only allows for one "step back".</para>
@@ -346,7 +362,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Reports a critical error if the next {item} does not match the target.
+        /// <summary>
+        /// Reports a critical error if the next {item} does not match the target.
         /// </summary>
         /// <param name="target">The next {item} contents we are expecting in the STF file.</param>
         /// <returns>The {item} read from the STF file</returns>
@@ -368,7 +385,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        ///// <summary>Reports a critical error if the next {item} does not match the target.
+        ///// <summary>
+        ///Reports a critical error if the next {item} does not match the target.
         ///// Same as MustMatch() but uses ReadItemFromBlock()
         ///// </summary>
         ///// <param name="target">The next {item} contents we are expecting in the STF file.</param>
@@ -446,7 +464,8 @@ namespace Orts.Formats.Msts.Parsers
         //    return item;
         //}
 
-        /// <summary>Returns true if the next character is the end of block, or end of file. Consuming the closing ")" all other values are not consumed.
+        /// <summary>
+        /// Returns true if the next character is the end of block, or end of file. Consuming the closing ")" all other values are not consumed.
         /// </summary>
         /// <remarks>
         /// <para>An STF block should be enclosed in parenthesis, ie ( {data_item} {data_item} )</para>
@@ -488,7 +507,9 @@ namespace Orts.Formats.Msts.Parsers
             }
             return c == ')' || c == -1;
         }
-        /// <summary>Read a block open (, and then consume the rest of the block without processing.
+
+        /// <summary>
+        /// Read a block open (, and then consume the rest of the block without processing.
         /// If we find an immediate close ), then produce a warning, and return without consuming the parenthesis.
         /// </summary>
         public void SkipBlock()
@@ -504,7 +525,9 @@ namespace Orts.Formats.Msts.Parsers
                 throw new STFException(this, "SkipBlock() expected an open block but found a token instead: " + token);
             SkipRestOfBlock();
         }
-        /// <summary>Skip to the end of this block, ignoring any nested blocks
+
+        /// <summary>
+        /// Skip to the end of this block, ignoring any nested blocks
         /// </summary>
         public void SkipRestOfBlock()
         {
@@ -532,7 +555,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Return next whitespace delimited string from the STF file.
+        /// <summary>
+        /// Return next whitespace delimited string from the STF file.
         /// </summary>
         /// <remarks>
         /// <alert class="important">This differs from ReadInt in that normal comment processing is disabled.  ie an item that starts with _ is returned and not skipped.</alert>
@@ -543,7 +567,8 @@ namespace Orts.Formats.Msts.Parsers
             return ReadItem(true);
         }
 
-        /// <summary>Read an hexidecimal encoded number {constant_item}
+        /// <summary>
+        /// Read an hexidecimal encoded number {constant_item}
         /// </summary>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file.</returns>
@@ -568,7 +593,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an signed integer {constant_item}
+        /// <summary>
+        /// Read an signed integer {constant_item}
         /// </summary>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file.</returns>
@@ -590,7 +616,9 @@ namespace Orts.Formats.Msts.Parsers
             if (item == ")") StepBackOneItem();
             return defaultValue.GetValueOrDefault(0);
         }
-        /// <summary>Read an unsigned integer {constant_item}
+
+        /// <summary>
+        /// Read an unsigned integer {constant_item}
         /// </summary>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file.</returns>
@@ -615,7 +643,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an double precision floating point number {constant_item}
+        /// <summary>
+        /// Read an double precision floating point number {constant_item}
         /// </summary>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file.</returns>
@@ -624,7 +653,8 @@ namespace Orts.Formats.Msts.Parsers
             return ReadFloat(Units.None, defaultValue);
         }
 
-        /// <summary>Read an single precision floating point number {constant_item}
+        /// <summary>
+        /// Read an single precision floating point number {constant_item}
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
@@ -656,7 +686,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an double precision floating point number {constant_item}
+        /// <summary>
+        /// Read an double precision floating point number {constant_item}
         /// </summary>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file.</returns>
@@ -680,185 +711,113 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Enumeration specifying which units are valid when parsing a numeric constant.
+        /// <summary>
+        /// Enumeration specifying which units are valid when parsing a numeric constant.
         /// </summary>
         // Additional entries because MSTS has multiple default units, e.g. some speeds in metres/sec and others in miles/hr
         [Flags]
         public enum Units
         {
-            /// <summary>No unit parsing is done on the {constant_item} - which is obviously fastest
-            /// </summary>
+            /// No unit parsing is done on the {constant_item} - which is obviously fastest
             None = 0,
-
-            /// <summary>Combined using an | with other Units if the unit is compulsory (compulsory units will slow parsing)
-            /// </summary>
+            /// Combined using an | with other Units if the unit is compulsory (compulsory units will slow parsing)
             Compulsory = 1 << 0,
-
-            /// <summary>Valid Units: kg, t, lb
+           /// Valid Units: kg, t, lb
             /// <para>Scaled to kilograms.</para>
-            /// </summary>
             Mass = 1 << 1,
-
-            /// <summary>Valid Units: m, cm, mm, km, ft, ', in, "
+            /// Valid Units: m, cm, mm, km, ft, ', in, "
             /// <para>Scaled to meters.</para>
-            /// </summary>
             Distance = 1 << 2,
-
-            /// <summary>Valid Units: *(ft^2)
+            /// Valid Units: *(ft^2)
             /// <para>Scaled to square meters.</para>
-            /// </summary>
             AreaDefaultFT2 = 1 << 3,
-
-            /// <summary>
             /// Valid Units: gal, l
             /// <para>Scaled to litres.</para>
-            /// </summary>
             Volume = 1 << 4,
-
-            /// <summary>Valid Units: *(ft^3)
+            /// Valid Units: *(ft^3)
             /// <para>Scaled to cubic feet.</para>
-            /// </summary>
             VolumeDefaultFT3 = 1 << 5,
-
-            /// <summary>
             /// Valid Units: s, m, h
             /// <para>Scaled to secs.</para>
-            /// </summary>            
             Time = 1 << 6,
-
-            /// <summary>
             /// Valid Units: s, m, h
             /// <para>Scaled to secs.</para>
-            /// </summary>            
             TimeDefaultM = 1 << 7,
-
-            /// <summary>
             /// Valid Units: s, m, h
             /// <para>Scaled to secs.</para>
-            /// </summary>            
             TimeDefaultH = 1 << 8,
-
-            /// <summary>
             /// Valid Units: a, amps
             /// <para>Scaled to amps.</para>
-            /// </summary>            
             Current = 1 << 9,
-
-            /// <summary>
             /// Valid Units: v, kv
             /// <para>Scaled to v.</para>
-            /// </summary>            
             Voltage = 1 << 10,
-
-            /// <summary>Valid Units: lb/h
+            /// Valid Units: lb/h
             /// <para>Scaled to pounds per hour.</para>
-            /// </summary>
             MassRateDefaultLBpH = 1 << 11,
-
-            /// <summary>Valid Units: m/s, mph, kph, kmh, km/h
+            /// Valid Units: m/s, mph, kph, kmh, km/h
             /// <para>Scaled to meters/second.
             /// See also SpeedMPH </para>
-            /// </summary>
             Speed = 1 << 12,
-
-            /// <summary>Valid Units: m/s, mph, kph, kmh, km/h
+            /// Valid Units: m/s, mph, kph, kmh, km/h
             /// <para>Scaled to miles/hour.</para>
             /// Similar to Units.Speed except default unit is mph.
-            /// </summary>
             SpeedDefaultMPH = 1 << 13,
-
-            /// <summary>
             /// Valid Units: Hz, rps, rpm
             /// <para>Scaled to Hz.</para>
-            /// </summary>            
             Frequency = 1 << 14,
-
-            /// <summary>Valid Units: n, kn, lbf
+            /// Valid Units: n, kn, lbf
             /// <para>Scaled to newtons.</para>
-            /// </summary>
             Force = 1 << 15,
-
-            /// <summary>Valid Units: w, kw, hp
+            /// Valid Units: w, kw, hp
             /// <para>Scaled to watts.</para>
-            /// </summary>
             Power = 1 << 16,
-
-            /// <summary>Valid Units: n/m
+            /// Valid Units: n/m
             /// <para>Scaled to newtons/metre.</para>
-            /// </summary>
             Stiffness = 1 << 17,
-
-            /// <summary>Valid Units: n/m/s (+ '/m/s' in case the newtons is missed), lbf/mph 
+            /// Valid Units: n/m/s (+ '/m/s' in case the newtons is missed), lbf/mph 
             /// <para>Scaled to newtons/speed(m/s)</para>
-            /// </summary>
             Resistance = 1 << 18,
-
-            /// <summary>Valid Units: psi, bar, inhg, cmhg, kpa
+            /// Valid Units: psi, bar, inhg, cmhg, kpa
             /// <para>Scaled to pounds per square inch.</para>
-            /// </summary>
             PressureDefaultPSI = 1 << 19,
-
-            /// <summary>Valid Units: psi, bar, inhg, kpa
+            /// Valid Units: psi, bar, inhg, kpa
             /// <para>Scaled to pounds per square inch.</para>
             /// Similar to Units.Pressure except default unit is inHg.
-            /// </summary>
             PressureDefaultInHg = 1 << 20,
-
-            /// <summary>
             /// Valid Units: psi/s, bar/s, inhg/s, kpa/s
             /// <para>Scaled to psi/s.</para>
-            /// </summary>            
             PressureRateDefaultPSIpS = 1 << 21,
-
-            /// <summary>
             /// Valid Units: psi/s, bar/s, inhg/s, kpa/s
             /// <para>Scaled to psi/s.</para>
             /// Similar to Units.PressureRate except default unit is inHg/s.
-            /// </summary>            
             PressureRateDefaultInHgpS = 1 << 22,
-
-            /// <summary>Valid Units: kj/kg, j/g, btu/lb
+            /// Valid Units: kj/kg, j/g, btu/lb
             /// <para>Scaled to kj/kg.</para>
-            /// </summary>
             EnergyDensity = 1 << 23,
-
-            /// <summary>
             /// Valid Units: degc, degf
             /// <para>Scaled to Deg Celsius</para>
-            /// </summary>            
             TemperatureDifference = 1 << 24,    // "TemperatureDifference" not "Temperature" as 0'C <> 0'F
-
-            /// <summary>
             /// Valid Units: kgm^2
             /// <para>Scaled to kgm^2.</para>
-            /// </summary>            
             RotationalInertia = 1 << 25,
-
-            /// <summary>
             /// Valid Units: Nm/s^2, lbf/mph^2
             /// <para>Scaled to N/m/s^2.</para>
-            /// </summary>            
             ResistanceDavisC = 1 << 26,
-
-            /// <summary>
             /// Valid Units: degc, degf
             /// <para>Scaled to Deg Celsius</para>
-            /// </summary>            
             Temperature = 1 << 27,    // "Temperature", note above TemperatureDifference, is different
-
-            /// <summary>
             /// Valid Units: deg, rad
             /// <para>Scaled to Radians</para>
-            /// </summary>            
             Angle = 1 << 28,
-
             // "Any" is used where units cannot easily be specified, such as generic routines for interpolating continuous data from point values.
             // or interpreting locomotive cab attributes from the ORTSExtendedCVF experimental mechanism.
             // "Any" should not be used where the dimensions of a unit are predictable.
             Any = ~Compulsory // All bits set except the Compulsory bit
         }
 
-        /// <summary>This function removes known unit suffixes, and returns a scaler to bring the constant into the standard OR units.
+        /// <summary>
+        /// This function removes known unit suffixes, and returns a scaler to bring the constant into the standard OR units.
         /// </summary>
         /// <remarks>This function is marked internal so it can be used to support arithmetic processing once the elements are seperated (eg. 5*2m)
         /// </remarks>
@@ -1181,7 +1140,8 @@ namespace Orts.Formats.Msts.Parsers
             return (1.0f, 0);
         }
 
-        /// <summary>Read an string constant from the STF format '( {string_constant} ... )'
+        /// <summary>
+        /// Read an string constant from the STF format '( {string_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the item is not found in the block.</param>
         /// <returns>The first item inside the STF block.</returns>
@@ -1218,7 +1178,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue;
         }
 
-        /// <summary>Read a hexadecimal encoded color from the STF format '( {color_constant} ... )'
+        /// <summary>
+        /// Read a hexadecimal encoded color from the STF format '( {color_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a color constant.</returns>
@@ -1233,7 +1194,8 @@ namespace Orts.Formats.Msts.Parsers
             return (color & 0xFF00FF00) + (byte)(color >> 16) + (uint)((byte)color << 16);
         }
 
-        /// <summary>Read an hexidecimal encoded number from the STF format '( {int_constant} ... )'
+        /// <summary>
+        /// Read an hexidecimal encoded number from the STF format '( {int_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a integer constant.</returns>
@@ -1260,7 +1222,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an integer constant from the STF format '( {int_constant} ... )'
+        /// <summary>
+        /// Read an integer constant from the STF format '( {int_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a integer.</returns>
@@ -1287,7 +1250,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an unsigned integer constant from the STF format '( {uint_constant} ... )'
+        /// <summary>
+        /// Read an unsigned integer constant from the STF format '( {uint_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a unsigned integer.</returns>
@@ -1314,7 +1278,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an single precision constant from the STF format '( {float_constant} ... )'
+        /// <summary>
+        /// Read an single precision constant from the STF format '( {float_constant} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
@@ -1343,7 +1308,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Read an double precision constant from the STF format '( {double_constant} ... )'
+        /// <summary>
+        /// Read an double precision constant from the STF format '( {double_constant} ... )'
         /// </summary>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a double precision value.</returns>
@@ -1370,7 +1336,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue.GetValueOrDefault(0);
         }
 
-        /// <summary>Reads the first item from a block in the STF format '( {double_constant} ... )' and return true if is not-zero or 'true'
+        /// <summary>
+        /// Reads the first item from a block in the STF format '( {double_constant} ... )' and return true if is not-zero or 'true'
         /// </summary>
         /// <param name="defaultValue">the default value if a item is not found in the block.</param>
         /// <returns><para>true - If the first {item} in the block is non-zero or 'true'.</para>
@@ -1409,7 +1376,22 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue;
         }
 
-        /// <summary>Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
+        /// <summary>
+        /// Read a Vector3 object in the STF format '... {X} {Y} {Z} ...'
+        /// </summary>
+        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="defaultValue">The default vector if any of the values are not specified</param>
+        /// <returns>The STF block as a Vector3</returns>
+        public Vector3 ReadVector3(Units validUnits, Vector3 defaultValue)
+        {
+            defaultValue.X = ReadFloat(validUnits, defaultValue.X);
+            defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
+            defaultValue.Z = ReadFloat(validUnits, defaultValue.Z);
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
@@ -1439,7 +1421,8 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue;
         }
 
-        /// <summary>Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
+        /// <summary>
+        /// Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
@@ -1472,7 +1455,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Read a Vector2 object in the STF format '( {X} {Y} ... )'
+        /// <summary>
+        /// Read a Vector2 object in the STF format '( {X} {Y} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="initialValue">The default vector if any of the values are not specified</param>
@@ -1504,7 +1488,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Read a Vector4 object in the STF format '( {X} {Y} {Z} {W} ... )'
+        /// <summary>
+        /// Read a Vector4 object in the STF format '( {X} {Y} {Z} {W} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
@@ -1538,7 +1523,8 @@ namespace Orts.Formats.Msts.Parsers
             }
         }
 
-        /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
+        /// <summary>
+        /// Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseFile(TokenProcessor[] processors)
@@ -1555,7 +1541,9 @@ namespace Orts.Formats.Msts.Parsers
 #line default
             } // Press F10 'Step Over' to jump to the next token
         }
-        /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
+
+        /// <summary>
+        /// Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="breakout">A delegate that returns true, if the processing should be halted prematurely</param>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
@@ -1580,7 +1568,9 @@ namespace Orts.Formats.Msts.Parsers
 #pragma warning restore CA1062 // Validate arguments of public methods
             } // Press F10 'Step Over' to jump to the next token
         }
-        /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
+
+        /// <summary>
+        /// Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseBlock(TokenProcessor[] processors)
@@ -1599,7 +1589,8 @@ namespace Orts.Formats.Msts.Parsers
             } 
         }
 
-        /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
+        /// <summary>
+        /// Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="breakout">A delegate that returns true, if the processing should be halted prematurely</param>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
@@ -1626,14 +1617,19 @@ namespace Orts.Formats.Msts.Parsers
         }
 
         #region *** Delegate and Structure definitions used by the Parse...() methods.
-        /// <summary>This delegate definition is used by the ParseFile and ParseBlock methods, and is called when an associated matching token is found.
+        /// <summary>
+        /// This delegate definition is used by the ParseFile and ParseBlock methods, and is called when an associated matching token is found.
         /// </summary>
         public delegate void Processor();
-        /// <summary>This delegate definition is used by the ParseFile and ParseBlock methods, and is used to break out of the processing loop prematurely.
+
+        /// <summary>
+        /// This delegate definition is used by the ParseFile and ParseBlock methods, and is used to break out of the processing loop prematurely.
         /// </summary>
         /// <returns>true - if the parsing should be aborted prematurely</returns>
         public delegate bool ParsingBreak();
-        /// <summary>A structure used to index lambda functions to a lower cased token.
+
+        /// <summary>
+        /// A structure used to index lambda functions to a lower cased token.
         /// </summary>
         [DebuggerDisplay("Token = {Token}")]
 #pragma warning disable CA1034 // Nested types should not be visible
@@ -1642,7 +1638,8 @@ namespace Orts.Formats.Msts.Parsers
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 #pragma warning restore CA1034 // Nested types should not be visible
         {
-            /// <summary>This constructor is used for the arguments to ParseFile and ParseBlock.
+            /// <summary>
+            /// This constructor is used for the arguments to ParseFile and ParseBlock.
             /// </summary>
             /// <param name="token">The lower case token.</param>
             /// <param name="processor">A lambda function or delegate that will be called from the Parse...() method.</param>
@@ -1675,22 +1672,28 @@ namespace Orts.Formats.Msts.Parsers
         }
         #endregion
 
-        /// <summary>The I/O stream for the STF file we are processing
+        /// <summary>
+        /// The I/O stream for the STF file we are processing
         /// </summary>
         private StreamReader streamSTF;
-        /// <summary>includeReader is used recursively in ReadItem() to handle the 'include' token, file include mechanism
+        /// <summary>
+        /// includeReader is used recursively in ReadItem() to handle the 'include' token, file include mechanism
         /// </summary>
         private STFReader includeReader;
-        /// <summary>Remembers the last returned ReadItem().  If the next {item] is a '(', this is the block name used in the tree.
+        /// <summary>
+        /// Remembers the last returned ReadItem().  If the next {item] is a '(', this is the block name used in the tree.
         /// </summary>
         private string previousItem = "";
-        /// <summary>How deep in nested blocks the current parser is
+        /// <summary>
+        /// How deep in nested blocks the current parser is
         /// </summary>
         private int block_depth;
-        /// <summary>A list describing the hierachy of nested block tokens
+        /// <summary>
+        /// A list describing the hierachy of nested block tokens
         /// </summary>
         private List<string> tree;
-        /// <summary>The tree cache is used to minimize the calls to StringBuilder when Tree is called repetively for the same hierachy.
+        /// <summary>
+        /// The tree cache is used to minimize the calls to StringBuilder when Tree is called repetively for the same hierachy.
         /// </summary>
         private string tree_cache;
 
@@ -1698,26 +1701,32 @@ namespace Orts.Formats.Msts.Parsers
         private const NumberStyles parseNum = NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowTrailingWhite;
         private static readonly IFormatProvider parseNFI = NumberFormatInfo.InvariantInfo;
         #region *** StepBack Variables - It is important that all state variables in this STFReader class have a equivalent in the BackStep structure
-        /// <summary>This flag is set in StepBackOneItem(), and causes ReadItem(), to use the stepback* variables to do an item repeat
+        /// <summary>
+        /// This flag is set in StepBackOneItem(), and causes ReadItem(), to use the stepback* variables to do an item repeat
         /// </summary>
         private bool stepbackoneitemFlag;
-        /// <summary>Internal Structure used to group together the variables used to implement step back functionality.
+        /// <summary>
+        /// Internal Structure used to group together the variables used to implement step back functionality.
         /// </summary>
         private class BackStep
         {
             //streamSTF - is not needed for this stepback implementation
             //includeReader - is not needed for this stepback implementation
-            /// <summary>The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackItem « ReadItem() return
+            /// <summary>
+            /// The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackItem « ReadItem() return
             /// </summary>
             public string Item;
-            /// <summary>The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackCurrItem « previousItem
+            /// <summary>
+            /// The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackCurrItem « previousItem
             /// </summary>
             public string PrevItem;
-            /// <summary>The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackTree « tree
+            /// <summary>
+            /// The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. stepbackTree « tree
             /// <para>This item, is optimized, so when value is null it means stepbackTree was the same as Tree, so we don't create unneccessary memory duplicates of lists.</para>
             /// </summary>
             public List<string> Tree;
-            /// <summary>The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. BlockDepth « block_depth
+            /// <summary>
+            /// The stepback* variables store the previous state, so StepBackOneItem() can jump back on {item}. BlockDepth « block_depth
             /// </summary>
             public int BlockDepth;
             //tree_cache can just be set to null, so it is re-evaluated from the stepback'd tree state variable if Tree is called
@@ -1754,11 +1763,13 @@ namespace Orts.Formats.Msts.Parsers
         public bool EOF() { return PeekChar() == -1; }
 
 
-        /// <summary>This is really a local variable in the function ReadItem(...) but it is a class member to stop unnecessary memory re-allocations.
+        /// <summary>
+        /// This is really a local variable in the function ReadItem(...) but it is a class member to stop unnecessary memory re-allocations.
         /// </summary>
         private readonly StringBuilder itemBuilder = new StringBuilder(256);
 
-        /// <summary>Internal Implementation - This is the main function that reads an item from the STF stream.
+        /// <summary>
+        /// Internal Implementation - This is the main function that reads an item from the STF stream.
         /// </summary>
         /// <param name="skip_mode">True - we are in a skip function, and so we don't want to do any special token processing.</param>
         /// <param name="string_mode">True - we are expecting a string, so don't skip comments.</param>
@@ -1922,6 +1933,8 @@ namespace Orts.Formats.Msts.Parsers
                             fileName = ReadItem(skip_mode, string_mode);
                             SkipRestOfBlock();
                         }
+                        if (Path.GetFileName(fileName).Equals("[[samename]]", StringComparison.OrdinalIgnoreCase))
+                            fileName = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileName(FileName));
                         string includeFileName = Path.Combine(Path.GetDirectoryName(FileName), fileName);
                         if (!File.Exists(includeFileName))
                             STFException.TraceWarning(this, $"'{includeFileName}' not found");
@@ -1950,7 +1963,8 @@ namespace Orts.Formats.Msts.Parsers
 
             return UpdateTreeAndStepBack(result);
         }
-        /// <summary>Internal Implementation
+        /// <summary>
+        /// Internal Implementation
         /// <para>This function is called by ReadItem() for every item read from the STF file (and Included files).</para>
         /// <para>If a block instuction is found, then tree list is updated.</para>
         /// <para>As this function is called once per ReadItem() is stores the previous value in stepback* variables (there is additional optimization that we only copy stepbackTree if the tree has changed.</para>

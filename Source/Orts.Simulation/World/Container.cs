@@ -36,8 +36,6 @@ using Orts.Scripting.Api;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 
-using SharpDX.DirectWrite;
-
 namespace Orts.Simulation.World
 {
     public class Container : IWorldPosition
@@ -46,6 +44,8 @@ namespace Orts.Simulation.World
         public const float Length40ftM = 12.19f;
 
         private static readonly char[] directorySeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        public string LoadFilePath { get; private set; }
+
         private WorldPosition worldPosition;
         public string Name { get; private set; }
         public string ShapeFileName { get; private set; }
@@ -60,10 +60,12 @@ namespace Orts.Simulation.World
         public ref readonly WorldPosition WorldPosition => ref worldPosition;  // current position of the container
 
         public Vector3 IntrinsicShapeOffset { get; private set; }
-        public ContainerHandlingItem ContainerStation;
-        public Matrix RelativeContainerMatrix = Matrix.Identity;
+        public ContainerHandlingItem ContainerStation { get; internal set; }
+        public Matrix RelativeContainerMatrix { get; set; } = Matrix.Identity;
         public MSTSWagon Wagon { get; internal set; }
 
+        public bool Visible { get; set; } = true;
+        
         public Container(FreightAnimationDiscrete freightAnimDiscreteSource, FreightAnimationDiscrete freightAnimDiscrete, bool stacked = false)
         {
             ArgumentNullException.ThrowIfNull(freightAnimDiscreteSource);
@@ -86,6 +88,7 @@ namespace Orts.Simulation.World
         {
             Wagon = wagon;
             ContainerStation = containerStation;
+            LoadFilePath = loadFilePath;
         }
 
         public void Copy(Container source)
@@ -100,14 +103,15 @@ namespace Orts.Simulation.World
             ComputeDimensions();
             flipped = source.flipped;
             MassKG = source.MassKG;
+            LoadFilePath = source.LoadFilePath;
         }
 
         public Container(BinaryReader inf, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingItem containerStation, bool fromContainerStation, int stackLocationIndex = 0)
         {
-
             Name = inf.ReadString();
             BaseShapeFileFolderSlash = inf.ReadString();
             ShapeFileName = inf.ReadString();
+            LoadFilePath = inf.ReadString();
             IntrinsicShapeOffset = new Vector3(inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle());
             ContainerType = (ContainerType)inf.ReadInt32();
             ComputeDimensions();
@@ -197,17 +201,14 @@ namespace Orts.Simulation.World
             outf.Write(Name);
             outf.Write(BaseShapeFileFolderSlash);
             outf.Write(ShapeFileName);
+            outf.Write(LoadFilePath);
             outf.Write(IntrinsicShapeOffset.X);
             outf.Write(IntrinsicShapeOffset.Y);
             outf.Write(IntrinsicShapeOffset.Z);
             outf.Write((int)ContainerType);
             outf.Write(flipped);
             outf.Write(MassKG);
-            if (fromContainerStation)
-            {
-
-            }
-            else
+            if (!fromContainerStation)
                 MatrixExtension.SaveMatrix(outf, RelativeContainerMatrix);
         }
 
