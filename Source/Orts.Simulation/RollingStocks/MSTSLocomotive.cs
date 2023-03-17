@@ -1987,6 +1987,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         dieselLocomotive.DieselEngines[i].GearBox.CurrentGearIndex = dieselLocomotive.DieselEngines[0].GearBox.CurrentGearIndex;
                     }
+                    previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
                 }
                 // pass gearbox command key to other locomotives in train, don't treat the player locomotive in this fashion.
                 foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>())
@@ -2003,7 +2004,6 @@ namespace Orts.Simulation.RollingStocks
                         locomotive.SignalGearBoxChangeEvents();
                     }
                 }
-                previousChangedGearBoxNotch = GearBoxController.NotchIndex; // reset loop until next gear change
             }
 
             TrainControlSystem.Update(elapsedClockSeconds);
