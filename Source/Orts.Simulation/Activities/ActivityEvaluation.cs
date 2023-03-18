@@ -70,7 +70,7 @@ namespace Orts.Simulation.Activities
             {
                 fullTrainBrakeBelow8kmhRunning = false;
             }
-            if (Simulator.Instance.ActivityRun.Completed)
+            if (Simulator.Instance.ActivityRun?.Completed ?? false)
             {
                 Report();
                 ActivityCompleted = true;
