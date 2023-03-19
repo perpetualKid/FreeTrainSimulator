@@ -6,11 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using ConsistEditor;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Models.Simplified;
-using Orts.Toolbox.ConsistEditor;
+
+
 
 
 namespace Orts.Toolbox.WinForms.Controls
@@ -429,10 +432,14 @@ namespace Orts.Toolbox.WinForms.Controls
 
         #endregion
 
+        #region Activity Editor Methods
+
         private void consistEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CEForm cef = new CEForm();
             cef.Show();
         }
+
+        #endregion
     }
 }
