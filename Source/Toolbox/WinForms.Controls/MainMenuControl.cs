@@ -12,9 +12,7 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Models.Simplified;
-
-
-
+using Orts.Toolbox.ActivityEditor;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -440,6 +438,14 @@ namespace Orts.Toolbox.WinForms.Controls
             cef.Show();
         }
 
+        private void activityEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AEForm aef = new AEForm();
+            aef.Show();
+        }
+
         #endregion
+
+
     }
 }

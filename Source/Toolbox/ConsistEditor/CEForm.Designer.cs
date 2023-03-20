@@ -358,7 +358,7 @@ namespace ConsistEditor
             MainMenuStrip = CEmenuStrip;
             MdiChildrenMinimizedAnchorBottom = false;
             Name = "CEForm";
-            Text = "CEForm";
+            Text = "Consist Editor";
             CEmenuStrip.ResumeLayout(false);
             CEmenuStrip.PerformLayout();
             ResumeLayout(false);
