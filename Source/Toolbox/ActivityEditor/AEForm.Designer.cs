@@ -39,7 +39,13 @@
             button8 = new System.Windows.Forms.Button();
             progressBar1 = new System.Windows.Forms.ProgressBar();
             pictureBox1 = new System.Windows.Forms.PictureBox();
+            tabControl1 = new System.Windows.Forms.TabControl();
+            tabPage1 = new System.Windows.Forms.TabPage();
+            tabPage2 = new System.Windows.Forms.TabPage();
+            tabPage3 = new System.Windows.Forms.TabPage();
+            tabPage4 = new System.Windows.Forms.TabPage();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            tabControl1.SuspendLayout();
             SuspendLayout();
             // 
             // button1
@@ -148,17 +154,73 @@
             // 
             // pictureBox1
             // 
+            pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             pictureBox1.Location = new System.Drawing.Point(601, 25);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new System.Drawing.Size(571, 159);
             pictureBox1.TabIndex = 11;
             pictureBox1.TabStop = false;
             // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(tabPage1);
+            tabControl1.Controls.Add(tabPage2);
+            tabControl1.Controls.Add(tabPage3);
+            tabControl1.Controls.Add(tabPage4);
+            tabControl1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            tabControl1.Location = new System.Drawing.Point(12, 192);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new System.Drawing.Size(1160, 557);
+            tabControl1.TabIndex = 12;
+            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
+            // 
+            // tabPage1
+            // 
+            tabPage1.Location = new System.Drawing.Point(4, 28);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            tabPage1.Size = new System.Drawing.Size(1152, 525);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "Activity Information";
+            tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            tabPage2.Location = new System.Drawing.Point(4, 28);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            tabPage2.Size = new System.Drawing.Size(1152, 525);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "Player Info";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // tabPage3
+            // 
+            tabPage3.Location = new System.Drawing.Point(4, 28);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            tabPage3.Size = new System.Drawing.Size(1152, 525);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "Traffic Info";
+            tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage4
+            // 
+            tabPage4.Location = new System.Drawing.Point(4, 28);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            tabPage4.Size = new System.Drawing.Size(1152, 525);
+            tabPage4.TabIndex = 3;
+            tabPage4.Text = "Station Info";
+            tabPage4.UseVisualStyleBackColor = true;
+            // 
             // AEForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1184, 761);
+            Controls.Add(tabControl1);
             Controls.Add(pictureBox1);
             Controls.Add(progressBar1);
             Controls.Add(button8);
@@ -173,6 +235,7 @@
             Name = "AEForm";
             Text = "Activity Editor";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            tabControl1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -190,5 +253,10 @@
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage4;
     }
 }
