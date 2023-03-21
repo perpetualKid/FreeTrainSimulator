@@ -21,5 +21,10 @@ namespace Orts.Toolbox.ActivityEditor
         {
 
         }
+
+        private void groupBox6_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }
