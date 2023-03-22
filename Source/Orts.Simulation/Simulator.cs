@@ -394,7 +394,7 @@ namespace Orts.Simulation
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
-            PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
+            PoolHolder = new Poolholder(timeTableFile, cancellationToken);
 
             TimetableInfo TTinfo = new TimetableInfo(this);
             List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellationToken);
